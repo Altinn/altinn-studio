@@ -4,7 +4,7 @@ Neste generasjon tjenesteplattform i Altinn
 
 TODO:
 
-- [x] Tilgjengeliggjøre løsningen på [altinn.studio/user/login](https://altinn.studio/user/login)
+- [x] Tilgjengeliggjøre løsningen på [altinn.studio](https://altinn.studio)
 - [ ] Legge ut kildekoden for "Tjenester 3.0"
 - [ ] Legg ut dokumentasjon
 - [ ] Legge ut backlog og ta i bruk milestones
