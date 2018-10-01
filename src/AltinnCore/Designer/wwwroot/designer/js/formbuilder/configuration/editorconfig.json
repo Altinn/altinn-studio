@@ -1,0 +1,147 @@
+﻿{
+  "tagconfig": {
+    "input": {
+      "attributes": {
+        "placeholder": {
+          "name": "Placeholder",
+          "editortype": "text",
+          "allowResourceText": true,
+          "resourceTextType": "Placeholder"
+        }
+      }
+    },
+
+    "textarea": {
+      "attributes": {
+        "placeholder": {
+          "name": "Placeholder",
+          "editortype": "text",
+          "allowResourceText": true,
+          "resourceTextType": "Placeholder"
+        }
+      }
+    },
+
+    "p": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true
+        }
+      }
+    },
+
+    "h1": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true
+        }
+      }
+    },
+
+    "h2": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true
+        }
+      }
+    },
+
+    "h3": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true
+        }
+      }
+    },
+
+    "select": {
+      "attributes": {
+        "codelist": {
+          "name": "Bruk kodeliste",
+          "editortype": "codelistbindingselect"
+        }
+      }
+    },
+
+    "span": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true
+        }
+      }
+    },
+
+    "a": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true,
+          "informationText": "Teksten som skal stå på linken"
+        },
+        "action": {
+          "editortype": "a"
+        }
+      }
+    },
+
+    "label": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true,
+          "resourceTextType": "Label"
+        }
+      }
+    },
+
+    "small": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true,
+          "resourceTextType": "Help"
+        }
+      }
+    },
+
+    "button": {
+      "attributes": {
+        "value": {
+          "name": "Tekst",
+          "editortype": "text",
+          "istagcontent": true,
+          "allowResourceText": true,
+          "informationText": "Teksten som skal stå på knappen"
+        },
+        "action": {
+          "editortype": "button"
+        }
+      }
+    }
+  },
+  "groupconfig": {
+    "name": "Binding til modell",
+    "editortype": "groupproperties"
+  }
+}

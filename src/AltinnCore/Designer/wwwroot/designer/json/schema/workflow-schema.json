@@ -1,0 +1,329 @@
+﻿{
+    "title": "Prosessflyt",
+    "type": "array",
+    "format": "tabs",
+    "items": {
+        "title": "steg",
+        "headerTemplate": "Steg {{ i1 }}: {{self.stepName}}",
+      "oneOf": [
+        {
+          "title": "Stegtype: Utfylling",
+          "type": "object",
+          "properties": {
+            "stepType": {
+              "type": "string",
+              "default": "FormFilling",
+              "options": {
+                "hidden": true
+              }
+            },
+            "stepName": {
+              "title": "Navn på utfyllingssteg",
+              "type": "string",
+              "default": "Utfylling"
+            },
+            "security": {
+              "title": "Sikkerhet",
+              "type": "object",
+              "properties": {
+                "authenticationLevel": {
+                  "title": "Sikkerhetsnivå",
+                  "type": "string",
+                  "required": true,
+                  "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "default": "3"
+                },
+                "roleRequirement": {
+                  "title": "Rolle(r) som kreves for dette steget",
+                  "type": "string",
+                  "default": "ALLEA"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "Stegtype: Signering",
+          "type": "object",
+          "properties": {
+            "stepType": {
+              "type": "string",
+              "default": "Signing",
+              "options": {
+                "hidden": true
+              }
+            },
+            "stepName": {
+              "title": "Navn på signeringssteg",
+              "type": "string",
+              "default": "Signering"
+            },
+            "requireUniqueSigners": {
+              "title": "Ulike brukere må signere (hvis flere signeringssteg)",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": true
+            },
+            "obligatorySigning": {
+              "title": "Oligatorisk signering",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "No",
+                "Yes",
+                "FormSetControlled"
+              ],
+              "options": {
+                "enum_titles": [
+                  "Nei, bruker kan velge fritt",
+                  "Ja, bruker må signere alt",
+                  "Styrt av skjema i skjemasett"
+                ]
+              }
+            },
+            "skipStepLogic": {
+              "title": "Betinget signering (logikk)",
+              "type": "string",
+              "default": "(Skjema.Omsetning.AarligOmsetning * 12) >= 500000"
+            },
+            "minimumSignatures": {
+              "title": "Antall påkrevde signaturer (brukerstyrt signering hvis større enn 1)",
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            },
+            "signingText": {
+              "title": "Signeringstekst",
+              "type": "string",
+              "format": "textarea",
+              "maxLength": 250
+            },
+            "security": {
+              "title": "Sikkerhet",
+              "type": "object",
+              "properties": {
+                "authenticationLevel": {
+                  "title": "Sikkerhetsnivå",
+                  "type": "string",
+                  "required": true,
+                  "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "default": "3"
+                },
+                "roleRequirement": {
+                  "title": "Rolle(r) som kreves for dette steget",
+                  "type": "string",
+                  "default": "ALLEA"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "Stegtype: Betaling",
+          "type": "object",
+          "properties": {
+            "stepType": {
+              "type": "string",
+              "default": "Payment",
+              "options": {
+                "hidden": true
+              }
+            },
+            "stepName": {
+              "title": "Navn på betalingssteg",
+              "type": "string",
+              "default": "Betaling"
+            },
+            "paymentProvider": {
+              "title": "Betalingsleverandør",
+              "type": "string",
+              "required": true,
+              "enum": [
+                "Dibs",
+                "Nets",
+                "Payex"
+              ]
+            },
+            "merchantId": {
+              "title": "Avtale id",
+              "type": "string",
+              "required": true
+            },
+            "paymentMethods": {
+              "title": "Betalingsmetoder",
+              "type": "array",
+              "uniqueItems": true,
+              "required": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Visa",
+                  "MasterCard",
+                  "American Express",
+                  "Diners Club",
+                  "BankAxess"
+                ]
+              }
+            },
+            "amount": {
+              "title": "Beløp (statisk eller fra datamodell)",
+              "type": "string",
+              "default": "Melding.Betalingsinformasjon.Sum"
+            },
+            "description": {
+              "title": "Beskrivelse (fra datamodell)",
+              "type": "string",
+              "default": "Melding.Betalingsinformasjon.Beskrivelse"
+            },
+            "orderNumber": {
+              "title": "Ordrenummer (fra datamodell)",
+              "type": "string",
+              "default": "Melding.Betalingsinformasjon.Ordreid"
+            },
+            "transactionId": {
+              "title": "Transaksjons id (fra datamodell)",
+              "type": "string",
+              "default": "Melding.Betalingsinformasjon.Transaksjonsid"
+            },
+            "security": {
+              "title": "Sikkerhet",
+              "type": "object",
+              "properties": {
+                "authenticationLevel": {
+                  "title": "Sikkerhetsnivå",
+                  "type": "string",
+                  "required": true,
+                  "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "default": "3"
+                },
+                "roleRequirement": {
+                  "title": "Rolle(r) som kreves for dette steget",
+                  "type": "string",
+                  "default": "ALLEA"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "Stegtype: Arkivering",
+          "type": "object",
+          "properties": {
+            "stepType": {
+              "type": "string",
+              "default": "Archive",
+              "options": {
+                "hidden": true
+              }
+            },
+            "stepName": {
+              "title": "Navn på arkiveringssteg",
+              "type": "string",
+              "default": "Arkivering"
+            },
+            "useUserArchive": {
+              "title": "Arkiver innsendte data i brukerens arkiv",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": true
+            },
+            "useServiceOwnerArchive": {
+              "title": "Arkiver innsendte data i tjenesteeiers arkiv",
+              "type": "boolean",
+              "format": "checkbox",
+              "default": false
+            },
+            "security": {
+              "title": "Sikkerhet",
+              "type": "object",
+              "properties": {
+                "authenticationLevel": {
+                  "title": "Sikkerhetsnivå",
+                  "type": "string",
+                  "required": true,
+                  "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "default": "3"
+                },
+                "roleRequirement": {
+                  "title": "Rolle(r) som kreves for dette steget",
+                  "type": "string",
+                  "default": "ALLEA"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "title": "Stegtype: Innsyn",
+          "type": "object",
+          "properties": {
+            "stepType": {
+              "type": "string",
+              "default": "Lookup",
+              "options": {
+                "hidden": true
+              }
+            },
+            "stepName": {
+              "title": "Navn på innsynsteg",
+              "type": "string",
+              "default": "Innsyn"
+            },
+            "security": {
+              "title": "Sikkerhet",
+              "type": "object",
+              "properties": {
+                "authenticationLevel": {
+                  "title": "Sikkerhetsnivå",
+                  "type": "string",
+                  "required": true,
+                  "enum": [
+                    "0",
+                    "1",
+                    "2",
+                    "3",
+                    "4"
+                  ],
+                  "default": "3"
+                },
+                "roleRequirement": {
+                  "title": "Rolle(r) som kreves for dette steget",
+                  "type": "string",
+                  "default": "ALLEA"
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+}

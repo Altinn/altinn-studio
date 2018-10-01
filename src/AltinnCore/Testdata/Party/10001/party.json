@@ -1,0 +1,10 @@
+﻿{
+  "PartyId": "10001",
+  "PartyType": "Organization",
+  "Name": "Kari Consulting",
+  "Organization": {
+    "OrganizationId": "1",
+    "OrganizationNumber": "900000001",
+    "OrganizationName": "Kari Consulting"
+  }
+}

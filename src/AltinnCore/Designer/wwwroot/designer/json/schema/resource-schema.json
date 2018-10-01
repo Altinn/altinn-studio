@@ -1,0 +1,43 @@
+﻿{
+  "title": "Oversetting",
+  "type": "object",
+  "properties": {
+    "language": {
+      "title": "Språk",
+      "type": "string",
+      "required": true,
+      "minLength": 2,
+      "options": {
+        "hidden": true
+      }
+    },
+    "resources": {
+      "title": " ",
+      "type": "array",
+      "format": "table",
+      "uniqueItems": true,
+      "items": {
+        "title": "resource",
+        "type": "object",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string",
+            "minLength": 1,
+            "options": {
+              "input_width": "20%"
+            }
+          },
+          "value": {
+            "title": "Tekst",
+            "type": "string",
+            "minLength": 1,
+            "options": {
+               "input_width": "80%"
+            }
+          }
+        }
+      }
+    }
+  }
+}

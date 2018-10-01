@@ -1,0 +1,38 @@
+﻿[
+  {
+    "ReporteeNumber": "01047512345",
+    "ReporteeName": "Pål Revisor",
+    "PartyID": "4",
+    "PartyType": "Person"
+  },
+  {
+    "ReporteeNumber": "900000002",
+    "ReporteeName": "Frisk & Sporty Oslo",
+    "PartyID": "10002",
+    "PartyType": "Organization"
+  },
+  {
+    "ReporteeNumber": "900000003",
+    "ReporteeName": "Frisk & Sporty Bergen",
+    "PartyID": "10003",
+    "PartyType": "Organization"
+  },
+  {
+    "ReporteeNumber": "900000004",
+    "ReporteeName": "Frisk & Sporty Trondheim",
+    "PartyID": "10004",
+    "PartyType": "Organization"
+  },
+  {
+    "ReporteeNumber": "02017512345",
+    "ReporteeName": "Kari Selvstendig",
+    "PartyID": "2",
+    "PartyType": "Person"
+  },
+  {
+    "ReporteeNumber": "900000001",
+    "ReporteeName": "Kari Consulting",
+    "PartyID": "10001",
+    "PartyType": "Organization"
+  }
+]

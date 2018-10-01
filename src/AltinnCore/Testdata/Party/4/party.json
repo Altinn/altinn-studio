@@ -1,0 +1,16 @@
+﻿{
+  "PartyId": "4",
+  "PartyType": "Person",
+  "Name": "Pål Revisor",
+  "Person": {
+    "PersonId": "4",
+    "SSN": "04017512345",
+    "FirstName": "Pål",
+    "LastName": "Revisor"
+  },
+  "PostAdress": {
+    "Street": "Pålgata 1",
+    "PostalCode": "1337",
+    "City": "Sandvika"
+  }
+}

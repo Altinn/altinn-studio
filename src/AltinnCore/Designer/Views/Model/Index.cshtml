@@ -1,0 +1,327 @@
+﻿@{
+    ViewBag.Title = "Datamodell";
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+    string edition = ViewContext.RouteData.Values["edition"] as string;
+}
+
+@section scripts {
+    <script src="~/designer/js/jqueryextensions/bootstrap-treeview.extension.js" asp-append-version="true"></script>
+    <script src="~/designer/js/lib/monaco-editor/vs/loader.js" asp-append-version="true"></script>
+}
+
+@if(Model.Elements == null || Model.Elements.Count == 0) {
+    <style>
+        .tab-content, #tabs { display:none; }
+    </style>
+}
+
+<form method="POST" asp-action="Upload" enctype="multipart/form-data">
+    <div class="">
+        <label id="filelabel" class="btn btn-primary form-control-label" for="thefile">
+            <span id="filebtn">Velg XSD</span>
+            <input type="file" name="thefile" id="thefile" accept=".xsd" style="display:none;" />
+        </label>
+        <label id="secondaryFilelabel" class="btn btn-secondary form-control-label" for="secondaryFiles">
+            <span id="secondaryFileBtn">Velg flere XSD'er</span>
+            <input type="file" name="secondaryFiles" id="secondaryFiles" multiple accept=".xsd" style="display:none;" />
+        </label>
+        <label id="submitLabel" class="form-control-label btn disabled" disabled>
+            <span>Last opp</span>
+            <input type="submit" id="submit" value="Last opp" style="display:none;" />
+        </label>
+    </div>
+    <div>
+        <small>XSD'er kan lastes ned fra <a href="http://w2.brreg.no/oppgaveregisteret/spesifikasjon_etatsliste.jsp" target="_blank">OR</a>
+        eller <a href="https://app.seres.no/forvaltning/" target="_blank">SERES</a>.</small>
+    </div>
+    <script>
+        $(function () {
+            $("#thefile").change(function () {
+                var fileName = $(this).val();
+                if ( fileName.substr( 0, 12 ) === "C:\\fakepath\\" ) {
+					fileName = fileName.substr( 12 );
+				}
+                $("#filebtn").text(fileName);
+                $("#filelabel").addClass("disabled");
+                $("#submitLabel").removeClass("disabled").addClass("btn-primary").prop("disabled", false);
+            });
+            $("#secondaryFiles").change(function () {
+                var fileName = $(this).val();
+                if ( fileName.substr( 0, 12 ) === "C:\\fakepath\\" ) {
+					fileName = fileName.substr( 12 );
+				}
+                $("#secondaryFileBtn").text(fileName);
+                $("#secondaryFilelabel").addClass("disabled");
+            });
+        });
+    </script>
+</form>
+
+<hr />
+<ul id="tabs" class="nav nav-tabs">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#treeTab" role="tab">Visuell visning</a>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#json" role="tab">JSON</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#csharp" role="tab">C#</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#xml" role="tab">XSD</a>
+    </li>
+</ul>
+
+<div class="tab-content" style="position:relative">
+    <div class="tab-pane fade in active" id="treeTab" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <input id="search" type="search" class="form-control" placeholder="Søk modell..." autocomplete="on">
+                <span class="fa fa-search" aria-hidden="true"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6" id="treeView"></div>
+            <div class="col-lg-6">
+                <h6 id="elementName"></h6>
+                <div style="min-height: 300px"id="elementDetails"></div>
+                <button style="display:none" class="btn btn-outline-primary" id="saveModelChangesBtn">Lagre endringer</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade in" id="json" role="tabpanel"> 
+        <a title="Last ned JSON-modell" asp-action="GetJson" download="@service-@edition-model.json">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
+        </a>
+        <div id="json-container" class="editor-frame">
+            <div id="json-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="json-model" style="display: none;"></div>
+    </div>
+
+    <div class="tab-pane fade" id="csharp" role="tabpanel">
+        <a title="Last ned C# modell" asp-action="GetModel" download="@service-@edition-model.cs">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned C# modell</span>
+        </a>
+        <div id="csharp-container" class="editor-frame">
+            <div id="csharp-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="csharp-model" style="display: none;"></div>
+    </div>
+
+    <div class="tab-pane fade" id="xml" role="tabpanel">
+        <a title="Last ned XSD" asp-action="GetXsd" download="@service-@edition-model.xsd">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
+        </a>
+        <div id="xml-container" class="editor-frame">  
+            <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="xml-model" style="display: none;"></div>
+    </div>
+</div>
+
+<script>
+    var root = this;
+
+    var editor = null;
+    var serviceModel = null;
+
+    var selectedElementId = null;
+    var previousNode = null;
+
+    root.editor = editor;
+    root.serviceModel = serviceModel;
+    root.selectedElementId = selectedElementId;
+    root.previousNode = previousNode;
+
+    root.updateModelValue = function () {
+        var newValue = JSON.parse(root.editor.getValue());
+        root.serviceModel.Elements[root.previousNode.model.ID] = newValue;
+        var nodes = $('#treeView').treeview('getNodes');
+        $.each(nodes, function () {
+            if (this.model.ID == root.previousNode.model.ID) {
+                this.model = newValue;
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        $('#saveModelChangesBtn').on('click', function () {
+            var activePaneOnClick = $('.tab-pane.fade.active.in');
+            activePaneOnClick.addClass('loading');
+            root.updateModelValue();
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("UpdateServiceMetadata")",
+                data: {   
+                    serviceMetadata: JSON.stringify(root.serviceModel)
+                },
+                success: function (data) {
+                    activePaneOnClick.removeClass('loading');
+                    console.log(data);
+                }
+            });
+        });
+
+        $.getJSON(
+            "@Url.Action("GetJson")",
+            function (data) {
+                serviceModel = data;
+
+                var treeViewObject = $('#treeView').treeview({
+                    data: createTreeFromModel(data),
+                    levels: 3,
+                    searchResultBackColor: 'rgb(30,174,247)',
+                    searchResultColor: '#FFF',
+                    onhoverColor: '#E6F3FB',
+                    collapseIcon: 'fas fa-minus-square',
+                    expandIcon: 'fas fa-plus-square',
+                    onNodeSelected: function (event, data) {
+                        require.config({ paths: { 'vs': '/designer/js/lib/monaco-editor/vs' } });
+                        require(['vs/editor/editor.main'], function () {
+                            if (!root.editor) {
+                                root.editor = monaco.editor.create(document.getElementById("elementDetails"), {
+                                    value: JSON.stringify(data.model, null, "\t"),
+                                    language: 'json'
+                                });
+                                $('#saveModelChangesBtn').show();
+                                $('#elementName').text(data.model.ID);
+                            } else {
+                                root.updateModelValue();
+
+                                root.editor.setValue(JSON.stringify(data.model, null, "\t"));
+                                $('#elementName').text(data.model.ID);
+                            }
+
+                            previousNode = data;
+                        });
+                    }
+                });
+
+                var timer;
+                $('#search').keyup(function () {
+                    clearTimeout(timer);  //clear any running timeout on key up
+                    timer = setTimeout(function() { //then give it a 600ms to see if the user is finished
+                        var searchInput = $('#search').val();
+                        $('#treeView').treeview('collapseAll', { silent: true });
+                        $('#treeView').treeview('search', [searchInput, {
+                            ignoreCase: true,     // case insensitive
+                            exactMatch: false,    // like or equals
+                            revealResults: true   // reveal matching nodes
+                        }]);
+
+                        if(searchInput.length > 0) {
+                            $('#treeView li:not(.search-result)').hide();
+                        } else {
+                            $('#treeView li:not(.search-result)').show();
+                        }
+                    }, 600);
+                });
+
+                $('#json-model').text(JSON.stringify(data, null, 3));
+            });
+
+        $.get("@Url.Action("GetModel")",
+            function (data) {
+                $("#csharp-model").text(data);
+            });
+
+        $.get("@Url.Action("GetXsd")",
+            function (data) {
+                $("#xml-model").text(data);
+            });
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+            if (editor != null) {
+                editor.dispose();
+                editor = null;
+            }
+            var tabId = e.target.toString().split("#")[1];
+            if (tabId != treeTab) {
+                var editorId = tabId + "-editor";
+                var modelId = tabId + "-model";
+
+                var h = $('.tab-content').height();
+                var w = $('.tab-content').width();
+                require.config({ paths: { 'vs': '/designer/js/lib/monaco-editor/vs' }});
+                require(['vs/editor/editor.main'], function() {
+                    editor = monaco.editor.create(document.getElementById(editorId), {
+                        value:
+                            document.getElementById(modelId).innerText
+                        ,
+                        language: tabId
+                    });
+                    editor.updateOptions({
+                        wrappingColumn:0});
+                    editor.layout({height: h, width: w});
+                });
+            }
+        });
+        });
+
+        function createTreeFromModel(serviceModel) {
+            var elements = [];
+
+            // Get all the elements as an array
+            for (var propertyName in serviceModel.Elements) {
+                elements.push(serviceModel.Elements[propertyName]);
+            }
+
+            // Reverse it so we can start with the root element
+            elements.reverse();
+
+            var data = [];
+            for (var i = 0; i < elements.length; i++) {
+                insertElement(data, elements[i]);
+            }
+
+            for (var y = 0; y < data.length; y++) {
+                removeEmptyNodes(data[y]);
+            }
+            return data;
+        }
+
+        function insertElement(data, element) {
+            var idParts = element.ID.split('.');
+            var currentData = data;
+            for (var i = 0; i < idParts.length; i++) {
+                var elementExists = false;
+                var existingElement;
+                for (var x = 0; x < currentData.length; x++) {
+                    if (currentData[x].id === idParts[i]) {
+                        elementExists = true;
+                        existingElement = currentData[x].nodes;
+                        break;
+                    }
+                }
+
+                if (!elementExists) {
+                    var newElement = {
+                        text: element.Name,
+                        id: idParts[i],
+                        href: "#" + element.ID,
+                        nodes: [],
+                        model: element
+                    };
+
+                    currentData.push(newElement);
+                    currentData = newElement.nodes;
+                } else {
+                    currentData = existingElement;
+                }
+            }
+        }
+
+        function removeEmptyNodes(data) {
+            if (data.nodes.length == 0) {
+                delete data.nodes;
+            }
+            else {
+                for (var i = 0; i < data.nodes.length; i++) {
+                    removeEmptyNodes(data.nodes[i]);
+                }
+            }
+        }
+</script>

@@ -1,0 +1,51 @@
+﻿{
+  "title": "Kodeliste",
+  "type": "object",
+  "properties": {
+    "name": {
+      "title": "Navn på kodelisten",
+      "type": "string",
+      "required": true,
+      "minLength": 3,
+      "default": "Kodeliste 1"
+    },
+    "codes": {
+      "title": " ",
+      "type": "array",
+      "format": "table",
+      "uniqueItems": true,
+      "required": true,
+      "items": {
+        "title": "kode",
+        "type": "object",
+        "properties": {
+          "key": {
+            "title": "Kode",
+            "type": "string",
+            "required": true,
+            "minLength": 1,
+            "options": {
+              "input_width": "10%"
+            }
+          },
+          "value1": {
+            "title": "Verdi1",
+            "type": "string",
+            "required": true,
+            "minLength": 1
+          },
+          "value2": {
+            "title": "Verdi2",
+            "type": "string",
+            "required": false
+          },
+          "value3": {
+            "title": "Verdi3",
+            "type": "string",
+            "required": false
+          }
+        }
+      }
+    }
+  }
+}

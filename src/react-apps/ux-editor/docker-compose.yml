@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+
+  sample-app:
+    container_name: react-poc
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - '.:/usr/src/app'
+      - '/usr/src/app/node_modules'
+    ports:
+      - '9000:9000'
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true

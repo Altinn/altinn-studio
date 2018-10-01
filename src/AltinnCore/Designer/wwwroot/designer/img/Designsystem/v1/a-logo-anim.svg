@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100px" height="100px" viewBox="0 0 100 100" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <title>altinn-logo-anim</title>
+  <g id="logoelement">
+    <rect id="Rect-1" x="0" y="0" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.22;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+    </rect>
+    <rect id="Rect-6" x="20" y="0" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.22;0.333;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-11" x="40" y="0" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.333;0.4444;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-16" x="60" y="0" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.4444;0.55555;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-21" x="80" y="0" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.55555;0.666666;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-22" x="80" y="20" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.666666;0.7777777;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-23" x="80" y="40" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.7777777;0.88888888;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-24" x="80" y="60" fill="rgba(0,0,0,0)" width="20" height="20">
+      <animate attributeName="fill" values="rgba(0,0,0,0);#000000;rgba(0,0,0,0);#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.88888888;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-25" x="80" y="80" width="20" height="20">
+      <animate attributeName="fill" values="#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.22;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-20" x="60" y="80" width="20" height="20">
+      <animate attributeName="fill" values="#000000;#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.22;0.333;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-15" x="40" y="80" width="20" height="20">
+      <animate attributeName="fill" values="#000000;#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.333;0.4444;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-10" x="20" y="80" width="20" height="20">
+      <animate attributeName="fill" values="#000000;#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.333;0.4444;0.55555;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-5" x="0" y="80" width="20" height="20">
+      <animate attributeName="fill" values="#000000;#000000;rgba(0,0,0,0);#000000;rgba(0,0,0,0)"
+        calcMode="discrete" keyTimes="0;0.1;0.55555;0.666666;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-4" x="0" y="60" width="20" height="20">
+      <animate attributeName="fill" values="#000000;#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.666666;0.7777777;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-3" x="0" y="40" width="20" height="20">
+      <animate attributeName="fill" values="#000000;#000000;rgba(0,0,0,0);#000000;#000000"
+        calcMode="discrete" keyTimes="0;0.1;0.7777777;0.88888888;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+      </rect>
+    <rect id="Rect-2" x="0" y="20" fill="rgba(0,0,0,0)" width="20" height="20">
+      <animate attributeName="fill" values="rgba(0,0,0,0);#000000;rgba(0,0,0,0);rgba(0,0,0,0)"
+        calcMode="discrete" keyTimes="0;0.1;0.88888888;0.999999999" repeatCount="indefinite" dur="2s"
+        ></animate>
+    </rect>
+    <rect id="Rect-13" x="40" y="40" width="20" height="20"></rect>
+  </g>
+</svg>

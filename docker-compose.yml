@@ -1,0 +1,100 @@
+version: '3.6'
+
+networks:
+  altinncore_network:
+    external: false
+  
+services:
+  altinn_loadbalancer:
+    container_name: altinn-loadbalancer
+    image: loadbalancer:latest
+    restart: always
+    networks:
+      - altinncore_network
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_HOST=localhost
+      - NGINX_PORT=80
+    depends_on:
+      - altinn_repositories
+      - altinn_designer
+    build:
+      context: ./src/LoadBalancer
+  
+  altinn_designer:
+    container_name: altinn-designer
+    image: altinncore:latest
+    restart: always
+    networks:
+      - altinncore_network
+    volumes:
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5000
+      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
+      - ServiceRepositorySettings:EnableGiteaIntegration=true
+      - ServiceRepositorySettings:ForceGiteaAuthentication=true
+      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
+      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
+      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
+      - GeneralSettings:TemplateLocation=/app/Templates
+      - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
+    ports:
+      - "5000:5000"
+    depends_on:
+      - altinn_repositories
+    build:
+      context: .
+      dockerfile: src/AltinnCore/Designer/Dockerfile
+  
+  altinn_runtime:
+    container_name: altinn-runtime
+    image: altinncoreruntime:latest
+    restart: always
+    networks:
+      - altinncore_network
+    volumes:
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5005
+      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
+      - ServiceRepositorySettings:EnableGiteaIntegration=true
+      - ServiceRepositorySettings:ForceGiteaAuthentication=true
+      - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
+      - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
+      - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
+    ports:
+      - "5005:5005"
+    build:
+      context: .
+      dockerfile: src/AltinnCore/Runtime/Dockerfile
+  
+  altinn_repositories:
+    container_name: altinn-repositories
+    image: gitea/gitea:1.4.3
+    restart: always
+    networks:
+      - altinncore_network
+    volumes:
+      - "./src/AltinnRepositories/gitea-data:/data"
+    ports:
+      - "3000:3000"
+      - "222:22"
+  
+  # TODO: Use alpine image for postgres. Important that it supports gitea
+  altinn_gitea_db:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_USER=[[YOUR POSTGRESS USER]]
+      - POSTGRES_PASSWORD=[[YOUR POSTGRESS PASSWORD]]
+      - POSTGRES_DB=[[YOUR POSTGRESS DB NAME]]
+    ports:
+      - "5432:5432"
+    networks:
+      - altinncore_network
+    volumes:
+      - "/var/lib/postgresql/data"

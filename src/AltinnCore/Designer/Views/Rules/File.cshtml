@@ -1,0 +1,66 @@
+﻿
+@section scripts {
+    <script src="~/designer/js/lib/monaco-editor/vs/loader.js"></script>
+}
+
+<button onclick="submitForm()" class="btn btn-primary"> <i class="fa fa-floppy-o fa-lg"></i> Lagre</button>
+<button onclick="compile()" class="btn btn-secondary"><i class="fa fa-gears fa-lg"></i> Kompiler</button>
+<br /><br />
+
+<div id="editorcontainer"></div>
+<div id="compilationResult"></div>
+
+
+<script>
+    var editor;
+    $(document).ready(function () {
+        $.ajax("@Url.Action("GetFile")?name=@ViewBag.FileName")
+    .done(function(data)
+    {
+        //$('#codecontainer').html(data);
+        var fileEnding = "@ViewBag.FileName".split('.').pop();
+        var language = fileEnding === 'js' ? 'javascript' : 'csharp';
+        require.config({ paths: { 'vs': '/designer/js/lib/monaco-editor/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editorcontainer'), {
+                value:data
+
+                ,
+                language: language
+            });
+            editor.updateOptions({
+                wrappingColumn: 0
+            });
+            editor.layout({ height: $(window).height()-200, width: $(window).width()-50 });
+        });
+    })
+    });
+
+    function submitForm() {
+            var fileContent = $('#editorcontainer').html();
+
+            $.ajax({
+                type: 'post',
+                url: "@Url.Action("SaveImplementationFile")?fileName=@ViewBag.FileName",
+                data: {
+                    fileContent : editor.getValue()
+                        },
+                
+            success: function (data) {
+                compile();
+            },
+            failure: function (errMsg) {
+                alert(errMsg);
+            }
+        });
+    }
+
+    function compile()
+    {
+        $.ajax("@Url.Action("Compile")")
+        .done(function(data)
+        {
+            $("#compilationResult").html(data);
+        })
+    }
+</script>

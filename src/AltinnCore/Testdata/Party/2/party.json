@@ -1,0 +1,16 @@
+﻿{
+  "PartyId": "2",
+  "PartyType": "Person",
+  "Name" :  "Kari Selvstendig",
+  "Person": {
+    "PersonId": "2",
+    "SSN": "02017512345",
+    "FirstName": "Kari",
+    "LastName": "Selvstendig"
+  },
+  "PostAdress": {
+    "Street": "Karigata 1",
+    "PostalCode": "1337",
+    "City":  "Sandvika"
+  }
+}

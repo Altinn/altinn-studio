@@ -1,0 +1,131 @@
+﻿@using AltinnCore.Common.Models
+@model RuleContainer
+
+@{
+    ViewBag.Title = "Endre regel";
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+    string edition = ViewContext.RouteData.Values["edition"] as string;
+}
+
+<h3>Endre regel</h3>
+<hr />
+
+<input type="hidden" id="orgId" value="@org" />
+<input type="hidden" id="serviceId" value="@service" />
+<input type="hidden" id="editionId" value="@edition" />
+<input type="hidden" id="ruleId" value="@Model.Id" />
+
+<div id="loadingContainer">
+    Laster...
+</div>
+<div id="ruleContainer" style="display:none">
+    <div id="rules">
+        <div class="row" rv-each-rulecontainer="rulecontainers">
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="form-group col-lg-12">
+                        <small><b>Navn</b></small>
+                        <div>
+                            <input type="text" rv-value="rulecontainer.name" class="form-control form-control-sm" />
+                        </div>
+                    </div>
+                    <br />
+                </div>
+            </div>
+            <h4 class="col-lg-12">Betingelser</h4>
+            <hr />
+            <div rv-each-condition="rulecontainer.conditions">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <div class="form-group col-lg-3">
+                            <small>
+                                <b>
+                                    Type
+                                </b>
+                            </small>
+                            <select rv-value="condition.conditionTypeId" rv-on-change="conditionChanged" class="form-control form-control-sm">
+                                <option rv-value="conditiontype.id" rv-each-conditiontype="conditiontypes">
+                                    { conditiontype.name }
+                                </option>
+                            </select>
+                            <input class="indexInput" type="hidden" rv-value="index" />
+                        </div>
+                        <div rv-each-parameter="condition.parameters" class="col-lg-3 form-group">
+                            <small>
+                                <b>
+                                    { parameter.desc }
+                                </b>
+                            </small>
+                            <div>
+                                <input type="text" rv-value="parameter.value" class="form-control-sm form-control model-autocomplete" />
+                            </div>
+                        </div>
+                        <div rv-unless="index | gt rulecontainer.conditions" class="col-lg-3">
+                            <div>
+                                <small>
+                                    <b>
+                                        Delimiter
+                                    </b>
+                                </small>
+                                <select rv-value="condition.delimiter.value" class="form-control">
+                                    <option rv-value="delimitertype.Value" rv-each-delimitertype="delimitertypes">
+                                        { delimitertype.Name }
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <button class="btn btn-secondary" id="addConditionBtn">Legg til betingelse</button>
+                <br />
+                <br />
+            </div>
+            <h4 class="col-lg-12">Aksjoner</h4>
+            <hr />
+            <div class="row" rv-each-condition="rulecontainer.rules">
+                <div class="col-lg-12">
+                    <div class="form-group col-lg-4">
+                        <small>
+                            <b>
+                                Type
+                            </b>
+                        </small>
+                        <select rv-value="condition.ruleTypeId" rv-on-change="actionChanged" class="form-control form-control-sm">
+                            <option rv-value="ruletype.id" rv-each-ruletype="ruletypes">
+                                { ruletype.name }
+                            </option>
+                        </select>
+                        <input class="indexInput" type="hidden" rv-value="index" />
+                    </div>
+                    <div rv-each-parameter="condition.parameters" class="col-lg-4 form-group">
+                        <small>
+                            <b>
+                                { parameter.desc }
+                            </b>
+                        </small>
+                        <div>
+                            <input type="text" rv-value="parameter.value" class="form-control-sm form-control model-autocomplete" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <button class="btn btn-secondary" id="addRuleBtn">Legg til aksjon</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <br />
+                <button id="saveRuleBtn" class="btn btn-primary">Lagre regel</button>
+                <a class="btn btn-danger-outline" asp-controller="Rules" asp-action="Index">
+                    Tilbake
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<script data-main="/designer/js/ruleseditor/main.js" src="~/designer/js/lib/require.js"></script>
+

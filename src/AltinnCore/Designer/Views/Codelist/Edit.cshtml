@@ -1,0 +1,157 @@
+﻿@{ViewBag.Title = ViewBag.CodelistName ?? "Ny kodeliste"; }
+@section scripts {
+    <script src="~/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+}
+@section styles {
+    <style>
+        #editor_holder > div > h3 {
+            display: none;
+        }
+    </style>
+}
+@{
+    string name = ViewBag.CodelistName;
+
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+    string edition = ViewContext.RouteData.Values["edition"] as string;
+
+    string routeName = "orgRoute";
+    if (edition != null)
+    {
+        routeName = "editionRoute";
+    }
+    else if (service != null)
+    {
+        routeName = "serviceRoute";
+    }
+}
+
+<div class="mx-auto" style="width: 12em;">
+    <input id="search" type="search" class="form-control" placeholder="Søk koder..." autocomplete="on" />
+    <span class="fa fa-search" aria-hidden="true"></span>
+</div>
+<div class="alert alert-success" role="alert" id="saveConfirmation" style="display:none">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <div id="message"></div>
+    <pre id="json"></pre>
+</div>
+<div id="editor_holder"></div>
+&nbsp;
+<div>
+    <input type="button" id="saveCodelistBtn" class="btn btn-primary" value="Lagre kodeliste" onclick="submitForm()" />
+    <a class="btn btn-danger" 
+       asp-route="@routeName"
+       asp-route-routeName="@routeName"
+       asp-route-org="@org"
+       asp-route-service="@service"
+       asp-route-edition="@edition"
+       asp-route-controller="Codelist"
+       asp-route-action="Delete" 
+       asp-route-name="@name">Slett</a> 
+</div>
+
+<script>
+    var _editor;
+    var _holder = document.getElementById('editor_holder');
+    var _schema;
+    var t = "countries";
+    $(document).ready(function () {
+        JSONEditor.defaults.theme = "bootstrap3";
+        JSONEditor.defaults.options.disable_array_delete_last_row = true;
+        JSONEditor.defaults.options.disable_array_delete_all_rows = true;
+        JSONEditor.defaults.options.disable_edit_json = true;
+        JSONEditor.defaults.options.disable_properties = true;
+        JSONEditor.defaults.options.disable_collapse = true;
+        JSONEditor.defaults.options.show_errors = "always";
+        JSONEditor.defaults.languages.en.button_delete_row_title_short = "Slett";
+        JSONEditor.defaults.languages.en.button_add_row_title = "Ny {{0}}";
+        JSONEditor.defaults.languages.en.error_notset = "Påkrevd";
+        JSONEditor.defaults.languages.en.error_uniqueItems = "Koder må være unike";
+
+        $.when(
+            $.ajax("@Url.Action("Schema", "Config", new { id = "codelist_schema" })"),
+            $.ajax("@Url.RouteUrl(routeName, new { action = "Get", controller = "Codelist", org, service, edition, name = ViewBag.CodelistName})"))
+            .done(function (a1, a2) {
+                _schema = a1[0];
+                _editor = new JSONEditor(_holder, {
+                    keep_oneof_values: true,
+                    remove_empty_properties: true,
+                    disable_array_reorder: true,
+                    required_by_default: false,
+                    schema: _schema,
+                    startval: JSON.parse(a2[0])
+                });
+            });
+    });
+
+    function submitForm() {
+        var errors = _editor.validate();
+        if (errors.length)
+        {
+
+        }
+        else
+        {
+            var jsonData = _editor.getValue();
+            var jsonString = JSON.stringify(jsonData, null, 3);
+
+            jQuery.post({
+                url: "@Url.RouteUrl(routeName, new { action = "Edit", controller = "Codelist", org, service, edition })?name=" + JSON.parse(jsonString).name,
+                contentType: "application/json; charset=UTF-8",
+                data: jsonString,
+                success: function (data) {
+                    $("#message").html(data.Message);
+                    $("#json").html(jsonString);
+                    $("#saveConfirmation").show();
+                },
+                failure: function (errMsg) {
+                    alert(errMsg);
+                }
+            });
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(function () {
+        $('#search').keyup(function () {
+            var that = this;
+            var tableRowsClass = $('.table tbody tr');
+            $('.search-no-result').remove();
+            var inputText = $(that).val().toLowerCase();
+
+            tableRowsClass.each(function (i, val) {
+                var show = false;
+                $(val).find("input").each(function (j, val2) {
+                    if (val2.value) {
+                        if (val2.value.toLowerCase().indexOf(inputText) != -1) {
+                            show = true;
+                        }
+                    }
+                });
+
+                show ? tableRowsClass.eq(i).show() : tableRowsClass.eq(i).hide();
+            });
+
+            //all tr elements are hidden
+            if (tableRowsClass.children(':visible').length == 0) {
+                $(".table th").hide();
+                $(".table").before('<div class="search-no-result alert alert-danger" role="alert">Fant ingen koder eller verdier...</div>');
+            } else {
+                $(".table th").show();
+            }
+        });
+    });
+
+    $(document).bind('keydown', function (e) {
+        if (e.ctrlKey && (e.which == 83)) {
+            e.preventDefault();
+            saveCodelistBtn.focus()
+            saveCodelistBtn.click();
+            saveCodelistBtn.blur();
+        }
+    });
+</script>

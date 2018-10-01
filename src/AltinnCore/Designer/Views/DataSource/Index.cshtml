@@ -1,0 +1,67 @@
+﻿@model IEnumerable<AltinnCore.Common.Models.DataSourceModel>
+@{
+    ViewData["Title"] = "Datakilder";
+
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+    string edition = ViewContext.RouteData.Values["edition"] as string;
+
+    string routeName = "orgRoute";
+    if (edition != null)
+    {
+        routeName = "editionRoute";
+    }
+    else if (service != null)
+    {
+        routeName = "serviceRoute";
+    }
+}
+@section scripts {
+    <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
+}
+
+<div class="text-center">
+    @if (Model.Count() > 0) {
+        <div class="mx-auto" style="width: 12em;">
+            <input id="search" type="search" class="form-control" placeholder="Søk datakilder..." autocomplete="on"/>
+            <span class="fa fa-search" aria-hidden="true"></span>
+        </div>
+    }
+
+    <div id="DataSourceList" class="list-group my-2">
+        @foreach (var d in Model)
+        {
+            <a asp-route="@routeName"
+                asp-route-controller="DataSource"
+                asp-route-action="Edit"
+                asp-route-id="@d.Id"
+                class="list-group-item list-group-item-action justify-content-center">
+                @d.Url
+            </a>
+        }
+    </div>
+
+    <a class="btn btn-outline-primary"
+        asp-route="@routeName"
+        asp-route-controller="DataSource"
+        asp-route-action="Create">
+        Lag ny datakilde
+    </a>
+</div>
+<script>
+    $(document)
+        .ready(function() {
+            $('#DataSourceList')
+                .btsListFilter('#search',
+                {
+                    initial: false,
+                    resetOnBlur: false,
+                    emptyNode: function(data) {
+                        return $('<a class="list-group-item justify-content-center alert alert-danger" role="alert" href="#" onclick="$(\'#search\').val(\'\').focus().keyup();">Fant ingen datakilder...</a>');
+                    },
+                    cancelNode: function() {
+                        return;
+                    }
+                });
+        });
+</script>

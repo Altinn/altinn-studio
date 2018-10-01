@@ -1,0 +1,49 @@
+{
+  "title": " ",
+  "type": "object",
+  "properties": {
+    "userTypesAllowed": {
+        "title": "Tillatte brukergrupper",
+        "type": "string",
+        "uniqueItems": true,
+        "required": true,
+        "enum": [
+        "All",
+        "PrivatePerson",
+        "LegalEntity"
+        ],
+        "options": {
+        "enum_titles": [
+            "Alle",
+            "Privatperson",
+            "Juridisk enhet"
+        ]
+        }
+    },
+    "authenticationLevel": {
+        "title": "Sikkerhetsnivå",
+        "type": "string",
+        "required": true,
+        "enum": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+        ],
+        "default": "3"
+    },
+    "allowUnitUsers": {
+        "title": "Tillat virksomhetsbrukere",
+        "type": "boolean",
+        "format": "checkbox",
+        "default": true
+    },
+    "allowDataDecryption": {
+        "title": "Tillat at krypterte data kan låses opp av bruker for visning",
+        "type": "boolean",
+        "format": "checkbox",
+        "default": false
+    }
+  }
+}

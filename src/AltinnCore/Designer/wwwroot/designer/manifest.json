@@ -1,0 +1,30 @@
+{
+    "lang": "no",
+    "dir": "ltr",
+    "name": "tjenester 3.0",
+    "description": "Next-gen offentlige tjenester",
+    "short_name": "3.0",
+    "icons": [
+        {
+            "src": "img/icon64x64.png",
+            "sizes": "64x64"
+        },
+        {
+            "src": "img/icon96x96.png",
+            "sizes": "96x96"
+        },
+        {
+            "src": "img/icon144x144.png",
+            "sizes": "144x144"
+        },
+        {
+            "src": "img/icon192x192.png",
+            "sizes": "192x192"
+        }
+    ],
+    "scope": "/",
+    "start_url": "/",
+    "display": "standalone",
+    "orientation": "any",
+    "background_color": "rgb(30,174,247)"
+}

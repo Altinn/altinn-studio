@@ -1,0 +1,29 @@
+﻿<fieldset>
+    <div class="form-group a-form-group a-form-group-datepicker row draggable">
+        <div class="input-group ">
+            <!-- Label -->
+            <label class="input-group-addon a-input-group-addon-date" for="inputDate" data-editor-title="Input-dato-ledetekst-felt">
+                <i class="ai ai-deadline"></i>
+                <span class="a-input-labelText control-label"
+                      data-editor-show="true"
+                      data-editor-title="Input-dato-ledetekst-felt-inni"
+                      data-editor-binding-context="1">Dato:</span>
+            </label>
+            <!-- Input  -->
+            <input type="text" id="inputDate" class="form-control date"
+                   data-editor-show="true"
+                   data-editor-title="Input dato felt"
+                   data-editor-binding-context="1" />
+        </div>
+        <span asp-validation-for=""
+              class="text-danger form-control-feedback"
+              data-editor-validation="true"
+              data-editor-binding-context="1">
+        </span>
+        <small data-editor-show="true"
+               data-editor-title="Hjelpetekst"
+               data-editor-binding-context="1"
+               class="form-text text-muted">Hjelpetekst for datofeltet</small>
+
+    </div>
+</fieldset>

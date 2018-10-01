@@ -1,0 +1,66 @@
+﻿
+@{
+  ViewBag.Title = "Home Page";
+  Layout = "~/Views/Shared/_LayoutClean.cshtml";
+}
+
+<script>
+  function loadScript() {
+    var script = document.createElement('script');
+    var service = window.location.pathname.split('/');
+    script.type = 'text/javascript';
+    script.src = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3] + '/' + service[4] + '/react-app.js';
+    window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
+    window.org = service[2];
+    window.service = service[3];
+    window.edition = service[4];
+    window.instanceId = service[5];
+    //script.src = window.location.origin + '/runtime/api/resource/' + window.org + '/' + window.service + '/' + window.edition + '/react-app.js';
+    document.body.appendChild(script);
+  }
+
+	function loadStyles() {
+		var service = window.location.pathname.split('/');
+		var resourcesUrl = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3] + '/' + service[4];
+    var stylesConfigUrl = resourcesUrl + '/Styles.json';
+		var xmlhttp = new XMLHttpRequest();
+
+		xmlhttp.onreadystatechange = function() {
+				if (this.readyState == 4 && this.status == 200) {
+						var stylesConfig = JSON.parse(this.responseText);;
+						loadServiceStyles(stylesConfig, resourcesUrl);
+				}
+		};
+		xmlhttp.open("GET", stylesConfigUrl, true);
+		xmlhttp.send();
+
+		function loadServiceStyles(stylesConfig, resourcesUrl) {
+			if (stylesConfig.ExternalStyles) {
+				for(var i = 0; i < stylesConfig.ExternalStyles.length; i++) {
+					var link = document.createElement('link');
+					link.setAttribute('rel', 'stylesheet');
+					link.type = 'text/css';
+					link.href = stylesConfig.ExternalStyles[i];
+					document.body.appendChild(link);
+				}
+			}
+
+			if (stylesConfig.InternalStyles) {
+				for(var i = 0; i < stylesConfig.InternalStyles.length; i++) {
+					var link = document.createElement('link');
+					link.setAttribute('rel', 'stylesheet');
+					link.type = 'text/css';
+					link.href = resourcesUrl + '/' + stylesConfig.InternalStyles[i];
+					document.body.appendChild(link);
+				}
+			}
+		}
+	}
+
+</script>
+
+<div id="root" class="media-body flex-column d-flex"></div>
+<script>
+	loadScript();
+	loadStyles();
+</script>

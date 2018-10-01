@@ -1,0 +1,115 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="~/designer/img/favicon.ico">
+
+    <title>@ViewBag.Title</title>
+
+    <!-- Javascript -->
+    <script src="~/designer/js/lib/jquery.min.js" asp-append-version="true"></script>
+    @RenderSection("scripts", required: false)
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="~/designer/css/bootstrap.min.css" asp-append-version="true">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+
+    @RenderSection("styles", required: false)
+    <style>
+        html, body {
+          height: 100%;
+        }
+        @@font-face {
+            font-family: "AltinnRoboto";
+            font-weight: bold;
+            src: url("/designer/font/roboto/roboto-bold-altinn.woff") format('woff');
+        }
+
+        @@font-face {
+            font-family: "AltinnRoboto";
+            font-weight:100;
+            src: url("/designer/font/roboto/roboto-light-altinn.woff") format('woff');
+        }
+
+        @@font-face {
+            font-family: "AltinnRoboto";
+            src: url("/designer/font/roboto/roboto-regular-altinn.woff") format('woff');
+        }
+
+        body {
+            font-family: AltinnRoboto, "San Fransisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+        }
+
+        h1, h2, h3 {
+            letter-spacing: 2px;
+        }
+        .btn, .form-control, .list-group-item:last-child, .list-group-item:first-child, .card {
+            border-radius: 0;
+        }
+
+        #search ~ .fa-search {
+            float: right !important;
+            margin-right: 10px;
+            margin-top: -28px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .control-label {
+            margin-bottom: 0;
+        }
+
+        .errormsg {
+            color: red;
+        }
+    </style>
+</head>
+
+<body class="a-bgWhite flex-column d-flex">
+    @Html.Partial("_Navbar")
+
+    <div class="container-fluid flex-column d-flex media-body">
+        @RenderBody()
+    </div>
+
+    <script>
+        define('jquery', [], function () {
+            return jQuery;
+        });
+
+         //Toggle main menu active state and copy secondary nav
+        $(document).ready(function () {
+            updateSecondaryMenu(null);
+        });
+
+        function updateSecondaryMenu(menuPath) {
+            var loc = location.pathname + location.search + location.hash;
+
+            $(".navbar-nav .active").removeClass("active");
+
+            // cleanup
+            $(".secondary-nav .navbar-nav").replaceWith("<ul class=\"navbar-nav\"><li class=\"nav-items-placeholder\"></li></ul>");
+
+            //remove .find("i").remove().end() to keep icons in secondary nav
+            $(".secondary-nav .navbar-nav *").replaceWith(
+                $("#navbar-main .dropdown-menu a[href='" + loc + "']").closest("li").find(".dropdown-menu > *").clone().removeClass("dropdown-item").addClass("nav-link nav-item") //.find("i").remove().end()
+            );
+            $(".secondary-nav .dropdown-divider").removeClass("nav-link");
+            $(".secondary-nav .nav-link").attr("onclick", "updateSecondaryMenu(this.pathname + this.hash);");
+
+            $("#navbar-main .nav-item a[href='" + loc + "']").closest("li").addClass("active");
+            //$("#navbar-main .dropdown-menu a[href='" + loc + "']").addClass("active");
+            if (menuPath == null) {
+                $(".secondary-nav a[href='" + loc + "']").addClass("active");
+            } else {
+                $(".secondary-nav a[href='" + menuPath + "']").addClass("active");
+            }
+        }
+    </script>
+</body>
+</html>

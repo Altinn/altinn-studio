@@ -1,0 +1,26 @@
+﻿@using AltinnCore.Common.Models;
+@model AppKey
+
+@{ViewBag.Title = "Registrer Applikasjonsnøkkel";}
+
+<!--h3>Ny tjeneste</h3-->
+
+<form asp-route-controller="Home" asp-route-action="AppToken">
+  <fieldset>
+    <div class="form-group">
+      <label asp-for="Key">Applikasjonsnøkkel</label>
+      <input asp-for="Key" type="text" required="required" minlength="3" maxlength="50"
+             class="form-control" placeholder="Appkey fra Repository" onchange="$('#name').html(this.value);" autocomplete="off"
+             title="Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('-' er tillatt)" />
+      <div>
+        <span class="text-danger" asp-validation-for="Key"></span>
+      </div>
+
+
+      <small class="text-muted">App Key må registreres for at man skal kunne utvikle eller endre tjenester i Altinn Studio</small>
+
+      <a href="/user/settings/applications" target="_blank" >Opprett ny nøkkel (nytt vindu)</a>
+    </div>
+    <input class="btn btn-primary" type="submit" value="Lagre App Token">
+  </fieldset>
+</form>

@@ -1,0 +1,317 @@
+﻿@model IList<string>
+@{ViewBag.Title = "Tekster"; }
+@section scripts {
+    <script src="~/designer/js/lib/jsoneditor.js" asp-append-version="true"></script>
+}
+@section styles {
+    <style>
+        #editor_holder > div > h3 {
+            display: none;
+        }
+    </style>
+}
+<div class="alert alert-success" role="alert" id="saveConfirmation" style="display:none">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <div id="message"></div>
+    <pre id="json"></pre>
+</div>
+
+<div class="mx-auto" style="width: 12em;">
+    <input id="search" type="search" class="form-control" placeholder="Søk tekster..." autocomplete="on" /> 
+    <span class="fa fa-search" aria-hidden="true"></span>
+</div>
+
+<ul id="tabs" class="nav nav-tabs my-2">
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" id="nb-NO" href="#nb-NO" role="tab">Bokmål</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" id="nn-NO" href="#nn-NO" role="tab">Nynorsk</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" id="en" href="#en" role="tab">Engelsk</a>
+    </li>
+    @foreach (string language in Model)
+    {
+        if (language != "nb-NO" && language != "nn-NO" && language != "en") 
+        {
+            <li class="nav-item">
+                <a class="nav-link" data-toggle="tab" id="@language" href="#@language" role="tab"></a>
+            </li>
+        }
+    }
+    <li id="newtab" class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#new" role="tab"><i class="fas fa-fw fa-plus" style="color:green;" aria-hidden="true"></i>Legg til språk</a>
+    </li>
+</ul>
+
+<div id="editor_holder"></div>
+
+<div role="tabpanel" class="tab-pane" id="new" style="display:none;">
+    <form>
+        <div class="input-group" style="width: 20em;">
+            <select id="language-list" class="form-control"></select>
+        </div>
+        <br />
+        <input type="button" class="btn btn-primary" value="Legg til språk" onclick="addLanguage(document.getElementById('language-list').selectedIndex)" />
+    </form>
+</div>
+<br />
+<div class="alert alert-success" role="alert" id="deleteConfirmation" style="display:none">
+    <span id="deleteConfirmation"></span>
+</div>
+
+<input id="saveTextsBtn" type="button" class="btn btn-primary" value="Lagre tekster" onclick="submitForm()" />
+<input id="DeleteLanguage" type="button" class="btn btn-danger" value="Slett språk" onclick="deleteLanguage()" style="display: none" />
+
+<script>
+    var _editor;
+    var _holder = document.getElementById('editor_holder');
+    var _schema;
+    var t = "nb-NO";
+    var cultures = [];
+
+$(document).ready(function () {
+    // Populate tabs with culture names
+    $.getJSON("/designer/json/cultures.json", function(data) {
+        cultures = data.cultures;
+        $.each(cultures, function (key, value) {
+            var tab = document.getElementById(value.id);
+            if (tab != null && tab.innerHTML == "") {
+                tab.innerHTML = value.name;
+            }
+        });
+    });
+
+    $('CurrentLangResource').value = t;
+
+    // Search functionality
+    $('#search').keyup( function() {
+        var that = this;
+        var tableBody = $('.table tbody');
+        var tableRowsClass = $('.table tbody tr');
+        $('.search-no-result').remove();
+        var inputText = $(that).val().toLowerCase();
+
+        tableRowsClass.each( function(i, val) {
+            var show = false;
+            $(val).find("input").each( function(j, val2) {
+                if(val2.value) {
+                    if (val2.value.toLowerCase().indexOf(inputText) != -1) {
+                        show = true;
+                    }
+                }
+            });
+
+            show ? tableRowsClass.eq(i).show() :  tableRowsClass.eq(i).hide();   
+        });
+        
+        //all tr elements are hidden
+        if(tableRowsClass.children(':visible').length == 0)
+        {   
+            $(".table th").hide();
+            $(".table").before('<div class="search-no-result alert" role="alert">Fant ingen tekster...</div>');
+        } else {
+            $(".table th").show();
+        }
+    });
+
+        JSONEditor.defaults.theme = "bootstrap3";
+        JSONEditor.defaults.options.disable_array_delete_last_row = true;
+        JSONEditor.defaults.options.disable_array_delete_all_rows = true;
+        JSONEditor.defaults.options.disable_edit_json = true;
+        JSONEditor.defaults.options.disable_properties = true;
+        JSONEditor.defaults.options.disable_collapse = true;
+        JSONEditor.defaults.options.show_errors = "always";
+        JSONEditor.defaults.languages.en.button_delete_row_title_short = "Slett";
+        JSONEditor.defaults.languages.en.button_add_row_title = "Ny tekst";
+        JSONEditor.defaults.languages.en.error_notempty = "Påkrevd";
+        JSONEditor.defaults.languages.en.error_uniqueItems = "Id for tekster må være unike";
+
+        var dataCache;
+        $.when(
+            $.ajax("@Url.Action("GetResourceSchema")"),
+            $.ajax("@Url.Action("GetResource")/" + t))
+            .done(function (a1, a2) {
+                var defaultJson = { language: t, resources: [] };
+                _schema = a1[0];
+                _editor = new JSONEditor(_holder, {
+                    keep_oneof_values: true,
+                    remove_empty_properties: false,
+                    disable_array_reorder: true,
+                    required_by_default: true,
+                    schema: _schema,
+                    startval: (a2[0] == "" ? defaultJson : JSON.parse(a2[0]))
+                });
+            });
+
+        $(document).on("shown.bs.tab", "a[data-toggle='tab']", function (e) {
+            t = $(e.target).attr('href').replace('#', ''); // newly activated tab
+            //e.relatedTarget // previous active tab
+            if (t != "new") {
+                $.ajax({
+                    url: "@Url.Action("GetResource")/" + t,
+                    contentType: "application/json; charset=UTF-8",
+                    success: function (data) {
+                        if (_editor) _editor.destroy();
+                        console.log(data);
+                        var defaultJson = { language: t, resources: [] };
+                        _editor = new JSONEditor(_holder, {
+                            keep_oneof_values: true,
+                            remove_empty_properties: false,
+                            disable_array_reorder: true,
+                            required_by_default: true,
+                            schema: _schema,
+                            startval: (data == "" ? defaultJson : JSON.parse(data))
+                        });
+
+                        // Search when switching tabs
+                        if ($('#search').val().length > 0) {
+                            $('#search').trigger("keyup");
+                        }
+                    }
+                });
+                $('#new').hide();
+                $('#editor_holder').show();
+                $('#saveTextsBtn').show();
+            } else {
+                $('#editor_holder').hide();
+                $('#saveTextsBtn').hide();
+                $('#new').show();
+
+                $('#language-list').html('');
+
+                loadLanguageDropdown();
+            }
+
+            var deleteBtn = $("#DeleteLanguage");
+            canDeleteLanguage(t) ? deleteBtn.show() : deleteBtn.hide();
+        });
+    });
+
+    function submitForm() {
+        var errors = _editor.validate();
+        if (errors.length) {
+
+        } else {
+            var jsonData = _editor.getValue();
+            var jsonString = JSON.stringify(jsonData, null, 3);
+
+            jQuery.post({
+                url: "@Url.Action("SaveResource")/" + t,
+                contentType: "application/json; charset=UTF-8",
+                data: jsonString,
+                success: function (data) {
+                    //$("#message").html(data.Message);
+                    //$("#json").html(jsonString);
+                    //$("#saveConfirmation").show();
+                },
+                failure: function (errMsg) {
+                    alert(errMsg);
+                }
+            });
+        }
+    }
+
+
+    /** Populates the language dropdown with languages not already in tabs */
+    function loadLanguageDropdown() {
+        $("#language-list").html('');
+        $.each(cultures, function (key, value) {
+            if (document.getElementById(value.id) == null) {
+                $("#language-list").append($("<option></option>").val(value.id).html(value.name));
+            }
+        });
+    }
+
+    /** Add a new language tab and creates a new resource file at the server */
+    function addLanguage(index) {
+        var languageList = document.getElementById('language-list');
+        var code = languageList[index].value;
+        var name = languageList[index].innerHTML;
+        var jsonData = {
+            language: code,
+            resources: []
+        };
+        var jsonString = JSON.stringify(jsonData, null, 3);
+
+        $("#newtab").before("<li class='nav-item'><a class='nav-link' data-toggle='tab' id='" + code + "' href='#" + code + "' role='tab'>" + name + "</a></li>");
+
+        loadLanguageDropdown();
+
+        $("#" + code).tab("show");
+
+        jQuery.post({
+            url: "@Url.Action("SaveResource")/" + code,
+            contentType: "application/json; charset=UTF-8",
+            data: jsonString,
+            success: function (data) {
+                //$("#message").html(data.Message);
+                //$("#json").html(jsonString);
+                //$("#saveConfirmation").show();
+            },
+            failure: function (errMsg) {
+                alert(errMsg);
+            }
+        });
+    }
+
+    /** Deletes the resource file for the language */
+    function deleteLanguage() {
+        var currentTab = $("#" + t);
+        var previousTab = currentTab.parent().prev().find("a");
+        var newTab = $("#nb-NO"); //default
+        if (previousTab) {
+            newTab = previousTab;
+        }
+
+        $("#deleteConfirmation").text("Språk '" + currentTab.text() + "' er nå slettet.");
+        var deleteUrl = "@Url.Action("DeleteLanguage")/" + t;
+
+        newTab.click();
+        currentTab.parent().hide();
+
+        jQuery.ajax({
+            type: "DELETE",
+            url: deleteUrl,
+            contentType: "application/json; charset=UTF-8",
+            success: function (data) {
+                if (data && data.gikkBra) {
+                    currentTab.parent().remove();
+
+                    setTimeout(function () {
+                        $("#deleteConfirmation").hide();
+                    }, 3456);
+                } else {
+                    currentTab.parent().show();
+                    currentTab.click();
+                    $("#deleteConfirmation").text(currentTab.text() + " could not be deleted...");
+                }
+
+                $("#deleteConfirmation").show();
+            },
+            error: function (er, statusText) {
+                if (er && er.statusText) {
+                    alert(er.status + " - " + er.statusText);
+                } else {
+                    alert(er);
+                }
+            }
+        });
+    }
+
+    function canDeleteLanguage(l) {
+        return l && l !== "nb-NO" && l !== "nn-NO" && l !== "en" && l !== "new";
+    }
+
+    $(document).bind('keydown', function (e) {
+        if (e.ctrlKey && (e.which == 83)) {
+            e.preventDefault();
+            saveTextsBtn.focus();
+            saveTextsBtn.click();
+            saveTextsBtn.blur();
+        }
+    });
+</script>

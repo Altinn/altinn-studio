@@ -1,0 +1,56 @@
+﻿@{ViewBag.Title = "Tjenestelogikk"; }
+@using System.IO;
+@using AltinnCore.ServiceLibrary;
+@model List<AltinnCoreFile>
+
+@if (Model != null)
+{
+    <table class="table table-striped table-bordered">
+        <thead class="thead-inverse">
+            <tr>
+                <th>Status</th>
+                <th>Filnavn</th>
+                <th>Sist endret</th>
+             </tr>
+        </thead>
+        <tbody>
+            @foreach (AltinnCoreFile file in Model)
+            {
+                <tr>
+                    <td>
+                        @if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.OK))
+                        {
+                        <i class="fa fa-fw fa-check" aria-hidden="true"></i>
+                        }
+                        else if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Error))
+                        {
+                            <i class="fa fa-fw fa-remove" aria-hidden="true"></i>
+                        }
+                        else if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Warning))
+                        {
+                            <i class="fa fa-fw fa-exclamation" aria-hidden="true"></i>
+                        }
+                    </td>
+                    <td>
+                        <a asp-route="editionRoute"
+                           asp-route-controller="Rules"
+                           asp-route-action="File"
+                           asp-route-name="@file.FileName">
+                            @file.FileName
+                        </a>
+                    </td>
+                    <td>
+                        @file.LastChanged
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h3>Kodestatus</h3>
+
+ @Html.Partial("CompilationResult")    
+
+}
+
+

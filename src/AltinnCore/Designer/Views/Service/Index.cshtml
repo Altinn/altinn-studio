@@ -1,0 +1,83 @@
+﻿@model AltinnCore.Common.Models.AltinnStudioViewModel
+@using AltinnCore.ServiceLibrary.Configuration;
+
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
+  ViewBag.Title = service;
+}
+@section scripts {
+  <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
+}
+
+<div class="text-center">
+  <h1 class="my-5 hidden-xs-down">
+    <span style="font-weight: lighter">@org / @service</span>
+  </h1>
+</div>
+
+
+@if (Model.IsLocalRepo)
+{
+
+  @if (Model.RepositoryContent != null && Model.RepositoryContent.Count > 0)
+  {
+    <div class="alert alert-info" role="alert">
+      Det er @Model.RepositoryContent.Count filer som er endret som ikke er lagret i Altinn Studio Repository. Se status og mulighet for innsjekking <a href="/designer/@org/@service/Service/Status">her</a>
+    </div>
+  }
+
+  @if (Model.CommitsBehind != null && Model.CommitsBehind.Value > 0)
+  {
+    <div class="alert alert-info" role="alert">
+      Det er @Model.CommitsBehind.Value endringer utført på tjenesten du ikke har hentet inn. <a href="/designer/@org/@service/Service/PullRemoteChanges">Pull endringer.</a>
+    </div>
+  }
+
+  <div class="row no-gutters">
+    <div class="col text-left pt-2 pb-0"><a href="/@org/@service" title="Åpne @service repository">Utgaver</a></div>
+    <div class="col-auto" style="width: 16em;">
+      <input id="search" type="search" class="form-control" placeholder="Filtrer..." autocomplete="on" />
+      <span class="fa fa-search" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <div id="editionslist" class="list-group my-2">
+    @foreach (EditionConfiguration edition in Model.ServiceEditions)
+    {
+      <a asp-controller="Edition" asp-route-edition="@edition.Code"
+         title="Åpne utgave @edition.Code"
+         class="list-group-item list-group-item-action">
+        @edition.Code
+      </a>
+    }
+  </div>
+
+}
+else
+{
+
+  <a href="/designer/@org/@service/Service/Clone">Clone service</a>
+
+}
+
+<a class="btn btn-outline-primary"
+    asp-route="serviceRoute"
+    asp-route-action="CreateEdition">
+    Ny utgave
+</a>
+
+<script>
+  $(document).ready(function () {
+    $('#editionslist').btsListFilter('#search', {
+      initial: false,
+      resetOnBlur: false,
+      emptyNode: function (data) {
+        return $('<a class="list-group-item alert alert-danger" role="alert" href="#" onclick="$(\'#search\').val(\'\').focus().keyup();">Fant ingen utgaver...</a>');
+      },
+      cancelNode: function () {
+        return;
+      }
+    });
+  });
+</script>

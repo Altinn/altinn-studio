@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <RootNamespace>AltinnCore.Common</RootNamespace>
+    <AssemblyName>AltinnCore.Common</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="2.8.2" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.0-preview-0027" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RepositoryClient\AltinnCore.RepositoryClient.csproj" />
+    <ProjectReference Include="..\ServiceLibrary\AltinnCore.ServiceLibrary.csproj" />
+  </ItemGroup>
+
+</Project>

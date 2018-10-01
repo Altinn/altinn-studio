@@ -1,0 +1,23 @@
+﻿<fieldset class="form-group row draggable"
+          data-editor-binding-context-title="Databinding">
+    <label class="col-lg-4 col-form-label"
+           data-editor-show="true"
+           data-editor-title="Label"
+           data-editor-binding-context="1">Tekstboks</label>
+    <div class="col-lg-8">
+        <input class="form-control"
+               data-editor-show="true"
+               data-editor-title="Input-felt"
+               data-editor-binding-context="1"
+               type="text">
+        <span asp-validation-for=""
+              class="text-danger form-control-feedback"
+              data-editor-validation="true"
+              data-editor-binding-context="1">
+        </span>
+        <small data-editor-show="true"
+               data-editor-title="Hjelpetekst"
+               data-editor-binding-context="1"
+               class="form-text text-muted">Hjelpetekst for feltet</small>
+    </div>
+</fieldset>

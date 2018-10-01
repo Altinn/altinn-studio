@@ -1,0 +1,18 @@
+﻿<div class="form-group">
+    <label for="TODO" id="TODO">{ property.name }</label>
+    <div>
+        <input type="text" class="form-control" placeholder="Enter the name of the codelist you wish to bind to"
+               aria-describedby="TODO" rv-on-input="property.changed" rv-value="property.value" />
+    </div>
+
+</div>
+<div class="form-group">
+    <label for="TODO" id="TODO">Codelist value to use</label>
+    <div>
+        <input type="text" class="form-control" placeholder="Enter the name of the codelist property"
+               aria-describedby="TODO" rv-on-input="property.changed" rv-value="property.codelistvalue" />
+        <p style="margin-top: 12px" class="text-muted">
+            Enter the name of the codelist property to use as the value (the text will be populated automatically)
+        </p>
+    </div>
+</div>

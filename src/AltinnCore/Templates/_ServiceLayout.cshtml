@@ -1,0 +1,162 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <link rel="icon" href="~/img/favicon.ico">
+
+        <title>@ViewBag.Title</title>
+
+        <!-- Javascript -->
+        <script src="~/designer/js/lib/jquery.js"></script>
+        <script src="~/designer/js/lib/bootstrap.js"></script>
+        <script src="~/designer/js/lib/jquery.validate.js"></script>
+        <script src="~/designer/js/lib/jquery.validate.unobtrusive.js"></script>
+        <script src="~/designer/js/common/common.js"></script>
+        @RenderSection("scripts", required: false)
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="~/css/bootstrap.css">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+
+        @RenderSection("styles", required: false)
+        <style>
+            /* Non-open source font can't be used. TODO: Find alternative font.
+            @@font-face {
+                font-family: "AltinnCore";
+                src: url("/font/DINWeb.woff") format('woff');
+            }
+
+            @@font-face {
+                font-family: "AltinnCore";
+                font-weight: bold;
+                src: url("/font/DINWeb-Bold.woff") format('woff');
+            }
+            */
+
+            body {
+                font-family: AltinnCore, "Helvetica Neue", Helvetica, Arial, sans-serif;
+                background-color: #efefef;
+                padding-top: 60px;
+                padding-bottom: 60px;
+            }
+
+            .container {
+                background-color: #fff;
+                border-left: 1px solid rgba(0,0,0,.1);
+                border-right: 1px solid rgba(0,0,0,.1);
+                border-top: 1px solid rgba(0,0,0,.1);
+                border-bottom: 2px solid rgba(0,0,0,.1);
+                padding: 60px;
+            }
+
+
+            @@media screen and (max-width: 767px) {
+                .service-logo {
+                    margin-right: -280px !important;
+                }
+            }
+
+            @@media screen and (max-width: 767px) {
+                body {
+                    padding-top: 0;
+                }
+
+                .container {
+                    padding: 15px;
+                }
+            }
+
+            @@media screen and (max-width:300px) {
+                body {
+                    padding-top: 130px;
+                }
+            }
+
+            .navbar {
+                padding-bottom: 0;
+                padding-top: 0.3rem;
+            }
+
+            label {
+                font-weight: bolder;
+            }
+
+            label.c-input {
+                font-weight: initial;
+            }
+
+            .control-label {
+                margin-bottom: 0;
+            }
+
+            .errormsg {
+                color: red;
+            }
+
+            .service-menu {
+                margin-left: -360px;
+                border: 1px solid rgba(0,0,0,.1);
+                border-right: 0;
+                width: 300px;
+                position: absolute;
+                background-color: white;
+            }
+
+            .service-menu .btn {
+                border-radius: 0;
+                border: 1px solid rgba(0,0,0,.1);
+            }
+ 
+           @@media (min-width: 34em) {
+                .card-columns {
+                    -webkit-column-count: 2;
+                    -moz-column-count: 2;
+                    column-count: 2;
+                }
+            }
+			
+			.altinn-btn-wrapper {
+				margin-right: 5px;
+			}
+			
+            @@media (min-width: 62em) {
+                .card-columns {
+                    -webkit-column-count: 3;
+                    -moz-column-count: 3;
+                    column-count: 3;
+                }
+            }
+			
+			.btn, .form-control, .list-group-item:last-child, .list-group-item:first-child, .card {
+				border-radius: 0;
+			}
+
+            input[type="date"].form-control, input[type="time"].form-control, input[type="datetime-local"].form-control, input[type="month"].form-control {
+                line-height: 1.5;
+            }
+            .text-danger.field-validation-valid {
+                display: none;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div class="container">
+            @RenderBody()
+			
+			<script>
+				$(document).ready(function() {
+				        $('.input-validation-error').parents('.form-group').addClass('has-danger');
+						$('.input-validation-error').addClass('form-control-danger');
+						$('.input-validation-error:first').focus();
+				});
+			</script>
+        </div>
+    </body>
+</html>

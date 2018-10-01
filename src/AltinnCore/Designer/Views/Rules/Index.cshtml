@@ -1,0 +1,43 @@
+﻿@using AltinnCore.Common.Models
+@model IList<RuleContainer>
+@{ViewBag.Title = "Regler"; }
+
+@section scripts {
+    <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
+} 
+
+<div class="text-center">
+    @if (Model != null && Model.Count > 0)
+    {
+        <div class="mx-auto" style="width: 12em;">
+            <input id="search" type="search" class="form-control" placeholder="Søk regler..." autocomplete="on" />
+            <span class="fa fa-search" aria-hidden="true"></span>
+        </div>
+    }
+    <div id="rules-list" class="list-group my-2">
+        @if (Model != null)
+        {
+            foreach (RuleContainer rule in Model)
+            {
+                <a class="list-group-item list-group-item-action justify-content-center" title="Endre regel"
+                    asp-controller="Rules" asp-action="Update" asp-route-id="@rule.Id">@rule.Name</a>
+            }
+        }
+    </div>
+    <a asp-controller="Rules" asp-action="Create" class="btn btn-outline-primary">Lag ny regel</a>
+</div>
+
+<script>
+    $(document).ready(function () {
+        $('#rules-list').btsListFilter('#search', {
+            initial: false, 
+            resetOnBlur: false,
+            emptyNode: function(data) {
+		        return $('<a class="list-group-item justify-content-center alert alert-danger" role="alert" href="#" onclick="$(\'#search\').val(\'\').focus().keyup();">Fant ingen regler...</a>');
+            },
+            cancelNode: function() { 
+ 				return; 
+		    } 
+        });
+    });
+</script>

@@ -1,0 +1,164 @@
+﻿@model string
+@{
+    Layout = "_FormBuilderLayout";
+    string id = ViewContext.RouteData.Values["id"] as string;
+    ViewBag.Title = "Visning - " + id;
+}
+@section scripts {
+    <script data-main="/designer/js/formbuilder/main.js" src="~/designer/js/lib/require.js" asp-append-version="true"></script>
+}
+@section styles {
+    <link rel="stylesheet" href="~/designer/css/formbuilder.css" asp-append-version="true">
+    <style>
+        #resourcesTable tbody tr[visible='false'],
+        .no-result {
+            display: none;
+        }
+
+        #resourcesTable tbody tr[visible='true'] {
+            display: table-row;
+        }
+    </style>
+}
+
+<style>
+    .list-group-item {
+        padding: 10px 15px;
+    }
+</style>
+<div class="row" id="loadingContainer" style="margin-top: 200px">
+    <div class="col">
+        <img src="~/designer/img/a-loader.svg" class="img-responsive center-block" style="margin: 0 auto; display: block;" />
+        <h3 style="margin: 0 auto; text-align: center;">
+            Laster visning, straks klart...
+        </h3>
+    </div>
+</div>
+
+<div class="row no-gutters" id="mainContainer" style="display:none;">
+    <div class="sidebar col-3">
+        <!-- Draggable elements menu -->
+        <form role="form">
+            <ul id="tabMenu" class="nav nav-tabs" role="tablist"></ul>
+
+            <!-- Tab panes -->
+            <div id="componentTabs" class="tab-content"></div>
+        </form>
+    </div>
+    <div class="sidebar-flexer col-3"></div>
+    <!-- Tab panes -->
+    <div class="tab-content col current-form-container">
+        <div role="tabpanel" class="tab-pane active" id="formRenderedTab">
+            <div class="main-control-target">
+                @if (string.IsNullOrEmpty(Model))
+                {
+                    <form class="droppable sortable clearfix control-target"></form>
+                }
+                else
+                {
+                    @Html.Raw(Model);
+                }
+            </div>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="formRawTab">
+            <div class="editor-frame">
+                <div id="sourceHtml" class="editor"></div>
+            </div>
+        </div>
+
+        <div class="form-group" style="position:fixed; bottom:10px; right: 10px; z-index:1039;">
+            <a asp-route-action="Delete" asp-route-id="@id">
+                <button id="delBtn" type="button" class="btn btn-danger" title="Slett visning"><i aria-hidden="true"></i> Slett</button>
+            </a>
+            <button id="codeBtn" type="button" class="btn btn-secondary" title="Åpne HTML-koden"><i class="fa fa-code" aria-hidden="true"></i> HTML</button> 
+            <button id="updateFromSource" class="btn btn-secondary" style="display:none;">Oppdater HTML</button> 
+            <button id="viewBtn" type="button" class="btn btn-secondary" title="Åpne visning" style="display:none;"><i class="fa fa-television" aria-hidden="true"></i> Visning</button>
+            <button id="saveFormBtn" type="button" class="btn btn-primary">Lagre</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="editorModal">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-editor">            
+                <h4 class="modal-title">Innstillinger</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="modalEditBody">
+
+            </div>
+            <div class="modal-body" id="modalEditTreeView" style="display: none">
+                <div class="row mb-1">
+
+                    <div class="col-lg-12">
+                        <input id="search" type="search" class="form-control" placeholder="Søk modell..." autocomplete="on" autofocus="true">
+                        <span class="fa fa-search" aria-hidden="true"></span>         
+                    </div>
+                    <div class="col-lg-12" id="modelTreeView"></div>
+                </div>
+            </div>
+            <div class="modal-body" id="resourcesModal" style="display:none">
+                <div class="row mb-1">
+                    <div class="col-lg-12">
+                        <input id="resourceSearchInput" type="search" class="form-control m-b-1" placeholder="Søk etter tekst..." autocomplete="on">
+                    </div>
+                    <div class="col-lg-12">
+                        <table class="table" id="resourcesTable">
+                            <thead>
+                                <tr>
+                                    <th>#key</th>
+                                    <th rv-each-language="languages">{ language }</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr rv-each-resource="resources">
+                                    <th scope="row"><a class="selectResourceLink" href="#" rv-index="%resource%">{ resource.key } </a></th>
+                                    <td rv-each-value="resource.values">{ value }</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="background-color: #f3f3f3">
+                <div id="resourcesBtns" style="display:none">
+                    <button type="button" class="btn btn-secondary"
+                            onclick="$('#resourcesBtns').hide();
+                            $('#configurationBtns').show();
+                            $('#resourcesModal').hide();
+                            $('#modalEditBody').show();">
+                        Avbryt
+                    </button>
+                </div>
+                <div id="treeViewBtns" style="display:none">
+                    <button type="button" class="btn btn-secondary"
+                            onclick="$('#treeViewBtns').hide();
+                            $('#configurationBtns').show();
+                            $('#modalEditTreeView').hide();
+                            $('#modalEditBody').show();">
+                        Avbryt
+                    </button>
+                    <button type="button" class="btn btn-primary" id="modelTreeSaveBtn">Bruk</button>
+                </div>
+                <div id="configurationBtns">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Lukk</button>
+                    <button id="modalSaveBtn" type="button" class="btn btn-primary">Lagre</button>
+                </div>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+    $(document).bind('keydown', function (e) {
+        if (e.ctrlKey && (e.which == 83)) {
+            e.preventDefault();
+            saveFormBtn.focus();
+            saveFormBtn.click();
+            saveFormBtn.blur();
+        }
+    });
+</script>

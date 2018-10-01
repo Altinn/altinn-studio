@@ -1,0 +1,149 @@
+﻿@model IList<AltinnCore.ServiceLibrary.ServiceMetadata.ViewMetadata>
+
+@{
+    var viewIndex = 0;
+}
+
+<div id="flyttVisningerModalDialog" class="modal fade" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header modal-header-editor">
+                <h4 class="modal-title">Endre rekkefølge</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>      
+            </div>
+            <div class="modal-body">
+                <div>Du kan endre rekkefølgen ved å velge en visning og bruke knappene, eller ved å dra visningen.</div>
+                <div>&nbsp;</div>
+                @if (Model == null || Model.Count < 2)
+                {
+                    <div>Trenger minst to visninger for å kunne endre rekkefølgen.</div>
+                }
+                else if (Model != null)
+                {
+                    <div id="sortableVisningsListe" class="list-group">
+                        @foreach (var v in Model)
+                        {
+                            var itemHtmlId = $"visningNr{viewIndex:00}";
+                            <div id="@itemHtmlId" class="ui-state-default ui-widget-content list-group-item altinn-view" data-visnings-index="@viewIndex">
+                                @v.Name
+                                <i class="fa fa-arrows-v badge"></i>
+                            </div>
+                            viewIndex++;
+                        }
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <span class="float-left">
+                    <button disabled class="btn btn-secondary altinn-oppned" onclick="moveViewUp()" title="Flytt valgt visning opp">
+                        <i class="fa fa-arrow-circle-up"></i>
+                    </button>
+                    <button disabled class="btn btn-secondary altinn-oppned" onclick="moveViewDown()" title="Flytt valgt visning ned">
+                        <i class="fa fa-arrow-circle-down"></i>
+                    </button>
+                </span>
+                <span id="valgtIndex"></span>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Lukk</button>
+                <button type="button" class="btn btn-primary" onclick="saveViewOrder()">Lagre</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<script>
+    var selectedViewItem = null;
+    $(document).ready(function () {
+        var items = $("#sortableVisningsListe .list-group-item");
+        items.click(selectItem);
+        initializeSortable();
+    });
+
+    function selectItem() {
+        var current = $(this);
+        if (!current) {
+            return;
+        }
+        console.log("Cliked " + current);
+        current.toggleClass("active");
+
+        if (selectedViewItem && current.attr("id") !== selectedViewItem.attr("id")) {
+            selectedViewItem.removeClass("active");
+        }
+
+        selectedViewItem = current;
+        if (selectedViewItem && selectedViewItem.hasClass("active")) {
+            console.log("Removing disabled.");
+            $("button.altinn-oppned").removeAttr("disabled");
+        } else {
+            $("button.altinn-oppned").attr("disabled", "disabled");
+        }
+    }
+
+    function initializeSortable() {
+        var visningsListe = $("#sortableVisningsListe");
+        visningsListe.sortable({});
+        visningsListe.disableSelection();
+        console.log("Sortable initialisert.");
+    }
+
+    function saveViewOrder() {
+        var newOrder = [];
+        var list = $("#sortableVisningsListe").children("div.altinn-view");
+
+        list.each(function () {
+            var originalIndex = this.getAttribute("data-visnings-index");
+            newOrder.push(originalIndex);
+            console.log("Pusher item " + originalIndex);
+        });
+
+        if (newOrder.length) {
+            $.get('@Url.Action("Reorder")' + '?' + $.param({ viewOrder: newOrder.toString(",") }),
+                function () {
+                    console.log("View order saved successfully");
+                    location.reload();
+                })
+                .fail(function (d) {
+                    console.log("Unable to save new view order: " + newOrder.toString() + "\r\n" + JSON.stringify(d));
+                    alert("En feil oppstod under lagring av ny rekkefølge på visninger.");
+                });
+        } else {
+            alert("En feil oppstod. Rekkefølge på visninger er ikke tilgjengelig, så rekkefølgen kunne ikke lagres.");
+        }
+    }
+
+    function moveViewUp() {
+        if (!selectedViewItem) {
+            return;
+        }
+
+        if (selectedViewItem.is(':first-child')) {
+            var parent = selectedViewItem.parent();
+            selectedViewItem.remove();
+            parent.append(selectedViewItem);
+            console.log("Moved last...");
+        } else {
+            var previous = selectedViewItem.prev();
+            selectedViewItem.remove();
+            previous.before(selectedViewItem);
+            console.log("Moved ahead");
+        }
+    }
+
+    function moveViewDown() {
+        if (!selectedViewItem) {
+            return;
+        }
+
+        if (selectedViewItem.is(':last-child')) {
+            var parent = selectedViewItem.parent();
+            selectedViewItem.remove();
+            parent.prepend(selectedViewItem);
+            console.log("Moved last...");
+        } else {
+            var previous = selectedViewItem.next();
+            selectedViewItem.remove();
+            previous.after(selectedViewItem);
+            console.log("Moved ahead");
+        }
+    }
+</script>

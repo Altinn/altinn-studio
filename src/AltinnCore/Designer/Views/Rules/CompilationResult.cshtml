@@ -1,0 +1,60 @@
+﻿@using AltinnCore.ServiceLibrary;
+
+@{
+    CodeCompilationResult codeResult = ViewBag.CompilationResult;
+}
+
+@if (codeResult != null && codeResult.CompilationInfo != null)
+{
+    <ul>
+        <li>Errors: @codeResult.Errors</li>
+        <li>Warnings: @codeResult.Warnings</li>
+        <li>TimeUsed: @codeResult.TimeUsed</li>
+    </ul>
+
+    <table class="table table-striped table-bordered small">
+        <tr>
+            <th>Type</th>
+            <th>Kode</th>
+            <th>File</th>
+            <th>Line</th>
+            <th>Description</th>
+        </tr>
+
+        @foreach (CompilationInfo info in codeResult?.CompilationInfo?.OrderBy(k => k.LineNumber).OrderBy(l => l.FileName).OrderBy(o => o.WarningLevel))
+        {
+            <tr>
+                <td>
+                    @if (info.WarningLevel == 0)
+                    {
+                        <i class="fa fa-exclamation-triangle fa-2x" style="color:red;"></i>
+                    }
+                    else if (info.WarningLevel == 1)
+                    {
+                        <i class="fa fa-exclamation-circle fa-2x" style="color:orange;"></i>
+                    }
+                    else if (info.WarningLevel > 1)
+                    {
+                            <i class="fa fa-info-circle fa-2x" style="color:blue;"></i>
+                    }                
+                </td>
+                <td>@info.Code</td>
+                <td>
+                    <a asp-route="editionRoute"
+                        asp-route-controller="Rules"
+                        asp-route-action="File"
+                        asp-route-name="@info.FileName">
+                        @info.FileName
+                    </a>
+                </td>
+                <td>
+                    @info.LineNumber
+                </td>
+                <td>
+                    @info.Info
+                </td>
+            </tr>
+        }
+
+    </table>
+}

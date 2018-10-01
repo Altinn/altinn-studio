@@ -1,0 +1,28 @@
+﻿@using AltinnCore.ServiceLibrary.Configuration;
+@model EditionConfiguration
+
+@{ViewBag.Title = "Ny utgave";}
+
+<!--h3>Ny utgave</h3-->
+
+<form asp-controller="Service" asp-action="CreateEdition">
+    <fieldset class="form-group">
+        <label asp-for="Code">Navn</label>
+        <input asp-for="Code" type="number" required="required" min="1" max="9999" maxlength="4"
+            class="form-control" placeholder="Eksempel: 2016" onchange="$('#name').html(this.value);" autocomplete="off" autofocus="true" 
+            title="Må være et tall mellom 1 og 9999">
+        <div>
+            <span class="text-danger" asp-validation-for="Code"></span>
+        </div>
+        
+        @if (ViewBag.editionNameAlreadyExists == true)
+        {
+            <p class="help-block errormsg">Angitt navn finnes allerede</p>
+        }
+
+        <small class="text-muted">Bør være et årstall eller et stigende versjonsnummer. En utgave kan eksistere i parallell med andre utgaver.</small>
+        <br /><br />
+
+        <input class="btn btn-primary" type="submit" value="Lag ny utgave">
+    </fieldset>     
+</form>

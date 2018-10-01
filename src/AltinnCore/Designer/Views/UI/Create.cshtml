@@ -1,0 +1,34 @@
+﻿@using AltinnCore.ServiceLibrary.ServiceMetadata;
+@model ViewMetadata
+@{ViewBag.Title = "Ny visning"; }
+
+<!--h3>Ny visning</h3-->
+
+<form asp-route="editionRoute" 
+      asp-route-action="Create">
+    <fieldset>
+        <div class="form-group">
+            <label asp-for="Name">Navn</label>
+            <input asp-for="Name" type="text" class="form-control" required="true" minlength="3" maxlength="30" placeholder="Eksempel: AkkarInfo" pattern="[a-zA-Z][a-zA-Z0-9_\-]{2,30}" 
+                title="Minst 3 tegn, kan ikke inneholde mellomrom eller spesialtegn ('-' er tillatt)" autocomplete="off" autofocus="true">
+        
+            @if (ViewBag.viewNameAlreadyExists == true)
+            {
+                <p class="help-block errormsg">Angitt navn finnes allerede</p>
+            }
+        
+            <small class="text-muted">Benyttes som filnavn og som identifikator for visningen.</small>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Layout">Layout</label>
+            <select asp-for="Layout" class="form-control col-md-6">
+                <option value="_ServiceLayout">Tom</option>
+                <option value="_ServiceLayoutModal" selected="true">Enkel modal (default)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <input class="btn btn-primary" type="submit" value="Lag ny visning">
+        </div>
+    </fieldset>
+</form>

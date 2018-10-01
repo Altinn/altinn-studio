@@ -1,0 +1,56 @@
+﻿@model AltinnStudioViewModel
+@using AltinnCore.Common.Models;
+
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
+  ViewBag.Title = service;
+}
+@section scripts {
+  <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
+}
+
+<div class="text-center">
+  <h1 class="my-5 hidden-xs-down">
+    <span style="font-weight: lighter">@org / @service</span>
+  </h1>
+</div>
+
+<div class="row no-gutters">
+  <div class="col text-left pt-2 pb-0"><a href="/@org/@service" title="Åpne @service repository">Endringer</a></div>
+  <div class="col-auto" style="width: 16em;">
+    <input id="search" type="search" class="form-control" placeholder="Filtrer..." autocomplete="on" />
+    <span class="fa fa-search" aria-hidden="true"></span>
+  </div>
+</div>
+
+<div id="editionslist" class="list-group my-2">
+  <ul>
+    @foreach (RepositoryContent content in Model.RepositoryContent)
+    {
+      <li>@content.FilePath</li>
+    }
+  </ul>
+</div>
+
+@if (Model.RepositoryContent.Count > 0)
+{
+<form asp-controller="Service" asp-action="PushChanges">
+  <div class="form-group">
+    <input type="hidden" asp-for="CommitInfo.Org" />
+    <input type="hidden" asp-for="CommitInfo.Repository" />
+    <label for="CommitInfo.Message">Beskrivelse</label>
+    <textarea asp-for="CommitInfo.Message" class="form-control"></textarea>
+    <button type="submit" class="btn btn-primary">Commit og Push endringer</button>
+  </div>
+</form>
+}
+
+
+
+
+<!--a class="btn btn-outline-primary"
+    asp-route="serviceRoute"
+    asp-route-action="CreateEdition">
+    Ny utgave
+</a-->

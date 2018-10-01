@@ -1,0 +1,31 @@
+﻿{
+  "title": " ",
+  "type": "object",
+  "properties": {
+    "validFrom": {
+      "title": "Gyldig fra",
+      "type": "string",
+      "format": "date"
+    },
+    "validTo": {
+      "title": "Gyldig til",
+      "type": "string",
+      "format": "date"
+    },
+    "onlySubform": {
+        "title": "Bruk kun som underskjema",
+        "type": "boolean",
+        "format": "checkbox"
+    },
+    "masterService": {
+        "title": "Bruk som mastertjeneste",
+        "type": "boolean",
+        "format": "checkbox"
+    },
+    "allowCollaboration": {
+        "title": "Tillat bruk i samhandling",
+        "type": "boolean",
+        "format": "checkbox"
+    }
+  }
+}

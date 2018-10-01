@@ -1,0 +1,43 @@
+﻿@using AltinnCore.ServiceLibrary.ServiceMetadata;
+@using AltinnCore.ServiceLibrary.Configuration;
+@using AltinnCore.Common.Services.Interfaces;
+@using Microsoft.Extensions.Configuration;
+@inject IConfiguration configuration
+
+@{
+    ViewBag.Title = "tjenester 3.0";
+   
+}
+
+@section styles {
+    <style>
+        h1 {
+            font-size: 40pt;
+            color: black;
+        }
+        
+        .secondary-nav {
+            border-bottom: 1px solid rgb(30,174,247) !important;
+        }
+    </style>
+}
+
+<div class="text-center">
+    <h1 class="my-5 hidden-xs-down">
+        <span style="font-weight: lighter">Altinn Tjenester 3.0</span>
+    </h1>
+</div>
+
+
+<div id="orglist" class="list-group my-2">
+
+    <ul>
+        @foreach (OrgConfiguration owner in Model)
+    {
+        <li>
+            <a href="/ServiceCatalogue/Services/?org=@owner.Code"
+               class="list-group-item text-left list-group-item-action">@owner.Name</a>
+        </li>
+    }
+    </ul>
+</div>

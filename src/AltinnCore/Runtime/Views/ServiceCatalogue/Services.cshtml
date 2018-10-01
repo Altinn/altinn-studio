@@ -1,0 +1,19 @@
+﻿@model List<ServiceConfiguration>
+@using AltinnCore.ServiceLibrary.Configuration;
+
+@{
+    ViewData["Title"] = "Services";
+}
+
+<h2>Services</h2>
+
+<div id="servicelist" class="list-group my-2">
+
+    <ul>
+        @foreach (ServiceConfiguration service in Model)
+        {
+            <li><a href="/ServiceCatalogue/Editions/?org=@ViewBag.Org&service=@service.Code">@service.Name @service.Code</a></li>
+        
+        }
+    </ul>
+</div>

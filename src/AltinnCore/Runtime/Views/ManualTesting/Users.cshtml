@@ -1,0 +1,19 @@
+﻿@model List<AltinnCore.ServiceLibrary.Testdata>
+@using AltinnCore.ServiceLibrary
+@using System.Net
+
+@{ViewBag.Title = "Velg testbruker";}
+
+<h3>Velg testbruker</h3>
+
+<ul class="list-group action-list-group">
+    @foreach (Testdata data in Model)
+    {
+        <li class="list-group-item border-0">
+            <a href="/runtime/ManualTesting/LoginTestUser/@data.DataId?ReturnUrl=@WebUtility.UrlEncode(ViewBag.ReturnUrl)" class="list-group-item-action">
+                <div><strong>@data.Title</strong></div>
+                <span class="text-muted">@data.Description</span>
+            </a>
+        </li>
+    }
+</ul>

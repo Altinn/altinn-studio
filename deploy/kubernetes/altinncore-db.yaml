@@ -1,0 +1,33 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: altinn-respositories-db
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: altinn-respositories-db
+    spec:
+      containers:
+      - name: altinn-db-respositories
+        image: postgres:10
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: [[YOUR POSTGRESS USER NAME]]
+        - name: POSTGRES_PASSWORD
+          value: [[YOUR POSTGRESS PASSWORD]]
+        - name: POSTGRES_DB
+          value: [[YOUR POSTGRESS DB NAME]]
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: altinn-respositories-db
+spec:
+  ports:
+  - port: 5432
+  selector:
+    app: altinn-respositories-db

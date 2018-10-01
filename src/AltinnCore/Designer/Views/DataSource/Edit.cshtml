@@ -1,0 +1,73 @@
+﻿@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Mvc.ModelBinding
+@model AltinnCore.Common.Models.DataSourceEditViewModel
+@{
+    ViewData["Title"] = "Endre datakilde";
+
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+    string edition = ViewContext.RouteData.Values["edition"] as string;
+    
+    string routeName = "orgRoute";
+    if (edition != null)
+    {
+        routeName = "editionRoute";
+    }
+    else if (service != null)
+    {
+        routeName = "serviceRoute";
+    }
+
+    var errors = ViewBag.ErrorMessages as IList<ModelError>;
+    if (errors != null && errors.Any())
+    {
+        foreach (var error in errors)
+        {
+            <div class="alert alert-danger">@error.ErrorMessage</div>
+        }
+    }
+}
+
+<!--h3>Endre datakilde</h3-->
+
+<div class="alert alert-success" role="alert" id="saveConfirmation" style="display:none">
+    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+    </button>
+    <div id="message"></div>
+    <pre id="json"></pre>
+</div>
+
+<form asp-controller="DataSource" asp-action="Edit" method="POST">
+    <div class="form-group">
+        <label asp-for="Url">URL</label>
+        <input asp-for="Url" class="form-control">
+    </div>
+        <div class="form-group">
+            <label asp-for="Description">Beskrivelse</label>
+            <input asp-for="Description" class="form-control"/>
+        </div>
+        <div class="form-group">
+            <label asp-for="Opprettet">Opprettet</label>
+            <input readonly asp-for="Opprettet" type="date"/>
+        </div>
+        <div class="text-md-center">
+            <button class="btn btn-primary" type="submit">Lagre</button>
+            <a class="btn btn-danger"
+                asp-route="@routeName"
+                asp-route-controller="DataSource"
+                asp-route-action="Delete"
+                asp-route-id ="@Model.Id">
+                Slett
+            </a>
+            <a class="btn btn-outline-primary" 
+                asp-route="@routeName"
+                asp-route-controller="DataSource"
+                asp-route-action="Test"
+                asp-route-jsonurl="@Model.Url">
+                Test datakilde
+            </a>
+            <a asp-action="Index" class="btn btn-default">Avbryt</a>
+        </div>
+</form>
+

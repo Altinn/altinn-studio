@@ -1,0 +1,237 @@
+<StyleCopSettings Version="105">
+  <GlobalSettings>
+    <CollectionProperty Name="DeprecatedWords">
+      <Value>preprocessor, pre-processor</Value>
+      <Value>shortlived, short-lived</Value>
+    </CollectionProperty>
+    <CollectionProperty Name="RecognizedWords">
+      <Value>altinn</Value>
+      <Value>arbeidsgiveravgift</Value>
+      <Value>aspx</Value>
+      <Value>BankID</Value>
+      <Value>brreg</Value>
+      <Value>Buypass</Value>
+      <Value>Commfides</Value>
+      <Value>compat</Value>
+      <Value>Compat.browser</Value>
+      <Value>Creuna</Value>
+      <Value>css</Value>
+      <Value>dequeue</Value>
+      <Value>Dequeue</Value>
+      <Value>deserializing</Value>
+      <Value>Determinator</Value>
+      <Value>enum</Value>
+      <Value>en-US</Value>
+      <Value>formset</Value>
+      <Value>Functoid</Value>
+      <Value>ID-Porten</Value>
+      <Value>js</Value>
+      <Value>leveranse</Value>
+      <Value>linq</Value>
+      <Value>msdn</Value>
+      <Value>oppgave</Value>
+      <Value>orid</Value>
+      <Value>participant</Value>
+      <Value>Porten</Value>
+      <Value>psa</Value>
+      <Value>referer</Value>
+      <Value>reportee</Value>
+      <Value>sone</Value>
+      <Value>ssn</Value>
+      <Value>subform</Value>
+      <Value>subforms</Value>
+      <Value>virksomhet</Value>
+      <Value>Winnovative</Value>
+      <Value>xfd</Value>
+      <Value>xsd</Value>
+      <Value>Guid</Value>
+      <Value>Api</Value>
+      <Value>OAuth</Value>
+      <Value>Auth</Value>
+      <Value>mpcId</Value>
+      <Value>mpc</Value>
+      <Value>Sdp</Value>
+      <Value>Difi</Value>
+      <Value>Difis</Value>
+      <Value>Rijndael</Value>
+      <Value>eq</Value>
+      <Value>orderby</Value>
+      <Value>Oppgaveregister</Value>
+      <Value>Seres</Value>
+	  <Value>reportees</Value>
+    </CollectionProperty>
+    <IntegerProperty Name="MaxViolationCount">10000</IntegerProperty>
+  </GlobalSettings>
+  <Analyzers>
+    <Analyzer AnalyzerId="StyleCop.CSharp.DocumentationRules">
+      <Rules>
+        <Rule Name="FileMustHaveHeader">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FileHeaderMustShowCopyright">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FileHeaderMustHaveCopyrightText">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FileHeaderMustContainFileName">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FileHeaderFileNameDocumentationMustMatchFileName">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FileHeaderMustHaveValidCompanyText">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FileHeaderFileNameDocumentationMustMatchTypeName">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+      </Rules>
+      <AnalyzerSettings>
+        <BooleanProperty Name="IgnorePrivates">True</BooleanProperty>
+      </AnalyzerSettings>
+    </Analyzer>
+    <Analyzer AnalyzerId="StyleCop.CSharp.OrderingRules">
+      <Rules>
+        <Rule Name="UsingDirectivesMustBePlacedWithinNamespace">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+      </Rules>
+      <AnalyzerSettings />
+    </Analyzer>
+    <Analyzer AnalyzerId="StyleCop.CSharp.NamingRules">
+      <Rules>
+        <Rule Name="FieldNamesMustNotBeginWithUnderscore">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="FieldNamesMustNotContainUnderscore">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+      </Rules>
+      <AnalyzerSettings>
+        <CollectionProperty Name="Hungarian">
+          <Value>a1</Value>
+          <Value>as</Value>
+          <Value>at</Value>
+          <Value>d</Value>
+          <Value>db</Value>
+          <Value>dn</Value>
+          <Value>do</Value>
+          <Value>dr</Value>
+          <Value>ds</Value>
+          <Value>dt</Value>
+          <Value>e</Value>
+          <Value>e2</Value>
+          <Value>er</Value>
+          <Value>f</Value>
+          <Value>fs</Value>
+          <Value>go</Value>
+          <Value>id</Value>
+          <Value>if</Value>
+          <Value>in</Value>
+          <Value>ip</Value>
+          <Value>is</Value>
+          <Value>js</Value>
+          <Value>li</Value>
+          <Value>my</Value>
+          <Value>no</Value>
+          <Value>ns</Value>
+          <Value>on</Value>
+          <Value>or</Value>
+          <Value>pi</Value>
+          <Value>pv</Value>
+          <Value>sa</Value>
+          <Value>sb</Value>
+          <Value>se</Value>
+          <Value>si</Value>
+          <Value>so</Value>
+          <Value>sp</Value>
+          <Value>tc</Value>
+          <Value>to</Value>
+          <Value>tr</Value>
+          <Value>ui</Value>
+          <Value>un</Value>
+          <Value>wf</Value>
+          <Value>ws</Value>
+          <Value>x</Value>
+          <Value>y</Value>
+        </CollectionProperty>
+      </AnalyzerSettings>
+    </Analyzer>
+    <Analyzer AnalyzerId="StyleCop.CSharp.ReadabilityRules">
+      <Rules>
+        <Rule Name="PrefixCallsCorrectly">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="PrefixLocalCallsWithThis">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="ParameterMustFollowComma">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="SplitParametersMustStartOnLineAfterDeclaration">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="ParametersMustBeOnSameLineOrSeparateLines">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+        <Rule Name="UseBuiltInTypeAlias">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+      </Rules>
+      <AnalyzerSettings />
+    </Analyzer>
+    <Analyzer AnalyzerId="StyleCop.CSharp.MaintainabilityRules">
+      <Rules>
+        <Rule Name="FileMayOnlyContainASingleClass">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+      </Rules>
+      <AnalyzerSettings />
+    </Analyzer>
+    <Analyzer AnalyzerId="StyleCop.CSharp.SpacingRules">
+      <Rules>
+        <Rule Name="SingleLineCommentsMustBeginWithSingleSpace">
+          <RuleSettings>
+            <BooleanProperty Name="Enabled">False</BooleanProperty>
+          </RuleSettings>
+        </Rule>
+      </Rules>
+      <AnalyzerSettings />
+    </Analyzer>
+  </Analyzers>
+</StyleCopSettings>

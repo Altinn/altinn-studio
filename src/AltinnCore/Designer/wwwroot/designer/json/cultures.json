@@ -1,0 +1,240 @@
+﻿{
+  "cultures": [
+    {
+      "id": "af",
+      "name": "Afrikaan"
+    },
+    {
+      "id": "sq",
+      "name": "Albansk"
+    },
+    {
+      "id": "ar",
+      "name": "Arabisk"
+    },
+    {
+      "id": "eu",
+      "name": "Baskisk"
+    },
+    {
+      "id": "bg",
+      "name": "Bulgarsk"
+    },
+    {
+      "id": "da",
+      "name": "Dansk"
+    },
+    {
+      "id": "en",
+      "name": "Engelsk"
+    },
+    {
+      "id": "et",
+      "name": "Estlandsk"
+    },
+    {
+      "id": "fi",
+      "name": "Finsk"
+    },
+    {
+      "id": "fr",
+      "name": "Fransk"
+    },
+    {
+      "id": "fo",
+      "name": "Færøysk"
+    },
+    {
+      "id": "el",
+      "name": "Gresk"
+    },
+    {
+      "id": "gd",
+      "name": "Gælisk"
+    },
+    {
+      "id": "he",
+      "name": "Hebraisk"
+    },
+    {
+      "id": "hi",
+      "name": "Hindi"
+    },
+    {
+      "id": "be",
+      "name": "Hviterussisk"
+    },
+    {
+      "id": "id",
+      "name": "Indonesisk"
+    },
+    {
+      "id": "ga",
+      "name": "Irsk"
+    },
+    {
+      "id": "is",
+      "name": "Islandsk"
+    },
+    {
+      "id": "it",
+      "name": "Italiensk"
+    },
+    {
+      "id": "ja",
+      "name": "Japansk"
+    },
+    {
+      "id": "ji",
+      "name": "Jiddisch"
+    },
+    {
+      "id": "ca",
+      "name": "Katalansk"
+    },
+    {
+      "id": "zh-CN",
+      "name": "Kinesisk"
+    },
+    {
+      "id": "ko",
+      "name": "Koreansk"
+    },
+    {
+      "id": "hr",
+      "name": "Kroatisk"
+    },
+    {
+      "id": "lv",
+      "name": "Latvisk"
+    },
+    {
+      "id": "lt",
+      "name": "Litauisk"
+    },
+    {
+      "id": "mk",
+      "name": "Makedonsk"
+    },
+    {
+      "id": "ms",
+      "name": "Malaysisk"
+    },
+    {
+      "id": "mt",
+      "name": "Maltesisk"
+    },
+    {
+      "id": "nl",
+      "name": "Nederlandsk"
+    },
+    {
+      "id": "nb-NO",
+      "name": "Norsk (bokmål)"
+    },
+    {
+      "id": "nn-NO",
+      "name": "Norsk (nynorsk)"
+    },
+    {
+      "id": "fa",
+      "name": "Persisk"
+    },
+    {
+      "id": "pl",
+      "name": "Polsk"
+    },
+    {
+      "id": "pt",
+      "name": "Portugisisk"
+    },
+    {
+      "id": "ro",
+      "name": "Rumensk"
+    },
+    {
+      "id": "ru",
+      "name": "Russisk"
+    },
+    {
+      "id": "sz",
+      "name": "Samisk"
+    },
+    {
+      "id": "sr",
+      "name": "Serbisk"
+    },
+    {
+      "id": "sk",
+      "name": "Slovakisk"
+    },
+    {
+      "id": "sl",
+      "name": "Slovensk"
+    },
+    {
+      "id": "sb",
+      "name": "Sorbisk"
+    },
+    {
+      "id": "es",
+      "name": "Spansk"
+    },
+    {
+      "id": "sx",
+      "name": "Sutu"
+    },
+    {
+      "id": "sv",
+      "name": "Svensk"
+    },
+    {
+      "id": "th",
+      "name": "Thai"
+    },
+    {
+      "id": "cs",
+      "name": "Tsjekkisk"
+    },
+    {
+      "id": "ts",
+      "name": "Tsonga"
+    },
+    {
+      "id": "tn",
+      "name": "Tswana"
+    },
+    {
+      "id": "tr",
+      "name": "Tyrkisk"
+    },
+    {
+      "id": "de",
+      "name": "Tysk"
+    },
+    {
+      "id": "uk",
+      "name": "Ukrainsk"
+    },
+    {
+      "id": "hu",
+      "name": "Ungarsk"
+    },
+    {
+      "id": "ur",
+      "name": "Urdu"
+    },
+    {
+      "id": "vi",
+      "name": "Vietnamesisk"
+    },
+    {
+      "id": "xh",
+      "name": "Xhosa"
+    },
+    {
+      "id": "zu",
+      "name": "Zulu"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+﻿<div class="form-group row">
+    <label for="TODO" class="col-3 col-form-label">{ property.name }</label>
+    <div class="col-9">
+        <div class="input-group">
+            <input disabled type="text" class="form-control" placeholder="Velg tekst" rv-value="property.key">
+            <span class="input-group-btn">
+                <button class="btn btn-secondary selectTextBtn" type="button"
+                        onclick="$('#resourcesBtns').show();
+                            $('#configurationBtns').hide();
+                            $('#resourcesModal').show();
+                            $('#modalEditBody').hide();">
+                    Velg
+                </button>
+            </span>
+        </div>
+    </div>
+</div>

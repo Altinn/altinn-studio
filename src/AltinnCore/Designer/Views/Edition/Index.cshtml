@@ -1,0 +1,176 @@
+﻿@using AltinnCore.ServiceLibrary.ServiceMetadata;
+@model ServiceMetadata
+@{
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+    string edition = ViewContext.RouteData.Values["edition"] as string;
+    ViewBag.Title = service + " / " + edition;
+}
+
+@section styles {
+    <style>
+        .card-body .fa:hover, .card-body .far:hover, .card-body .fas:hover {
+            color: rgb(30,174,247);
+        }
+        .card .fa, .card .far, .card .fas, .card-title a {
+            color: black;
+        }
+        .card {
+            margin-bottom: 1rem;
+        }
+        .card:hover {
+            background-color: #E6F3FB;
+        }
+    </style>
+}
+
+<div class="text-center">
+    <h1 class="my-5 hidden-xs-down">
+        <span style="font-weight: lighter">@org / @service / @edition</span>
+    </h1>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <!-- Modellering og regler-->
+        <div class="card">
+            <div class="card-body">
+                <h4 class="card-title"><a title="Datamodell" asp-route-controller="Model">Modellering</a></h4>
+                @if (Model.Elements == null)
+                {
+                    <p class="card-text alert alert-danger">
+                        Start med å <a title="Datamodell" asp-route-controller="Model">laste opp en datamodell</a>
+                    </p>
+                } else {
+                    <a title="Datamodell" asp-route-controller="Model"><i class="fa fa-fw fa-2x fa-cubes" aria-hidden="true"></i></a>
+                    <a title="APIer og datakilder" asp-route-controller="DataSource"><i class="fa fa-fw fa-2x fa-plug" aria-hidden="true"></i></a>
+                    <a title="Kodelister" asp-route-controller="Codelist" asp-route="editionRoute"><i class="far fa-fw fa-2x fa-list-alt" aria-hidden="true"></i></a>
+                    <!--a title="Regler" asp-route-controller="Rules"><i class="fa fa-fw fa-2x fa-cogs fa-flip-horizontal" aria-hidden="true"></i></a-->
+                    <a title="Kode" asp-route-controller="Rules" asp-route-action="Code"><i class="far fa-fw fa-2x fa-file-code" aria-hidden="true"></i></a>
+                }
+            </div>
+        </div>
+        
+        <!-- React skjemadesigner -->
+        @if (Model.Elements != null) {
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title"><a title="Datamodell" asp-route-controller="React">UX</a></h4>
+                    <a title="Skjemadesigner" asp-route-controller="React" asp-fragment="/"><i class="fa fa-fw fa-2x fa-edit" aria-hidden="true"></i></a>
+                    <a title="Tekster og oversettelser" asp-route-controller="Text"><i class="fa fa-fw fa-2x fa-globe" aria-hidden="true"></i></a>
+                    <a title="Legacy designer" asp-route-controller="UI"><i class="fa fa-fw fa-edit" aria-hidden="true"></i> (legacy)</a>
+                </div>
+            </div>
+        }
+        
+
+        <!-- Visning og tekster-->
+        <!--@if (Model.Elements != null)
+        {        
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title"><a asp-route-controller="UI">Visning og tekster</a></h4>
+                    @if (!ViewBag.HasCreatedViews)
+                    {
+                        <p class="card-text alert alert-danger">
+                            På tide å <a asp-route-controller="UI" asp-route-action="Create">lage vising</a> 
+                            @if (!ViewBag.HasCreatedResources)
+                            {
+                                <span> og <a asp-route-controller="Text">legge inn tekster</a></span>
+                            }
+                        </p>
+                    } else {
+                        <a title="Visninger" asp-route-controller="UI"><i class="fa fa-fw fa-2x fa-tv" aria-hidden="true"></i></a>
+                        <a title="Tekster" asp-route-controller="Text"><i class="fa fa-fw fa-2x fa-book" aria-hidden="true"></i></a>
+                    }
+                </div>
+            </div>
+        }-->
+
+        <!-- Test-->
+        @if (Model.Elements != null) 
+        {      
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title"><a asp-route-controller="Tesing">Test</a></h4>
+                        
+                    <a title="Manuell test (åpnes i ny fane)" href="/runtime/@org/@service/@edition/ManualTesting"><i class="fa fa-fw fa-2x fa-play" aria-hidden="true"></i></a>
+                    <a title="Automatiske test" asp-route-controller="Testing"><i class="fa fa-fw fa-2x fa-coffee" aria-hidden="true"></i></a>
+                    <a title="Universell utforming" asp-route-controller="Testing" asp-route-action="Accessibility"><i class="fa fa-fw fa-2x fa-universal-access" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        }
+
+        <!-- Konfig og deploy-->
+        @if (Model.Elements != null) 
+        {      
+            <div class="card">
+                <div class="card-body">
+                    <h4 class="card-title"><a asp-route-controller="Config" asp-route="editionRoute">Konfig og deploy</a></h4>
+                    
+                    <a title="Konfigurasjon" asp-route-controller="Config" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-cog" aria-hidden="true"></i></a>                      
+                    <a title="Sikkerhet" asp-route-controller="Config" asp-route="editionRoute" asp-route-action="Security"><i class="fa fa-fw fa-2x fa-shield-alt" aria-hidden="true"></i></a>
+                    <a title="Prosess" asp-route-controller="Workflow" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-tasks" aria-hidden="true"></i></a>
+                    <a title="Deploy" href="#"><i class="fa fa-fw fa-2x fa-bolt" aria-hidden="true"></i></a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <a asp-route="serviceRoute"
+            asp-route-controller="Service"
+            asp-route-action="DeleteEdition"
+            asp-route-id="@edition"
+            class="btn btn-danger">
+            Slett utgave
+        </a>
+    </div>
+</div>
+
+@if (ViewBag.PackageDetails != null && ViewBag.PackageDetails.Count > 0)
+{
+    <hr />
+    <div class="row">
+        <div class="col-lg-12">
+            <table class="table table-striped">
+                <thead class="thead-inverse">
+                    <tr>
+                        <th>
+                            Migreringstidspunkt
+                        </th>
+                        <th>
+                            Assembly navn
+                        </th>
+                        <th>
+                            Aktiv
+                        </th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (ServicePackageDetails details in ViewBag.PackageDetails)
+                    {
+                        <tr>
+                            <th scope="row">
+                                @details.CreatedDateTime
+                            </th>
+                            <td>
+                                @details.AssemblyName
+                            </td>
+                            <td>
+                                Yup
+                            </td>
+                            <td>
+                                <a href="#" class="btn btn-primary-outline float-right">
+                                    Kjør
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

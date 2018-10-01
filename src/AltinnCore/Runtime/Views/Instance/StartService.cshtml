@@ -1,0 +1,14 @@
+﻿@model AltinnCore.ServiceLibrary.StartServiceModel
+
+<form asp-action="StartService" asp-controller="Instance">
+    <input type="hidden" asp-for="ServiceID" />
+   <div class="form-group">
+        <label asp-for="ReporteeID">Select reportee</label>
+        <select asp-for="ReporteeID" asp-items="@Model.ReporteeList" class="form-control"></select>
+
+        <span asp-validation-for="ReporteeID" class="text-danger"></span>
+    </div>
+    <input class="btn btn-primary" type="submit" value="Start" />
+</form>
+
+

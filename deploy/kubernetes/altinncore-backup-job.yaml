@@ -1,0 +1,28 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: postgres-dump-cronjob
+spec:
+  schedule: "0 0 * * *" #every day at 00:00
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgress-dump
+            image: postgres:10
+            volumeMounts:
+            - name: altinn-db-backup-storage
+              mountPath: "/backup"
+            env:
+            - name: PGPASSWORD
+              value: [[YOUR GITEA PASSWORD]]
+            command:
+            - "bin/bash"
+            - "-c"
+            - "mkdir -p backup && pg_dump --host=[[YOUR_POSTGRESS_HOST(name of service)]] --username=[[YOUR_USERNAME]] [[NAME OF YOUR DATABASE]] > backup/[[NAME OF YOUR DATABASE]]-$(date +%d-%m-%y).sql"
+          restartPolicy: OnFailure
+          volumes:
+          - name: altinn-db-backup-storage
+            persistentVolumeClaim:
+              claimName: altinn-storage-db-backup-volume-claim

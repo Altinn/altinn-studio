@@ -1,0 +1,28 @@
+@using AltinnCore.ServiceLibrary.Configuration;
+@model ServiceConfiguration
+
+@{ViewBag.Title = "Ny organisasjon";}
+
+<h3>Ny organisasjon</h3>
+
+<form asp-route-controller="Home" asp-route-action="CreateOrg">
+    <fieldset>
+        <div class="form-group">
+            <label asp-for="Name">Navn</label>
+            <input asp-for="Name" type="text" required="required" minlength="3" maxlength="50" class="form-control" placeholder="Eksempel: Brønnøysundregistrene" autocomplete="off" autofocus="true" />
+            <div>
+                <span class="text-danger" asp-validation-for="Name"></span>
+            </div>
+        </div>
+
+        <div class="form-group">    
+            <label asp-for="Code">Kode</label>
+            <input asp-for="Code" type="text" required="required" minlength="2" maxlength="6" class="form-control" placeholder="Eksempel: BR" onchange="$('#name').html(this.value);" autocomplete="off" />
+            <div>
+                <span class="text-danger" asp-validation-for="Code"></span>
+            </div>
+        </div>
+        
+        <input class="btn btn-primary" type="submit" value="Lag ny organisasjon">
+    </fieldset>
+</form>

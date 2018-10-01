@@ -1,0 +1,52 @@
+﻿@model AltinnCore.Common.Models.AltinnStudioViewModel
+@using AltinnCore.Common.Models;
+@{ ViewBag.Title = "Kodelister"; }
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
+  string edition = ViewContext.RouteData.Values["edition"] as string;
+
+  string routeName = "orgRoute";
+  if (edition != null)
+  {
+    routeName = "editionRoute";
+  }
+  else if (service != null)
+  {
+    routeName = "serviceRoute";
+  }
+}
+@section scripts {
+  <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
+}
+
+@if (Model.RepositoryContent != null && Model.RepositoryContent.Count > 0)
+{
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Fil</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    @foreach(RepositoryContent content in Model.RepositoryContent)
+      {
+    <tr>
+      <td>@content.FilePath</td>
+    </tr>
+      }
+  </tbody>
+</table>
+
+  <form asp-controller="Codelist" asp-action="PushChanges">
+    <div class="form-group">
+      <input type="hidden" asp-for="CommitInfo.Org" />
+      <input type="hidden" asp-for="CommitInfo.Repository" />
+      <label for="CommitInfo.Message">Beskrivelse</label>
+      <textarea asp-for="CommitInfo.Message" class="form-control"></textarea>
+      <button type="submit" class="btn btn-primary">Commit og Push endringer</button>
+    </div>
+  </form>
+
+}

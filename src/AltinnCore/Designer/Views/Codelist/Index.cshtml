@@ -1,0 +1,79 @@
+﻿@model AltinnCore.Common.Models.AltinnStudioViewModel
+@{ ViewBag.Title = "Kodelister"; }
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
+  string edition = ViewContext.RouteData.Values["edition"] as string;
+
+  string routeName = "orgRoute";
+  if (edition != null)
+  {
+    routeName = "editionRoute";
+  }
+  else if (service != null)
+  {
+    routeName = "serviceRoute";
+  }
+}
+@section scripts {
+  <script src="~/designer/js/lib/bootstrap-list-filter.min.js" asp-append-version="true"></script>
+}
+
+<div class="text-center">
+  <!--h3>Kodelister</h3-->
+
+  @if (Model.Codelists.Keys.Count > 0)
+  {
+    <div class="mx-auto" style="width: 12em;">
+      <input id="search" type="search" class="form-control" placeholder="Søk kodelister..." autocomplete="on" />
+      <span class="fa fa-search" aria-hidden="true"></span>
+    </div>
+  }
+
+  <div id="codelistList" class="list-group my-2">
+    @foreach (string name in Model.Codelists.Keys)
+    {
+      <a asp-route="@routeName"
+         asp-route-controller="Codelist"
+         asp-route-action="Edit"
+         asp-route-name="@name"
+         class="list-group-item list-group-item-action justify-content-center">
+        @name
+      </a>
+    }
+  </div>
+
+  <a class="btn btn-outline-primary"
+     asp-route="@routeName"
+     asp-route-controller="Codelist"
+     asp-route-action="Edit">
+    Lag ny kodeliste
+  </a>
+</div>
+
+@if (Model.RepositoryContent != null && Model.RepositoryContent.Count > 0)
+{
+<div class="row my-1">
+  <div class="col-12 alert alert-info" role="alert">
+    Det er @Model.RepositoryContent.Count kodelister du har endret som ikke er lagret i Altinn Studio Repository. <a href="/designer/@org/Codelist/Status">Sjekk inn oppdateringer.</a>
+  </div>
+</div>
+}
+
+
+
+  <script>
+    $(document).ready(function () {
+      $('#codelistList').btsListFilter('#search', {
+        initial: false,
+        resetOnBlur: false,
+        emptyNode: function (data) {
+          return $('<a class="list-group-item justify-content-center alert alert-danger" role="alert" href="#" onclick="$(\'#search\').val(\'\').focus().keyup();">Fant ingen kodelister...</a>');
+        },
+        cancelNode: function () {
+          return;
+        }
+      });
+    });
+  </script>
+

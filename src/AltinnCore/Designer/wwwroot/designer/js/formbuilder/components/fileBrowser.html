@@ -1,0 +1,26 @@
+﻿<div class="draggable row">
+    <div class="form-group col">
+        <label class="custom-file" >
+            <input name="uploadFiles" type="file" class="custom-file-input" multiple
+                onchange="$(this).parent().children('.custom-file-control').text($(this).val());">
+            <span class="custom-file-control blank-content" data-editor-show="true" data-editor-title="Fil input-tekst"></span>
+        </label>
+    </div>
+</div>
+
+<style>
+    .blank-content.custom-file-control::after {
+        content: " ";
+    }
+    .blank-content.custom-file-control::before {
+        content: "Last opp";
+    }
+    .custom-file-control {
+        border-radius: 0 !important;
+        overflow:hidden;
+    }
+</style>
+
+
+
+
