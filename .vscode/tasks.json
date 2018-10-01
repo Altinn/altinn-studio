@@ -1,0 +1,20 @@
+{
+    // See https://code.visualstudio.com/docs/editor/tasks for documentation about the tasks.json format
+    "version": "2.0.0",
+    "command": "dotnet",
+    "isShellCommand": true,
+    "args": [],
+    "tasks": [
+         {
+            "taskName": "restore",
+            "isBuildCommand": false,
+            "showOutput": "always"
+        },
+        {
+            "taskName": "build",
+            "isBuildCommand": true,
+            "showOutput": "always",
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
