@@ -64,6 +64,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <param name="edition">The edition code for the current service</param>
     /// <returns>The service Implementation</returns>
     public IServiceImplementation GetServiceImplementation(string org, string service, string edition)
+    // TODO LOAD DLL IN MEMORY
     {
       string assemblyName = LoadServiceAssembly(org, service, edition);
       string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition) + ".ServiceImplementation," + assemblyName;
