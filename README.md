@@ -1,3 +1,5 @@
+[![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-CI)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=1)
+
 # Altinn studio
 
 The _very_ early test version of Altinn Studio is available at https://altinn.studio.
