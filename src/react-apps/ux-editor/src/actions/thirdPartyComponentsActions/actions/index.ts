@@ -3,6 +3,7 @@ import * as ActionTypes from '../thirdPartyComponentsActionTypes';
 
 export interface IFetchThirdPartyComponent extends Action {
   location: string;
+  packageName: string;
   components: string[];
 }
 
@@ -14,11 +15,12 @@ export interface IFetchThirdPartyComponentRejected extends Action {
   error: Error;
 }
 
-export function fetchThirdPartyComponents(location: string, components: string[]): IFetchThirdPartyComponent {
+export function fetchThirdPartyComponents(location: string, packageName: string, components: string[]): IFetchThirdPartyComponent {
   return {
     type: ActionTypes.FETCH_THIRD_PARTY_COMPONENTS,
     location,
     components,
+    packageName,
   }
 }
 

@@ -20,12 +20,16 @@ function* fetchThirdPartyComponentsSaga(action: ThirdPartyActions.IFetchThirdPar
     if (!fetchedComponents) {
       yield call(
         ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponentsFulfilled,
-        null,
+        {
+          [action.packageName]: null,
+        },
       );
     }
     yield call(
       ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponentsFulfilled,
-      fetchedComponents,
+      {
+        [action.packageName]: fetchedComponents,
+      }
     );
   } catch (err) {
     yield call(

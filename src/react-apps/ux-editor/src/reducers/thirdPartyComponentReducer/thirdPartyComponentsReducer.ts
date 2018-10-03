@@ -19,7 +19,7 @@ const thirdPartyComponentsReducer: Reducer<IThirdPartyComponentsState> = (
   switch (action.type) {
     case ThirdPartyComponentsActionTypes.FETCH_THIRD_PARTY_COMPONENTS_FULFILLED: {
       return update<IThirdPartyComponentsState>(state, {
-        $set: {
+        $merge: {
           components: (action as IFetchThirdPartyComponentFulfilled).components,
         }
       });
