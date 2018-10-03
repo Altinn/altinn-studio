@@ -8,6 +8,8 @@ import { ErrorMessageComponent } from './components/message/ErrorMessageComponen
 import FormDesigner from './containers/FormDesigner';
 import { FormFiller } from './containers/FormFiller';
 
+import { UglyTest } from './uglyTest';
+
 // tslint:disable-next-line:no-implicit-dependencies
 import { Route } from 'react-router';
 export interface IAppComponentProps { }
@@ -104,6 +106,7 @@ class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
         <ErrorMessageComponent />
         <Route exact={true} path='/' component={FormDesigner} />
         <Route exact={true} path='/Preview' component={FormFiller} />
+        <UglyTest />
       </div>
     );
   }
