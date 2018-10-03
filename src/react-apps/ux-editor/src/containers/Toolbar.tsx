@@ -2,7 +2,6 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import ThirdPartyComponentsActionDispatcher from '../actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
@@ -146,14 +145,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       selectedComp: {},
       selectedCompId: '',
     };
-  }
-
-  public componentDidMount() {
-    ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-      "http://altinn3.no/Jesper/ThirdPartyComponents/raw/branch/master/dist/index.js",
-      "SuperAwesomePackage",
-      ["Button", "ThisNewAwesomeNewComponentThatWillBlowYourMind"],
-    );
   }
 
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {

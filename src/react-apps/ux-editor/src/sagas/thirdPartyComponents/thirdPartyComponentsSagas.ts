@@ -8,28 +8,31 @@ import * as React from 'react';
 
 function* fetchThirdPartyComponentsSaga(action: ThirdPartyActions.IFetchThirdPartyComponent): SagaIterator {
   try {
-    const fetchedSrc: any = yield call(get, action.location);
-    const evaluatedSrc: any = eval(fetchedSrc);
-    let fetchedComponents: any = null;
-    for (let component in action.components) {
-      if (!component) continue;
-      fetchedComponents = Object.assign({
-        [action.components[component]]: React.createElement(evaluatedSrc.Components[action.components[component]]),
-      }, fetchedComponents);
-    }
-    if (!fetchedComponents) {
+    const fetchedDefinitions: any = yield call(get, action.location);
+    if (!fetchedDefinitions || !fetchedDefinitions.packages) {
       yield call(
         ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponentsFulfilled,
-        {
-          [action.packageName]: null,
-        },
+        null
       );
+      return;
+    }
+    let fetchedPackages: any = {};
+    for (let externalPackage of fetchedDefinitions.packages) {
+      const fetchedSrc: any = yield call(get, externalPackage.location);
+      const evaluatedSrc: any = eval(fetchedSrc);
+      let fetchedComponents = {};
+      for (let component in evaluatedSrc.Components) {
+        fetchedComponents = Object.assign(fetchedComponents, {
+          [component]: React.createElement(evaluatedSrc.Components[component])
+        });
+      }
+      fetchedPackages = Object.assign(fetchedPackages, {
+        [externalPackage.packageName]: fetchedComponents,
+      });
     }
     yield call(
       ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponentsFulfilled,
-      {
-        [action.packageName]: fetchedComponents,
-      }
+      fetchedPackages
     );
   } catch (err) {
     yield call(

@@ -118,6 +118,18 @@ namespace AltinnCore.Designer.Controllers
     }
 
     /// <summary>
+    /// Get third party components listed as JSON
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <returns>The model representation as JSON</returns>
+    [HttpGet]
+    public ActionResult GetThirdPartyComponents(string org, string service, string edition)
+    {
+      return Content(_repository.GetJsonThirdPartyComponents(org, service, edition), "text/plain", Encoding.UTF8);
+    }
+
+    /// <summary>
     /// Get rule handler in JSON structure
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
@@ -159,6 +171,25 @@ namespace AltinnCore.Designer.Controllers
       {
         Success = true,
         Message = "Skjema lagret"
+      });
+    }
+
+    /// <summary>
+    /// Save form layout as JSON
+    /// <param name="jsonData">The code list data to save</param>
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <returns>A success message if the save was successful</returns>
+    [HttpPost]
+    public ActionResult SaveThirdPartyComponents([FromBody] dynamic jsonData, string org, string service, string edition)
+    {
+      _repository.SaveJsonThirdPartyComponents(org, service, edition, jsonData.ToString());
+
+      return Json(new
+      {
+        Success = true,
+        Message = "Tredjeparts komponenter lagret"
       });
     }
 

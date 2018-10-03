@@ -3,7 +3,7 @@ import { store } from '../../store';
 import * as ThirdPartyComponentsActions from './actions';
 
 export interface IThirdPartyComponentsActionDispatcher extends ActionCreatorsMapObject {
-  fetchThirdPartyComponents: (location: string, packageName: string, components: string[]) => ThirdPartyComponentsActions.IFetchThirdPartyComponent,
+  fetchThirdPartyComponents: (location: string) => ThirdPartyComponentsActions.IFetchThirdPartyComponent,
   fetchThirdPartyComponentsFulfilled: (components: any) => ThirdPartyComponentsActions.IFetchThirdPartyComponentFulfilled,
   fetchThirdPartyComponentsRejected: (error: Error) => ThirdPartyComponentsActions.IFetchThirdPartyComponentRejected,
 }
