@@ -474,7 +474,7 @@ namespace AltinnCore.Common.Services.Implementation
     }
 
     /// <summary>
-    /// Save the JSON third party components form layout to disk
+    /// Save the JSON third party components to disk
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
