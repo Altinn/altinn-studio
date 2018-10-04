@@ -26,10 +26,10 @@ Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate
 
 ```cmd
 git clone https://github.com/Altinn/altinn-studio
-cd AltinnCore
+cd Altinn-studio
 ```
 
-Run all parts of the solution in containers
+Run all parts of the solution in containers (Make sure docker is running)
 
 ```cmd
 docker-compose up -d --build
