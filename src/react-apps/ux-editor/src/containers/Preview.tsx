@@ -29,6 +29,7 @@ export class PreviewComponent extends React.Component<
     return (
       <Container
         id={baseContainerId}
+        baseContainer={true}
       />
     );
   }

@@ -50,6 +50,7 @@ declare global {
   export interface ICreateFormContainer {
     repeating: boolean;
     dataModelGroup: string;
+    index?: number;
   }
 
   export interface ICreateFormComponent {

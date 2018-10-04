@@ -20,11 +20,14 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IAddFormComponentActionRejected;
   addFormContainer: (
     container: ICreateFormContainer,
+    positionAfterId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerAction;
   addFormContainerFulfilled: (
     container: ICreateFormContainer,
     id: string,
+    positionAfterId?: string,
+    baseContainerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerActionFulfilled;
   addFormContainerRejected: (

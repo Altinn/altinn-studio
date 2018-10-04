@@ -10,7 +10,7 @@ import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutRedu
 
 export interface IProvidedContainerProps {
   id: string;
-  index?: number;
+  baseContainer?: boolean;
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -21,6 +21,7 @@ export interface IContainerProps extends IProvidedContainerProps {
   repeating: boolean;
   designMode: boolean;
   formData: any;
+  index?: number;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
@@ -65,20 +66,19 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public render() {
     console.log('in Container, render method');
     return (
-      <div className='col-12' style={{ border: '1px dashed #1eaef7' }}>
-        <div className='col-2'>
-          <button
-            type='button'
-            className='a-btn a-btn-icon p-0'
-            onClick={this.handleContainerDelete}
-          >
-            <i className='ai ai-circle-exit a-danger ai-left' />
-          </button>
+      <div
+        className={'col-12'}
+        style={this.props.baseContainer ? {} :
+          { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px'}}
+      >
+        <div className='col-1'>
+          {this.renderDeleteGroupButton()}
         </div>
         {this.props.itemOrder.map((id: string, index: number) => (
           this.props.components[id] ? this.renderFormComponent(id, index) :
-            (this.props.containers[id] ? this.renderContainer(id, index) : null)
+            (this.props.containers[id] ? this.renderContainer(id, this.props.containers[id].index) : null)
         ))}
+        {this.renderNewGroupButton()}
       </div>
     );
   }
@@ -88,9 +88,36 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (
       <Container
         id={id}
-        index={key}
         key={key}
+        baseContainer={false}
       />
+    );
+  }
+
+  public renderDeleteGroupButton = (): JSX.Element => {
+    if (this.props.baseContainer) return null;
+    return (
+          <button
+            type='button'
+            className='a-btn a-btn-icon p-0'
+            onClick={this.handleContainerDelete}
+          >
+            <i className='ai ai-circle-exit a-danger ai-left' />
+          </button>
+    );
+  }
+
+  public renderNewGroupButton = (): JSX.Element => {
+    if (this.props.baseContainer) return null;
+    return (
+      <button
+          className={'a-btn a-btn-action'}
+          onClick={this.handleAddNewGroup}
+          disabled={this.props.designMode}
+      >
+        <i className={'ai ai-plus'} />
+        <span>Legg til gruppe</span>
+      </button>
     );
   }
 
@@ -106,6 +133,16 @@ export class ContainerComponent extends React.Component<IContainerProps> {
           this.props.formData[this.props.components[id].dataModelBinding] : ''}
       />
     );
+  }
+
+  public handleAddNewGroup = () => {
+    const container: ICreateFormContainer = {
+      repeating: this.props.repeating,
+      dataModelGroup: this.props.dataModelGroup,
+      index: this.props.index + 1,
+    };
+
+    FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
   }
 
   public calculateContainerIndex = (): number => {
@@ -138,13 +175,13 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
   const container = layout.containers[props.id];
   return {
     id: props.id,
-    index: props.index,
+    index: layout.containers[props.id].index,
     itemOrder: layout.order[props.id],
     components: layout.components,
     containers: layout.containers,
     designMode: state.appData.appConfig.designMode,
     repeating: container.repeating,
-    formData: getFormData(props.id, layout, state.formFiller.formData, container.dataModelGroup, props.index, container.repeating),
+    formData: getFormData(props.id, layout, state.formFiller.formData, container.dataModelGroup, layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
   };
 };
