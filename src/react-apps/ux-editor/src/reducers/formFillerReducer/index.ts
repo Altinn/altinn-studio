@@ -38,7 +38,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
       const {
         formData,
         componentID,
-        dataModelElement,
+        dataModelBinding,
         validationErrors,
       } = action as FormFillerActions.IUpdateFormDataActionFulfilled;
       if (validationErrors && validationErrors.length > 0) {
@@ -46,7 +46,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
           formData: {
             $apply: () => ({
               ...state.formData,
-              [dataModelElement.DataBindingName]: formData,
+              [dataModelBinding]: formData,
             }),
           },
           validationErrors: {
@@ -61,7 +61,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         formData: {
           $apply: () => ({
             ...state.formData,
-            [dataModelElement.DataBindingName]: formData
+            [dataModelBinding]: formData,
           })
         },
         validationErrors: {

@@ -43,11 +43,18 @@ declare global {
     value: any;
   }
 
+
+  export interface ICreateFormContainer {
+    repeating: boolean;
+    dataModelGroup: string;
+  }
+
   export interface ICreateFormComponent {
     title: string;
     component: string;
     type?: string;
     name?: string;
+    size?: string;
     options?: IOptions[];
     description?: string;
     dataModelBinding?: string;
@@ -65,6 +72,7 @@ declare global {
     required?: boolean;
     hidden?: boolean;
   }
+
 
   export interface IFormHeaderComponent extends IFormComponent {
     size: string;
@@ -110,9 +118,19 @@ declare global {
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;
   }
+
+  export interface IFormDesignerContainer {
+    [id: string]: ICreateFormContainer;
+  }
+
   export interface IFormDesignerLayout {
     components: IFormDesignerComponent;
-    order: string[];
+    containers: IFormDesignerContainer;
+    order: IFormLayoutOrder;
+  }
+
+  export interface IFormLayoutOrder {
+    [id: string]: string[];
   }
 
   export interface IServiceConfiguration {
