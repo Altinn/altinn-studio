@@ -8,6 +8,7 @@ import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponents
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
 import { FormFiller } from './containers/FormFiller';
+import { TestComponent } from './containers/FormElementContainer';
 
 // tslint:disable-next-line:no-implicit-dependencies
 import { Route } from 'react-router';
@@ -108,6 +109,7 @@ class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
         <ErrorMessageComponent />
         <Route exact={true} path='/' component={FormDesigner} />
         <Route exact={true} path='/Preview' component={FormFiller} />
+        <TestComponent id={'id'} />
       </div>
     );
   }
