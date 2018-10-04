@@ -1,0 +1,128 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: altinn-repositories
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: altinn-repositories
+    spec:
+      containers:
+      - name: altinn-repositories
+        image: gitea/gitea:1.4.3
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: altinn-gitea-storage
+          mountPath: "/data"
+      volumes:
+      - name: altinn-gitea-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-gitea-volume-claim
+      
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: altinn-designer
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: altinn-designer
+    spec:
+      containers:
+      - name: altinn-designer
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:#{Release.Artifacts.Frontend.BuildId}#
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: altinn-repo-storage
+          mountPath: "/AltinnCore/Repos"
+        - name: altinn-template-storage
+          mountPath: "/Templates"
+        env:
+        - name: GiteaEndpoint
+          value: altinn.studio
+        - name: GiteaApiEndpoint
+          value: https://altinn.studio/api/v1
+        - name: GiteaLoginEndpoint
+          value: https://altinn.studio/user/login
+        - name: ASPNETCORE_ENVIRONMENT
+          value: Development
+        - name: ASPNETCORE_URLS
+          value: http://+:5000
+        - name: ServiceRepositorySettings__RepositoryLocation
+          value: /AltinnCore/Repos/
+        - name: ServiceRepositorySettings__RepositoryBaseURL
+          value: http://altinn-repositories:3000
+        - name: ServiceRepositorySettings__EnableGiteaIntegration
+          value: "true"
+      volumes:
+      - name: altinn-gitea-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-gitea-volume-claim
+      - name: altinn-repo-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-repo-volume-claim
+      - name: altinn-template-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-template-volume-claim
+      imagePullSecrets:
+      - name: acrsecret
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: altinn-runtime
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: altinn-runtime
+    spec:
+      containers:
+      - name: altinn-runtime
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:#{Release.Artifacts.Backend.BuildId}#
+        ports:
+        - containerPort: 5005
+        volumeMounts:
+        - name: altinn-repo-storage
+          mountPath: "/AltinnCore/Repos"
+        - name: altinn-testdata-storage
+          mountPath: "/Testdata"
+        - name: altinn-template-storage
+          mountPath: "/Templates"
+        env:
+          - name: GiteaEndpoint
+            value: altinn.studio
+          - name: GiteaLoginEndpoint
+            value: https://altinn.studio/user/login
+          - name: GiteaApiEndpoint
+            value: https://altinn.studio/api/v1
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+          - name: ASPNETCORE_URLS
+            value: http://+:5005
+          - name: ServiceRepositorySettings__RepositoryLocation
+            value: /AltinnCore/Repos/
+          - name: ServiceRepositorySettings__RepositoryBaseURL
+            value: http://altinn-repositories:3000
+          - name: ServiceRepositorySettings__EnableGiteaIntegration
+            value: "true"
+      volumes:
+      - name: altinn-testdata-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-testdata-volume-claim
+      - name: altinn-repo-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-repo-volume-claim
+      - name: altinn-template-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-template-volume-claim
+      imagePullSecrets:
+      - name: acrsecret
