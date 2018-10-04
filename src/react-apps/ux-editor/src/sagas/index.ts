@@ -10,6 +10,7 @@ import formDesignerSagas from './formDesigner';
 import formFillerSagas from './formFiller';
 import manageJsonFileSagas from './manageServiceConfiguration';
 import ruleConnectionSagas from './ruleConnection';
+import thirdPartyComponentSagas from './thirdPartyComponents';
 
 function* root(): SagaIterator {
   yield fork(formDesignerSagas);
@@ -20,6 +21,7 @@ function* root(): SagaIterator {
   yield fork(appDataSagas);
   yield fork(manageJsonFileSagas);
   yield fork(codeListsSagas);
+  yield fork(thirdPartyComponentSagas);
 }
 
 export const run: () => Task = () => sagaMiddleware.run(root);

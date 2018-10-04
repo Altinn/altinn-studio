@@ -376,6 +376,15 @@ namespace AltinnCore.Common.Services.Interfaces
     string GetJsonFormLayout(string org, string service, string edition);
 
     /// <summary>
+    /// Get the Json third party components from disk
+    /// </summary>
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <returns>Returns the json object as a string</returns>
+    string GetJsonThirdPartyComponents(string org, string service, string edition);
+
+    /// <summary>
     /// Get the rule handler Json form model from disk
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
@@ -393,6 +402,16 @@ namespace AltinnCore.Common.Services.Interfaces
     /// <param name="resource">The content of the resource file</param>
     /// <returns>A boolean indicating if saving was ok</returns>
     bool SaveJsonFormLayout(string org, string service, string edition, string resource);
+
+    /// <summary>
+    /// Save the JSON third party components to disk
+    /// </summary>
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <param name="resource">The content of the resource file</param>
+    /// <returns>A boolean indicating if saving was ok</returns>
+    bool SaveJsonThirdPartyComponents(string org, string service, string edition, string resource);
 
     /// <summary>
     /// Save the JSON form layout to disk

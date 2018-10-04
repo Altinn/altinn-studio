@@ -113,6 +113,11 @@ namespace AltinnCore.Common.Configuration
     public string FormLayoutJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "FormLayout.json";
 
     /// <summary>
+    /// Gets or sets The name of the ThirdPartyComponents json file Name
+    /// </summary>
+    public string ThirdPartyComponentsJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "ThirdPartyComponents.json";
+
+    /// <summary>
     /// Gets or sets The ServiceMetadata file name
     /// </summary>
     public string ServiceMetadataFileName { get; set; } = METADATA_FILENAME;
@@ -238,6 +243,23 @@ namespace AltinnCore.Common.Configuration
     /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</return>
     public string GetFormLayoutPath(string org, string service, string edition, string developer)
+    {
+      if (developer != null)
+      {
+        developer += "/";
+      }
+
+      return $"{RepositoryLocation}/{developer}{org}/{service}/{General.EditionsFolder}/{edition}/";
+    }
+
+    /// <summary>
+    /// 
+    /// </summary
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <returns>The full path, ending with "/"</return>
+    public string GetThirdPartyComponentsPath(string org, string service, string edition, string developer)
     {
       if (developer != null)
       {

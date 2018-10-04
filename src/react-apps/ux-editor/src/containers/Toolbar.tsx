@@ -8,6 +8,8 @@ import { ConditionalRenderingModalComponent } from '../components/toolbar/Condit
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 
+const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
+
 export interface IToolbarElement {
   label: string;
   actionMethod: () => void;
@@ -21,6 +23,7 @@ export enum LayoutItemType {
 export interface IToolbarProps {
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
+  thirdPartyComponents: any;
 }
 export interface IToolbarState {
   modalOpen: boolean;
@@ -69,6 +72,39 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       },
     };
     this.toolbarComponents.push(addContainerItem);
+
+  }
+  
+  public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
+    FormActionDispatcher.addFormComponent({
+      component: THIRD_PARTY_COMPONENT,
+      title: `${componentPackage}.${componentName}`,
+    });
+  }
+
+  public renderThirdPartyComponents = () => {
+    if (!this.props.thirdPartyComponents) {
+      return null;
+    }
+    const { thirdPartyComponents } = this.props;
+    return (
+      <div className='row a-topTasks'>
+        {Object.keys(thirdPartyComponents).map((componentPackage) => {
+          const components = thirdPartyComponents[componentPackage];
+          return Object.keys(components).map((component, index) => (
+            <div className='col col-lg-12' key={index}>
+              <button
+                type="button"
+                className={'a-btn a-btn-icon'}
+                onClick={this.addThirdPartyComponentToLayout.bind(this, componentPackage, component)}
+              >
+                <span className='a-btn-icon-text'>{componentPackage} - {component}</span>
+              </button>
+            </div>
+          ))
+        })}
+      </div>
+    )
   }
 
   public handleNext(component: any, id: string) {
@@ -117,6 +153,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             );
           })}
         </div>
+        {this.renderThirdPartyComponents()}
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>
@@ -154,6 +191,7 @@ const mapsStateToProps = (
   return {
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
+    thirdPartyComponents: state.thirdPartyComponents.components,
   };
 };
 
