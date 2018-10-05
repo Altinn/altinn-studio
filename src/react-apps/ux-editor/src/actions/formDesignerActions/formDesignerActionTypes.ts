@@ -34,3 +34,18 @@ export const FETCH_FORM_LAYOUT_REJECTED: string = `${moduleName}.FETCH_FORM_LAYO
 export const SAVE_FORM_LAYOUT: string = `${moduleName}.SAVE_FORM_LAYOUT`;
 export const SAVE_FORM_LAYOUT_FULFILLED: string = `${moduleName}.SAVE_FORM_LAYOUT_FULFILLED`;
 export const SAVE_FORM_LAYOUT_REJECTED: string = `${moduleName}.SAVE_FORM_LAYOUT_REJECTED`;
+
+// Add form component actions
+export const ADD_FORM_CONTAINER: string = `${moduleName}.ADD_FORM_CONTAINER`;
+export const ADD_FORM_CONTAINER_FULFILLED: string = `${moduleName}.ADD_FORM_CONTAINER_FULFILLED`;
+export const ADD_FORM_CONTAINER_REJECTED: string = `${moduleName}.ADD_FORM_CONTAINER_REJECTED`;
+
+// Delete form component actions
+export const DELETE_FORM_CONTAINER: string = `${moduleName}.DELETE_FORM_CONTAINER`;
+export const DELETE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.DELETE_FORM_CONTAINER_FULFILLED`;
+export const DELETE_FORM_CONTAINER_REJECTED: string = `${moduleName}.DELETE_FORM_CONTAINER_REJECTED`;
+
+// Update form component actions
+export const UPDATE_FORM_CONTAINER: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
+export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
+export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
