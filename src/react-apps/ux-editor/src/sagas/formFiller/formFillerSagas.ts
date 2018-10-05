@@ -7,6 +7,7 @@ import { IAppDataState } from '../../reducers/appDataReducer';
 import { convertDataBindingToModel, convertModelToDataBinding } from '../../utils/databindings';
 import { get, put } from '../../utils/networking';
 import * as Validator from '../../utils/validation';
+import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const selectAppData = (state: IAppState): IAppDataState => state.appData;
 
@@ -88,6 +89,7 @@ export function* fetchFormDataSaga({ url }: FormFillerActions.IFetchFormDataActi
       FormFillerActionDispatcher.fetchFormDataFulfilled,
       convertModelToDataBinding(formData, appDataState.dataModel.model),
     );
+    yield call(FormDesignerActionDispatchers.generateRepeatingGroupsAction);
   } catch (err) {
     yield call(FormFillerActionDispatcher.fetchFormDataRejected, err);
   }

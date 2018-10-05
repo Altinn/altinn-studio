@@ -48,7 +48,13 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.ADD_FORM_CONTAINER_FULFILLED: {
-      const { container, id, positionAfterId, baseContainerId, callback } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
+      const {
+        container,
+        id,
+        positionAfterId,
+        baseContainerId,
+        callback,
+      } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
       if (callback) callback(container, id);
 
       if (!baseContainerId) {
@@ -65,7 +71,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
-      
+
       if (positionAfterId) {
         return update<IFormLayoutState>(state, {
           containers: {
@@ -75,7 +81,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
           order: {
             [id]: {
-              $set: [[state.order[positionAfterId]]],
+              $set: state.order[positionAfterId],
             },
             [baseContainerId]: {
               $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
