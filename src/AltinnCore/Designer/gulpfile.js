@@ -101,11 +101,11 @@ function cleanNodeModulePackages() {
 }
 
 function copyReactJs() {
-  return gulp.src('../../react-apps/ux-editor/dist/react-app.js').pipe(gulp.dest('./wwwroot/designer/js/formbuilder'));
+  return gulp.src('../../react-apps/ux-editor/dist/react-app.js').pipe(gulp.dest('./wwwroot/designer/js/formbuilder/'));
 }
 
 function copyReactCss() {
-  return gulp.src('../../react-apps/ux-editor/dist/react-app.css').pipe(gulp.dest('./wwwroot/designer/css'));
+  return gulp.src('../../react-apps/ux-editor/dist/react-app.css').pipe(gulp.dest('./wwwroot/designer/css/'));
 }
 
 function deleteReactJs() {
@@ -117,8 +117,12 @@ function deleteReactCss() {
 }
 
 function setupWatchers(cb) {
-  jsWatcher = chokidar.watch('../../react-apps/ux-editor/dist/react-app.js').on('all', copyReactJs);
-  cssWatcher = chokidar.watch('../../react-apps/ux-editor/dist/react-app.css').on('all', copyReactCss);
+  jsWatcher = chokidar.watch('../../react-apps/ux-editor/dist/react-app.js');
+  cssWatcher = chokidar.watch('../../react-apps/ux-editor/dist/react-app.css');
+  jsWatcher.on('ready', copyReactJs);
+  jsWatcher.on('change', copyReactJs);
+  cssWatcher.on('ready', copyReactCss);
+  cssWatcher.on('change', copyReactCss);
   cb();
 }
 

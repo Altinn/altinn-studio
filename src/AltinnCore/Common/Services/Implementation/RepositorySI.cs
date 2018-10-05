@@ -396,6 +396,26 @@ namespace AltinnCore.Common.Services.Implementation
     }
 
     /// <summary>
+    /// Get the Json third party components from disk
+    /// </summary>
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <returns>Returns the json object as a string</returns>
+    public string GetJsonThirdPartyComponents(string org, string service, string edition)
+    {
+      string filePath = _settings.GetThirdPartyComponentsPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
+      string fileData = null;
+
+      if (File.Exists(filePath))
+      {
+        fileData = File.ReadAllText(filePath, Encoding.UTF8);
+      }
+
+      return fileData;
+    }
+
+    /// <summary>
     /// Get the Json form model from disk
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
@@ -447,6 +467,23 @@ namespace AltinnCore.Common.Services.Implementation
     public bool SaveJsonFormLayout(string org, string service, string edition, string resource)
     {
       string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
+      (new FileInfo(filePath)).Directory.Create();
+      File.WriteAllText(filePath, resource, Encoding.UTF8);
+
+      return true;
+    }
+
+    /// <summary>
+    /// Save the JSON third party components to disk
+    /// </summary>
+    /// <param name="org">The Organization code for the service owner</param>
+    /// <param name="service">The service code for the current service</param>
+    /// <param name="edition">The edition code for the current service</param>
+    /// <param name="resource">The content of the resource file</param>
+    /// <returns>A boolean indicating if saving was ok</returns>
+    public bool SaveJsonThirdPartyComponents(string org, string service, string edition, string resource)
+    {
+      string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
       (new FileInfo(filePath)).Directory.Create();
       File.WriteAllText(filePath, resource, Encoding.UTF8);
 

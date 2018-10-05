@@ -4,6 +4,7 @@ import errorReducer, { IErrorState } from './errorReducer';
 import formDesignerReducer, { IFormDesignerState } from './formDesignerReducer';
 import formFillerReducer, { IFormFillerState } from './formFillerReducer';
 import serviceConfigurationReducer, { IServiceConfigurationState } from './serviceConfigurationReducer';
+import thirdPartyComponentsReducer, { IThirdPartyComponentsState } from './thirdPartyComponentReducer';
 
 export interface IReducers
   extends IFormDesignerNameSpace<
@@ -11,7 +12,8 @@ export interface IReducers
   Reducer<IFormFillerState>,
   Reducer<IServiceConfigurationState>,
   Reducer<IAppDataState>,
-  Reducer<IErrorState>
+  Reducer<IErrorState>,
+  Reducer<IThirdPartyComponentsState>
   >,
   ReducersMapObject { }
 
@@ -21,6 +23,7 @@ const reducers: IReducers = {
   serviceConfigurations: serviceConfigurationReducer,
   appData: appDataReducer,
   errors: errorReducer,
+  thirdPartyComponents: thirdPartyComponentsReducer,
 };
 
 export default combineReducers(reducers);

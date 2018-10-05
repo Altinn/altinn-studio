@@ -35,6 +35,7 @@ export interface IFormElementProps extends IProvidedProps {
   dataModelElement: IDataModelFieldElement;
   validationErrors: any[];
   textResources: any[];
+  thirdPartyComponents: any;
 }
 
 /**
@@ -171,6 +172,13 @@ class FormComponent extends React.Component<
           />
         );
       }
+      case 'ThirdParty': {
+        const [packageName, component] = this.props.component.title.split('.');
+        if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName] || !this.props.thirdPartyComponents[packageName][component]) {
+          return null;
+        }
+        return this.props.thirdPartyComponents[packageName][component];
+      }
       default: {
         return null;
       }
@@ -283,6 +291,7 @@ const makeMapStateToProps = () => {
         ? state.formFiller.validationErrors[props.id]
         : null,
     textResources: state.appData.textResources.resources,
+    thirdPartyComponents: state.thirdPartyComponents.components,
   });
   return mapStateToProps;
 };
