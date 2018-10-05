@@ -78,7 +78,7 @@ Let's say i'll change for this:
 (...)
       containers:
       - name: altinn-designer
-        image: altinncontainerregistry.azurecr.io/altinn-core:1.0.0
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:1.0.0
         ports:
         - containerPort: 5000
 (...)
@@ -90,7 +90,7 @@ into this:
 (...)
       containers:
       - name: altinn-designer
-        image: altinncontainerregistry.azurecr.io/altinn-core:1.0.1
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:1.0.1
         ports:
         - containerPort: 5000
 (...)
