@@ -13,7 +13,7 @@ RUN dotnet publish AltinnCore.Runtime.csproj -c Release -o /app_output
 FROM microsoft/dotnet@sha256:b99ecca89d5a1d8919782f01b639d2376267456f6b7b5cc1b9d7fca94f579869 AS final
 EXPOSE 80
 WORKDIR /AltinnService
-COPY src/AltinnCore/AltinnService /AltinnService
+COPY src/AltinnCore/Templates/AltinnService /AltinnService
 WORKDIR /app
 COPY --from=build /app_output .
 ENTRYPOINT ["dotnet", "AltinnCore.Runtime.dll"]
