@@ -1,26 +1,15 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
-import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
-import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
-import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
-import { DropdownComponent } from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUploadComponent';
-import { HeaderComponent } from './base/HeaderComponent';
-import { InputComponent } from './base/InputComponent';
-import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
-import { TextAreaComponent } from './base/TextAreaComponent';
-import { SubmitComponent } from './widget/SubmitComponent';
-
-import { makeGetFormDataSelector } from '../selectors/getFormData';
+import GenericComponent from './GenericComponent';
 
 /**
  * Properties defined for input for wrapper
  */
 export interface IProvidedProps {
   id: string;
+  formData: any;
+  handleDataUpdate: (id: string, dataModelElement: any, value: any) => void;
 }
 
 /**
@@ -30,7 +19,6 @@ export interface IFormElementProps extends IProvidedProps {
   component: FormComponentType;
   designMode: boolean;
   connections: any;
-  formData: any;
   externalApi: any;
   dataModelElement: IDataModelFieldElement;
   validationErrors: any[];
@@ -70,15 +58,7 @@ class FormComponent extends React.Component<
       return;
     }
 
-    FormFillerActionDispatchers.updateFormData(
-      this.props.id,
-      callbackValue,
-      this.props.dataModelElement,
-    );
-
-    ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    ApiActionDispatchers.checkIfApiShouldFetch(this.props.id, this.props.dataModelElement, callbackValue);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(this.props.id, this.props.dataModelElement, callbackValue);
+    this.props.handleDataUpdate(this.props.id, this.props.dataModelElement, callbackValue);
   }
 
   /**
@@ -86,103 +66,17 @@ class FormComponent extends React.Component<
    */
   public renderComponent(): JSX.Element {
     const isValid = !this.errorMessage();
-    switch (this.props.component.component) {
-      case 'Header': {
-        return (
-          <HeaderComponent
-            component={this.props.component}
-            text={this.getTextResource(this.props.component.title)}
-            size={(this.props.component as IFormHeaderComponent).size}
-          />
-        );
-      }
-      case 'Input': {
-        return (
-          <InputComponent
-            id={this.props.id}
-            component={this.props.component}
-            handleDataChange={this.handleComponentDataUpdate}
-            isValid={isValid}
-            formData={this.props.formData}
-          />
-        );
-      }
-      case 'Checkboxes': {
-        return (
-          <CheckboxContainerComponent
-            id={this.props.id}
-            component={this.props.component}
-            handleDataChange={this.handleComponentDataUpdate}
-            getTextResource={this.getTextResource}
-            isValid={isValid}
-            formData={this.props.formData}
-          />
-        );
-      }
-      case 'TextArea': {
-        return (
-          <TextAreaComponent
-            id={this.props.id}
-            component={this.props.component}
-            handleDataChange={this.handleComponentDataUpdate}
-            isValid={isValid}
-            formData={this.props.formData}
-          />
-        );
-      }
-      case 'RadioButtons': {
-        return (
-          <RadioButtonContainerComponent
-            id={this.props.id}
-            component={this.props.component}
-            handleDataChange={this.handleComponentDataUpdate}
-            isValid={isValid}
-            formData={this.props.formData}
-          />
-        );
-      }
-      case 'Dropdown': {
-        return (
-          <DropdownComponent
-            id={this.props.id}
-            component={this.props.component}
-            handleDataChange={this.handleComponentDataUpdate}
-            isValid={isValid}
-            formData={this.props.formData}
-          />
-        );
-      }
-      case 'FileUpload': {
-        return (
-          <FileUploadComponent
-            id={this.props.id}
-            component={this.props.component}
-            handleDataChange={this.handleComponentDataUpdate}
-            isValid={isValid}
-            formData={this.props.formData}
-          />
-        );
-      }
-      case 'Submit': {
-        return (
-          <SubmitComponent
-            id={this.props.id}
-            component={this.props.component}
-            text={this.getTextResource(this.props.component.textResourceId)}
-          />
-        );
-      }
-      case 'ThirdParty': {
-        const [packageName, component] = this.props.component.title.split('.');
-        if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName] || !this.props.thirdPartyComponents[packageName][component]) {
-          return null;
-        }
-        return this.props.thirdPartyComponents[packageName][component];
-      }
-      default: {
-        return null;
-      }
-    }
+    return (
+      <GenericComponent
+        component={this.props.component}
+        isValid={isValid}
+        formData={this.props.formData}
+        handleDataChange={this.handleComponentDataUpdate}
+        getTextResource={this.getTextResource}
+        designMode={this.props.designMode}
+        thirdPartyComponents={this.props.thirdPartyComponents}
+      />
+    );
   }
 
   /**
@@ -276,15 +170,15 @@ class FormComponent extends React.Component<
  * @param props the input props give as input from formFiller component
  */
 const makeMapStateToProps = () => {
-  const GetFormDataSelector = makeGetFormDataSelector();
   const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
     id: props.id,
+    formData: props.formData,
+    handleDataUpdate: props.handleDataUpdate,
     component: state.formDesigner.layout.components[props.id],
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       element => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),
     connections: state.serviceConfigurations.APIs.connections,
-    formData: GetFormDataSelector(state, props),
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:
       Object.keys(state.formFiller.validationErrors).length > 0

@@ -13,23 +13,32 @@ const selectAppData = (state: IAppState): IAppDataState => state.appData;
 export function* updateFormDataSaga({
   formData,
   componentID,
-  dataModelElement
+  dataModelElement,
+  dataModelBinding,
+  validate,
 }: FormFillerActions.IUpdateFormDataAction): SagaIterator {
   try {
     const state: IAppState = yield select();
-    if (!dataModelElement) {
+    if (validate && !dataModelElement) {
       return;
     }
-    const validationErrors = Validator.validateDataModel(
-      formData,
-      dataModelElement,
-      state.formDesigner.layout.components[componentID],
-    );
+
+    let validationErrors = [];
+    let dataBindingName = dataModelBinding;
+    if (validate) {
+      validationErrors = Validator.validateDataModel(
+        formData,
+        dataModelElement,
+        state.formDesigner.layout.components[componentID],
+      );
+      dataBindingName = dataModelElement.DataBindingName;
+    }
+
     yield call(
       FormFillerActionDispatcher.updateFormDataFulfilled,
       componentID,
       formData,
-      dataModelElement,
+      dataBindingName,
       validationErrors,
     );
   } catch (err) {
@@ -44,29 +53,18 @@ export function* watchUpdateFormDataSaga(): SagaIterator {
 export function* submitFormDataSaga({ url }: FormFillerActions.ISubmitFormDataAction): SagaIterator {
   try {
     const state: IAppState = yield select();
-    const validationErrorObj: any = {};
-    // Validating entire form before trying to commit
-    Object.keys(state.formDesigner.layout.components).map(componentkey => {
-      const component = state.formDesigner.layout.components[componentkey];
-      if (component.dataModelBinding) {
-        const modelBinding = component.dataModelBinding;
-        const formData = state.formFiller.formData ?
-          (state.formFiller.formData[modelBinding] || '') : '';
-        const dataModelElement = state.appData.dataModel.model.find(
-          element => element.DataBindingName === modelBinding);
-        const valErrors = Validator.validateDataModel(formData, dataModelElement, component);
-        if (valErrors.length > 0) {
-          validationErrorObj[componentkey] = valErrors;
-        }
-      }
-    });
 
-    if (Object.keys(validationErrorObj).length === 0) {
-      yield call(put, url, 'Update', yield convertDataBindingToModel(state.formFiller.formData));
+    // Validating entire form before trying to commit
+    const valErrors = Validator.validateFormData(state.formFiller.formData, state.appData.dataModel.model,
+      state.formDesigner.layout.components);
+
+    if (Object.keys(valErrors).length === 0) {
+      yield call(put, url, 'Update', yield convertDataBindingToModel(state.formFiller.formData,
+        state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled);
     } else {
       // Update validationError state if schema contains errors
-      yield call(FormFillerActionDispatcher.updateValidationErrors, validationErrorObj);
+      yield call(FormFillerActionDispatcher.updateValidationErrors, valErrors);
     }
   } catch (err) {
     if (err.response && err.response.status === 303) {

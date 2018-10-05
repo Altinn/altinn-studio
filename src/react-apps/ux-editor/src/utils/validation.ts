@@ -1,3 +1,5 @@
+import { getKeyWithoutIndex } from './databindings';
+
 export function min(value: number, test: number): boolean {
   test = Number(test);
   return value >= test;
@@ -59,6 +61,49 @@ export function validateDataModel(
     }
   }
   return validationErrors;
+}
+
+export function validateFormData(
+  formData: any,
+  dataModelFieldElements: IDataModelFieldElement[],
+  layoutModelElements?: IFormDesignerComponent,
+): any {
+  const validationErrors: string[] = [];
+  const result: any = {};
+  Object.keys(formData).forEach((formDataKey, index) => {
+    const dataBindingName = getKeyWithoutIndex(formDataKey);
+    const dataModelFieldElement = dataModelFieldElements.find(e => e.DataBindingName === dataBindingName);
+    if (!dataModelFieldElement) return;
+
+    const layoutModelKey = Object.keys(layoutModelElements).find(
+      e => layoutModelElements[e].dataModelBinding === dataBindingName);
+
+    const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
+
+    Object.keys(dataModelFieldElement.Restrictions).forEach((restrictionKey) => {
+      if (!runValidation(restrictionKey, dataModelFieldElement.Restrictions[restrictionKey], formData[formDataKey])) {
+        if (dataModelFieldElement.Restrictions[restrictionKey].ErrortText) {
+          validationErrors.push(dataModelFieldElement.Restrictions[restrictionKey].ErrortText);
+        } else {
+          validationErrors.push(
+            `${restrictionKey}: ${dataModelFieldElement.Restrictions[restrictionKey].Value}`);
+        }
+      }
+    });
+
+    if ((dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1)
+      || (layoutModelElement && layoutModelElement.required)) {
+      if (formData[formDataKey].length === 0) {
+        validationErrors.push('Field is required');
+      }
+    }
+
+    if (validationErrors.length > 0) {
+      result[layoutModelKey] = validationErrors;
+    }
+  });
+
+  return result;
 }
 
 function runValidation(
