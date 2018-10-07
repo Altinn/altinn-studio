@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference
+      Include="Microsoft.AspNetCore.App" Version="2.1.5"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="AltinnCore.ServiceLibrary">
+      <HintPath>AltinnCore.ServiceLibrary.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
