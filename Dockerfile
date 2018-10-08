@@ -1,10 +1,11 @@
 FROM node:9.5.0 AS generate-js-files
 COPY . /t30
+RUN npm install webpack -g
 WORKDIR /t30/src/react-apps/ux-editor
 RUN npm install
 WORKDIR /t30/src/AltinnCore/Designer
 RUN npm install
-RUN npm run gulp build
+RUN webpack
 COPY . /build-context
 WORKDIR /build-context/src/react-apps/ux-editor
 RUN ls
