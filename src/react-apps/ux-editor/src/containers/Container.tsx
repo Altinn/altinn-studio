@@ -109,9 +109,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     if (this.props.baseContainer || !this.props.repeating) return null;
     const repeatingGroupCount = Object.keys(this.props.containers).filter((id) => {
       return this.props.containers[id].dataModelGroup === this.props.dataModelGroup;
-    });
+    }).length;
 
-    if (repeatingGroupCount.length - 1 !== this.props.index) {
+    if (repeatingGroupCount - 1 !== this.props.index) {
       return null;
     }
 
