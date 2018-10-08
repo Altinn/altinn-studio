@@ -20,7 +20,7 @@ RUN npm run gulp build
 
 
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
-COPY /src/AltinnCore/Designer .
+COPY /src .
 COPY --from=generate-desiger-js /wwwroot .
 COPY --from=generate-ux-editor ./dist/*.js /src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/
 COPY --from=generate-ux-editor ./dist/*.css /src/AltinnCore/Designer/wwwroot/designer/css/
