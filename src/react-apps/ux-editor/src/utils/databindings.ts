@@ -1,34 +1,13 @@
-import * as deepmerge from 'deepmerge';
+import {object} from 'dot-object';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON 
  * object that matches the JSON datamodel defined by the service from 
  * XSD. This is needed for the API to understand
- * @param dataModels the complete datamodel in store
+ * @param formData the complete datamodel in store
  */
-export function convertDataBindingToModel(dataModels: any): any {
-  const dataModelsArray: any[] = [];
-  for (const model in dataModels) {
-    if (model) {
-      let lastElement = true;
-      const value = dataModels[model];
-      dataModelsArray.push(
-        model.split('.').reduceRight((obj: string, next: string) => {
-          if (lastElement) {
-            lastElement = false;
-            return {
-              [next]: value,
-            };
-          }
-          lastElement = false;
-          return {
-            [next]: obj,
-          };
-        }, {}),
-      );
-    }
-  }
-  return deepmerge.all(dataModelsArray);
+export function convertDataBindingToModel(formData: any, dataModelElements: IDataModelFieldElement[]): any {
+  return object(formData);
 }
 
 export interface IData {
@@ -46,37 +25,60 @@ export function convertModelToDataBinding(data: any, model: IDataModelFieldEleme
 
 const filterFormData = (data: any, model: IDataModelFieldElement[]): any => {
   const filteredResult: any = {};
-  Object.keys(data).forEach((formDataKey: string) => {
+  Object.keys(data).forEach((key: string) => {
+    const formDataKey = getKeyWithoutIndex(key);
     if (model.find(m => m.DataBindingName === formDataKey && m.Type === 'Field')) {
-      filteredResult[formDataKey] = data[formDataKey];
+      filteredResult[key] = data[key];
     }
   });
+
   return filteredResult;
+}
+
+export function getKeyWithoutIndex(keyWithIndex: string): string {
+  if (keyWithIndex.indexOf('[') === -1) {
+    return keyWithIndex;
+  }
+
+  return keyWithIndex.substring(0, keyWithIndex.indexOf('['))
+    + keyWithIndex.substring(keyWithIndex.indexOf(']') + 1);
 }
 
 /**
  * Convertes JSON to the flat datamodel used in Redux data store
  * @param data The formdata as JSON
  */
-export function flattenObject(data: any): any {
+export function flattenObject(data: any, index: boolean = false): any {
   const toReturn: IData = {};
 
   for (const i in data) {
     if (!data.hasOwnProperty(i)) {
       continue;
     }
-
-    if ((typeof data[i]) === 'object') {
+    if (Array.isArray(data[i])) {
+      const flatObject = flattenObject(data[i], true);
+      for (const x in flatObject) {
+        if (!flatObject.hasOwnProperty(x)) {
+          continue;
+        }
+        toReturn[i + '[' + x] = flatObject[x];
+      }
+    } else if ((typeof data[i]) === 'object') {
       const flatObject = flattenObject(data[i]);
       for (const x in flatObject) {
         if (!flatObject.hasOwnProperty(x)) {
           continue;
         }
-        toReturn[i + '.' + x] = flatObject[x];
+        if (index) {
+          toReturn[i + '].' + x] = flatObject[x];
+        } else {
+          toReturn[i + '.' + x] = flatObject[x];
+        }
       }
     } else {
       toReturn[i] = data[i];
     }
+
   }
   return toReturn;
 }

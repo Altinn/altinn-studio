@@ -5,12 +5,14 @@ export interface IUpdateFormDataAction extends Action {
   formData: any;
   componentID: string;
   dataModelElement: IDataModelFieldElement;
+  dataModelBinding?: string;
+  validate?: boolean;
 }
 
 export interface IUpdateFormDataActionFulfilled extends Action {
   formData: any;
   componentID: string;
-  dataModelElement: IDataModelFieldElement;
+  dataModelBinding: string;
   validationErrors: any[];
 }
 
@@ -26,6 +28,8 @@ export function updateFormDataAction(
   componentID: string,
   formData: any,
   dataModelElement: IDataModelFieldElement,
+  dataModelBinding?: string,
+  validate?: boolean,
 
 ): IUpdateFormDataAction {
   return {
@@ -33,20 +37,22 @@ export function updateFormDataAction(
     formData,
     componentID,
     dataModelElement,
+    dataModelBinding,
+    validate,
   };
 }
 
 export function updateFormDataActionFulfilled(
   componentID: string,
   formData: any,
-  dataModelElement: IDataModelFieldElement,
+  dataModelBinding: string,
   validationErrors: any[],
 ): IUpdateFormDataActionFulfilled {
   return {
     type: ActionTypes.UPDATE_FORM_DATA_FULFILLED,
     formData,
     componentID,
-    dataModelElement,
+    dataModelBinding,
     validationErrors,
   };
 }

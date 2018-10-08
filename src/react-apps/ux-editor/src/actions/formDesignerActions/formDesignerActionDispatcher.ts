@@ -1,30 +1,58 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as FormDesignerActions from './actions';
+import { IGenerateRepeatingGroupsAction, IGenerateRepeatingGroupsActionFulfilled, IGenerateRepeatingGroupsActionRejected } from './actions';
 
 export interface IFormDesignerActionDispatchers
   extends ActionCreatorsMapObject {
   addFormComponent: (
     component: ICreateFormComponent,
+    containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentAction;
   addFormComponentFulfilled: (
     component: any,
     id: string,
+    containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentActionFulfilled;
   addFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.IAddFormComponentActionRejected;
+  addFormContainer: (
+    container: ICreateFormContainer,
+    positionAfterId?: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddFormContainerAction;
+  addFormContainerFulfilled: (
+    container: ICreateFormContainer,
+    id: string,
+    positionAfterId?: string,
+    baseContainerId?: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddFormContainerActionFulfilled;
+  addFormContainerRejected: (
+    error: Error,
+  ) => FormDesignerActions.IAddFormContainerActionRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
   deleteFormComponentFulfilled: (
     id: string,
+    containerId: string,
   ) => FormDesignerActions.IDeleteComponentActionFulfilled;
   deleteFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.IDeleteComponentActionRejected;
+  deleteFormContainer: (
+    id: string,
+  ) => FormDesignerActions.IDeleteContainerAction;
+  deleteFormContainerFulfilled: (
+    id: string,
+  ) => FormDesignerActions.IDeleteContainerActionFulfilled;
+  deleteFormContainerRejected: (
+    error: Error,
+  ) => FormDesignerActions.IDeleteContainerActionRejected;
   fetchFormLayout: (url: string) => FormDesignerActions.IFetchFormLayoutAction;
   fetchFormLayoutFulfilled: (
     formLayout: any,
@@ -32,6 +60,9 @@ export interface IFormDesignerActionDispatchers
   fetchFormLayoutRejected: (
     error: Error,
   ) => FormDesignerActions.IFetchFormLayoutRejectedAction;
+  generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
+  generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
+  generateRepeatingGroupsActionRejected:(error: Error) => IGenerateRepeatingGroupsActionRejected;
   saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
@@ -73,14 +104,23 @@ const actions: IFormDesignerActionDispatchers = {
   addFormComponentFulfilled:
     FormDesignerActions.addFormComponentActionFulfilled,
   addFormComponentRejected: FormDesignerActions.addFormComponentActionRejected,
+  addFormContainer: FormDesignerActions.addFormContainerAction,
+  addFormContainerFulfilled: FormDesignerActions.addFormContainerActionFulfilled,
+  addFormContainerRejected: FormDesignerActions.addFormContainerActionRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
   deleteFormComponentRejected:
     FormDesignerActions.deleteComponentActionRejected,
+  deleteFormContainer: FormDesignerActions.deleteContainerAction,
+  deleteFormContainerFulfilled: FormDesignerActions.deleteContainerActionFulfilled,
+  deleteFormContainerRejected: FormDesignerActions.deleteContainerActionRejected,
   fetchFormLayout: FormDesignerActions.fetchFormLayout,
   fetchFormLayoutFulfilled: FormDesignerActions.fetchFormLayoutFulfilled,
   fetchFormLayoutRejected: FormDesignerActions.fetchFormLayoutRejected,
+  generateRepeatingGroupsAction: FormDesignerActions.generateRepeatingGroupsAction,
+  generateRepeatingGroupsActionFulfilled: FormDesignerActions.generateRepeatingGroupsActionFulfilled,
+  generateRepeatingGroupsActionRejected: FormDesignerActions.generateRepeatingGroupsActionRejected,
   saveFormLayout: FormDesignerActions.saveFormLayoutAction,
   saveFormLayoutFulfilled: FormDesignerActions.saveFormLayoutActionFulfilled,
   saveFormLayoutRejected: FormDesignerActions.saveFormLayoutActionRejected,
