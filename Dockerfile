@@ -1,22 +1,29 @@
-FROM node:9.5.0 AS generate-js-files
-COPY . /t30
-RUN npm install webpack -g
-WORKDIR /t30/src/react-apps/ux-editor
+FROM node:9.5.0 AS generate-ux-editor
+COPY /src/react-apps/ux-editor .
+#RUN npm install webpack webpack-cli -g
+#WORKDIR /t30/src/react-apps/ux-editor
+#RUN npm install
+#WORKDIR /t30/src/AltinnCore/Designer
+#RUN npm install
+#WORKDIR /t30/src/react-apps/ux-editor
 RUN npm install
-WORKDIR /t30/src/AltinnCore/Designer
-RUN npm install
-WORKDIR /t30/src/react-apps/ux-editor
-RUN webpack
-COPY . /build-context
-WORKDIR /build-context/src/react-apps/ux-editor
+RUN npm run build
+#COPY . /build-context
+#WORKDIR /build-context/src/react-apps/ux-editor
 RUN ls
-WORKDIR /t30
-COPY ./src/react-apps/ux-editor/dist/*.js /src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/
-COPY ./src/react-apps/ux-editor/dist/*.css /src/AltinnCore/Designer/wwwroot/designer/css/
+
+
+FROM node:9.5.0 AS generate-desiger-js
+COPY /src/AltinnCore/Designer .
+RUN npm install
+RUN npm run gulp build
+
 
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
-COPY --from=generate-js-files /t30 /t30
-WORKDIR /t30/src/AltinnCore/Designer
+COPY /src/AltinnCore/Designer .
+COPY --from=generate-desiger-js /wwwroot .
+COPY --from=generate-ux-editor ./dist/*.js /src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/
+COPY --from=generate-ux-editor ./dist/*.css /src/AltinnCore/Designer/wwwroot/designer/css/
 RUN dotnet build AltinnCore.Designer.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore.Designer.csproj -c Release -o /app_output
 
