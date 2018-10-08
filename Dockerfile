@@ -5,6 +5,7 @@ WORKDIR /t30/src/react-apps/ux-editor
 RUN npm install
 WORKDIR /t30/src/AltinnCore/Designer
 RUN npm install
+WORKDIR /t30/src/react-apps/ux-editor
 RUN webpack
 COPY . /build-context
 WORKDIR /build-context/src/react-apps/ux-editor
