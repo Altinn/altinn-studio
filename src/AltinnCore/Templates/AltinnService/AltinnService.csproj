@@ -6,12 +6,12 @@
 
   <ItemGroup>
     <PackageReference
-      Include="Microsoft.AspNetCore.App" Version="2.1.5"/>
+      Include="Microsoft.AspNetCore.App" Version="2.1.0"/>
   </ItemGroup>
 
   <ItemGroup>
     <Reference Include="AltinnCore.ServiceLibrary">
-      <HintPath>AltinnCore.ServiceLibrary.dll</HintPath>
+      <HintPath>../app/AltinnCore.ServiceLibrary.dll</HintPath>
     </Reference>
   </ItemGroup>
 
