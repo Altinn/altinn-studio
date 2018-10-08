@@ -6,8 +6,8 @@ WORKDIR /t30/src/AltinnCore/Designer
 RUN npm install
 RUN npm run gulp build
 WORKDIR /t30
-COPY ./src/react-apps/ux-editor/dist/*.js /src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/
-COPY ./src/react-apps/ux-editor/dist/*.css /src/AltinnCore/Designer/wwwroot/designer/css/
+COPY src/react-apps/ux-editor/dist/*.js /src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/
+COPY src/react-apps/ux-editor/dist/*.css /src/AltinnCore/Designer/wwwroot/designer/css/
 
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
 COPY --from=generate-js-files /t30 /t30
