@@ -6,8 +6,8 @@ WORKDIR /t30/src/AltinnCore/Designer
 RUN npm install
 RUN npm run gulp build
 COPY . /build-context
-WORKDIR /build-context
-RUN ls dist
+WORKDIR /build-context/src/react-apps/ux-editor
+RUN ls
 WORKDIR /t30
 COPY ./src/react-apps/ux-editor/dist/*.js /src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/
 COPY ./src/react-apps/ux-editor/dist/*.css /src/AltinnCore/Designer/wwwroot/designer/css/
