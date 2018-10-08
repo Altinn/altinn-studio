@@ -36,29 +36,23 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     dataModelElement: IDataModelFieldElement,
     callbackValue: any,
   ): void => {
-    if ((this.props.index || this.props.index > -1) && this.props.dataModelGroup && this.props.repeating) {
-      const dataBindingName = dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
-        this.props.dataModelGroup + `[${this.props.index}]`);
-      FormFillerActionDispatchers.updateFormData(
-        id,
-        callbackValue,
-        dataModelElement,
-        dataBindingName,
-        false,
-      );
-    } else {
-      FormFillerActionDispatchers.updateFormData(
-        id,
-        callbackValue,
-        dataModelElement,
-        dataModelElement.DataBindingName,
-        true,
-      );
-    }
+
+    const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
+      this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
+    FormFillerActionDispatchers.updateFormData(
+      id,
+      callbackValue,
+      dataModelElement,
+      dataBindingName,
+    );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
     ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue);
     RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
+  }
+
+  public isRepeating = (): boolean => {
+    return (this.props.index || this.props.index > -1) && this.props.dataModelGroup && this.props.repeating;
   }
 
   public render() {

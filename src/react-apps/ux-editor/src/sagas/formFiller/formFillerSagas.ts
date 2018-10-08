@@ -16,30 +16,25 @@ export function* updateFormDataSaga({
   componentID,
   dataModelElement,
   dataModelBinding,
-  validate,
 }: FormFillerActions.IUpdateFormDataAction): SagaIterator {
   try {
     const state: IAppState = yield select();
-    if (validate && !dataModelElement) {
+    if (!dataModelElement) {
       return;
     }
 
     let validationErrors = [];
-    let dataBindingName = dataModelBinding;
-    if (validate) {
-      validationErrors = Validator.validateDataModel(
-        formData,
-        dataModelElement,
-        state.formDesigner.layout.components[componentID],
-      );
-      dataBindingName = dataModelElement.DataBindingName;
-    }
+    validationErrors = Validator.validateDataModel(
+      formData,
+      dataModelElement,
+      state.formDesigner.layout.components[componentID],
+    );
 
     yield call(
       FormFillerActionDispatcher.updateFormDataFulfilled,
       componentID,
       formData,
-      dataBindingName,
+      dataModelBinding,
       validationErrors,
     );
   } catch (err) {
