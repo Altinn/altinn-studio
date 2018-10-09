@@ -7,7 +7,6 @@ FROM node:9.5.0 AS generate-designer-js
 COPY /src/AltinnCore/Designer .
 RUN npm install
 RUN npm run gulp build
-WORKDIR /wwwroot/designer/css
 
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
 COPY /src .
