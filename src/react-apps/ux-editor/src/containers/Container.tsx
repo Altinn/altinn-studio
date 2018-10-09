@@ -69,7 +69,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <div
         className={'col-12'}
         style={this.props.baseContainer ? {} :
-          { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px'}}
+          { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px' }}
       >
         <div className='col-1'>
           {this.renderDeleteGroupButton()}
@@ -97,13 +97,13 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public renderDeleteGroupButton = (): JSX.Element => {
     if (this.props.baseContainer) return null;
     return (
-          <button
-            type='button'
-            className='a-btn a-btn-icon p-0'
-            onClick={this.handleContainerDelete}
-          >
-            <i className='ai ai-circle-exit a-danger ai-left' />
-          </button>
+      <button
+        type='button'
+        className='a-btn a-btn-icon p-0'
+        onClick={this.handleContainerDelete}
+      >
+        <i className='ai ai-circle-exit a-danger ai-left' />
+      </button>
     );
   }
 
@@ -111,9 +111,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     if (this.props.baseContainer) return null;
     return (
       <button
-          className={'a-btn a-btn-action'}
-          onClick={this.handleAddNewGroup}
-          disabled={this.props.designMode}
+        className={'a-btn a-btn-action'}
+        onClick={this.handleAddNewGroup}
+        disabled={this.props.designMode}
       >
         <i className={'ai ai-plus'} />
         <span>Legg til gruppe</span>

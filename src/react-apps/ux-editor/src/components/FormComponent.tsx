@@ -68,6 +68,7 @@ class FormComponent extends React.Component<
     const isValid = !this.errorMessage();
     return (
       <GenericComponent
+        id={this.props.id}
         component={this.props.component}
         isValid={isValid}
         formData={this.props.formData}

@@ -1,7 +1,9 @@
 import * as React from 'react';
-import components from './';
+import components from './index';
+import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 
 export interface IGenericComponentProps {
+  id: string;
   component: FormComponentType;
   isValid: boolean;
   formData: any;
@@ -21,21 +23,17 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
     }
     return this.props.thirdPartyComponents[packageName][component];
   }
-  
+
   public render() {
     if (this.props.component.component === 'ThirdParty') {
       return this.renderThirdPartyComponent();
     }
 
-    const TagName = components.find((c: any) => c.name === this.props.component.component).Tag;
-    const text = this.props.designMode ? this.props.component.title
-      : this.props.getTextResource(this.props.component.title);
+    const TagName = formComponentWithHandlers(components.find((c: any) => c.name === this.props.component.component).Tag);
     return (
       <TagName
+        id={this.props.id}
         component={this.props.component}
-        text={text}
-        size={this.props.component.size}
-        handleDataChange={this.props.handleDataChange}
         isValid={this.props.isValid}
         formData={this.props.formData}
         getTextResource={this.props.getTextResource}
