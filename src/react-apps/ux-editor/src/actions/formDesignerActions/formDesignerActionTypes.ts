@@ -49,11 +49,8 @@ export const DELETE_FORM_CONTAINER_REJECTED: string = `${moduleName}.DELETE_FORM
 export const UPDATE_FORM_CONTAINER: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
 export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
 export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
-<<<<<<< HEAD
-=======
 
 // All generate repeating groups from form data actions
 export const GENERATE_REPEATING_GROUPS: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
 export const GENERATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
 export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
->>>>>>> origin
