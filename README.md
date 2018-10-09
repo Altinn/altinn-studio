@@ -19,6 +19,8 @@ These instructions will get you a copy of the project up and running on your loc
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker CE](https://www.docker.com/get-docker)
 6. Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` in the hosts file (C:/Windows/System32/drivers/etc/hosts)
+7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives
+8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
 ### Installing
 
