@@ -8,6 +8,7 @@ import { Preview } from './Preview';
 
 export interface IFormFillerProps {
   validationErrors: any[];
+  unsavedChanges: boolean;
   connections: any;
   dataModelElements: IDataModelFieldElement[];
   designMode: boolean;
@@ -32,7 +33,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     }
   }
 
-  public submitFormData() {
+  public saveFormData() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, edition, instanceId } = altinnWindow;
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
@@ -41,15 +42,37 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     }
   }
 
+  public submitForm() {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, edition, instanceId } = altinnWindow;
+    if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
+      window.location.replace(`${window.location.origin}/runtime/` +
+        `${org}/${service}/${edition}/${instanceId}/CompleteAndSendIn`);
+    }
+  }
+
+  public renderSaveButton = () => {
+    return (
+      <button
+        type='submit'
+        className={Object.keys(this.props.validationErrors).length === 0 && this.props.unsavedChanges ?
+          'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
+        onClick={this.saveFormData}
+      >
+        Save
+      </button>
+    );
+  }
+
   public renderSubmitButton = () => {
     return (
       <button
         type='submit'
-        className={Object.keys(this.props.validationErrors).length === 0 ?
+        className={Object.keys(this.props.validationErrors).length === 0 && !this.props.unsavedChanges ?
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
-        onClick={this.submitFormData}
+        onClick={this.submitForm}
       >
-        Submit
+        Control and submit
       </button>
     );
   }
@@ -61,7 +84,8 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
           <Preview />
         </div>
         <div className='row mt-3'>
-          <div className='col'>
+          <div className='a-btn-group'>
+            {this.renderSaveButton()}
             {this.renderSubmitButton()}
           </div>
         </div>
@@ -73,9 +97,10 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
 const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
   return {
     validationErrors: state.formFiller.validationErrors,
+    unsavedChanges: state.formFiller.unsavedChanges,
     connections: state.serviceConfigurations.APIs.connections,
     dataModelElements: state.appData.dataModel.model,
-    designMode: state.appData.appConfig.designMode
+    designMode: state.appData.appConfig.designMode,
   };
 };
 
