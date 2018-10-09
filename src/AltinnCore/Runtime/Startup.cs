@@ -89,7 +89,7 @@ namespace AltinnCore.Runtime
       }
       else
       {
-        repoLocation = Configuration["ServiceRepositorySettings__RepositoryLocation"];
+        repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
       }
 
       if (!Directory.Exists(repoLocation))
