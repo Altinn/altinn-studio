@@ -96,7 +96,8 @@ class FormComponent extends React.Component<
       this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
     if (this.props.component.component === 'Header' ||
       this.props.component.component === 'Checkboxes' ||
-      this.props.component.component === 'Submit') {
+      this.props.component.component === 'Submit' ||
+      this.props.component.component === 'ThirdParty') {
       return null;
     }
 

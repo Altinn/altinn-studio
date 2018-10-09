@@ -1,6 +1,7 @@
 import * as React from 'react';
 import components from './';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
+import { thirdPartyComponentWithElementHandler } from '../containers/thirdPartyComponentWithDataHandler';
 
 export interface IGenericComponentProps {
   id: string;
@@ -21,7 +22,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
       || !this.props.thirdPartyComponents[packageName][component]) {
       return null;
     }
-    return this.props.thirdPartyComponents[packageName][component];
+    return thirdPartyComponentWithElementHandler(this.props.thirdPartyComponents[packageName][component], this.props.handleDataChange);
   }
 
   public render() {
@@ -37,6 +38,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
         isValid={this.props.isValid}
         formData={this.props.formData}
         getTextResource={this.props.getTextResource}
+        handleDataChange={this.props.handleDataChange}
       />
     );
   }

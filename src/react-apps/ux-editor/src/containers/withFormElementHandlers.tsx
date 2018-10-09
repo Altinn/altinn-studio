@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 export interface IFormComponentHandlerProvidedProps {
   id: string;
+  handleDataUpdate: (data: any) => void;
   component: IFormComponent;
 }
 
@@ -11,13 +12,10 @@ export interface IFormComponentHandlerProps extends IFormComponentHandlerProvide
   designMode: boolean;
 }
 
-export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentType<any> => {
-
-
+export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
   class FormComponentWithHandlers extends React.Component<IFormComponentHandlerProps> {
-    public handleDataUpdate = (id: string, data: any) => console.log(`ComponentId-${id} Updated with data=${data}`);
 
-    //public getDataModelBinding = () => ();
+    public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
 
     public getTextResource = (resourceKey: string): any[] => {
       return this.props.textResources.find(resource => resource.id === resourceKey);
@@ -25,16 +23,17 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
+
       const text = this.props.designMode ? this.props.component.title
         : this.getTextResource(this.props.component.title);
       return (
         <WrappedComponent
-          handleDataChange={this.handleDataUpdate.bind(null, this.props.id)}
+          handleDataChange={this.handleDataUpdate}
           text={text}
           size={this.props.component.size}
           {...passThroughProps}
         />
-      )
+      );
     }
   }
 
@@ -43,7 +42,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     textResources: state.appData.textResources.resources,
     designMode: state.appData.appConfig.designMode,
     component: state.formDesigner.layout.components[props.id],
+    handleDataUpdate: props.handleDataUpdate,
   });
 
-  return connect(mapStateToProps)(FormComponentWithHandlers)
+  return connect(mapStateToProps)(FormComponentWithHandlers);
 }
