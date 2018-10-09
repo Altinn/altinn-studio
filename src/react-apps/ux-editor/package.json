@@ -16,9 +16,11 @@
   "author": "Altinn",
   "license": "MIT",
   "dependencies": {
+    "@types/dot-object": "^1.5.0",
     "axios": "0.18.0",
     "babel-core": "6.26.3",
     "deepmerge": "2.1.1",
+    "dot-object": "^1.7.0",
     "immutability-helper": "2.7.0",
     "react": "16.4.0",
     "react-dom": "16.4.0",

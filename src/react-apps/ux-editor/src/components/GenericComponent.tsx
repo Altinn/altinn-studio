@@ -1,5 +1,5 @@
 import * as React from 'react';
-import components from './index';
+import components from './';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 
 export interface IGenericComponentProps {

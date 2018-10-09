@@ -1,6 +1,7 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as FormDesignerActions from './actions';
+import { IGenerateRepeatingGroupsAction, IGenerateRepeatingGroupsActionFulfilled, IGenerateRepeatingGroupsActionRejected } from './actions';
 
 export interface IFormDesignerActionDispatchers
   extends ActionCreatorsMapObject {
@@ -59,6 +60,9 @@ export interface IFormDesignerActionDispatchers
   fetchFormLayoutRejected: (
     error: Error,
   ) => FormDesignerActions.IFetchFormLayoutRejectedAction;
+  generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
+  generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
+  generateRepeatingGroupsActionRejected:(error: Error) => IGenerateRepeatingGroupsActionRejected;
   saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
@@ -114,6 +118,9 @@ const actions: IFormDesignerActionDispatchers = {
   fetchFormLayout: FormDesignerActions.fetchFormLayout,
   fetchFormLayoutFulfilled: FormDesignerActions.fetchFormLayoutFulfilled,
   fetchFormLayoutRejected: FormDesignerActions.fetchFormLayoutRejected,
+  generateRepeatingGroupsAction: FormDesignerActions.generateRepeatingGroupsAction,
+  generateRepeatingGroupsActionFulfilled: FormDesignerActions.generateRepeatingGroupsActionFulfilled,
+  generateRepeatingGroupsActionRejected: FormDesignerActions.generateRepeatingGroupsActionRejected,
   saveFormLayout: FormDesignerActions.saveFormLayoutAction,
   saveFormLayoutFulfilled: FormDesignerActions.saveFormLayoutActionFulfilled,
   saveFormLayoutRejected: FormDesignerActions.saveFormLayoutActionRejected,

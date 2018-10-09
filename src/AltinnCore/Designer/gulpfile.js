@@ -128,11 +128,6 @@ function setupWatchers(cb) {
 
 gulp.task('build', gulp.series([
   copyNodeModulePackages,
-  run('npm run build', {
-    cwd: '../../react-apps/ux-editor',
-  }),
-  copyReactJs,
-  copyReactCss
 ]));
 
 gulp.task('copy-files', gulp.series(

@@ -7,6 +7,7 @@ import { IAppDataState } from '../../reducers/appDataReducer';
 import { convertDataBindingToModel, convertModelToDataBinding } from '../../utils/databindings';
 import { get, put } from '../../utils/networking';
 import * as Validator from '../../utils/validation';
+import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const selectAppData = (state: IAppState): IAppDataState => state.appData;
 
@@ -15,30 +16,25 @@ export function* updateFormDataSaga({
   componentID,
   dataModelElement,
   dataModelBinding,
-  validate,
 }: FormFillerActions.IUpdateFormDataAction): SagaIterator {
   try {
     const state: IAppState = yield select();
-    if (validate && !dataModelElement) {
+    if (!dataModelElement) {
       return;
     }
 
     let validationErrors = [];
-    let dataBindingName = dataModelBinding;
-    if (validate) {
-      validationErrors = Validator.validateDataModel(
-        formData,
-        dataModelElement,
-        state.formDesigner.layout.components[componentID],
-      );
-      dataBindingName = dataModelElement.DataBindingName;
-    }
+    validationErrors = Validator.validateDataModel(
+      formData,
+      dataModelElement,
+      state.formDesigner.layout.components[componentID],
+    );
 
     yield call(
       FormFillerActionDispatcher.updateFormDataFulfilled,
       componentID,
       formData,
-      dataBindingName,
+      dataModelBinding,
       validationErrors,
     );
   } catch (err) {
@@ -88,6 +84,7 @@ export function* fetchFormDataSaga({ url }: FormFillerActions.IFetchFormDataActi
       FormFillerActionDispatcher.fetchFormDataFulfilled,
       convertModelToDataBinding(formData, appDataState.dataModel.model),
     );
+    yield call(FormDesignerActionDispatchers.generateRepeatingGroupsAction);
   } catch (err) {
     yield call(FormFillerActionDispatcher.fetchFormDataRejected, err);
   }

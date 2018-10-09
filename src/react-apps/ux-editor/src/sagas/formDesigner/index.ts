@@ -6,6 +6,7 @@ import {
   watchDeleteFormComponentSaga,
   watchDeleteFormContainerSaga,
   watchFetchFormLayoutSaga,
+  watchGenerateRepeatingGroupsSaga,
   watchSaveFormLayoutSaga,
   watchUpdateDataModelBindingSaga,
   watchUpdateFormComponentSaga,
@@ -17,6 +18,7 @@ export default function* (): SagaIterator {
   yield fork(watchDeleteFormComponentSaga);
   yield fork(watchDeleteFormContainerSaga);
   yield fork(watchFetchFormLayoutSaga);
+  yield fork(watchGenerateRepeatingGroupsSaga);
   yield fork(watchSaveFormLayoutSaga);
   yield fork(watchUpdateDataModelBindingSaga);
   yield fork(watchUpdateFormComponentSaga);

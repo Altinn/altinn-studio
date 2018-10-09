@@ -24,7 +24,6 @@ export class PreviewComponent extends React.Component<
 
   public renderContainer = (): JSX.Element => {
     const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
-    console.log(baseContainerId);
     if (!baseContainerId) return null;
     return (
       <Container

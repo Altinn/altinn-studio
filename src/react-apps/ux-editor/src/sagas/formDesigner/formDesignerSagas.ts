@@ -4,10 +4,12 @@ import * as FormDesignerActions from '../../actions/formDesignerActions/actions'
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
+import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { get, post } from '../../utils/networking';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
+const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
 
 function* addFormComponentSaga({
   component,
@@ -103,7 +105,6 @@ function* deleteFormContainerSaga({
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     // First delete all components inside container
     for (const componentId of formDesignerState.layout.order[id]) {
-      console.log('deleting component:', componentId)
       yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
     }
 
@@ -128,7 +129,7 @@ function* fetchFormLayoutSaga({
     const formLayout = yield call(get, url);
     yield call(
       FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
-      formLayout.data
+      formLayout.data,
     );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.fetchFormLayoutRejected, err);
@@ -138,7 +139,57 @@ function* fetchFormLayoutSaga({
 export function* watchFetchFormLayoutSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.FETCH_FORM_LAYOUT,
-    fetchFormLayoutSaga
+    fetchFormLayoutSaga,
+  );
+}
+
+function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
+  try {
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const formFillerState: IFormFillerState = yield select(selectFormFiller);
+    const containers = formDesignerState.layout.containers;
+    if (Object.keys(containers).length === 0) return;
+
+    const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
+    for (const containerId of Object.keys(containers)) {
+      const container = containers[containerId];
+      if (!container.repeating) return;
+
+      const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey) => {
+        return formDataKey.includes(container.dataModelGroup + '[');
+      });
+
+      if (repeatingData.length === 0) return;
+
+      let maxIndex = 0;
+      repeatingData.forEach((data) => {
+        const index = parseInt(data.substring(data.indexOf('[') + 1, data.indexOf(']')), 10);
+        if (index <= maxIndex) return;
+        maxIndex = index;
+      });
+
+      let renderAfterId = containerId;
+      for (let i = 1; i <= maxIndex; i++) {
+        const newId = uuid();
+        const newContainer: ICreateFormContainer = {
+          repeating: container.repeating,
+          dataModelGroup: container.dataModelGroup,
+          index: i,
+        };
+
+        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
+        renderAfterId = newId;
+      }
+    }
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.generateRepeatingGroupsActionRejected, err);
+  }
+}
+
+export function* watchGenerateRepeatingGroupsSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.GENERATE_REPEATING_GROUPS,
+    generateRepeatingGroupsSaga,
   );
 }
 

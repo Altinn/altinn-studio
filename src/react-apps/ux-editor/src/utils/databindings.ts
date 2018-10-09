@@ -1,4 +1,4 @@
-import * as deepmerge from 'deepmerge';
+import { object } from 'dot-object';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON 
@@ -7,35 +7,7 @@ import * as deepmerge from 'deepmerge';
  * @param formData the complete datamodel in store
  */
 export function convertDataBindingToModel(formData: any, dataModelElements: IDataModelFieldElement[]): any {
-  const formDataArray: any[] = [];
-  for (const data in formData) {
-    if (data) {
-      let lastElement = true;
-      const value = formData[data];
-      formDataArray.push(
-        data.split('.').reduceRight((obj: string, next: string) => {
-          if (lastElement) {
-            lastElement = false;
-            return {
-              [next]: value,
-            };
-          }
-
-          lastElement = false;
-          if (next.endsWith(']')) {
-            next = next.substr(0, next.indexOf('['));
-            return {
-              [next]: [obj],
-            };
-          }
-          return {
-            [next]: obj,
-          };
-        }, {}),
-      );
-    }
-  }
-  return deepmerge.all(formDataArray);
+  return object(formData);
 }
 
 export interface IData {

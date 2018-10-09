@@ -6,7 +6,10 @@ export interface IUpdateFormDataAction extends Action {
   componentID: string;
   dataModelElement: IDataModelFieldElement;
   dataModelBinding?: string;
+<<<<<<< HEAD
   validate?: boolean;
+=======
+>>>>>>> origin
 }
 
 export interface IUpdateFormDataActionFulfilled extends Action {
@@ -29,7 +32,10 @@ export function updateFormDataAction(
   formData: any,
   dataModelElement: IDataModelFieldElement,
   dataModelBinding?: string,
+<<<<<<< HEAD
   validate?: boolean,
+=======
+>>>>>>> origin
 
 ): IUpdateFormDataAction {
   return {
@@ -38,7 +44,10 @@ export function updateFormDataAction(
     componentID,
     dataModelElement,
     dataModelBinding,
+<<<<<<< HEAD
     validate,
+=======
+>>>>>>> origin
   };
 }
 
