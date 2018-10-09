@@ -7,6 +7,7 @@ export interface IDeleteComponentAction extends Action {
 
 export interface IDeleteComponentActionFulfilled extends Action {
   id: string;
+  containerId: string;
 }
 
 export interface IDeleteComponentActionRejected extends Action {
@@ -20,10 +21,11 @@ export function deleteComponentAction(id: string): IDeleteComponentAction {
   };
 }
 
-export function deleteComponentActionFulfilled(id: string): IDeleteComponentActionFulfilled {
+export function deleteComponentActionFulfilled(id: string, containerId: string): IDeleteComponentActionFulfilled {
   return {
     type: ActionTypes.DELETE_FORM_COMPONENT_FULFILLED,
     id,
+    containerId,
   };
 }
 

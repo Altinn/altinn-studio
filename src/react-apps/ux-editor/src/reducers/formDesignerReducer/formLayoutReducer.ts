@@ -13,7 +13,8 @@ export interface IFormLayoutState extends IFormDesignerLayout {
 
 const initialState: IFormLayoutState = {
   components: {},
-  order: [],
+  containers: {},
+  order: {},
   fetching: false,
   fetched: false,
   error: null,
@@ -30,8 +31,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
   }
   switch (action.type) {
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
-      const { component, id, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
+      const { component, id, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
       if (callback) callback(component, id);
+
       return update<IFormLayoutState>(state, {
         components: {
           [id]: {
@@ -39,9 +41,72 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         },
         order: {
-          $push: [id],
+          [containerId]: {
+            $push: [id],
+          },
         },
       });
+    }
+    case FormDesignerActionTypes.ADD_FORM_CONTAINER_FULFILLED: {
+      const {
+        container,
+        id,
+        positionAfterId,
+        baseContainerId,
+        callback,
+      } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
+      if (callback) callback(container, id);
+
+      if (!baseContainerId) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            [id]: {
+              $set: container,
+            },
+          },
+          order: {
+            [id]: {
+              $set: [],
+            },
+          },
+        });
+      }
+
+      if (positionAfterId) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            [id]: {
+              $set: container,
+            },
+          },
+          order: {
+            [id]: {
+              $set: state.order[positionAfterId],
+            },
+            [baseContainerId]: {
+              $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
+            },
+          },
+        });
+      }
+
+      return update<IFormLayoutState>(state, {
+        containers: {
+          [id]: {
+            $set: container,
+          },
+        },
+        order: {
+          [id]: {
+            $set: [],
+          },
+          [baseContainerId]: {
+            $push: [id],
+          },
+        },
+      });
+
+      
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_REJECTED: {
       const { error } = action as FormDesignerActions.IAddFormComponentActionRejected;
@@ -52,13 +117,15 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.DELETE_FORM_COMPONENT_FULFILLED: {
-      const { id } = action as FormDesignerActions.IDeleteComponentAction;
+      const { id, containerId } = action as FormDesignerActions.IDeleteComponentActionFulfilled;
       return update<IFormLayoutState>(state, {
         components: {
           $unset: [id],
         },
         order: {
-          $splice: [[state.order.indexOf(id), 1]],
+          [containerId]: {
+            $splice: [[state.order[containerId].indexOf(id), 1]],
+          },
         },
         unSavedChanges: {
           $set: true,
@@ -69,6 +136,31 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.DELETE_FORM_COMPONENT_REJECTED: {
+      const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_FORM_CONTAINER_FULFILLED: {
+      const { id } = action as FormDesignerActions.IDeleteComponentActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        containers: {
+          $unset: [id],
+        },
+        order: {
+          $unset: [id],
+        },
+        unSavedChanges: {
+          $set: true,
+        },
+        error: {
+          $set: null,
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_FORM_CONTAINER_REJECTED: {
       const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
@@ -115,6 +207,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       return update<IFormLayoutState>(state, {
         components: {
           $set: formLayout.components,
+        },
+        containers: {
+          $set: formLayout.containers,
         },
         order: {
           $set: formLayout.order,

@@ -2,24 +2,22 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 
-const HEADER: string = 'Header';
-const TEXT_INPUT: string = 'Input';
-const CHECKBOX: string = 'Checkboxes';
-const TEXT_AREA: string = 'TextArea';
-const RADIO_BUTTONS: string = 'RadioButtons';
-const DROPDOWN: string = 'Dropdown';
-const FILE_UPLOAD: string = 'FileUpload';
-const SUBMIT_BUTTON: string = 'Submit';
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
   actionMethod: () => void;
+}
+
+export enum LayoutItemType {
+  Container = 'CONTAINER',
+  Component = 'COMPONENT',
 }
 
 export interface IToolbarProps {
@@ -34,109 +32,24 @@ export interface IToolbarState {
 }
 
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
-  public toolbarComponents: IToolbarElement[] = [
-    {
-      label: HEADER,
+  public toolbarComponents: IToolbarElement[] = components.map((c: any) => {
+    const customProperties = c.customProperties ? c.customProperties : {};
+    return {
+      label: c.name,
       actionMethod: () => {
         FormActionDispatcher.addFormComponent({
-          component: HEADER,
-          title: HEADER,
-        }, (component, id) => {
+          component: c.name,
+          itemType: LayoutItemType.Component,
+          title: c.name,
+          ...JSON.parse(JSON.stringify(customProperties)),
+        }, null, (component: any, id: string) => {
           this.handleNext(component, id);
         },
         );
       },
-    },
-    {
-      label: TEXT_INPUT,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: TEXT_INPUT,
-          title: TEXT_INPUT,
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-    {
-      label: CHECKBOX,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: CHECKBOX,
-          title: CHECKBOX,
-          options: [{ value: 'value', label: 'label' }],
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-    {
-      label: TEXT_AREA,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: TEXT_AREA,
-          title: TEXT_AREA,
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-    {
-      label: RADIO_BUTTONS,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: RADIO_BUTTONS,
-          title: RADIO_BUTTONS,
-          options: [{ value: 'value', label: 'label' }],
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-    {
-      label: DROPDOWN,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: DROPDOWN,
-          title: DROPDOWN,
-          options: [{ value: 'value', label: 'label' }],
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-    {
-      label: FILE_UPLOAD,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: FILE_UPLOAD,
-          title: FILE_UPLOAD,
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-    {
-      label: SUBMIT_BUTTON,
-      actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
-          component: SUBMIT_BUTTON,
-          title: SUBMIT_BUTTON,
-          textResourceId: 'Standard.Button.Submit',
-          customType: 'Standard',
-        }, (component, id) => {
-          this.handleNext(component, id);
-        },
-        );
-      },
-    },
-  ];
+    } as IToolbarElement;
+  });
+
 
   constructor(props: IToolbarProps, state: IToolbarState) {
     super(props, state);
@@ -147,6 +60,22 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
+  public componentDidMount() {
+    const addContainerItem: IToolbarElement = {
+      label: 'Add container',
+      actionMethod: () => {
+        FormActionDispatcher.addFormContainer({
+          repeating: false,
+          dataModelGroup: null,
+          index: 0,
+        } as ICreateFormContainer,
+        );
+      },
+    };
+    this.toolbarComponents.push(addContainerItem);
+
+  }
+  
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     FormActionDispatcher.addFormComponent({
       component: THIRD_PARTY_COMPONENT,
@@ -263,7 +192,7 @@ const mapsStateToProps = (
   return {
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.thirdPartyComponents.components
+    thirdPartyComponents: state.thirdPartyComponents.components,
   };
 };
 

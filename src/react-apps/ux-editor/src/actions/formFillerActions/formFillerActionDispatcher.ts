@@ -7,11 +7,12 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
     componentID: string,
     formData: any,
     dataModelElement: IDataModelFieldElement,
+    dataModelBinding?: string,
   ) => formFillerActions.IUpdateFormDataAction;
   updateFormDataFulfilled: (
     componentID: string,
     formData: any,
-    dataModelElement: IDataModelFieldElement,
+    dataModelBinding: string,
     validationErrors: any[],
   ) => formFillerActions.IUpdateFormDataActionFulfilled;
   updateFormDataRejected: (
