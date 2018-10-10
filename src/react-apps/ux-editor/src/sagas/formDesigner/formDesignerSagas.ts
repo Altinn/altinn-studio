@@ -19,6 +19,9 @@ function* addFormComponentSaga({
   try {
     const id: string = uuid();
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const selectActiveContainer = (state: IAppState) => state.formDesigner.layout.activeContainer;
+    const activeContainer = yield select(selectActiveContainer);
+    console.log(activeContainer);
 
     if (!containerId) {
       if (formDesignerState.layout.containers && Object.keys(formDesignerState.layout.containers).length > 0) {
@@ -34,7 +37,7 @@ function* addFormComponentSaga({
       FormDesignerActionDispatchers.addFormComponentFulfilled,
       component,
       id,
-      containerId,
+      activeContainer,
       callback,
     );
   } catch (err) {
@@ -143,7 +146,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   );
 }
 
-function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
+function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
@@ -177,11 +180,11 @@ function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeating
           index: i,
         };
 
-        yield call (FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
+        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
         renderAfterId = newId;
       }
     }
-  } catch(err) {
+  } catch (err) {
     yield call(FormDesignerActionDispatchers.generateRepeatingGroupsActionRejected, err);
   }
 }

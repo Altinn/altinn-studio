@@ -9,6 +9,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   error: Error;
   unSavedChanges: boolean;
   saving: boolean;
+  activeContainer: String
 }
 
 const initialState: IFormLayoutState = {
@@ -20,6 +21,7 @@ const initialState: IFormLayoutState = {
   error: null,
   saving: false,
   unSavedChanges: false,
+  activeContainer: 'ce922d45-0fa3-4088-a7b2-c6a6bc46256c',
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -30,6 +32,16 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     return state;
   }
   switch (action.type) {
+    case FormDesignerActionTypes.ADD_ACTIVE_FORM_CONTAINER_FULFILLED: {
+      const { containerId, callback } = action as FormDesignerActions.IAddActiveFormContainerActionFulfilled;
+      if (callback) callback(containerId);
+
+      return update<IFormLayoutState>(state, {
+        activeContainer: {
+          $set: containerId,
+        },
+      });
+    }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
       const { component, id, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
       if (callback) callback(component, id);
@@ -106,7 +118,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
 
-      
+
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_REJECTED: {
       const { error } = action as FormDesignerActions.IAddFormComponentActionRejected;

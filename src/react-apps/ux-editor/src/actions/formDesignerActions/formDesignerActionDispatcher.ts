@@ -34,6 +34,14 @@ export interface IFormDesignerActionDispatchers
   addFormContainerRejected: (
     error: Error,
   ) => FormDesignerActions.IAddFormContainerActionRejected;
+  addActiveFormContainer: (
+    id: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddActiveFormContainerAction;
+  addActiveFormContainerFulfilled: (
+    id: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddActiveFormContainerActionFulfilled;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -62,7 +70,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IFetchFormLayoutRejectedAction;
   generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
   generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
-  generateRepeatingGroupsActionRejected:(error: Error) => IGenerateRepeatingGroupsActionRejected;
+  generateRepeatingGroupsActionRejected: (error: Error) => IGenerateRepeatingGroupsActionRejected;
   saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
@@ -107,6 +115,8 @@ const actions: IFormDesignerActionDispatchers = {
   addFormContainer: FormDesignerActions.addFormContainerAction,
   addFormContainerFulfilled: FormDesignerActions.addFormContainerActionFulfilled,
   addFormContainerRejected: FormDesignerActions.addFormContainerActionRejected,
+  addActiveFormContainer: FormDesignerActions.addActiveContainerAction,
+  addActiveFormContainerFulfilled: FormDesignerActions.addActiveContainerActionFulfilled,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
