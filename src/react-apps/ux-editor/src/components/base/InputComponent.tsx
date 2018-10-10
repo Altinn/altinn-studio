@@ -20,7 +20,7 @@ export class InputComponent
     super(_props, _state);
 
     this.state = {
-      value: _props.formData,
+      value: _props.formData ? _props.formData : '',
     }
   }
 

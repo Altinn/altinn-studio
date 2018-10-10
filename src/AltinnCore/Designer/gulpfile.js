@@ -148,7 +148,7 @@ gulp.task('clean', gulp.series(
 gulp.task('develop', gulp.series(
   copyNodeModulePackages,
   setupWatchers,
-  //run('dotnet run'),
+  run('dotnet run'),
   run('npm run webpack-watch', {
     cwd: '../../react-apps/ux-editor',
   }),
