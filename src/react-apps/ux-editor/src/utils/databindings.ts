@@ -7,7 +7,7 @@ import {object} from 'dot-object';
  * @param formData the complete datamodel in store
  */
 export function convertDataBindingToModel(formData: any, dataModelElements: IDataModelFieldElement[]): any {
-  return object(formData);
+  return object(Object.assign({}, formData));
 }
 
 export interface IData {
