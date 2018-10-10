@@ -237,7 +237,6 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: any, lastUpd
                 if (!updatedComponent) {
                   // This space intentionally left blank
                 } else {
-                  console.log("wat", updatedDataBinding);
                   yield call(FormFillerActionDispatchers.updateFormData, updatedComponent,
                     response[connectionDef.apiResponseMapping[dataMapping].mappingKey], updatedDataBinding, updatedDataBinding.DataBindingName);
                 }
