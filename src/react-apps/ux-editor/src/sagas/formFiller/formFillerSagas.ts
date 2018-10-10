@@ -49,13 +49,14 @@ export function* watchUpdateFormDataSaga(): SagaIterator {
 export function* submitFormDataSaga({ url }: FormFillerActions.ISubmitFormDataAction): SagaIterator {
   try {
     const state: IAppState = yield select();
+    console.log('formData:', state.formFiller.formData);
 
     // Validating entire form before trying to commit
     const valErrors = Validator.validateFormData(state.formFiller.formData, state.appData.dataModel.model,
       state.formDesigner.layout.components);
 
     if (Object.keys(valErrors).length === 0) {
-      yield call(put, url, 'Update', yield convertDataBindingToModel(state.formFiller.formData,
+      yield call(put, url, 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled);
     } else {
