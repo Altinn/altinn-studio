@@ -337,14 +337,6 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         );
       }
 
-      case 'ThirdParty': {
-        return (
-          <div>
-            {this.renderSelectDataBinding('ThirdParty')}
-          </div>
-        )
-      }
-
       default: {
         return null;
       }

@@ -147,13 +147,11 @@ gulp.task('clean', gulp.series(
 
 gulp.task('develop', gulp.series(
   copyNodeModulePackages,
-  gulp.parallel(
-    run('dotnet run'),
-    run('npm run webpack-watch', {
-      cwd: '../../react-apps/ux-editor',
-    }),
-  ),
-  setupWatchers
+  setupWatchers,
+  //run('dotnet run'),
+  run('npm run webpack-watch', {
+    cwd: '../../react-apps/ux-editor',
+  }),
 ));
 
 gulp.task('install-react-app-dependencies', gulp.series(
