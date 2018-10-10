@@ -87,7 +87,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         unsavedChanges: {
           $set: false,
         },
-      })
+      });
     }
 
     case (FormFillerActionTypes.SUBMIT_FORM_DATA_FULFILLED): {
@@ -95,7 +95,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         unsavedChanges: {
           $set: false,
         },
-      })
+      });
     }
 
     default:

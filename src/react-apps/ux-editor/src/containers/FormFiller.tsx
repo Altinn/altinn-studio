@@ -33,7 +33,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     }
   }
 
-  public saveFormData() {
+  public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, edition, instanceId } = altinnWindow;
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
@@ -42,7 +42,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     }
   }
 
-  public submitForm() {
+  public submitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, edition, instanceId } = altinnWindow;
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
