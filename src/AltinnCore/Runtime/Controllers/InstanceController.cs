@@ -465,7 +465,7 @@ namespace AltinnCore.Runtime.Controllers
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, edition);
             ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
-      return View();
+            return View();
         }
 
         /// <summary>
