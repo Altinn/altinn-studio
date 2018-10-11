@@ -12,6 +12,7 @@ export interface IFormFillerProps {
   connections: any;
   dataModelElements: IDataModelFieldElement[];
   designMode: boolean;
+  formDataCount: number;
 }
 
 export interface IFormFillerState { }
@@ -68,7 +69,8 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     return (
       <button
         type='submit'
-        className={Object.keys(this.props.validationErrors).length === 0 && !this.props.unsavedChanges ?
+        className={Object.keys(this.props.validationErrors).length === 0 && !this.props.unsavedChanges
+          && this.props.formDataCount > 0 ?
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.submitForm}
       >
@@ -101,6 +103,7 @@ const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
     connections: state.serviceConfigurations.APIs.connections,
     dataModelElements: state.appData.dataModel.model,
     designMode: state.appData.appConfig.designMode,
+    formDataCount: Object.keys(state.formFiller.formData).length,
   };
 };
 
