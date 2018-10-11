@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Helpers;
@@ -29,6 +30,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IForm _form;
         private readonly IExecution _execution;
         private readonly IArchive _archive;
+        private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
 
         /// <summary>
@@ -51,7 +53,8 @@ namespace AltinnCore.Runtime.Controllers
             IViewRepository viewRepository,
             IExecution serviceExecutionService,
             IProfile profileService,
-            IArchive archiveService)
+            IArchive archiveService,
+            ITestdata testDataService)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -62,6 +65,7 @@ namespace AltinnCore.Runtime.Controllers
             _execution = serviceExecutionService;
             _userHelper = new UserHelper(profileService, _register);
             _archive = archiveService;
+            _testdata = testDataService;
         }
 
 
@@ -78,6 +82,15 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize(Policy = "InstanceRead")]
         public IActionResult EditSPA(string org, string service, string edition, int instanceId, string view, int? itemId)
         {
+            // Make sure user cannot edit an archived instance
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
+            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.Reportee = requestContext.UserContext.Reportee;
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, edition);
+            if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
+            {
+                return RedirectToAction("Receipt", new { org, service, edition, instanceId });
+            }
             // TODO Add info for REACT app.
             return View();
         }
@@ -449,6 +462,8 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, edition, instanceId, 0, requestContext, serviceContext, platformServices);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, edition, requestContext.Reportee.PartyId);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, edition);
+            ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
             return View();
         }
