@@ -1,8 +1,10 @@
-#dotnet:2.1-sdk
-FROM microsoft/dotnet@sha256:c50b596c93b11167ef7c6174a2717a18382d28965c11984691a0479c990ada3d AS build
+#dotnet:2.1.300-sdk
+FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
 WORKDIR /src/AltinnCore/
 COPY src/AltinnCore/Common ./Common
 COPY src/AltinnCore/ServiceLibrary ./ServiceLibrary
+COPY src/AltinnCore/Templates ./Templates
+COPY src/AltinnCore/Testdata ./Testdata
 COPY src/AltinnCore/RepositoryClient ./RepositoryClient
 COPY src/AltinnCore/Runtime ./Runtime
 WORKDIR /src/AltinnCore/Runtime
