@@ -153,13 +153,13 @@ function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeating
     const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     for (const containerId of Object.keys(containers)) {
       const container = containers[containerId];
-      if (!container.repeating) return;
+      if (!container.repeating) continue;
 
       const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey) => {
         return formDataKey.includes(container.dataModelGroup + '[');
       });
 
-      if (repeatingData.length === 0) return;
+      if (repeatingData.length === 0) continue;
 
       let maxIndex = 0;
       repeatingData.forEach((data) => {
