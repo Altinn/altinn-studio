@@ -7,7 +7,6 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   fetching: boolean;
   fetched: boolean;
   error: Error;
-  unSavedChanges: boolean;
   saving: boolean;
 }
 
@@ -19,7 +18,6 @@ const initialState: IFormLayoutState = {
   fetched: false,
   error: null,
   saving: false,
-  unSavedChanges: false,
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
