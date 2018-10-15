@@ -25,7 +25,6 @@ export interface IContainerProps extends IProvidedContainerProps {
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
-
   public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
     e.stopPropagation();
@@ -36,7 +35,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     dataModelElement: IDataModelFieldElement,
     callbackValue: any,
   ): void => {
-
     const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
       this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
     FormFillerActionDispatchers.updateFormData(

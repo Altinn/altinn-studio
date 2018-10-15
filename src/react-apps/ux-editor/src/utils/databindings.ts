@@ -1,4 +1,4 @@
-import {object} from 'dot-object';
+import { object } from 'dot-object';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON 

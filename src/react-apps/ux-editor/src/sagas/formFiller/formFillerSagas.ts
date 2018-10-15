@@ -55,7 +55,7 @@ export function* submitFormDataSaga({ url }: FormFillerActions.ISubmitFormDataAc
       state.formDesigner.layout.components);
 
     if (Object.keys(valErrors).length === 0) {
-      yield call(put, url, 'Update', yield convertDataBindingToModel(state.formFiller.formData,
+      yield call(put, url, 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled);
     } else {

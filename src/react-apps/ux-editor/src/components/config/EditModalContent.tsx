@@ -382,20 +382,24 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         </div>
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
-            <label htmlFor={'editModal_text'} className='a-form-label'>Text</label>
-            <select
-              id={'editModal_text'}
-              value={this.state.component.customType === 'Standard' ?
-                this.state.component.textResourceId : this.state.component.title}
-              onChange={this.handleTitleChange}
-              className='custom-select a-custom-select'
-              disabled={this.state.component.customType === 'Standard'}
-            >
-              <option key={'empty'} value={''}>
-                Choose text
-              </option>
-              {this.renderTextResourceOptions()}
-            </select>
+            {this.props.component.component !== 'ThirdParty' ? (
+              <>
+                <label htmlFor={'editModal_text'} className='a-form-label'>Text</label>
+                <select
+                  id={'editModal_text'}
+                  value={this.state.component.customType === 'Standard' ?
+                    this.state.component.textResourceId : this.state.component.title}
+                  onChange={this.handleTitleChange}
+                  className='custom-select a-custom-select'
+                  disabled={this.state.component.customType === 'Standard'}
+                >
+                  <option key={'empty'} value={''}>
+                    Choose text
+                  </option>
+                  {this.renderTextResourceOptions()}
+                </select>
+              </>
+            ) : null}
           </div>
           {this.renderComponentSpecificContent()}
           {this.renderSelectDataBinding(this.state.component.component)}
@@ -416,6 +420,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
       case ('Checkboxes'):
       case ('TextArea'):
       case ('RadioButtons'):
+      case ('ThirdParty'):
       case ('Dropdown'): {
         return true;
       }
