@@ -212,14 +212,13 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
 
   public renderCondtionalRenderingTargetOptions = (): JSX.Element[] => {
     let baseContainerKey = Object.keys(this.props.order)[0];
-    if (!baseContainerKey) return;
+    if (!baseContainerKey) return null;
     return this.renderCondtionalRenderingTargetContainerOptions(baseContainerKey, true);
   }
 
   public render(): JSX.Element {
     const selectedMethod = this.state.conditionalRendering.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
-    const layoutComponent = this.props.formLayoutComponents;
     return (
       <div className='modal-content'>
         <div className='modal-header a-modal-header'>
