@@ -107,22 +107,32 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
       const result = (window as any).conditionalRuleHandlerObject[functionToRun](newObj);
       const action = connectionDef.selectedAction;
       // Perform action on the necccessary componenets
-      for (const componentToPerformActionOn in connectionDef.selectedFields) {
+      for (const elementToPerformActionOn in connectionDef.selectedFields) {
         // tslint:disable-next-line:curly
-        if (!componentToPerformActionOn) continue;
-        const comp = formDesignerState.layout.components[connectionDef.selectedFields[componentToPerformActionOn]];
+        if (!elementToPerformActionOn) continue;
+
+        // Either component or container
+        const elementIsComponent = formDesignerState.layout.components[connectionDef.selectedFields[elementToPerformActionOn]] ? true : false;
+        let element = elementIsComponent ?
+          formDesignerState.layout.components[connectionDef.selectedFields[elementToPerformActionOn]] :
+          formDesignerState.layout.containers[connectionDef.selectedFields[elementToPerformActionOn]];
+
+        if (!element) continue;
+
         switch (action) {
           case 'Show':
-            comp.hidden = !result;
+            element.hidden = !result;
             break;
           case 'Hide':
-            comp.hidden = result;
+            element.hidden = result;
             break;
         }
-        // tslint:disable-next-line:max-line-length
-        yield call(FormDesignerActionDispatchers.updateFormComponent, comp, connectionDef.selectedFields[componentToPerformActionOn]);
+        if (elementIsComponent) {
+          yield call(FormDesignerActionDispatchers.updateFormComponent, element, connectionDef.selectedFields[elementToPerformActionOn]);
+        } else {
+          yield call(FormDesignerActionDispatchers.updateFormContainer, element, connectionDef.selectedFields[elementToPerformActionOn]);
+        }
       }
-
     }
   } catch (err) {
     ErrorActionDispatchers.addError('Ånei! Noe gikk galt, vennligst prøv igjen seinere.');

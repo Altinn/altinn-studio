@@ -21,7 +21,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
     }
     return this.props.thirdPartyComponents[packageName][component];
   }
-  
+
   public render() {
     if (this.props.component.component === 'ThirdParty') {
       return this.renderThirdPartyComponent();

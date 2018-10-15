@@ -106,7 +106,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
 
-      
+
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_REJECTED: {
       const { error } = action as FormDesignerActions.IAddFormComponentActionRejected;
@@ -202,6 +202,29 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
     }
+    case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_FULFILLED: {
+      const { updatedContainer, id } = action as FormDesignerActions.IUpdateFormContainerActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        containers: {
+          [id]: {
+            $apply: () => ({ ...updatedContainer }),
+          },
+        },
+        unSavedChanges: {
+          $set: true,
+        },
+      })
+    }
+
+    case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateFormContainerActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+
     case FormDesignerActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
       const { formLayout } = action as FormDesignerActions.IFetchFormLayoutFulfilledAction;
       return update<IFormLayoutState>(state, {
