@@ -35,13 +35,16 @@ export interface IFormDesignerActionDispatchers
     error: Error,
   ) => FormDesignerActions.IAddFormContainerActionRejected;
   addActiveFormContainer: (
-    id: string,
+    id?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddActiveFormContainerAction;
-  addActiveFormContainerFulfilled: (
+  addActiveFormContainerActionFulfilled: (
     id: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddActiveFormContainerActionFulfilled;
+  addActiveFormContainerRejected: (
+    error: Error,
+  ) => FormDesignerActions.IAddActiveFormContainerRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -115,8 +118,8 @@ const actions: IFormDesignerActionDispatchers = {
   addFormContainer: FormDesignerActions.addFormContainerAction,
   addFormContainerFulfilled: FormDesignerActions.addFormContainerActionFulfilled,
   addFormContainerRejected: FormDesignerActions.addFormContainerActionRejected,
-  addActiveFormContainer: FormDesignerActions.addActiveContainerAction,
-  addActiveFormContainerFulfilled: FormDesignerActions.addActiveContainerActionFulfilled,
+  addActiveFormContainer: FormDesignerActions.addActiveFormContainerAction,
+  addActiveFormContainerFulfilled: FormDesignerActions.addActiveFormContainerActionFulfilled,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,

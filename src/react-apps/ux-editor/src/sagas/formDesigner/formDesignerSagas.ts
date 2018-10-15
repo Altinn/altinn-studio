@@ -11,17 +11,14 @@ const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
 
-function* addFormComponentSaga({
-  component,
+function* addActiveFormContainerSaga({
   containerId,
   callback,
-}: FormDesignerActions.IAddFormComponentAction): SagaIterator {
+}: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
+
   try {
     const id: string = uuid();
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    const selectActiveContainer = (state: IAppState) => state.formDesigner.layout.activeContainer;
-    const activeContainer = yield select(selectActiveContainer);
-    console.log(activeContainer);
 
     if (!containerId) {
       if (formDesignerState.layout.containers && Object.keys(formDesignerState.layout.containers).length > 0) {
@@ -30,6 +27,43 @@ function* addFormComponentSaga({
         containerId = uuid();
         const container = { repeating: false, dataModelGroup: null } as ICreateFormContainer;
         yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, containerId);
+      }
+    }
+    yield call(
+      FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
+      id,
+      callback,
+    );
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
+  }
+}
+
+export function* watchAddActiveFormContainerSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.ADD_ACTIVE_FORM_CONTAINER,
+    addActiveFormContainerSaga,
+  );
+}
+
+function* addFormComponentSaga({
+  component,
+  callback,
+}: FormDesignerActions.IAddFormComponentAction): SagaIterator {
+  try {
+    const id: string = uuid();
+    const selectActiveContainer = (state: IAppState) => state.formDesigner.layout.activeContainer;
+    let activeContainer = yield select(selectActiveContainer);
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+
+    if (activeContainer === '') {
+      if (formDesignerState.layout.containers && Object.keys(formDesignerState.layout.containers).length > 0) {
+        activeContainer = Object.keys(formDesignerState.layout.order)[0];
+      } else {
+        activeContainer = uuid();
+        const container = { repeating: false, dataModelGroup: null } as ICreateFormContainer;
+        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, activeContainer);
       }
     }
 
@@ -65,6 +99,7 @@ function* addFormContainerSaga({
       baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     }
     yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, baseContainerId);
+    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, id);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormContainerRejected, err);
   }

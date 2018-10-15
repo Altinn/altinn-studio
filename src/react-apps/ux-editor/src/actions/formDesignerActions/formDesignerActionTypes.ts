@@ -53,6 +53,7 @@ export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM
 // Add active container actions
 export const ADD_ACTIVE_FORM_CONTAINER: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER`;
 export const ADD_ACTIVE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER_FULFILLED`;
+export const ADD_ACTIVE_FORM_CONTAINER_REJECTED: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER_REJECTED`;
 
 // All generate repeating groups from form data actions
 export const GENERATE_REPEATING_GROUPS: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;

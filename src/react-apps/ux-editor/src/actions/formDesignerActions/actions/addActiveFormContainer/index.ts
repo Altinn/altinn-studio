@@ -9,9 +9,11 @@ export interface IAddActiveFormContainerActionFulfilled extends Action {
   containerId?: string;
   callback?: (...args: any[]) => any;
 }
+export interface IAddActiveFormContainerRejected extends Action {
+  error: Error;
+}
 
-
-export function addActiveContainerAction(
+export function addActiveFormContainerAction(
   containerId: string,
   callback?: (...args: any[]) => any) {
   return {
@@ -20,12 +22,18 @@ export function addActiveContainerAction(
     callback,
   };
 }
-export function addActiveContainerActionFulfilled(
+export function addActiveFormContainerActionFulfilled(
   containerId: string,
   callback?: (...args: any[]) => any) {
   return {
     type: ActionTypes.ADD_ACTIVE_FORM_CONTAINER_FULFILLED,
     containerId,
     callback,
+  };
+}
+export function addActiveFormContainerRejected(error: Error): IAddActiveFormContainerRejected {
+  return {
+    type: ActionTypes.ADD_ACTIVE_FORM_CONTAINER_REJECTED,
+    error,
   };
 }

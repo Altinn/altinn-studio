@@ -21,7 +21,7 @@ const initialState: IFormLayoutState = {
   error: null,
   saving: false,
   unSavedChanges: false,
-  activeContainer: 'ce922d45-0fa3-4088-a7b2-c6a6bc46256c',
+  activeContainer: '',
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
