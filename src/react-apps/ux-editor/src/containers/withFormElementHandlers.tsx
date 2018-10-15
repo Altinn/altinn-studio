@@ -37,13 +37,15 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
   }
 
-  const mapStateToProps: (state: IAppState, props: IFormComponentHandlerProvidedProps) => IFormComponentHandlerProps = (state: IAppState, props: IFormComponentHandlerProvidedProps): IFormComponentHandlerProps => ({
-    id: props.id,
-    textResources: state.appData.textResources.resources,
-    designMode: state.appData.appConfig.designMode,
-    component: state.formDesigner.layout.components[props.id],
-    handleDataUpdate: props.handleDataUpdate,
-  });
+  const mapStateToProps: (state: IAppState, props: IFormComponentHandlerProvidedProps) =>
+    IFormComponentHandlerProps = (state: IAppState, props: IFormComponentHandlerProvidedProps):
+      IFormComponentHandlerProps => ({
+        id: props.id,
+        textResources: state.appData.textResources.resources,
+        designMode: state.appData.appConfig.designMode,
+        component: state.formDesigner.layout.components[props.id],
+        handleDataUpdate: props.handleDataUpdate,
+      });
 
   return connect(mapStateToProps)(FormComponentWithHandlers);
 }

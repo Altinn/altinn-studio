@@ -4,16 +4,18 @@ export interface IThirdPartyComponentProps {
   id: string;
 }
 
-export const thirdPartyComponentWithElementHandler = (component: React.ReactElement<any>, dataChangeHandleCallback: (data: any) => void): React.ReactElement<any> => {
+export const thirdPartyComponentWithElementHandler =
+  (component: React.ReactElement<any>, dataChangeHandleCallback: (data: any) => void):
+    React.ReactElement<any> => {
 
-  const onHandleDataUpdate = (data: any) => dataChangeHandleCallback(data);
+    const onHandleDataUpdate = (data: any) => dataChangeHandleCallback(data);
 
-  return (
-    React.cloneElement(
-      component,
-      {
-        onHandleDataUpdate,
-      }
-    )
-  );
-}
+    return (
+      React.cloneElement(
+        component,
+        {
+          onHandleDataUpdate,
+        }
+      )
+    );
+  }
