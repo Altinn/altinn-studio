@@ -25,7 +25,6 @@ export interface IContainerProps extends IProvidedContainerProps {
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
-  
   public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
     e.stopPropagation();
@@ -36,7 +35,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     dataModelElement: IDataModelFieldElement,
     callbackValue: any,
   ): void => {
-
     const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
       this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
     FormFillerActionDispatchers.updateFormData(
@@ -58,20 +56,20 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public render() {
     return (
       <div>
-      <div
-        className={'col-12'}
-        style={this.props.baseContainer ? {} :
-          { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px'}}
-      >
-        <div className='col-1'>
-          {this.renderDeleteGroupButton()}
+        <div
+          className={'col-12'}
+          style={this.props.baseContainer ? {} :
+            { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px' }}
+        >
+          <div className='col-1'>
+            {this.renderDeleteGroupButton()}
+          </div>
+          {this.props.itemOrder.map((id: string, index: number) => (
+            this.props.components[id] ? this.renderFormComponent(id, index) :
+              (this.props.containers[id] ? this.renderContainer(id) : null)
+          ))}
         </div>
-        {this.props.itemOrder.map((id: string, index: number) => (
-          this.props.components[id] ? this.renderFormComponent(id, index) :
-            (this.props.containers[id] ? this.renderContainer(id) : null)
-        ))}
-      </div>
-      {this.renderNewGroupButton()}
+        {this.renderNewGroupButton()}
       </div>
     );
   }
@@ -89,13 +87,13 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public renderDeleteGroupButton = (): JSX.Element => {
     if (this.props.baseContainer) return null;
     return (
-          <button
-            type='button'
-            className='a-btn a-btn-icon p-0'
-            onClick={this.handleContainerDelete}
-          >
-            <i className='ai ai-circle-exit a-danger ai-left' />
-          </button>
+      <button
+        type='button'
+        className='a-btn a-btn-icon p-0'
+        onClick={this.handleContainerDelete}
+      >
+        <i className='ai ai-circle-exit a-danger ai-left' />
+      </button>
     );
   }
 
@@ -111,9 +109,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
     return (
       <button
-          className={'a-btn a-btn-action'}
-          onClick={this.handleAddNewGroup}
-          disabled={this.props.designMode}
+        className={'a-btn a-btn-action'}
+        onClick={this.handleAddNewGroup}
+        disabled={this.props.designMode}
       >
         <i className={'ai ai-plus'} />
         <span>Legg til gruppe</span>

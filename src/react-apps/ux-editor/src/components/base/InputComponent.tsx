@@ -9,13 +9,29 @@ export interface IInputProps {
   isValid?: boolean;
 }
 
-export interface IInputState { }
+export interface IInputState {
+  value: string;
+}
 
 export class InputComponent
   extends React.Component<IInputProps, IInputState> {
 
+  constructor(_props: IInputProps, _state: IInputState) {
+    super(_props, _state);
+
+    this.state = {
+      value: _props.formData ? _props.formData : '',
+    }
+  }
+
   public onDataChanged = (e: any) => {
-    this.props.handleDataChange(e.target.value);
+    this.setState({
+      value: e.target.value
+    });
+  }
+
+  public onDataChangeSubmit = () => {
+    this.props.handleDataChange(this.state.value)
   }
 
   public render() {
@@ -23,12 +39,12 @@ export class InputComponent
       <input
         id={this.props.id}
         type={this.props.component.type as any}
-        onBlur={this.onDataChanged}
+        onBlur={this.onDataChangeSubmit}
         onChange={this.onDataChanged}
         disabled={this.props.component.disabled}
         required={this.props.component.required}
         className={this.props.isValid ? 'form-control' : 'form-control validation-error'}
-        value={this.props.formData}
+        value={this.state.value}
       />
     );
   }
