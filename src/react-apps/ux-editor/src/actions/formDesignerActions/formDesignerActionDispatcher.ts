@@ -98,11 +98,11 @@ export interface IFormDesignerActionDispatchers
     error: Error,
   ) => FormDesignerActions.IUpdateFormComponentActionRejected;
   updateFormContainer: (
-    updatedContainer: any,
+    updatedContainer: ICreateFormContainer,
     id: string,
   ) => FormDesignerActions.IUpdateFormContainerAction;
   updateFormContainerFulfilled: (
-    updatedContainer: any,
+    updatedContainer: ICreateFormContainer,
     id: string,
   ) => FormDesignerActions.IUpdateFormContainerActionFulfilled;
   updateFormContainerRejected: (
