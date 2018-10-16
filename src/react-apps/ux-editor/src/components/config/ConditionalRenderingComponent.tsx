@@ -187,6 +187,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
 
   public renderCondtionalRenderingTargetContainerOptions = (id: string, baseContainer?: boolean): JSX.Element[] => {
     let options: JSX.Element[] = [];
+    if (!this.props.order[id]) return options;
     if (!baseContainer) {
       options.push(
         <option key={id} value={id}>
