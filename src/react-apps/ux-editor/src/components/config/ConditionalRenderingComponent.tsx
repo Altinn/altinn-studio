@@ -211,7 +211,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   }
 
   public renderCondtionalRenderingTargetOptions = (): JSX.Element[] => {
-    let baseContainerKey = Object.keys(this.props.order)[0];
+    const baseContainerKey = Object.keys(this.props.order)[0];
     if (!baseContainerKey) return null;
     return this.renderCondtionalRenderingTargetContainerOptions(baseContainerKey, true);
   }
