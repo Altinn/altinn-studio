@@ -1,5 +1,8 @@
 // Place your settings in this file to overwrite default and user settings.
 {
+  "[csharp]": {
+    "editor.tabSize": 4,
+  },
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
