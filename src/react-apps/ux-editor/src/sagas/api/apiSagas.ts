@@ -238,7 +238,7 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: any, lastUpd
                   // This space intentionally left blank
                 } else {
                   yield call(FormFillerActionDispatchers.updateFormData, updatedComponent,
-                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], updatedDataBinding);
+                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], updatedDataBinding, updatedDataBinding.DataBindingName);
                 }
               }
             }
