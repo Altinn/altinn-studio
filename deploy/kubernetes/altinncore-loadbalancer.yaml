@@ -17,19 +17,19 @@ spec:
           - containerPort: 443
       imagePullSecrets:
       - name: acrsecret
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: altinn-loadbalancer
-# spec:
-#   ports:
-#   - port: 80
-#     name: http
-#   - port: 443
-#     name: https
-#   selector:
-#     app: altinn-loadbalancer
-#   # Change this to what ever your public ip on azure is.
-#   loadBalancerIP: [[YOUR PUBLIC IP]]
-#   type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: altinn-loadbalancer
+spec:
+  ports:
+  - port: 80
+    name: http
+  - port: 443
+    name: https
+  selector:
+    app: altinn-loadbalancer
+  # Change this to what ever your public ip on azure is.
+  loadBalancerIP: [[YOUR PUBLIC IP]]
+  type: LoadBalancer
