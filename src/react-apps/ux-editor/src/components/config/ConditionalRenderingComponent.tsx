@@ -191,7 +191,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     if (!baseContainer) {
       options.push(
         <option key={id} value={id}>
-          {`Container T (id=${id})`}
+          {`Container (id=${id})`}
         </option>
       );
     }

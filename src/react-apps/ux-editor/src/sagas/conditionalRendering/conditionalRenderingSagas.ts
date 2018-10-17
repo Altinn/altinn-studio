@@ -112,10 +112,11 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
         if (!elementToPerformActionOn) continue;
 
         // Either component or container
-        const elementIsComponent = formDesignerState.layout.components[connectionDef.selectedFields[elementToPerformActionOn]] ? true : false;
+        const elementId = connectionDef.selectedFields[elementToPerformActionOn];
+        const elementIsComponent = formDesignerState.layout.components[elementId] ? true : false;
         let element = elementIsComponent ?
-          formDesignerState.layout.components[connectionDef.selectedFields[elementToPerformActionOn]] :
-          formDesignerState.layout.containers[connectionDef.selectedFields[elementToPerformActionOn]];
+          formDesignerState.layout.components[elementId] :
+          formDesignerState.layout.containers[elementId];
 
         if (!element) continue;
 
@@ -128,9 +129,9 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
             break;
         }
         if (elementIsComponent) {
-          yield call(FormDesignerActionDispatchers.updateFormComponent, element, connectionDef.selectedFields[elementToPerformActionOn]);
+          yield call(FormDesignerActionDispatchers.updateFormComponent, element, elementId);
         } else {
-          yield call(FormDesignerActionDispatchers.updateFormContainer, element, connectionDef.selectedFields[elementToPerformActionOn]);
+          yield call(FormDesignerActionDispatchers.updateFormContainer, element, elementId);
         }
       }
     }
