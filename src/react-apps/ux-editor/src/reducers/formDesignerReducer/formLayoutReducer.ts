@@ -7,9 +7,9 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   fetching: boolean;
   fetched: boolean;
   error: Error;
-  unSavedChanges: boolean;
   saving: boolean;
-  activeContainer: String
+  unSavedChanges: boolean;
+  activeContainer: string;
 }
 
 const initialState: IFormLayoutState = {
@@ -22,6 +22,7 @@ const initialState: IFormLayoutState = {
   saving: false,
   unSavedChanges: false,
   activeContainer: '',
+
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -83,7 +84,6 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
-
       if (positionAfterId) {
         return update<IFormLayoutState>(state, {
           containers: {

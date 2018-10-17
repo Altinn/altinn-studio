@@ -6,11 +6,13 @@ import * as FormFillerActionTypes from '../../actions/formFillerActions/formFill
 export interface IFormFillerState {
   formData: any;
   validationErrors: any;
+  unsavedChanges: boolean;
 }
 
 const initialState: IFormFillerState = {
   formData: {},
-  validationErrors: {}
+  validationErrors: {},
+  unsavedChanges: false,
 };
 
 const formFillerReducer: Reducer<IFormFillerState> = (
@@ -54,6 +56,9 @@ const formFillerReducer: Reducer<IFormFillerState> = (
               $set: validationErrors,
             },
           },
+          unsavedChanges: {
+            $set: true,
+          },
         });
       }
 
@@ -66,7 +71,10 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         },
         validationErrors: {
           $unset: [componentID]
-        }
+        },
+        unsavedChanges: {
+          $set: true,
+        },
       });
     }
 
@@ -74,9 +82,20 @@ const formFillerReducer: Reducer<IFormFillerState> = (
       const { formData } = action as FormFillerActions.IFetchFormDataActionFulfilled;
       return update<IFormFillerState>(state, {
         formData: {
-          $set: formData
-        }
-      })
+          $set: formData,
+        },
+        unsavedChanges: {
+          $set: false,
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.SUBMIT_FORM_DATA_FULFILLED): {
+      return update<IFormFillerState>(state, {
+        unsavedChanges: {
+          $set: false,
+        },
+      });
     }
 
     default:

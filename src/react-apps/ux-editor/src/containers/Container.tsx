@@ -38,7 +38,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     dataModelElement: IDataModelFieldElement,
     callbackValue: any,
   ): void => {
-
     const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
       this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
     FormFillerActionDispatchers.updateFormData(
@@ -63,7 +62,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
         <div
           className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 formContainer formContainerActive' : 'col-12 formContainer'}
           onClick={this.changeActiveFormContainer}>
-
           <div className='col-1'>
             {this.renderDeleteGroupButton()}
           </div>
