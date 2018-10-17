@@ -17,23 +17,21 @@ function* addActiveFormContainerSaga({
 }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
 
   try {
-    const id: string = uuid();
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
 
-    if (!containerId) {
-      if (formDesignerState.layout.containers && Object.keys(formDesignerState.layout.containers).length > 0) {
-        containerId = Object.keys(formDesignerState.layout.order)[0];
-      } else {
-        containerId = uuid();
-        const container = { repeating: false, dataModelGroup: null } as ICreateFormContainer;
-        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, containerId);
-      }
+    if (containerId === formDesignerState.layout.activeContainer) {
+      yield call(
+        FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
+        '',
+      );
+
+    } else {
+      yield call(
+        FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
+        containerId,
+      );
+
     }
-    yield call(
-      FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
-      id,
-      callback,
-    );
   }
   catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
@@ -65,6 +63,7 @@ function* addFormComponentSaga({
         const container = { repeating: false, dataModelGroup: null } as ICreateFormContainer;
         yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, activeContainer);
       }
+      yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, activeContainer);
     }
 
     yield call(
@@ -99,7 +98,6 @@ function* addFormContainerSaga({
       baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     }
     yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, baseContainerId);
-    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, id);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormContainerRejected, err);
   }

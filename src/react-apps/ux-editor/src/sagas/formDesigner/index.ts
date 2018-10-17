@@ -3,6 +3,7 @@ import { fork } from 'redux-saga/effects';
 import {
   watchAddFormComponentSaga,
   watchAddFormContainerSaga,
+  watchAddActiveFormContainerSaga,
   watchDeleteFormComponentSaga,
   watchDeleteFormContainerSaga,
   watchFetchFormLayoutSaga,
@@ -15,6 +16,7 @@ import {
 export default function* (): SagaIterator {
   yield fork(watchAddFormComponentSaga);
   yield fork(watchAddFormContainerSaga);
+  yield fork(watchAddActiveFormContainerSaga);
   yield fork(watchDeleteFormComponentSaga);
   yield fork(watchDeleteFormContainerSaga);
   yield fork(watchFetchFormLayoutSaga);

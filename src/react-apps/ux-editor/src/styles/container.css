@@ -1,0 +1,12 @@
+.formContainer {
+  border: 1px dashed #1eaef7; 
+  margin-top: 10 px; 
+  margin-bottom: 10px; 
+}
+.formContainer:hover {
+  background: #cff0ff;
+  cursor: pointer;
+}
+.formContainerActive {
+  background: #cff0ff;
+}

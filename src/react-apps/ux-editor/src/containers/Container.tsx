@@ -7,6 +7,7 @@ import FormFillerActionDispatchers from '../actions/formFillerActions/formFiller
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
+import '../styles/container.css';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -22,6 +23,7 @@ export interface IContainerProps extends IProvidedContainerProps {
   designMode: boolean;
   formData: any;
   index?: number;
+  formContainerActive?: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
@@ -59,10 +61,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (
       <div>
         <div
-          className={'col-12'}
-          style={this.props.baseContainer ? {} :
-            { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px' }}
-        >
+          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 formContainer formContainerActive' : 'col-12 formContainer'}
+          onClick={this.changeActiveFormContainer}>
+
           <div className='col-1'>
             {this.renderDeleteGroupButton()}
           </div>
@@ -143,7 +144,11 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     };
 
     FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
-    FormDesignerActionDispatchers.addActiveFormContainer(this.props.id); // does not work
+  }
+  public changeActiveFormContainer = () => {
+    if (!this.props.baseContainer) {
+      FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
+    }
   }
 }
 
@@ -186,6 +191,7 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
     formData: getFormData(props.id, layout, state.formFiller.formData, container.dataModelGroup,
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
+    formContainerActive: state.formDesigner.layout.activeContainer === props.id,
   };
 };
 
