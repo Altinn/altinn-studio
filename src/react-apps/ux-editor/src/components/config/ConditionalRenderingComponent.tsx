@@ -180,7 +180,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
     return (
       <option key={id} value={id}>
-        {this.props.formLayoutComponents[id].title + ' (id=' + id + ')'}
+        {`${this.props.formLayoutComponents[id].title} (id=${id})`}
       </option>
     );
   }
@@ -191,7 +191,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     if (!baseContainer) {
       options.push(
         <option key={id} value={id}>
-          {'Container (id=' + id + ')'}
+          {`Container T (id=${id})`}
         </option>
       );
     }
@@ -201,7 +201,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         options.push(option);
       }
       else {
-        // A container can have compnents and sub-containers
+        // A container can have components and sub-containers
         let containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
         containerOptions.forEach(option => {
           options.push(option);
