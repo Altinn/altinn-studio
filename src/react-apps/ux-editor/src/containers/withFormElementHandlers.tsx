@@ -18,7 +18,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
 
     public getTextResource = (resourceKey: string): string => {
-      if (!this.props.textResources.length) return "loading";
+      if (!this.props.textResources.length) return 'loading';
       return this.props.textResources.find(resource => resource.id === resourceKey).value;
     }
 
