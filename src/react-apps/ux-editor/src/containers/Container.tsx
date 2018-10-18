@@ -7,7 +7,7 @@ import FormFillerActionDispatchers from '../actions/formFillerActions/formFiller
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
-import '../styles/container.css';
+import '../styles/index.css';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -60,15 +60,28 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (
       <div>
         <div
-          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 formContainer formContainerActive' : 'col-12 formContainer'}
+          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
           onClick={this.changeActiveFormContainer}>
-          <div className='col-1'>
-            {this.renderDeleteGroupButton()}
-          </div>
+          {
+            this.props.designMode &&
+            <div className='col-1'>
+              {this.renderDeleteGroupButton()}
+            </div>
+          }
           {this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
           ))}
+          {
+            !this.props.designMode &&
+            <button
+              className={'a-btn a-btn-action'}
+              onClick={this.handleContainerDelete}
+            >
+              <span>Fjern gruppe</span>
+            </button>
+          }
+
         </div>
         {this.renderNewGroupButton()}
       </div>

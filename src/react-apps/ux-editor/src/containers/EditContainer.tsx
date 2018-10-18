@@ -3,6 +3,7 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
+import '../styles/index.css';
 
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
@@ -79,10 +80,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
           />
         </Modal>
         <div
-          className='row a-btn-action align-items-start mb-1'
-          style={{ cursor: 'pointer' }}
-          onClick={this.handleOpenModal}
-        >
+          className='row a-btn-action align-items-start mb-1 cursorPointer'
+          onClick={this.handleOpenModal}>
           <div className='col-11 mt-3'>
             {this.props.children}
           </div>

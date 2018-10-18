@@ -24,3 +24,8 @@
 .ReactModal__Body--open {
   overflow-y: hidden;
 }
+
+.cursorPointer {
+  cursor: pointer;
+  background-color: black !important;
+}
