@@ -24,13 +24,14 @@ export interface IContainerProps extends IProvidedContainerProps {
   formData: any;
   index?: number;
   formContainerActive?: boolean;
+  firstContainerGroup?: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
 
-  public handleContainerDelete = (e: any) => {
-    FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
-    e.stopPropagation();
+  public handleContainerDelete = (id: string) => {
+    console.log(id);
+    FormDesignerActionDispatchers.deleteFormContainer(id);
   }
 
   public handleComponentDataUpdate = (
@@ -72,6 +73,15 @@ export class ContainerComponent extends React.Component<IContainerProps> {
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
           ))}
+          {
+            !this.props.designMode && !this.props.firstContainerGroup && !this.props.baseContainer &&
+            <button
+              className={'a-btn a-btn-action offset-10'}
+              onClick={() => this.handleContainerDelete(this.props.id)}
+            >
+              <span>Fjern gruppe</span>
+            </button>
+          }
         </div>
         {this.renderNewGroupButton()}
       </div>
@@ -193,6 +203,7 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
     formContainerActive: state.formDesigner.layout.activeContainer === props.id,
+    firstContainerGroup: state.formDesigner.layout.activeContainer === props.id,
   };
 };
 

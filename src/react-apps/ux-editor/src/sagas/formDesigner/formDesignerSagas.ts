@@ -133,9 +133,6 @@ function* deleteFormContainerSaga({
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     // First delete all components inside container
-    for (const componentId of formDesignerState.layout.order[id]) {
-      yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
-    }
 
     // Then delete container iteself
     yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id);
