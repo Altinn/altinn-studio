@@ -105,7 +105,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <button
         type='button'
         className='a-btn a-btn-icon p-0'
-        onClick={this.handleContainerDelete}
+        onClick={() => this.handleContainerDelete(this.props.id)}
       >
         <i className='ai ai-circle-exit a-danger ai-left' />
       </button>
