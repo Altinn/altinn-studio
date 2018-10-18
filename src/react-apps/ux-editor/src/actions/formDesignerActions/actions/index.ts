@@ -9,3 +9,4 @@ export * from './saveFormLayout';
 export * from './selectFormComponent';
 export * from './updateDataModelBinding';
 export * from './updateFormComponent';
+export * from './updateFormContainer';
