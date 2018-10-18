@@ -14,17 +14,7 @@ const selectFormFiller = (state: IAppState): IFormFillerState => state.formFille
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    if (containerId === formDesignerState.layout.activeContainer) {
-      yield call(
-        FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
-        '',
-      );
-    } else {
-      yield call(
-        FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
-        containerId,
-      );
-    }
+    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, containerId === formDesignerState.layout.activeContainer ? '' : containerId)
   }
   catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
