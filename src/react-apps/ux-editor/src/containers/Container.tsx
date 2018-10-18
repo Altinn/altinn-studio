@@ -75,6 +75,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public renderContainer = (id: string) => {
+    if (this.props.containers[id].hidden && !this.props.designMode) return null;
     return (
       <Container
         id={id}
@@ -121,7 +122,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
   public renderFormComponent = (id: string, key: any): JSX.Element => {
     if (this.props.components[id].hidden && !this.props.designMode) return null;
-
     return (
       <FormComponentWrapper
         key={key}

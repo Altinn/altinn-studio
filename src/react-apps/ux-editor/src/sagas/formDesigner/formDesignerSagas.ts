@@ -264,3 +264,26 @@ export function* watchUpdateFormComponentSaga(): SagaIterator {
     updateFormComponentSaga
   );
 }
+
+export function* updateFormContainerSaga({
+  updatedContainer,
+  id
+}: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
+  try {
+    yield call(
+      FormDesignerActionDispatchers.updateFormContainerFulfilled,
+      updatedContainer,
+      id
+    );
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
+  }
+}
+
+export function* watchUpdateContainerSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.UPDATE_FORM_CONTAINER,
+    updateFormContainerSaga
+  )
+}
