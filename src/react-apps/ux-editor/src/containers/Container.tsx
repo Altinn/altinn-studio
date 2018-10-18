@@ -72,16 +72,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
           ))}
-          {
-            !this.props.designMode &&
-            <button
-              className={'a-btn a-btn-action'}
-              onClick={this.handleContainerDelete}
-            >
-              <span>Fjern gruppe</span>
-            </button>
-          }
-
         </div>
         {this.renderNewGroupButton()}
       </div>
