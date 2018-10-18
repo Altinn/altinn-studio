@@ -2,6 +2,7 @@ const gulp = require('gulp');
 const run = require('gulp-run-command').default;
 const chokidar = require('chokidar');
 const del = require('del');
+const fs = require('fs');
 
 const cleanGlobs = [
   "wwwroot/designer/css/lib/**/*.css",
@@ -117,12 +118,27 @@ function deleteReactCss() {
 }
 
 function setupWatchers(cb) {
-  jsWatcher = chokidar.watch('../../react-apps/ux-editor/dist/react-app.js');
-  cssWatcher = chokidar.watch('../../react-apps/ux-editor/dist/react-app.css');
-  jsWatcher.on('ready', copyReactJs);
-  jsWatcher.on('change', copyReactJs);
-  cssWatcher.on('ready', copyReactCss);
-  cssWatcher.on('change', copyReactCss);
+  const jsFile = '../../react-apps/ux-editor/dist/react-app.js';
+  const cssFile = '../../react-apps/ux-editor/dist/react-app.css';
+
+  var checkJsFile = setInterval(function () {
+    if (fs.existsSync(jsFile)) {
+      jsWatcher = chokidar.watch(jsFile);
+      jsWatcher.on('ready', copyReactJs);
+      jsWatcher.on('change', copyReactJs);
+      clearInterval(checkJsFile);
+    }
+  }, 1000);
+
+  var checkCssFile = setInterval(function () {
+    if (fs.existsSync(cssFile)) {
+      cssWatcher = chokidar.watch(cssFile);
+      cssWatcher.on('ready', copyReactCss);
+      cssWatcher.on('change', copyReactCss);;
+      clearInterval(checkCssFile);
+    }
+  }, 1000);
+
   cb();
 }
 
@@ -145,7 +161,7 @@ gulp.task('clean', gulp.series(
   })
 ));
 
-gulp.task('develop', gulp.series(
+gulp.task('develop', gulp.parallel(
   copyNodeModulePackages,
   setupWatchers,
   run('dotnet run'),
