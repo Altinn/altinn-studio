@@ -62,7 +62,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IFetchFormLayoutRejectedAction;
   generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
   generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
-  generateRepeatingGroupsActionRejected:(error: Error) => IGenerateRepeatingGroupsActionRejected;
+  generateRepeatingGroupsActionRejected: (error: Error) => IGenerateRepeatingGroupsActionRejected;
   saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
@@ -97,6 +97,17 @@ export interface IFormDesignerActionDispatchers
   updateFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateFormComponentActionRejected;
+  updateFormContainer: (
+    updatedContainer: ICreateFormContainer,
+    id: string,
+  ) => FormDesignerActions.IUpdateFormContainerAction;
+  updateFormContainerFulfilled: (
+    updatedContainer: ICreateFormContainer,
+    id: string,
+  ) => FormDesignerActions.IUpdateFormContainerActionFulfilled;
+  updateFormContainerRejected: (
+    error: any,
+  ) => FormDesignerActions.IUpdateFormContainerActionRejected;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -139,6 +150,9 @@ const actions: IFormDesignerActionDispatchers = {
     FormDesignerActions.updateFormComponentActionFulfilled,
   updateFormComponentRejected:
     FormDesignerActions.updateFormComponentActionRejected,
+  updateFormContainer: FormDesignerActions.updateFormContainerAction,
+  updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
+  updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<
