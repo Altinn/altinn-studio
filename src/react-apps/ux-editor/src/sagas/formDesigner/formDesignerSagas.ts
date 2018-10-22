@@ -143,7 +143,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   );
 }
 
-function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
+function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
@@ -177,11 +177,11 @@ function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeating
           index: i,
         };
 
-        yield call (FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
+        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
         renderAfterId = newId;
       }
     }
-  } catch(err) {
+  } catch (err) {
     yield call(FormDesignerActionDispatchers.generateRepeatingGroupsActionRejected, err);
   }
 }
@@ -263,4 +263,27 @@ export function* watchUpdateFormComponentSaga(): SagaIterator {
     FormDesignerActionTypes.UPDATE_FORM_COMPONENT,
     updateFormComponentSaga
   );
+}
+
+export function* updateFormContainerSaga({
+  updatedContainer,
+  id
+}: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
+  try {
+    yield call(
+      FormDesignerActionDispatchers.updateFormContainerFulfilled,
+      updatedContainer,
+      id
+    );
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
+  }
+}
+
+export function* watchUpdateContainerSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.UPDATE_FORM_CONTAINER,
+    updateFormContainerSaga
+  )
 }

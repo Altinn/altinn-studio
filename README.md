@@ -30,7 +30,7 @@ Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate
 
 ```cmd
 git clone https://github.com/Altinn/altinn-studio
-cd Altinn-studio
+cd altinn-studio
 ```
 
 Run all parts of the solution in containers (Make sure docker is running)

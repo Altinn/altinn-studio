@@ -75,7 +75,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     this.toolbarComponents.push(addContainerItem);
 
   }
-  
+
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     FormActionDispatcher.addFormComponent({
       component: THIRD_PARTY_COMPONENT,

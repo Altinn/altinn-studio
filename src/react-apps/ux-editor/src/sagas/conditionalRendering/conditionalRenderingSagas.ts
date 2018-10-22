@@ -107,22 +107,33 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
       const result = (window as any).conditionalRuleHandlerObject[functionToRun](newObj);
       const action = connectionDef.selectedAction;
       // Perform action on the necccessary componenets
-      for (const componentToPerformActionOn in connectionDef.selectedFields) {
+      for (const elementToPerformActionOn in connectionDef.selectedFields) {
         // tslint:disable-next-line:curly
-        if (!componentToPerformActionOn) continue;
-        const comp = formDesignerState.layout.components[connectionDef.selectedFields[componentToPerformActionOn]];
+        if (!elementToPerformActionOn) continue;
+
+        // Either component or container
+        const elementId = connectionDef.selectedFields[elementToPerformActionOn];
+        const elementIsComponent = formDesignerState.layout.components[elementId] ? true : false;
+        let element = elementIsComponent ?
+          formDesignerState.layout.components[elementId] :
+          formDesignerState.layout.containers[elementId];
+
+        if (!element) continue;
+
         switch (action) {
           case 'Show':
-            comp.hidden = !result;
+            element.hidden = !result;
             break;
           case 'Hide':
-            comp.hidden = result;
+            element.hidden = result;
             break;
         }
-        // tslint:disable-next-line:max-line-length
-        yield call(FormDesignerActionDispatchers.updateFormComponent, comp, connectionDef.selectedFields[componentToPerformActionOn]);
+        if (elementIsComponent) {
+          yield call(FormDesignerActionDispatchers.updateFormComponent, element, elementId);
+        } else {
+          yield call(FormDesignerActionDispatchers.updateFormContainer, element, elementId);
+        }
       }
-
     }
   } catch (err) {
     ErrorActionDispatchers.addError('Ånei! Noe gikk galt, vennligst prøv igjen seinere.');
