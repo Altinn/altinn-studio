@@ -45,7 +45,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue);
+    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.dataModelGroup, this.props.index);
     RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
   }
 
@@ -160,12 +160,13 @@ const getFormData = (
   const filteredFormData: any = {};
   components.forEach((componentId) => {
     const dataModelBinding = layout.components[componentId].dataModelBinding;
-    const dataModelWithIndex = dataModelBinding && repeating ? dataModelBinding.replace(dataModelGroup, dataModelGroup
+    const dataModelWithIndex = (dataModelBinding && repeating) ? dataModelBinding.replace(dataModelGroup, dataModelGroup
       + `[${index}]`) : dataModelBinding;
     if (formData[dataModelWithIndex]) {
       filteredFormData[dataModelBinding] = formData[dataModelWithIndex];
     }
   });
+  console.log(filteredFormData);
   return filteredFormData;
 };
 
