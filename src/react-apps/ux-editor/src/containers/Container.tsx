@@ -175,7 +175,6 @@ const getFormData = (
       filteredFormData[dataModelBinding] = formData[dataModelWithIndex];
     }
   });
-  console.log(filteredFormData);
   return filteredFormData;
 };
 
