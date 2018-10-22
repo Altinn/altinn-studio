@@ -7,6 +7,7 @@ import FormFillerActionDispatchers from '../actions/formFillerActions/formFiller
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
+import '../styles/index.css';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -22,9 +23,11 @@ export interface IContainerProps extends IProvidedContainerProps {
   designMode: boolean;
   formData: any;
   index?: number;
+  formContainerActive?: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
+
   public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
     e.stopPropagation();
@@ -57,13 +60,14 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (
       <div>
         <div
-          className={'col-12'}
-          style={this.props.baseContainer ? {} :
-            { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px' }}
-        >
-          <div className='col-1'>
-            {this.renderDeleteGroupButton()}
-          </div>
+          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
+          onClick={this.changeActiveFormContainer}>
+          {
+            this.props.designMode &&
+            <div className='col-1'>
+              {this.renderDeleteGroupButton()}
+            </div>
+          }
           {this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
@@ -75,6 +79,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public renderContainer = (id: string) => {
+    if (this.props.containers[id].hidden && !this.props.designMode) return null;
     return (
       <Container
         id={id}
@@ -121,7 +126,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
   public renderFormComponent = (id: string, key: any): JSX.Element => {
     if (this.props.components[id].hidden && !this.props.designMode) return null;
-
     return (
       <FormComponentWrapper
         key={key}
@@ -141,6 +145,11 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     };
 
     FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
+  }
+  public changeActiveFormContainer = () => {
+    if (!this.props.baseContainer) {
+      FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
+    }
   }
 }
 
@@ -184,6 +193,7 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
     formData: getFormData(props.id, layout, state.formFiller.formData, container.dataModelGroup,
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
+    formContainerActive: state.formDesigner.layout.activeContainer === props.id,
   };
 };
 
