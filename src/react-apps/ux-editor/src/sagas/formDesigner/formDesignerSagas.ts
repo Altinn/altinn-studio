@@ -119,13 +119,16 @@ export function* watchDeleteFormComponentSaga(): SagaIterator {
 
 function* deleteFormContainerSaga({
   id,
+  index,
 }: FormDesignerActions.IDeleteContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    // First delete all components inside container
-
-
-    // Then delete container iteself
+    if (index === 0) {
+      // Delete content of container
+      for (const componentId of formDesignerState.layout.order[id]) {
+        yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
+      }
+    }
     yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormContainerRejected, err);

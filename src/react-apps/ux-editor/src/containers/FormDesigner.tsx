@@ -13,7 +13,12 @@ class FormDesigner extends React.Component<
   IFormDesignerState
   > {
   public componentDidMount() {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, edition } = altinnWindow;
+    const serviceEditionPath = `${org}/${service}/${edition}`;
+
     AppDataActionDispatcher.setDesignMode(true);
+    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetFormLayout`);
   }
 
   public renderSaveButton = (): JSX.Element => {

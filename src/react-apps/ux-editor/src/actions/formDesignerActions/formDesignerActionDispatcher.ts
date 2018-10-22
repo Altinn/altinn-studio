@@ -57,6 +57,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IDeleteComponentActionRejected;
   deleteFormContainer: (
     id: string,
+    index?: number,
   ) => FormDesignerActions.IDeleteContainerAction;
   deleteFormContainerFulfilled: (
     id: string,
