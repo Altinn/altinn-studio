@@ -203,7 +203,10 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
     formContainerActive: state.formDesigner.layout.activeContainer === props.id,
+<<<<<<< HEAD
     firstContainerGroup: state.formDesigner.layout.activeContainer === props.id,
+=======
+>>>>>>> master
   };
 };
 
