@@ -236,7 +236,7 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFi
                 if (!component) {
                   continue;
                 }
-                if (components[component].dataModelBinding === lastUpdatedDataBinding.DataBindingName) {
+                if (components[component].dataModelBinding === updatedDataBinding.DataBindingName) {
                   updatedComponent = component;
                 }
               }
