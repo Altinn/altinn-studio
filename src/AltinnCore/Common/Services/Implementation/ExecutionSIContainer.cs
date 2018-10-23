@@ -34,14 +34,12 @@ namespace AltinnCore.Common.Services.Implementation
 
     private readonly ServiceRepositorySettings _settings;
     private readonly IRepository _repository;
-    private readonly Interfaces.ICompilation _compilation;
-    private readonly IViewRepository _viewRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExecutionSILocalDev"/> class 
+    /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class 
     /// </summary>
     /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
     /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
@@ -51,14 +49,11 @@ namespace AltinnCore.Common.Services.Implementation
     public ExecutionSIContainer(
         IOptions<ServiceRepositorySettings> settings,
         IRepository repositoryService,
-        Interfaces.ICompilation compilationService,
         ApplicationPartManager partManager,
         IViewRepository viewRepository, IHttpContextAccessor httpContextAccessor)
     {
       _settings = settings.Value;
       _repository = repositoryService;
-      _compilation = compilationService;
-      _viewRepository = viewRepository;
       _httpContextAccessor = httpContextAccessor;
     }
 
@@ -117,7 +112,6 @@ namespace AltinnCore.Common.Services.Implementation
         ServiceModelType = GetServiceImplementation(org, service, edition).GetServiceModelType(),
         ServiceText = _repository.GetServiceTexts(org, service, edition),
         ServiceMetaData = _repository.GetServiceMetaData(org, service, edition),
-        ViewMetadata = _viewRepository.GetViews(org, service, edition),
         CurrentCulture = CultureInfo.CurrentUICulture.Name,
         WorkFlow = _repository.GetWorkFlow(org, service, edition)
       };
@@ -157,15 +151,6 @@ namespace AltinnCore.Common.Services.Implementation
       Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
 
       ServiceMetadata metaData = _repository.GetServiceMetaData(org, service, edition);
-
-      ////if (metaData.CodeListUsages != null)
-      ////{
-      ////    foreach (CodeListUsage codeListUsage in metaData.CodeListUsages)
-      ////    {
-      ////        // Todo Handle codeList from other sources
-      ////        codeLists.Add(codeListUsage.Name, GetCodeListByName(org, service, edition, codeListUsage.Name));
-      ////    }
-      ////}
 
       return codeLists;
     }
