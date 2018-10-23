@@ -67,6 +67,11 @@ namespace AltinnCore.Common.Configuration
     public bool ForceGiteaAuthentication { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating if runtime should fetch service information from database or from disk
+    /// </summary>
+    public bool ShouldFetchFromDatabase { get; set; }
+
+    /// <summary>
     /// Gets or sets the url for the API Endpoint
     /// </summary>
     public string ApiEndPoint { get; set; }

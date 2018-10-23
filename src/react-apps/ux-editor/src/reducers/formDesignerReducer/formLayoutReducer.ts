@@ -7,8 +7,9 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   fetching: boolean;
   fetched: boolean;
   error: Error;
-  unSavedChanges: boolean;
   saving: boolean;
+  unSavedChanges: boolean;
+  activeContainer: string;
 }
 
 const initialState: IFormLayoutState = {
@@ -20,6 +21,8 @@ const initialState: IFormLayoutState = {
   error: null,
   saving: false,
   unSavedChanges: false,
+  activeContainer: '',
+
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -30,6 +33,16 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     return state;
   }
   switch (action.type) {
+    case FormDesignerActionTypes.ADD_ACTIVE_FORM_CONTAINER_FULFILLED: {
+      const { containerId, callback } = action as FormDesignerActions.IAddActiveFormContainerActionFulfilled;
+      if (callback) callback(containerId);
+
+      return update<IFormLayoutState>(state, {
+        activeContainer: {
+          $set: containerId,
+        },
+      });
+    }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
       const { component, id, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
       if (callback) callback(component, id);
@@ -71,7 +84,6 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
-
       if (positionAfterId) {
         return update<IFormLayoutState>(state, {
           containers: {
@@ -106,7 +118,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
 
-      
+
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_REJECTED: {
       const { error } = action as FormDesignerActions.IAddFormComponentActionRejected;
@@ -202,6 +214,29 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
     }
+    case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_FULFILLED: {
+      const { updatedContainer, id } = action as FormDesignerActions.IUpdateFormContainerActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        containers: {
+          [id]: {
+            $apply: () => ({ ...updatedContainer }),
+          },
+        },
+        unSavedChanges: {
+          $set: true,
+        },
+      })
+    }
+
+    case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateFormContainerActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+
     case FormDesignerActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
       const { formLayout } = action as FormDesignerActions.IFetchFormLayoutFulfilledAction;
       return update<IFormLayoutState>(state, {

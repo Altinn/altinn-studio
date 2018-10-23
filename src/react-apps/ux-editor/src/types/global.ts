@@ -51,6 +51,7 @@ declare global {
     repeating: boolean;
     dataModelGroup: string;
     index?: number;
+    hidden?: boolean
   }
 
   export interface ICreateFormComponent {

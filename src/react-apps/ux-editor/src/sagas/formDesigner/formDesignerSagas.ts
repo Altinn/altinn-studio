@@ -11,30 +11,49 @@ const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
 
+function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
+  try {
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, containerId === formDesignerState.layout.activeContainer ? '' : containerId)
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
+  }
+}
+
+export function* watchAddActiveFormContainerSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.ADD_ACTIVE_FORM_CONTAINER,
+    addActiveFormContainerSaga,
+  );
+}
+
 function* addFormComponentSaga({
   component,
-  containerId,
   callback,
 }: FormDesignerActions.IAddFormComponentAction): SagaIterator {
   try {
     const id: string = uuid();
+    const selectActiveContainer = (state: IAppState) => state.formDesigner.layout.activeContainer;
+    let activeContainer = yield select(selectActiveContainer);
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
 
-    if (!containerId) {
+    if (activeContainer === '') {
       if (formDesignerState.layout.containers && Object.keys(formDesignerState.layout.containers).length > 0) {
-        containerId = Object.keys(formDesignerState.layout.order)[0];
+        activeContainer = Object.keys(formDesignerState.layout.order)[0];
       } else {
-        containerId = uuid();
+        activeContainer = uuid();
         const container = { repeating: false, dataModelGroup: null } as ICreateFormContainer;
-        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, containerId);
+        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, activeContainer);
       }
+      yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, activeContainer);
     }
 
     yield call(
       FormDesignerActionDispatchers.addFormComponentFulfilled,
       component,
       id,
-      containerId,
+      activeContainer,
       callback,
     );
   } catch (err) {
@@ -143,7 +162,7 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
   );
 }
 
-function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
+function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatingGroupsAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
@@ -153,13 +172,13 @@ function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeating
     const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     for (const containerId of Object.keys(containers)) {
       const container = containers[containerId];
-      if (!container.repeating) return;
+      if (!container.repeating) continue;
 
       const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey) => {
         return formDataKey.includes(container.dataModelGroup + '[');
       });
 
-      if (repeatingData.length === 0) return;
+      if (repeatingData.length === 0) continue;
 
       let maxIndex = 0;
       repeatingData.forEach((data) => {
@@ -177,11 +196,11 @@ function* generateRepeatingGroupsSaga({}: FormDesignerActions.IGenerateRepeating
           index: i,
         };
 
-        yield call (FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
+        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, newContainer, newId, renderAfterId, baseContainerId);
         renderAfterId = newId;
       }
     }
-  } catch(err) {
+  } catch (err) {
     yield call(FormDesignerActionDispatchers.generateRepeatingGroupsActionRejected, err);
   }
 }
@@ -263,4 +282,27 @@ export function* watchUpdateFormComponentSaga(): SagaIterator {
     FormDesignerActionTypes.UPDATE_FORM_COMPONENT,
     updateFormComponentSaga
   );
+}
+
+export function* updateFormContainerSaga({
+  updatedContainer,
+  id
+}: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
+  try {
+    yield call(
+      FormDesignerActionDispatchers.updateFormContainerFulfilled,
+      updatedContainer,
+      id
+    );
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
+  }
+}
+
+export function* watchUpdateContainerSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.UPDATE_FORM_CONTAINER,
+    updateFormContainerSaga
+  )
 }

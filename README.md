@@ -1,4 +1,6 @@
-[![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-CI)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=1)
+Altinn Studio: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-designer-image)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=2)
+
+Runtime: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-runtime-image)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=6)
 
 # Altinn studio
 
@@ -28,7 +30,7 @@ Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate
 
 ```cmd
 git clone https://github.com/Altinn/altinn-studio
-cd Altinn-studio
+cd altinn-studio
 ```
 
 Run all parts of the solution in containers (Make sure docker is running)
