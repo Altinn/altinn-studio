@@ -198,10 +198,12 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFi
       continue;
     }
 
-    let isPartOfRepeatingGroup: boolean = (dataModelGroup !== null && index !== null);
+    const isPartOfRepeatingGroup: boolean = (dataModelGroup !== null && index !== null);
+    const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
+
     let relevantClientParam = connectionDef.clientParams[param];
     if (isPartOfRepeatingGroup) {
-      relevantClientParam = relevantClientParam.replace(dataModelGroup, dataModelGroup + `[${index}]`);
+      relevantClientParam = relevantClientParam.replace(dataModelGroup, dataModelGroupWithIndex);
     }
 
     if (!formData[relevantClientParam]) {
@@ -244,12 +246,12 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFi
                 if (!updatedComponent) {
                   // This space intentionally left blank
                 } else {
-                  let tmpUpdatedDataBinding = { ...updatedDataBinding };
                   if (isPartOfRepeatingGroup) {
-                    tmpUpdatedDataBinding.DataBindingName = tmpUpdatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroup + `[${index}]`);
+                    updatedDataBinding = { ...updatedDataBinding };
+                    updatedDataBinding.DataBindingName = updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
                   }
                   yield call(FormFillerActionDispatchers.updateFormData, updatedComponent,
-                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], tmpUpdatedDataBinding, tmpUpdatedDataBinding.DataBindingName);
+                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], updatedDataBinding, updatedDataBinding.DataBindingName);
                 }
               }
             }
