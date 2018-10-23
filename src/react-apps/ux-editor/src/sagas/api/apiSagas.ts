@@ -63,7 +63,7 @@ export function* watchDelApiConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId }: ApiActions.ICheckIfApiShouldFetchAction): SagaIterator {
+function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, dataModelGroup, index }: ApiActions.ICheckIfApiShouldFetchAction): SagaIterator {
   try {
     // get state
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
@@ -83,7 +83,7 @@ function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataVa
         // Do check for APIs returning single values
         yield call(apiCheckValue, connectionDef, lastUpdatedDataBinding, lastUpdatedDataValue,
           formFillerState.formData, apiState.externalApisById,
-          formDesignerState.layout.components, appDataState.dataModel.model);
+          formDesignerState.layout.components, appDataState.dataModel.model, dataModelGroup, index);
       }
     }
   } catch (err) {
@@ -191,14 +191,21 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
   }
 }
 
-function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: any, lastUpdatedDataValue: any,
-  formData: any, externalApisById: any, components: any, model: any) {
+function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: any,
+  formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, dataModelGroup?: string, index?: number) {
   for (const param in connectionDef.clientParams) {
     if (!param) {
       continue;
     }
-    if (!formData[connectionDef.clientParams[param]]) {
-      break;
+
+    let isPartOfRepeatingGroup: boolean = (dataModelGroup !== null && index !== null);
+    let relevantClientParam = connectionDef.clientParams[param];
+    if (isPartOfRepeatingGroup) {
+      relevantClientParam = relevantClientParam.replace(dataModelGroup, dataModelGroup + `[${index}]`);
+    }
+
+    if (!formData[relevantClientParam]) {
+      // This space intentionally left empty
     } else {
       if (connectionDef.clientParams[param] === lastUpdatedDataBinding.DataBindingName) {
         if (Object.keys(connectionDef.clientParams).length > 1) {
@@ -219,7 +226,7 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: any, lastUpd
               if (!dataMapping) {
                 continue;
               }
-              const updatedDataBinding: IDataModelFieldElement =
+              let updatedDataBinding: IDataModelFieldElement =
                 model.find(
                   (element: IDataModelFieldElement) => element.DataBindingName === dataMapping);
               let updatedComponent: string;
@@ -227,7 +234,7 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: any, lastUpd
                 if (!component) {
                   continue;
                 }
-                if (components[component].dataModelBinding === updatedDataBinding.DataBindingName) {
+                if (components[component].dataModelBinding === lastUpdatedDataBinding.DataBindingName) {
                   updatedComponent = component;
                 }
               }
@@ -237,8 +244,12 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: any, lastUpd
                 if (!updatedComponent) {
                   // This space intentionally left blank
                 } else {
+                  let tmpUpdatedDataBinding = { ...updatedDataBinding };
+                  if (isPartOfRepeatingGroup) {
+                    tmpUpdatedDataBinding.DataBindingName = tmpUpdatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroup + `[${index}]`);
+                  }
                   yield call(FormFillerActionDispatchers.updateFormData, updatedComponent,
-                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], updatedDataBinding, updatedDataBinding.DataBindingName);
+                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], tmpUpdatedDataBinding, tmpUpdatedDataBinding.DataBindingName);
                 }
               }
             }
