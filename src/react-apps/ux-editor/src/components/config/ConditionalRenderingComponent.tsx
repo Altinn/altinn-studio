@@ -11,6 +11,8 @@ export interface IConditionalRenderingComponentProps {
   conditionalRendering: any;
   formLayoutComponents: IFormDesignerComponent;
   deleteConnection?: (connectionId: any) => void;
+  formLayoutContainers: any;
+  order: IFormLayoutOrder;
 }
 
 class ConditionalRendering extends React.Component<IConditionalRenderingComponentProps, any> {
@@ -175,10 +177,49 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     this.props.deleteConnection(this.props.connectionId);
   }
 
+  public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
+    return (
+      <option key={id} value={id}>
+        {`${this.props.formLayoutComponents[id].title} (id=${id})`}
+      </option>
+    );
+  }
+
+  public renderCondtionalRenderingTargetContainerOptions = (id: string, baseContainer?: boolean): JSX.Element[] => {
+    let options: JSX.Element[] = [];
+    if (!this.props.order[id]) return options;
+    if (!baseContainer) {
+      options.push(
+        <option key={id} value={id}>
+          {`Container (id=${id})`}
+        </option>
+      );
+    }
+    this.props.order[id].forEach(key => {
+      if (this.props.formLayoutComponents[key]) {
+        let option = this.renderConditionalRenderingTargetComponentOption(key);
+        options.push(option);
+      }
+      else {
+        // A container can have components and sub-containers
+        let containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
+        containerOptions.forEach(option => {
+          options.push(option);
+        })
+      }
+    })
+    return options;
+  }
+
+  public renderCondtionalRenderingTargetOptions = (): JSX.Element[] => {
+    const baseContainerKey = Object.keys(this.props.order)[0];
+    if (!baseContainerKey) return null;
+    return this.renderCondtionalRenderingTargetContainerOptions(baseContainerKey, true);
+  }
+
   public render(): JSX.Element {
     const selectedMethod = this.state.conditionalRendering.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
-    const layoutComponent = this.props.formLayoutComponents;
     return (
       <div className='modal-content'>
         <div className='modal-header a-modal-header'>
@@ -280,13 +321,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                         >
                           <option value={''}>{'Select field:'}</option>
                           {
-                            Object.keys(this.props.formLayoutComponents).map(componentKey => {
-                              return (
-                                <option key={componentKey} value={componentKey}>
-                                  {layoutComponent[componentKey].title + ' (id=' + componentKey + ')'}
-                                </option>
-                              );
-                            })
+                            this.renderCondtionalRenderingTargetOptions()
                           }
                         </select>
                       </div>
@@ -344,6 +379,8 @@ const mapStateToProps = (state: IAppState, props: any): any => {
     conditionalRendering: state.serviceConfigurations.conditionalRendering,
     selectedFunction: props.selectedFunction,
     formLayoutComponents: state.formDesigner.layout.components,
+    formLayoutContainers: state.formDesigner.layout.containers,
+    order: state.formDesigner.layout.order,
   };
 };
 

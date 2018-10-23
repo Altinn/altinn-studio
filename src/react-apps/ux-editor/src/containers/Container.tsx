@@ -7,6 +7,7 @@ import FormFillerActionDispatchers from '../actions/formFillerActions/formFiller
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
+import '../styles/index.css';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -22,10 +23,11 @@ export interface IContainerProps extends IProvidedContainerProps {
   designMode: boolean;
   formData: any;
   index?: number;
+  formContainerActive?: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
-  
+
   public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
     e.stopPropagation();
@@ -36,7 +38,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     dataModelElement: IDataModelFieldElement,
     callbackValue: any,
   ): void => {
-
     const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
       this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
     FormFillerActionDispatchers.updateFormData(
@@ -58,25 +59,27 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public render() {
     return (
       <div>
-      <div
-        className={'col-12'}
-        style={this.props.baseContainer ? {} :
-          { border: '1px dashed #1eaef7', marginTop: '10 px', marginBottom: '10px'}}
-      >
-        <div className='col-1'>
-          {this.renderDeleteGroupButton()}
+        <div
+          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
+          onClick={this.changeActiveFormContainer}>
+          {
+            this.props.designMode &&
+            <div className='col-1'>
+              {this.renderDeleteGroupButton()}
+            </div>
+          }
+          {this.props.itemOrder.map((id: string, index: number) => (
+            this.props.components[id] ? this.renderFormComponent(id, index) :
+              (this.props.containers[id] ? this.renderContainer(id) : null)
+          ))}
         </div>
-        {this.props.itemOrder.map((id: string, index: number) => (
-          this.props.components[id] ? this.renderFormComponent(id, index) :
-            (this.props.containers[id] ? this.renderContainer(id) : null)
-        ))}
-      </div>
-      {this.renderNewGroupButton()}
+        {this.renderNewGroupButton()}
       </div>
     );
   }
 
   public renderContainer = (id: string) => {
+    if (this.props.containers[id].hidden && !this.props.designMode) return null;
     return (
       <Container
         id={id}
@@ -89,13 +92,13 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public renderDeleteGroupButton = (): JSX.Element => {
     if (this.props.baseContainer) return null;
     return (
-          <button
-            type='button'
-            className='a-btn a-btn-icon p-0'
-            onClick={this.handleContainerDelete}
-          >
-            <i className='ai ai-circle-exit a-danger ai-left' />
-          </button>
+      <button
+        type='button'
+        className='a-btn a-btn-icon p-0'
+        onClick={this.handleContainerDelete}
+      >
+        <i className='ai ai-circle-exit a-danger ai-left' />
+      </button>
     );
   }
 
@@ -111,9 +114,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
     return (
       <button
-          className={'a-btn a-btn-action'}
-          onClick={this.handleAddNewGroup}
-          disabled={this.props.designMode}
+        className={'a-btn a-btn-action'}
+        onClick={this.handleAddNewGroup}
+        disabled={this.props.designMode}
       >
         <i className={'ai ai-plus'} />
         <span>Legg til gruppe</span>
@@ -123,7 +126,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
   public renderFormComponent = (id: string, key: any): JSX.Element => {
     if (this.props.components[id].hidden && !this.props.designMode) return null;
-
     return (
       <FormComponentWrapper
         key={key}
@@ -143,6 +145,11 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     };
 
     FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
+  }
+  public changeActiveFormContainer = () => {
+    if (!this.props.baseContainer) {
+      FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
+    }
   }
 }
 
@@ -185,6 +192,7 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
     formData: getFormData(props.id, layout, state.formFiller.formData, container.dataModelGroup,
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
+    formContainerActive: state.formDesigner.layout.activeContainer === props.id,
   };
 };
 

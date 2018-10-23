@@ -34,6 +34,17 @@ export interface IFormDesignerActionDispatchers
   addFormContainerRejected: (
     error: Error,
   ) => FormDesignerActions.IAddFormContainerActionRejected;
+  addActiveFormContainer: (
+    id?: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddActiveFormContainerAction;
+  addActiveFormContainerFulfilled: (
+    id: string,
+    callback?: (...args: any[]) => any,
+  ) => FormDesignerActions.IAddActiveFormContainerActionFulfilled;
+  addActiveFormContainerRejected: (
+    error: Error,
+  ) => FormDesignerActions.IAddActiveFormContainerRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -62,7 +73,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IFetchFormLayoutRejectedAction;
   generateRepeatingGroupsAction: () => IGenerateRepeatingGroupsAction;
   generateRepeatingGroupsActionFulfilled: () => IGenerateRepeatingGroupsActionFulfilled;
-  generateRepeatingGroupsActionRejected:(error: Error) => IGenerateRepeatingGroupsActionRejected;
+  generateRepeatingGroupsActionRejected: (error: Error) => IGenerateRepeatingGroupsActionRejected;
   saveFormLayout: (url: string) => FormDesignerActions.ISaveFormLayoutAction;
   saveFormLayoutFulfilled: () => Action;
   saveFormLayoutRejected: (
@@ -97,6 +108,17 @@ export interface IFormDesignerActionDispatchers
   updateFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateFormComponentActionRejected;
+  updateFormContainer: (
+    updatedContainer: ICreateFormContainer,
+    id: string,
+  ) => FormDesignerActions.IUpdateFormContainerAction;
+  updateFormContainerFulfilled: (
+    updatedContainer: ICreateFormContainer,
+    id: string,
+  ) => FormDesignerActions.IUpdateFormContainerActionFulfilled;
+  updateFormContainerRejected: (
+    error: any,
+  ) => FormDesignerActions.IUpdateFormContainerActionRejected;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -107,6 +129,9 @@ const actions: IFormDesignerActionDispatchers = {
   addFormContainer: FormDesignerActions.addFormContainerAction,
   addFormContainerFulfilled: FormDesignerActions.addFormContainerActionFulfilled,
   addFormContainerRejected: FormDesignerActions.addFormContainerActionRejected,
+  addActiveFormContainer: FormDesignerActions.addActiveFormContainerAction,
+  addActiveFormContainerFulfilled: FormDesignerActions.addActiveFormContainerActionFulfilled,
+  addActiveFormContainerRejected: FormDesignerActions.addActiveFormContainerRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
@@ -139,6 +164,9 @@ const actions: IFormDesignerActionDispatchers = {
     FormDesignerActions.updateFormComponentActionFulfilled,
   updateFormComponentRejected:
     FormDesignerActions.updateFormComponentActionRejected,
+  updateFormContainer: FormDesignerActions.updateFormContainerAction,
+  updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
+  updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<
