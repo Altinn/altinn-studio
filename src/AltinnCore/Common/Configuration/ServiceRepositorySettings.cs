@@ -29,6 +29,11 @@ namespace AltinnCore.Common.Configuration
     public const string TEST_FOLDER_NAME = "Test/";
 
     /// <summary>
+    /// Constant for the service binaries
+    /// </summary>
+    public const string BINARY_FOLDER_NAME = "bin/";
+
+    /// <summary>
     /// Constant for the location of org level text resources
     /// </summary>
     public const string TEXTRESOURCE_ORG_FOLDER_NAME = "/text/";
@@ -101,6 +106,11 @@ namespace AltinnCore.Common.Configuration
     /// Gets or sets the GiteaLoginUrl 
     /// </summary>
     public string GiteaLoginUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the BaseResourceFolderContainer that identifes where in the docker container the runtime can find files needed
+    /// </summary>
+    public string BaseResourceFolderContainer { get; set; }
 
     /// <summary>
     /// Gets or sets The name of the ServiceModel file Name
@@ -406,6 +416,45 @@ namespace AltinnCore.Common.Configuration
     {
       return GetEditionPath(org, service, edition, developer) + CODELISTS_FOLDER_NAME;
     }
+
+    /// <summary>
+    /// Gets the CodeList folder
+    /// </summary>
+    /// <returns></returns>
+    public string GetCodeListFolder()
+    {
+      return CODELISTS_FOLDER_NAME;
+    }
+
+
+    /// <summary>
+    /// Get Resource Folder name
+    /// </summary>
+    /// <returns></returns>
+    public string GetResourceFolder()
+    {
+      return RESOURCE_FOLDER_NAME;
+    }
+
+
+    /// <summary>
+    /// Returns the Metadata folder name
+    /// </summary>
+    /// <returns></returns>
+    public string GetMetadataFolder()
+    {
+      return METADATA_FOLDER_NAME;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns></returns>
+    public string GetBinaryFolder()
+    {
+      return BINARY_FOLDER_NAME;
+    }
+
 
     /// <summary>
     /// Gets the full path to model directory
