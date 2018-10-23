@@ -24,7 +24,6 @@ export interface IContainerProps extends IProvidedContainerProps {
   formData: any;
   index?: number;
   formContainerActive?: boolean;
-  firstContainerGroup?: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
@@ -74,7 +73,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               (this.props.containers[id] ? this.renderContainer(id) : null)
           ))}
           {
-            !this.props.designMode && !this.props.firstContainerGroup && !this.props.baseContainer &&
+            !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
             <button
               className={'a-btn a-btn-action offset-10'}
               onClick={() => this.handleContainerDelete(this.props.id, this.props.index)}
@@ -83,7 +82,8 @@ export class ContainerComponent extends React.Component<IContainerProps> {
             </button>
           }
         </div>
-        {this.renderNewGroupButton()}
+
+        {!this.props.designMode && this.renderNewGroupButton()}
       </div>
     );
   }
@@ -126,7 +126,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <button
         className={'a-btn a-btn-action'}
         onClick={this.handleAddNewGroup}
-        disabled={this.props.designMode}
       >
         <i className={'ai ai-plus'} />
         <span>Legg til gruppe</span>
@@ -203,10 +202,6 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
     formContainerActive: state.formDesigner.layout.activeContainer === props.id,
-<<<<<<< HEAD
-    firstContainerGroup: state.formDesigner.layout.activeContainer === props.id,
-=======
->>>>>>> master
   };
 };
 
