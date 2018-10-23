@@ -9,7 +9,7 @@ export interface ICheckIfApiShouldFetchAction extends Action {
   index?: number;
 }
 
-export function checkIfApiShouldFetch(lastUpdatedComponentId: string, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: string, dataModelGroup: string, index: number): ICheckIfApiShouldFetchAction {
+export function checkIfApiShouldFetch(lastUpdatedComponentId: string, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: string, dataModelGroup?: string, index?: number): ICheckIfApiShouldFetchAction {
   return {
     type: ActionTypes.CHECK_IF_API_SHOULD_FETCH,
     lastUpdatedDataBinding,
