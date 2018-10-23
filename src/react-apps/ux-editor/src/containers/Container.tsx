@@ -49,7 +49,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
     ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
