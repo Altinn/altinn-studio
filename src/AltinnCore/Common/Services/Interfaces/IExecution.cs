@@ -27,16 +27,6 @@ namespace AltinnCore.Common.Services.Interfaces
         ServiceContext GetServiceContext(string org, string service, string edition);
 
         /// <summary>
-        /// Returns the RazorView 
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
-        /// <param name="viewName">The viewName</param>
-        /// <returns>The content of view</returns>
-        string GetRazorView(string org, string service, string edition, string viewName);
-
-        /// <summary>
         /// Returns a new instanceId for a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
