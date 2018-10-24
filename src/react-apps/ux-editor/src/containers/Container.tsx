@@ -28,8 +28,8 @@ export interface IContainerProps extends IProvidedContainerProps {
 
 export class ContainerComponent extends React.Component<IContainerProps> {
 
-  public handleContainerDelete = (id: string, index?: number) => {
-    FormDesignerActionDispatchers.deleteFormContainer(id, index);
+  public handleContainerDelete = () => {
+    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
   }
 
   public handleComponentDataUpdate = (
@@ -75,7 +75,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
             !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
             <button
               className={'a-btn a-btn-action offset-10'}
-              onClick={() => this.handleContainerDelete(this.props.id, this.props.index)}
+              onClick={this.handleContainerDelete}
             >
               <span>Fjern gruppe</span>
             </button>
@@ -104,7 +104,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <button
         type='button'
         className='a-btn a-btn-icon p-0'
-        onClick={() => this.handleContainerDelete(this.props.id, this.props.index)}
+        onClick={this.handleContainerDelete}
       >
         <i className='ai ai-circle-exit a-danger ai-left' />
       </button>
