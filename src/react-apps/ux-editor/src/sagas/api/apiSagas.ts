@@ -63,7 +63,7 @@ export function* watchDelApiConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, dataModelGroup, index }: ApiActions.ICheckIfApiShouldFetchAction): SagaIterator {
+function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeating, dataModelGroup, index }: ApiActions.ICheckIfApiShouldFetchAction): SagaIterator {
   try {
     // get state
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
@@ -83,7 +83,7 @@ function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataVa
         // Do check for APIs returning single values
         yield call(apiCheckValue, connectionDef, lastUpdatedDataBinding, lastUpdatedDataValue,
           formFillerState.formData, apiState.externalApisById,
-          formDesignerState.layout.components, appDataState.dataModel.model, dataModelGroup, index);
+          formDesignerState.layout.components, appDataState.dataModel.model, repeating, dataModelGroup, index);
       }
     }
   } catch (err) {
@@ -192,13 +192,13 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
 }
 
 function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: any,
-  formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, dataModelGroup?: string, index?: number) {
+  formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, repeating: boolean, dataModelGroup?: string, index?: number) {
   for (const param in connectionDef.clientParams) {
     if (!param) {
       continue;
     }
 
-    const isPartOfRepeatingGroup: boolean = (dataModelGroup !== null && index !== null);
+    const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup !== null && index !== null);
     const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
 
     let relevantClientParam = connectionDef.clientParams[param];

@@ -60,7 +60,7 @@ export function* watchDelRuleConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, dataModelGroup, index }:
+function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeating, dataModelGroup, index }:
   RuleConnetionActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
     // get state
@@ -69,7 +69,7 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
     const appDataState: IAppDataState = yield select(selectAppData);
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
 
-    const isPartOfRepeatingGroup: boolean = (dataModelGroup != null && index != null);
+    const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
     const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
 
     for (const connection in ruleConnectionState) {

@@ -48,9 +48,8 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.dataModelGroup, this.props.index);
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.dataModelGroup, this.props.index);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
