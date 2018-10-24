@@ -48,8 +48,8 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
@@ -169,7 +169,7 @@ const getFormData = (
   const filteredFormData: any = {};
   components.forEach((componentId) => {
     const dataModelBinding = layout.components[componentId].dataModelBinding;
-    const dataModelWithIndex = dataModelBinding && repeating ? dataModelBinding.replace(dataModelGroup, dataModelGroup
+    const dataModelWithIndex = (dataModelBinding && repeating) ? dataModelBinding.replace(dataModelGroup, dataModelGroup
       + `[${index}]`) : dataModelBinding;
     if (formData[dataModelWithIndex]) {
       filteredFormData[dataModelBinding] = formData[dataModelWithIndex];

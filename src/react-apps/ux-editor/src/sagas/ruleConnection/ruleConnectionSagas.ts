@@ -60,7 +60,7 @@ export function* watchDelRuleConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId }:
+function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeating, dataModelGroup, index }:
   RuleConnetionActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
     // get state
@@ -68,6 +68,10 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
     const ruleConnectionState: IRuleConnectionState = yield select(selectRuleConnection);
     const appDataState: IAppDataState = yield select(selectAppData);
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+
+    const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
+    const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
+
     for (const connection in ruleConnectionState) {
       if (!connection) continue;
       const connectionDef = ruleConnectionState[connection];
@@ -76,7 +80,11 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
       let numberOfInputFieldsFilledIn = 0;
       for (const inputParam in connectionDef.inputParams) {
         if (!inputParam) continue;
-        if (formFillerState.formData[connectionDef.inputParams[inputParam]]) {
+        let inputParamBinding: string = connectionDef.inputParams[inputParam];
+        if (isPartOfRepeatingGroup) {
+          inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
+        }
+        if (formFillerState.formData[inputParamBinding]) {
           numberOfInputFieldsFilledIn++;
         }
         if (connectionDef.inputParams[inputParam] === lastUpdatedDataBinding.DataBindingName) {
@@ -84,7 +92,7 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
         }
       }
       for (const outParam of Object.keys(connectionDef.outParams)) {
-        if (!outParam && !formFillerState.formData[connectionDef.outParams[outParam]]) {
+        if (!outParam) {
           shouldRunFunction = false;
         }
       }
@@ -92,12 +100,16 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
         const objectToUpdate = (window as any).ruleHandlerHelper[functionToRun]();
         if (Object.keys(objectToUpdate).length === numberOfInputFieldsFilledIn) {
           const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
-            acc[elem] = formFillerState.formData[connectionDef.inputParams[elem]];
+            let inputParamBinding = connectionDef.inputParams[elem];
+            if (isPartOfRepeatingGroup) {
+              inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
+            }
+            acc[elem] = formFillerState.formData[inputParamBinding];
             return acc;
           }, {});
 
           const result = (window as any).ruleHandlerObject[functionToRun](newObj);
-          const updatedDataBinding: IDataModelFieldElement = appDataState.dataModel.model.find(
+          let updatedDataBinding: IDataModelFieldElement = appDataState.dataModel.model.find(
             (element: IDataModelFieldElement) => element.DataBindingName === connectionDef.outParams.outParam0);
           let updatedComponent: string;
           for (const component in formDesignerState.layout.components) {
@@ -112,8 +124,12 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
             if (!updatedComponent) {
               // Validation error on field that triggered the check?
             } else {
+              if (isPartOfRepeatingGroup) {
+                updatedDataBinding = { ...updatedDataBinding };
+                updatedDataBinding.DataBindingName = updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
+              }
               yield call(
-                FormFillerActionDispatchers.updateFormData, updatedComponent, result, updatedDataBinding);
+                FormFillerActionDispatchers.updateFormData, updatedComponent, result, updatedDataBinding, updatedDataBinding.DataBindingName);
             }
           }
         }
