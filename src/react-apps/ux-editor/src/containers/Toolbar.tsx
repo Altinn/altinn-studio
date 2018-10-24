@@ -24,6 +24,7 @@ export interface IToolbarProps {
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
   thirdPartyComponents: any;
+  activeContainer: string;
 }
 export interface IToolbarState {
   modalOpen: boolean;
@@ -125,6 +126,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     FormActionDispatcher.updateFormComponent(
       updatedComponent,
       this.state.selectedCompId,
+      this.props.activeContainer,
     );
   }
 
@@ -193,6 +195,7 @@ const mapsStateToProps = (
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
+    activeContainer: state.formDesigner.layout.activeContainer,
   };
 };
 

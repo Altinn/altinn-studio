@@ -101,6 +101,7 @@ export interface IFormDesignerActionDispatchers
   updateFormComponent: (
     updatedComponent: any,
     id: string,
+    activeFormContainer?: string,
   ) => FormDesignerActions.IUpdateFormComponentAction;
   updateFormComponentFulfilled: (
     updatedComponent: any,

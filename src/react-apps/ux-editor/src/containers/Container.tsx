@@ -29,7 +29,6 @@ export interface IContainerProps extends IProvidedContainerProps {
 export class ContainerComponent extends React.Component<IContainerProps> {
 
   public handleContainerDelete = (id: string, index?: number) => {
-    console.log(id);
     FormDesignerActionDispatchers.deleteFormContainer(id, index);
   }
 
