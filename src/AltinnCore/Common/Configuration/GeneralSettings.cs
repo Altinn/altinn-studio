@@ -113,5 +113,17 @@
                 return TemplateLocation + "/_ViewImports.cshtml";
             }
         }
+
+        
+        /// <summary>
+        /// Gets the path to the default Dockerfile file
+        /// </summary>
+        public string DefaultRepoDockerfile
+        {
+            get
+            {
+                return TemplateLocation + "/Dockerfile";
+            }
+        }
     }
 }
