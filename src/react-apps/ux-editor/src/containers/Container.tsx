@@ -171,7 +171,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
     }
   }
-  public toggleChange = (updatedContainer: ICreateFormContainer): void => {
+  public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
   }
 }
