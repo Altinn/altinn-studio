@@ -8,6 +8,7 @@ import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ru
 import { FormComponentWrapper } from '../components/FormComponent';
 import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
 import '../styles/index.css';
+import { SwitchComponent } from '../components/widget/SwitchComponent';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -24,12 +25,14 @@ export interface IContainerProps extends IProvidedContainerProps {
   formData: any;
   index?: number;
   formContainerActive?: boolean;
+  repeatingGroup: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
 
-  public handleContainerDelete = () => {
+  public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
+    e.stopPropagation();
   }
 
   public handleComponentDataUpdate = (
@@ -62,11 +65,20 @@ export class ContainerComponent extends React.Component<IContainerProps> {
           className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
           onClick={this.changeActiveFormContainer}>
           {
-            this.props.designMode &&
-            <div className='col-1'>
-              {this.renderDeleteGroupButton()}
+            this.props.designMode && !this.props.baseContainer &&
+            <div className="row">
+              <div className='col-1'>
+                {this.renderDeleteGroupButton()}
+              </div>
+              <div className='col-3 offset-8 row'>
+                <span className="col-6">Repeating:</span>
+                <div className="col-5">
+                  <SwitchComponent isChecked={this.props.repeatingGroup} toggleChange={this.toggleChange} />
+                </div>
+              </div>
             </div>
           }
+
           {this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
@@ -159,6 +171,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
     }
   }
+  public toggleChange = (updatedContainer: ICreateFormContainer): void => {
+    FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
+  }
 }
 
 // TODO: replace this with a selector?
@@ -201,6 +216,7 @@ const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): ICon
       layout.containers[props.id].index, container.repeating),
     dataModelGroup: layout.containers[props.id].dataModelGroup,
     formContainerActive: state.formDesigner.layout.activeContainer === props.id,
+    repeatingGroup: container.repeating,
   };
 };
 

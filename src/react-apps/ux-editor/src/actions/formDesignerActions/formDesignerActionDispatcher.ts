@@ -121,6 +121,9 @@ export interface IFormDesignerActionDispatchers
   updateFormContainerRejected: (
     error: any,
   ) => FormDesignerActions.IUpdateFormContainerActionRejected;
+  toggleFormContainerRepeat: (
+    id: string,
+  ) => FormDesignerActions.IToggleFormContainerRepeatAction;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -168,7 +171,8 @@ const actions: IFormDesignerActionDispatchers = {
     FormDesignerActions.updateFormComponentActionRejected,
   updateFormContainer: FormDesignerActions.updateFormContainerAction,
   updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
-  updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected
+  updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected,
+  toggleFormContainerRepeat: FormDesignerActions.toggleFormContainerRepeatAction,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

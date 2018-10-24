@@ -277,13 +277,13 @@ function* updateFormComponentSaga({
       id
     );
     // update Container with dataModelBinding
-    console.log(activeContainer, baseContainerId);
     if (activeContainer !== baseContainerId) {
       const tempContainer = formDesignerState.layout.containers[activeContainer];
       const array = updatedComponent.dataModelBinding.split('.');
       const length = (array[0].length + array[1].length + 1);
       const string = updatedComponent.dataModelBinding.substr(0, length);
       tempContainer.dataModelGroup = string;
+      tempContainer.repeating = true;
 
       yield call(
         FormDesignerActionDispatchers.updateFormContainerFulfilled,
@@ -324,5 +324,31 @@ export function* watchUpdateContainerSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_FORM_CONTAINER,
     updateFormContainerSaga
+  )
+}
+
+export function* toggleFormContainerRepeatingSaga({
+  id
+}: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
+  try {
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const updatedContainer = formDesignerState.layout.containers[id];
+    updatedContainer.repeating = !updatedContainer.repeating;
+    yield call(
+      FormDesignerActionDispatchers.updateFormContainerFulfilled,
+      updatedContainer,
+      id
+    );
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
+  }
+}
+
+
+export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,
+    toggleFormContainerRepeatingSaga
   )
 }

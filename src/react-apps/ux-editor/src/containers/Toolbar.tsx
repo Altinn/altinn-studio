@@ -66,7 +66,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       label: 'Add container',
       actionMethod: () => {
         FormActionDispatcher.addFormContainer({
-          repeating: true,
+          repeating: false,
           dataModelGroup: null,
           index: 0,
         } as ICreateFormContainer,
