@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: altinn-designer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:314
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:332
         ports:
         - containerPort: 5000
         volumeMounts:
@@ -85,7 +85,7 @@ spec:
     spec:
       containers:
       - name: altinn-runtime
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:306
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:333
         ports:
         - containerPort: 5005
         volumeMounts:

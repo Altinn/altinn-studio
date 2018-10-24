@@ -383,7 +383,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
             {this.props.component.component !== 'ThirdParty' ? (
-              <>
+              <div className={"a-form-group-items input-group"}>
                 <label htmlFor={'editModal_text'} className='a-form-label'>Text</label>
                 <select
                   id={'editModal_text'}
@@ -398,7 +398,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                   </option>
                   {this.renderTextResourceOptions()}
                 </select>
-              </>
+              </div>
             ) : null}
           </div>
           {this.renderComponentSpecificContent()}
