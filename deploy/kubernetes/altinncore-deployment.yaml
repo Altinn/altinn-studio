@@ -11,17 +11,18 @@ spec:
     spec:
       containers:
       - name: altinn-repositories
-        image: gitea/gitea:1.4.3
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.8
         ports:
         - containerPort: 3000
         volumeMounts:
         - name: altinn-gitea-storage
-          mountPath: "/data"
+          mountPath: "/data/git/repositories"
       volumes:
       - name: altinn-gitea-storage
         persistentVolumeClaim:
           claimName: altinn-storage-gitea-volume-claim
-      
+      imagePullSecrets:
+      - name: acrsecret
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -36,7 +37,7 @@ spec:
     spec:
       containers:
       - name: altinn-designer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:1.1.1
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:332
         ports:
         - containerPort: 5000
         volumeMounts:
@@ -62,9 +63,6 @@ spec:
         - name: ServiceRepositorySettings__EnableGiteaIntegration
           value: "true"
       volumes:
-      - name: altinn-gitea-storage
-        persistentVolumeClaim:
-          claimName: altinn-storage-gitea-volume-claim
       - name: altinn-repo-storage
         persistentVolumeClaim:
           claimName: altinn-storage-repo-volume-claim
@@ -87,7 +85,7 @@ spec:
     spec:
       containers:
       - name: altinn-runtime
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:1.0.1
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:333
         ports:
         - containerPort: 5005
         volumeMounts:

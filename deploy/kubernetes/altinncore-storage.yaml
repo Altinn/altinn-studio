@@ -1,16 +1,3 @@
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: altinn-storage-gitea-volume
-provisioner: kubernetes.io/azure-file
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - uid=1000
-  - gid=1000
-parameters:
-  skuName: Standard_LRS
----
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -18,23 +5,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: altinn-storage-gitea-volume
+  storageClassName: managed-premium
   resources:
     requests:
-      storage: 100Gi
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: altinn-storage-testdata-volume
-provisioner: kubernetes.io/azure-file
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - uid=1000
-  - gid=1000
-parameters:
-  skuName: Standard_LRS
+      storage: 250Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -43,23 +17,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: altinn-storage-testdata-volume
+  storageClassName: managed-premium
   resources:
     requests:
       storage: 10Gi
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: altinn-storage-repo-volume
-provisioner: kubernetes.io/azure-file
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - uid=1000
-  - gid=1000
-parameters:
-  skuName: Standard_LRS
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -68,23 +29,10 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: altinn-storage-repo-volume
+  storageClassName: managed-premium
   resources:
     requests:
       storage: 200Gi
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: altinn-storage-template-volume
-provisioner: kubernetes.io/azure-file
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - uid=1000
-  - gid=1000
-parameters:
-  skuName: Standard_LRS
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -93,32 +41,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: altinn-storage-template-volume
+  storageClassName: managed-premium
   resources:
     requests:
       storage: 20Gi
----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  name: altinn-storage-db-backup-volume
-provisioner: kubernetes.io/azure-file
-mountOptions:
-  - dir_mode=0777
-  - file_mode=0777
-  - uid=1000
-  - gid=1000
-parameters:
-  skuName: Standard_LRS
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: altinn-storage-db-backup-volume-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: altinn-storage-db-backup-volume
-  resources:
-    requests:
-      storage: 250Gi
