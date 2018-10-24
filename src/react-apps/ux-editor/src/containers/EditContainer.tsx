@@ -15,7 +15,6 @@ export interface IEditContainerProps {
   id: string;
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
-  activeContainer: string;
 }
 
 export interface IEditContainerState {
@@ -36,7 +35,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     FormDesignerActionDispatchers.updateFormComponent(
       updatedComponent,
       this.props.id,
-      this.props.activeContainer,
     );
   }
 
@@ -111,7 +109,6 @@ const mapsStateToProps = (
     id: props.id,
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
-    activeContainer: state.formDesigner.layout.activeContainer,
   };
 };
 

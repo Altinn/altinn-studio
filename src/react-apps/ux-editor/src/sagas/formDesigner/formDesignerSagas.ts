@@ -266,32 +266,13 @@ export function* watchUpdateDataModelBindingSaga(): SagaIterator {
 function* updateFormComponentSaga({
   updatedComponent,
   id,
-  activeContainer,
 }: FormDesignerActions.IUpdateFormComponentAction): SagaIterator {
-  const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-  const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
   try {
     yield call(
       FormDesignerActionDispatchers.updateFormComponentFulfilled,
       updatedComponent,
       id
     );
-    // update Container with dataModelBinding
-    if (activeContainer !== baseContainerId) {
-      const tempContainer = formDesignerState.layout.containers[activeContainer];
-      const array = updatedComponent.dataModelBinding.split('.');
-      const length = (array[0].length + array[1].length + 1);
-      const string = updatedComponent.dataModelBinding.substr(0, length);
-      tempContainer.dataModelGroup = string;
-      tempContainer.repeating = true;
-
-      yield call(
-        FormDesignerActionDispatchers.updateFormContainerFulfilled,
-        tempContainer,
-        activeContainer
-      );
-    }
-
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormComponentRejected, err);
   }
