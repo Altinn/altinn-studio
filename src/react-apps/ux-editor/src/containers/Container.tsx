@@ -57,7 +57,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public render() {
-    //console.log('rendering container, id:', this.props.id);
+    console.log('rendering container, id:', this.props.id);
     return (
       <div>
         <div
