@@ -47,15 +47,27 @@ namespace AltinnCore.Runtime
     /// <param name="services">The services available for asp.net Core</param>
     public void ConfigureServices(IServiceCollection services)
     {
-      // Adding services to Dependency Injection TODO: Make this environment specific
-      bool loadFromPackage = false;
-      if (loadFromPackage)
+ 
+
+      string runtimeMode = string.Empty;
+      if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null)
       {
-        services.AddSingleton<IExecution, ExecutionSIIntegrationTest>();
+          runtimeMode = Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode");
       }
       else
       {
+          runtimeMode = Configuration["GeneralSettings:RuntimeMode"];
+      }
+
+      // Adding services to Dependency Injection TODO: Make this environment specific
+
+      if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
+      {
         services.AddSingleton<IExecution, ExecutionSILocalDev>();
+      }
+      else
+      {
+        services.AddSingleton<IExecution, ExecutionSIContainer>();
       }
 
       services.AddSingleton<IArchive, ArchiveSILocalDev>();
@@ -130,12 +142,6 @@ namespace AltinnCore.Runtime
         options.AddPolicy("InstanceRead", policy => policy.Requirements.Add(new InstanceAccessRequirement(ActionType.Read)));
         options.AddPolicy("InstanceWrite", policy => policy.Requirements.Add(new InstanceAccessRequirement(ActionType.Write)));
         options.AddPolicy("ServiceRead", policy => policy.Requirements.Add(new ServiceAccessRequirement(ActionType.Read)));
-      });
-
-      services.Configure<RazorViewEngineOptions>(options =>
-      {
-        options.FileProviders.Add(
-                  new AltinnViewFileProvider(repoLocation + "{0}/{1}/{2}/Views/", repoLocation + "{0}/{1}/{2}/Packages/", repoLocation + "{0}/{1}/{2}/", loadFromPackage));
       });
 
       services.AddLocalization();

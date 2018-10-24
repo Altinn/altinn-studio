@@ -11,8 +11,8 @@ WORKDIR /src/AltinnCore/Runtime
 RUN dotnet build AltinnCore.Runtime.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore.Runtime.csproj -c Release -o /app_output
 
-#dotnet:2.1-aspnetcore-runtime
-FROM microsoft/dotnet@sha256:b99ecca89d5a1d8919782f01b639d2376267456f6b7b5cc1b9d7fca94f579869 AS final
+#dotnet:2.1.300-sdk
+FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS final
 EXPOSE 80
 WORKDIR /AltinnService
 COPY src/AltinnCore/Templates/AltinnService /AltinnService
