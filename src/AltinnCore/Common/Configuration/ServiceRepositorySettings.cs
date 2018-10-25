@@ -214,6 +214,11 @@ namespace AltinnCore.Common.Configuration
     public string RulesFileName { get; set; } = "Rules.json";
 
     /// <summary>
+    /// Gets or sets the filename for the Dockerfile file
+    /// </summary>
+    public string DockerfileFileName { get; set; } = "Dockerfile";
+
+    /// <summary>
     /// Gets or sets the filename for the generated methods class
     /// </summary>
     public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;

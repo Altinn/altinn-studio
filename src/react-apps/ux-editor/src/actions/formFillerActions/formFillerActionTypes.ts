@@ -16,3 +16,8 @@ export const SUBMIT_FORM_DATA_REJECTED: string = `${moduleName}.SUBMIT_FORM_DATA
 export const FETCH_FORM_DATA: string = `${moduleName}.FETCH_FORM_DATA`;
 export const FETCH_FORM_DATA_FULFILLED: string = `${moduleName}.FETCH_FORM_DATA_FULFILLED`;
 export const FETCH_FORM_DATA_REJECTED: string = `${moduleName}.FETCH_FORM_DATA_REJECTED`;
+
+export const RESET_FORM_DATA: string = `${moduleName}.RESET_FORM_DATA`;
+export const RESET_FORM_DATA_FULFILLED: string = `${moduleName}.RESET_FORM_DATA_FULFILLED`;
+export const RESET_FORM_DATA_REJECTED: string = `${moduleName}.RESET_FORM_DATA_REJECTED`;
+

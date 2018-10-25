@@ -25,6 +25,8 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   fetchFormDataFulfilled: (formData: any) => formFillerActions.IFetchFormDataActionFulfilled;
   fetchFormDataRejected: (error: Error) => formFillerActions.IFetchFormDataActionRejected;
   updateValidationErrors: (validationErrors: {}) => formFillerActions.IUpdateValidationErrors;
+  resetFormData: (url: string) => formFillerActions.IResetFormDataAction;
+  resetFormDataFulfilled: (formData: any) => formFillerActions.IResetFormDataActionFulfilled;
 }
 
 const actions: IFormFillerActionDispatchers = {
@@ -38,6 +40,8 @@ const actions: IFormFillerActionDispatchers = {
   fetchFormDataFulfilled: formFillerActions.fetchFormDataActionFulfilled,
   fetchFormDataRejected: formFillerActions.fetchFormDataActionRejected,
   updateValidationErrors: formFillerActions.updateValidationErrors,
+  resetFormData: formFillerActions.resetFormDataAction,
+  resetFormDataFulfilled: formFillerActions.resetFormDataFulfilled,
 };
 
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<

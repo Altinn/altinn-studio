@@ -103,11 +103,21 @@ class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
   }
 
   public render() {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, edition } = altinnWindow;
+    const serviceEditionPath = `${org}/${service}/${edition}`;
+
     return (
       <div className='App flex-column d-flex media-body'>
         <ErrorMessageComponent />
-        <Route exact={true} path='/' component={FormDesigner} />
-        <Route exact={true} path='/Preview' component={FormFiller} />
+        <Route exact={true} path='/' render={() => {
+          formFillerActionDispatchers.resetFormData(
+            `${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetFormLayout`);
+          return <FormDesigner />
+        }} />
+        <Route exact={true} path='/Preview' render={() => {
+          return <FormFiller />
+        }} />
       </div>
     );
   }
