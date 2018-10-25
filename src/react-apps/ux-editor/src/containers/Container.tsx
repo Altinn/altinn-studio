@@ -6,6 +6,7 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
+import { SwitchComponent } from '../components/widget/SwitchComponent';
 import {makeGetDesignModeSelector} from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
@@ -31,7 +32,7 @@ export interface IContainerProps extends IProvidedContainerProps {
 export class ContainerComponent extends React.Component<IContainerProps> {
 
   public handleContainerDelete = (e: any) => {
-    FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
+    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
     e.stopPropagation();
   }
 
@@ -50,8 +51,8 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
@@ -66,17 +67,36 @@ export class ContainerComponent extends React.Component<IContainerProps> {
           className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
           onClick={this.changeActiveFormContainer}>
           {
-            this.props.designMode &&
-            <div className='col-1'>
-              {this.renderDeleteGroupButton()}
+            this.props.designMode && !this.props.baseContainer &&
+            <div className="row">
+              <div className='col-1'>
+                {this.renderDeleteGroupButton()}
+              </div>
+              <div className='col-3 offset-8 row'>
+                <span className="col-6">Repeating:</span>
+                <div className="col-5">
+                  <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
+                </div>
+              </div>
             </div>
           }
+
           {this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
           ))}
+          {
+            !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
+            <button
+              className={'a-btn a-btn-action offset-10'}
+              onClick={this.handleContainerDelete}
+            >
+              <span>Fjern gruppe</span>
+            </button>
+          }
         </div>
-        {this.renderNewGroupButton()}
+
+        {!this.props.designMode && this.renderNewGroupButton()}
       </div>
     );
   }
@@ -119,7 +139,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <button
         className={'a-btn a-btn-action'}
         onClick={this.handleAddNewGroup}
-        disabled={this.props.designMode}
       >
         <i className={'ai ai-plus'} />
         <span>Legg til gruppe</span>
@@ -153,6 +172,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     if (!this.props.baseContainer) {
       FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
     }
+  }
+  public toggleChange = () => {
+    FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
   }
 }
 

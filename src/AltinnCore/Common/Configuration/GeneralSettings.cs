@@ -11,6 +11,11 @@
         public string TemplateLocation { get; set; }
 
         /// <summary>
+        /// Gets or sets the runtime mode
+        /// </summary>
+        public string RuntimeMode { get; set; }
+
+        /// <summary>
         /// Gets the path to the service implementation template
         /// </summary>
         public string ServiceImplementationTemplate
@@ -106,6 +111,18 @@
             get
             {
                 return TemplateLocation + "/_ViewImports.cshtml";
+            }
+        }
+
+        
+        /// <summary>
+        /// Gets the path to the default Dockerfile file
+        /// </summary>
+        public string DefaultRepoDockerfile
+        {
+            get
+            {
+                return TemplateLocation + "/Dockerfile";
             }
         }
     }

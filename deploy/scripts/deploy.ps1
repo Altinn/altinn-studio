@@ -75,8 +75,3 @@ while (!($publicIpAdressName -match '^[a-zA-Z0-9,-,_]*$')) {
 $kubernetesResourceGroupName = "MC_" + $resourceGroupName + "_" + $clusterName + "_" + $location
 Write-Output "Creating public static ip adress in kubernetes resource group"
 az network public-ip create --resource-group $kubernetesResourceGroupName --name $publicIpAdressName --allocation-method Static
-
-Write-Output "Creating storage account in kubernetes resource group"
-$storageAccountName = Read-Host -Prompt "Storage account name"
-$storageAccountSku = Read-Host -Prompt "Storage account sku"
-az storage account create --location $location --name $storageAccountName --resource-group $kubernetesResourceGroupName --sku $storageAccountSku
