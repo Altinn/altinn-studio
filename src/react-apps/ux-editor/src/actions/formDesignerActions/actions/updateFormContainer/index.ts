@@ -14,6 +14,9 @@ export interface IUpdateFormContainerActionFulfilled extends Action {
 export interface IUpdateFormContainerActionRejected extends Action {
   error: Error;
 }
+export interface IToggleFormContainerRepeatAction extends Action {
+  id: string;
+}
 
 export function updateFormContainerAction(updatedContainer: any, id: string): IUpdateFormContainerAction {
   return {
@@ -36,5 +39,12 @@ export function updateFormContainerActionRejected(error: Error): IUpdateFormCont
   return {
     type: ActionTypes.UPDATE_FORM_CONTAINER_REJECTED,
     error,
+  };
+}
+
+export function toggleFormContainerRepeatAction(id: string): IToggleFormContainerRepeatAction {
+  return {
+    type: ActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,
+    id,
   };
 }

@@ -4,6 +4,7 @@ import * as ActionTypes from '../../formDesignerActionTypes';
 export interface IUpdateFormComponentAction extends Action {
   updatedComponent: any;
   id: string;
+  activeContainer?: string;
 }
 
 export interface IUpdateFormComponentActionFulfilled extends Action {
@@ -15,11 +16,12 @@ export interface IUpdateFormComponentActionRejected extends Action {
   error: Error;
 }
 
-export function updateFormComponentAction(updatedComponent: any, id: string): IUpdateFormComponentAction {
+export function updateFormComponentAction(updatedComponent: any, id: string, activeContainer?: string): IUpdateFormComponentAction {
   return {
     type: ActionTypes.UPDATE_FORM_COMPONENT,
     updatedComponent,
     id,
+    activeContainer,
   };
 }
 

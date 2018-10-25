@@ -57,6 +57,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IDeleteComponentActionRejected;
   deleteFormContainer: (
     id: string,
+    index?: number,
   ) => FormDesignerActions.IDeleteContainerAction;
   deleteFormContainerFulfilled: (
     id: string,
@@ -100,6 +101,7 @@ export interface IFormDesignerActionDispatchers
   updateFormComponent: (
     updatedComponent: any,
     id: string,
+    activeFormContainer?: string,
   ) => FormDesignerActions.IUpdateFormComponentAction;
   updateFormComponentFulfilled: (
     updatedComponent: any,
@@ -119,6 +121,9 @@ export interface IFormDesignerActionDispatchers
   updateFormContainerRejected: (
     error: any,
   ) => FormDesignerActions.IUpdateFormContainerActionRejected;
+  toggleFormContainerRepeat: (
+    id: string,
+  ) => FormDesignerActions.IToggleFormContainerRepeatAction;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -166,7 +171,8 @@ const actions: IFormDesignerActionDispatchers = {
     FormDesignerActions.updateFormComponentActionRejected,
   updateFormContainer: FormDesignerActions.updateFormContainerAction,
   updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
-  updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected
+  updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected,
+  toggleFormContainerRepeat: FormDesignerActions.toggleFormContainerRepeatAction,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<
