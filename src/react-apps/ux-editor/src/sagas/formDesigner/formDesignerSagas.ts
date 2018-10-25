@@ -119,15 +119,16 @@ export function* watchDeleteFormComponentSaga(): SagaIterator {
 
 function* deleteFormContainerSaga({
   id,
+  index,
 }: FormDesignerActions.IDeleteContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    // First delete all components inside container
-    for (const componentId of formDesignerState.layout.order[id]) {
-      yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
+    if (index === 0) {
+      // Delete content of container
+      for (const componentId of formDesignerState.layout.order[id]) {
+        yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
+      }
     }
-
-    // Then delete container iteself
     yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormContainerRejected, err);
@@ -264,7 +265,7 @@ export function* watchUpdateDataModelBindingSaga(): SagaIterator {
 
 function* updateFormComponentSaga({
   updatedComponent,
-  id
+  id,
 }: FormDesignerActions.IUpdateFormComponentAction): SagaIterator {
   try {
     yield call(
@@ -304,5 +305,31 @@ export function* watchUpdateContainerSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_FORM_CONTAINER,
     updateFormContainerSaga
+  )
+}
+
+export function* toggleFormContainerRepeatingSaga({
+  id
+}: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
+  try {
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const updatedContainer = formDesignerState.layout.containers[id];
+    updatedContainer.repeating = !updatedContainer.repeating;
+    yield call(
+      FormDesignerActionDispatchers.updateFormContainerFulfilled,
+      updatedContainer,
+      id
+    );
+  }
+  catch (err) {
+    yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
+  }
+}
+
+
+export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,
+    toggleFormContainerRepeatingSaga
   )
 }
