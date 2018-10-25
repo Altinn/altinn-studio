@@ -1627,7 +1627,7 @@ namespace AltinnCore.Common.Services.Implementation
 
       // Copy default Dockerfile
       string editionPath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-      File.Copy(_generalSettings.DefaultRepoDockerfile, editionPath + "/" + _settings.DockerfileFileName);
+      File.Copy(_generalSettings.DefaultRepoDockerfile, editionPath + _settings.DockerfileFileName);
 
       // Copy All default template files
       IEnumerable<string> templates = Directory.EnumerateFiles(_generalSettings.TemplateLocation);
