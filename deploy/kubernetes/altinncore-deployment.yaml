@@ -17,10 +17,15 @@ spec:
         volumeMounts:
         - name: altinn-gitea-storage
           mountPath: "/data/git/repositories"
+        - name: altinn-gitea-avatars
+          mountPath: "/data/git/avatars"
       volumes:
       - name: altinn-gitea-storage
         persistentVolumeClaim:
           claimName: altinn-storage-gitea-volume-claim
+      - name: altinn-gitea-avatars
+        persistentVolumeClaim:
+          claimName: altinn-storage-gitea-avatars-volume-claim
       imagePullSecrets:
       - name: acrsecret
 ---
