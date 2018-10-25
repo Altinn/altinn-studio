@@ -13,7 +13,10 @@ export interface IRuleConnectionActionDispatchers extends ActionCreatorsMapObjec
     lastUpdatedComponentId: string,
     lastUpdatedDataBinding: IDataModelFieldElement,
     lastUpdatedDataValue: string,
-    ) => RuleConnectionActions.ICheckIfRuleShouldRun;
+    repeating: boolean,
+    dataModelGroup?: string,
+    index?: number
+  ) => RuleConnectionActions.ICheckIfRuleShouldRun;
 }
 
 const actions: IRuleConnectionActionDispatchers = {

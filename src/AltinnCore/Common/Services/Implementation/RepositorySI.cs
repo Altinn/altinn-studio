@@ -866,13 +866,13 @@ namespace AltinnCore.Common.Services.Implementation
     public bool CreateEdition(string org, string service, EditionConfiguration editionConfig)
     {
       string serviceEditionPath = _settings.GetEditionPath(org, service, editionConfig.Code, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/config.json";
-
+      
       if (Directory.Exists(serviceEditionPath))
       {
         return false;
       }
 
-        (new FileInfo(serviceEditionPath)).Directory.Create();
+      (new FileInfo(serviceEditionPath)).Directory.Create();
       using (Stream fileStream = new FileStream(serviceEditionPath, FileMode.Create, FileAccess.ReadWrite))
       using (StreamWriter streamWriter = new StreamWriter(fileStream))
       {
@@ -1624,6 +1624,10 @@ namespace AltinnCore.Common.Services.Implementation
       // Copy default view start to the service view directory
       File.Copy(_generalSettings.DefaultViewStart, defaultViewFilePath + _settings.DefaultViewStartFileName);
       File.Copy(_generalSettings.DefaultViewImports, defaultViewFilePath + _settings.DefaultViewImportsFileName);
+
+      // Copy default Dockerfile
+      string editionPath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+      File.Copy(_generalSettings.DefaultRepoDockerfile, editionPath + _settings.DockerfileFileName);
 
       // Copy All default template files
       IEnumerable<string> templates = Directory.EnumerateFiles(_generalSettings.TemplateLocation);
