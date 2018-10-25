@@ -6,7 +6,9 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
+import {makeGetDesignModeSelector} from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
+import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 
 export interface IProvidedContainerProps {
@@ -156,24 +158,29 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
 const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
+  const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
+  const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  const GetDesignModeSelector = makeGetDesignModeSelector();
+  const GetActiveFormContainer = makeGetActiveFormContainer();
   const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
-    const layout = state.formDesigner.layout;
-    const container = layout.containers[props.id];
+    const containers = GetLayoutContainersSelector(state);
+    const container = containers[props.id];
+    const order = GetLayoutOrderSelector(state);
     return {
       id: props.id,
-      index: layout.containers[props.id].index,
-      itemOrder: layout.order[props.id],
-      components: layout.components,
-      containers: layout.containers,
-      designMode: state.appData.appConfig.designMode,
+      index: container.index,
+      itemOrder: order[props.id],
+      components: GetLayoutComponentsSelector(state),
+      containers,
+      designMode: GetDesignModeSelector(state),
       repeating: container.repeating,
       formData: GetFormDataSelector(state, props),
-      dataModelGroup: layout.containers[props.id].dataModelGroup,
-      formContainerActive: state.formDesigner.layout.activeContainer === props.id,
+      dataModelGroup: container.dataModelGroup,
+      formContainerActive: GetActiveFormContainer(state, props),
     };
   };
   return mapStateToProps;
-}
-
+};
 
 export const Container = connect(makeMapStateToProps)(ContainerComponent);

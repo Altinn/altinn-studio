@@ -4,6 +4,9 @@ import ApiActionDispatcher from '../actions/apiActions/apiActionDispatcher';
 import AppConfigActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
+import {makeGetDataModelSelector, makeGetDesignModeSelector} from '../selectors/getAppData';
+import {makeGetApiConnectionsSelector} from '../selectors/getServiceConfigurations';
+import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { Preview } from './Preview';
 
 export interface IFormFillerProps {
@@ -96,15 +99,25 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 }
 
-const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
-  return {
-    validationErrors: state.formFiller.validationErrors,
-    unsavedChanges: state.formFiller.unsavedChanges,
-    connections: state.serviceConfigurations.APIs.connections,
-    dataModelElements: state.appData.dataModel.model,
-    designMode: state.appData.appConfig.designMode,
-    formDataCount: Object.keys(state.formFiller.formData).length,
+const makeMapStateToProps = () => {
+  const GetFormDataCount = makeGetFormDataCountSelector();
+  const GetDesignMode = makeGetDesignModeSelector();
+  const GetDataModel = makeGetDataModelSelector();
+  const GetApiConnections = makeGetApiConnectionsSelector();
+  const GetUnsavedChanges = makeGetUnsavedChangesSelector();
+  const GetValidationErrors = makeGetValidationErrorsSelector();
+  const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
+    return {
+      validationErrors: GetValidationErrors(state),
+      unsavedChanges: GetUnsavedChanges(state),
+      connections: GetApiConnections(state),
+      dataModelElements: GetDataModel(state),
+      designMode: GetDesignMode(state),
+      formDataCount: GetFormDataCount(state),
+    };
   };
-};
+  return mapStateToProps;
+}
 
-export const FormFiller = connect(mapStateToProps)(FormFillerComponent);
+
+export const FormFiller = connect(makeMapStateToProps)(FormFillerComponent);
