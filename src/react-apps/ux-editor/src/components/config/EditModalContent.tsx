@@ -402,7 +402,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
           <div className='form-group a-form-group'>
             {this.props.component.component !== 'ThirdParty' ? (
               <div className={"a-form-group-items input-group"}>
-                <label htmlFor={'editModal_text'} className='a-form-label'>Text</label>
+                <label htmlFor={'editModal_text'} className='a-form-label sr-only'>Text</label>
                 <select
                   id={'editModal_text'}
                   value={this.state.component.customType === 'Standard' ?
