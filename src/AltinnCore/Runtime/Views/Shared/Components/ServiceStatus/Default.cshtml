@@ -58,14 +58,14 @@
 
                 @if (Model?.UserMessages != null && Model.UserMessages.Any())
                 {
-                    @Html.Partial("Components/EditionStatus/UserMessagesList", Model.UserMessages);
+                    @Html.Partial("Components/ServiceStatus/UserMessagesList", Model.UserMessages);
                 }
 
 
                 @if (Model?.CodeCompilationMessages != null && Model.CodeCompilationMessages.Any())
                 {
                     <hr />
-                    @Html.Partial("Components/EditionStatus/CodeCompilationInfoList", Model.CodeCompilationMessages);
+                    @Html.Partial("Components/ServiceStatus/CodeCompilationInfoList", Model.CodeCompilationMessages);
                 }
 
                 <div class="modal-footer">
