@@ -55,7 +55,7 @@ namespace AltinnCore.Runtime.Controllers
             IList<ViewMetadata> viewMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
-            ServiceIdentifier serviceEdition = new ServiceEditionIdentifier { Org = org, Service = service, Edition = edition };
+            ServiceIdentifier serviceEdition = new ServiceIdentifier { Org = org, Service = service };
 			CodeCompilationResult compilation = null;
 
 			if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
