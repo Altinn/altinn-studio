@@ -1,10 +1,12 @@
 ﻿
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Extensions;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,6 +22,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ICompilation _compilation;
         private readonly IRepository _repository;
         private readonly IViewRepository _viewRepository;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EditionStatusViewComponent"/> class.
@@ -27,11 +30,13 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="compilation"> The service compilation service.  </param>
         /// <param name="repository"> The service Repository Service. </param>
         /// <param name="viewRepository">The view repository</param>
-        public EditionStatusViewComponent(ICompilation compilation, IRepository repository, IViewRepository viewRepository)
+        public EditionStatusViewComponent(ICompilation compilation, IRepository repository, IViewRepository viewRepository,
+            IOptions<GeneralSettings> generalSettings)
         {
             _compilation = compilation;
             _repository = repository;
             _viewRepository = viewRepository;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -52,12 +57,17 @@ namespace AltinnCore.Runtime.Controllers
             IList<ViewMetadata> viewMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
-            var serviceEdition = new ServiceEditionIdentifier { Org = org, Service = service, Edition = edition };
-            var compilation = codeCompilationResult ?? await Compile(serviceEdition);
-            var metadata = serviceMetadata ?? await GetServiceMetadata(serviceEdition);
-            var views = viewMetadata ?? await GetViewMetadata(serviceEdition);
+            ServiceEditionIdentifier serviceEdition = new ServiceEditionIdentifier { Org = org, Service = service, Edition = edition };
+            CodeCompilationResult compilation = null;
 
-            var model = CreateModel(serviceEdition, compilation, metadata, views);
+            if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
+            {
+                compilation =  codeCompilationResult ?? await Compile(serviceEdition);
+            }
+
+            var metadata = serviceMetadata ?? await GetServiceMetadata(serviceEdition);
+
+            EditionStatusViewModel model = CreateModel(serviceEdition, compilation, metadata);
 
             return View(model);
         }
@@ -140,12 +150,12 @@ namespace AltinnCore.Runtime.Controllers
         private EditionStatusViewModel CreateModel(
             ServiceEditionIdentifier serviceEditionIdentifier,
             CodeCompilationResult compilationResult,
-            ServiceMetadata serviceMetadata,
-            IEnumerable<ViewMetadata> viewMetadatas)
+            ServiceMetadata serviceMetadata
+            )
         {
             var userMessages =
                 CompilationUserMessages(compilationResult)
-                    .Union(ServiceMetadataMessages(serviceMetadata, viewMetadatas))
+                    .Union(ServiceMetadataMessages(serviceMetadata))
                     .ToList();
             userMessages.Sort();
 
@@ -158,8 +168,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         private IEnumerable<EditionStatusViewModel.UserMessage> ServiceMetadataMessages(
-            ServiceMetadata serviceMetadata,
-            IEnumerable<ViewMetadata> viewMetadatas)
+            ServiceMetadata serviceMetadata)
         {
             if (serviceMetadata == null)
             {
@@ -176,17 +185,6 @@ namespace AltinnCore.Runtime.Controllers
                                              Url.Action("Index", "Model", routParameters),
                                              "Til Datamodell");
                 yield return dataModellMissing;
-            }
-
-            if (viewMetadatas == null || !viewMetadatas.Any())
-            {
-                var visningerAdvarsel =
-                    EditionStatusViewModel.UserMessage.Warning("Tjenesten har ingen visninger");
-                visningerAdvarsel.Link =
-                    new KeyValuePair<string, string>(
-                        Url.Action("Index", "UI", routParameters),
-                        "Til Visninger");
-                yield return visningerAdvarsel;
             }
         }
 
@@ -210,17 +208,6 @@ namespace AltinnCore.Runtime.Controllers
                         serviceEdition.Service,
                         serviceEdition.Edition);
             return Task<ServiceMetadata>.Factory.StartNew(fetchServiceMetadata);
-        }
-
-        private Task<IList<ViewMetadata>> GetViewMetadata(ServiceEditionIdentifier serviceEdition)
-        {
-            Func<IList<ViewMetadata>> fetchViewMetadata =
-                () =>
-                    _viewRepository.GetViews(
-                        serviceEdition.Org,
-                        serviceEdition.Service,
-                        serviceEdition.Edition);
-            return Task<IList<ViewMetadata>>.Factory.StartNew(fetchViewMetadata);
         }
     }
 }
