@@ -12,19 +12,17 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="outputLocation">The directory where the resulting assembly should be saved</param>
         /// <param name="loadAssemblyContext">Defines if compilation should load assembly in to context</param>
         /// <returns>The assembly name</returns>
-        CodeCompilationResult CreateServiceAssembly(string org, string service, string edition, string outputLocation = null, bool loadAssemblyContext = true);
+        CodeCompilationResult CreateServiceAssembly(string org, string service, string outputLocation = null, bool loadAssemblyContext = true);
 
         /// <summary>
         /// Creates a zip-file containing all files necessary for executing a service
         /// </summary>
         /// <param name="org">The organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Was the package creation successful</returns>
-        bool CreateServicePackage(string org, string service, string edition);
+        bool CreateServicePackage(string org, string service);
     }
 }

@@ -56,9 +56,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The new instance ID</returns>
-        public int GetNewServiceInstanceID(string org, string service, string edition)
+        public int GetNewServiceInstanceID(string org, string service)
         {
             int value = 1000;
             Random rnd = new Random();
@@ -71,12 +70,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="viewName">The view name</param>
         /// <returns>The name of the RazorView</returns>
-        public string GetRazorView(string org, string service, string edition, string viewName)
+        public string GetRazorView(string org, string service, string viewName)
         {
-            var activePackage = GetActivePackage(org, service, edition);
+            var activePackage = GetActivePackage(org, service);
             var metadata = GetViewMetaData(activePackage);
             var result = metadata?.GetDefaultRazerViewName(viewName);
             return result;
@@ -87,11 +85,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The service context</returns>
-        public ServiceContext GetServiceContext(string org, string service, string edition)
+        public ServiceContext GetServiceContext(string org, string service)
         {
-            var activePackage = GetActivePackage(org, service, edition);
+            var activePackage = GetActivePackage(org, service);
             var context = new ServiceContext
                               {
                                   CurrentCulture = CultureInfo.CurrentUICulture.Name
@@ -99,7 +96,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (var archive = _packageRepository.GetZipArchive(activePackage))
             {
-                var serviceImplementation = GetServiceImplementation(org, service, edition, activePackage, archive);
+                var serviceImplementation = GetServiceImplementation(org, service, activePackage, archive);
                 context.ServiceModelType = serviceImplementation.GetServiceModelType();
                 context.ServiceText = GetResourceCollections(archive).ToKeyToLanguageToValueDictionary();
                 context.ServiceMetaData = GetServiceMetaData(archive);
@@ -120,14 +117,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>The service Implementation</returns>
-        public IServiceImplementation GetServiceImplementation(string org, string service, string edition)
+        public IServiceImplementation GetServiceImplementation(string org, string service)
         {
-            var activePackage = GetActivePackage(org, service, edition);
+            var activePackage = GetActivePackage(org, service);
             using (var archive = _packageRepository.GetZipArchive(activePackage))
             {
-                return GetServiceImplementation(org, service, edition, activePackage, archive);
+                return GetServiceImplementation(org, service, activePackage, archive);
             }
         }
 
@@ -136,26 +133,25 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization code of the service owner</param>
         /// <param name="service">The service code of the current service</param>
-        /// <param name="edition">The edition code of the current service</param>
         /// <param name="name">The name of the code list to retrieve</param>
         /// <returns>Raw contents of a code list file</returns>
-        public string GetCodelist(string org, string service, string edition, string name)
+        public string GetCodelist(string org, string service, string name)
         {
-            return _repository.GetCodelist(org, service, edition, name);
+            return _repository.GetCodelist(org, service, name);
         }
 
-        private IServiceImplementation GetServiceImplementation(string org, string service, string edition, ServicePackageDetails activePackage, ZipArchive zipArchive)
+        private IServiceImplementation GetServiceImplementation(string org, string service, ServicePackageDetails activePackage, ZipArchive zipArchive)
         {
-            LoadServiceAssembly(org, service, edition, activePackage, zipArchive);
-            var implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition)
+            LoadServiceAssembly(org, service, activePackage, zipArchive);
+            var implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service)
                                          + ".ServiceImplementation," + activePackage.AssemblyName;
             var type = Type.GetType(implementationTypeName);
             return (IServiceImplementation)Activator.CreateInstance(type);
         }
 
-        private void LoadServiceAssembly(string org, string service, string edition, ServicePackageDetails servicePackageDetails, ZipArchive zipArchive)
+        private void LoadServiceAssembly(string org, string service, ServicePackageDetails servicePackageDetails, ZipArchive zipArchive)
         {
-            var assemblykey = org + "_" + service + "_" + edition;
+            var assemblykey = org + "_" + service;
 
             var assemblyName = servicePackageDetails.AssemblyName + ".dll";
             MemoryStream memoryStream = new MemoryStream();
@@ -177,9 +173,9 @@ namespace AltinnCore.Common.Services.Implementation
             _compilation.ServiceReferences.Add(assemblykey, newReference);
         }
 
-        private ServicePackageDetails GetActivePackage(string org, string service, string edition)
+        private ServicePackageDetails GetActivePackage(string org, string service)
         {
-            var allPackages = _packageRepository.GetServicePackages(org, service, edition);
+            var allPackages = _packageRepository.GetServicePackages(org, service);
             if (!allPackages.Any())
             {
                 throw new Exception("Ingen pakker.");
@@ -217,12 +213,12 @@ namespace AltinnCore.Common.Services.Implementation
                 .DeserializeAllAs<ResourceCollection>();
         }
 
-        public byte[] GetServiceResource(string org, string service, string edition, string resource)
+        public byte[] GetServiceResource(string org, string service, string resource)
         {
             throw new NotImplementedException();
         }
 
-    public ServiceMetadata GetServiceMetaData(string org, string service, string edition)
+    public ServiceMetadata GetServiceMetaData(string org, string service)
     {
       throw new NotImplementedException();
     }

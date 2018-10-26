@@ -36,7 +36,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// </exception>
     /// <param name="org">The current organization</param>
     /// <param name="service">The current service</param>
-    /// <param name="edition">The current edition</param>
     /// <param name="xsd">
     ///     Seres XSD
     /// </param>
@@ -49,7 +48,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
     public ServiceMetadata ParseXsdToServiceMetadata(
         string org,
         string service,
-        string edition,
         XDocument xsd,
         Dictionary<string, XDocument> secondaryXsds)
     {
@@ -110,7 +108,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         throw new Exception("XSD missing root complex type element...");
       }
 
-      var existingTexts = _repository.GetServiceTexts(org, service, edition);
+      var existingTexts = _repository.GetServiceTexts(org, service);
 
       var allTexts = new CultureDictionary();
 
@@ -133,7 +131,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
       }
 
-      _repository.SaveServiceTexts(org, service, edition, existingTexts);
+      _repository.SaveServiceTexts(org, service, existingTexts);
 
       serviceMetadata.Elements.Add(rootName, rootMetadata);
 

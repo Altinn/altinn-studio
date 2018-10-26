@@ -206,20 +206,8 @@ namespace AltinnCore.Designer
                   defaults: new { controller = "Service" },
                   constraints: new
                   {
-                    controller = "Service",
+                    controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    id = "[1-9][0-9]{0,3}"
-                  });
-
-        routes.MapRoute(
-                  name: "editionRoute",
-                  template: "designer/{org}/{service}/{edition}/{controller}/{action=Index}/{id?}",
-                  defaults: new { controller = "Edition" },
-                  constraints: new
-                  {
-                    controller = @"(Codelist|Config|DataSource|Edition|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
-                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    edition = @"[1-9]\d{0,3}",
                     id = "[a-zA-Z0-9_\\-]{1,30}"
                   });
 

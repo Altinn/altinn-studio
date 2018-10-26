@@ -6,14 +6,14 @@ using System.Linq;
 namespace AltinnCore.Common.Models
 {
     /// <summary>
-    /// The service edition status view model, indicating if it's possible to run manual testing.
+    /// The service status view model, indicating if it's possible to run manual testing.
     /// </summary>
-    public class EditionStatusViewModel
+    public class ServiceStatusViewModel
     {
         /// <summary>
-        /// Gets or sets the edition id.
+        /// Gets or sets the service identifier.
         /// </summary>
-        public ServiceEditionIdentifier EditionIdentifier { get; set; }
+        public ServiceIdentifier ServiceIdentifier { get; set; }
 
         /// <summary>
         /// Gets or sets the user messages.

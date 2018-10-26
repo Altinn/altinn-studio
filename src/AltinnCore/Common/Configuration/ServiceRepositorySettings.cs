@@ -260,16 +260,15 @@ namespace AltinnCore.Common.Configuration
     /// </summary
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</return>
-    public string GetFormLayoutPath(string org, string service, string edition, string developer)
+    public string GetFormLayoutPath(string org, string service, string developer)
     {
       if (developer != null)
       {
         developer += "/";
       }
 
-      return $"{RepositoryLocation}/{developer}{org}/{service}/{General.EditionsFolder}/{edition}/";
+      return $"{RepositoryLocation}/{developer}{org}/{service}/";
     }
 
     /// <summary>
@@ -277,16 +276,15 @@ namespace AltinnCore.Common.Configuration
     /// </summary
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</return>
-    public string GetThirdPartyComponentsPath(string org, string service, string edition, string developer)
+    public string GetThirdPartyComponentsPath(string org, string service, string developer)
     {
       if (developer != null)
       {
         developer += "/";
       }
 
-      return $"{RepositoryLocation}/{developer}{org}/{service}/{General.EditionsFolder}/{edition}/";
+      return $"{RepositoryLocation}/{developer}{org}/{service}/";
     }
 
     /// <summary>
@@ -294,36 +292,15 @@ namespace AltinnCore.Common.Configuration
     /// </summary
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</return>
-    public string GetRuleHandlerPath(string org, string service, string edition, string developer)
+    public string GetRuleHandlerPath(string org, string service, string developer)
     {
       if (developer != null)
       {
         developer += "/";
       }
 
-      return $"{RepositoryLocation}/{developer}{org}/{service}/{General.EditionsFolder}/{edition}/{RESOURCE_FOLDER_NAME}";
-    }
-
-
-
-    /// <summary>
-    /// Gets the full path to the editions directory
-    /// </summary>
-    /// <param name="org">The Organization code for the service owner</param>
-    /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
-    /// <param name="developer"> The name of the developer of the service defaults to null</param>   
-    /// <returns>The full path, ending with "/"</returns>
-    public string GetEditionPath(string org, string service, string edition, string developer)
-    {
-      if (developer != null)
-      {
-        developer += "/";
-      }
-
-      return $"{RepositoryLocation}{developer}{org}/{service}/{General.EditionsFolder}/{edition}/";
+      return $"{RepositoryLocation}/{developer}{org}/{service}/{RESOURCE_FOLDER_NAME}";
     }
 
     /// <summary>
@@ -331,11 +308,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetServicePackagesPath(string org, string service, string edition, string developer)
+    public string GetServicePackagesPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + PACKAGES_LOCATION;
+      return GetServicePath(org, service, developer) + PACKAGES_LOCATION;
     }
 
     /// <summary>
@@ -343,11 +319,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetTemporaryPath(string org, string service, string edition, string developer)
+    public string GetTemporaryPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + TEMP_LOCATION;
+      return GetServicePath(org, service, developer) + TEMP_LOCATION;
     }
 
     /// <summary>
@@ -355,11 +330,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetViewPath(string org, string service, string edition, string developer)
+    public string GetViewPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + VIEW_FOLDER_NAME;
+      return GetServicePath(org, service,developer) + VIEW_FOLDER_NAME;
     }
 
     /// <summary>
@@ -367,11 +341,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetResourcePath(string org, string service, string edition, string developer)
+    public string GetResourcePath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + RESOURCE_FOLDER_NAME;
+      return GetServicePath(org, service, developer) + RESOURCE_FOLDER_NAME;
     }
 
     /// <summary>
@@ -379,11 +352,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetTestPath(string org, string service, string edition, string developer)
+    public string GetTestPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + TEST_FOLDER_NAME;
+      return GetServicePath(org, service, developer) + TEST_FOLDER_NAME;
     }
 
     /// <summary>
@@ -391,11 +363,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetTestDataPath(string org, string service, string edition, string developer)
+    public string GetTestDataPath(string org, string service, string developer)
     {
-      return GetTestPath(org, service, edition, developer) + TESTDATA_FOLDER_NAME;
+      return GetTestPath(org, service, developer) + TESTDATA_FOLDER_NAME;
     }
 
     /// <summary>
@@ -403,11 +374,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetMetadataPath(string org, string service, string edition, string developer)
+    public string GetMetadataPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + METADATA_FOLDER_NAME;
+      return GetServicePath(org, service, developer) + METADATA_FOLDER_NAME;
     }
 
     /// <summary>
@@ -415,11 +385,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetCodelistPath(string org, string service, string edition, string developer)
+    public string GetCodelistPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + CODELISTS_FOLDER_NAME;
+      return GetServicePath(org, service, developer) + CODELISTS_FOLDER_NAME;
     }
 
     /// <summary>
@@ -466,11 +435,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetModelPath(string org, string service, string edition, string developer)
+    public string GetModelPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + "Model/";
+      return GetServicePath(org, service, developer) + "Model/";
     }
 
     /// <summary>
@@ -478,11 +446,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetImplementationPath(string org, string service, string edition, string developer)
+    public string GetImplementationPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + "Implementation/";
+      return GetServicePath(org, service, developer) + "Implementation/";
     }
 
     /// <summary>
@@ -490,11 +457,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetRulesPath(string org, string service, string edition, string developer)
+    public string GetRulesPath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + "Rules/";
+      return GetServicePath(org, service, developer) + "Rules/";
     }
 
     /// <summary>
@@ -502,11 +468,10 @@ namespace AltinnCore.Common.Configuration
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The full path, ending with "/"</returns>
-    public string GetDataSourcePath(string org, string service, string edition, string developer)
+    public string GetDataSourcePath(string org, string service, string developer)
     {
-      return GetEditionPath(org, service, edition, developer) + "DataSource/";
+      return GetServicePath(org, service, developer) + "DataSource/";
     }
 
     /// <summary>

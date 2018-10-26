@@ -15,19 +15,19 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// The service status view component.
     /// </summary>
-    public class EditionStatusViewComponent : ViewComponent
+    public class ServiceStatusViewComponent : ViewComponent
     {
         private readonly ICompilation _compilation;
         private readonly IRepository _repository;
         private readonly IViewRepository _viewRepository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="EditionStatusViewComponent"/> class.
+        /// Initializes a new instance of the <see cref="ServiceStatusViewComponent"/> class.
         /// </summary>
         /// <param name="compilation"> The service compilation service.  </param>
         /// <param name="repository"> The service Repository Service. </param>
         /// <param name="viewRepository">The view repository</param>
-        public EditionStatusViewComponent(ICompilation compilation, IRepository repository, IViewRepository viewRepository)
+        public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IViewRepository viewRepository)
         {
             _compilation = compilation;
             _repository = repository;
@@ -39,7 +39,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org"> The org. </param>
         /// <param name="service"> The service. </param>
-        /// <param name="edition"> The edition. </param>
         /// <param name="serviceMetadata"> The service Metadata. </param>
         /// <param name="viewMetadatas">The view metadata list</param>
         /// <param name="codeCompilationResult"> The code Compilation Result. </param>
@@ -47,27 +46,26 @@ namespace AltinnCore.Designer.Controllers
         public async Task<IViewComponentResult> InvokeAsync(
             string org,
             string service,
-            string edition,
             ServiceMetadata serviceMetadata = null,
             IList<ViewMetadata> viewMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
-            var serviceEdition = new ServiceEditionIdentifier { Org = org, Service = service, Edition = edition };
-            var compilation = codeCompilationResult ?? await Compile(serviceEdition);
-            var metadata = serviceMetadata ?? await GetServiceMetadata(serviceEdition);
-            var views = viewMetadata ?? await GetViewMetadata(serviceEdition);
+            var serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
+            var compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
+            var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
+            var views = viewMetadata ?? await GetViewMetadata(serviceIdentifier);
 
-            var model = CreateModel(serviceEdition, compilation, metadata, views);
+            var model = CreateModel(serviceIdentifier, compilation, metadata, views);
 
             return View(model);
         }
 
-        private static IEnumerable<EditionStatusViewModel.UserMessage> CompilationUserMessages(
+        private static IEnumerable<ServiceStatusViewModel.UserMessage> CompilationUserMessages(
             CodeCompilationResult compilation)
         {
             if (compilation == null)
             {
-                yield return EditionStatusViewModel.UserMessage.Error("Kompileringsresultat mangler");
+                yield return ServiceStatusViewModel.UserMessage.Error("Kompileringsresultat mangler");
                 yield break;
             }
 
@@ -76,7 +74,7 @@ namespace AltinnCore.Designer.Controllers
 
             if (!compilation.Succeeded || !string.IsNullOrWhiteSpace(errorFiles))
             {
-                var failed = EditionStatusViewModel.UserMessage.Error("Tjenesten kompilerer ikke");
+                var failed = ServiceStatusViewModel.UserMessage.Error("Tjenesten kompilerer ikke");
                 if (!string.IsNullOrWhiteSpace(errorFiles))
                 {
                     failed.Details.Add("Filer", errorFiles);
@@ -86,7 +84,7 @@ namespace AltinnCore.Designer.Controllers
             }
             else if (!string.IsNullOrWhiteSpace(warningFiles))
             {
-                var warning = EditionStatusViewModel.UserMessage.Warning("Advarsler ved kompilering");
+                var warning = ServiceStatusViewModel.UserMessage.Warning("Advarsler ved kompilering");
                 warning.Details.Add("Filer", warningFiles);
                 yield return warning;
             }
@@ -137,8 +135,8 @@ namespace AltinnCore.Designer.Controllers
             return (c.IsError() || c.IsWarning()) && !string.IsNullOrEmpty(c.Info) && !string.IsNullOrEmpty(c.FileName);
         }
 
-        private EditionStatusViewModel CreateModel(
-            ServiceEditionIdentifier serviceEditionIdentifier,
+        private ServiceStatusViewModel CreateModel(
+            ServiceIdentifier serviceIdentifier,
             CodeCompilationResult compilationResult,
             ServiceMetadata serviceMetadata,
             IEnumerable<ViewMetadata> viewMetadatas)
@@ -149,29 +147,29 @@ namespace AltinnCore.Designer.Controllers
                     .ToList();
             userMessages.Sort();
 
-            return new EditionStatusViewModel
+            return new ServiceStatusViewModel
                        {
-                           EditionIdentifier = serviceEditionIdentifier,
+                           ServiceIdentifier = serviceIdentifier,
                            CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
                            UserMessages = userMessages
                        };
         }
 
-        private IEnumerable<EditionStatusViewModel.UserMessage> ServiceMetadataMessages(
+        private IEnumerable<ServiceStatusViewModel.UserMessage> ServiceMetadataMessages(
             ServiceMetadata serviceMetadata,
             IEnumerable<ViewMetadata> viewMetadatas)
         {
             if (serviceMetadata == null)
             {
-                yield return EditionStatusViewModel.UserMessage.Error("Tjenestens metadata mangler");
+                yield return ServiceStatusViewModel.UserMessage.Error("Tjenestens metadata mangler");
                 yield break;
             }
 
             var routParameters =
-                new { org = serviceMetadata.Org, service = serviceMetadata.Service, edition = serviceMetadata.Edition };
+                new { org = serviceMetadata.Org, service = serviceMetadata.Service };
             if (serviceMetadata.Elements == null || !serviceMetadata.Elements.Any())
             {
-                var dataModellMissing = EditionStatusViewModel.UserMessage.Error("Tjenestens datamodell mangler");
+                var dataModellMissing = ServiceStatusViewModel.UserMessage.Error("Tjenestens datamodell mangler");
                 dataModellMissing.Link = new KeyValuePair<string, string>(
                                              Url.Action("Index", "Model", routParameters),
                                              "Til Datamodell");
@@ -181,7 +179,7 @@ namespace AltinnCore.Designer.Controllers
             if (viewMetadatas == null || !viewMetadatas.Any())
             {
                 var visningerAdvarsel =
-                    EditionStatusViewModel.UserMessage.Warning("Tjenesten har ingen visninger");
+                    ServiceStatusViewModel.UserMessage.Warning("Tjenesten har ingen visninger");
                 visningerAdvarsel.Link =
                     new KeyValuePair<string, string>(
                         Url.Action("Index", "UI", routParameters),
@@ -190,36 +188,33 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private Task<CodeCompilationResult> Compile(ServiceEditionIdentifier serviceEdition)
+        private Task<CodeCompilationResult> Compile(ServiceIdentifier service)
         {
             Func<CodeCompilationResult> compile =
                 () =>
                     _compilation.CreateServiceAssembly(
-                        serviceEdition.Org,
-                        serviceEdition.Service,
-                        serviceEdition.Edition);
+                        service.Org,
+                        service.Service);
             return Task<CodeCompilationResult>.Factory.StartNew(compile);
         }
 
-        private Task<ServiceMetadata> GetServiceMetadata(ServiceEditionIdentifier serviceEdition)
+        private Task<ServiceMetadata> GetServiceMetadata(ServiceIdentifier service)
         {
             Func<ServiceMetadata> fetchServiceMetadata =
                 () =>
                     _repository.GetServiceMetaData(
-                        serviceEdition.Org,
-                        serviceEdition.Service,
-                        serviceEdition.Edition);
+                        service.Org,
+                        service.Service);
             return Task<ServiceMetadata>.Factory.StartNew(fetchServiceMetadata);
         }
 
-        private Task<IList<ViewMetadata>> GetViewMetadata(ServiceEditionIdentifier serviceEdition)
+        private Task<IList<ViewMetadata>> GetViewMetadata(ServiceIdentifier service)
         {
             Func<IList<ViewMetadata>> fetchViewMetadata =
                 () =>
                     _viewRepository.GetViews(
-                        serviceEdition.Org,
-                        serviceEdition.Service,
-                        serviceEdition.Edition);
+                        service.Org,
+                        service.Service);
             return Task<IList<ViewMetadata>>.Factory.StartNew(fetchViewMetadata);
         }
     }

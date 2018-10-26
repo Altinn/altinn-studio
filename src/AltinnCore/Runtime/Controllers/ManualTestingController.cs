@@ -57,11 +57,10 @@ namespace AltinnCore.Runtime.Controllers
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <param name="reporteeId">The reporteeId</param>
     /// <returns>The test message box</returns>
     [Authorize]
-    public IActionResult Index(string org, string service, string edition, int reporteeId)
+    public IActionResult Index(string org, string service, int reporteeId)
     {
       RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
       requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
@@ -69,11 +68,11 @@ namespace AltinnCore.Runtime.Controllers
 
       var startServiceModel = new StartServiceModel
       {
-        ServiceID = org + "_" + service + "_" + edition,
+        ServiceID = org + "_" + service,
         ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
               .Select(x => new SelectListItem { Text = x.ReporteeNumber + " " + x.ReporteeName, Value = x.PartyID.ToString() })
               .ToList(),
-        PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service, edition)
+        PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
               .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
               .ToList(),
         ReporteeID = requestContext.Reportee.PartyId
@@ -87,7 +86,7 @@ namespace AltinnCore.Runtime.Controllers
         HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
       }
 
-      List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, edition);
+      List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
       ViewBag.InstanceList = formInstances.OrderBy(r => r.LastChanged).ToList();
 
       return View(startServiceModel);

@@ -36,11 +36,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>The Views</returns>
-        public ActionResult Index(string org, string service, string edition)
+        public ActionResult Index(string org, string service)
         {
-            IList<ViewMetadata> views = _viewRepository.GetViews(org, service, edition);
+            IList<ViewMetadata> views = _viewRepository.GetViews(org, service);
 
             if (Request.Headers["accept"].ToString().Contains("application/json"))
             {
@@ -55,12 +55,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="id">The ViewName</param>
         /// <returns>The View</returns>
-        public ActionResult Edit(string org, string service, string edition, string id)
+        public ActionResult Edit(string org, string service, string id)
         {
-            string data = _viewRepository.GetView(org, service, edition, id);
+            string data = _viewRepository.GetView(org, service, id);
             return View(data as object);
         }
 
@@ -69,10 +69,10 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="viewOrder">View order as comma-seperated list</param>
         /// <returns>The <see cref="IActionResult"/>.</returns>
-        public IActionResult Reorder(string org, string service, string edition, string viewOrder)
+        public IActionResult Reorder(string org, string service, string viewOrder)
         {
             if (string.IsNullOrWhiteSpace(viewOrder) || !Regex.IsMatch(viewOrder, @"(\w,?)+"))
             {
@@ -80,7 +80,7 @@ namespace AltinnCore.Designer.Controllers
             }
 
             var viewOrderArray = ToIntArray(viewOrder).ToArray();
-            _viewRepository.RearrangeViews(org, service, edition, viewOrderArray);
+            _viewRepository.RearrangeViews(org, service, viewOrderArray);
 
             return Ok();
         }
@@ -90,11 +90,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>Partial view with modal dialog for moving views.</returns>
-        public IActionResult MoveDialog(string org, string service, string edition)
+        public IActionResult MoveDialog(string org, string service)
         {
-            IList<ViewMetadata> views = _viewRepository.GetViews(org, service, edition);
+            IList<ViewMetadata> views = _viewRepository.GetViews(org, service);
             return PartialView(views);
         }
 
@@ -103,12 +103,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="currentName">The name of the view</param>
         /// <param name="newName">The new name for the view</param>
         /// <returns>The view</returns>
         [HttpPost]
-        public IActionResult EditViewName(string org, string service, string edition, string currentName, string newName)
+        public IActionResult EditViewName(string org, string service, string currentName, string newName)
         {
             if (string.IsNullOrWhiteSpace(currentName) || string.IsNullOrWhiteSpace(newName))
             {
@@ -127,10 +127,10 @@ namespace AltinnCore.Designer.Controllers
                 return StatusCode(400, "Minst 3 tegn, kan ikke inneholde mellomrom eller spesialtegn ('-' er tillatt)");
             }
 
-            bool updated = _viewRepository.UpdateViewName(org, service, edition, currentName, newName);
+            bool updated = _viewRepository.UpdateViewName(org, service, currentName, newName);
             if (updated)
             {
-                _repository.UpdateViewNameTextResource(org, service, edition, currentName, newName);
+                _repository.UpdateViewNameTextResource(org, service, currentName, newName);
             }
 
             return Ok();
@@ -141,22 +141,22 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="id">The name of the view</param>
         /// <returns>The View</returns>
-        public ActionResult Delete(string org, string service, string edition, string id)
+        public ActionResult Delete(string org, string service, string id)
         {
-            bool deleted = _viewRepository.DeleteView(org, service, edition, id);
+            bool deleted = _viewRepository.DeleteView(org, service, id);
             if (deleted)
             {
-                _repository.DeleteTextResource(org, service, edition, id);
+                _repository.DeleteTextResource(org, service, id);
             }
 
             return RedirectToAction("Index");
         }
 
         /// <summary>
-        /// Action for creating a new RazorView for a service edition
+        /// Action for creating a new RazorView for a service
         /// </summary>
         /// <returns>The View</returns>
         [HttpGet]
@@ -170,26 +170,26 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="view">The ViewName</param>
         /// <returns>The View</returns>
         [HttpPost]
-        public ActionResult Create(string org, string service, string edition, ViewMetadata view)
+        public ActionResult Create(string org, string service, ViewMetadata view)
         {
             if (!ModelState.IsValid)
             {
                 return View(view);
             }
 
-            bool viewCreated = _viewRepository.CreateView(org, service, edition, view);
+            bool viewCreated = _viewRepository.CreateView(org, service, view);
 
             if (viewCreated)
             {
-                Save(org, service, edition, view.Name, string.Empty);
-                IList<ViewMetadata> allViewsMetadata = _viewRepository.GetViews(org, service, edition);
-                _repository.AddViewNameTextResource(org, service, edition, allViewsMetadata);
+                Save(org, service, view.Name, string.Empty);
+                IList<ViewMetadata> allViewsMetadata = _viewRepository.GetViews(org, service);
+                _repository.AddViewNameTextResource(org, service, allViewsMetadata);
 
-                return RedirectToAction("Edit", new { org, service, edition, id = view.Name });
+                return RedirectToAction("Edit", new { org, service, id = view.Name });
             }
 
             ViewBag.viewNameAlreadyExists = true;
@@ -201,12 +201,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="viewName">The ViewName</param>
         /// <returns>The View</returns>
-        public IActionResult Metadata(string org, string service, string edition, string viewName)
+        public IActionResult Metadata(string org, string service, string viewName)
         {
-            var viewMetadata = _viewRepository.GetView(org, service, edition, viewName);
+            var viewMetadata = _viewRepository.GetView(org, service, viewName);
             if (viewMetadata == null)
             {
                 return NotFound();
@@ -220,12 +220,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="id">Name on view</param>
         /// <param name="html">The html/Razor code of the View</param>
         /// <returns>The result</returns>
         [HttpPost]
-        public ActionResult Save(string org, string service, string edition, string id, string html)
+        public ActionResult Save(string org, string service, string id, string html)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -244,7 +244,7 @@ namespace AltinnCore.Designer.Controllers
                "<form asp-controller=\"instance\" asp-action=\"edit\" class=\"droppable sortable clearfix control-target ui-droppable ui-sortable\">");
             }
 
-            _viewRepository.SaveView(org, service, edition, id, html);
+            _viewRepository.SaveView(org, service, id, html);
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(html);
@@ -285,14 +285,13 @@ namespace AltinnCore.Designer.Controllers
                 }
             }
 
-            ServiceMetadata metadata = _repository.GetServiceMetaData(org, service, edition);
+            ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
             string rootName = metadata.Elements.Values.First(e => e.ParentElement == null).TypeName;
             _viewRepository.SaveView(
                             org,
                             service,
-                            edition,
                             id + "final",
-                            "@model " + string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition) + "." + rootName + "\n\n" + doc.DocumentNode.InnerHtml.Replace(" %LT%", "<"));
+                            "@model " + string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + "." + rootName + "\n\n" + doc.DocumentNode.InnerHtml.Replace(" %LT%", "<"));
 
             return Ok();
         }

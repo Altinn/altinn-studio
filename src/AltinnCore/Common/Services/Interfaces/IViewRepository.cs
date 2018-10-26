@@ -14,61 +14,55 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="view">The view meta data</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool CreateView(string org, string service, string edition, ViewMetadata view);
+        bool CreateView(string org, string service, ViewMetadata view);
 
         /// <summary>
-        /// The get all ViewMetadata objects for service edition.
+        /// The get all ViewMetadata objects for service.
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>  The list of <see cref="ViewMetadata" />. </returns>
-        IList<ViewMetadata> GetViews(string org, string service, string edition);
+        IList<ViewMetadata> GetViews(string org, string service);
 
         /// <summary>
         /// Change/Update the name of a view
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="currentName">The current name of the view</param>
         /// <param name="newName">The new name of the View</param>
         /// <returns>Returns true or false, if update/change was successfully.</returns>
-        bool UpdateViewName(string org, string service, string edition, string currentName, string newName);
+        bool UpdateViewName(string org, string service, string currentName, string newName);
 
         /// <summary>
         /// Get the content of the RazorView
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The RazorView name</param>
         /// <returns>The content of the RazorView (html/razor)</returns>
-        string GetView(string org, string service, string edition, string name);
+        string GetView(string org, string service, string name);
 
         /// <summary>
         /// Method that deletes a view from disk
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name on config</param>
         /// <returns>True if success, false otherwise</returns>
-        bool DeleteView(string org, string service, string edition, string name);
+        bool DeleteView(string org, string service, string name);
 
         /// <summary>
         /// Save the content of the Razor View
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name of the RazorView</param>
         /// <param name="html">The content of the RazorView</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveView(string org, string service, string edition, string name, string html);
+        bool SaveView(string org, string service, string name, string html);
 
         /// <summary>
         /// The rearrange views.
@@ -79,12 +73,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">
         /// The service.
         /// </param>
-        /// <param name="edition">
-        /// The edition.
-        /// </param>
         /// <param name="newViewOrder">
         /// The new view order. List containing the old index of the views.
         /// </param>
-        void RearrangeViews(string org, string service, string edition, int[] newViewOrder);
+        void RearrangeViews(string org, string service, int[] newViewOrder);
     }
 }

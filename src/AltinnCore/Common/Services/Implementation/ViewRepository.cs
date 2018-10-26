@@ -47,33 +47,33 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="view">The view metadata</param>
         /// <returns>A boolean indicating if saving was ok. False if duplicate view name</returns>
-        public bool CreateView(string org, string service, string edition, ViewMetadata view)
+        public bool CreateView(string org, string service, ViewMetadata view)
         {
-            var views = GetViews(org, service, edition);
+            var views = GetViews(org, service);
             if (views.FilterByName(view.Name).Any())
             {
                 return false;
             }
 
             views.Add(view);
-            Save(org, service, edition, views);
+            Save(org, service, views);
             return true;
         }
 
         /// <summary>
-        /// The get all ViewMetadata objects for service edition.
+        /// The get all ViewMetadata objects for service.
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>  The list of <see cref="ViewMetadata" />. </returns>
-        public IList<ViewMetadata> GetViews(string org, string service, string edition)
+        public IList<ViewMetadata> GetViews(string org, string service)
         {
             IList<ViewMetadata> result = new List<ViewMetadata>();
-            FileInfo file = GetViewMetadataFile(org, service, edition);
+            FileInfo file = GetViewMetadataFile(org, service);
 
             if (file.Exists)
             {
@@ -88,12 +88,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name of the RazorView (fileName)</param>
         /// <returns>The content (html/razor) of a Razor View</returns>
-        public string GetView(string org, string service, string edition, string name)
+        public string GetView(string org, string service, string name)
         {
-            string filename = _settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name + ".cshtml";
+            string filename = _settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name + ".cshtml";
             return File.ReadAllText(filename, Encoding.UTF8);
         }
 
@@ -102,13 +101,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="name">The name</param>
         /// <param name="html">The view content</param>
         /// <returns>A boolean indicating of storing went ok</returns>
-        public bool SaveView(string org, string service, string edition, string name, string html)
+        public bool SaveView(string org, string service, string name, string html)
         {
-            var formDataFilePath = _settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name + ".cshtml";
+            var formDataFilePath = _settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name + ".cshtml";
 
             var file = new FileInfo(formDataFilePath);
             EnsureDirectoryExists(file);
@@ -127,15 +126,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The org.</param>
         /// <param name="service">The service.</param>
-        /// <param name="edition">The edition.</param>
         /// <param name="newViewOrder">
         /// The new view order. List containing the old index of the views.
         /// </param>
-        public void RearrangeViews(string org, string service, string edition, int[] newViewOrder)
+        public void RearrangeViews(string org, string service, int[] newViewOrder)
         {
-            var views = GetViews(org, service, edition);
+            var views = GetViews(org, service);
             var result = views.Rearrange(newViewOrder);
-            Save(org, service, edition, result);
+            Save(org, service, result);
         }
 
         /// <summary>
@@ -143,21 +141,21 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="viewName">The name on config</param>
         /// <returns>True if success, false otherwise</returns>
-        public bool DeleteView(string org, string service, string edition, string viewName)
+        public bool DeleteView(string org, string service, string viewName)
         {
             Guard.AssertArgumentNotNullOrWhiteSpace(viewName, nameof(viewName));
 
-            var views = GetViews(org, service, edition);
+            var views = GetViews(org, service);
             var selected = views.FilterByName(viewName).ToList();
             if (!selected.Any())
             {
                 throw new ArgumentException("Invalid view name", nameof(viewName));
             }
 
-            var viewsDirectory = _settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var viewsDirectory = _settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             foreach (var v in selected)
             {
                 var removed = views.Remove(v);
@@ -178,7 +176,7 @@ namespace AltinnCore.Common.Services.Implementation
                 finalFile.Delete();
             }
 
-            Save(org, service, edition, views);
+            Save(org, service, views);
             return true;
         }
 
@@ -187,16 +185,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="currentName">The current name of the view</param>
         /// <param name="newName">The new name of the View</param>
         /// <returns>True/false is update was successfully</returns>
-        public bool UpdateViewName(string org, string service, string edition, string currentName, string newName)
+        public bool UpdateViewName(string org, string service, string currentName, string newName)
         {
             Guard.AssertArgumentNotNullOrWhiteSpace(currentName, nameof(currentName));
             Guard.AssertArgumentNotNullOrWhiteSpace(newName, nameof(newName));
 
-            var views = GetViews(org, service, edition);
+            var views = GetViews(org, service);
             var selected = views.SingleOrDefault(v => currentName.Equals(v?.Name, StringComparison.CurrentCultureIgnoreCase));
             if (selected == null)
             {
@@ -204,8 +202,8 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             selected.Name = newName;
-            Save(GetViewMetadataFile(org, service, edition), views);
-            ChangeFileName(org, service, edition, newName, currentName);
+            Save(GetViewMetadataFile(org, service), views);
+            ChangeFileName(org, service, newName, currentName);
             return true;
         }
 
@@ -234,12 +232,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="newName">The new name of the view.</param>
         /// <param name="currentName">The current name of the view</param>
-        private void ChangeFileName(string org, string service, string edition, string newName, string currentName)
+        private void ChangeFileName(string org, string service, string newName, string currentName)
         {
-            var location = _settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var location = _settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             string fileExtension = ".cshtml";
             string oldFilePathDraft = location + currentName + fileExtension;
@@ -270,15 +268,15 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private FileInfo GetViewMetadataFile(string org, string service, string edition)
+        private FileInfo GetViewMetadataFile(string org, string service)
         {
-            var dir = _settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var dir = _settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             return new FileInfo(dir + _settings.ViewMetadataFileName);
         }
 
-        private void Save(string org, string service, string edition, IList<ViewMetadata> viewMetadataList)
+        private void Save(string org, string service, IList<ViewMetadata> viewMetadataList)
         {
-            var file = GetViewMetadataFile(org, service, edition);
+            var file = GetViewMetadataFile(org, service);
             Save(file, viewMetadataList);
         }
     }

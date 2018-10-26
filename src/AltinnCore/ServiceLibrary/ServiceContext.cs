@@ -36,11 +36,6 @@ namespace AltinnCore.ServiceLibrary
         public string ServiceCode { get; set; }
 
         /// <summary>
-        /// Gets or sets the service edition
-        /// </summary>
-        public string Edition { get; set; }
-
-        /// <summary>
         /// Gets or sets the current culture
         /// </summary>
         public string CurrentCulture { get; set; }

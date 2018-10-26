@@ -28,12 +28,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition code</param>
         /// <returns>A view which lists all code lists at the given level</returns>
-        public IActionResult Index(string org, string service, string edition)
+        public IActionResult Index(string org, string service)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
-            model.Codelists = _repository.GetCodelists(org, service, edition);
+            model.Codelists = _repository.GetCodelists(org, service);
 
             if (!string.IsNullOrEmpty(org) && string.IsNullOrEmpty(service))
             {
@@ -79,16 +78,15 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition</param>
         /// <param name="name">The name of the code list to retrieve</param>
         /// <returns>The contents of the code list identified by the given <paramref name="name"/> as JSON</returns>
-        public IActionResult Get(string org, string service, string edition, string name)
+        public IActionResult Get(string org, string service, string name)
         {
-            string codeList = _repository.GetCodelist(org, service, edition, name);
+            string codeList = _repository.GetCodelist(org, service, name);
             if (string.IsNullOrEmpty(codeList))
             {
               // Try find the codelist at the service owner level
-              codeList = _repository.GetCodelist(org, null, null, name);
+              codeList = _repository.GetCodelist(org, null, name);
             }
 
             if (string.IsNullOrEmpty(codeList))
@@ -105,10 +103,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition code</param>
         /// <param name="name">The name of the code list to edit (optional)</param>
         /// <returns>A view for editing the given code list</returns>
-        public IActionResult Edit(string org, string service, string edition, string name)
+        public IActionResult Edit(string org, string service, string name)
         {
             ViewBag.CodelistName = name;
 
@@ -122,13 +119,12 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="name">The name of the code list</param>
         /// <param name="org">The organization code of the owner of the code list</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The service edition for the current service</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public IActionResult Edit([FromBody] dynamic jsonData, string name, string org, string service, string edition)
+        public IActionResult Edit([FromBody] dynamic jsonData, string name, string org, string service)
         {
             ViewBag.CodelistName = name;
-            _repository.SaveCodeList(org, service, edition, name, jsonData.ToString());
+            _repository.SaveCodeList(org, service, name, jsonData.ToString());
 
             return Json(new
             {
@@ -143,24 +139,23 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="routeName">The service name for the mapRoute</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name on config</param>
         /// <returns>A redirect to the code list overview</returns>
         [HttpGet]
-        public IActionResult Delete(string routeName, string org, string service, string edition, string name)
+        public IActionResult Delete(string routeName, string org, string service, string name)
         {
-            _repository.DeleteCodeList(org, service, edition, name);
+            _repository.DeleteCodeList(org, service, name);
 
             return RedirectToRoute(routeName, 
-                new { action = "Index", controller = "Codelist", org, service, edition });
+                new { action = "Index", controller = "Codelist", org, service });
         }
 
 
         [HttpGet]
-        public IActionResult CodeLists(string org, string service, string edition)
+        public IActionResult CodeLists(string org, string service)
         {
             List<CodeList> codeLists = new List<CodeList>();
-            Dictionary<string, string> serviceCodeLists = _repository.GetCodelists(org, service, edition);
+            Dictionary<string, string> serviceCodeLists = _repository.GetCodelists(org, service);
 
              int index = 1;
             foreach(KeyValuePair<string,string> kvp in serviceCodeLists)
@@ -169,7 +164,7 @@ namespace AltinnCore.Designer.Controllers
               index++;
             }
 
-            Dictionary<string, string> ownerCodeLists = _repository.GetCodelists(org, null, null);
+            Dictionary<string, string> ownerCodeLists = _repository.GetCodelists(org, null);
             foreach (KeyValuePair<string, string> kvp in ownerCodeLists)
             {
               codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });

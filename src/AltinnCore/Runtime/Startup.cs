@@ -199,135 +199,124 @@ namespace AltinnCore.Runtime
         // ---------------------------- UI --------------------------- //
         routes.MapRoute(
             name: "uiRoute",
-            template: "runtime/{org}/{service}/{edition}/{instanceId}/{action}/{view|validation?}/{itemId?}",
+            template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
             defaults: new { controller = "Instance" },
             constraints: new
             {
               action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
               controller = "Instance",
               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-              edition = @"[1-9]\d{0,3}",
               instanceId = @"\d+"
             });
 
         routes.MapRoute(
                  name: "uiEditRoute",
-                 template: "runtime/{org}/{service}/{edition}/{instanceId}",
+                 template: "runtime/{org}/{service}/{instanceId}",
                  defaults: new { action = "EditSPA", controller = "Instance" },
                  constraints: new
                  {
                    action = "EditSPA",
                    controller = "Instance",
                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                   edition = @"[1-9]\d{0,3}",
                    instanceId = @"\d+"
                  });
 
         // TODO Remove when editions have been updated
         routes.MapRoute(
             name: "uiLegacyRoute",
-            template: "Service/{org}/{service}/{edition}/{instanceId}/{view?}/{itemId?}",
+            template: "Service/{org}/{service}/{instanceId}/{view?}/{itemId?}",
             defaults: new { action = "Edit", controller = "Instance" },
             constraints: new
             {
               action = "Edit",
               controller = "Instance",
               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-              edition = @"[1-9]\d{0,3}",
               instanceId = @"\d+"
             });
 
         // ---------------------------- API -------------------------- //
         routes.MapRoute(
             name: "resourceRoute",
-            template: "runtime/api/resource/{org}/{service}/{edition}/{id}",
+            template: "runtime/api/resource/{org}/{service}/{id}",
             defaults: new { action = "Index", controller = "Resource" },
             constraints: new
             {
               controller = "Resource",
               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-              edition = @"[1-9]\d{0,3}"
             });
 
 
 
         routes.MapRoute(
         name: "textresourceRoute",
-        template: "runtime/api/textresources/{org}/{service}/{edition}",
+        template: "runtime/api/textresources/{org}/{service}",
         defaults: new { action = "TextResources", controller = "Resource" },
         constraints: new
         {
           controller = "Resource",
           service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-          edition = @"[1-9]\d{0,3}"
         });
 
         routes.MapRoute(
         name: "metadataRoute",
-        template: "runtime/api/metadata/{org}/{service}/{edition}/{action=Index}",
+        template: "runtime/api/metadata/{org}/{service}/{action=Index}",
         defaults: new { controller = "Resource" },
         constraints: new
         {
           controller = "Resource",
           service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-          edition = @"[1-9]\d{0,3}"
         });
 
         routes.MapRoute(
               name: "apiPostRoute",
-              template: "runtime/api/{reportee}/{org}/{service}/{edition}/{apiMode}",
+              template: "runtime/api/{reportee}/{org}/{service}/{apiMode}",
               defaults: new { action = "Index", controller = "ServiceAPI" },
               constraints: new
               {
                 controller = "ServiceAPI",
                 service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                edition = @"[1-9]\d{0,3}"
               });
 
         routes.MapRoute(
                name: "apiPutRoute",
-               template: "runtime/api/{reportee}/{org}/{service}/{edition}/{instanceId}/{apiMode}",
+               template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
                defaults: new { action = "Index", controller = "ServiceAPI" },
                constraints: new
                {
                  controller = "ServiceAPI",
                  service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                 edition = @"[1-9]\d{0,3}",
                  instanceId = @"\d+"
                });
 
 
         routes.MapRoute(
          name: "codelistRoute",
-         template: "runtime/api/{controller}/{org}/{service}/{edition}/{action=Index}/{name}",
+         template: "runtime/api/{controller}/{org}/{service}/{action=Index}/{name}",
          defaults: new { controller = "Codelist" },
          constraints: new
          {
            controller = "Codelist",
            service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-           edition = @"[1-9]\d{0,3}"
          });
 
         routes.MapRoute(
               name: "apiRoute",
-              template: "runtime/api/{reportee}/{org}/{service}/{edition}/{action=Index}/{instanceId?}",
+              template: "runtime/api/{reportee}/{org}/{service}/{action=Index}/{instanceId?}",
               defaults: new { controller = "ServiceAPI" },
               constraints: new
               {
                 controller = "ServiceAPI",
                 service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                edition = @"[1-9]\d{0,3}",
               });
 
         routes.MapRoute(
-          name: "editionRoute",
-          template: "runtime/{org}/{service}/{edition}/{controller}/{action=Index}/{id?}",
-          defaults: new { controller = "Edition" },
+          name: "serviceRoute",
+          template: "runtime/{org}/{service}/{controller}/{action=Index}/{id?}",
+          defaults: new { controller = "Service" },
           constraints: new
           {
-            controller = @"(Codelist|Config|DataSource|Edition|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+            controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
             service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-            edition = @"[1-9]\d{0,3}",
             id = "[a-zA-Z0-9_\\-]{1,30}"
           });
 

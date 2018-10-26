@@ -12,25 +12,23 @@
 @{
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
-    string edition = ViewContext.RouteData.Values["edition"] as string;
 
     ServiceMetadata _sm = null;
     IList<ViewMetadata> _views = null;
     IList<TestMetadata> _tests = null;
-    bool _hasOrgServiceEdition = org != null && service != null && edition != null;
+    bool _hasOrgServiceEdition = org != null && service != null;
 
     if (_hasOrgServiceEdition)
     {
-        _sm = _repository.GetServiceMetaData(org, service, edition);
-        _tests = _testingRepository.GetTests(org, service, edition);
-        _views = _viewRepository.GetViews(org, service, edition);
+        _sm = _repository.GetServiceMetaData(org, service);
+        _tests = _testingRepository.GetTests(org, service);
+        _views = _viewRepository.GetViews(org, service);
     }
 }
 
 <script>
     window.org = '@org';
     window.service = '@service';
-    window.edition = '@edition';
 </script>
 
 <style>
@@ -324,55 +322,31 @@
                 }
             }
 
-            @if (org != null && service != null)
-            {
-                @if (edition != null)
-                {
-                    <li class="nav-item nav-boxed">
-                        <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@service/@edition" title="Utgave">@edition</a>
-                        @*
-                        <div class="dropdown-menu">
-                            @foreach (EditionConfiguration ed in _repository.GetEditions(org, service))
-                            {
-                                <a class="dropdown-item"
-                                asp-route="editionRoute"
-                                asp-route-controller="Edition"
-                                asp-route-edition="@ed.Code">
-                                    <i class="fa fa-fw" aria-hidden="true"></i>
-                                    @ed.Code
-                                </a>
-                            }
-                        </div>
-                        *@
-                    </li>
-                }
-            }
-
             @if (_hasOrgServiceEdition)
             {
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@service/@edition/Model">
+                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@service/Model">
                         Modellering
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="/designer/@org/@service/@edition/Model">
+                        <a class="dropdown-item" href="/designer/@org/@service/Model">
                             <i class="fa fa-fw fa-cubes" aria-hidden="true"></i>
                             Datamodell
                         </a>
-                        <a class="dropdown-item" href="/designer/@org/@service/@edition/DataSSource">
+                        <a class="dropdown-item" href="/designer/@org/@service/DataSSource">
                             <i class="fa fa-fw fa-cloud-download" aria-hidden="true"></i>
                             Datakilder
                         </a>
-                        <a class="dropdown-item" href="/designer/@org/@service/@edition/Codelist">
+                        <a class="dropdown-item" href="/designer/@org/@service/Codelist">
                             <i class="fa fa-fw fa-list" aria-hidden="true"></i>
                             Kodelister
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="/designer/@org/@service/@edition/Rules">
+                        <a class="dropdown-item" href="/designer/@org/@service/Rules">
                             <i class="fa fa-fw fa-cogs fa-flip-horizontal" aria-hidden="true"></i>
                             Regler
                         </a>
-                        <a class="dropdown-item" href="/designer/@org/@service/@edition/Rules/Code">
+                        <a class="dropdown-item" href="/designer/@org/@service/Rules/Code">
                             <i class="fa fa-fw fa-wrench" aria-hidden="true"></i>
                             Kode
                         </a>
@@ -393,15 +367,15 @@
                             Tekster
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" asp-route="editionRoute" asp-route-controller="UI" asp-route-action="Index">
+                        <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="UI" asp-route-action="Index">
                             <i class="fa fa-fw fa-television" aria-hidden="true"></i>
                             Visninger
                         </a>
                         @foreach (var v in _views)
                         {
-                            <a class="dropdown-item" asp-route="editionRoute" asp-route-controller="UI" asp-route-action="Edit" asp-route-id="@v.Name"><i class="fa fa-fw" aria-hidden="true"></i> @v.Name</a>
+                            <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="UI" asp-route-action="Edit" asp-route-id="@v.Name"><i class="fa fa-fw" aria-hidden="true"></i> @v.Name</a>
                         }
-                        <a class="dropdown-item" asp-route="editionRoute" asp-route-action="Create" asp-route-controller="UI">
+                        <a class="dropdown-item" asp-route="serviceRoute" asp-route-action="Create" asp-route-controller="UI">
                             <i class="fa fa-fw fa-plus" style="color:green;" aria-hidden="true"></i>
                             Ny visning
                         </a>
@@ -415,18 +389,18 @@
                             Test
                         </a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" asp-route="editionRoute" asp-route-controller="Testing" asp-route-action="Accessibility"><i class="fa fa-fw fa-universal-access" aria-hidden="true"></i> UU</a>
-                            <a class="dropdown-item" asp-route-controller="ManualTesting" asp-route-action="Index" asp-route-org="@org" asp-route-service="@service" asp-route-edition="@edition">
+                            <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="Testing" asp-route-action="Accessibility"><i class="fa fa-fw fa-universal-access" aria-hidden="true"></i> UU</a>
+                            <a class="dropdown-item" asp-route-controller="ManualTesting" asp-route-action="Index" asp-route-org="@org" asp-route-service="@service">
                                 <i class="fa fa-fw fa-play" aria-hidden="true"></i>Manuell
                             </a>
                             <a class="dropdown-item" asp-route-controller="Testing" asp-route-action="Index"><i class="fa fa-fw fa-coffee" aria-hidden="true"></i> Automatisk</a>
 
                             @foreach (TestMetadata t in _tests)
                             {
-                                <a class="dropdown-item" asp-route="editionRoute" asp-route-controller="Testing" asp-route-action="Edit" asp-route-id="@t.Name"><i class="fa fa-fw" aria-hidden="true"></i> @t.Name</a>
+                                <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="Testing" asp-route-action="Edit" asp-route-id="@t.Name"><i class="fa fa-fw" aria-hidden="true"></i> @t.Name</a>
                             }
                             <!--a class="dropdown-item" href="#"><i class="fa fa-fw fa-tachometer" aria-hidden="true"></i> Ytelse</a-->
-                            <a class="dropdown-item" asp-route="editionRoute" asp-route-controller="Testing" asp-route-action="Create">
+                            <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="Testing" asp-route-action="Create">
                                 <i class="fa fa-fw fa-plus" style="color:green;" aria-hidden="true"></i>
                                 Ny test
                             </a>
@@ -434,11 +408,11 @@
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" asp-route="editionRoute" asp-route-controller="Config" asp-route-action="Index">Konfig</a>
+                        <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" asp-route="serviceRoute" asp-route-controller="Config" asp-route-action="Index">Konfig</a>
                         <div class="dropdown-menu">
-                            <a class="dropdown-item" asp-route-controller="Config" asp-route="editionRoute" asp-route-action="Index"><i class="fa fa-fw fa-sliders fa-rotate-90" aria-hidden="true"></i> Basis</a>
-                            <a class="dropdown-item" asp-route-controller="Config" asp-route="editionRoute" asp-route-action="Security"><i class="fa fa-fw fa-shield" aria-hidden="true"></i> Sikkerhet</a>
-                            <a class="dropdown-item" asp-route-controller="Workflow" asp-route="editionRoute" asp-route-action="Index"><i class="fa fa-fw fa-tasks" aria-hidden="true"></i> Prosess</a>
+                            <a class="dropdown-item" asp-route-controller="Config" asp-route="serviceRoute" asp-route-action="Index"><i class="fa fa-fw fa-sliders fa-rotate-90" aria-hidden="true"></i> Basis</a>
+                            <a class="dropdown-item" asp-route-controller="Config" asp-route="serviceRoute" asp-route-action="Security"><i class="fa fa-fw fa-shield" aria-hidden="true"></i> Sikkerhet</a>
+                            <a class="dropdown-item" asp-route-controller="Workflow" asp-route="serviceRoute" asp-route-action="Index"><i class="fa fa-fw fa-tasks" aria-hidden="true"></i> Prosess</a>
                         </div>
                     </li>
 

@@ -4,7 +4,6 @@
     ViewBag.Title = "Ny regel";
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
-    string edition = ViewContext.RouteData.Values["edition"] as string;
 }
 
 <style>
@@ -42,7 +41,6 @@
 
 <input type="hidden" id="orgId" value="@org" />
 <input type="hidden" id="serviceId" value="@service" />
-<input type="hidden" id="editionId" value="@edition" />
 
 <div id="loadingContainer">
     Laster...

@@ -22,11 +22,6 @@ namespace AltinnCore.Common.Models
     public string Service { get; set; }
 
     /// <summary>
-    /// The edition the code list belongs to
-    /// </summary>
-    public string Edition { get; set; }
-
-    /// <summary>
     /// The code list id
     /// </summary>
     public int Id { get; set; }

@@ -41,11 +41,10 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>Returns a list of DataSourceModel objects.</returns>
-    public IList<DataSourceModel> GetDatasources(string org, string service, string edition)
+    public IList<DataSourceModel> GetDatasources(string org, string service)
     {
-      var fileName = _settings.GetDataSourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "jsonUrl.json";
+      var fileName = _settings.GetDataSourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "jsonUrl.json";
       var file = new FileInfo(fileName);
       if (!file.Exists)
       {
@@ -66,15 +65,14 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <param name="name">File name</param>
     /// <param name="url">The rest URL to be saved</param>
     /// <returns>True if save successful</returns>
-    public bool Save(string org, string service, string edition, string name, string url)
+    public bool Save(string org, string service, string name, string url)
     {
       try
       {
-        var filePath = GetFilePath(org, service, edition);
+        var filePath = GetFilePath(org, service);
         if (!filePath.Exists)
         {
           EnsureDirectoryExists(filePath);
@@ -99,17 +97,16 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <param name="id">The data source id</param>
     /// <returns>True of datasource was found and deleted</returns>
-    public bool Delete(string org, string service, string edition, string id)
+    public bool Delete(string org, string service, string id)
     {
       if (id == null)
       {
         return false;
       }
 
-      FileInfo file = GetFilePath(org, service, edition);
+      FileInfo file = GetFilePath(org, service);
       RootObject root = GetDataSourceRoot(file);
       root.UrlResources.DataSourceUrls.Remove(id);
 
@@ -123,13 +120,12 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <param name="description">Description of the URL.</param>
     /// <param name="url">The rest url field.</param>
     /// <returns>Returns a DataSourceModel</returns>
-    public DataSourceModel Create(string org, string service, string edition, string description, string url)
+    public DataSourceModel Create(string org, string service, string description, string url)
     {
-      var file = GetFilePath(org, service, edition);
+      var file = GetFilePath(org, service);
       var dataSourceModel = GetDataSourceRoot(file);
 
       var newItem = new DataSourceModel
@@ -150,16 +146,15 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <param name="model">Reference to the DataSourceModel</param>
-    public void Update(string org, string service, string edition, DataSourceModel model)
+    public void Update(string org, string service, DataSourceModel model)
     {
       if (string.IsNullOrWhiteSpace(model?.Id))
       {
         throw new ArgumentException("Id missin'", nameof(model));
       }
 
-      var file = GetFilePath(org, service, edition);
+      var file = GetFilePath(org, service);
       var root = GetDataSourceRoot(file);
       var current = root?.UrlResources?.DataSourceUrls.Single(x => x.Value?.Id == model.Id);
       if (current?.Value == null || string.IsNullOrEmpty(current?.Key))
@@ -278,9 +273,8 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>FileInfo object with the path to the JSON file.</returns>
-    private FileInfo GetFilePath(string org, string service, string edition)
+    private FileInfo GetFilePath(string org, string service)
     {
       string filePath = null;
       if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
@@ -296,10 +290,6 @@ namespace AltinnCore.Common.Services.Implementation
       if (!string.IsNullOrEmpty(service))
       {
         filePath += "/" + service;
-        if (!string.IsNullOrEmpty(edition))
-        {
-          filePath += "/" + edition;
-        }
       }
       else
       {
