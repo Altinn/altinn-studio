@@ -1,5 +1,5 @@
 #altinn-runtime with sdk
-FROM altinntjenestercontainerregistry.azurecr.io/altinn-runtime:333 AS build
+FROM altinntjenestercontainerregistry.azurecr.io/altinn-runtime:latest AS build
 WORKDIR /AltinnService/
 COPY Implementation/*.cs ./
 COPY Model/*.cs ./
