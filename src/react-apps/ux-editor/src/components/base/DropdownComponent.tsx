@@ -5,7 +5,9 @@ export interface IDropdownProps {
   component: IFormComponent;
   formData: any;
   handleDataChange: (value: any) => void;
+  getTextResource: (resourceKey: string) => string;
   isValid?: boolean;
+  designMode: boolean;
 }
 
 export interface IDropdownState {
@@ -32,7 +34,7 @@ export class DropdownComponent
       >
         {options.map((option, index) => (
           <option key={index} value={option.value}>
-            {option.label}
+            {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
           </option>
         ))}
       </select>
