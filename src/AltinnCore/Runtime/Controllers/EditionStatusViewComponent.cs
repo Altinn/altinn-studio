@@ -63,13 +63,17 @@ namespace AltinnCore.Runtime.Controllers
             if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
             {
                 compilation =  codeCompilationResult ?? await Compile(serviceEdition);
-            }
+        
 
             var metadata = serviceMetadata ?? await GetServiceMetadata(serviceEdition);
 
             EditionStatusViewModel model = CreateModel(serviceEdition, compilation, metadata);
 
             return View(model);
+
+            }
+
+            return View(new EditionStatusViewModel());
         }
 
         private static IEnumerable<EditionStatusViewModel.UserMessage> CompilationUserMessages(
