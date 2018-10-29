@@ -97,16 +97,6 @@ namespace AltinnCore.Common.Services.Interfaces
     List<WorkFlowStep> GetWorkFlow(string org, string service);
 
     /// <summary>
-    /// The add view name text resource.
-    /// "view." + viewName for each text resource in the service
-    /// </summary>
-    /// <param name="org">The Organization code for the service owner</param>
-    /// <param name="service">The service code for the current service</param>
-    /// <param name="viewMetadatas"> The view metadata list. </param>
-    void AddViewNameTextResource(string org, string service, IEnumerable<ViewMetadata> viewMetadatas);
-
-
-    /// <summary>
     /// Delete text resource
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>

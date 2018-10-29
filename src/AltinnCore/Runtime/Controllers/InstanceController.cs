@@ -23,7 +23,6 @@ namespace AltinnCore.Runtime.Controllers
     public class InstanceController : Controller
     {
         private readonly IRepository _repository;
-        private readonly IViewRepository _viewRepository;
         private readonly IAuthorization _authorization;
         private readonly IRegister _register;
         private readonly ILogger _logger;
@@ -50,7 +49,6 @@ namespace AltinnCore.Runtime.Controllers
             IRegister registerService, 
             IForm formService,
             IRepository repositoryService,
-            IViewRepository viewRepository,
             IExecution serviceExecutionService,
             IProfile profileService,
             IArchive archiveService,
@@ -61,7 +59,6 @@ namespace AltinnCore.Runtime.Controllers
             _register = registerService;
             _form = formService;
             _repository = repositoryService;
-            _viewRepository = viewRepository;
             _execution = serviceExecutionService;
             _userHelper = new UserHelper(profileService, _register);
             _archive = archiveService;

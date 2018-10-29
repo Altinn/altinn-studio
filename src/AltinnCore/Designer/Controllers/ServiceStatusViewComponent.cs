@@ -19,19 +19,16 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly ICompilation _compilation;
         private readonly IRepository _repository;
-        private readonly IViewRepository _viewRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceStatusViewComponent"/> class.
         /// </summary>
         /// <param name="compilation"> The service compilation service.  </param>
         /// <param name="repository"> The service Repository Service. </param>
-        /// <param name="viewRepository">The view repository</param>
-        public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IViewRepository viewRepository)
+        public ServiceStatusViewComponent(ICompilation compilation, IRepository repository)
         {
             _compilation = compilation;
             _repository = repository;
-            _viewRepository = viewRepository;
         }
 
         /// <summary>
@@ -40,22 +37,19 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="org"> The org. </param>
         /// <param name="service"> The service. </param>
         /// <param name="serviceMetadata"> The service Metadata. </param>
-        /// <param name="viewMetadatas">The view metadata list</param>
         /// <param name="codeCompilationResult"> The code Compilation Result. </param>
         /// <returns> The <see cref="Task"/>.  </returns>
         public async Task<IViewComponentResult> InvokeAsync(
             string org,
             string service,
             ServiceMetadata serviceMetadata = null,
-            IList<ViewMetadata> viewMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
             var serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
             var compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
             var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
-            var views = viewMetadata ?? await GetViewMetadata(serviceIdentifier);
 
-            var model = CreateModel(serviceIdentifier, compilation, metadata, views);
+            var model = CreateModel(serviceIdentifier, compilation, metadata);
 
             return View(model);
         }
@@ -138,12 +132,11 @@ namespace AltinnCore.Designer.Controllers
         private ServiceStatusViewModel CreateModel(
             ServiceIdentifier serviceIdentifier,
             CodeCompilationResult compilationResult,
-            ServiceMetadata serviceMetadata,
-            IEnumerable<ViewMetadata> viewMetadatas)
+            ServiceMetadata serviceMetadata)
         {
             var userMessages =
                 CompilationUserMessages(compilationResult)
-                    .Union(ServiceMetadataMessages(serviceMetadata, viewMetadatas))
+                    .Union(ServiceMetadataMessages(serviceMetadata))
                     .ToList();
             userMessages.Sort();
 
@@ -156,8 +149,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         private IEnumerable<ServiceStatusViewModel.UserMessage> ServiceMetadataMessages(
-            ServiceMetadata serviceMetadata,
-            IEnumerable<ViewMetadata> viewMetadatas)
+            ServiceMetadata serviceMetadata)
         {
             if (serviceMetadata == null)
             {
@@ -174,17 +166,6 @@ namespace AltinnCore.Designer.Controllers
                                              Url.Action("Index", "Model", routParameters),
                                              "Til Datamodell");
                 yield return dataModellMissing;
-            }
-
-            if (viewMetadatas == null || !viewMetadatas.Any())
-            {
-                var visningerAdvarsel =
-                    ServiceStatusViewModel.UserMessage.Warning("Tjenesten har ingen visninger");
-                visningerAdvarsel.Link =
-                    new KeyValuePair<string, string>(
-                        Url.Action("Index", "UI", routParameters),
-                        "Til Visninger");
-                yield return visningerAdvarsel;
             }
         }
 
@@ -206,16 +187,6 @@ namespace AltinnCore.Designer.Controllers
                         service.Org,
                         service.Service);
             return Task<ServiceMetadata>.Factory.StartNew(fetchServiceMetadata);
-        }
-
-        private Task<IList<ViewMetadata>> GetViewMetadata(ServiceIdentifier service)
-        {
-            Func<IList<ViewMetadata>> fetchViewMetadata =
-                () =>
-                    _viewRepository.GetViews(
-                        service.Org,
-                        service.Service);
-            return Task<IList<ViewMetadata>>.Factory.StartNew(fetchViewMetadata);
         }
     }
 }

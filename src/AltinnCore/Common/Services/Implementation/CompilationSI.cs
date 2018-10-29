@@ -81,7 +81,6 @@ namespace AltinnCore.Common.Services.Implementation
             string tempDirName = Path.GetRandomFileName();
             string tempDirPath = tempDir + tempDirName + "/";
 
-            CopyDirectoryContents(_settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.VIEW_FOLDER_NAME);
             CopyDirectoryContents(_settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.METADATA_FOLDER_NAME);
             CopyDirectoryContents(_settings.GetCodelistPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.CODELISTS_FOLDER_NAME);
             CopyDirectoryContents(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.RESOURCE_FOLDER_NAME);

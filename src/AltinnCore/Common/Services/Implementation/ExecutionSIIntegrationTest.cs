@@ -66,21 +66,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the RazorView for a given viewId and serviceId
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="viewName">The view name</param>
-        /// <returns>The name of the RazorView</returns>
-        public string GetRazorView(string org, string service, string viewName)
-        {
-            var activePackage = GetActivePackage(org, service);
-            var metadata = GetViewMetaData(activePackage);
-            var result = metadata?.GetDefaultRazerViewName(viewName);
-            return result;
-        }
-
-        /// <summary>
         /// Creates the service context made available for the Altinn Core services and views.
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -100,7 +85,6 @@ namespace AltinnCore.Common.Services.Implementation
                 context.ServiceModelType = serviceImplementation.GetServiceModelType();
                 context.ServiceText = GetResourceCollections(archive).ToKeyToLanguageToValueDictionary();
                 context.ServiceMetaData = GetServiceMetaData(archive);
-                context.ViewMetadata = GetViewMetaData(archive);
                 context.WorkFlow = GetWorkflow(archive);
             }
             
@@ -192,17 +176,6 @@ namespace AltinnCore.Common.Services.Implementation
         private List<WorkFlowStep> GetWorkflow(ZipArchive zipArchive)
         {
             return zipArchive.DeserializeFirstFileNamed<List<WorkFlowStep>>(_settings.WorkFlowFileName);
-        }
-
-        private IList<ViewMetadata> GetViewMetaData(ServicePackageDetails package)
-        {
-            var archive = _packageRepository.GetZipArchive(package);
-            return GetViewMetaData(archive);
-        }
-
-        private IList<ViewMetadata> GetViewMetaData(ZipArchive archive)
-        {
-            return archive.DeserializeFirstFileNamed<IList<ViewMetadata>>(_settings.ViewMetadataFileName);
         }
 
         private IEnumerable<ResourceCollection> GetResourceCollections(ZipArchive zipArchive)

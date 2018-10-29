@@ -45,12 +45,11 @@ namespace AltinnCore.Common.Services.Implementation
     /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
     /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
     /// <param name="partManager">The part manager</param>
-    /// <param name="viewRepository">The view Repository</param>
     public ExecutionSIContainer(
         IOptions<ServiceRepositorySettings> settings,
         IRepository repositoryService,
         ApplicationPartManager partManager,
-        IViewRepository viewRepository, IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor)
     {
       _settings = settings.Value;
       _repository = repositoryService;

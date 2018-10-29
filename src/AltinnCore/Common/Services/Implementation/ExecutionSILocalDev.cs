@@ -31,7 +31,6 @@ namespace AltinnCore.Common.Services.Implementation
     private readonly ServiceRepositorySettings _settings;
     private readonly IRepository _repository;
     private readonly Interfaces.ICompilation _compilation;
-    private readonly IViewRepository _viewRepository;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     /// <summary>
@@ -41,18 +40,16 @@ namespace AltinnCore.Common.Services.Implementation
     /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
     /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
     /// <param name="partManager">The part manager</param>
-    /// <param name="viewRepository">The view Repository</param>
     public ExecutionSILocalDev(
         IOptions<ServiceRepositorySettings> settings,
         IRepository repositoryService,
         Interfaces.ICompilation compilationService,
         ApplicationPartManager partManager,
-        IViewRepository viewRepository, IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor)
     {
       _settings = settings.Value;
       _repository = repositoryService;
       _compilation = compilationService;
-      _viewRepository = viewRepository;
       _httpContextAccessor = httpContextAccessor;
     }
 
@@ -83,7 +80,6 @@ namespace AltinnCore.Common.Services.Implementation
         ServiceModelType = GetServiceImplementation(org, service).GetServiceModelType(),
         ServiceText = _repository.GetServiceTexts(org, service),
         ServiceMetaData = _repository.GetServiceMetaData(org, service),
-        ////ViewMetadata = _viewRepository.GetViews(org, service),
         CurrentCulture = CultureInfo.CurrentUICulture.Name,
         WorkFlow = _repository.GetWorkFlow(org, service)
       };

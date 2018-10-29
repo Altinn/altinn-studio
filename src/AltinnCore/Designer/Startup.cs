@@ -74,7 +74,6 @@ namespace AltinnCore.Designer
       services.AddSingleton<IServicePackageRepository, RepositorySI>();
       services.AddSingleton<ITestdata, TestdataSILocalDev>();
       services.AddSingleton<ITestingRepository, TestingRepository>();
-      services.AddSingleton<IViewRepository, ViewRepository>();
       services.AddSingleton<IGitea, GiteaAPIWrapper>();
       services.AddSingleton<ISourceControl, SourceControlSI>();
       services.AddSingleton(Configuration);
@@ -127,12 +126,6 @@ namespace AltinnCore.Designer
         options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
       });
       mvc.AddXmlSerializerFormatters();
-
-      services.Configure<RazorViewEngineOptions>(options =>
-      {
-        options.FileProviders.Add(
-                  new AltinnViewFileProvider(repoLocation + "{0}/{1}/{2}/Views/", repoLocation + "{0}/{1}/{2}/Packages/", repoLocation + "{0}/{1}/{2}/", loadFromPackage));
-      });
 
       services.AddLocalization();
       services.Configure<RequestLocalizationOptions>(

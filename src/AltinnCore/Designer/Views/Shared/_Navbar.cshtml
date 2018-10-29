@@ -6,7 +6,6 @@
 @using System.Security.Claims
 @using AltinnCore.Common.Constants
 @inject IRepository _repository
-@inject IViewRepository _viewRepository
 @inject ITestingRepository _testingRepository
 @inject IHttpContextAccessor HttpContextAccessor
 @{
@@ -14,7 +13,6 @@
     string service = ViewContext.RouteData.Values["service"] as string;
 
     ServiceMetadata _sm = null;
-    IList<ViewMetadata> _views = null;
     IList<TestMetadata> _tests = null;
     bool _hasOrgService = org != null && service != null;
 
@@ -22,7 +20,6 @@
     {
         _sm = _repository.GetServiceMetaData(org, service);
         _tests = _testingRepository.GetTests(org, service);
-        _views = _viewRepository.GetViews(org, service);
     }
 }
 
@@ -341,10 +338,11 @@
                             Kodelister
                         </a>
                         <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" asp-controller="Rules" asp-action="index">
+                        @* Comment back in if there is a need for overview page for rules *@
+                        @*<a class="dropdown-item" asp-controller="Rules" asp-action="index">
                             <i class="fa fa-fw fa-cogs fa-flip-horizontal" aria-hidden="true"></i>
                             Regler
-                        </a>
+                        </a>*@
                         <a class="dropdown-item" asp-controller="Rules" asp-action="Code">
                             <i class="far fa-fw fa-file-code" aria-hidden="true"></i>
                             Kode
@@ -371,33 +369,8 @@
                         </a>
                     </div>
                 </li>
-                <!-- Legacy -->
-                <li class="nav-item dropdown only-secondary">
-                    <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" asp-route-controller="UI" asp-route-action="Index">
-                        Visning
-                    </a>
-                    <div class="dropdown-menu">
-                        <!--a class="dropdown-item" asp-controller="Text" asp-action="Index">
-                            <i class="fa fa-fw fa-book" aria-hidden="true"></i>
-                            Tekster
-                        </a-->
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="UI" asp-route-action="Index">
-                            <i class="fa fa-fw fa-tv" aria-hidden="true"></i>
-                            Visninger
-                        </a>
-                        @foreach (var v in _views)
-                        {
-                            <a class="dropdown-item" asp-route="serviceRoute" asp-route-controller="UI" asp-route-action="Edit" asp-route-id="@v.Name"><i class="fa fa-fw" aria-hidden="true"></i> @v.Name</a>
-                        }
-                        <a class="dropdown-item" asp-route="serviceRoute" asp-route-action="Create" asp-route-controller="UI">
-                            <i class="fa fa-fw fa-plus" style="color:green;" aria-hidden="true"></i>
-                            Ny visning
-                        </a>
-                    </div>
-                </li>
 
-                @if (_views.Count > 0 && _sm.Elements != null && _sm.Elements.Any())
+                @if (_sm.Elements != null && _sm.Elements.Any())
                 {
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle hide-caret" asp-route-controller="Testing" asp-route-action="Index" role="button" aria-haspopup="true" aria-expanded="false">

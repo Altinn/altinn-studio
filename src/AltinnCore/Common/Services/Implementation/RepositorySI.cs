@@ -1345,44 +1345,6 @@ namespace AltinnCore.Common.Services.Implementation
     }
 
     /// <summary>
-    /// The add view name text resource.
-    /// "view." + viewName for each text resource in the service
-    /// </summary>
-    /// <param name="org">The Organization code for the service owner</param>
-    /// <param name="service">The service code for the current service</param>
-    /// <param name="viewMetadatas"> The view metadata list. </param>
-    public void AddViewNameTextResource(string org, string service, IEnumerable<ViewMetadata> viewMetadatas)
-    {
-      Guard.AssertOrgService(org, service);
-      Guard.AssertArgumentNotNull(viewMetadatas, nameof(viewMetadatas));
-
-      var resourceKeys = viewMetadatas.Where(v => !string.IsNullOrWhiteSpace(v?.Name)).Select(v => ViewResourceKey(v.Name)).ToList();
-      if (!resourceKeys.Any())
-      {
-        return;
-      }
-
-      var resourceList = GetAllResources(org, service);
-      foreach (var res in resourceList)
-      {
-        var resources = res.Resources;
-        if (resources == null)
-        {
-          throw new NullReferenceException("Deserialized resources null");
-        }
-
-        var currentKeys = resources.Resources.Select(k => k.Id).ToList();
-        var missingViewKeys = resourceKeys.Except(currentKeys).ToList();
-
-        if (missingViewKeys.Any())
-        {
-          missingViewKeys.ForEach(k => resources.Add(k, string.Empty));
-          Save(res);
-        }
-      }
-    }
-
-    /// <summary>
     /// Updates the view name text resource.
     /// "view." + viewName for each text resource in the service
     /// </summary>
@@ -1487,38 +1449,15 @@ namespace AltinnCore.Common.Services.Implementation
 
     private void AddDefaultFiles(string org, string service)
     {
-      // Read the serviceImplemenation template
-      string defaultLayoutContent = File.ReadAllText(_generalSettings.DefaultServiceLayout, Encoding.UTF8);
-
-      // Create the service views folder
-      Directory.CreateDirectory(_settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-
       // Create the service test folder
       Directory.CreateDirectory(_settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
       // Create the service testdata folder
       Directory.CreateDirectory(_settings.GetTestDataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
-      // Get the file path
-      string defaultViewFilePath = _settings.GetViewPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-      // Copy default view start to the service view directory
-      File.Copy(_generalSettings.DefaultViewStart, defaultViewFilePath + _settings.DefaultViewStartFileName);
-      File.Copy(_generalSettings.DefaultViewImports, defaultViewFilePath + _settings.DefaultViewImportsFileName);
-
       // Copy default Dockerfile
       string servicePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
       File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
-
-      // Copy All default template files
-      IEnumerable<string> templates = Directory.EnumerateFiles(_generalSettings.TemplateLocation);
-      foreach (string template in templates)
-      {
-        if (template.Contains("Layout"))
-        {
-          File.Copy(template, defaultViewFilePath + Path.GetFileName(template));
-        }
-      }
     }
 
     private void CreateInitialServiceImplementation(string org, string service)

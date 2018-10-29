@@ -21,7 +21,6 @@ namespace AltinnCore.Runtime.Controllers
     {
         private readonly ICompilation _compilation;
         private readonly IRepository _repository;
-        private readonly IViewRepository _viewRepository;
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
@@ -30,12 +29,10 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="compilation"> The service compilation service.  </param>
         /// <param name="repository"> The service Repository Service. </param>
         /// <param name="viewRepository">The view repository</param>
-        public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IViewRepository viewRepository,
-			IOptions<GeneralSettings> generalSettings)
+        public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IOptions<GeneralSettings> generalSettings)
         {
             _compilation = compilation;
             _repository = repository;
-            _viewRepository = viewRepository;
             _generalSettings = generalSettings.Value;
         }
 
@@ -45,14 +42,12 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="org"> The org. </param>
         /// <param name="service"> The service. </param>
         /// <param name="serviceMetadata"> The service Metadata. </param>
-        /// <param name="viewMetadatas">The view metadata list</param>
         /// <param name="codeCompilationResult"> The code Compilation Result. </param>
         /// <returns> The <see cref="Task"/>.  </returns>
         public async Task<IViewComponentResult> InvokeAsync(
             string org,
             string service,
             ServiceMetadata serviceMetadata = null,
-            IList<ViewMetadata> viewMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
             ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };

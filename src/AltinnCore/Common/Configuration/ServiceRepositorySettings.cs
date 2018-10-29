@@ -14,11 +14,6 @@ namespace AltinnCore.Common.Configuration
     public const string CODELISTS_FOLDER_NAME = "Codelists/";
 
     /// <summary>
-    /// Constant for the location of service views
-    /// </summary>
-    public const string VIEW_FOLDER_NAME = "Views/";
-
-    /// <summary>
     /// Constant for the location of resource files
     /// </summary>
     public const string RESOURCE_FOLDER_NAME = "Resources/";
@@ -53,7 +48,6 @@ namespace AltinnCore.Common.Configuration
     private const string TESTDATA_FOLDER_NAME = "Data/";
 
     private const string METADATA_FILENAME = "ServiceMetadata.json";
-    private const string VIEW_METADATA_FILENAME = "ViewMetadata.json";
     private const string GENERATED_METHODS_FILENAME = "GeneratedMethods.cs";
 
     /// <summary>
@@ -136,11 +130,6 @@ namespace AltinnCore.Common.Configuration
     /// Gets or sets The ServiceMetadata file name
     /// </summary>
     public string ServiceMetadataFileName { get; set; } = METADATA_FILENAME;
-
-    /// <summary>
-    /// Gets or sets the view metadata file name.
-    /// </summary>
-    public string ViewMetadataFileName { get; set; } = VIEW_METADATA_FILENAME;
 
     /// <summary>
     /// Gets or sets the Workflow file name
@@ -323,17 +312,6 @@ namespace AltinnCore.Common.Configuration
     public string GetTemporaryPath(string org, string service, string developer)
     {
       return GetServicePath(org, service, developer) + TEMP_LOCATION;
-    }
-
-    /// <summary>
-    /// Gets the full path to ViewDirectory
-    /// </summary>
-    /// <param name="org">The Organization code for the service owner</param>
-    /// <param name="service">The service code for the current service</param>
-    /// <returns>The full path, ending with "/"</returns>
-    public string GetViewPath(string org, string service, string developer)
-    {
-      return GetServicePath(org, service,developer) + VIEW_FOLDER_NAME;
     }
 
     /// <summary>

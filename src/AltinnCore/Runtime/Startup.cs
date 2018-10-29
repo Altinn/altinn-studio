@@ -86,7 +86,6 @@ namespace AltinnCore.Runtime
       services.AddSingleton<IServicePackageRepository, RepositorySI>();
       services.AddSingleton<ITestdata, TestdataSILocalDev>();
       services.AddSingleton<ITestingRepository, TestingRepository>();
-      services.AddSingleton<IViewRepository, ViewRepository>();
       services.AddSingleton<IGitea, GiteaAPIWrapper>();
       services.AddSingleton<ISourceControl, SourceControlSI>();
       services.AddSingleton(Configuration);
@@ -220,19 +219,6 @@ namespace AltinnCore.Runtime
                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                    instanceId = @"\d+"
                  });
-
-        // TODO Remove when editions have been updated
-        routes.MapRoute(
-            name: "uiLegacyRoute",
-            template: "Service/{org}/{service}/{instanceId}/{view?}/{itemId?}",
-            defaults: new { action = "Edit", controller = "Instance" },
-            constraints: new
-            {
-              action = "Edit",
-              controller = "Instance",
-              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-              instanceId = @"\d+"
-            });
 
         // ---------------------------- API -------------------------- //
         routes.MapRoute(

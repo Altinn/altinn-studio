@@ -61,11 +61,6 @@ namespace AltinnCore.ServiceLibrary
         public ServiceMetadata.ServiceMetadata ServiceMetaData { get; set; }
 
         /// <summary>
-        /// Gets or sets the views.
-        /// </summary>
-        public IList<ViewMetadata> ViewMetadata { get; set; }
-
-        /// <summary>
         /// Gets or sets the name of the root element in the data model
         /// </summary>
         public string RootName { get; set; }
