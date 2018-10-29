@@ -13,7 +13,6 @@
     "linebreak-style": false,
     "no-plusplus": false,
     "quotemark": [true, "single", "avoid-escape"],
-    "object-literal-sort-keys": [true, "ignore-case", "match-declaration-order", "shorthand-first"],
     "no-empty-interface": false,
     "no-object-literal-type-assertion": false,
     "jsx-no-multiline-js": false,
