@@ -28,37 +28,37 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace AltinnCore.Designer
 {
-  /// <summary>
-  /// This is the class that set up the application during startup
-  /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/> 
-  /// </summary>
-  public class Startup
-  {
-    public IConfiguration Configuration { get; }
-
-    public Startup(IConfiguration configuration)
-    {
-      Configuration = configuration;
-    }
-
-
     /// <summary>
-    /// Configures the services available for the asp.net Core application
-    /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/> 
+    /// This is the class that set up the application during startup
+    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/> 
     /// </summary>
-    /// <param name="services">The services available for asp.net Core</param>
-    public void ConfigureServices(IServiceCollection services)
+    public class Startup
     {
-      // Adding services to Dependency Injection TODO: Make this environment specific
-      bool loadFromPackage = false;
-      if (loadFromPackage)
-      {
-        services.AddSingleton<IExecution, ExecutionSIIntegrationTest>();
-      }
-      else
-      {
-        services.AddSingleton<IExecution, ExecutionSILocalDev>();
-      }
+        public IConfiguration Configuration { get; }
+
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+
+        /// <summary>
+        /// Configures the services available for the asp.net Core application
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/> 
+        /// </summary>
+        /// <param name="services">The services available for asp.net Core</param>
+        public void ConfigureServices(IServiceCollection services)
+        {
+            // Adding services to Dependency Injection TODO: Make this environment specific
+            bool loadFromPackage = false;
+            if (loadFromPackage)
+            {
+                services.AddSingleton<IExecution, ExecutionSIIntegrationTest>();
+            }
+            else
+            {
+                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+            }
 
       services.AddSingleton<IArchive, ArchiveSILocalDev>();
       services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
@@ -79,53 +79,55 @@ namespace AltinnCore.Designer
       services.AddSingleton(Configuration);
       services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
-      services.AddResponseCompression();
+            services.AddResponseCompression();
 
-      // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
-      // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-      string repoLocation = null;
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            string repoLocation = null;
 
-      if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-      {
-        repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
-      }
-      else
-      {
-        repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
-      }
-
-
-      if (!Directory.Exists(repoLocation))
-      {
-        Directory.CreateDirectory(repoLocation);
-      }
-
-      services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
-      services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
-      services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
-
-      // Configure Authentication
-      // Use [Authorize] to require login on MVC Controller Actions
-      services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-          .AddCookie(options =>
-          {
-            options.AccessDeniedPath = "/Home/NotAuthorized/";
-            options.LoginPath = "/Home/Login/";
-            options.Events = new CookieAuthenticationEvents
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
             {
-              // Add Custom Event handler to be able to redirect users for authentication upgrade
-              OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized
-            };
-          });
+                repoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
+            }
+            else
+            {
+                repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
+            }
 
-      var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-      mvc.Services.Configure<MvcOptions>(options =>
-      {
-        // Adding custom modelbinders
-        options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
-        options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
-      });
-      mvc.AddXmlSerializerFormatters();
+
+            if (!Directory.Exists(repoLocation))
+            {
+                Directory.CreateDirectory(repoLocation);
+            }
+
+            services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
+            services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+
+            // Configure Authentication
+            // Use [Authorize] to require login on MVC Controller Actions
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(options =>
+                {
+                    options.AccessDeniedPath = "/Home/NotAuthorized/";
+                    options.LoginPath = "/user/login";
+                    options.LogoutPath = "/user/logout";
+                    options.Cookie.Domain = "altinn.studio";
+                    options.Events = new CookieAuthenticationEvents
+                    {
+                        // Add Custom Event handler to be able to redirect users for authentication upgrade
+                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized
+                    };
+                });
+
+            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            mvc.Services.Configure<MvcOptions>(options =>
+            {
+                // Adding custom modelbinders
+                options.ModelBinderProviders.Insert(0, new AltinnCoreApiModelBinderProvider());
+                options.ModelBinderProviders.Insert(1, new AltinnCoreCollectionModelBinderProvider());
+            });
+            mvc.AddXmlSerializerFormatters();
 
       services.AddLocalization();
       services.Configure<RequestLocalizationOptions>(
@@ -137,61 +139,61 @@ namespace AltinnCore.Designer
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
                             new CultureInfo("nn-NO")
-                  };
+                        };
 
-            options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
-            options.SupportedCultures = supportedCultures;
-            options.SupportedUICultures = supportedCultures;
-          });
-    }
-
-    /// <summary>
-    /// Configure the application.
-    /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/> 
-    /// </summary>
-    /// <param name="app">The application builder</param>
-    /// <param name="env">Hosting environment</param>
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-    {
-      if (env.IsDevelopment())
-      {
-        app.UseDeveloperExceptionPage();
-      }
-      else
-      {
-        app.UseExceptionHandler("/Error");
-      }
-
-      //app.UseHsts();
-      //app.UseHttpsRedirection();
-      app.UseAuthentication();
-
-      app.UseResponseCompression();
-      app.UseRequestLocalization();
-      app.UseStaticFiles(new StaticFileOptions()
-      {
-        OnPrepareResponse = (context) =>
-        {
-          var headers = context.Context.Response.GetTypedHeaders();
-          headers.CacheControl = new CacheControlHeaderValue()
-          {
-            Public = true,
-            MaxAge = TimeSpan.FromMinutes(60)
-          };
+                    options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
+                    options.SupportedCultures = supportedCultures;
+                    options.SupportedUICultures = supportedCultures;
+                });
         }
-      });
 
-      app.UseMvc(routes =>
-      {
-        // ------------------------- DEV ----------------------------- //
-        routes.MapRoute(
-            name: "orgRoute",
-            template: "designer/{org}/{controller}/{action=Index}/",
-            defaults: new { controller = "Owner" },
-            constraints: new
+        /// <summary>
+        /// Configure the application.
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/> 
+        /// </summary>
+        /// <param name="app">The application builder</param>
+        /// <param name="env">Hosting environment</param>
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            if (env.IsDevelopment())
             {
-              controller = "Codelist|Owner|Config"
+                app.UseDeveloperExceptionPage();
+            }
+            else
+            {
+                app.UseExceptionHandler("/Error");
+            }
+
+            //app.UseHsts();
+            //app.UseHttpsRedirection();
+            app.UseAuthentication();
+
+            app.UseResponseCompression();
+            app.UseRequestLocalization();
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                OnPrepareResponse = (context) =>
+                {
+                    var headers = context.Context.Response.GetTypedHeaders();
+                    headers.CacheControl = new CacheControlHeaderValue()
+                    {
+                        Public = true,
+                        MaxAge = TimeSpan.FromMinutes(60)
+                    };
+                }
             });
+
+            app.UseMvc(routes =>
+            {
+                // ------------------------- DEV ----------------------------- //
+                routes.MapRoute(
+                    name: "orgRoute",
+                    template: "designer/{org}/{controller}/{action=Index}/",
+                    defaults: new { controller = "Owner" },
+                    constraints: new
+                    {
+                        controller = "Codelist|Owner|Config"
+                    });
 
         routes.MapRoute(
                   name: "serviceRoute",
@@ -204,17 +206,17 @@ namespace AltinnCore.Designer
                     id = "[a-zA-Z0-9_\\-]{1,30}"
                   });
 
-        // -------------------------- DEFAULT ------------------------- //
-        routes.MapRoute(
-           name: "defaultRoute2",
-           template: "{controller}/{action=Index}/{id?}",
-           defaults: new { controller = "Home" });
+                // -------------------------- DEFAULT ------------------------- //
+                routes.MapRoute(
+                   name: "defaultRoute2",
+                   template: "{controller}/{action=Index}/{id?}",
+                   defaults: new { controller = "Home" });
 
-        routes.MapRoute(
-                  name: "defaultRoute",
-                  template: "{action=Index}/{id?}",
-                  defaults: new { controller = "Home" });
-      });
+                routes.MapRoute(
+                    name: "defaultRoute",
+                    template: "{action=Index}/{id?}",
+                    defaults: new { controller = "Home" });
+            });
+        }
     }
-  }
 }
