@@ -157,7 +157,7 @@
 <body>
     @{ 
       if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null && Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != "ServiceContainer") {
-        return Html.Partial("_Navbar");
+        Html.Partial("_Navbar");
       }
     }
 
