@@ -217,7 +217,7 @@ namespace AltinnCore.Designer
                   defaults: new { controller = "Edition" },
                   constraints: new
                   {
-                    controller = @"(Codelist|Config|DataSource|Edition|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                    controller = @"(Codelist|Config|DataSource|Edition|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy)",
                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     edition = @"[1-9]\d{0,3}",
                     id = "[a-zA-Z0-9_\\-]{1,30}"

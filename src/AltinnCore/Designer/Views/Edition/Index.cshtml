@@ -105,14 +105,14 @@
         @if (Model.Elements != null) 
         {      
             <div class="card">
-                <div class="card-body">
-                    <h4 class="card-title"><a asp-route-controller="Config" asp-route="editionRoute">Konfig og deploy</a></h4>
-                    
-                    <a title="Konfigurasjon" asp-route-controller="Config" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-cog" aria-hidden="true"></i></a>                      
-                    <a title="Sikkerhet" asp-route-controller="Config" asp-route="editionRoute" asp-route-action="Security"><i class="fa fa-fw fa-2x fa-shield-alt" aria-hidden="true"></i></a>
-                    <a title="Prosess" asp-route-controller="Workflow" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-tasks" aria-hidden="true"></i></a>
-                    <a title="Deploy" href="#"><i class="fa fa-fw fa-2x fa-bolt" aria-hidden="true"></i></a>
-                </div>
+              <div class="card-body">
+                <h4 class="card-title"><a asp-route-controller="Config" asp-route="editionRoute">Konfig og deploy</a></h4>
+
+                <a title="Konfigurasjon" asp-route-controller="Config" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-cog" aria-hidden="true"></i></a>
+                <a title="Sikkerhet" asp-route-controller="Config" asp-route="editionRoute" asp-route-action="Security"><i class="fa fa-fw fa-2x fa-shield-alt" aria-hidden="true"></i></a>
+                <a title="Prosess" asp-route-controller="Workflow" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-tasks" aria-hidden="true"></i></a>
+                <a title="Deploy" asp-route-controller="Deploy" asp-route="editionRoute"><i class="fa fa-fw fa-2x fa-bolt" aria-hidden="true"></i></a>
+              </div>
             </div>
         }
     </div>
