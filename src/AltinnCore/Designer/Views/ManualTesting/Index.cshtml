@@ -9,7 +9,7 @@
     List<AltinnCore.ServiceLibrary.ServiceInstance> instanceList = ViewBag.InstanceList;
 }
 
-@await Component.InvokeAsync("EditionStatus", new { org, service })
+@await Component.InvokeAsync("ServiceStatus", new { org, service })
 
 @if(Model.ReporteeList.Count > 1)
 {

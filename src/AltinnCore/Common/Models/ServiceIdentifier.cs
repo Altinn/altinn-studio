@@ -13,7 +13,7 @@
         /// <summary> Gets or sets the service. </summary>
         public string Service { get; set; }
 
-        /// <summary> Asserts that Org, Service and Edition got values. </summary>
+        /// <summary> Asserts that Org and Service got values. </summary>
         public bool Ok => !string.IsNullOrWhiteSpace(Org) && !string.IsNullOrWhiteSpace(Service);
 
         /// <summary> Checks equality. Case insensitive. </summary>

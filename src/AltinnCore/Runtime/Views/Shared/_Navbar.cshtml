@@ -16,9 +16,9 @@
     ServiceMetadata _sm = null;
     IList<ViewMetadata> _views = null;
     IList<TestMetadata> _tests = null;
-    bool _hasOrgServiceEdition = org != null && service != null;
+    bool _hasOrgService = org != null && service != null;
 
-    if (_hasOrgServiceEdition)
+    if (_hasOrgService)
     {
         // _sm = _repository.GetServiceMetaData(org, service);
         // _tests = _testingRepository.GetTests(org, service);
@@ -300,12 +300,6 @@
                                     @serviceConfig.Code
                                 </a>
                             }*@
-
-                            <div class="dropdown-divider only-primary"></div>
-                            <a class="dropdown-item only-secondary" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="Index" asp-route-service="@service">
-                                <i class="fa fa-fw fa-tags" aria-hidden="true"></i>
-                                Utgaver
-                            </a>
                             <!--a class="dropdown-item only-secondary" asp-route="serviceRoute" asp-route-controller="Codelist" asp-route-action="Index">
                                 <i class="fa fa-fw fa-list" aria-hidden="true"></i>
                                 Kodelister
@@ -314,15 +308,12 @@
                                 <i class="fa fa-fw fa-book" aria-hidden="true"></i>
                                 Tekster
                             </a-->
-                            <a class="dropdown-item only-secondary" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="CreateEdition" asp-route-org="@org" asp-route-service="@service">
-                                <i class="fa fa-fw fa-plus" style="color:green;" aria-hidden="true"></i> Ny utgave
-                            </a>
                         </div>
                     </li>
                 }
             }
 
-            @if (_hasOrgServiceEdition)
+            @if (_hasOrgService)
             {
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" href="/designer/@org/@service/Model">

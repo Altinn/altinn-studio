@@ -55,16 +55,16 @@ namespace AltinnCore.Runtime.Controllers
             IList<ViewMetadata> viewMetadata = null,
             CodeCompilationResult codeCompilationResult = null)
         {
-            ServiceIdentifier serviceEdition = new ServiceIdentifier { Org = org, Service = service };
+            ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
 			CodeCompilationResult compilation = null;
 
 			if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
 			{
-				compilation = codeCompilationResult ?? await Compile(serviceEdition);
+				compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
 
-				var metadata = serviceMetadata ?? await GetServiceMetadata(serviceEdition);
+				var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
 
-				ServiceStatusViewModel model = CreateModel(serviceEdition, compilation, metadata);
+				ServiceStatusViewModel model = CreateModel(serviceIdentifier, compilation, metadata);
 
 				return View(model);
 
@@ -149,7 +149,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         private ServiceStatusViewModel CreateModel(
-            ServiceIdentifier serviceEditionIdentifier,
+            ServiceIdentifier serviceIdentifier,
             CodeCompilationResult compilationResult,
             ServiceMetadata serviceMetadata
             )
@@ -162,7 +162,7 @@ namespace AltinnCore.Runtime.Controllers
 
             return new ServiceStatusViewModel
                        {
-                           ServiceIdentifier = serviceEditionIdentifier,
+                           ServiceIdentifier = serviceIdentifier,
                            CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
                            UserMessages = userMessages
                        };
@@ -189,23 +189,23 @@ namespace AltinnCore.Runtime.Controllers
             }
         }
 
-        private Task<CodeCompilationResult> Compile(ServiceIdentifier serviceEdition)
+        private Task<CodeCompilationResult> Compile(ServiceIdentifier serviceIdentifier)
         {
             Func<CodeCompilationResult> compile =
                 () =>
                     _compilation.CreateServiceAssembly(
-                        serviceEdition.Org,
-                        serviceEdition.Service);
+                        serviceIdentifier.Org,
+                        serviceIdentifier.Service);
             return Task<CodeCompilationResult>.Factory.StartNew(compile);
         }
 
-        private Task<ServiceMetadata> GetServiceMetadata(ServiceIdentifier serviceEdition)
+        private Task<ServiceMetadata> GetServiceMetadata(ServiceIdentifier serviceIdentifier)
         {
             Func<ServiceMetadata> fetchServiceMetadata =
                 () =>
                     _repository.GetServiceMetaData(
-                        serviceEdition.Org,
-                        serviceEdition.Service);
+                        serviceIdentifier.Org,
+                        serviceIdentifier.Service);
             return Task<ServiceMetadata>.Factory.StartNew(fetchServiceMetadata);
         }
     }
