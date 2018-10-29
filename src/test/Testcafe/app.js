@@ -12,6 +12,9 @@ export default class App{
             let args = minimist(process.argv.slice(2));
             //can use params here
             this.baseUrl = config[args.env].baseUrl;
+            this.userInput = Selector('#user_name');
+            this.passwordInput = Selector('#password');
+            this.loginButton = Selector('#body > div > div.user.signin > div.ui.container > div > form > div:nth-child(5) > button');    
         }
         return instance;
     }
