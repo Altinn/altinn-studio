@@ -1,5 +1,5 @@
 #altinn-runtime with sdk
-FROM altinntjenestercontainerregistry.azurecr.io/altinn-runtime:333 AS build
+FROM altinntjenestercontainerregistry.azurecr.io/altinn-runtime:latest AS build
 WORKDIR /AltinnService/
 COPY Implementation/*.cs ./
 COPY Model/*.cs ./
@@ -16,6 +16,7 @@ WORKDIR /AltinnService/bin/
 COPY --from=build /AltinnService/publish/AltinnService* ./
 WORKDIR /AltinnService/
 COPY . .
+WORKDIR /app
 
 #entrypoint
 ENTRYPOINT ["dotnet", "AltinnCore.Runtime.dll"]

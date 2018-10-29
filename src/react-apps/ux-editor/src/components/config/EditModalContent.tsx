@@ -232,12 +232,19 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
             {component.options.map((option, index) => (
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
-                  <input
+                  <label htmlFor={'editModal_radiolabel-' + index} className='a-form-label sr-only'>Text</label>
+                  <select
+                    id={'editModal_radiolabel-' + index}
+                    className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
-                    className='form-control'
-                    type='text'
-                  />
+                  >}
+  
+                    <option key={'empty'} value={''}>
+                      Choose label
+                    </option>
+                    {this.renderTextResourceOptions()}
+                  </select>
                 </div>
                 <div className='col-5'>
                   <input
@@ -282,16 +289,25 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                 <label className='a-form-label'>Value</label>
               </div>
             </div>
+
             {component.options.map((option, index) => (
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
-                  <input
+                  <label htmlFor={'editModal_dropdownlabel-' + index} className='a-form-label sr-only'>Text</label>
+                  <select
+                    id={'editModal_dropdownlabel-' + index}
+                    className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
-                    className='form-control'
-                    type='text'
-                  />
+                  >}
+                    
+                    <option key={'empty'} value={''}>
+                      Choose label
+                    </option>
+                    {this.renderTextResourceOptions()}
+                  </select>
                 </div>
+
                 <div className='col-5'>
                   <input
                     onChange={this.handleUpdateOptionValue.bind(this, index)}
@@ -300,6 +316,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                     type='text'
                   />
                 </div>
+
                 <div className='col-2'>
                   <button
                     type='button'
@@ -311,6 +328,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                 </div>
               </div>
             ))}
+
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
@@ -384,7 +402,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
           <div className='form-group a-form-group'>
             {this.props.component.component !== 'ThirdParty' ? (
               <div className={"a-form-group-items input-group"}>
-                <label htmlFor={'editModal_text'} className='a-form-label'>Text</label>
+                <label htmlFor={'editModal_text'} className='a-form-label sr-only'>Text</label>
                 <select
                   id={'editModal_text'}
                   value={this.state.component.customType === 'Standard' ?
