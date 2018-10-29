@@ -155,7 +155,11 @@
 </head>
 
 <body>
-    @Html.Partial("_Navbar")
+    @{ 
+      if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null && Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != "ServiceContainer") {
+        return Html.Partial("_Navbar");
+      }
+    }
 
     <div class="container">
         @RenderBody()
