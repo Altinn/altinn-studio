@@ -16,10 +16,10 @@ const formDataForContainerSelector = (state: IAppState, props: any) => {
   const container = layout.containers[props.id];
   const filteredFormData: any = {};
 
-  componentsInContainer.forEach((componentId: string) => {
+  for (const componentId of componentsInContainer) {
     const component = layout.components[componentId];
     let formDataKey = component.dataModelBinding;
-    if (!formDataKey) return;
+    if (!formDataKey) continue;
     if (container.repeating && container.dataModelGroup) {
       formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${props.index}]`);
     }
@@ -27,9 +27,10 @@ const formDataForContainerSelector = (state: IAppState, props: any) => {
     if (formData[formDataKey]) {
       filteredFormData[component.dataModelBinding] = formData[formDataKey];
     }
-  });
+  }
+
   return filteredFormData;
-}
+};
 
 const createDeepEqualSelector = createSelectorCreator(
   defaultMemoize,
