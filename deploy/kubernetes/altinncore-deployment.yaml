@@ -42,7 +42,7 @@ spec:
     spec:
       containers:
       - name: altinn-designer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:332
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:493
         ports:
         - containerPort: 5000
         volumeMounts:
