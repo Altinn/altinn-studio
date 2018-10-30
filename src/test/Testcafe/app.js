@@ -10,12 +10,8 @@ export default class App {
       instance = this;
       this.initialized = false;
       this.activeFixturesCount = 0;
-      let args = minimist(process.argv.slice(2));
       let { env } = minimist(process.argv.slice(2));
-
       this.baseUrl = config[env].baseUrl;
-      process.env.NODE_ENVIRONMENT = config[env].baseUrl;
-
       //can use params here
       this.userInput = Selector('#user_name');
       this.passwordInput = Selector('#password');
