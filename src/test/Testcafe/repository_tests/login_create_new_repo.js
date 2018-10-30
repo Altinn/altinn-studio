@@ -1,12 +1,13 @@
 import { Selector } from 'testcafe';
 import App from '../app';
-import loginPage from '../page-objects/loginPage';
-import landingPage from '../page-objects/landingPage';
+import LoginPage from '../page-objects/loginPage';
+import LandingPage from '../page-objects/landingPage';
 import CommonPage from '../page-objects/common'
 
-app = new App();
-common = new CommonPage();
-landingpage = new landingPage();
+let app = new App();
+let common = new CommonPage();
+let loginPage = new LoginPage();
+let landingPage = new LandingPage();
 
 fixture('Loggin in')
   .page(app.baseUrl)
@@ -26,9 +27,9 @@ fixture('Loggin in')
 
 test('Login and create new repo', async t => {
   await t
-    .expect(loginpage.altinnHeader.exists).ok({ timeout: 2500 })
-    .expect(loginpage.altinnHeader.text).eql('Altinn studio')
-    .click(landingpage.repoLink)
-    .click(landingpage.createButton)
-    .click(landingpage.newRepoButton);
+    .expect(loginPage.altinnHeader.exists).ok({ timeout: 2500 })
+    .expect(loginPage.altinnHeader.text).eql('Altinn studio')
+    .click(landingPage.repoLink)
+    .click(landingPage.createButton)
+    .click(landingPage.newRepoButton);
 });
