@@ -74,8 +74,8 @@ namespace AltinnCore.Runtime.Db.Models
         [JsonProperty(PropertyName = "formId")]
         public string[] FormId { get; set; }
 
-        [JsonProperty(PropertyName = "reAttachment")]
-        public FormAttachment REAttachment { get; set; }
+        [JsonProperty(PropertyName = "Attachments")]
+        public Attachments ReporteeElementAttachment { get; set; }
 
         [JsonProperty(PropertyName = "message")]
         public Correspondence Message { get; set; }
@@ -85,7 +85,7 @@ namespace AltinnCore.Runtime.Db.Models
         }
     }
 
-    public class FormAttachment
+    public class Attachments
     {
         [JsonProperty(PropertyName = "attachmentId")]
         public string AttachmentId { get; set; }
