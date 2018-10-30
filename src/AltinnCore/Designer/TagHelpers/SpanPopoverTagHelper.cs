@@ -47,14 +47,14 @@ namespace AltinnCore.Designer.TagHelpers
         /// </summary>
         [HtmlAttributeName(AltinnPopoverContentTextKeyAttributeName)]
         public string AltinnPopoverContentTextKey { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the current view context (injected)
         /// </summary>
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
-        
+
         /// <summary>
         /// Gets the current html generator
         /// </summary>
