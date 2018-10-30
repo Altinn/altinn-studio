@@ -17,9 +17,6 @@ namespace AltinnCore.Runtime.Db.Models
         [JsonProperty(PropertyName = "serviceId")]
         public string ServiceId { get; set; }
 
-        [JsonProperty(PropertyName = "serviceEdition")]
-        public string ServiceEdition { get; set; }
-
         [JsonProperty(PropertyName = "reporteeElementId")]
         public string ReporteeElementId { get; set; }
 
