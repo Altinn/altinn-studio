@@ -401,21 +401,22 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
             {this.props.component.component !== 'ThirdParty' ? (
-              <div className={"a-form-group-items input-group"}>
-                <label htmlFor={'editModal_text'} className='a-form-label sr-only'>Text</label>
-                <select
-                  id={'editModal_text'}
-                  value={this.state.component.customType === 'Standard' ?
-                    this.state.component.textResourceId : this.state.component.title}
-                  onChange={this.handleTitleChange}
-                  className='custom-select a-custom-select'
-                  disabled={this.state.component.customType === 'Standard'}
-                >
-                  <option key={'empty'} value={''}>
-                    Choose text
-                  </option>
-                  {this.renderTextResourceOptions()}
-                </select>
+              <div className='form-group a-form-group mt-1'>
+                <label className='a-form-label' htmlFor='nameField'>Text:</label>
+                <div className='a-form-group-items input-group'>
+                  <select
+                    name={'editModal_text'}
+                    value={this.state.component.customType === 'Standard' ?
+                      this.state.component.textResourceId : this.state.component.title}
+                    onChange={this.handleTitleChange}
+                    className='custom-select a-custom-select'
+                    disabled={this.state.component.customType === 'Standard'}
+                  >
+                    <option value={''}>{'Choose text:'}</option>
+                    {this.renderTextResourceOptions()}
+                  </select>
+                </div>
+
               </div>
             ) : null}
           </div>
