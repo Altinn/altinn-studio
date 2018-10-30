@@ -6,6 +6,7 @@
   max-width: 800px;
   top: 10%;
   margin-bottom: 10%;
+  background: green;
 }
 
 .react-modal-overlay {
@@ -24,7 +25,12 @@
 .ReactModal__Body--open {
   overflow-y: hidden;
 }
-
+.option_test {
+  width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+} 
 .cursorPointer {
   cursor: pointer;
 }
