@@ -16,8 +16,8 @@
       "options": [
         "single",
         "avoid-escape",
-        "jsx-single",
-      ],
+        "jsx-single"
+      ]
     },
     "variable-name": [
       true,
