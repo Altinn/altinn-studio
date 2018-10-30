@@ -51,7 +51,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     } as IToolbarElement;
   });
 
-
   constructor(props: IToolbarProps, state: IToolbarState) {
     super(props, state);
     this.state = {
@@ -69,12 +68,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           repeating: false,
           dataModelGroup: null,
           index: 0,
-        } as ICreateFormContainer,
-        );
+        } as ICreateFormContainer);
       },
     };
     this.toolbarComponents.push(addContainerItem);
-
   }
 
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {

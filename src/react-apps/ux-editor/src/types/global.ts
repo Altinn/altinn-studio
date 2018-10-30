@@ -46,7 +46,6 @@ declare global {
     value: any;
   }
 
-
   export interface ICreateFormContainer {
     repeating: boolean;
     dataModelGroup: string;
@@ -77,7 +76,6 @@ declare global {
     required?: boolean;
     hidden?: boolean;
   }
-
 
   export interface IFormHeaderComponent extends IFormComponent {
     size: string;
