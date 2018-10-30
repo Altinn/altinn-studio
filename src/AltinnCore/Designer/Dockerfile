@@ -21,5 +21,6 @@ RUN dotnet publish AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o 
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS final
 EXPOSE 80
 WORKDIR /app
+COPY /src/AltinnCore/Templates /Templates
 COPY --from=build /app_output .
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]
