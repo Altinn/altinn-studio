@@ -27,7 +27,7 @@ fixture('Loggin in')
 test('Login and create new repo', async t => {
     await t
         .expect(loginpage.altinnHeader.exists).ok({timeout: 2500})
-        .expect(loginpage.altinnHeader.exists).eql('Altinn studio')
+        .expect(loginpage.altinnHeader.text).eql('Altinn studio')
         .click(landingpage.repoLink)
 		.click(landingpage.createButton)
 		-click(landingpage.newRepoButton);

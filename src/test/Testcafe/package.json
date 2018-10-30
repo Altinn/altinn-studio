@@ -1,7 +1,7 @@
 {
-  "name": "Testcafe",
+  "name": "testcafe",
   "version": "1.0.0",
-  "description": "",
+  "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,6 +11,8 @@
   "license": "ISC",
   "devDependencies": {
     "minimist": "^1.2.0",
-    "testcafe": "^0.22.0"
+    "process": "^0.11.10",
+    "testcafe": "^0.22.0",
+    "tslint": "^5.11.0"
   }
 }

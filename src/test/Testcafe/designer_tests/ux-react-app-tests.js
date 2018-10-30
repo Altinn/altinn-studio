@@ -1,17 +1,13 @@
 import { Selector, t } from 'testcafe';
 import App from '../app';
-import Page from '../page-objects/page';
 
-app = new App();
-page = new Page();
-
-
+var app = new App();
 
 fixture('UX react app tests')
-    .page(app.basepage)
-    .beforeEach()
+  .page(app.baseUrl)
+  .beforeEach()
 
-test('Repeating groups', () => {
-    await t
-        .Click()
-
+test('Repeating groups', async () => {
+  await t
+    .Click();
+});

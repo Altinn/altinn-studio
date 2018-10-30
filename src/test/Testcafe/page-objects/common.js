@@ -1,33 +1,33 @@
 import { Selector, t } from 'testcafe';
 
-export default class commonPage { 
-    constructor () {
-        this.repoLogoutButton = Selector("#navbar > div.right.stackable.menu > div.ui.dropdown.jump.item.poping.up.active.visible > div > a:nth-child(10)");
-        this.designerLogoutButton = Selector("#navbarSupportedContent > ul:nth-child(2) > li > div > a:nth-child(4)");
+export default class CommonPage {
+  constructor() {
+    this.repoLogoutButton = Selector("#navbar > div.right.stackable.menu").withText("Log out");
+    this.designerLogoutButton = Selector("#navbarSupportedContent > ul:nth-child(2) > li").withText("Log out");
+  }
+
+  async login(username, password, landingPage) {
+    await t
+      .typeText(this.userInput, username)
+      .typeText(this.passwordInput, password)
+      .click(landingPage.loginButton);
+  }
+
+  async repoLogout() {
+    if (this.repoLogoutButton.exists) {
+      await t
+        .click(this.repologoutButton);
+    } else {
+      await t
+        .click(this.designerLogoutButton);
     }
 
-    async login (username,password,landingPage) {
-        await t
-            .typeText(this.userInput, username)
-            .typeText(this.passwordInput, password)
-            .click(this.loginButton);
-    }
+    const signInElement = Selector(".signin")
+      .find('option')
+      .withExactText('Sign In');
 
-    async repoLogout () {      
-        if (this.repoLogoutButton.exists) {
-            await t
-                t.click(this.repologoutButton);
-        } else {
-            await t
-                t.click(this.designerLogoutButton);
-        }
-
-        const signInElement = '.signin';
-        const selector = Selector(signInElement)
-            .find('option')
-            .withExactText('Sign In');
-        await t
-            .expect(selector.exists)
-            .ok({timeout: 5000});
-    }
+    await t
+      .expect(signInElement.exists)
+      .ok({ timeout: 5000 });
+  }
 }
