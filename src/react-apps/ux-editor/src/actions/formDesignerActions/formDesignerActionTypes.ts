@@ -51,7 +51,6 @@ export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FOR
 export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
 export const TOGGLE_FORM_CONTAINER_REPEAT: string = `${moduleName}.TOGGLE_FORM_CONTAINER_REPEAT`;
 
-
 // Add active container actions
 export const ADD_ACTIVE_FORM_CONTAINER: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER`;
 export const ADD_ACTIVE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER_FULFILLED`;
