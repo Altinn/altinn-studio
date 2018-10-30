@@ -11,13 +11,13 @@ namespace AltinnCore.Designer.Controllers
     public class CodelistController : Controller
     {
         private readonly IRepository _repository;
-    private readonly ISourceControl _sourceControl;
+        private readonly ISourceControl _sourceControl;
 
-    /// <summary>
-    /// Initializes a new instance of the <see cref="CodelistController"/> class.
-    /// </summary>
-    /// <param name="repositoryService">The service repository service</param>
-    public CodelistController(IRepository repositoryService, ISourceControl sourceControl)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CodelistController"/> class.
+        /// </summary>
+        /// <param name="repositoryService">The service repository service</param>
+        public CodelistController(IRepository repositoryService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
             _sourceControl = sourceControl;
@@ -50,15 +50,15 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The view</returns>
         public IActionResult Status(string org)
         {
-          AltinnStudioViewModel model = new AltinnStudioViewModel();
-          model.CommitInfo = new CommitInfo() { Org = org, Repository = "codelists" };
+            AltinnStudioViewModel model = new AltinnStudioViewModel();
+            model.CommitInfo = new CommitInfo() { Org = org, Repository = "codelists" };
 
-          if (!string.IsNullOrEmpty(org))
-          {
-            model.RepositoryContent = _sourceControl.Status(org, "codelists");
-          }
+            if (!string.IsNullOrEmpty(org))
+            {
+                model.RepositoryContent = _sourceControl.Status(org, "codelists");
+            }
 
-          return View(model);
+            return View(model);
         }
 
 
@@ -87,13 +87,13 @@ namespace AltinnCore.Designer.Controllers
             string codeList = _repository.GetCodelist(org, service, edition, name);
             if (string.IsNullOrEmpty(codeList))
             {
-              // Try find the codelist at the service owner level
-              codeList = _repository.GetCodelist(org, null, null, name);
+                // Try find the codelist at the service owner level
+                codeList = _repository.GetCodelist(org, null, null, name);
             }
 
             if (string.IsNullOrEmpty(codeList))
             {
-              return Json("{}");
+                return Json("{}");
             }
 
             return Content(codeList);
@@ -151,7 +151,7 @@ namespace AltinnCore.Designer.Controllers
         {
             _repository.DeleteCodeList(org, service, edition, name);
 
-            return RedirectToRoute(routeName, 
+            return RedirectToRoute(routeName,
                 new { action = "Index", controller = "Codelist", org, service, edition });
         }
 
@@ -162,18 +162,18 @@ namespace AltinnCore.Designer.Controllers
             List<CodeList> codeLists = new List<CodeList>();
             Dictionary<string, string> serviceCodeLists = _repository.GetCodelists(org, service, edition);
 
-             int index = 1;
-            foreach(KeyValuePair<string,string> kvp in serviceCodeLists)
+            int index = 1;
+            foreach (KeyValuePair<string, string> kvp in serviceCodeLists)
             {
-              codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });
-              index++;
+                codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });
+                index++;
             }
 
             Dictionary<string, string> ownerCodeLists = _repository.GetCodelists(org, null, null);
             foreach (KeyValuePair<string, string> kvp in ownerCodeLists)
             {
-              codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });
-              index++;
+                codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });
+                index++;
             }
             return Json(codeLists);
         }

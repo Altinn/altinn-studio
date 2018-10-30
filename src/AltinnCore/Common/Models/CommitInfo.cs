@@ -4,7 +4,7 @@ using System.Text;
 
 namespace AltinnCore.Common.Models
 {
-   public class CommitInfo
+    public class CommitInfo
     {
         public string Message { get; set; }
 
