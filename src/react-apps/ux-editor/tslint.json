@@ -6,7 +6,27 @@
     "tslint-eslint-rules"
   ],
   "jsRules": {},
-  "rules": {},
+  "rules": {
+    "brace-style": [true, "1tbs"],
+    "indent": [true, "spaces", 2],
+    "no-console": true,
+    "no-submodule-imports": false,
+    "object-literal-sort-keys": false,
+    "quotemark": {
+      "options": [
+        "single",
+        "avoid-escape",
+        "jsx-single",
+      ],
+    },
+    "variable-name": [
+      true,
+      "check-format",
+      "allow-pascal-case",
+      "allow-leading-underscore",
+      "ban-keywords"
+    ]
+  },
   "rulesDirectory": [],
   "exclude": [
     "node_modules"
