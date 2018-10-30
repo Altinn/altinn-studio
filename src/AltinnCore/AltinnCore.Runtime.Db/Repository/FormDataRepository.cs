@@ -66,7 +66,7 @@ namespace AltinnCore.Runtime.Db.Repository
         {
             try
             {
-                string sqlQuery = string.Format("SELECT * FROM FORMDATA WHERE FORMDATA.reporteeElementId = '{0}' and FORMDATA.formId = '{1}'", reporteeElementId, formId);
+                string sqlQuery = $"SELECT * FROM FORMDATA WHERE FORMDATA.reporteeElementId = '{reporteeElementId}' and FORMDATA.formId = '{formId}'";
                 IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId) }).AsDocumentQuery();
                 FormData formData = null; 
                 while (query.HasMoreResults)
