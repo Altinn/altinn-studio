@@ -1,0 +1,10 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/HeaderComponent.tsx --- Snapshot +++ should match snapshot 1`] = `
+<h3
+  className="a-pageTitle"
+  id="test-id"
+>
+  test
+</h3>
+`;

@@ -1,0 +1,23 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/FileUploadComponent.tsx --- Snapshot >>> Capture snapshot of FileUploadComponent 1`] = `
+<div
+  className="js-attachmentForm"
+>
+  <label
+    className="a-btn a-btn-action a-iconRight a-custom-fileupload mb-0 mt-1 a-js-uploadAttachment"
+  >
+    <input
+      className="a-js-certificateContainer sr-only"
+      id="mock-id"
+      name="file"
+      onChange={[Function]}
+      type="file"
+    />
+    Add a file
+    <i
+      className="ai ai-upload"
+    />
+  </label>
+</div>
+`;

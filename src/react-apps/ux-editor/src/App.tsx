@@ -23,7 +23,7 @@ const PREVIEW = 'preview';
  * the mode of the application and loading initial data for the
  * application
  */
-class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
+export class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
 
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
