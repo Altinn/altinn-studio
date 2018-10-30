@@ -386,7 +386,6 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
       }));
   }
   public truncate = (s: string) => {
-    console.log(s, s.length);
     if (s.length > 50)
       return s.substring(0, 50);
     else
