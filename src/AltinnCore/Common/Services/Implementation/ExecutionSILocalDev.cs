@@ -93,20 +93,6 @@ namespace AltinnCore.Common.Services.Implementation
     }
 
     /// <summary>
-    /// Returns the RazorView for a given viewId and serviceId
-    /// </summary>
-    /// <param name="org">The Organization code for the service owner</param>
-    /// <param name="service">The service code for the current service</param>
-    /// <param name="viewName">The view name</param>
-    /// <returns>The name of the RazorView</returns>
-    ////public string GetRazorView(string org, string service, string viewName)
-    ////{
-    ////  var views = _viewRepository.GetViews(org, service);
-    ////  var result = views.GetDefaultRazerViewName(viewName);
-    ////  return result;
-    ////}
-
-    /// <summary>
     /// Generates a new service instanceID for a service
     /// </summary>
     /// <param name="org">The Organization code for the service owner</param>
