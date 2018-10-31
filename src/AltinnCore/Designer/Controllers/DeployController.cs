@@ -43,6 +43,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 ViewBag.ServiceUnavailable = true;
             }
+            ViewBag.test = _configuration["KvSetting:SecretUri"];
             
             return View();
         }
