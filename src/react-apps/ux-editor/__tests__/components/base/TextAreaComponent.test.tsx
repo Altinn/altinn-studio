@@ -14,7 +14,7 @@ describe('>>> components/base/TextAreaComponent.tsx --- Snapshot', () => {
     mockId = "mock-id";
     mockComponent = {
       id: mockId,
-      title: "test-checkboxescontainer",
+      title: "test-textarea",
       component: "Checkboxes",
     };
     mockHandleDataChange = (data: any) => null;

@@ -14,7 +14,7 @@ describe('>>> components/base/FileUploadComponent.tsx --- Snapshot', () => {
     mockId = "mock-id";
     mockComponent = {
       id: mockId,
-      title: "test-checkboxescontainer",
+      title: "test-fileuploader",
       component: "Checkboxes",
     };
     mockHandleDataChange = (data: any) => null;

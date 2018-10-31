@@ -13,7 +13,7 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
   beforeEach(() => {
     mockComponent = {
       id: 'test-id',
-      title: "test-checkboxescontainer",
+      title: "test-headercomponent",
       component: "Checkboxes",
     };
     mockText = "test";

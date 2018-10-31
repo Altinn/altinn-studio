@@ -16,7 +16,7 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
     mockId = "mock-id";
     mockComponent = {
       id: mockId,
-      title: "test-checkboxescontainer",
+      title: "test-dropdowncomponent",
       component: "Checkboxes",
       options: [{
         label: 'test-label-1',

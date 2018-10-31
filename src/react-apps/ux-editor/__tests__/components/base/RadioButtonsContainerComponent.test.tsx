@@ -16,7 +16,7 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
     mockId = "mock-id";
     mockComponent = {
       id: mockId,
-      title: "test-checkboxescontainer",
+      title: "test-radiobuttonscontainer",
       component: "Checkboxes",
       options: [{
         label: 'test-label-1',
