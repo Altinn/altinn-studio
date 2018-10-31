@@ -93,3 +93,19 @@ export function* fetchFormDataSaga({ url }: FormFillerActions.IFetchFormDataActi
 export function* watchFetchFormDataSaga(): SagaIterator {
   yield takeLatest(FormFillerActionTypes.FETCH_FORM_DATA, fetchFormDataSaga);
 }
+
+export function* resetFormDataSaga({ url }: FormFillerActions.IResetFormDataAction): SagaIterator {
+  try {
+    const formData = yield call(get, url);
+    const appDataState: IAppDataState = yield select(selectAppData);
+    yield call(FormFillerActionDispatcher.resetFormDataFulfilled,
+      convertModelToDataBinding(formData, appDataState.dataModel.model));
+    yield call(FormDesignerActionDispatchers.generateRepeatingGroupsAction);
+  } catch (err) {
+    yield call(FormFillerActionDispatcher.fetchFormDataRejected, err);
+  }
+}
+
+export function* watchResetFormDataSaga(): SagaIterator {
+  yield takeLatest(FormFillerActionTypes.RESET_FORM_DATA, resetFormDataSaga);
+}

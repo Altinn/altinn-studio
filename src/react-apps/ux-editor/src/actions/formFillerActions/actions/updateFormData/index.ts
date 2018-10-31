@@ -22,6 +22,15 @@ export interface IUpdateValidationErrors extends Action {
 export interface IUpdateFormDataActionRejected extends Action {
   error: Error;
 }
+export interface IResetFormDataAction extends Action {
+  url: string;
+}
+export interface IResetFormDataActionFulfilled extends Action {
+  formData: any;
+}
+export interface IResetFormDataActionRejected extends Action {
+  error: Error;
+}
 
 export function updateFormDataAction(
   componentID: string,
@@ -59,6 +68,28 @@ export function updateFormDataActionRejected(
 ): IUpdateFormDataActionRejected {
   return {
     type: ActionTypes.UPDATE_FORM_DATA_FULFILLED,
+    error,
+  };
+}
+// reset formdata
+export function resetFormDataAction(url: string): IResetFormDataAction {
+  return {
+    type: ActionTypes.RESET_FORM_DATA,
+    url,
+  };
+}
+
+export function resetFormDataFulfilled(formData: any): IResetFormDataActionFulfilled {
+  return {
+    type: ActionTypes.RESET_FORM_DATA_FULFILLED,
+    formData,
+  };
+}
+export function resetFormDataActionRejected(
+  error: Error,
+): IResetFormDataActionRejected {
+  return {
+    type: ActionTypes.RESET_FORM_DATA_REJECTED,
     error,
   };
 }

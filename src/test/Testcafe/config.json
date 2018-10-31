@@ -1,0 +1,11 @@
+{
+  "local": {
+    "baseUrl": "http://altinn3.no"
+  },
+  "dev": {
+    "baseUrl": "base for dev"
+  },
+  "uat": {
+    "baseUrl": "base for uat"
+  }
+}

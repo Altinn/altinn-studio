@@ -5,7 +5,9 @@ export interface IRadioButtonsContainerProps {
   component: IFormComponent;
   formData: any;
   handleDataChange: (value: any) => void;
+  getTextResource: (resourceKey: string) => string;
   isValid?: boolean;
+  designMode: boolean;
 }
 
 export interface IRadioButtonsContainerState {
@@ -48,7 +50,7 @@ export class RadioButtonContainerComponent
               checked={this.state.selected === option.value}
             />
             <label className='custom-control-label pl-3 a-radioButtons-title'>
-              {option.label}
+              {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
             </label>
           </div>
         ))}

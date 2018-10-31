@@ -6,7 +6,10 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
-import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
+import { SwitchComponent } from '../components/widget/SwitchComponent';
+import {makeGetDesignModeSelector} from '../selectors/getAppData';
+import { makeGetFormDataSelector } from '../selectors/getFormData';
+import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 
 export interface IProvidedContainerProps {
@@ -29,7 +32,7 @@ export interface IContainerProps extends IProvidedContainerProps {
 export class ContainerComponent extends React.Component<IContainerProps> {
 
   public handleContainerDelete = (e: any) => {
-    FormDesignerActionDispatchers.deleteFormContainer(this.props.id);
+    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
     e.stopPropagation();
   }
 
@@ -48,8 +51,8 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue);
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
@@ -63,17 +66,36 @@ export class ContainerComponent extends React.Component<IContainerProps> {
           className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
           onClick={this.changeActiveFormContainer}>
           {
-            this.props.designMode &&
-            <div className='col-1'>
-              {this.renderDeleteGroupButton()}
+            this.props.designMode && !this.props.baseContainer &&
+            <div className="row">
+              <div className='col-1'>
+                {this.renderDeleteGroupButton()}
+              </div>
+              <div className='col-3 offset-8 row'>
+                <span className="col-6">Repeating:</span>
+                <div className="col-5">
+                  <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
+                </div>
+              </div>
             </div>
           }
+
           {this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ? this.renderFormComponent(id, index) :
               (this.props.containers[id] ? this.renderContainer(id) : null)
           ))}
+          {
+            !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
+            <button
+              className={'a-btn a-btn-action offset-10'}
+              onClick={this.handleContainerDelete}
+            >
+              <span>Fjern gruppe</span>
+            </button>
+          }
         </div>
-        {this.renderNewGroupButton()}
+
+        {!this.props.designMode && this.renderNewGroupButton()}
       </div>
     );
   }
@@ -116,7 +138,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <button
         className={'a-btn a-btn-action'}
         onClick={this.handleAddNewGroup}
-        disabled={this.props.designMode}
       >
         <i className={'ai ai-plus'} />
         <span>Legg til gruppe</span>
@@ -151,49 +172,36 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
     }
   }
+  public toggleChange = () => {
+    FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
+  }
 }
 
-// TODO: replace this with a selector?
-const getFormData = (
-  containerId: string,
-  layout: IFormLayoutState,
-  formData: any,
-  dataModelGroup: string,
-  index: number,
-  repeating: boolean,
-): any => {
-  const components = layout.order[containerId].filter(id => layout.components[id]);
-  if (!components) {
-    return null;
-  }
-  const filteredFormData: any = {};
-  components.forEach((componentId) => {
-    const dataModelBinding = layout.components[componentId].dataModelBinding;
-    const dataModelWithIndex = dataModelBinding && repeating ? dataModelBinding.replace(dataModelGroup, dataModelGroup
-      + `[${index}]`) : dataModelBinding;
-    if (formData[dataModelWithIndex]) {
-      filteredFormData[dataModelBinding] = formData[dataModelWithIndex];
-    }
-  });
-  return filteredFormData;
-};
-
-const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
-  const layout = state.formDesigner.layout;
-  const container = layout.containers[props.id];
-  return {
-    id: props.id,
-    index: layout.containers[props.id].index,
-    itemOrder: layout.order[props.id],
-    components: layout.components,
-    containers: layout.containers,
-    designMode: state.appData.appConfig.designMode,
-    repeating: container.repeating,
-    formData: getFormData(props.id, layout, state.formFiller.formData, container.dataModelGroup,
-      layout.containers[props.id].index, container.repeating),
-    dataModelGroup: layout.containers[props.id].dataModelGroup,
-    formContainerActive: state.formDesigner.layout.activeContainer === props.id,
+const makeMapStateToProps = () => {
+  const GetFormDataSelector = makeGetFormDataSelector();
+  const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
+  const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  const GetDesignModeSelector = makeGetDesignModeSelector();
+  const GetActiveFormContainer = makeGetActiveFormContainer();
+  const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
+    const containers = GetLayoutContainersSelector(state);
+    const container = containers[props.id];
+    const order = GetLayoutOrderSelector(state);
+    return {
+      id: props.id,
+      index: container.index,
+      itemOrder: order[props.id],
+      components: GetLayoutComponentsSelector(state),
+      containers,
+      designMode: GetDesignModeSelector(state),
+      repeating: container.repeating,
+      formData: GetFormDataSelector(state, props),
+      dataModelGroup: container.dataModelGroup,
+      formContainerActive: GetActiveFormContainer(state, props),
+    };
   };
+  return mapStateToProps;
 };
 
-export const Container = connect(mapStateToProps)(ContainerComponent);
+export const Container = connect(makeMapStateToProps)(ContainerComponent);

@@ -11,6 +11,7 @@ import {
   watchSaveFormLayoutSaga,
   watchUpdateDataModelBindingSaga,
   watchUpdateFormComponentSaga,
+  watchToggleFormContainerRepeatingSaga,
 } from './formDesignerSagas';
 
 export default function* (): SagaIterator {
@@ -24,4 +25,5 @@ export default function* (): SagaIterator {
   yield fork(watchSaveFormLayoutSaga);
   yield fork(watchUpdateDataModelBindingSaga);
   yield fork(watchUpdateFormComponentSaga);
+  yield fork(watchToggleFormContainerRepeatingSaga);
 }

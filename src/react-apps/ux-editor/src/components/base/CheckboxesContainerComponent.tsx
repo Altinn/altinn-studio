@@ -7,6 +7,7 @@ export interface ICheckboxContainerProps {
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid: boolean;
+  designMode: boolean;
 }
 
 export interface ICheckboxContainerState {
@@ -33,7 +34,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             className={this.props.isValid ? 'custom-control-input' : 'custom-control-input validation-error'}
           />
           <label className={'pl-3 custom-control-label a-fontBold'} htmlFor={this.props.component.id}>
-            {this.props.getTextResource(this.props.component.title)}
+            {this.props.designMode ? this.props.component.title : this.props.getTextResource(this.props.component.title)}
           </label>
         </div>
       </div>
