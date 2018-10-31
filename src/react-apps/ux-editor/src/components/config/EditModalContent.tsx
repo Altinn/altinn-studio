@@ -379,7 +379,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
       this.props.textResources.map((resource, index) => {
         const option = this.truncate(resource.value);
         return (
-          <option key={index} value={resource.id}>
+          <option key={index} value={resource.id} title={resource.value}>
             {option}
           </option>
         );
