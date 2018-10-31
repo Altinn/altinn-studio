@@ -61,22 +61,29 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
-  public componentDidMount() {
-    const addContainerItem: IToolbarElement = {
-      label: 'Add container',
-      actionMethod: () => {
-        FormActionDispatcher.addFormContainer({
-          repeating: false,
-          dataModelGroup: null,
-          index: 0,
-        } as ICreateFormContainer,
-        );
-      },
-    };
-    this.toolbarComponents.push(addContainerItem);
-
+  public addContainerToLayout() {
+    FormActionDispatcher.addFormContainer({
+      repeating: false,
+      dataModelGroup: null,
+      index: 0,
+    } as ICreateFormContainer,
+    );
   }
 
+  public renderContainer() {
+    return (
+      <div className='row a-topTasks'>
+        <div className='col col-lg-12'>
+          <button
+            type="button"
+            className={'a-btn a-btn-icon'}
+            onClick={this.addContainerToLayout}>
+            <span className='a-btn-icon-text'>Add container</span>
+          </button>
+        </div>
+      </div>
+    )
+  }
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     FormActionDispatcher.addFormComponent({
       component: THIRD_PARTY_COMPONENT,
@@ -156,6 +163,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             );
           })}
         </div>
+        {this.renderContainer()}
         {this.renderThirdPartyComponents()}
         <div className='d-block'>
           <ExternalApiModalComponent />
