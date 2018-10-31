@@ -7,7 +7,7 @@ import FormFillerActionDispatchers from '../actions/formFillerActions/formFiller
 import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
-import {makeGetDesignModeSelector} from '../selectors/getAppData';
+import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
@@ -168,7 +168,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
   }
   public changeActiveFormContainer = () => {
-    if (!this.props.baseContainer) {
+    if (!this.props.baseContainer && this.props.designMode) {
       FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
     }
   }
