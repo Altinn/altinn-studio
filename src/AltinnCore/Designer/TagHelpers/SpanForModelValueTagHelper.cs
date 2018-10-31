@@ -23,7 +23,7 @@ namespace AltinnCore.Designer.TagHelpers
         {
             Generator = generator;
         }
-        
+
         /// <summary>
         /// Gets the order
         /// </summary>
@@ -34,19 +34,19 @@ namespace AltinnCore.Designer.TagHelpers
                 return -1000;
             }
         }
-        
+
         /// <summary>
         /// Gets or sets an expression to be evaluated against the current model.
         /// </summary>
         [HtmlAttributeName(ForAttributeName)]
         public ModelExpression For { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the key for the text to use
         /// </summary>
         [HtmlAttributeName(AltinnTextKeyAttributeName)]
         public string AltinnTextKey { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the current view context (injected)
         /// </summary>
@@ -59,7 +59,7 @@ namespace AltinnCore.Designer.TagHelpers
         /// </summary>
         protected IHtmlGenerator Generator { get; }
 
-        #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         /// <summary>
         /// Processes an element, and replaces the content if the conditions are met
         /// </summary>
@@ -67,7 +67,7 @@ namespace AltinnCore.Designer.TagHelpers
         /// <param name="output">The output which is written to</param>
         /// <returns>A task</returns>
         public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
-        #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             var modelExplorer = For.ModelExplorer;
 

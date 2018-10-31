@@ -50,7 +50,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The service repository service</param>
         /// <param name="logger">The logger</param>
         public CompilationSI(
-            IOptions<ServiceRepositorySettings> configuration, 
+            IOptions<ServiceRepositorySettings> configuration,
             ApplicationPartManager partManager,
             IViewCompiler compilationService,
             IRepository repositoryService,
@@ -102,7 +102,7 @@ namespace AltinnCore.Common.Services.Implementation
             string detailsAsJson = JsonConvert.SerializeObject(details);
             string filePath = tempDirPath + "/ServicePackageDetails.json";
             File.WriteAllText(filePath, detailsAsJson, Encoding.UTF8);
-            
+
             ZipFile.CreateFromDirectory(tempDirPath, packagesDir + tempDirName + ".zip");
 
             Directory.Delete(tempDirPath, true);
@@ -143,18 +143,18 @@ namespace AltinnCore.Common.Services.Implementation
             SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, service);
             List<MetadataReference> references = new List<MetadataReference>();
             Assembly root = Assembly.GetEntryAssembly();
-           
+
             string assemblyName = Path.GetRandomFileName();
 
             MetadataReferenceFeature referenceFeature = new MetadataReferenceFeature();
             _partManager.PopulateFeature(referenceFeature);
-            
+
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
                 references: referenceFeature.MetadataReferences,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            
+
             using (var pdbMs = new MemoryStream())
             using (var ms = new MemoryStream())
             {
@@ -163,7 +163,7 @@ namespace AltinnCore.Common.Services.Implementation
                 stopWatch.Start();
                 if (!string.IsNullOrEmpty(outputLocation))
                 {
-                   result = compilation.Emit(outputLocation + assemblyName + ".dll", outputLocation + assemblyName + ".pdb");
+                    result = compilation.Emit(outputLocation + assemblyName + ".dll", outputLocation + assemblyName + ".pdb");
                 }
                 else
                 {
@@ -233,7 +233,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                         _assemblyNames.Add(assemblykey, compilationResult);
                     }
-                   
+
                     return compilationResult;
                 }
             }
@@ -282,7 +282,7 @@ namespace AltinnCore.Common.Services.Implementation
             var ext = new List<string> { ".cs" };
             var codeFiles = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
                  .Where(s => ext.Any(e => s.EndsWith(e)));
-            
+
             foreach (string filePath in codeFiles)
             {
                 using (var stream = File.OpenRead(filePath))

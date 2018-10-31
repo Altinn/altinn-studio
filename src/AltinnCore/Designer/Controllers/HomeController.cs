@@ -21,211 +21,211 @@ using System.Threading.Tasks;
 
 namespace AltinnCore.Designer.Controllers
 {
-  /// <summary>
-  /// The default MVC controller in the application
-  /// </summary>
-  public class HomeController : Controller
-  {
-    private readonly IRepository _repository;
-    private readonly IGitea _giteaApi;
-    private ILogger<HomeController> _logger;
-    private readonly ServiceRepositorySettings _settings;
-    private readonly ISourceControl _sourceControl;
-
     /// <summary>
-    /// Initializes a new instance of the <see cref="HomeController"/> class
+    /// The default MVC controller in the application
     /// </summary>
-    /// <param name="repositoryService">The repository service</param>
-    /// <param name="logger">The logger</param>
-    public HomeController(IRepository repositoryService, ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
+    public class HomeController : Controller
     {
-      _repository = repositoryService;
-      _logger = logger;
-      _settings = repositorySettings.Value;
-      _giteaApi = giteaWrapper;
-      _sourceControl = sourceControl;
-    }
+        private readonly IRepository _repository;
+        private readonly IGitea _giteaApi;
+        private ILogger<HomeController> _logger;
+        private readonly ServiceRepositorySettings _settings;
+        private readonly ISourceControl _sourceControl;
 
-    /// <summary>
-    /// The default action presenting a list of available services
-    /// </summary>
-    /// <returns>The front page</returns>
-    [Authorize]
-    public ActionResult Index(RepositorySearch repositorySearch)
-    {
-      AltinnStudioViewModel model = new AltinnStudioViewModel();
-      SearchResults repositorys = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
-      if (repositorys != null)
-      {
-        model.Repositories = repositorys.Data;
-
-        if (model.Repositories != null)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="HomeController"/> class
+        /// </summary>
+        /// <param name="repositoryService">The repository service</param>
+        /// <param name="logger">The logger</param>
+        public HomeController(IRepository repositoryService, ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
         {
-          foreach (Repository repo in model.Repositories)
-          {
-            repo.IsClonedToLocal = _sourceControl.IsLocalRepo(repo.Owner.Login, repo.Name);
-          }
+            _repository = repositoryService;
+            _logger = logger;
+            _settings = repositorySettings.Value;
+            _giteaApi = giteaWrapper;
+            _sourceControl = sourceControl;
         }
-      }
 
-      if (repositorySearch.OnlyLocalRepositories)
-      {
-        model.Repositories = model.Repositories.FindAll(r => r.IsClonedToLocal);
-      }
-
-      model.RepositorySearch = repositorySearch;
-      //IList<OrgConfiguration> owners = _repository.GetOwners();
-      return View(model);
-    }
-
-
-
-
-    /// <summary>
-    /// View for creating new org
-    /// </summary>
-    /// <returns>The create org page</returns>
-    [Authorize]
-    public ActionResult CreateOrg()
-    {
-      return View();
-    }
-
-    /// <summary>
-    /// Creates a new service owner org
-    /// </summary>
-    /// <param name="name">The service owner name</param>
-    /// <param name="code">The service owner code</param>
-    /// <returns>The front page</returns>
-    [HttpPost]
-    [Authorize]
-    public ActionResult CreateOrg(string name, string code)
-    {
-      if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(code))
-      {
-        var config = new OrgConfiguration
+        /// <summary>
+        /// The default action presenting a list of available services
+        /// </summary>
+        /// <returns>The front page</returns>
+        [Authorize]
+        public ActionResult Index(RepositorySearch repositorySearch)
         {
-          Name = name,
-          Code = code.ToUpper()
-        };
-
-        _repository.CreateOrg(config);
-      }
-
-      return this.RedirectToAction("Index", "Home");
-    }
-
-    /// <summary>
-    /// Action for presenting the Not Authorized View
-    /// </summary>
-    /// <returns>The view telling user that user was not authorized</returns>
-    public IActionResult NotAuthorized()
-    {
-      return View();
-    }
-
-    /// <summary>
-    /// Action for presenting licensing information
-    /// </summary>
-    /// <returns>The Licensing view</returns>
-    public IActionResult Licensing()
-    {
-      return View();
-    }
-
-    /// <summary>
-    /// Action for presenting documentation
-    /// </summary>
-    /// <returns>The Doc view</returns>
-    public IActionResult Docs()
-    {
-      return View();
-    }
-
-    /// <summary>
-    /// Action for presenting information about the product
-    /// </summary>
-    /// <returns>The About view</returns>
-    public IActionResult About()
-    {
-      return View();
-    }
-
-    /// <summary>
-    /// Action for presenting error
-    /// </summary>
-    /// <returns>The Error view</returns>
-    public IActionResult Error()
-    {
-      return View();
-    }
-
-    public async Task<IActionResult> Login()
-    {
-      string userName = "TestUser";
-      string goToUrl = "/";
-
-      if (_settings.ForceGiteaAuthentication)
-      {
-        // Temporary catch errors until we figure out how to force this.
-        try
-        {
-          string sessionId = Request.Cookies[_settings.GiteaCookieName];
-          AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
-          if (user == null)
-          {
-            if (Environment.GetEnvironmentVariable("GiteaLoginEndpoint") != null)
+            AltinnStudioViewModel model = new AltinnStudioViewModel();
+            SearchResults repositorys = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
+            if (repositorys != null)
             {
-              return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
+                model.Repositories = repositorys.Data;
+
+                if (model.Repositories != null)
+                {
+                    foreach (Repository repo in model.Repositories)
+                    {
+                        repo.IsClonedToLocal = _sourceControl.IsLocalRepo(repo.Owner.Login, repo.Name);
+                    }
+                }
             }
-            return Redirect(_settings.GiteaLoginUrl);
-          }
 
-          userName = user.Login;
+            if (repositorySearch.OnlyLocalRepositories)
+            {
+                model.Repositories = model.Repositories.FindAll(r => r.IsClonedToLocal);
+            }
+
+            model.RepositorySearch = repositorySearch;
+            //IList<OrgConfiguration> owners = _repository.GetOwners();
+            return View(model);
         }
-        catch (Exception ex)
+
+
+
+
+        /// <summary>
+        /// View for creating new org
+        /// </summary>
+        /// <returns>The create org page</returns>
+        [Authorize]
+        public ActionResult CreateOrg()
         {
-          return Content(ex.ToString());
+            return View();
         }
-      }
 
-      List<Claim> claims = new List<Claim>();
-      const string Issuer = "https://altinn.no";
-      claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
+        /// <summary>
+        /// Creates a new service owner org
+        /// </summary>
+        /// <param name="name">The service owner name</param>
+        /// <param name="code">The service owner code</param>
+        /// <returns>The front page</returns>
+        [HttpPost]
+        [Authorize]
+        public ActionResult CreateOrg(string name, string code)
+        {
+            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(code))
+            {
+                var config = new OrgConfiguration
+                {
+                    Name = name,
+                    Code = code.ToUpper()
+                };
 
-      ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
-      identity.AddClaims(claims);
+                _repository.CreateOrg(config);
+            }
 
-      ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+            return this.RedirectToAction("Index", "Home");
+        }
 
-      await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
-                      new AuthenticationProperties
-                      {
-                        ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
-                        IsPersistent = false,
-                        AllowRefresh = false
-                      });
+        /// <summary>
+        /// Action for presenting the Not Authorized View
+        /// </summary>
+        /// <returns>The view telling user that user was not authorized</returns>
+        public IActionResult NotAuthorized()
+        {
+            return View();
+        }
 
-      return LocalRedirect(goToUrl);
+        /// <summary>
+        /// Action for presenting licensing information
+        /// </summary>
+        /// <returns>The Licensing view</returns>
+        public IActionResult Licensing()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Action for presenting documentation
+        /// </summary>
+        /// <returns>The Doc view</returns>
+        public IActionResult Docs()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Action for presenting information about the product
+        /// </summary>
+        /// <returns>The About view</returns>
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        /// <summary>
+        /// Action for presenting error
+        /// </summary>
+        /// <returns>The Error view</returns>
+        public IActionResult Error()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> Login()
+        {
+            string userName = "TestUser";
+            string goToUrl = "/";
+
+            if (_settings.ForceGiteaAuthentication)
+            {
+                // Temporary catch errors until we figure out how to force this.
+                try
+                {
+                    string sessionId = Request.Cookies[_settings.GiteaCookieName];
+                    AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
+                    if (user == null)
+                    {
+                        if (Environment.GetEnvironmentVariable("GiteaLoginEndpoint") != null)
+                        {
+                            return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
+                        }
+                        return Redirect(_settings.GiteaLoginUrl);
+                    }
+
+                    userName = user.Login;
+                }
+                catch (Exception ex)
+                {
+                    return Content(ex.ToString());
+                }
+            }
+
+            List<Claim> claims = new List<Claim>();
+            const string Issuer = "https://altinn.no";
+            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
+
+            ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
+            identity.AddClaims(claims);
+
+            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+                            new AuthenticationProperties
+                            {
+                                ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
+                                IsPersistent = false,
+                                AllowRefresh = false
+                            });
+
+            return LocalRedirect(goToUrl);
+        }
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return LocalRedirect("/user/logout");
+        }
+
+        [HttpGet]
+        public IActionResult AppToken()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult AppToken(AppKey appKey)
+        {
+            _sourceControl.StoreAppTokenForUser(appKey.Key);
+            return Redirect("/");
+        }
+
     }
-    public async Task<IActionResult> Logout()
-    {
-      await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-      return LocalRedirect("/user/logout");
-    }
-
-    [HttpGet]
-    public IActionResult AppToken()
-    {
-      return View();
-    }
-
-    [HttpPost]
-    public IActionResult AppToken(AppKey appKey)
-    {
-      _sourceControl.StoreAppTokenForUser(appKey.Key);
-      return Redirect("/");
-    }
-
-  }
 }
