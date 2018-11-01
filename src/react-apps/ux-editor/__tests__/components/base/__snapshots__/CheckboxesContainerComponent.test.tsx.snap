@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> Capture snapshot of CheckboxesContainerComponent 1`] = `
+<div
+  className="form-group"
+  id="mock-id"
+>
+  <div
+    className="pl-0 custom-control custom-control-stacked custom-checkbox a-custom-checkbox"
+    onClick={[Function]}
+  >
+    <input
+      checked={false}
+      className="custom-control-input"
+      name="mock-id"
+      type="checkbox"
+    />
+    <label
+      className="pl-3 custom-control-label a-fontBold"
+      htmlFor="mock-id"
+    >
+      test-checkboxescontainer
+    </label>
+  </div>
+</div>
+`;

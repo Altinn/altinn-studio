@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing all actions related to testing of editions
+    /// Controller containing all actions related to testing of services
     /// </summary>
     public class TestingController : Controller
     {
@@ -22,29 +22,27 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// The default action for this controller. Returns a view which lists all tests for an edition
+        /// The default action for this controller. Returns a view which lists all tests for a service
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition code</param>
-        /// <returns>A view which lists all tests for the given edition</returns>
-        public IActionResult Index(string org, string service, string edition)
+        /// <returns>A view which lists all tests for the given service</returns>
+        public IActionResult Index(string org, string service)
         {
-            IList<TestMetadata> tests = _testingRepository.GetTests(org, service, edition);
+            IList<TestMetadata> tests = _testingRepository.GetTests(org, service);
 
             return View(tests);
         }
 
         /// <summary>
         /// Action which returns a form view for creating a new test under the
-        /// current edition
+        /// current service
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition code</param>
         /// <returns>The create new test view</returns>
         [HttpGet]
-        public ActionResult Create(string org, string service, string edition)
+        public ActionResult Create(string org, string service)
         {
             return View();
         }
@@ -54,20 +52,19 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition code</param>
         /// <param name="test">The test metadata (name required)</param>
         /// <returns>Edit view if test is created, else the create view</returns>
         [HttpPost]
-        public IActionResult Create(string org, string service, string edition, TestMetadata test)
+        public IActionResult Create(string org, string service, TestMetadata test)
         {
             if (!ModelState.IsValid)
             {
                 return View("Create", test);
             }
 
-            if (_testingRepository.UpdateTest(org, service, edition, test))
+            if (_testingRepository.UpdateTest(org, service, test))
             {
-                return RedirectToAction("Edit", new { org, service, edition, id = test.Name });
+                return RedirectToAction("Edit", new { org, service, id = test.Name });
             }
             else
             {
@@ -80,16 +77,15 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition</param>
         /// <param name="id">The name of the test</param>
         /// <returns>The contents of the test identified by the given <paramref name="name"/></returns>
-        public IActionResult Edit(string org, string service, string edition, string id)
+        public IActionResult Edit(string org, string service, string id)
         {
             var meta = new TestMetadata
             {
                 Name = id
             };
-            string test = _testingRepository.GetTest(org, service, edition, id);
+            string test = _testingRepository.GetTest(org, service, id);
 
             return View(meta);
         }
@@ -99,9 +95,8 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition</param>
         /// <returns>The view for accessibility testing</returns>
-        public IActionResult Accessibility(string org, string service, string edition)
+        public IActionResult Accessibility(string org, string service)
         {
             return View();
         }

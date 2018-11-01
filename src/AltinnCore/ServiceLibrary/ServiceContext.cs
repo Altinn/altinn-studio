@@ -36,11 +36,6 @@ namespace AltinnCore.ServiceLibrary
         public string ServiceCode { get; set; }
 
         /// <summary>
-        /// Gets or sets the service edition
-        /// </summary>
-        public string Edition { get; set; }
-
-        /// <summary>
         /// Gets or sets the current culture
         /// </summary>
         public string CurrentCulture { get; set; }
@@ -64,11 +59,6 @@ namespace AltinnCore.ServiceLibrary
         /// Gets or sets the service metadata
         /// </summary>
         public ServiceMetadata.ServiceMetadata ServiceMetaData { get; set; }
-
-        /// <summary>
-        /// Gets or sets the views.
-        /// </summary>
-        public IList<ViewMetadata> ViewMetadata { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the root element in the data model

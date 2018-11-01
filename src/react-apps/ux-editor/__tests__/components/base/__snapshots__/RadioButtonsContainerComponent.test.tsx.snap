@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot >>> Capture snapshot of RadioButtonsContainerComponent 1`] = `
+<div
+  className="form-group"
+  id="mock-id"
+>
+  <div
+    className="custom-control custom-radio pl-0 a-custom-radio custom-control-stacked"
+    onClick={[Function]}
+  >
+    <input
+      checked={false}
+      className="custom-control-input"
+      name="radio-mock-id"
+      type="radio"
+    />
+    <label
+      className="custom-control-label pl-3 a-radioButtons-title"
+    >
+      test-label-1
+    </label>
+  </div>
+  <div
+    className="custom-control custom-radio pl-0 a-custom-radio custom-control-stacked"
+    onClick={[Function]}
+  >
+    <input
+      checked={false}
+      className="custom-control-input"
+      name="radio-mock-id"
+      type="radio"
+    />
+    <label
+      className="custom-control-label pl-3 a-radioButtons-title"
+    >
+      test-label-1
+    </label>
+  </div>
+</div>
+`;

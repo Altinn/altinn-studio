@@ -53,16 +53,14 @@ namespace AltinnCore.Common.Helpers
         }
 
         /// <summary>
-        /// The assert org, service and edition arguments are present (not null or whitespace).
+        /// The assert org and service arguments are present (not null or whitespace).
         /// </summary>
         /// <param name="org"> The org. </param>
         /// <param name="service"> The service. </param>
-        /// <param name="edition"> The edition. </param>
-        public static void AssertOrgServiceEdition(string org, string service, string edition)
+        public static void AssertOrgService(string org, string service)
         {
             AssertArgumentNotNullOrWhiteSpace(org, nameof(org));
             AssertArgumentNotNullOrWhiteSpace(service, nameof(service));
-            AssertArgumentNotNullOrWhiteSpace(edition, nameof(edition));
         }
     }
 }

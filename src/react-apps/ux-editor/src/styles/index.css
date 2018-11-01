@@ -20,6 +20,10 @@
   justify-content: center;
   overflow-y: auto;
 }
+option {
+  overflow: 'hidden';
+  text-overflow: 'ellipsis'; 
+}
 
 .ReactModal__Body--open {
   overflow-y: hidden;

@@ -49,11 +49,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition</param>
         /// <param name="ruleContainers">The rule containers to generate logic based on</param>
         /// <param name="serviceMetadata">The service metadata of the service to generate the class for</param>
         public void CreateCalculationsAndValidationsClass(
-            string org, string service, string edition,
+            string org, string service,
             List<RuleContainer> ruleContainers, ServiceMetadata serviceMetadata)
         {
             List<char> reservedIndexNames = new List<char>();
@@ -74,7 +73,7 @@ namespace AltinnCore.Common.Services.Implementation
                 { ServiceEventType.ValidateInstantiation, string.Empty },
                 { ServiceEventType.Validation, string.Empty }
             };
-            CreateClassFromTemplate(org, service, edition, eventLogic, allMethods, serviceMetadata);
+            CreateClassFromTemplate(org, service, eventLogic, allMethods, serviceMetadata);
         }
         
         /// <summary>
@@ -351,7 +350,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         private void CreateClassFromTemplate(
-            string org, string service, string edition, Dictionary<ServiceEventType, string> eventLogic, 
+            string org, string service, Dictionary<ServiceEventType, string> eventLogic, 
             Dictionary<string, string> methods, ServiceMetadata serviceMetadata)
         {
             eventLogic.OrderBy(x => x.Key);
@@ -363,14 +362,14 @@ namespace AltinnCore.Common.Services.Implementation
             List<string> formattingElements = eventLogic.Values.ToList();
             formattingElements.Add(string.Join("\n", methods.Values));
 
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
             textData = string.Format(textData, formattingElements.ToArray());
 
             // Create the service implementation folder
-            Directory.CreateDirectory(_settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            Directory.CreateDirectory(_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
             // Get the file path
-            string generatedMethodsFilePath = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))
+            string generatedMethodsFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))
                 + _settings.GeneratedMethodsFileName;
 
             textData = textData.Replace(CodeGeneration.DefaultServiceModelName, serviceMetadata.Elements.Values.First(el => el.ParentElement == null).ID);
