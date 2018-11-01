@@ -27,8 +27,8 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service, edition, instanceId, reportee } = altinnWindow;
-    const serviceEditionPath = `${org}/${service}/${edition}`;
+    const { org, service, instanceId, reportee } = altinnWindow;
+    const servicePath = `${org}/${service}`;
 
     if (altinnWindow.location.pathname.split('/')[1].toLowerCase() === RUNTIME) {
       // RUNTIME
@@ -37,27 +37,27 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
       // Fetch data model
       appDataActionDispatcher.fetchDataModel(
-        `${altinnWindow.location.origin}/runtime/api/metadata/${serviceEditionPath}/ServiceMetaData`);
+        `${altinnWindow.location.origin}/runtime/api/metadata/${servicePath}/ServiceMetaData`);
 
       // Fetch form layout
       formDesignerActionDispatchers.fetchFormLayout(
-        `${altinnWindow.location.origin}/runtime/api/resource/${serviceEditionPath}/FormLayout.json`);
+        `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/FormLayout.json`);
 
       // Load text resources
       appDataActionDispatcher.loadTextResources(
-        `${altinnWindow.location.origin}/runtime/api/textresources/${serviceEditionPath}`);
+        `${altinnWindow.location.origin}/runtime/api/textresources/${servicePath}`);
 
       // Fetch rule model
       appDataActionDispatcher.fetchRuleModel(
-        `${altinnWindow.location.origin}/runtime/api/resource/${serviceEditionPath}/RuleHandler.js`);
+        `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/RuleHandler.js`);
 
       // Fetch form data
       formFillerActionDispatchers.fetchFormData(
-        `${altinnWindow.location.origin}/runtime/api/${reportee}/${serviceEditionPath}/Index/${instanceId}`);
+        `${altinnWindow.location.origin}/runtime/api/${reportee}/${servicePath}/Index/${instanceId}`);
 
       // Fetch service configuration
       manageServiceConfigurationActionDispatcher.fetchJsonFile(
-        `${altinnWindow.location.origin}/runtime/api/resource/${serviceEditionPath}/ServiceConfigurations.json`);
+        `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/ServiceConfigurations.json`);
 
     } else {
       // ALTINN STUDIO
@@ -73,46 +73,46 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
       // Fetch data model
       appDataActionDispatcher.fetchDataModel(
-        `${altinnWindow.location.origin}/designer/${serviceEditionPath}/Model/GetJson`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/Model/GetJson`);
 
       // Fetch form layout
       formDesignerActionDispatchers.fetchFormLayout(
-        `${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetFormLayout`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
 
       // Load text resources
       const languageCode = 'nb-NO';
       appDataActionDispatcher.loadTextResources(
-        `${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetTextResources/${languageCode}`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetTextResources/${languageCode}`);
 
       // Fetch ServiceConfigurations
       manageServiceConfigurationActionDispatcher.fetchJsonFile(
         `${altinnWindow.location.origin}/designer/${
-        serviceEditionPath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
+        servicePath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
 
       // Fetch rule connections
       appDataActionDispatcher.fetchRuleModel(
-        `${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetRuleHandler`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetRuleHandler`);
 
       // Fetch the CodeLists 
       appDataActionDispatcher.fetchCodeLists(
-        `${altinnWindow.location.origin}/designer/${serviceEditionPath}/CodeList/CodeLists`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/CodeList/CodeLists`);
 
       ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-        `${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetThirdPartyComponents`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetThirdPartyComponents`);
     }
   }
 
   public render() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service, edition } = altinnWindow;
-    const serviceEditionPath = `${org}/${service}/${edition}`;
+    const { org, service } = altinnWindow;
+    const servicePath = `${org}/${service}`;
 
     return (
       <div className='App flex-column d-flex media-body'>
         <ErrorMessageComponent />
         <Route exact={true} path='/' render={() => {
           formFillerActionDispatchers.resetFormData(
-            `${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetFormLayout`);
+            `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
           return <FormDesigner />
         }} />
         <Route exact={true} path='/Preview' render={() => {

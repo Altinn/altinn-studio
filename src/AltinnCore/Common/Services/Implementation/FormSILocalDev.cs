@@ -34,12 +34,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="type">The type that form data will be serialized to</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="partyId">The partyId used to find the party on disc</param>
         /// <returns>The deserialized form model</returns>
-        public object GetFormModel(int formID, Type type, string org, string service, string edition, int partyId)
+        public object GetFormModel(int formID, Type type, string org, string service, int partyId)
         {
-            string formDataFilePath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/" + formID + ".xml";
+            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/" + formID + ".xml";
 
             XmlSerializer serializer = new XmlSerializer(type);
             try
@@ -60,14 +59,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="type">The type</param>
         /// <param name="partyId">The partyId</param>
         /// <param name="prefillkey">The prefill key</param>
         /// <returns>A deserialized prefilled form model</returns>
-        public object GetPrefill(string org, string service, string edition, Type type, int partyId, string prefillkey)
+        public object GetPrefill(string org, string service, Type type, int partyId, string prefillkey)
         {
-            string formDataFilePath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Testdataforparty/" + partyId + "/prefill/" + prefillkey + ".xml";
+            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Testdataforparty/" + partyId + "/prefill/" + prefillkey + ".xml";
 
             XmlSerializer serializer = new XmlSerializer(type);
             try
@@ -92,11 +91,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="partyId">The partyId</param>
-        public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, string edition, int partyId)
+        public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId)
         {
-            string formDataFilePath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/" + formId + ".xml";
+            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/" + formId + ".xml";
 
             try
             {

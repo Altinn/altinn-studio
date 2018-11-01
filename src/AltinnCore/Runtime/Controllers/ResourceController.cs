@@ -32,12 +32,12 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="id">The name of the resource</param>
         /// <returns>File content with content type set</returns>
-        public IActionResult Index(string org, string service, string edition, string id)
+        public IActionResult Index(string org, string service, string id)
         {
-            byte[] fileContent = _execution.GetServiceResource(org, service, edition, id);
+            byte[] fileContent = _execution.GetServiceResource(org, service, id);
             if (fileContent != null)
             {
                 return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
@@ -51,21 +51,20 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <param name="edition"></param>
         /// <returns></returns>
-        public IActionResult TextResources(string org, string service, string edition)
+        public IActionResult TextResources(string org, string service)
         {
             string defaultLang = "nb-NO";
             string culture = CultureInfo.CurrentUICulture.Name;
             string id = $"resource.{culture}.json";
-            byte[] fileContent = _execution.GetServiceResource(org, service, edition, id);
+            byte[] fileContent = _execution.GetServiceResource(org, service, id);
             if (fileContent != null)
             {
               return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
             }
 
             id = $"resource.{defaultLang}.json";
-            fileContent = _execution.GetServiceResource(org, service, edition, id);
+            fileContent = _execution.GetServiceResource(org, service, id);
             if (fileContent != null)
             {
               return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
@@ -75,9 +74,9 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         [HttpGet]
-        public ActionResult ServiceMetaData(string org, string service, string edition, bool texts = true, bool restrictions = true, bool attributes = true)
+        public ActionResult ServiceMetaData(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
         {
-            ServiceMetadata metadata = _execution.GetServiceMetaData(org, service, edition);
+            ServiceMetadata metadata = _execution.GetServiceMetaData(org, service);
             return Json(metadata, new JsonSerializerSettings() { Formatting = Formatting.Indented });
         }
   }

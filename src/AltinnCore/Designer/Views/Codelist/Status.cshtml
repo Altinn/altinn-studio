@@ -4,14 +4,9 @@
 @{
   string org = ViewContext.RouteData.Values["org"] as string;
   string service = ViewContext.RouteData.Values["service"] as string;
-  string edition = ViewContext.RouteData.Values["edition"] as string;
 
   string routeName = "orgRoute";
-  if (edition != null)
-  {
-    routeName = "editionRoute";
-  }
-  else if (service != null)
+  if (service != null)
   {
     routeName = "serviceRoute";
   }

@@ -66,20 +66,6 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <returns></returns>
-        public IActionResult Editions(string org, string service)
-        {
-            ViewBag.Org = org;
-            ViewBag.Service = service;
-            IList<EditionConfiguration> serviceEditions = _repository.GetEditions(org, service);
-            return View(serviceEditions);
-        }
-
-        /// <summary>
         /// Action for presenting the Not Authorized View
         /// </summary>
         /// <returns>The view telling user that user was not authorized</returns>

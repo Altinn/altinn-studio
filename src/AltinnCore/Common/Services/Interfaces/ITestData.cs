@@ -20,9 +20,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="partyId">The partyId</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>List of form instances</returns>
-        List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string edition);
+        List<ServiceInstance> GetFormInstances(int partyId, string org, string service);
 
         /// <summary>
         /// Returns a list over local stored prefill for a given service
@@ -30,8 +29,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="partyId">The partyId for the test reportee</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>List over prefill</returns>
-        List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string edition);
+        List<ServicePrefill> GetServicePrefill(int partyId, string org, string service);
     }
 }

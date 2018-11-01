@@ -2,7 +2,6 @@
     ViewBag.Title = "Datamodell";
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
-    string edition = ViewContext.RouteData.Values["edition"] as string;
 }
 
 @section scripts {
@@ -92,7 +91,7 @@
     </div>
 
     <div class="tab-pane fade in" id="json" role="tabpanel"> 
-        <a title="Last ned JSON-modell" asp-action="GetJson" download="@service-@edition-model.json">
+        <a title="Last ned JSON-modell" asp-action="GetJson" download="@service-model.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
         </a>
         <div id="json-container" class="editor-frame">
@@ -102,7 +101,7 @@
     </div>
 
     <div class="tab-pane fade" id="csharp" role="tabpanel">
-        <a title="Last ned C# modell" asp-action="GetModel" download="@service-@edition-model.cs">
+        <a title="Last ned C# modell" asp-action="GetModel" download="@service-model.cs">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned C# modell</span>
         </a>
         <div id="csharp-container" class="editor-frame">
@@ -112,7 +111,7 @@
     </div>
 
     <div class="tab-pane fade" id="xml" role="tabpanel">
-        <a title="Last ned XSD" asp-action="GetXsd" download="@service-@edition-model.xsd">
+        <a title="Last ned XSD" asp-action="GetXsd" download="@service-model.xsd">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
         </a>
         <div id="xml-container" class="editor-frame">  

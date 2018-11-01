@@ -70,7 +70,7 @@
         private bool AuthorizeAccess(ClaimsPrincipal user, int instanceID, ActionType actionType, out int requredAuthLevel)
         {
             // TODO. Call Context Handler to get the following information
-            // Who owns the instance, and what is the service edition for it
+            // Who owns the instance, and what is the service for it
             // TODO Get the userID and authentication level from Claimsprincipal
             int currentAuthLevel = 0;
             foreach (Claim claim in user.Claims)
