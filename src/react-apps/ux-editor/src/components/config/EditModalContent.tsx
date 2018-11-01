@@ -377,12 +377,20 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
 
     return (
       this.props.textResources.map((resource, index) => {
+        const option = this.truncate(resource.value);
         return (
-          <option key={index} value={resource.id}>
-            {resource.value}
+          <option key={index} value={resource.id} title={resource.value}>
+            {option}
           </option>
         );
       }));
+  }
+
+  public truncate = (s: string) => {
+    if (s.length > 60)
+      return s.substring(0, 60);
+    else
+      return s;
   }
 
   public render(): JSX.Element {
