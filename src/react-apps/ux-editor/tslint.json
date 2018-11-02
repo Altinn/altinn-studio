@@ -24,7 +24,15 @@
         "ignore-pattern": "^import |^export {(.*?)}"
       }
     ],
-    "no-console": true,
+    "no-console": [
+      true,
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
     "no-submodule-imports": false,
     "object-literal-sort-keys": false,
     "quotemark": {
