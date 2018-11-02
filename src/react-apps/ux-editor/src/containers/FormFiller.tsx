@@ -4,8 +4,8 @@ import ApiActionDispatcher from '../actions/apiActions/apiActionDispatcher';
 import AppConfigActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
-import {makeGetDataModelSelector, makeGetDesignModeSelector} from '../selectors/getAppData';
-import {makeGetApiConnectionsSelector} from '../selectors/getServiceConfigurations';
+import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selectors/getAppData';
+import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { Preview } from './Preview';
 
@@ -118,6 +118,5 @@ const makeMapStateToProps = () => {
   };
   return mapStateToProps;
 }
-
 
 export const FormFiller = connect(makeMapStateToProps)(FormFillerComponent);
