@@ -311,7 +311,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
-                return $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL")}/{org}/{repository}.git";
+                return $"{Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL")}{org}/{repository}.git";
             }
             else
             {
