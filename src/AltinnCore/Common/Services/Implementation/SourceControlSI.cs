@@ -315,7 +315,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             else
             {
-                return $"{_settings.RepositoryBaseURL}/{org}/{repository}.git";
+                return $"{_settings.RepositoryBaseURL}{org}/{repository}.git";
             }
         }
     }
