@@ -1,9 +1,9 @@
-FROM node:9.5.0 AS generate-ux-editor
+FROM node:10.13.0 AS generate-ux-editor
 COPY /src/react-apps/ux-editor .
 RUN npm install
 RUN npm run build
 
-FROM node:9.5.0 AS generate-designer-js
+FROM node:10.13.0 AS generate-designer-js
 COPY /src/AltinnCore/Designer .
 RUN npm install
 RUN npm run gulp build
