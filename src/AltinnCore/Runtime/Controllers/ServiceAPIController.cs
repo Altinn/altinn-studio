@@ -77,15 +77,15 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="instanceId">The instanceId</param>
         /// <returns>The Service model as JSON or XML for the given instanceId</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpGet]
-       public async Task<IActionResult> Index(string org, string service, string edition, int instanceId)
+       public async Task<IActionResult> Index(string org, string service, int instanceId)
         {
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, edition);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -95,14 +95,13 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service, edition);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
             // Assign data to the ViewBag so it is available to the service views or service implementation
             ViewBag.ServiceContext = serviceContext;
             ViewBag.RequestContext = requestContext;
             ViewBag.Org = org;
             ViewBag.Service = service;
-            ViewBag.Edition = edition;
             ViewBag.FormID = instanceId;
 
             // Assign the RequestContext and ViewBag to the serviceImplementation so 
@@ -111,7 +110,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service, edition);
+            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
             serviceImplementation.SetPlatformServices(platformServices);
 
             ViewBag.PlatformServices = platformServices;
@@ -122,7 +121,6 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                edition,
                 requestContext.UserContext.ReporteeId);
 
             // Assing the populated service model to the service implementation
@@ -149,12 +147,12 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="model">The model as JSON/xml in a string parameter</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="apiMode">The mode that data is submitted</param>
         /// <returns>The result</returns>
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, string edition, ApiMode apiMode)
+        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, ApiMode apiMode)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -162,7 +160,7 @@ namespace AltinnCore.Runtime.Controllers
             ApiResult apiResult = new ApiResult(); 
 
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, edition);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -172,7 +170,7 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service, edition);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
             // Assign the Requestcontext and ViewBag to the serviceImplementation so 
             // service developer can use the information in any of the service events that is called
@@ -180,7 +178,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service, edition);
+            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
             serviceImplementation.SetPlatformServices(platformServices);
 
             ViewBag.PlatformServices = platformServices;
@@ -256,7 +254,7 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
-            int instanceId = _execution.GetNewServiceInstanceID(org, service, edition);
+            int instanceId = _execution.GetNewServiceInstanceID(org, service);
 
             // Save Formdata to database
             this._form.SaveFormModel(
@@ -265,7 +263,6 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                edition,
                 requestContext.UserContext.ReporteeId);
 
             apiResult.InstanceId = instanceId;
@@ -276,7 +273,7 @@ namespace AltinnCore.Runtime.Controllers
 
       [Authorize]
       [HttpPut]
-      public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, string edition, int instanceId, ApiMode apiMode)
+      public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
       {
         Stopwatch stopwatch = new Stopwatch();
         stopwatch.Start();
@@ -284,7 +281,7 @@ namespace AltinnCore.Runtime.Controllers
         ApiResult apiResult = new ApiResult();
 
         // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-        IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, edition);
+        IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
         // Create and populate the RequestContext object and make it available for the service implementation so
         // service developer can implement logic based on information about the request and the user performing
@@ -294,7 +291,7 @@ namespace AltinnCore.Runtime.Controllers
         requestContext.Reportee = requestContext.UserContext.Reportee;
 
         // Get the serviceContext containing all metadata about current service
-        ServiceContext serviceContext = _execution.GetServiceContext(org, service, edition);
+        ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
         // Assign the Requestcontext and ViewBag to the serviceImplementation so 
         // service developer can use the information in any of the service events that is called
@@ -302,7 +299,7 @@ namespace AltinnCore.Runtime.Controllers
 
         // Set the platform services to the ServiceImplementation so the AltinnCore service can take
         // use of the plattform services
-        PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service, edition);
+        PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
         serviceImplementation.SetPlatformServices(platformServices);
 
         ViewBag.PlatformServices = platformServices;
@@ -374,7 +371,6 @@ namespace AltinnCore.Runtime.Controllers
             serviceImplementation.GetServiceModelType(),
             org,
             service,
-            edition,
             requestContext.UserContext.ReporteeId);
 
         apiResult.InstanceId = instanceId;
@@ -395,17 +391,16 @@ namespace AltinnCore.Runtime.Controllers
     /// <param name="reportee">The reportee number (organization number or ssn)</param>
     /// <param name="org">The Organization code for the service owner</param>
     /// <param name="service">The service code for the current service</param>
-    /// <param name="edition">The edition code for the current service</param>
     /// <returns>The lookup result</returns>
     [Authorize(Policy = "ServiceRead")]
         [HttpGet]
-        public async Task<IActionResult> Lookup(string reportee, string org, string service, string edition)
+        public async Task<IActionResult> Lookup(string reportee, string org, string service)
         {
             // Load the service implementation for the requested service
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, edition);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
             // Get the service context containing metadata about the service 
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service, edition);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -416,7 +411,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service, edition);
+            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
             serviceImplementation.SetPlatformServices(platformServices);
             ViewBag.PlatformServices = platformServices;
 
@@ -441,19 +436,19 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="reportee">The reportee number (organization number or ssn)</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>The lookup result</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpPost]
-        public async Task<IActionResult> Lookup([FromBody] AltinnCoreApiModel model, string reportee, string org, string service, string edition)
+        public async Task<IActionResult> Lookup([FromBody] AltinnCoreApiModel model, string reportee, string org, string service)
         {
             ApiResult apiResult = new ApiResult();
 
             // Load the service implementation for the requested service
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, edition);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
             // Get the service context containing metadata about the service 
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service, edition);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -464,7 +459,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service, edition);
+            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
             serviceImplementation.SetPlatformServices(platformServices);
             ViewBag.PlatformServices = platformServices;
 

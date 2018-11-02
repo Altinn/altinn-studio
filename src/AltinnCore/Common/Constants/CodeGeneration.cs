@@ -8,7 +8,7 @@
         /// <summary>
         /// Template constant for the namespace for a service
         /// </summary>
-        public const string ServiceNamespaceTemplate = "AltinnCoreServiceImplementation.{0}.{1}_{2}";
+        public const string ServiceNamespaceTemplate = "AltinnCoreServiceImplementation.{0}.{1}";
         
         /// <summary>
         /// Default constant for the namespace for a service

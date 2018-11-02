@@ -20,9 +20,9 @@ namespace AltinnCore.Common.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, string edition, int partyId)
+        public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
         {
-            string archiveDirectory = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/";
+            string archiveDirectory = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/";
 
             if (!Directory.Exists(archiveDirectory))
             {
@@ -38,9 +38,9 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, string edition, int partyId)
+        public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
         {
-            string formDataFilePath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/" + instanceId + ".xml";
+            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/" + instanceId + ".xml";
 
             XmlSerializer serializer = new XmlSerializer(type);
             try

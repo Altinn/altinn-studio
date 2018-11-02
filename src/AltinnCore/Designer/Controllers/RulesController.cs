@@ -38,12 +38,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>View containing details about all rules for the given service</returns>
         [HttpGet]
-        public IActionResult Index(string org, string service, string edition)
+        public IActionResult Index(string org, string service)
         {
-            IList<RuleContainer> rules = _repository.GetRules(org, service, edition);
+            IList<RuleContainer> rules = _repository.GetRules(org, service);
             return View(rules);
         }
 
@@ -52,10 +51,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>View containing interface for creating a new rule</returns>
         [HttpGet]
-        public IActionResult Create(string org, string service, string edition)
+        public IActionResult Create(string org, string service)
         {
              return View();
         }
@@ -65,13 +63,13 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
+
         /// <param name="rule">The rule to be created</param>
         /// <returns>JSON representation of the created rule</returns>
         [HttpPost]
-        public IActionResult Create(string org, string service, string edition, [FromBody]RuleContainer rule)
+        public IActionResult Create(string org, string service, [FromBody]RuleContainer rule)
         {
-            List<RuleContainer> existingRules = _repository.GetRules(org, service, edition);
+            List<RuleContainer> existingRules = _repository.GetRules(org, service);
 
             if (existingRules == null)
             {
@@ -96,11 +94,11 @@ namespace AltinnCore.Designer.Controllers
             rule.Id = id;
             existingRules.Add(rule);
 
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service, edition);
+            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
             string rules = string.Empty;
-            _codeGeneration.CreateCalculationsAndValidationsClass(org, service, edition, existingRules, serviceMetadata);
+            _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
 
-            _repository.UpdateRules(org, service, edition, existingRules);
+            _repository.UpdateRules(org, service, existingRules);
             
             return Json(rule);
         }
@@ -110,13 +108,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <param name="id">The id of the rule to update</param>
         /// <returns>View containing interface for updating a rule</returns>
         [HttpGet]
-        public IActionResult Update(string org, string service, string edition, int id)
+        public IActionResult Update(string org, string service, int id)
         {
-            List<RuleContainer> rules = _repository.GetRules(org, service, edition);
+            List<RuleContainer> rules = _repository.GetRules(org, service);
             RuleContainer rule = rules.FirstOrDefault(r => r.Id == id);
             
             return View(rule);
@@ -127,14 +124,13 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <param name="id">The id of the rule to update</param>
         /// <param name="rule">The rule to be created</param>
         /// <returns>JSON representation of the created rule</returns>
         [HttpPost]
-        public IActionResult Update(string org, string service, string edition, int id, [FromBody]RuleContainer rule)
+        public IActionResult Update(string org, string service, int id, [FromBody]RuleContainer rule)
         {
-            List<RuleContainer> existingRules = _repository.GetRules(org, service, edition);
+            List<RuleContainer> existingRules = _repository.GetRules(org, service);
 
             if (existingRules == null)
             {
@@ -144,11 +140,11 @@ namespace AltinnCore.Designer.Controllers
             existingRules.RemoveAll(r => r.Id == rule.Id);
             existingRules.Add(rule);
 
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service, edition);
+            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
 
-            _codeGeneration.CreateCalculationsAndValidationsClass(org, service, edition, existingRules, serviceMetadata);
+            _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
 
-            _repository.UpdateRules(org, service, edition, existingRules);
+            _repository.UpdateRules(org, service, existingRules);
             
             return Ok();
         }
@@ -158,13 +154,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <param name="id">The id of the rule to get</param>
         /// <returns>The requested rule as JSON if it was found, 404 if it was not found</returns>
         [HttpGet]
-        public IActionResult GetById(string org, string service, string edition, int id)
+        public IActionResult GetById(string org, string service, int id)
         {
-            RuleContainer rule = _repository.GetRules(org, service, edition)?.FirstOrDefault(r => r.Id == id);
+            RuleContainer rule = _repository.GetRules(org, service)?.FirstOrDefault(r => r.Id == id);
 
             if (rule != null)
             {
@@ -181,12 +176,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>All rules for the given service</returns>
         [HttpGet]
-        public IActionResult Get(string org, string service, string edition)
+        public IActionResult Get(string org, string service)
         {
-            List<RuleContainer> rules = _repository.GetRules(org, service, edition);
+            List<RuleContainer> rules = _repository.GetRules(org, service);
 
             if (rules != null)
             {
@@ -203,10 +197,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>All available rule types</returns>
         [HttpGet]
-        public IActionResult GetRuleTypes(string org, string service, string edition)
+        public IActionResult GetRuleTypes(string org, string service)
         {
             return Json(_codeGeneration.GetRuleTypes());
         }
@@ -216,10 +209,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>All available condition types</returns>
         [HttpGet]
-        public IActionResult GetConditionTypes(string org, string service, string edition)
+        public IActionResult GetConditionTypes(string org, string service)
         {
             return Json(_codeGeneration.GetConditionTypes());
         }
@@ -229,13 +221,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>The View</returns>
         [HttpGet]
-        public IActionResult Code(string org, string service, string edition)
+        public IActionResult Code(string org, string service)
         {
-            List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, service, edition);
-            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, edition, null, false);
+            List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, service);
+            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, null, false);
 
             // Check to see if any of the files has compiliation errors or warnings           
             foreach (AltinnCoreFile coreFile in altinnCoreFiles)
@@ -265,10 +256,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <param name="name">The file Name</param>
         /// <returns>The View</returns>
-        public IActionResult File(string org, string service, string edition, string name)
+        public IActionResult File(string org, string service, string name)
         {
             ViewBag.FileName = name; 
             return View();
@@ -279,19 +269,18 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <param name="name">The file name</param>
         /// <returns>The content of the file</returns>
-        public IActionResult GetFile(string org, string service, string edition, string name)
+        public IActionResult GetFile(string org, string service, string name)
         {
           if (name == "RuleHandler.js")
           {
-            string fileContent = _repository.GetResourceFile(org, service, edition, name);
+            string fileContent = _repository.GetResourceFile(org, service, name);
             return Content(fileContent);
           }
           else
           {
-            string fileContent = _repository.GetImplementationFile(org, service, edition, name);
+            string fileContent = _repository.GetImplementationFile(org, service, name);
             return Content(fileContent);
           }
         }
@@ -301,20 +290,19 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <param name="fileName">The file name</param>
         /// <param name="fileContent">The file content</param>
         /// <returns>Status code</returns>
         [HttpPost]
-        public IActionResult SaveImplementationFile(string org, string service, string edition, string fileName, string fileContent)
+        public IActionResult SaveImplementationFile(string org, string service, string fileName, string fileContent)
         {
           if (fileName == "RuleHandler.js")
           {
-            _repository.SaveResourceFile(org, service, edition, fileName, fileContent);
+            _repository.SaveResourceFile(org, service, fileName, fileContent);
           }
           else
           {
-            _repository.SaveImplementationFile(org, service, edition, fileName, fileContent);
+            _repository.SaveImplementationFile(org, service, fileName, fileContent);
           }
           return StatusCode(200);
         }
@@ -324,11 +312,10 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-        /// <param name="edition">The edition of the requested service</param>
         /// <returns>A View with the result</returns>
-        public IActionResult Compile(string org, string service, string edition)
+        public IActionResult Compile(string org, string service)
         {
-            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, edition, null, false);
+            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, null, false);
             ViewBag.CompilationResult = compResult;
             return PartialView("CompilationResult");
         }

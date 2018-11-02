@@ -6,12 +6,11 @@
     ViewBag.Title = "Velg avgiver og testdata";
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
-    string edition = ViewContext.RouteData.Values["edition"] as string;
 
     List<AltinnCore.ServiceLibrary.ServiceInstance> instanceList = ViewBag.InstanceList;
 }
 
-@await Component.InvokeAsync("EditionStatus", new { org, service, edition })
+@await Component.InvokeAsync("ServiceStatus", new { org, service })
 
 @if (Model.ReporteeList.Count > 1)
 {
@@ -59,7 +58,7 @@
       </div>
     </form>
 
-<form asp-action="StartService" asp-controller="Instance" asp-route-org="@org" asp-route-service="@service" asp-route-edition="@edition" target="_blank">
+<form asp-action="StartService" asp-controller="Instance" asp-route-org="@org" asp-route-service="@service" target="_blank">
     <input type="hidden" asp-for="ServiceID" />
     <div class="form-group">
         <input type="hidden" asp-for="ReporteeID" />
@@ -88,11 +87,11 @@
                 <td>
                     @if (instance.IsArchived)
                     {
-                        <a href="/runtime/@org/@service/@edition/@instance.ServiceInstanceID/Receipt" target="_blank">@instance.ServiceInstanceID (Arkivert)</a>
+                        <a href="/runtime/@org/@service/@instance.ServiceInstanceID/Receipt" target="_blank">@instance.ServiceInstanceID (Arkivert)</a>
                     }
                     else
                     {
-                        <a href="/runtime/@org/@service/@edition/@instance.ServiceInstanceID/#Preview" target="_blank">@instance.ServiceInstanceID</a>
+                        <a href="/runtime/@org/@service/@instance.ServiceInstanceID/#Preview" target="_blank">@instance.ServiceInstanceID</a>
                     }
                 </td>
                 <td>

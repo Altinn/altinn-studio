@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace AltinnCore.Runtime.Authorization
 {
     /// <summary>
-    /// The authorization requirement for accessing services based on org, service, edition and reportee
+    /// The authorization requirement for accessing services based on org, service and reportee
     /// </summary>
     public class ServiceAccessRequirement : IAuthorizationRequirement
     {

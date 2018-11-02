@@ -14,14 +14,9 @@
 
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
-    string edition = ViewContext.RouteData.Values["edition"] as string;
 
     string routeName = "orgRoute";
-    if (edition != null)
-    {
-        routeName = "editionRoute";
-    }
-    else if (service != null)
+    if (service != null)
     {
         routeName = "serviceRoute";
     }
@@ -47,7 +42,6 @@
        asp-route-routeName="@routeName"
        asp-route-org="@org"
        asp-route-service="@service"
-       asp-route-edition="@edition"
        asp-route-controller="Codelist"
        asp-route-action="Delete" 
        asp-route-name="@name">Slett</a> 
@@ -73,7 +67,7 @@
 
         $.when(
             $.ajax("@Url.Action("Schema", "Config", new { id = "codelist_schema" })"),
-            $.ajax("@Url.RouteUrl(routeName, new { action = "Get", controller = "Codelist", org, service, edition, name = ViewBag.CodelistName})"))
+            $.ajax("@Url.RouteUrl(routeName, new { action = "Get", controller = "Codelist", org, service, name = ViewBag.CodelistName})"))
             .done(function (a1, a2) {
                 _schema = a1[0];
                 _editor = new JSONEditor(_holder, {
@@ -99,7 +93,7 @@
             var jsonString = JSON.stringify(jsonData, null, 3);
 
             jQuery.post({
-                url: "@Url.RouteUrl(routeName, new { action = "Edit", controller = "Codelist", org, service, edition })?name=" + JSON.parse(jsonString).name,
+                url: "@Url.RouteUrl(routeName, new { action = "Edit", controller = "Codelist", org, service })?name=" + JSON.parse(jsonString).name,
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 success: function (data) {

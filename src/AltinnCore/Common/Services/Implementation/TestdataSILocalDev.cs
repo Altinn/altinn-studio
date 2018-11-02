@@ -40,12 +40,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="partyId">The partyId</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The service instance list</returns>
-        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string edition)
+        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service)
         {
             List<ServiceInstance> formInstances = new List<ServiceInstance>();
-            string formDataFilePath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId;
+            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId;
             string archiveFolderPath = formDataFilePath + "/Archive/";
 
             if (!Directory.Exists(archiveFolderPath))
@@ -100,12 +99,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="partyId">The partyId</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>A list of prefill to be used</returns>
-        public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string edition)
+        public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service)
         {
             List<ServicePrefill> formInstances = new List<ServicePrefill>();
-            string formDataFilePath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Prefill/";
+            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Prefill/";
 
             if (!Directory.Exists(formDataFilePath))
             {

@@ -28,11 +28,10 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Returns the data source to the index view</returns>
-        public ActionResult Index(string org, string service, string edition)
+        public ActionResult Index(string org, string service)
         {
-             IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service, edition);
+             IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service);
             return View(datasources);
         }
 
@@ -41,12 +40,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">the unique id for the data source</param>
         /// <returns>View model to the view</returns>
-        public IActionResult Edit(string org, string service, string edition, string id)
+        public IActionResult Edit(string org, string service, string id)
         {
-            IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service, edition);
+            IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service);
             var selected = datasources.FirstOrDefault(d => d.Id == id);
 
             var model = new DataSourceEditViewModel
@@ -74,15 +72,14 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="model">The model</param>
         /// <returns>Returns the model to the create page</returns>
         [HttpPost]
-        public IActionResult Create(string org, string service, string edition, DataSourceCreateViewModel model)
+        public IActionResult Create(string org, string service, DataSourceCreateViewModel model)
         {
             if (ModelState.IsValid)
             {
-                _dataSourceService.Create(org, service, edition, model.Description, model.Url);
+                _dataSourceService.Create(org, service, model.Description, model.Url);
                 
                 return RedirectToAction("Index");
             }
@@ -97,18 +94,17 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="model">The view model</param>
         /// <returns>Returns view model for the index view</returns>
         [HttpPost]
-        public IActionResult Edit(string org, string service, string edition, DataSourceEditViewModel model)
+        public IActionResult Edit(string org, string service, DataSourceEditViewModel model)
         {
             if (string.IsNullOrWhiteSpace(model.Id))
             {
                 ModelState.AddModelError("AltinnModelIdMissing", "Fant ikke noe å oppdatere!");
             }
 
-            var datasource = _dataSourceService.GetDatasources(org, service, edition);
+            var datasource = _dataSourceService.GetDatasources(org, service);
             var selected = datasource.FirstOrDefault(d => model.Id.Equals(d?.Id, StringComparison.CurrentCultureIgnoreCase));
             if (selected == null)
             {
@@ -123,7 +119,7 @@ namespace AltinnCore.Designer.Controllers
 
             selected.Url = model.Url;
             selected.Description = model.Description;
-            _dataSourceService.Update(org, service, edition, selected);
+            _dataSourceService.Update(org, service, selected);
 
             return RedirectToAction("Index");
         }
@@ -133,16 +129,15 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">Id to the JSON object</param>
         /// <returns>View model back to index</returns>
-        public IActionResult Delete(string org, string service, string edition, string id)
+        public IActionResult Delete(string org, string service, string id)
         {
-            _dataSourceService.Delete(org, service, edition, id);
+            _dataSourceService.Delete(org, service, id);
             return RedirectToAction("Index");
         }
 
-        public IActionResult Test(string org, string service, string edition, string id)
+        public IActionResult Test(string org, string service, string id)
         {
             // TODO: This is no good
             var jsonResult = _dataSourceService.TestRestApi(id);
