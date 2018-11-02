@@ -51,7 +51,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     } as IToolbarElement;
   });
 
-
   constructor(props: IToolbarProps, state: IToolbarState) {
     super(props, state);
     this.state = {
