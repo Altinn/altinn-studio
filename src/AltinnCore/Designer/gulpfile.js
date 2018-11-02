@@ -14,6 +14,13 @@ const cleanGlobs = [
   "wwwroot/designer/css/font/fontawesome*.*"
 ];
 
+
+const jsOrgFile = '../../react-apps/ux-editor/dist/react-app.js';
+const cssOrgFile = '../../react-apps/ux-editor/dist/react-app.css';
+
+let jsWatcher = null;
+let cssWatcher = null;
+
 const copyGlobs = [{
     src: "node_modules/bootstrap/dist/css/bootstrap*.css",
     dest: "wwwroot/designer/css/"
@@ -88,10 +95,6 @@ const copyGlobs = [{
   }
 ];
 
-
-let jsWatcher = null;
-let cssWatcher = null;
-
 function copyNodeModulePackages(cb) {
   copyGlobs.map(copyGlob => gulp.src(copyGlob.src).pipe(gulp.dest(copyGlob.dest)));
   cb();
@@ -102,11 +105,19 @@ function cleanNodeModulePackages() {
 }
 
 function copyReactJs() {
-  return gulp.src('../../react-apps/ux-editor/dist/react-app.js').pipe(gulp.dest('./wwwroot/designer/js/formbuilder/'));
+  setTimeout(function () {
+    gulp.src(jsOrgFile).pipe(gulp.dest('./wwwroot/designer/js/formbuilder/'));
+  }, 1000);
+
+  return;
 }
 
 function copyReactCss() {
-  return gulp.src('../../react-apps/ux-editor/dist/react-app.css').pipe(gulp.dest('./wwwroot/designer/css/'));
+  setTimeout(function () {
+    gulp.src(cssOrgFile).pipe(gulp.dest('./wwwroot/designer/css/'));
+  }, 1000);
+
+  return;
 }
 
 function deleteReactJs() {
@@ -118,23 +129,20 @@ function deleteReactCss() {
 }
 
 function setupWatchers(cb) {
-  const jsFile = '../../react-apps/ux-editor/dist/react-app.js';
-  const cssFile = '../../react-apps/ux-editor/dist/react-app.css';
-
   var checkJsFile = setInterval(function () {
-    if (fs.existsSync(jsFile)) {
-      jsWatcher = chokidar.watch(jsFile);
-      jsWatcher.on('ready', copyReactJs);
+    if (fs.existsSync(jsOrgFile)) {
+      jsWatcher = chokidar.watch(jsOrgFile);
+      // jsWatcher.on('ready', copyReactJs);
       jsWatcher.on('change', copyReactJs);
       clearInterval(checkJsFile);
     }
   }, 1000);
 
   var checkCssFile = setInterval(function () {
-    if (fs.existsSync(cssFile)) {
-      cssWatcher = chokidar.watch(cssFile);
-      cssWatcher.on('ready', copyReactCss);
-      cssWatcher.on('change', copyReactCss);;
+    if (fs.existsSync(cssOrgFile)) {
+      cssWatcher = chokidar.watch(cssOrgFile);
+      // cssWatcher.on('ready', copyReactCss);
+      cssWatcher.on('change', copyReactCss);
       clearInterval(checkCssFile);
     }
   }, 1000);
