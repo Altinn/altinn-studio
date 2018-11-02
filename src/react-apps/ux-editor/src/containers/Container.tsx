@@ -64,16 +64,17 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       <div>
         <div
           className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
-          onClick={this.changeActiveFormContainer}>
+          onClick={this.changeActiveFormContainer}
+        >
           {
             this.props.designMode && !this.props.baseContainer &&
-            <div className="row">
+            <div className='row'>
               <div className='col-1'>
                 {this.renderDeleteGroupButton()}
               </div>
               <div className='col-3 offset-8 row'>
-                <span className="col-6">Repeating:</span>
-                <div className="col-5">
+                <span className='col-6'>Repeating:</span>
+                <div className='col-5'>
                   <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
                 </div>
               </div>
@@ -101,7 +102,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public renderContainer = (id: string) => {
-    if (this.props.containers[id].hidden && !this.props.designMode) return null;
+    if (this.props.containers[id].hidden && !this.props.designMode) {
+      return null;
+    }
     return (
       <Container
         id={id}
@@ -112,7 +115,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public renderDeleteGroupButton = (): JSX.Element => {
-    if (this.props.baseContainer) return null;
+    if (this.props.baseContainer) {
+      return null;
+    }
     return (
       <button
         type='button'
@@ -125,7 +130,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public renderNewGroupButton = (): JSX.Element => {
-    if (this.props.baseContainer || !this.props.repeating) return null;
+    if (this.props.baseContainer || !this.props.repeating) {
+      return null;
+    }
     const repeatingGroupCount = Object.keys(this.props.containers).filter((id) => {
       return this.props.containers[id].dataModelGroup === this.props.dataModelGroup;
     }).length;
@@ -146,7 +153,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public renderFormComponent = (id: string, key: any): JSX.Element => {
-    if (this.props.components[id].hidden && !this.props.designMode) return null;
+    if (this.props.components[id].hidden && !this.props.designMode) {
+      return null;
+    }
     return (
       <FormComponentWrapper
         key={key}

@@ -14,7 +14,7 @@ const initialState: ICodeListsState = {
   codeLists: null,
   fetching: false,
   fetched: false,
-  error: null
+  error: null,
 };
 
 /**
@@ -24,7 +24,7 @@ const initialState: ICodeListsState = {
  */
 const codeListsReducer: Reducer<ICodeListsState> = (
   state: ICodeListsState = initialState,
-  action?: Action
+  action?: Action,
 ): ICodeListsState => {
   if (!action) {
     return state;
@@ -41,7 +41,7 @@ const codeListsReducer: Reducer<ICodeListsState> = (
         },
         error: {
           $set: null,
-        }
+        },
       });
     }
     case AppDataActionTypes.FETCH_CODE_LISTS_FULFILLED: {
@@ -58,7 +58,7 @@ const codeListsReducer: Reducer<ICodeListsState> = (
         },
         error: {
           $set: null,
-        }
+        },
       });
     }
     case AppDataActionTypes.FETCH_CODE_LISTS_REJECTED: {
@@ -72,7 +72,7 @@ const codeListsReducer: Reducer<ICodeListsState> = (
         },
         fetching: {
           $set: false,
-        }
+        },
       });
     }
     default: {

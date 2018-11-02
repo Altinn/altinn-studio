@@ -1,7 +1,7 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
 import * as ConditionalRenderingActions from '../../actions/conditionalRenderingActions/actions';
-import * as ConditionalRenderingActionTypes from '../../actions/conditionalRenderingActions/conditionalRenderingActionTypes'
+import * as ConditionalRenderingActionTypes from '../../actions/conditionalRenderingActions/conditionalRenderingActionTypes';
 import * as ManageJsonFileActions from '../../actions/manageServiceConfigurationActions/actions';
 import * as ManageJsonFileActionTypes from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionTypes';
 

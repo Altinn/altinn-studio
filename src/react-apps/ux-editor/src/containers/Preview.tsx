@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import {makeGetDesignModeSelector} from '../selectors/getAppData';
+import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
 
@@ -26,7 +26,9 @@ export class PreviewComponent extends React.Component<
 
   public renderContainer = (): JSX.Element => {
     const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
-    if (!baseContainerId) return null;
+    if (!baseContainerId) {
+      return null;
+    }
     return (
       <Container
         id={baseContainerId}

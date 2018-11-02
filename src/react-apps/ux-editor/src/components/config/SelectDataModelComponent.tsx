@@ -45,7 +45,7 @@ export class SelectDataModel extends React.Component<
       );
     }
     const selected = this.props.dataModelElements.find(
-      modelBinding => modelBinding.DataBindingName === selectedId);
+      (modelBinding) => modelBinding.DataBindingName === selectedId);
     return (
       Object.keys(selected.Restrictions).length === 0 ? (
         <li className='a-dotted'>
@@ -79,7 +79,7 @@ export class SelectDataModel extends React.Component<
             className='custom-select a-custom-select'
           >
             <option value={''}>{'Velg knytning:'}</option>
-            {this.props.dataModelElements.map(element => {
+            {this.props.dataModelElements.map((element) => {
               if (!element.DataBindingName || element.Type !== 'Field') {
                 return null;
               }

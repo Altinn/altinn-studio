@@ -16,20 +16,20 @@ export interface IFetchThirdPartyComponentRejected extends Action {
 export function fetchThirdPartyComponents(location: string): IFetchThirdPartyComponent {
   return {
     type: ActionTypes.FETCH_THIRD_PARTY_COMPONENTS,
-    location
-  }
+    location,
+  };
 }
 
 export function fetchThirdPartyComponentsFulfilled(components: any): IFetchThirdPartyComponentFulfilled {
   return {
     type: ActionTypes.FETCH_THIRD_PARTY_COMPONENTS_FULFILLED,
     components,
-  }
+  };
 }
 
 export function fetchThirdPartyComponentsRejected(error: Error): IFetchThirdPartyComponentRejected {
   return {
     type: ActionTypes.FETCH_THIRD_PARTY_COMPONENTS_REJECTED,
     error,
-  }
+  };
 }

@@ -18,8 +18,10 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
 
     public getTextResource = (resourceKey: string): string => {
-      if (!this.props.textResources.length) return 'loading';
-      return this.props.textResources.find(resource => resource.id === resourceKey).value;
+      if (!this.props.textResources.length) {
+        return 'loading';
+      }
+      return this.props.textResources.find((resource) => resource.id === resourceKey).value;
     }
 
     public render(): JSX.Element {
@@ -51,4 +53,4 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       });
 
   return connect(mapStateToProps)(FormComponentWithHandlers);
-}
+};

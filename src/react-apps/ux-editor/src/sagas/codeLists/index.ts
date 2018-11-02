@@ -7,6 +7,6 @@ import {
 /**
  * Export the CodeLists sagas
  */
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchFetchCodeListsSaga);
 }
