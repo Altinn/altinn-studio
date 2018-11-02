@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <CoreTemplates Include="../Templates/**/*.*" />
-    <CoreTestdata Include="../Testdata/**/*.*" />
+    <CoreTemplates Include="../Templates/**/*" />
+    <CoreTestdata Include="../Testdata/**/*" />
   </ItemGroup>
 
   <ItemGroup>
