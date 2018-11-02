@@ -11,23 +11,18 @@
         Unspecified = 0,
 
         /// <summary>
-        /// Indicates that the code list source is a service edition
-        /// </summary>
-        Edition = 1,
-
-        /// <summary>
         /// Indicates that the code list source is a service
         /// </summary>
-        Service = 2,
+        Service = 1,
 
         /// <summary>
         /// Indicates that the code list source is a service owner
         /// </summary>
-        Owner = 3,
+        Owner = 2,
 
         /// <summary>
         /// Indicates that the code list source is the platform
         /// </summary>
-        Platform = 4
+        Platform = 3
     }
 }

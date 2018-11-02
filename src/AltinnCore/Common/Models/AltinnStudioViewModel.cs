@@ -1,5 +1,6 @@
 ﻿using AltinnCore.RepositoryClient.Model;
 using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -20,16 +21,6 @@ namespace AltinnCore.Common.Models
         public string Service { get; set; }
 
         /// <summary>
-        /// 
-        /// </summary>
-        public string Edition { get; set; }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public IList<EditionConfiguration> ServiceEditions { get; set; }
-
-        /// <summary>
         /// Repostory Content
         /// </summary>
         public List<RepositoryContent> RepositoryContent { get; set; }
@@ -48,5 +39,7 @@ namespace AltinnCore.Common.Models
         public List<Repository> Repositories { get; set; }
 
         public RepositorySearch RepositorySearch { get; set; }
-  }
+
+        public ServiceMetadata ServiceMetadata { get; set; }
+    }
 }

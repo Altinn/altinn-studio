@@ -18,12 +18,12 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
-  using AltinnCore.Common.Helpers;
-  using AltinnCore.Common.Helpers.Extensions;
-  using Microsoft.AspNetCore.Http;
-  using System.Reflection;
-  using System.Runtime.Loader;
-  using System.Text;
+    using AltinnCore.Common.Helpers;
+    using AltinnCore.Common.Helpers.Extensions;
+    using Microsoft.AspNetCore.Http;
+    using System.Reflection;
+    using System.Runtime.Loader;
+    using System.Text;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
@@ -45,12 +45,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
-        /// <param name="viewRepository">The view Repository</param>
         public ExecutionSIContainer(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             ApplicationPartManager partManager,
-            IViewRepository viewRepository, IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor)
         {
             _settings = settings.Value;
             _repository = repositoryService;
@@ -62,18 +61,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The service Implementation</returns>
-        public IServiceImplementation GetServiceImplementation(string org, string service, string edition)
+        public IServiceImplementation GetServiceImplementation(string org, string service)
         {
 
-            string assemblykey = org + "_" + service + "_" + edition;
+            string assemblykey = org + "_" + service;
             string implementationTypeName = null;
             Type type = null;
 
             if (_assemblyNames.ContainsKey(assemblykey))
             {
-                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition) + ".ServiceImplementation," + _assemblyNames[assemblykey];
+                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + ".ServiceImplementation," + _assemblyNames[assemblykey];
 
                 type = Type.GetType(implementationTypeName);
 
@@ -83,7 +81,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition) + ".ServiceImplementation";
+            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + ".ServiceImplementation";
 
             Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_settings.BaseResourceFolderContainer + _settings.GetBinaryFolder() + "AltinnService.dll");
 
@@ -103,16 +101,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The service context</returns>
-        public ServiceContext GetServiceContext(string org, string service, string edition)
+        public ServiceContext GetServiceContext(string org, string service)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, service, edition).GetServiceModelType(),
-                ServiceMetaData = GetServiceMetaData(org, service, edition),
+                ServiceModelType = GetServiceImplementation(org, service).GetServiceModelType(),
+                ServiceMetaData = _repository.GetServiceMetaData(org, service),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = GetWorkFlow(org, service, edition)
+                WorkFlow = _repository.GetWorkFlow(org, service)
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -128,9 +125,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>A new instanceId</returns>
-        public int GetNewServiceInstanceID(string org, string service, string edition)
+        public int GetNewServiceInstanceID(string org, string service)
         {
             int value = 1000;
             Random rnd = new Random();
@@ -143,13 +139,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>List of code lists</returns>
-        public Dictionary<string, CodeList> GetCodelists(string org, string service, string edition)
+        public Dictionary<string, CodeList> GetCodelists(string org, string service)
         {
             Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
 
-            ServiceMetadata metaData = _repository.GetServiceMetaData(org, service, edition);
+            ServiceMetadata metaData = _repository.GetServiceMetaData(org, service);
 
             return codeLists;
         }
@@ -159,10 +154,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name of the code list</param>
         /// <returns>The code list</returns>
-        public CodeList GetCodeListByName(string org, string service, string edition, string name)
+        public CodeList GetCodeListByName(string org, string service, string name)
         {
             CodeList codeList = null;
             string textData = File.ReadAllText(_settings.BaseResourceFolderContainer + _settings.GetCodeListFolder() + name + ".json");
@@ -187,29 +181,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Returns the basic service configuration
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="org">The organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>The basic service configuration</returns>
         public ServiceConfiguration GetServiceConfiguration(string org, string service)
         {
-            // TODO: Probably not needed when we restructure the service/edition concept. 
-            return null;
-        }
-
-        /// <summary>
-        /// Returns the basic service edition configuration
-        /// </summary>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
-        /// <returns>The basic service edition configuration</returns>
-        public EditionConfiguration GetEditionConfiguration(string org, string service, string edition)
-        {
-            EditionConfiguration config;
+            ServiceConfiguration config;
             string textData = null;
             textData = File.ReadAllText(_settings.BaseResourceFolderContainer + "config.json");
 
-            config = JsonConvert.DeserializeObject<EditionConfiguration>(textData);
+            config = JsonConvert.DeserializeObject<ServiceConfiguration>(textData);
             return config;
         }
 
@@ -217,17 +198,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// Gets the raw content of a code list
         /// </summary>
         /// <param name="org">The organization code of the service owner</param>
-        /// <param name="service">The service code of the current service</param>
-        /// <param name="edition">The edition code of the current service</param>
+        /// <param name="service">The service code of the current service</param
         /// <param name="name">The name of the code list to retrieve</param>
         /// <returns>Raw contents of a code list file</returns>
-        public string GetCodelist(string org, string service, string edition, string name)
+        public string GetCodelist(string org, string service, string name)
         {
             // Not relevant in a container scenario. 
             return null;
         }
 
-        public byte[] GetServiceResource(string org, string service, string edition, string resource)
+        public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
 
@@ -244,15 +224,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The service metadata for a service</returns>
-        public ServiceMetadata GetServiceMetaData(string org, string service, string edition)
+        public ServiceMetadata GetServiceMetaData(string org, string service)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
         }
-
 
         public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
         {

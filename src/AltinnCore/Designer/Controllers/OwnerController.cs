@@ -3,6 +3,7 @@ using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -93,6 +94,12 @@ namespace AltinnCore.Designer.Controllers
                 if (!serviceNameAlreadyExists)
                 {
                     _repository.CreateService(org, serviceConfiguration);
+                    var metadata = new ServiceMetadata
+                    {
+                        Org = org,
+                        Service = serviceName,
+                    };
+                    _repository.CreateServiceMetadata(metadata);
                     return RedirectToAction("Index", "Service", new { org, service = serviceConfiguration.Code });
                 }
                 else

@@ -42,7 +42,7 @@
 
         $.when(
             $.ajax("@Url.Action("Schema")?id=config-security-schema"),
-            $.ajax("@Url.RouteUrl("editionRoute", new { action = "GetConfig", controller = "Config", id = "security"})"))
+            $.ajax("@Url.RouteUrl("serviceRoute", new { action = "GetConfig", controller = "Config", id = "security"})"))
             .done(function (a1, a2) {
                 _schema = a1[0];
                 console.log(a2);
@@ -66,7 +66,7 @@
             var jsonString = JSON.stringify(jsonData, null, 3);
 
             jQuery.post({
-                url: "@Url.RouteUrl("editionRoute", new { action = "SaveConfig", controller = "Config", id = "security"})",
+                url: "@Url.RouteUrl("serviceRoute", new { action = "SaveConfig", controller = "Config", id = "security"})",
                 contentType: "application/json; charset=UTF-8",
                 data: jsonString,
                 success: function (data) {

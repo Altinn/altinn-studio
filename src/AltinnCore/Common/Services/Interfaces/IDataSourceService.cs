@@ -14,50 +14,45 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>List of Objects</returns>
-        IList<DataSourceModel> GetDatasources(string org, string service, string edition);
+        IList<DataSourceModel> GetDatasources(string org, string service);
 
         /// <summary>
         /// Interface method.
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name of the data source</param>
         /// <param name="url">JSON URL</param>
         /// <returns>True if save ok.</returns>
-        bool Save(string org, string service, string edition, string name, string url);
+        bool Save(string org, string service, string name, string url);
 
         /// <summary>
         /// interface method
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">The data source model</param>
         /// <returns>True if delete was ok</returns>
-        bool Delete(string org, string service, string edition, string id);
+        bool Delete(string org, string service, string id);
 
         /// <summary>
         /// Interface method.
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="description">Description of the rest service</param>
         /// <param name="url">JSON URL</param>
         /// <returns>JSON model</returns>
-        DataSourceModel Create(string org, string service, string edition, string description, string url);
+        DataSourceModel Create(string org, string service, string description, string url);
 
         /// <summary>
         /// Interface method.
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="model">The datasource model</param>
-        void Update(string org, string service, string edition, DataSourceModel model);
+        void Update(string org, string service, DataSourceModel model);
 
         Task<string> TestRestApi(string url);
     }

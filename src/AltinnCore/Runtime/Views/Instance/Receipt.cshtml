@@ -2,14 +2,12 @@
 <h1>Kvittering</h1>
 
 <h4>Tjeneste: @ViewBag.Service</h4>
-<h4>Utgave: @ViewBag.Edition</h4>
 <h4>Levert: @ViewBag.ServiceInstance.LastChanged</h4>
 
 <a asp-controller="Instance"
    asp-action="ViewPrint"
    asp-route-org="@ViewBag.Org"
    asp-route-service="@ViewBag.Service"
-   asp-route-edition="@ViewBag.Edition"
    asp-route-instanceId="@ViewBag.FormID">
 
     Print

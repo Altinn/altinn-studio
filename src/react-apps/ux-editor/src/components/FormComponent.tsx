@@ -110,7 +110,7 @@ class FormComponent extends React.Component<
 
   /**
    * Method that allows user to set focus to elements in the compoenent
-   * instead of opening the edition modal on click.
+   * instead of opening the edit modal on click.
    */
   public disableEditOnClickForAddedComponent = (e: any) => {
     e.stopPropagation();

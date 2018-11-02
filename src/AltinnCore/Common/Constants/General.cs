@@ -9,7 +9,5 @@ namespace AltinnCore.Common.Constants
        public const string AppTokenName = "AltinnToken";
 
        public const string CodeListRepository = "codelists";
-
-       public const string EditionsFolder = "editions";
     }
 }

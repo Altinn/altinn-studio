@@ -15,10 +15,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The organization code</param>
         /// <param name="service">The service code</param>
-        /// <param name="edition">The service edition</param>
         /// <param name="ruleContainers">The rule containers to generate logic based on</param>
         /// <param name="serviceMetadata">The service metadata of the service to generate the class for</param>
-        void CreateCalculationsAndValidationsClass(string org, string service, string edition,
+        void CreateCalculationsAndValidationsClass(string org, string service, 
            List<RuleContainer> ruleContainers, ServiceMetadata serviceMetadata);
 
         /// <summary>

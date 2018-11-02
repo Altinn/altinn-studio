@@ -25,13 +25,11 @@ namespace AltinnCore.Runtime.Authorization
             {
                 string org = mvcContext.RouteData.Values["org"] as string;
                 string service = mvcContext.RouteData.Values["service"] as string;
-                string edition = mvcContext.RouteData.Values["edition"] as string;
                 string reportee = mvcContext.RouteData.Values["reportee"] as string;
 
-                if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(service) && !string.IsNullOrEmpty(edition) &&
-                    !string.IsNullOrEmpty(reportee))
+                if (!string.IsNullOrEmpty(org) && !string.IsNullOrEmpty(service) && !string.IsNullOrEmpty(reportee))
                 {
-                    bool isAuthorized = AuthorizeAccess(context.User, reportee, org, service, edition, requirement.ActionType, out int reqAuthLevel);
+                    bool isAuthorized = AuthorizeAccess(context.User, reportee, org, service, requirement.ActionType, out int reqAuthLevel);
 
                     if (isAuthorized && reqAuthLevel == 0)
                     {
@@ -57,7 +55,7 @@ namespace AltinnCore.Runtime.Authorization
             return Task.CompletedTask;
         }
 
-        private bool AuthorizeAccess(ClaimsPrincipal user, string reportee, string org, string service, string edition, ActionType actionType, out int requiredAuthLevel)
+        private bool AuthorizeAccess(ClaimsPrincipal user, string reportee, string org, string service, ActionType actionType, out int requiredAuthLevel)
         {
             // TODO Call Decision point
             int currentAuthLevel = 0;

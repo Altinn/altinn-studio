@@ -14,10 +14,10 @@ class FormDesigner extends React.Component<
   > {
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service, edition } = altinnWindow;
-    const serviceEditionPath = `${org}/${service}/${edition}`;
+    const { org, service } = altinnWindow;
+    const servicePath = `${org}/${service}`;
 
-    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${serviceEditionPath}/React/GetFormLayout`);
+    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
   }
 
@@ -27,12 +27,12 @@ class FormDesigner extends React.Component<
     const handleSaveButton: any = (): any => {
       ManageServiceConfigurationDispatchers.saveJsonFile(
         `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${
-        altinnWindow.service}/${altinnWindow.edition}/React/SaveJsonFile?fileName=ServiceConfigurations.json`);
+        altinnWindow.service}/React/SaveJsonFile?fileName=ServiceConfigurations.json`);
 
       FormDesignerActionDispatchers.saveFormLayout(
         `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${
         altinnWindow.service
-        }/${altinnWindow.edition}/React/SaveFormLayout`,
+        }/React/SaveFormLayout`,
       );
     };
 
