@@ -73,13 +73,17 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
     const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
 
     for (const connection in ruleConnectionState) {
-      if (!connection) continue;
+      if (!connection) {
+        continue;
+      }
       const connectionDef = ruleConnectionState[connection];
       const functionToRun: string = connectionDef.selectedFunction;
       let shouldRunFunction = false;
       let numberOfInputFieldsFilledIn = 0;
       for (const inputParam in connectionDef.inputParams) {
-        if (!inputParam) continue;
+        if (!inputParam) {
+          continue;
+        }
         let inputParamBinding: string = connectionDef.inputParams[inputParam];
         if (isPartOfRepeatingGroup) {
           inputParamBinding = inputParamBinding.replace(dataModelGroup, dataModelGroupWithIndex);
@@ -113,7 +117,9 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
             (element: IDataModelFieldElement) => element.DataBindingName === connectionDef.outParams.outParam0);
           let updatedComponent: string;
           for (const component in formDesignerState.layout.components) {
-            if (!component) continue;
+            if (!component) {
+              continue;
+            }
             if (formDesignerState.layout.components[component].dataModelBinding === connectionDef.outParams.outParam0) {
               updatedComponent = component;
             }

@@ -19,7 +19,9 @@ const formDataForContainerSelector = (state: IAppState, props: any) => {
   for (const componentId of componentsInContainer) {
     const component = layout.components[componentId];
     let formDataKey = component.dataModelBinding;
-    if (!formDataKey) continue;
+    if (!formDataKey) {
+      continue;
+    }
     if (container.repeating && container.dataModelGroup) {
       formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${props.index}]`);
     }
@@ -39,17 +41,19 @@ const createDeepEqualSelector = createSelectorCreator(
 
 const unsavedChangesSelector = (state: IAppState) => {
   return state.formFiller.unsavedChanges;
-}
+};
 
 const validationErrorsSelector = (state: IAppState) => {
   return state.formFiller.validationErrors;
-}
+};
 
 const getFormData = () => {
   return createDeepEqualSelector(
     [formDataForContainerSelector],
     (formData: any) => {
-      if (!formData) return [];
+      if (!formData) {
+        return [];
+      }
       return formData;
     },
   );

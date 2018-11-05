@@ -37,7 +37,7 @@ export function validateDataModel(
   layoutModelElement?: IFormComponent,
 ): any {
   const validationErrors: string[] = [];
-  Object.keys(dataModelFieldElement.Restrictions).forEach(key => {
+  Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
     if (
       !runValidation(key, dataModelFieldElement.Restrictions[key], formData)
     ) {
@@ -72,11 +72,13 @@ export function validateFormData(
   const result: any = {};
   Object.keys(formData).forEach((formDataKey, index) => {
     const dataBindingName = getKeyWithoutIndex(formDataKey);
-    const dataModelFieldElement = dataModelFieldElements.find(e => e.DataBindingName === dataBindingName);
-    if (!dataModelFieldElement) return;
+    const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
+    if (!dataModelFieldElement) {
+      return;
+    }
 
     const layoutModelKey = Object.keys(layoutModelElements).find(
-      e => layoutModelElements[e].dataModelBinding === dataBindingName);
+      (e) => layoutModelElements[e].dataModelBinding === dataBindingName);
 
     const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
 

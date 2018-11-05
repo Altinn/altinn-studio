@@ -14,24 +14,24 @@ export interface IFetchDataModelRejected extends Action {
 export function fetchLayoutDataModelAction(url: string): IFetchDataModelAction {
   return {
     type: ActionTypes.FETCH_DATA_MODEL,
-    url
+    url,
   };
 }
 
 export function fetchLayoutDataModelFulfilledAction(
-  dataModel: IDataModelFieldElement[]
+  dataModel: IDataModelFieldElement[],
 ): IFetchDataModelFulfilled {
   return {
     type: ActionTypes.FETCH_DATA_MODEL_FULFILLED,
-    dataModel
+    dataModel,
   };
 }
 
 export function fetchLayoutDataModelRejectedAction(
-  error: Error
+  error: Error,
 ): IFetchDataModelRejected {
   return {
     type: ActionTypes.FETCH_DATA_MODEL_REJECTED,
-    error
+    error,
   };
 }

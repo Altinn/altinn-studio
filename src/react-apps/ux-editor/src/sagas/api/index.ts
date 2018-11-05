@@ -7,7 +7,7 @@ import {
   watchFetchApiListResponseSaga,
 } from './apiSagas';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchAddApiConnectionSaga);
   yield fork(watchDelApiConnectionSaga);
   yield fork(watchCheckIfApisShouldFetchSaga);

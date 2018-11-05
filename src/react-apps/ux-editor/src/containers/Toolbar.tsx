@@ -74,14 +74,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       <div className='row a-topTasks'>
         <div className='col col-lg-12'>
           <button
-            type="button"
+            type='button'
             className={'a-btn a-btn-icon'}
             onClick={this.addContainerToLayout}>
             <span className='a-btn-icon-text'>Add container</span>
           </button>
         </div>
       </div>
-    )
+    );
   }
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     FormActionDispatcher.addFormComponent({
@@ -102,17 +102,17 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           return Object.keys(components).map((component, index) => (
             <div className='col col-lg-12' key={index}>
               <button
-                type="button"
+                type='button'
                 className={'a-btn a-btn-icon'}
                 onClick={this.addThirdPartyComponentToLayout.bind(this, componentPackage, component)}
               >
                 <span className='a-btn-icon-text'>{componentPackage} - {component}</span>
               </button>
             </div>
-          ))
+          ));
         })}
       </div>
-    )
+    );
   }
 
   public handleNext(component: any, id: string) {

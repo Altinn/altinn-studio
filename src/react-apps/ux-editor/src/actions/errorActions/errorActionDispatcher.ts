@@ -10,7 +10,7 @@ export interface IErrorActionDispatchers extends ActionCreatorsMapObject {
 const actions: IErrorActionDispatchers = {
   addError: ErrorActions.addErrorMessage,
   removeError: ErrorActions.removeErrorMessage,
-}
+};
 
 const ErrorActionDispatchers: IErrorActionDispatchers = bindActionCreators<any, IErrorActionDispatchers>(actions, store.dispatch);
 export default ErrorActionDispatchers;

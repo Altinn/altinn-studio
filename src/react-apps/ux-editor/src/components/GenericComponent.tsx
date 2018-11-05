@@ -1,7 +1,7 @@
 import * as React from 'react';
-import components from './';
-import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import { thirdPartyComponentWithElementHandler } from '../containers/thirdPartyComponentWithDataHandler';
+import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
+import components from './';
 
 export interface IGenericComponentProps {
   id: string;

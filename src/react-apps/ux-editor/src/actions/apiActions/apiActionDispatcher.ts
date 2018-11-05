@@ -15,7 +15,7 @@ export interface IApiActionDispatchers extends ActionCreatorsMapObject {
     lastUpdatedDataValue: string,
     repeating: boolean,
     dataModelGroup?: string,
-    index?: number
+    index?: number,
   ) => ApiActions.ICheckIfApiShouldFetchAction;
   fetchApiListResponse: () => ApiActions.IFetchApiListResponseAction;
 }

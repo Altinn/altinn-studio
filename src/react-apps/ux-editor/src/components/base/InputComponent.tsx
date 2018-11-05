@@ -21,17 +21,17 @@ export class InputComponent
 
     this.state = {
       value: _props.formData ? _props.formData : '',
-    }
+    };
   }
 
   public onDataChanged = (e: any) => {
     this.setState({
-      value: e.target.value
+      value: e.target.value,
     });
   }
 
   public onDataChangeSubmit = () => {
-    this.props.handleDataChange(this.state.value)
+    this.props.handleDataChange(this.state.value);
   }
 
   public render() {

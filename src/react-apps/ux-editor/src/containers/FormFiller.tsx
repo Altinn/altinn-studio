@@ -2,11 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ApiActionDispatcher from '../actions/apiActions/apiActionDispatcher';
 import AppConfigActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
+import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selectors/getAppData';
-import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
+import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { Preview } from './Preview';
 
 export interface IFormFillerProps {
@@ -117,6 +117,6 @@ const makeMapStateToProps = () => {
     };
   };
   return mapStateToProps;
-}
+};
 
 export const FormFiller = connect(makeMapStateToProps)(FormFillerComponent);

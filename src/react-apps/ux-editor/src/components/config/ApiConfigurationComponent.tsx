@@ -66,7 +66,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
       const newComponentApiResponseMappingsAllIds: any[] = [];
       const apiResponseMapping = this.props.APIs.connections[this.props.connectionId].apiResponseMapping;
 
-      Object.keys(apiResponseMapping).map(key => {
+      Object.keys(apiResponseMapping).map((key) => {
         const tempUuid = uuidv4();
         newComponentApiResponseMappingsById = {
           ...newComponentApiResponseMappingsById, // TODO: This is empty, so can it just be removed?
