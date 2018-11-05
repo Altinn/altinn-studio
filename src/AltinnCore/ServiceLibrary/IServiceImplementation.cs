@@ -56,25 +56,9 @@ namespace AltinnCore.ServiceLibrary
         void SetPlatformServices(IPlatformServices platformServices);
 
         /// <summary>
-        /// Gets the name of a view based on the given inputs
-        /// </summary>
-        /// <param name="viewID">The ID of the view to get</param>
-        /// <param name="serviceNavigation">The current navigation context</param>
-        /// <returns>The name of the view</returns>
-        ViewMetadata GetView(string viewID, UserActionType userAction);
-
-        /// <summary>
         /// Get the service Type
         /// </summary>
         /// <returns>The Type of the service model for the current service</returns>
         Type GetServiceModelType();
-
-        /// <summary>
-        /// Gets the view model for the given view
-        /// </summary>
-        /// <param name="view">The name of the current view</param>
-        /// <param name="itemId">The current item id (optional)</param>
-        /// <returns>The view model for the given <paramref name="view"/></returns>
-        dynamic GetViewModel(string view, int? itemId);
     }
 }

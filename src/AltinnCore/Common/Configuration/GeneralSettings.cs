@@ -80,40 +80,6 @@
                 return TemplateLocation + "/GeneratedMethods.cs";
             }
         }
-
-        /// <summary>
-        /// Gets the path to the default service layout file
-        /// </summary>
-        public string DefaultServiceLayout
-        {
-            get
-            {
-                return TemplateLocation + "/_ServiceLayout.cshtml";
-            }
-        }
-
-        /// <summary>
-        /// Gets the path to the default view start file
-        /// </summary>
-        public string DefaultViewStart
-        {
-            get
-            {
-                return TemplateLocation + "/_ViewStart.cshtml";
-            }
-        }
-
-        /// <summary>
-        /// Gets the path to the default view imports file
-        /// </summary>
-        public string DefaultViewImports
-        {
-            get
-            {
-                return TemplateLocation + "/_ViewImports.cshtml";
-            }
-        }
-
         
         /// <summary>
         /// Gets the path to the default Dockerfile file

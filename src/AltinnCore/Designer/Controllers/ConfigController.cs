@@ -28,21 +28,19 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The View for JSON editor</returns>
-        public IActionResult Index(string org, string service, string edition)
+        public IActionResult Index(string org, string service)
         {
             return View();
         }
 
         /// <summary>
-        /// The View for configuration of security for an edition
+        /// The View for configuration of security for a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The view with JSON editor</returns>
-        public IActionResult Security(string org, string service, string edition)
+        public IActionResult Security(string org, string service)
         {
             return View();
         }
@@ -53,13 +51,12 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="jsonData">The JSON Data</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">The name of the config</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveConfig([FromBody]dynamic jsonData, string org, string service, string edition, string id)
+        public IActionResult SaveConfig([FromBody]dynamic jsonData, string org, string service, string id)
         {
-            _repository.SaveConfiguration(org, service, edition, id + ".json", jsonData.ToString());
+            _repository.SaveConfiguration(org, service, id + ".json", jsonData.ToString());
             return Json(new
             {
                 Success = true,
@@ -84,13 +81,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">The name on config</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
-        public IActionResult GetConfig(string org, string service, string edition, string id)
+        public IActionResult GetConfig(string org, string service, string id)
         {
-            string configJson = _repository.GetConfiguration(org, service, edition, id + ".json");
+            string configJson = _repository.GetConfiguration(org, service, id + ".json");
             if (string.IsNullOrWhiteSpace(configJson))
             {
                 configJson = "{}";

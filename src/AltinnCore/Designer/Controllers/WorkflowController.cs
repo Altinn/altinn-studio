@@ -39,9 +39,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>The View for JSON editor</returns>
-        public IActionResult Index(string org, string service, string edition)
+        public IActionResult Index(string org, string service)
         {
             return View();
         }
@@ -52,12 +52,12 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="jsonData">The JSON Data</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveWorkflow([FromBody]dynamic jsonData, string org, string service, string edition)
+        public IActionResult SaveWorkflow([FromBody]dynamic jsonData, string org, string service)
         {
-            _repository.SaveConfiguration(org, service, edition, _settings.WorkFlowFileName, jsonData.ToString());
+            _repository.SaveConfiguration(org, service, _settings.WorkFlowFileName, jsonData.ToString());
 
             return Json(new
             {
@@ -82,12 +82,12 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>The JSON workflow</returns>
         [HttpGet]
-        public IActionResult GetWorkflow(string org, string service, string edition)
+        public IActionResult GetWorkflow(string org, string service)
         {
-            var workflowJson = _repository.GetConfiguration(org, service, edition,  _settings.WorkFlowFileName);
+            var workflowJson = _repository.GetConfiguration(org, service,  _settings.WorkFlowFileName);
             if (string.IsNullOrWhiteSpace(workflowJson))
             {
                 var defaulFile = _defaultFileFactory.GetJsonDefaultFile(_settings.WorkFlowFileName, org);

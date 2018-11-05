@@ -117,9 +117,8 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         },
       });
-
-
     }
+
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_REJECTED: {
       const { error } = action as FormDesignerActions.IAddFormComponentActionRejected;
       return update<IFormLayoutState>(state, {

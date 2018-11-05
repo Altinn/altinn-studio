@@ -74,7 +74,6 @@ namespace AltinnCore.Designer
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ITestdata, TestdataSILocalDev>();
             services.AddSingleton<ITestingRepository, TestingRepository>();
-            services.AddSingleton<IViewRepository, ViewRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
@@ -129,12 +128,6 @@ namespace AltinnCore.Designer
             });
             mvc.AddXmlSerializerFormatters();
 
-            services.Configure<RazorViewEngineOptions>(options =>
-            {
-                options.FileProviders.Add(
-                    new AltinnViewFileProvider(repoLocation + "{0}/{1}/{2}/Views/", repoLocation + "{0}/{1}/{2}/Packages/", repoLocation + "{0}/{1}/{2}/", loadFromPackage));
-            });
-
             services.AddLocalization();
             services.Configure<RequestLocalizationOptions>(
                 options =>
@@ -145,7 +138,7 @@ namespace AltinnCore.Designer
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
                             new CultureInfo("nn-NO")
-                        };
+                              };
 
                     options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
                     options.SupportedCultures = supportedCultures;
@@ -200,29 +193,16 @@ namespace AltinnCore.Designer
                     {
                         controller = "Codelist|Owner|Config"
                     });
-
                 routes.MapRoute(
-                    name: "serviceRoute",
-                    template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Service" },
-                    constraints: new
-                    {
-                        controller = "Service",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        id = "[1-9][0-9]{0,3}"
-                    });
-
-                routes.MapRoute(
-                    name: "editionRoute",
-                    template: "designer/{org}/{service}/{edition}/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Edition" },
-                    constraints: new
-                    {
-                        controller = @"(Codelist|Config|DataSource|Edition|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy)",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        edition = @"[1-9]\d{0,3}",
-                        id = "[a-zA-Z0-9_\\-]{1,30}"
-                    });
+                          name: "serviceRoute",
+                          template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
+                          defaults: new { controller = "Service" },
+                          constraints: new
+                          {
+                              controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy)",
+                              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                              id = "[a-zA-Z0-9_\\-]{1,30}"
+                          });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(

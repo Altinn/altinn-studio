@@ -21,12 +21,6 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         public string Service { get; set; }
 
         /// <summary>
-        /// Gets or sets the service edition
-        /// </summary>
-        [Required]
-        public string Edition { get; set; }
-
-        /// <summary>
         /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
         /// </summary>
         public Dictionary<string, ElementMetadata> Elements { get; set; }

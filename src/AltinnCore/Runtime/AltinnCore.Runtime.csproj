@@ -25,9 +25,6 @@
     <Content Update="Views\Instance\editSPA.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
-    <Content Update="Views\ServiceCatalogue\Editions.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
     <Content Update="Views\Shared\_LayoutClean.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>

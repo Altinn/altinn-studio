@@ -25,8 +25,7 @@ namespace AltinnCore.Common.Services
         /// <param name="executionService">The execution service</param>
         /// <param name="org">The current service owner</param>
         /// <param name="service">The current service</param>
-        /// <param name="edition">The current service edition</param>
-        public PlatformServices(IAuthorization authorizationService, IRepository repositoryService, IExecution executionService, string org, string service, string edition)
+        public PlatformServices(IAuthorization authorizationService, IRepository repositoryService, IExecution executionService, string org, string service)
         {
             _authorization = authorizationService;
             _repository = repositoryService;
@@ -34,7 +33,6 @@ namespace AltinnCore.Common.Services
 
             Org = org;
             Service = service;
-            Edition = edition;
         }
 
         /// <summary>
@@ -46,11 +44,6 @@ namespace AltinnCore.Common.Services
         /// Gets or sets the service
         /// </summary>
         protected string Service { get; set; }
-
-        /// <summary>
-        /// Gets or sets the edition
-        /// </summary>
-        protected string Edition { get; set; }
 
         /// <summary>
         /// Gets the ReporteeList for a given userID
@@ -70,9 +63,8 @@ namespace AltinnCore.Common.Services
         /// <param name="valueKey">The key of the code list value to use as the item value</param>
         /// <param name="codelistSource">
         /// Where to get the code list from, if not set the following search order will be used:
-        /// 1. Service edition
-        /// 2. Service
-        /// 3. Service owner
+        /// 1. Service
+        /// 2. Service owner
         /// </param>
         /// <returns>A list which can be used for populating dropdowns etc. using tag helpers</returns>
         public List<SelectListItem> GetPresentationCodelist(string name, string textKey, string valueKey, CodeListSourceType codelistSource = CodeListSourceType.Unspecified)
@@ -101,28 +93,22 @@ namespace AltinnCore.Common.Services
         /// <param name="name">The name of the code list to get</param>
         /// <param name="codelistSource">
         /// Where to get the code list from, if not set the following search order will be used:
-        /// 1. Service edition
-        /// 2. Service
-        /// 3. Service owner
+        /// 1. Service
+        /// 2. Service owner
         /// </param>
         /// <returns>The requested code list if found</returns>
         public string GetCodelist(string name, CodeListSourceType codelistSource = CodeListSourceType.Unspecified)
         {
             switch (codelistSource)
             {
-                case CodeListSourceType.Edition:
-                    {
-                        return _execution.GetCodelist(Org, Service, Edition, name);
-                    }
-
                 case CodeListSourceType.Service:
                     {
-                        return _execution.GetCodelist(Org, Service, null, name);
+                        return _execution.GetCodelist(Org, Service, name);
                     }
 
                 case CodeListSourceType.Owner:
                     {
-                        return _execution.GetCodelist(Org, null, null, name);
+                        return _execution.GetCodelist(Org, null, name);
                     }
 
                 case CodeListSourceType.Platform:
@@ -132,19 +118,19 @@ namespace AltinnCore.Common.Services
 
                 default:
                     {
-                        string codelist = _execution.GetCodelist(Org, Service, Edition, name);
+                        string codelist = _execution.GetCodelist(Org, Service, name);
                         if (!string.IsNullOrEmpty(codelist))
                         {
                             return codelist;
                         }
 
-                        codelist = _execution.GetCodelist(Org, Service, null, name);
+                        codelist = _execution.GetCodelist(Org, Service, name);
                         if (!string.IsNullOrEmpty(codelist))
                         {
                             return codelist;
                         }
 
-                        codelist = _execution.GetCodelist(Org, null, null, name);
+                        codelist = _execution.GetCodelist(Org, null, name);
                         if (!string.IsNullOrEmpty(codelist))
                         {
                             return codelist;

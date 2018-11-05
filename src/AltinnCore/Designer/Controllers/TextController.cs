@@ -31,15 +31,15 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>The view with JSON editor</returns>
-        public IActionResult Index(string org, string service, string edition)
+        public IActionResult Index(string org, string service)
         {
-            IList<string> languages = _repository.GetLanguages(org, service, edition);
+            IList<string> languages = _repository.GetLanguages(org, service);
 
             if (Request.Headers["accept"] == "application/json")
             {
-                Dictionary<string, Dictionary<string, string>> resources = _repository.GetServiceTexts(org, service, edition);
+                Dictionary<string, Dictionary<string, string>> resources = _repository.GetServiceTexts(org, service);
                 return Json(resources);
             }
 
@@ -47,15 +47,15 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// /// The languages in the edition
+        /// /// The languages in the service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>List of languages as JSON</returns>
-        public IActionResult GetLanguages(string org, string service, string edition)
+        public IActionResult GetLanguages(string org, string service)
         {
-            List<string> languages = _repository.GetLanguages(org, service, edition);
+            List<string> languages = _repository.GetLanguages(org, service);
             return Json(languages);   
         }
 
@@ -66,10 +66,10 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code> )</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string service, string edition)
+        public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string service)
         {
             JObject json = jsonData;
 
@@ -78,7 +78,7 @@ namespace AltinnCore.Designer.Controllers
             JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
             json["resources"].Replace(sorted);
 
-            _repository.SaveResource(org, service, edition, id, json.ToString());
+            _repository.SaveResource(org, service, id, json.ToString());
             return Json(new
             {
                 Success = true,
@@ -91,13 +91,13 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>Deletes a language resource</returns>
         [HttpDelete]
-        public IActionResult DeleteLanguage(string org, string service, string edition, string id)
+        public IActionResult DeleteLanguage(string org, string service, string id)
         {
-            bool deleted = _repository.DeleteLanguage(org, service, edition, id);
+            bool deleted = _repository.DeleteLanguage(org, service, id);
             return Json(new { Message = "Språket " + id + " er nå slettet!", Id = id, GikkBra = deleted });
         }
 
@@ -117,13 +117,13 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
-        public IActionResult GetResource(string org, string service, string edition, string id)
+        public IActionResult GetResource(string org, string service, string id)
         {
-            string resourceJson = _repository.GetResource(org, service, edition, id);
+            string resourceJson = _repository.GetResource(org, service, id);
             if (string.IsNullOrWhiteSpace(resourceJson))
             {
                 resourceJson = string.Empty;
