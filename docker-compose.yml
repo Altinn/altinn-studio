@@ -39,8 +39,8 @@ services:
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
-      - GeneralSettings:TemplateLocation=/app/Templates
-      - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
+      - GeneralSettings:TemplateLocation=/Templates
+      - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
       - "5000:5000"
     depends_on:
