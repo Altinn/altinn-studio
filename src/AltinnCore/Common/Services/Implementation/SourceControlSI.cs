@@ -46,10 +46,6 @@ namespace AltinnCore.Common.Services.Implementation
         public void CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
-            Console.WriteLine("**** Ready to clone repo: " + remoteRepo);
-            // Added for testing, remove when done.
-            string localRepo = FindLocalRepoLocation(org, repository);
-            Console.WriteLine("**** Ready to clone to local repo: " + localRepo);
             CloneOptions cloneOptions = new CloneOptions();
             cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
             Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
@@ -291,7 +287,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The organization owning the repostory</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns></returns>
-        private string FindLocalRepoLocation(string org, string repository)
+        public string FindLocalRepoLocation(string org, string repository)
         {
             string localpath = null;
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
