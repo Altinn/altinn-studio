@@ -32,9 +32,10 @@ namespace AltinnCore.Designer
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                string pathToAppSettingSecret = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\altinn-appsettings\altinn-appsettings-secret.json"));
-                config.AddJsonFile(pathToAppSettingSecret, optional: true, reloadOnChange: true);
+                //string pathToAppSettingSecret = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\altinn-appsettings\altinn-appsettings-secret.json"));
+                //config.AddJsonFile(pathToAppSettingSecret, optional: true, reloadOnChange: true);
                 config.SetBasePath(Directory.GetCurrentDirectory());
+                config.AddJsonFile("\altinn-appsettings\altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
