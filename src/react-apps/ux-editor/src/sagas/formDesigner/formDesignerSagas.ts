@@ -326,7 +326,6 @@ export function* toggleFormContainerRepeatingSaga({
   }
 }
 
-
 export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,

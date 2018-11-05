@@ -3,8 +3,6 @@ const moduleName: string = 'APP_CONFIG';
 /**
  * This file defines all action that will be triggered and listened on by SAGAS and REDUCERS 
  */
-
-
 // All design mode actions
 export const SET_DESIGN_MODE: string = `${moduleName}.SET_DESIGNER_MODE`;
 export const SET_DESIGN_MODE_FULFILLED: string = `${moduleName}.SET_DESIGNER_MODE_FULFILLED`;
