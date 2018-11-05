@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -798,10 +798,10 @@ namespace AltinnCore.Common.Services.Implementation
 
 			RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
 
-
 			AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
+            Console.WriteLine("**** Created new repository: " + repository.FullName);
 			_sourceControl.CloneRemoteRepository(org, serviceConfig.Code);
-
+            Console.WriteLine("**** Cloned to local repo.");
 			bool created = false;
 
 			if (!File.Exists(filename))

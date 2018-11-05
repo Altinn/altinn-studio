@@ -1,4 +1,4 @@
-﻿using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -46,6 +46,10 @@ namespace AltinnCore.Common.Services.Implementation
         public void CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
+            Console.WriteLine("**** Ready to clone repo: " + remoteRepo);
+            // Added for testing, remove when done.
+            string localRepo = FindLocalRepoLocation(org, repository);
+            Console.WriteLine("**** Ready to clone to local repo: " + localRepo);
             CloneOptions cloneOptions = new CloneOptions();
             cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
             Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
