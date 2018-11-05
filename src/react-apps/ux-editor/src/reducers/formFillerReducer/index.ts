@@ -17,7 +17,7 @@ const initialState: IFormFillerState = {
 
 const formFillerReducer: Reducer<IFormFillerState> = (
   state: IFormFillerState = initialState,
-  action?: Action
+  action?: Action,
 ): IFormFillerState => {
   if (!action) {
     return state;
@@ -67,10 +67,10 @@ const formFillerReducer: Reducer<IFormFillerState> = (
           $apply: () => ({
             ...state.formData,
             [dataModelBinding]: formData,
-          })
+          }),
         },
         validationErrors: {
-          $unset: [componentID]
+          $unset: [componentID],
         },
         unsavedChanges: {
           $set: true,

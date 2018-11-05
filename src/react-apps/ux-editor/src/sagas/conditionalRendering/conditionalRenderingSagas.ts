@@ -114,11 +114,13 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
         // Either component or container
         const elementId = connectionDef.selectedFields[elementToPerformActionOn];
         const elementIsComponent = formDesignerState.layout.components[elementId] ? true : false;
-        let element = elementIsComponent ?
+        const element = elementIsComponent ?
           formDesignerState.layout.components[elementId] :
           formDesignerState.layout.containers[elementId];
 
-        if (!element) continue;
+        if (!element) {
+          continue;
+        }
 
         switch (action) {
           case 'Show':

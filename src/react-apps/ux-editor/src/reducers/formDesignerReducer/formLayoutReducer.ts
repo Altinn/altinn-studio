@@ -35,7 +35,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
   switch (action.type) {
     case FormDesignerActionTypes.ADD_ACTIVE_FORM_CONTAINER_FULFILLED: {
       const { containerId, callback } = action as FormDesignerActions.IAddActiveFormContainerActionFulfilled;
-      if (callback) callback(containerId);
+      if (callback) {
+        callback(containerId);
+      }
 
       return update<IFormLayoutState>(state, {
         activeContainer: {
@@ -45,7 +47,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
       const { component, id, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
-      if (callback) callback(component, id);
+      if (callback) {
+        callback(component, id);
+      }
 
       return update<IFormLayoutState>(state, {
         components: {
@@ -68,7 +72,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         baseContainerId,
         callback,
       } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
-      if (callback) callback(container, id);
+      if (callback) {
+        callback(container, id);
+      }
 
       if (!baseContainerId) {
         return update<IFormLayoutState>(state, {
@@ -224,7 +230,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         unSavedChanges: {
           $set: true,
         },
-      })
+      });
     }
 
     case FormDesignerActionTypes.UPDATE_FORM_CONTAINER_REJECTED: {

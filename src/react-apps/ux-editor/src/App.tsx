@@ -93,7 +93,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       appDataActionDispatcher.fetchRuleModel(
         `${altinnWindow.location.origin}/designer/${servicePath}/React/GetRuleHandler`);
 
-      // Fetch the CodeLists 
+      // Fetch the CodeLists
       appDataActionDispatcher.fetchCodeLists(
         `${altinnWindow.location.origin}/designer/${servicePath}/CodeList/CodeLists`);
 
@@ -110,14 +110,21 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     return (
       <div className='App flex-column d-flex media-body'>
         <ErrorMessageComponent />
-        <Route exact={true} path='/' render={() => {
-          formFillerActionDispatchers.resetFormData(
-            `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
-          return <FormDesigner />
-        }} />
-        <Route exact={true} path='/Preview' render={() => {
-          return <FormFiller />
-        }} />
+        <Route
+          exact={true}
+          path='/'
+          render={() => {
+            formFillerActionDispatchers.resetFormData(`${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+            return <FormDesigner />;
+          }}
+        />
+        <Route
+          exact={true}
+          path='/Preview'
+          render={() => {
+            return <FormFiller />;
+          }}
+        />
       </div>
     );
   }
