@@ -1,3 +1,4 @@
+import { Selector } from 'testcafe';
 import config from './config';
 import minimist from 'minimist'; //argument parsing
 import process from 'process';
