@@ -20,8 +20,22 @@ These instructions will get you a copy of the project up and running on your loc
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker CE](https://www.docker.com/get-docker)
-6. Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` in the hosts file (C:/Windows/System32/drivers/etc/hosts)
-7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives
+6. Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` in the hosts file (C:/Windows/System32/drivers/etc/hosts) <br />
+   On MacOS: Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` to /private/etc/hosts. 
+    ```cmd
+    sudo nano /private/etc/hosts
+    ```
+7. Make sure your C drive is shared with docker, Docker Settings -> Shared Drives <br />
+   On MacOS: Change docker-compose.yml (both)
+    ```cmd
+      volumes:
+        - "C:/AltinnCore/Repos:/AltinnCore/Repos"
+    ```
+    to:
+    ```cmd
+      volumes:
+        - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
+    ```
 8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and choose "stop"
 
 ### Installing
