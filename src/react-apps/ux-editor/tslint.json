@@ -7,20 +7,48 @@
   ],
   "jsRules": {},
   "rules": {
-    "indent": [true, "spaces", 2],
-    "brace-style": [true, "1tbs"],
-    "curly": [true, "ignore-same-line"],
-    "linebreak-style": false,
-    "no-plusplus": false,
-    "quotemark": [true, "single", "avoid-escape"],
-    "object-literal-sort-keys": [true, "ignore-case", "match-declaration-order", "shorthand-first"],
-    "no-empty-interface": false,
-    "no-object-literal-type-assertion": false,
+    "brace-style": [
+      true,
+      "1tbs"
+    ],
+    "indent": [
+      true,
+      "spaces",
+      2
+    ],
     "jsx-no-multiline-js": false,
+    "max-line-length": [
+      true,
+      {
+        "limit": 120,
+        "ignore-pattern": "^import |^export {(.*?)}"
+      }
+    ],
+    "no-console": [
+      true,
+      {
+        "allow": [
+          "warn",
+          "error"
+        ]
+      }
+    ],
     "no-submodule-imports": false,
-    "no-console": false,
-    "arrow-parens": false,
-    "variable-name": [true, "check-format", "allow-pascal-case", "allow-leading-underscore"]
+    "object-literal-sort-keys": false,
+    "quotemark": {
+      "options": [
+        "single",
+        "avoid-escape",
+        "jsx-single"
+      ]
+    },
+    "variable-name": [
+      true,
+      "check-format",
+      "allow-pascal-case",
+      "allow-leading-underscore",
+      "ban-keywords"
+    ]
   },
   "rulesDirectory": [],
   "exclude": [

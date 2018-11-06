@@ -23,11 +23,6 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         public string Service { get; set; }
 
         /// <summary>
-        /// Gets or sets the edition of the service this package contains
-        /// </summary>
-        public string Edition { get; set; }
-
-        /// <summary>
         /// Gets or sets the assembly name within this package
         /// </summary>
         public string AssemblyName { get; set; }

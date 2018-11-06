@@ -84,7 +84,7 @@ class FormComponent extends React.Component<
    * Return a given textresource from all textresources avaiable
    */
   public getTextResource = (resourceKey: string): string => {
-    const textResource = this.props.textResources.find(resource => resource.id === resourceKey);
+    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   }
 
@@ -110,7 +110,7 @@ class FormComponent extends React.Component<
 
   /**
    * Method that allows user to set focus to elements in the compoenent
-   * instead of opening the edition modal on click.
+   * instead of opening the edit modal on click.
    */
   public disableEditOnClickForAddedComponent = (e: any) => {
     e.stopPropagation();
@@ -179,7 +179,7 @@ const makeMapStateToProps = () => {
     component: state.formDesigner.layout.components[props.id],
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
-      element => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),
+      (element) => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:

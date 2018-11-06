@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
@@ -85,7 +85,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             var metaDataDir = _settings.GetMetadataPath(serviceMetadata.Org,
-                serviceMetadata.Service, serviceMetadata.Edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                serviceMetadata.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
             {
@@ -93,7 +93,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             var resourceDir = _settings.GetResourcePath(serviceMetadata.Org,
-                serviceMetadata.Service, serviceMetadata.Edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                serviceMetadata.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
             {
@@ -104,12 +104,12 @@ namespace AltinnCore.Common.Services.Implementation
             var filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
-            AddDefaultFiles(serviceMetadata.Org, serviceMetadata.Service, serviceMetadata.Edition);
-            CreateInitialServiceImplementation(serviceMetadata.Org, serviceMetadata.Service, serviceMetadata.Edition);
-            CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.Service, serviceMetadata.Edition);
-            CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.Service, serviceMetadata.Edition);
-            CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.Service, serviceMetadata.Edition);
-            CreateInitialRuleHandler(serviceMetadata.Org, serviceMetadata.Service, serviceMetadata.Edition);
+            AddDefaultFiles(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialServiceImplementation(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialRuleHandler(serviceMetadata.Org, serviceMetadata.Service);
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
@@ -120,16 +120,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// Updates serviceMetadata
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+        /// <param name="service">The service code for the current service</param>    
         /// <param name="serviceMetadata">The service Metadata</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool UpdateServiceMetadata(string org, string service, string edition, ServiceMetadata serviceMetadata)
+        public bool UpdateServiceMetadata(string org, string service, ServiceMetadata serviceMetadata)
         {
             try
             {
                 string metadataAsJson = JsonConvert.SerializeObject(serviceMetadata);
-                string filePath = _settings.GetMetadataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
+                string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
 
                 File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
             }
@@ -146,14 +145,31 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The service metadata for a service</returns>
-        public ServiceMetadata GetServiceMetaData(string org, string service, string edition)
+        public ServiceMetadata GetServiceMetaData(string org, string service)
         {
-            string filename = _settings.GetMetadataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
-            string filedata = File.ReadAllText(filename, Encoding.UTF8);
+            string filedata = string.Empty;
+            string filename = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceMetadataFileName;
+            try
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+            }
+            catch (Exception ex)
+            {
+                if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
+                {
+                    // Create service with already existing repo
+                    CreateService(org, new ServiceConfiguration { Code = service }, true);
+                    CreateServiceMetadata(new ServiceMetadata { Org = org, Service = service });
+                    filedata = File.ReadAllText(filename, Encoding.UTF8);
+                    return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+                }
+                throw;
+            }
 
-            return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+
+            
         }
 
         #endregion
@@ -163,13 +179,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// Returns the content of a configuration file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+        /// <param name="service">The service code for the current service</param>  
         /// <param name="name">The name of the configuration</param>
         /// <returns>A string containing the file content</returns>
-        public string GetConfiguration(string org, string service, string edition, string name)
+        public string GetConfiguration(string org, string service, string name)
         {
-            string filename = _settings.GetMetadataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
+            string filename = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -185,12 +200,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>The resource file content</returns>
-        public string GetResource(string org, string service, string edition, string id)
+        public string GetResource(string org, string service, string id)
         {
-            string filename = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
+            string filename = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
             string filedata = null;
 
             if (File.Exists(filename))
@@ -206,15 +220,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The text</returns>
-        public Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string service, string edition)
+        public Dictionary<string, Dictionary<string, string>> GetServiceTexts(string org, string service)
         {
             Dictionary<string, Dictionary<string, string>> serviceTextsAllLanguages =
                 new Dictionary<string, Dictionary<string, string>>();
 
             // Get service level text resources
-            string resourcePath = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(resourcePath, serviceTextsAllLanguages);
 
             //Get Org level text resources
@@ -274,17 +287,16 @@ namespace AltinnCore.Common.Services.Implementation
 
 
         /// <summary>
-        /// Returns the edition languages
+        /// Returns the service languages
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The text</returns>
-        public List<string> GetLanguages(string org, string service, string edition)
+        public List<string> GetLanguages(string org, string service)
         {
             List<string> languages = new List<string>();
 
-            string resourcePath = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(resourcePath))
             {
                 Directory.CreateDirectory(resourcePath);
@@ -306,9 +318,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="texts">The texts to be saved</param>
-        public void SaveServiceTexts(string org, string service, string edition,
+        public void SaveServiceTexts(string org, string service,
             Dictionary<string, Dictionary<string, string>> texts)
         {
             // Language, key, value
@@ -336,7 +347,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            string resourcePath = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             foreach (KeyValuePair<string, Dictionary<string, JObject>> processedResource in resourceTextsAsJson)
             {
@@ -360,11 +371,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Returns the Xsd object as a string</returns>
-        public string GetXsdModel(string org, string service, string edition)
+        public string GetXsdModel(string org, string service)
         {
-            string filename = _settings.GetModelPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
+            string filename = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -380,11 +390,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Returns the json object as a string</returns>
-        public string GetJsonFormLayout(string org, string service, string edition)
+        public string GetJsonFormLayout(string org, string service)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -400,11 +409,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Returns the json object as a string</returns>
-        public string GetJsonThirdPartyComponents(string org, string service, string edition)
+        public string GetJsonThirdPartyComponents(string org, string service)
         {
-            string filePath = _settings.GetThirdPartyComponentsPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
+            string filePath = _settings.GetThirdPartyComponentsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -420,11 +428,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Returns the json object as a string</returns>
-        public string GetRuleHandler(string org, string service, string edition)
+        public string GetRuleHandler(string org, string service)
         {
-            string filePath = _settings.GetRuleHandlerPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string filePath = _settings.GetRuleHandlerPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -440,12 +447,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="fileName">The filename so read from</param>
         /// <returns>Returns the json object as a string</returns>
-        public string GetJsonFile(string org, string service, string edition, string fileName)
+        public string GetJsonFile(string org, string service, string fileName)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -461,12 +467,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveJsonFormLayout(string org, string service, string edition, string resource)
+        public bool SaveJsonFormLayout(string org, string service, string resource)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -478,12 +483,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveJsonThirdPartyComponents(string org, string service, string edition, string resource)
+        public bool SaveJsonThirdPartyComponents(string org, string service, string resource)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -495,12 +499,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveJsonFile(string org, string service, string edition, string resource, string fileName)
+        public bool SaveJsonFile(string org, string service, string resource, string fileName)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -512,14 +515,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization code of the service owner</param>
         /// <param name="service">The service code of the current service</param>
-        /// <param name="edition">The edition code of the current service</param>
         /// <param name="name">The name of the code list to retrieve</param>
         /// <returns>Raw contents of a code list file</returns>
-        public string GetCodelist(string org, string service, string edition, string name)
+        public string GetCodelist(string org, string service, string name)
         {
             try
             {
-                Dictionary<string, string> allCodelists = GetCodelists(org, service, edition);
+                Dictionary<string, string> allCodelists = GetCodelists(org, service);
 
                 if (!allCodelists.ContainsKey(name))
                 {
@@ -539,14 +541,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name on config</param>
         /// <param name="config">The content</param>
         /// <returns>A boolean indicating if everything went ok</returns>
-        public bool SaveConfiguration(string org, string service, string edition, string name, string config)
+        public bool SaveConfiguration(string org, string service, string name, string config)
         {
 
-            string filePath = _settings.GetMetadataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
+            string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, config, Encoding.UTF8);
 
@@ -558,13 +559,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <param name="resource">The content of the resource file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveResource(string org, string service, string edition, string id, string resource)
+        public bool SaveResource(string org, string service, string id, string resource)
         {
-            string filePath = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
+            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -578,12 +578,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>A boolean indicating if the delete was a success</returns>
-        public bool DeleteLanguage(string org, string service, string edition, string id)
+        public bool DeleteLanguage(string org, string service, string id)
         {
-            string filename = string.Format(_settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id}.json";
+            string filename = string.Format(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))) + $"resource.{id}.json";
             bool deleted = false;
 
             if (File.Exists(filename))
@@ -600,27 +599,25 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="serviceMetadata">The service metadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current service</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string service, string edition, ServiceMetadata serviceMetadata,
+        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata,
             XDocument mainXsd)
         {
             var modelGenerator = new JsonMetadataParser();
 
             serviceMetadata.Org = org;
             serviceMetadata.Service = service;
-            serviceMetadata.Edition = edition;
 
             string classes = modelGenerator.CreateModelFromMetadata(serviceMetadata);
 
             // Update the service metadata with all elements
-            ServiceMetadata original = GetServiceMetaData(org, service, edition);
+            ServiceMetadata original = GetServiceMetaData(org, service);
             string oldRoot = original.Elements?.Values.First(e => e.ParentElement == null).TypeName;
             original.Elements = serviceMetadata.Elements;
 
-            if (!UpdateServiceMetadata(org, service, edition, original))
+            if (!UpdateServiceMetadata(org, service, original))
             {
                 return false;
             }
@@ -628,7 +625,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Create the .cs file for the model
             try
             {
-                string filePath = _settings.GetModelPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+                string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
                 (new FileInfo(filePath)).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
@@ -643,7 +640,7 @@ namespace AltinnCore.Common.Services.Implementation
                     // Create the .xsd file for the model
                     try
                     {
-                        string filePath = _settings.GetModelPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
+                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
                         (new FileInfo(filePath)).Directory.Create();
                         File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
                     }
@@ -654,7 +651,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            var resourceDirectory = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var resourceDirectory = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(resourceDirectory))
             {
                 throw new Exception("Resource directory missing.");
@@ -665,7 +662,7 @@ namespace AltinnCore.Common.Services.Implementation
                 ruleHandlerPath,
                 File.ReadAllText(ruleHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
-            var implementationDirectory = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var implementationDirectory = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(implementationDirectory))
             {
                 throw new Exception("Implementation directory missing.");
@@ -700,11 +697,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Service model content</returns>
-        public string GetServiceModel(string org, string service, string edition)
+        public string GetServiceModel(string org, string service)
         {
-            string filename = _settings.GetModelPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+            string filename = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -740,15 +736,10 @@ namespace AltinnCore.Common.Services.Implementation
                 foreach (string serviceRepo in serviceRepos)
                 {
                     string serviceRepoFileName = Path.GetFileName(serviceRepo);
-                    string[] editions = Directory.GetDirectories(serviceRepo);
-
-                    foreach (string edition in editions)
+                    string serviceDirectory = _settings.GetMetadataPath(serviceOwnerFileName, serviceRepoFileName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                    if (Directory.Exists(serviceDirectory))
                     {
-                        string serviceDirectory = _settings.GetMetadataPath(serviceOwnerFileName, serviceRepoFileName, Path.GetFileName(edition), AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                        if (Directory.Exists(serviceDirectory))
-                        {
-                            services.Add(GetServiceMetaData(serviceOwnerFileName, serviceRepoFileName, Path.GetFileName(edition)));
-                        }
+                        services.Add(GetServiceMetaData(serviceOwnerFileName, serviceRepoFileName));
                     }
                 }
             }
@@ -819,16 +810,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
         /// <returns>Was the service creation successful</returns>
-        public bool CreateService(string org, ServiceConfiguration serviceConfig)
+        public bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
             string filename = _settings.GetServicePath(org, serviceConfig.Code, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
 
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
 
+            if (!repoCreated) {
+                AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
+            }
 
-            AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
             _sourceControl.CloneRemoteRepository(org, serviceConfig.Code);
-
             bool created = false;
 
             if (!File.Exists(filename))
@@ -856,40 +848,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a new service edition folder under the given <paramref name="org">service owner</paramref> and <paramref name="service">service</paramref>,
-        /// and saves the given <paramref name="serviceEditionConfiguration"/>
+        /// Delete a service from disk
         /// </summary>
-        /// <param name="org">The service owner to create the new service edition under</param>
-        /// <param name="service">The service to create the new service edition under</param>
-        /// <param name="editionConfig">The service edition configuration to save</param>
-        /// <returns>Was the service edition creation successful</returns>
-        public bool CreateEdition(string org, string service, EditionConfiguration editionConfig)
-        {
-            string serviceEditionPath = _settings.GetEditionPath(org, service, editionConfig.Code, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/config.json";
-
-            if (Directory.Exists(serviceEditionPath))
-            {
-                return false;
-            }
-
-          (new FileInfo(serviceEditionPath)).Directory.Create();
-            using (Stream fileStream = new FileStream(serviceEditionPath, FileMode.Create, FileAccess.ReadWrite))
-            using (StreamWriter streamWriter = new StreamWriter(fileStream))
-            {
-                streamWriter.WriteLine(JsonConvert.SerializeObject(editionConfig));
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Delete a service edition from disk
-        /// </summary>
-        /// <param name="org">The service owner to delete the service edition from</param>
-        /// <param name="service">The service to delete the service edition from</param>
-        /// <param name="edition">The service edition to delete</param>
+        /// <param name="org">The service owner to delete the service from</param>
+        /// <param name="service">The service to delete</param>
         /// <returns>true if success, false otherwise</returns>
-        public bool DeleteEdition(string org, string service, string edition)
+        public bool DeleteService(string org, string service)
         {
             try
             {
@@ -909,10 +873,6 @@ namespace AltinnCore.Common.Services.Implementation
                 if (!string.IsNullOrEmpty(service))
                 {
                     directoryPath += "/" + service;
-                    if (!string.IsNullOrEmpty(edition))
-                    {
-                        directoryPath += "/editions/" + edition;
-                    }
                 }
                 else
                 {
@@ -969,45 +929,16 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list of all service editions for a given service
-        /// </summary>
-        /// <param name="org">The service owner the service belongs to</param>
-        /// <param name="service">The code of the service to get editions for</param>
-        /// <returns>A list of all service editions for the given service</returns>
-        public IList<EditionConfiguration> GetEditions(string org, string service)
-        {
-            List<EditionConfiguration> editions = new List<EditionConfiguration>();
-            string path = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/" + General.EditionsFolder;
-
-            if (Directory.Exists(path))
-            {
-                string[] editionFolders = Directory.GetDirectories(path);
-
-                foreach (string editionFolder in editionFolders)
-                {
-                    if (File.Exists(editionFolder + "/config.json"))
-                    {
-                        var textData = File.ReadAllText(editionFolder + "/config.json");
-                        editions.Add(JsonConvert.DeserializeObject<EditionConfiguration>(textData));
-                    }
-                }
-            }
-
-            return editions;
-        }
-
-        /// <summary>
         /// Gets all service packages for the given service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>A list of all service packages created for the given service </returns>
-        public IList<ServicePackageDetails> GetServicePackages(string org, string service, string edition)
+        public IList<ServicePackageDetails> GetServicePackages(string org, string service)
         {
-            Guard.AssertOrgServiceEdition(org, service, edition);
+            Guard.AssertOrgService(org, service);
             var packageDetails = new List<ServicePackageDetails>();
-            string packageDirectory = _settings.GetServicePackagesPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string packageDirectory = _settings.GetServicePackagesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             if (!Directory.Exists(packageDirectory))
             {
@@ -1036,7 +967,7 @@ namespace AltinnCore.Common.Services.Implementation
         public ZipArchive GetZipArchive(ServicePackageDetails details)
         {
             Guard.AssertArgumentNotNull(details, nameof(details));
-            string packageDirectory = _settings.GetServicePackagesPath(details.Organization, details.Service, details.Edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string packageDirectory = _settings.GetServicePackagesPath(details.Organization, details.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string filename = packageDirectory + details.PackageName;
 
             if (!File.Exists(filename))
@@ -1052,16 +983,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="rules">The rules to save</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool UpdateRules(string org, string service, string edition, List<RuleContainer> rules)
+        public bool UpdateRules(string org, string service, List<RuleContainer> rules)
         {
             try
             {
-                Directory.CreateDirectory(_settings.GetRulesPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                Directory.CreateDirectory(_settings.GetRulesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
                 string rulesAsJson = JsonConvert.SerializeObject(rules);
-                string filePath = _settings.GetRulesPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RulesFileName;
+                string filePath = _settings.GetRulesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RulesFileName;
 
                 File.WriteAllText(filePath, rulesAsJson, Encoding.UTF8);
             }
@@ -1078,11 +1008,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The rules for a service</returns>
-        public List<RuleContainer> GetRules(string org, string service, string edition)
+        public List<RuleContainer> GetRules(string org, string service)
         {
-            string filename = _settings.GetRulesPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RulesFileName;
+            string filename = _settings.GetRulesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RulesFileName;
             List<RuleContainer> rules = null;
 
             if (File.Exists(filename))
@@ -1152,13 +1081,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets all code lists at service owner, service or service edition level
+        /// Gets all code lists at service owner or service level
         /// </summary>
         /// <param name="org">The service owner code of the service owner to get code lists for</param>
         /// <param name="service">The service code of the service to get code lists for</param>
-        /// <param name="edition">The service edition code of the edition to get code lists for</param>
         /// <returns>All code lists for at the given location</returns>
-        public Dictionary<string, string> GetCodelists(string org, string service, string edition)
+        public Dictionary<string, string> GetCodelists(string org, string service)
         {
             CreateAndCloneOrgCodeLists(org);
 
@@ -1175,10 +1103,6 @@ namespace AltinnCore.Common.Services.Implementation
             if (!string.IsNullOrEmpty(service))
             {
                 codelistDirectoryPath += "/" + service;
-                if (!string.IsNullOrEmpty(edition))
-                {
-                    codelistDirectoryPath += "/editions/" + edition;
-                }
             }
 
             codelistDirectoryPath += "/codelists/";
@@ -1207,11 +1131,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name on config</param>
         /// <param name="codeList">The content</param>
         /// <returns>A boolean indicating if the code list was successfully saved</returns>
-        public bool SaveCodeList(string org, string service, string edition, string name, string codeList)
+        public bool SaveCodeList(string org, string service, string name, string codeList)
         {
             try
             {
@@ -1228,10 +1151,6 @@ namespace AltinnCore.Common.Services.Implementation
                 if (!string.IsNullOrEmpty(service))
                 {
                     filePath += "/" + service;
-                    if (!string.IsNullOrEmpty(edition))
-                    {
-                        filePath += "/editions/" + edition;
-                    }
                 }
 
                 filePath += $"/codelists/{name}.json";
@@ -1252,10 +1171,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name on config</param>
         /// <returns>A boolean indicating if the Code List was deleted</returns>
-        public bool DeleteCodeList(string org, string service, string edition, string name)
+        public bool DeleteCodeList(string org, string service, string name)
         {
             try
             {
@@ -1272,10 +1190,6 @@ namespace AltinnCore.Common.Services.Implementation
                 if (!string.IsNullOrEmpty(service))
                 {
                     filePath += "/" + service;
-                    if (!string.IsNullOrEmpty(edition))
-                    {
-                        filePath += "/" + edition;
-                    }
                 }
 
                 filePath += $"/codelists/{name}.json";
@@ -1294,14 +1208,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="name">The name of the view</param>
-        public void DeleteTextResource(string org, string service, string edition, string name)
+        public void DeleteTextResource(string org, string service, string name)
         {
             Guard.AssertArgumentNotNullOrWhiteSpace(name, nameof(name));
             var resourceTextKey = ViewResourceKey(name);
 
-            var resources = GetAllResources(org, service, edition);
+            var resources = GetAllResources(org, service);
             foreach (var resource in resources)
             {
                 var jsonFileContent = resource.Resources;
@@ -1320,13 +1233,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>A list of file names</returns>
-        public List<AltinnCoreFile> GetImplementationFiles(string org, string service, string edition)
+        public List<AltinnCoreFile> GetImplementationFiles(string org, string service)
         {
             List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
 
-            string[] files = Directory.GetFiles(_settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            string[] files = Directory.GetFiles(_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in files)
             {
                 var corefile = new AltinnCoreFile
@@ -1339,7 +1251,7 @@ namespace AltinnCore.Common.Services.Implementation
                 coreFiles.Add(corefile);
             }
 
-            string[] modelFiles = Directory.GetFiles(_settings.GetModelPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            string[] modelFiles = Directory.GetFiles(_settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in modelFiles)
             {
                 var corefile = new AltinnCoreFile
@@ -1352,7 +1264,7 @@ namespace AltinnCore.Common.Services.Implementation
                 coreFiles.Add(corefile);
             }
 
-            string[] jsFiles = Directory.GetFiles(_settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            string[] jsFiles = Directory.GetFiles(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in jsFiles)
             {
                 if (System.IO.Path.GetFileName(file) == "RuleHandler.js")
@@ -1376,12 +1288,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="fileName">The file Name</param>
         /// <returns>The file content</returns>
-        public string GetImplementationFile(string org, string service, string edition, string fileName)
+        public string GetImplementationFile(string org, string service, string fileName)
         {
-            string filename = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filename = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -1397,12 +1308,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="fileName">The file Name</param>
         /// <returns>The file content</returns>
-        public string GetResourceFile(string org, string service, string edition, string fileName)
+        public string GetResourceFile(string org, string service, string fileName)
         {
-            string filename = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filename = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             string filedata = null;
 
             if (File.Exists(filename))
@@ -1418,12 +1328,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="fileName">The fileName</param>
         /// <param name="fileContent">The file content</param>
-        public void SaveImplementationFile(string org, string service, string edition, string fileName, string fileContent)
+        public void SaveImplementationFile(string org, string service, string fileName, string fileContent)
         {
-            string filename = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filename = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             File.WriteAllText(filename, fileContent, Encoding.UTF8);
         }
 
@@ -1432,12 +1341,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="fileName">The fileName</param>
         /// <param name="fileContent">The file content</param>
-        public void SaveResourceFile(string org, string service, string edition, string fileName, string fileContent)
+        public void SaveResourceFile(string org, string service, string fileName, string fileContent)
         {
-            string filename = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filename = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             File.WriteAllText(filename, fileContent, Encoding.UTF8);
         }
 
@@ -1446,65 +1354,24 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>A list of workflow steps</returns>
-        public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
+        public List<WorkFlowStep> GetWorkFlow(string org, string service)
         {
-            string filename = _settings.GetMetadataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkFlowFileName;
+            string filename = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkFlowFileName;
             string textData = File.ReadAllText(filename, Encoding.UTF8);
 
             return JsonConvert.DeserializeObject<List<WorkFlowStep>>(textData);
         }
 
         /// <summary>
-        /// The add view name text resource.
-        /// "view." + viewName for each text resource in the service/edition
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
-        /// <param name="viewMetadatas"> The view metadata list. </param>
-        public void AddViewNameTextResource(string org, string service, string edition, IEnumerable<ViewMetadata> viewMetadatas)
-        {
-            Guard.AssertOrgServiceEdition(org, service, edition);
-            Guard.AssertArgumentNotNull(viewMetadatas, nameof(viewMetadatas));
-
-            var resourceKeys = viewMetadatas.Where(v => !string.IsNullOrWhiteSpace(v?.Name)).Select(v => ViewResourceKey(v.Name)).ToList();
-            if (!resourceKeys.Any())
-            {
-                return;
-            }
-
-            var resourceList = GetAllResources(org, service, edition);
-            foreach (var res in resourceList)
-            {
-                var resources = res.Resources;
-                if (resources == null)
-                {
-                    throw new NullReferenceException("Deserialized resources null");
-                }
-
-                var currentKeys = resources.Resources.Select(k => k.Id).ToList();
-                var missingViewKeys = resourceKeys.Except(currentKeys).ToList();
-
-                if (missingViewKeys.Any())
-                {
-                    missingViewKeys.ForEach(k => resources.Add(k, string.Empty));
-                    Save(res);
-                }
-            }
-        }
-
-        /// <summary>
         /// Updates the view name text resource.
-        /// "view." + viewName for each text resource in the service/edition
+        /// "view." + viewName for each text resource in the service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="currentName">Current / old view name</param>
         /// <param name="newName">the new view name</param>
-        public void UpdateViewNameTextResource(string org, string service, string edition, string currentName, string newName)
+        public void UpdateViewNameTextResource(string org, string service, string currentName, string newName)
         {
             Guard.AssertArgumentNotNullOrWhiteSpace(currentName, nameof(currentName));
             Guard.AssertArgumentNotNullOrWhiteSpace(newName, nameof(newName));
@@ -1512,7 +1379,7 @@ namespace AltinnCore.Common.Services.Implementation
             var currentKey = ViewResourceKey(currentName);
             var newKey = ViewResourceKey(newName);
 
-            var resources = GetAllResources(org, service, edition);
+            var resources = GetAllResources(org, service);
             foreach (var resource in resources)
             {
                 var itemsToUpdate = resource.FilterById(currentKey).ToList();
@@ -1534,10 +1401,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="resource">The service resource file name</param>
         /// <returns></returns>
-        public byte[] GetServiceResource(string org, string service, string edition, string resource)
+        public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
             string serviceResourceDirectoryPath = null;
@@ -1553,10 +1419,6 @@ namespace AltinnCore.Common.Services.Implementation
             if (!string.IsNullOrEmpty(service))
             {
                 serviceResourceDirectoryPath += "/" + service;
-                if (!string.IsNullOrEmpty(edition))
-                {
-                    serviceResourceDirectoryPath += "/editions/" + edition;
-                }
             }
             else
             {
@@ -1604,107 +1466,84 @@ namespace AltinnCore.Common.Services.Implementation
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
-        private void AddDefaultFiles(string org, string service, string edition)
+        private void AddDefaultFiles(string org, string service)
         {
-            // Read the serviceImplemenation template
-            string defaultLayoutContent = File.ReadAllText(_generalSettings.DefaultServiceLayout, Encoding.UTF8);
+            // Create the service test folder
+            Directory.CreateDirectory(_settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
-            // Create the edition views folder
-            Directory.CreateDirectory(_settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-
-            // Create the edition test folder
-            Directory.CreateDirectory(_settings.GetTestPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-
-            // Create the edition testdata folder
-            Directory.CreateDirectory(_settings.GetTestDataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-
-            // Get the file path
-            string defaultViewFilePath = _settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-
-            // Copy default view start to the service view directory
-            File.Copy(_generalSettings.DefaultViewStart, defaultViewFilePath + _settings.DefaultViewStartFileName);
-            File.Copy(_generalSettings.DefaultViewImports, defaultViewFilePath + _settings.DefaultViewImportsFileName);
+            // Create the service testdata folder
+            Directory.CreateDirectory(_settings.GetTestDataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
             // Copy default Dockerfile
-            string editionPath = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy(_generalSettings.DefaultRepoDockerfile, editionPath + _settings.DockerfileFileName);
-
-            // Copy All default template files
-            IEnumerable<string> templates = Directory.EnumerateFiles(_generalSettings.TemplateLocation);
-            foreach (string template in templates)
-            {
-                if (template.Contains("Layout"))
-                {
-                    File.Copy(template, defaultViewFilePath + Path.GetFileName(template));
-                }
-            }
+            string servicePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
         }
 
-        private void CreateInitialServiceImplementation(string org, string service, string edition)
+        private void CreateInitialServiceImplementation(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.ServiceImplementationTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Create the service implementation folder
-            Directory.CreateDirectory(_settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            Directory.CreateDirectory(_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
 
             // Get the file path
-            string serviceImplemenationFilePath = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceImplementationFileName;
+            string serviceImplemenationFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceImplementationFileName;
             File.WriteAllText(serviceImplemenationFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialCalculationHandler(string org, string service, string edition)
+        private void CreateInitialCalculationHandler(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.CalculateHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string calculationHandlerFilePath = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
+            string calculationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
             File.WriteAllText(calculationHandlerFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialRuleHandler(string org, string service, string edition)
+        private void CreateInitialRuleHandler(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.RuleHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string ruleHandlerFilePath = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string ruleHandlerFilePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             File.WriteAllText(ruleHandlerFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialValidationHandler(string org, string service, string edition)
+        private void CreateInitialValidationHandler(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.ValidationHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
+            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
             File.WriteAllText(validationHandlerFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialInstansiationHandler(string org, string service, string edition)
+        private void CreateInitialInstansiationHandler(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.InstantiationHandlerTemplate, Encoding.UTF8);
 
             // Replace the template default namespace
-            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service, edition));
+            textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
+            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
             File.WriteAllText(validationHandlerFilePath, textData, Encoding.UTF8);
         }
 
@@ -1769,11 +1608,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The org.</param>
         /// <param name="service">The service</param>
-        /// <param name="edition">The edition</param>
         /// <returns>IEnumerable loading the resources as you ask for next.</returns>
-        private IEnumerable<ResourceWrapper> GetAllResources(string org, string service, string edition)
+        private IEnumerable<ResourceWrapper> GetAllResources(string org, string service)
         {
-            string resourcePath = _settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourcePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string[] directoryFiles = Directory.GetFiles(resourcePath);
 
             foreach (string resourceFile in directoryFiles)

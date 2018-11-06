@@ -21,12 +21,11 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <param name="edition"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        public IActionResult Index(string org, string service, string edition, string name)
+        public IActionResult Index(string org, string service, string name)
         {
-            string codelist = _execution.GetCodelist(org, service, edition, name);
+            string codelist = _execution.GetCodelist(org, service, name);
             if (string.IsNullOrEmpty(codelist))
             {
               return Json("{}");

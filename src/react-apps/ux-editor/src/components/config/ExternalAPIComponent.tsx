@@ -81,12 +81,12 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
     let uri: string = this.props.selectedApiDef.uri;
 
     // Insert client params from form
-    Object.keys(this.state.formDataApiTest).forEach(key => {
+    Object.keys(this.state.formDataApiTest).forEach((key) => {
       uri += `${key}=${this.state.formDataApiTest[key]}&`;
     });
 
     // Insert meta params from "connection"
-    Object.keys(this.props.connection.metaParams).forEach(key => {
+    Object.keys(this.props.connection.metaParams).forEach((key) => {
       this.props.selectedApiDef.metaParams[key].urlEncode === true ?
         uri += `${key}=${encodeURI(this.props.connection.metaParams[key])}&`
         :
@@ -94,12 +94,12 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
     });
 
     networking.get(uri)
-      .then(response => {
+      .then((response) => {
         this.setState(
           { apiResponse: response },
         );
       })
-      .catch(error => {
+      .catch((error) => {
         this.setState(
           { apiResponse: error },
         );
@@ -112,10 +112,10 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
     const { clientParams, metaParams } = this.props.selectedApiDef;
     const mandatoryClientParams: any =
       Object.keys(clientParams).filter(
-        key => clientParams[key].required === true);
+        (key) => clientParams[key].required === true);
     const mandatoryMetaParams: any =
       Object.keys(metaParams).filter(
-        key => metaParams[key].required === true);
+        (key) => metaParams[key].required === true);
     const mandatoryParams: any = mandatoryClientParams.concat(mandatoryMetaParams);
 
     this.state.formDataApiTest ? checkForFetch = true : checkForFetch = false;
@@ -160,7 +160,7 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
     const selectedDataModelElement = !clientParamValues ? '' : clientParamValues;
     return (
       <div>
-        {Object.keys(clientParams).map(key => {
+        {Object.keys(clientParams).map((key) => {
           return (
             <div className='form-group a-form-group mt-2' key={key}>
               <h2 className='a-h4'>
@@ -202,7 +202,7 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
   public renderMetaParams = (metaParams: any, metaParamValues: any): JSX.Element => {
     return (
       <div>
-        {Object.keys(metaParams).map(key => {
+        {Object.keys(metaParams).map((key) => {
           return (
             <div className='form-group a-form-group mt-2' key={key}>
               <h2 className='a-h4'>
@@ -250,7 +250,7 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
               className='custom-select a-custom-select'
             >
               <option value={''}>Velg objekt:</option>
-              {apiResponse ? Object.keys(apiResponse).map(key => {
+              {apiResponse ? Object.keys(apiResponse).map((key) => {
                 return (
                   <option key={key} value={key} >{key}</option>
                 );

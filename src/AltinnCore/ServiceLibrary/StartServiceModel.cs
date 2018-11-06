@@ -45,7 +45,7 @@ namespace AltinnCore.ServiceLibrary
         {
             get
             {
-                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 3)
+                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 2)
                 {
                     return string.Empty;
                 }
@@ -61,28 +61,12 @@ namespace AltinnCore.ServiceLibrary
         {
             get
             {
-                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 3)
+                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 2)
                 {
                     return string.Empty;
                 }
 
                 return ServiceID.Split('_')[1];
-            }
-        }
-
-        /// <summary>
-        /// Gets the edition of the service being instantiated
-        /// </summary>
-        public string Edition
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 3)
-                {
-                    return string.Empty;
-                }
-
-                return ServiceID.Split('_')[2];
             }
         }
     }

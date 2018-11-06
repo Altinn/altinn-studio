@@ -191,7 +191,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   <div className='col col-9'>
                     <SelectDataModelComponent
                       onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
-                      selectedElement={this.state.ruleConnection.outParams['outParam0']}
+                      selectedElement={this.state.ruleConnection.outParams.outParam0}
                       hideRestrictions={true}
                     />
                   </div>

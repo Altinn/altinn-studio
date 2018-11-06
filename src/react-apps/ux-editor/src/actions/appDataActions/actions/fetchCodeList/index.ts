@@ -24,7 +24,7 @@ export interface IFetchCodeListsRejected extends Action {
 }
 
 /**
- * Action creator 
+ * Action creator
  * @param codeList
  */
 export function fetchCodeListsAction(url: string): IFetchCodeListsAction {
@@ -37,7 +37,7 @@ export function fetchCodeListsAction(url: string): IFetchCodeListsAction {
 /**
  * Action creator for fetchCodeListFulFilledAction
  * This action is called when SAGA has received codeList from API
- * @param codeList the codeList retrived from API 
+ * @param codeList the codeList retrived from API
  */
 export function fetchCodeListsFulfilledAction(
   codeLists: any,
@@ -50,7 +50,7 @@ export function fetchCodeListsFulfilledAction(
 
 /**
  * Action Creator for the fetchCodeListReject
- * @param error 
+ * @param error
  */
 export function fetchCodeListsRejectedAction(
   error: Error,

@@ -6,10 +6,10 @@ import * as AppDataActionTypes from '../../actions/appDataActions/appDataActionT
 import { get } from '../../utils/networking';
 
 /**
- * This is SAGA that handles retrieval of a specific codelist that is needed 
+ * This is SAGA that handles retrieval of a specific codelist that is needed
  * in the form
  * @param codeListName the name of the needed codeList
- * @param url the URL for the API 
+ * @param url the URL for the API
  */
 function* fetchCodeListsSaga({
   url,

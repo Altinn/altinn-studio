@@ -71,7 +71,7 @@ export interface ICheckIfRuleShouldRun extends Action {
   lastUpdatedComponentId: string;
   lastUpdatedDataBinding: IDataModelFieldElement;
   lastUpdatedDataValue: string;
-  repeating: boolean,
+  repeating: boolean;
   dataModelGroup?: string;
   index?: number;
 }
@@ -91,6 +91,6 @@ export function checkIfRuleShouldRun(
     lastUpdatedDataValue,
     repeating,
     dataModelGroup,
-    index
+    index,
   };
 }

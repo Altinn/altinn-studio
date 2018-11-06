@@ -1,8 +1,8 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IErrorState } from './index';
 import { IAddErrorAction, IRemoveErrorAction } from '../../actions/errorActions/actions';
 import * as ErrorActionTypes from '../../actions/errorActions/errorActionTypes';
+import { IErrorState } from './index';
 
 export interface IErrorStateError {
   errorMessage: string;
@@ -10,7 +10,7 @@ export interface IErrorStateError {
 
 const initialState: IErrorState = {
   errorList: [],
-}
+};
 
 const errorReducer: Reducer<IErrorState> = (
   state: IErrorState = initialState,
@@ -24,10 +24,10 @@ const errorReducer: Reducer<IErrorState> = (
       return update<IErrorState>(state, {
         errorList: {
           $push: [{
-            errorMessage: (action as IAddErrorAction).errorMessage
-          }]
-        }
-      })
+            errorMessage: (action as IAddErrorAction).errorMessage,
+          }],
+        },
+      });
     }
     case ErrorActionTypes.REMOVE_ERROR: {
       return update<IErrorState>(state, {
@@ -40,6 +40,6 @@ const errorReducer: Reducer<IErrorState> = (
       return state;
     }
   }
-}
+};
 
 export default errorReducer;
