@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Xml.Linq;
 
 using AltinnCore.Common.Models;
@@ -205,7 +205,7 @@ namespace AltinnCore.Common.Services.Interfaces
 		/// <param name="org">The service owner to create the new service under</param>
 		/// <param name="serviceConfig">The service configuration to save</param>
 		/// <returns>Was the service creation successful</returns>
-		bool CreateService(string org, ServiceConfiguration serviceConfig);
+		bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
 
 		/// <summary>
 		///  Deletes a service folder from disk

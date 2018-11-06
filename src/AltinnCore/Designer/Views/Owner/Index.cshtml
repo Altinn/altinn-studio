@@ -1,4 +1,4 @@
-﻿@model List<ServiceConfiguration>
+@model List<ServiceConfiguration>
 @using AltinnCore.ServiceLibrary.Configuration;
 @using Microsoft.Extensions.Configuration;
 @inject IConfiguration configuration
@@ -44,7 +44,7 @@
         </a> 
     }*@
 </div>
-<a class="btn btn-outline-primary" asp-route-controller="Owner" asp-route-action="CreateService">Ny tjeneste</a>
+@*<a class="btn btn-outline-primary" asp-route-controller="Owner" asp-route-action="CreateService">Ny tjeneste</a>*@
 
  @if (enableGitea)
  {
