@@ -1,4 +1,4 @@
-﻿using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -287,7 +287,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The organization owning the repostory</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns></returns>
-        private string FindLocalRepoLocation(string org, string repository)
+        public string FindLocalRepoLocation(string org, string repository)
         {
             string localpath = null;
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
