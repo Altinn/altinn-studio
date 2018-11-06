@@ -37,5 +37,5 @@
 * With the terminal current path pointing to `\deploy\deploy\sbl-cluster`
   * Run command `helm install example-repo`
   * This will set up all the deployments and services for the SBL-service. It will also add an ingress routing.
-* When the installation is done, it will show a link in the terminal window, your application make take 10-20 seconds before it is up and running.
+* When the installation is done, it will show a link in the terminal window, your application may take 10-20 seconds before it is up and running.
   * This requires the correct domain and public ip in host files or setup of a domain for that public ip.
