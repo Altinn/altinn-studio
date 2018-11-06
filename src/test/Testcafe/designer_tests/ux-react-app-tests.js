@@ -5,7 +5,7 @@ let app = new App();
 
 fixture('UX react app tests')
   .page(app.baseUrl)
-  .beforeEach()
+//.beforeEach()
 
 test('Repeating groups', async () => {
   await t
