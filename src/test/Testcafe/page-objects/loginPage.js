@@ -6,7 +6,7 @@ export default class LoginPage {
     //repository landing page
     this.userInput = Selector('#user_name');
     this.passwordInput = Selector('#password');
-    this.loginButton = Selector('#body > div > div.user.signin > div.ui.container > div > form > div:nth-child(5) > button');
+    this.loginButton = Selector('.ui.green.button');
   }
 
 }
