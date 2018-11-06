@@ -57,7 +57,7 @@ spec:
         - name: ServiceRepositorySettings__RepositoryLocation
           value: /AltinnCore/Repos/
         - name: ServiceRepositorySettings__RepositoryBaseURL
-          value: http://altinn-repositories:3000
+          value: http://altinn-repositories:3000/
         - name: ServiceRepositorySettings__EnableGiteaIntegration
           value: "true"
       volumes:
