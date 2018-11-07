@@ -4,6 +4,7 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
+import { NavMenu } from '../navigation/NavMenu';
 
 export interface IFormDesignerProps { }
 export interface IFormDesignerState { }
@@ -45,22 +46,26 @@ class FormDesigner extends React.Component<
 
   public render() {
     return (
-      <div className='container mb-3'>
-        <div className='row mt-3'>
-          <h1>Form designer</h1>
-        </div>
-        <div className='row bigger-container mt-3'>
-          <Toolbar />
-          <div className='col'>
-            <Preview />
-            <div className='col-12 justify-content-center d-flex mt-3'>
-              {this.renderSaveButton()}
+      <div style={{display: 'flex', width: '100%', alignItems: 'stretch'}}>
+          <NavMenu/>
+        <div className={'content'}>
+          <div className='container mb-3'>
+            <div className='row mt-3'>
+              <h1>Form designer</h1>
+            </div>
+            <div className='row bigger-container mt-3'>
+              <Toolbar />
+              <div className='col'>
+                <Preview />
+                <div className='col-12 justify-content-center d-flex mt-3'>
+                  {this.renderSaveButton()}
+                </div>
+              </div>
+            </div>
+            <div className='row'>
+              <div className='col-3' />
             </div>
           </div>
-        </div>
-        <div className='row'>
-          <div className='col-3' />
-
         </div>
       </div>
     );
