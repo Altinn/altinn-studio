@@ -1,5 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
@@ -48,12 +53,31 @@ namespace AltinnCore.Designer.Controllers
 			return Content(_repository.GetJsonFormLayout(org, service), "text/plain", Encoding.UTF8);
 		}
 
-		/// <summary>
-		/// Get third party components listed as JSON
-		/// <param name="org">The Organization code for the service owner</param>
-		/// <param name="service">The service code for the current service</param>
-		/// <returns>The model representation as JSON</returns>
-		[HttpGet]
+        /// TODO
+        [HttpGet]
+        public FileResult ZipAndSendRepo(string org, string service, string developer)
+        {
+            string startPath = $@"C:\AltinnCore\Repos\{developer}\{org}\{service}";
+            string zipPath = $@"C:\AltinnCore\Repos\{developer}\{org}\{service}.zip";
+
+            if (System.IO.File.Exists(zipPath))
+            {
+                System.IO.File.Delete(zipPath);
+            }
+
+            ZipFile.CreateFromDirectory(startPath, zipPath);
+
+            FileStream fileToSend = System.IO.File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+            return File(fileToSend, "application/zip", service + ".zip");
+        }
+
+        /// <summary>
+        /// Get third party components listed as JSON
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>The model representation as JSON</returns>
+        [HttpGet]
 		public ActionResult GetThirdPartyComponents(string org, string service)
 		{
 			return Content(_repository.GetJsonThirdPartyComponents(org, service), "text/plain", Encoding.UTF8);

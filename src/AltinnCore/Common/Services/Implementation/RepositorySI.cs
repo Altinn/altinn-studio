@@ -169,7 +169,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
 
-            
+
         }
 
         #endregion
@@ -403,6 +403,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             return fileData;
         }
+
 
         /// <summary>
         /// Get the Json third party components from disk
@@ -816,7 +817,8 @@ namespace AltinnCore.Common.Services.Implementation
 
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
 
-            if (!repoCreated) {
+            if (!repoCreated)
+            {
                 AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
             }
 

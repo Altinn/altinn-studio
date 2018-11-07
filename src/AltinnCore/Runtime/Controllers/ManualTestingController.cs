@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using AltinnCore.Common.Configuration;
 using Microsoft.Extensions.Options;
+using System.Net.Http;
+using System.IO;
+using System.IO.Compression;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -28,19 +31,21 @@ namespace AltinnCore.Runtime.Controllers
 		private readonly IRegister _register;
 		private readonly IAuthorization _authorization;
 		private ITestdata _testdata;
+        private IExecution _execution;
 		private UserHelper _userHelper;
 		private readonly ServiceRepositorySettings _settings;
 		private readonly IGitea _giteaApi;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-		/// <summary>
-		/// Initializes a new instance of the <see cref="ManualTestingController"/> class
-		/// </summary>
-		/// <param name="testdataService">The testDataService (configured in Startup.cs)</param>
-		/// <param name="profileService">The profileService (configured in Startup.cs)</param>
-		/// <param name="registerService">The registerService (configured in Startup.cs)</param>
-		/// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>
-		public ManualTestingController(ITestdata testdataService, IProfile profileService, IRegister registerService,
-			IAuthorization authorizationService, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ManualTestingController"/> class
+        /// </summary>
+        /// <param name="testdataService">The testDataService (configured in Startup.cs)</param>
+        /// <param name="profileService">The profileService (configured in Startup.cs)</param>
+        /// <param name="registerService">The registerService (configured in Startup.cs)</param>
+        /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>
+        public ManualTestingController(ITestdata testdataService, IProfile profileService, IRegister registerService,
+			IAuthorization authorizationService, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IExecution execution, IHttpContextAccessor contextAccessor)
 		{
 			_testdata = testdataService;
 			_profile = profileService;
@@ -49,6 +54,8 @@ namespace AltinnCore.Runtime.Controllers
 			_userHelper = new UserHelper(_profile, _register);
 			_settings = repositorySettings.Value;
 			_giteaApi = giteaWrapper;
+            _execution = execution;
+            _httpContextAccessor = contextAccessor;
 		}
 
 		/// <summary>
@@ -62,7 +69,38 @@ namespace AltinnCore.Runtime.Controllers
 		[Authorize]
 		public IActionResult Index(string org, string service, int reporteeId)
 		{
-			RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $@"http://altinn3.no/designer/{org}/{service}/React/ZipAndSendRepo?developer={AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}";
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/zip"));
+
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                string zipPath = $@"C:\Runtime\Repos\{developer}\{org}\{service}\result.zip";
+                string extractPath = $@"C:\Runtime\Repos\{developer}\{org}\{service}\";
+                if (!Directory.Exists(extractPath))
+                {
+                    Directory.CreateDirectory(extractPath);
+                } else
+                {
+                    Directory.Delete(extractPath, true);
+                    Directory.CreateDirectory(extractPath);
+                }
+
+                using (System.IO.Stream s = response.Result.Content.ReadAsStreamAsync().Result)
+                {
+                    using (var w = System.IO.File.OpenWrite(zipPath))
+                    {
+                        s.CopyTo(w);
+                    }
+                }
+
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+            }
+
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
 			requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
 			requestContext.Reportee = requestContext.UserContext.Reportee;
 
@@ -209,5 +247,6 @@ namespace AltinnCore.Runtime.Controllers
 
 			return LocalRedirect(goToUrl);
 		}
-	}
+
+    }
 }
