@@ -38,13 +38,13 @@
         <a asp-route-controller="Service"
             asp-route-action="Index"
             asp-route-service="@service.Code"
-            title="Åpne tjeneste @service.Code"
+            title="Ã…pne tjeneste @service.Code"
             class="list-group-item list-group-item-action">
             @service.Code
         </a> 
     }*@
 </div>
-@*<a class="btn btn-outline-primary" asp-route-controller="Owner" asp-route-action="CreateService">Ny tjeneste</a>*@
+<a class="btn btn-outline-primary" asp-route-controller="Owner" asp-route-action="CreateService">Ny tjeneste</a>
 
  @if (enableGitea)
  {
