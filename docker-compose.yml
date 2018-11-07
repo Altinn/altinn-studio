@@ -84,3 +84,13 @@ services:
     ports:
       - "3000:3000"
       - "222:22"
+
+  altinn_runttimedb:
+    container_name: altinn-runtimedb
+    image: altinncoreruntimedb:latest
+    restart: always
+    ports:
+      - "5001:5001"
+    build:
+      context: .
+      dockerfile: src/AltinnCore/RuntimeDb/Dockerfile
