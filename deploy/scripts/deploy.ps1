@@ -56,7 +56,7 @@ $acrResources = (az acr list --resource-group $resourceGroupName --query "[0].{i
 $servicePrincipalPassword = az ad sp create-for-rbac --name $servicePrincipalName --role Reader --scopes $acrResources[0] --query password --output tsv
 $servicePrincipalId = az ad sp show --id http://$servicePrincipalName --query appId --output tsv
 
-Write-Output "Adding appsettins secrets "
+Write-Output "Adding appsetting secrets"
 kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json
 
 Write-Output "Creating kubernetes secret with service principal"
