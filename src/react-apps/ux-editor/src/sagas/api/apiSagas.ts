@@ -192,7 +192,7 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
 }
 
 function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: any,
-  formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, repeating: boolean, dataModelGroup?: string, index?: number) {
+                        formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, repeating: boolean, dataModelGroup?: string, index?: number) {
   for (const param in connectionDef.clientParams) {
     if (!param) {
       continue;

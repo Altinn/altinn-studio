@@ -12,21 +12,21 @@ export interface ISetDesignModeActionRejected extends Action {
 export function setDesignModeAction(designMode: boolean): ISetDesignModeAction {
   return {
     type: ActionTypes.SET_DESIGN_MODE,
-    designMode
+    designMode,
   };
 }
 
 export function setDesignModeActionFulfilled(): Action {
   return {
-    type: ActionTypes.SET_DESIGN_MODE
+    type: ActionTypes.SET_DESIGN_MODE,
   };
 }
 
 export function setDesignModeActionRejected(
-  error: Error
+  error: Error,
 ): ISetDesignModeActionRejected {
   return {
     type: ActionTypes.SET_DESIGN_MODE,
-    error
+    error,
   };
 }

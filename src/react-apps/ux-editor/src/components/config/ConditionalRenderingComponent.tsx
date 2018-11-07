@@ -186,34 +186,37 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   }
 
   public renderCondtionalRenderingTargetContainerOptions = (id: string, baseContainer?: boolean): JSX.Element[] => {
-    let options: JSX.Element[] = [];
-    if (!this.props.order[id]) return options;
+    const options: JSX.Element[] = [];
+    if (!this.props.order[id]) {
+      return options;
+    }
     if (!baseContainer) {
       options.push(
         <option key={id} value={id}>
           {`Container (id=${id})`}
-        </option>
+        </option>,
       );
     }
-    this.props.order[id].forEach(key => {
+    this.props.order[id].forEach((key) => {
       if (this.props.formLayoutComponents[key]) {
-        let option = this.renderConditionalRenderingTargetComponentOption(key);
+        const option = this.renderConditionalRenderingTargetComponentOption(key);
         options.push(option);
-      }
-      else {
+      } else {
         // A container can have components and sub-containers
-        let containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
-        containerOptions.forEach(option => {
+        const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
+        containerOptions.forEach((option) => {
           options.push(option);
-        })
+        });
       }
-    })
+    });
     return options;
   }
 
   public renderCondtionalRenderingTargetOptions = (): JSX.Element[] => {
     const baseContainerKey = Object.keys(this.props.order)[0];
-    if (!baseContainerKey) return null;
+    if (!baseContainerKey) {
+      return null;
+    }
     return this.renderCondtionalRenderingTargetContainerOptions(baseContainerKey, true);
   }
 

@@ -1,4 +1,6 @@
 import { Selector, t } from 'testcafe';
+import { addSyntheticLeadingComment } from 'typescript';
+import LandingPage from './landingPage';
 
 export default class CommonPage {
   constructor() {
@@ -6,11 +8,11 @@ export default class CommonPage {
     this.designerLogoutButton = Selector("#navbarSupportedContent > ul:nth-child(2) > li").withText("Log out");
   }
 
-  async login(username, password, landingPage) {
+  async login(username, password, loginPage) {
     await t
-      .typeText(this.userInput, username)
-      .typeText(this.passwordInput, password)
-      .click(landingPage.loginButton);
+      .typeText(loginPage.userInput, username)
+      .typeText(loginPage.passwordInput, password)
+      .click(loginPage.loginButton);
   }
 
   async repoLogout() {
@@ -30,4 +32,11 @@ export default class CommonPage {
       .expect(signInElement.exists)
       .ok({ timeout: 5000 });
   }
+
+  async logout(header) {
+    await t
+      .hover(header.userMenu)
+      .click(header.logOutButton);
+  }
+
 }

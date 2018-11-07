@@ -7,7 +7,7 @@ import {
   watchForFulfillmentBeforeRunningRuleMethodsSaga,
 } from './conditionalRenderingSagas';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchAddConditionalRenderingSaga);
   yield fork(watchDelConditionalRenderingSaga);
   yield fork(watchCheckIfConditionalRulesShouldRun);

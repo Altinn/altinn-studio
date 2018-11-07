@@ -1,8 +1,8 @@
 import { object } from 'dot-object';
 
 /**
- * Converts the formdata in store (that is flat) to a JSON 
- * object that matches the JSON datamodel defined by the service from 
+ * Converts the formdata in store (that is flat) to a JSON
+ * object that matches the JSON datamodel defined by the service from
  * XSD. This is needed for the API to understand
  * @param formData the complete datamodel in store
  */
@@ -27,13 +27,13 @@ const filterFormData = (data: any, model: IDataModelFieldElement[]): any => {
   const filteredResult: any = {};
   Object.keys(data).forEach((key: string) => {
     const formDataKey = getKeyWithoutIndex(key);
-    if (model.find(m => m.DataBindingName === formDataKey && m.Type === 'Field')) {
+    if (model.find((m) => m.DataBindingName === formDataKey && m.Type === 'Field')) {
       filteredResult[key] = data[key];
     }
   });
 
   return filteredResult;
-}
+};
 
 export function getKeyWithoutIndex(keyWithIndex: string): string {
   if (keyWithIndex.indexOf('[') === -1) {

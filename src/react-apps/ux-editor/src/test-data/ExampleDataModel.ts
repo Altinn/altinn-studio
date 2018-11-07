@@ -9,7 +9,7 @@ export default class ExampleDataModel {
 
   public getFieldData() {
     return Object.keys(this.data.Elements)
-      .map(i => this.data.Elements[i])
-      .filter(element => element.Type === 'Field');
+      .map((i) => this.data.Elements[i])
+      .filter((element) => element.Type === 'Field');
   }
 }

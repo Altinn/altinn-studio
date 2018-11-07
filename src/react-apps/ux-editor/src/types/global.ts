@@ -50,7 +50,7 @@ declare global {
     repeating: boolean;
     dataModelGroup: string;
     index?: number;
-    hidden?: boolean
+    hidden?: boolean;
   }
 
   export interface ICreateFormComponent {
@@ -173,8 +173,8 @@ declare global {
   }
 
   /**
-  * Defines how each element in the code list element list looks like 
-  */
+   * Defines how each element in the code list element list looks like
+   */
   export interface ICodeListListElement {
     codeListName: string;
     org: string;

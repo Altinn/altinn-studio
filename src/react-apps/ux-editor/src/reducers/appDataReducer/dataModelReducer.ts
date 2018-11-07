@@ -14,12 +14,12 @@ const initialState: IDataModelState = {
   model: [],
   fetching: false,
   fetched: false,
-  error: null
+  error: null,
 };
 
 const dataModelReducer: Reducer<IDataModelState> = (
   state: IDataModelState = initialState,
-  action?: Action
+  action?: Action,
 ): IDataModelState => {
   if (!action) {
     return state;
@@ -29,45 +29,45 @@ const dataModelReducer: Reducer<IDataModelState> = (
     case AppDataActionTypes.FETCH_DATA_MODEL: {
       return update<IDataModelState>(state, {
         fetched: {
-          $set: false
+          $set: false,
         },
         fetching: {
-          $set: true
+          $set: true,
         },
         error: {
-          $set: null
-        }
+          $set: null,
+        },
       });
     }
     case AppDataActionTypes.FETCH_DATA_MODEL_FULFILLED: {
       const { dataModel } = action as AppDataActions.IFetchDataModelFulfilled;
       return update<IDataModelState>(state, {
         model: {
-          $set: dataModel
+          $set: dataModel,
         },
         fetched: {
-          $set: true
+          $set: true,
         },
         fetching: {
-          $set: false
+          $set: false,
         },
         error: {
-          $set: null
-        }
+          $set: null,
+        },
       });
     }
     case AppDataActionTypes.FETCH_DATA_MODEL_REJECTED: {
       const { error } = action as AppDataActions.IFetchDataModelRejected;
       return update<IDataModelState>(state, {
         error: {
-          $set: error
+          $set: error,
         },
         fetched: {
-          $set: false
+          $set: false,
         },
         fetching: {
-          $set: false
-        }
+          $set: false,
+        },
       });
     }
     default: {

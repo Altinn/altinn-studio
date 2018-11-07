@@ -118,7 +118,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
   }
 
   public getTextKeyFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find(elem => elem.DataBindingName === dataBindingName);
+    const element: IDataModelFieldElement = this.props.dataModel.find((elem) => elem.DataBindingName === dataBindingName);
     return element.Texts.Label;
   }
 
@@ -127,7 +127,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
       return [];
     }
 
-    return (this.props.textResources.map(resource => {
+    return (this.props.textResources.map((resource) => {
       return resource.id;
     }));
   }
@@ -239,7 +239,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
                   >}
-  
+
                     <option key={'empty'} value={''}>
                       Choose label
                     </option>
@@ -300,7 +300,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
                   >}
-                    
+
                     <option key={'empty'} value={''}>
                       Choose label
                     </option>
@@ -387,10 +387,11 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
   }
 
   public truncate = (s: string) => {
-    if (s.length > 60)
+    if (s.length > 60) {
       return s.substring(0, 60);
-    else
+    } else {
       return s;
+    }
   }
 
   public render(): JSX.Element {

@@ -14,9 +14,8 @@ const selectFormFiller = (state: IAppState): IFormFillerState => state.formFille
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, containerId === formDesignerState.layout.activeContainer ? '' : containerId)
-  }
-  catch (err) {
+    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, containerId === formDesignerState.layout.activeContainer ? '' : containerId);
+  } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
   }
 }
@@ -94,16 +93,16 @@ export function* watchAddFormContainerSaga(): SagaIterator {
 }
 
 function* deleteFormComponentSaga({
-  id
+  id,
 }: FormDesignerActions.IDeleteComponentAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     let containerId = Object.keys(formDesignerState.layout.order)[0];
     Object.keys(formDesignerState.layout.order).forEach((cId, index) => {
-      if (formDesignerState.layout.order[cId].find(componentId => componentId === id)) {
+      if (formDesignerState.layout.order[cId].find((componentId) => componentId === id)) {
         containerId = cId;
       }
-    })
+    });
     yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, id, containerId);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormComponentRejected, err);
@@ -143,7 +142,7 @@ export function* watchDeleteFormContainerSaga(): SagaIterator {
 }
 
 function* fetchFormLayoutSaga({
-  url
+  url,
 }: FormDesignerActions.IFetchFormLayoutAction): SagaIterator {
   try {
     const formLayout = yield call(get, url);
@@ -168,23 +167,31 @@ function* generateRepeatingGroupsSaga({ }: FormDesignerActions.IGenerateRepeatin
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
     const containers = formDesignerState.layout.containers;
-    if (Object.keys(containers).length === 0) return;
+    if (Object.keys(containers).length === 0) {
+      return;
+    }
 
     const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     for (const containerId of Object.keys(containers)) {
       const container = containers[containerId];
-      if (!container.repeating) continue;
+      if (!container.repeating) {
+        continue;
+      }
 
       const repeatingData = Object.keys(formFillerState.formData).filter((formDataKey) => {
         return formDataKey.includes(container.dataModelGroup + '[');
       });
 
-      if (repeatingData.length === 0) continue;
+      if (repeatingData.length === 0) {
+        continue;
+      }
 
       let maxIndex = 0;
       repeatingData.forEach((data) => {
         const index = parseInt(data.substring(data.indexOf('[') + 1, data.indexOf(']')), 10);
-        if (index <= maxIndex) return;
+        if (index <= maxIndex) {
+          return;
+        }
         maxIndex = index;
       });
 
@@ -214,7 +221,7 @@ export function* watchGenerateRepeatingGroupsSaga(): SagaIterator {
 }
 
 function* saveFormLayoutSaga({
-  url
+  url,
 }: FormDesignerActions.ISaveFormLayoutAction): SagaIterator {
   try {
     const formLayout: IAppState = yield select();
@@ -223,7 +230,7 @@ function* saveFormLayoutSaga({
         components: formLayout.formDesigner.layout.components,
         containers: formLayout.formDesigner.layout.containers,
         order: formLayout.formDesigner.layout.order,
-      }
+      },
     });
     yield call(FormDesignerActionDispatchers.saveFormLayoutFulfilled);
   } catch (err) {
@@ -234,24 +241,24 @@ function* saveFormLayoutSaga({
 export function* watchSaveFormLayoutSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.SAVE_FORM_LAYOUT,
-    saveFormLayoutSaga
+    saveFormLayoutSaga,
   );
 }
 
 function* updateDataModelBindingSaga({
   dataModelBinding,
-  id
+  id,
 }: FormDesignerActions.IUpdateDataModelBindingAction): SagaIterator {
   try {
     yield call(
       FormDesignerActionDispatchers.updateDataModelBindingFulfilled,
       dataModelBinding,
-      id
+      id,
     );
   } catch (err) {
     yield call(
       FormDesignerActionDispatchers.updateDataModelBindingRejected,
-      err
+      err,
     );
   }
 }
@@ -259,7 +266,7 @@ function* updateDataModelBindingSaga({
 export function* watchUpdateDataModelBindingSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_DATA_MODEL_BINDING,
-    updateDataModelBindingSaga
+    updateDataModelBindingSaga,
   );
 }
 
@@ -271,7 +278,7 @@ function* updateFormComponentSaga({
     yield call(
       FormDesignerActionDispatchers.updateFormComponentFulfilled,
       updatedComponent,
-      id
+      id,
     );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormComponentRejected, err);
@@ -281,22 +288,21 @@ function* updateFormComponentSaga({
 export function* watchUpdateFormComponentSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_FORM_COMPONENT,
-    updateFormComponentSaga
+    updateFormComponentSaga,
   );
 }
 
 export function* updateFormContainerSaga({
   updatedContainer,
-  id
+  id,
 }: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
   try {
     yield call(
       FormDesignerActionDispatchers.updateFormContainerFulfilled,
       updatedContainer,
-      id
+      id,
     );
-  }
-  catch (err) {
+  } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
   }
 }
@@ -304,12 +310,12 @@ export function* updateFormContainerSaga({
 export function* watchUpdateContainerSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_FORM_CONTAINER,
-    updateFormContainerSaga
-  )
+    updateFormContainerSaga,
+  );
 }
 
 export function* toggleFormContainerRepeatingSaga({
-  id
+  id,
 }: FormDesignerActions.IUpdateFormContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
@@ -318,10 +324,9 @@ export function* toggleFormContainerRepeatingSaga({
     yield call(
       FormDesignerActionDispatchers.updateFormContainerFulfilled,
       updatedContainer,
-      id
+      id,
     );
-  }
-  catch (err) {
+  } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormContainerRejected, err);
   }
 }
@@ -329,6 +334,6 @@ export function* toggleFormContainerRepeatingSaga({
 export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,
-    toggleFormContainerRepeatingSaga
-  )
+    toggleFormContainerRepeatingSaga,
+  );
 }

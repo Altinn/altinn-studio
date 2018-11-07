@@ -4,7 +4,7 @@ import {
   watchFetchJsonFileSaga, watchSaveJsonFileSaga,
 } from './manageServiceConfigurationSagas';
 
-export default function* (): SagaIterator {
+export default function*(): SagaIterator {
   yield fork(watchFetchJsonFileSaga);
   yield fork(watchSaveJsonFileSaga);
 }
