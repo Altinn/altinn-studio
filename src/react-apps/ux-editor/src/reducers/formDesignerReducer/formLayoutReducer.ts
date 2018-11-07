@@ -70,6 +70,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         id,
         positionAfterId,
         baseContainerId,
+        addToId,
         callback,
       } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
       if (callback) {
@@ -103,6 +104,24 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
             },
             [baseContainerId]: {
               $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
+            },
+          },
+        });
+      }
+
+      if (addToId) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            [id]: {
+              $set: container,
+            },
+          },
+          order: {
+            [id]: {
+              $set: [],
+            },
+            [addToId]: {
+              $push: [id],
             },
           },
         });

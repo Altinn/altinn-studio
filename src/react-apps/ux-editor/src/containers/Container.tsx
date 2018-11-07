@@ -173,12 +173,12 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       dataModelGroup: this.props.dataModelGroup,
       index: this.props.index + 1,
     };
-    FormDesignerActionDispatchers.addFormContainer(container, this.props.id, (createdContainer, createdContainerId) => {
+    FormDesignerActionDispatchers.addFormContainer(container, this.props.id, null, (createdContainer, createdContainerId) => {
       this.props.itemOrder.forEach((element: any) => {
         if (this.props.components[element]) {
           FormDesignerActionDispatchers.addFormComponent(this.props.components[element], createdContainerId);
         } else if (this.props.containers[element]) {
-          // TODO: create new containers (this could be nested...)
+          FormDesignerActionDispatchers.addFormContainer(this.props.containers[element], null, createdContainerId);
         }
       });
     });
