@@ -34,10 +34,9 @@ namespace AltinnCore.Designer
             {
                 //string pathToAppSettingSecret = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\altinn-appsettings\altinn-appsettings-secret.json"));
                 string pathToAppSettingSecret = @"..\altinn-appsettings\altinn-appsettings-secret.json";
-                config.SetBasePath(Directory.GetCurrentDirectory());
-                config.AddJsonFile(pathToAppSettingSecret, optional: false, reloadOnChange: true);
-                config.AddJsonFile("\altinn-appsettings\altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
-                config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+                config.SetBasePath(@"\");
+                config.AddJsonFile("\altinn-appsettings\altinn-appsettings-secret.json", optional: false, reloadOnChange: true);
+                config.AddJsonFile("\app\appsettings.json", optional: false, reloadOnChange: true);
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
                 IConfiguration stageOneConfig = config.Build();
