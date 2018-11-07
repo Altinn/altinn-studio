@@ -99,7 +99,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
           order: {
             [id]: {
-              $set: state.order[positionAfterId],
+              $set: [],
             },
             [baseContainerId]: {
               $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
