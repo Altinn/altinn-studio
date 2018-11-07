@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -32,14 +32,18 @@ namespace AltinnCore.Designer
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                //string pathToAppSettingSecret = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\altinn-appsettings\altinn-appsettings-secret.json"));
-                //config.AddJsonFile(pathToAppSettingSecret, optional: true, reloadOnChange: true);
+                string pathToAppSettingSecret = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), @"..\altinn-appsettings\altinn-appsettings-secret.json"));
+                if (!File.Exists(pathToAppSettingSecret))
+                {
+                    throw new Exception("test: " + pathToAppSettingSecret);
+                }
+                config.AddJsonFile(pathToAppSettingSecret, optional: true, reloadOnChange: true);
                 config.SetBasePath(Directory.GetCurrentDirectory());
                 config.AddJsonFile("\altinn-appsettings\altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
                 config.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
                 config.AddEnvironmentVariables();
                 config.AddCommandLine(args);
-                IConfigurationRoot stageOneConfig = config.Build();
+                IConfiguration stageOneConfig = config.Build();
                 string appId = stageOneConfig.GetValue<string>("KvSetting:ClientId");
                 string tenantId = stageOneConfig.GetValue<string>("KvSetting:TenantId");
                 string appKey = stageOneConfig.GetValue<string>("KvSetting:ClientSecret");
