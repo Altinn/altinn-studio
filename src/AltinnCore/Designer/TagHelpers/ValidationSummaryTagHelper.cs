@@ -52,7 +52,7 @@ namespace AltinnCore.Designer.TagHelpers
 
             if (requestContext != null && requestContext.ValidationResult != null)
             {
-               int numberOfValidationErrors = requestContext.ValidationResult.Where(vs => vs.ValidationStatusType.Equals(ValidationStatusType.Error)).ToList().Count;
+                int numberOfValidationErrors = requestContext.ValidationResult.Where(vs => vs.ValidationStatusType.Equals(ValidationStatusType.Error)).ToList().Count;
 
                 if (numberOfValidationErrors > 0)
                 {
@@ -86,7 +86,7 @@ namespace AltinnCore.Designer.TagHelpers
 
                             url += '#' + validationResult.ModelKey.Replace('.', '_').Replace("[", "_").Replace("]", "_");
                         }
-                        
+
                         errorLink.Attributes.Add("href", url);
                         errorLink.InnerHtml.AppendHtml(ServiceTextHelper.SetTextParams(ServiceTextHelper.GetServiceText(validationResult.ValidationMessageKey, serviceContext.ServiceText, validationResult.MessageParams, serviceContext.CurrentCulture), requestContext, serviceContext));
 

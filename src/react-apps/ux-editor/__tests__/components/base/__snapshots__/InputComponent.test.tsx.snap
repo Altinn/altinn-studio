@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/InputComponent.tsx --- Snapshot +++ should match snapshot 1`] = `
+<input
+  className="form-control"
+  disabled={false}
+  id="mock-id"
+  onBlur={[Function]}
+  onChange={[Function]}
+  required={false}
+  type="text"
+  value=""
+/>
+`;

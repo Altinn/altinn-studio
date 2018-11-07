@@ -46,12 +46,11 @@ declare global {
     value: any;
   }
 
-
   export interface ICreateFormContainer {
     repeating: boolean;
     dataModelGroup: string;
     index?: number;
-    hidden?: boolean
+    hidden?: boolean;
   }
 
   export interface ICreateFormComponent {
@@ -77,7 +76,6 @@ declare global {
     required?: boolean;
     hidden?: boolean;
   }
-
 
   export interface IFormHeaderComponent extends IFormComponent {
     size: string;
@@ -175,8 +173,8 @@ declare global {
   }
 
   /**
-  * Defines how each element in the code list element list looks like 
-  */
+   * Defines how each element in the code list element list looks like
+   */
   export interface ICodeListListElement {
     codeListName: string;
     org: string;
@@ -186,7 +184,6 @@ declare global {
   export interface IAltinnWindow extends Window {
     org: string;
     service: string;
-    edition: string;
     instanceId: string;
     reportee: string;
   }

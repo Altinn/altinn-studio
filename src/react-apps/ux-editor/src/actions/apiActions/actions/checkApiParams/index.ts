@@ -5,7 +5,7 @@ export interface ICheckIfApiShouldFetchAction extends Action {
   lastUpdatedComponentId: string;
   lastUpdatedDataBinding: IDataModelFieldElement;
   lastUpdatedDataValue: string;
-  repeating: boolean,
+  repeating: boolean;
   dataModelGroup?: string;
   index?: number;
 }
@@ -16,7 +16,7 @@ export function checkIfApiShouldFetch(
   lastUpdatedDataValue: string,
   repeating: boolean,
   dataModelGroup?: string,
-  index?: number
+  index?: number,
 ): ICheckIfApiShouldFetchAction {
   return {
     type: ActionTypes.CHECK_IF_API_SHOULD_FETCH,
@@ -25,6 +25,6 @@ export function checkIfApiShouldFetch(
     lastUpdatedComponentId,
     repeating,
     dataModelGroup,
-    index
-  }
+    index,
+  };
 }

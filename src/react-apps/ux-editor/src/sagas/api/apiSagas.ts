@@ -192,7 +192,7 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
 }
 
 function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: any,
-  formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, repeating: boolean, dataModelGroup?: string, index?: number) {
+                        formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, repeating: boolean, dataModelGroup?: string, index?: number) {
   for (const param in connectionDef.clientParams) {
     if (!param) {
       continue;
@@ -273,15 +273,15 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFi
 
 function getCodeListUri(codeListId: string) {
   const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-  const { org, service, edition } = altinnWindow;
-  const serviceEditionPath = `${org}/${service}/${edition}`;
+  const { org, service } = altinnWindow;
+  const servicePath = `${org}/${service}`;
   const codeListConfig = appConfig.serviceConfiguration.getCodeLists(window);
 
   if (altinnWindow.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
     return `${codeListConfig.codeListUrlRuntime.replace(
-      codeListConfig.servicePathPlaceholder, serviceEditionPath)}${codeListId}`;
+      codeListConfig.servicePathPlaceholder, servicePath)}${codeListId}`;
   }
 
   return `${codeListConfig.codeListUrlPreview.replace(
-    codeListConfig.servicePathPlaceholder, serviceEditionPath)}${codeListId}`;
+    codeListConfig.servicePathPlaceholder, servicePath)}${codeListId}`;
 }

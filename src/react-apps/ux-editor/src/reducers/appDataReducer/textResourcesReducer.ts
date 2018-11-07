@@ -21,7 +21,7 @@ const initialState: ITextResourcesState = {
 
 const textResourcesReducer: Reducer<ITextResourcesState> = (
   state: ITextResourcesState = initialState,
-  action?: Action
+  action?: Action,
 ): ITextResourcesState => {
   if (!action) {
     return state;
@@ -31,48 +31,48 @@ const textResourcesReducer: Reducer<ITextResourcesState> = (
     case AppDataActionTypes.LOAD_TEXT_RESOURCES: {
       return update<ITextResourcesState>(state, {
         fetched: {
-          $set: false
+          $set: false,
         },
         fetching: {
-          $set: true
+          $set: true,
         },
         error: {
-          $set: null
-        }
+          $set: null,
+        },
       });
     }
     case AppDataActionTypes.LOAD_TEXT_RESOURCES_FULFILLED: {
       const { textResources } = action as AppDataActions.ILoadTextResourcesFulfilled;
       return update<ITextResourcesState>(state, {
         resources: {
-          $set: textResources.resources
+          $set: textResources.resources,
         },
         language: {
-          $set: textResources.language
+          $set: textResources.language,
         },
         fetched: {
-          $set: true
+          $set: true,
         },
         fetching: {
-          $set: false
+          $set: false,
         },
         error: {
-          $set: null
-        }
+          $set: null,
+        },
       });
     }
     case AppDataActionTypes.LOAD_TEXT_RESOURCES_REJECTED: {
       const { error } = action as AppDataActions.IFetchDataModelRejected;
       return update<ITextResourcesState>(state, {
         error: {
-          $set: error
+          $set: error,
         },
         fetched: {
-          $set: false
+          $set: false,
         },
         fetching: {
-          $set: false
-        }
+          $set: false,
+        },
       });
     }
     default: {

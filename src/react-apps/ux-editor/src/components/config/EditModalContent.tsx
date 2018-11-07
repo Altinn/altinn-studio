@@ -118,7 +118,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
   }
 
   public getTextKeyFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find(elem => elem.DataBindingName === dataBindingName);
+    const element: IDataModelFieldElement = this.props.dataModel.find((elem) => elem.DataBindingName === dataBindingName);
     return element.Texts.Label;
   }
 
@@ -127,7 +127,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
       return [];
     }
 
-    return (this.props.textResources.map(resource => {
+    return (this.props.textResources.map((resource) => {
       return resource.id;
     }));
   }
@@ -239,7 +239,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
                   >}
-  
+
                     <option key={'empty'} value={''}>
                       Choose label
                     </option>
@@ -300,7 +300,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
                   >}
-                    
+
                     <option key={'empty'} value={''}>
                       Choose label
                     </option>
@@ -377,12 +377,21 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
 
     return (
       this.props.textResources.map((resource, index) => {
+        const option = this.truncate(resource.value);
         return (
-          <option key={index} value={resource.id}>
-            {resource.value}
+          <option key={index} value={resource.id} title={resource.value}>
+            {option}
           </option>
         );
       }));
+  }
+
+  public truncate = (s: string) => {
+    if (s.length > 60) {
+      return s.substring(0, 60);
+    } else {
+      return s;
+    }
   }
 
   public render(): JSX.Element {
@@ -401,21 +410,22 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
             {this.props.component.component !== 'ThirdParty' ? (
-              <div className={"a-form-group-items input-group"}>
-                <label htmlFor={'editModal_text'} className='a-form-label sr-only'>Text</label>
-                <select
-                  id={'editModal_text'}
-                  value={this.state.component.customType === 'Standard' ?
-                    this.state.component.textResourceId : this.state.component.title}
-                  onChange={this.handleTitleChange}
-                  className='custom-select a-custom-select'
-                  disabled={this.state.component.customType === 'Standard'}
-                >
-                  <option key={'empty'} value={''}>
-                    Choose text
-                  </option>
-                  {this.renderTextResourceOptions()}
-                </select>
+              <div className='form-group a-form-group mt-1'>
+                <label className='a-form-label' htmlFor='nameField'>Text:</label>
+                <div className='a-form-group-items input-group'>
+                  <select
+                    name={'editModal_text'}
+                    value={this.state.component.customType === 'Standard' ?
+                      this.state.component.textResourceId : this.state.component.title}
+                    onChange={this.handleTitleChange}
+                    className='custom-select a-custom-select'
+                    disabled={this.state.component.customType === 'Standard'}
+                  >
+                    <option value={''}>{'Choose text:'}</option>
+                    {this.renderTextResourceOptions()}
+                  </select>
+                </div>
+
               </div>
             ) : null}
           </div>

@@ -2,8 +2,11 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ApiActionDispatcher from '../actions/apiActions/apiActionDispatcher';
 import AppConfigActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
+import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
+import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selectors/getAppData';
+import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
+import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { Preview } from './Preview';
 
 export interface IFormFillerProps {
@@ -36,19 +39,19 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
 
   public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { reportee, org, service, edition, instanceId } = altinnWindow;
+    const { reportee, org, service, instanceId } = altinnWindow;
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
       FormFillerActionDispatchers.submitFormData(`
-        ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${edition}/${instanceId}`);
+        ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
     }
   }
 
   public submitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service, edition, instanceId } = altinnWindow;
+    const { org, service, instanceId } = altinnWindow;
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
       window.location.replace(`${window.location.origin}/runtime/` +
-        `${org}/${service}/${edition}/${instanceId}/CompleteAndSendIn`);
+        `${org}/${service}/${instanceId}/CompleteAndSendIn`);
     }
   }
 
@@ -96,15 +99,24 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 }
 
-const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
-  return {
-    validationErrors: state.formFiller.validationErrors,
-    unsavedChanges: state.formFiller.unsavedChanges,
-    connections: state.serviceConfigurations.APIs.connections,
-    dataModelElements: state.appData.dataModel.model,
-    designMode: state.appData.appConfig.designMode,
-    formDataCount: Object.keys(state.formFiller.formData).length,
+const makeMapStateToProps = () => {
+  const GetFormDataCount = makeGetFormDataCountSelector();
+  const GetDesignMode = makeGetDesignModeSelector();
+  const GetDataModel = makeGetDataModelSelector();
+  const GetApiConnections = makeGetApiConnectionsSelector();
+  const GetUnsavedChanges = makeGetUnsavedChangesSelector();
+  const GetValidationErrors = makeGetValidationErrorsSelector();
+  const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
+    return {
+      validationErrors: GetValidationErrors(state),
+      unsavedChanges: GetUnsavedChanges(state),
+      connections: GetApiConnections(state),
+      dataModelElements: GetDataModel(state),
+      designMode: GetDesignMode(state),
+      formDataCount: GetFormDataCount(state),
+    };
   };
+  return mapStateToProps;
 };
 
-export const FormFiller = connect(mapStateToProps)(FormFillerComponent);
+export const FormFiller = connect(makeMapStateToProps)(FormFillerComponent);

@@ -15,7 +15,7 @@ export interface IRuleConnectionActionDispatchers extends ActionCreatorsMapObjec
     lastUpdatedDataValue: string,
     repeating: boolean,
     dataModelGroup?: string,
-    index?: number
+    index?: number,
   ) => RuleConnectionActions.ICheckIfRuleShouldRun;
 }
 

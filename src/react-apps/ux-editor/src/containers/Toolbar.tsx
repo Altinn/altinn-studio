@@ -51,7 +51,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     } as IToolbarElement;
   });
 
-
   constructor(props: IToolbarProps, state: IToolbarState) {
     super(props, state);
     this.state = {
@@ -61,22 +60,29 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
-  public componentDidMount() {
-    const addContainerItem: IToolbarElement = {
-      label: 'Add container',
-      actionMethod: () => {
-        FormActionDispatcher.addFormContainer({
-          repeating: false,
-          dataModelGroup: null,
-          index: 0,
-        } as ICreateFormContainer,
-        );
-      },
-    };
-    this.toolbarComponents.push(addContainerItem);
-
+  public addContainerToLayout() {
+    FormActionDispatcher.addFormContainer({
+      repeating: false,
+      dataModelGroup: null,
+      index: 0,
+    } as ICreateFormContainer,
+    );
   }
 
+  public renderContainer() {
+    return (
+      <div className='row a-topTasks'>
+        <div className='col col-lg-12'>
+          <button
+            type='button'
+            className={'a-btn a-btn-icon'}
+            onClick={this.addContainerToLayout}>
+            <span className='a-btn-icon-text'>Add container</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     FormActionDispatcher.addFormComponent({
       component: THIRD_PARTY_COMPONENT,
@@ -96,17 +102,17 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           return Object.keys(components).map((component, index) => (
             <div className='col col-lg-12' key={index}>
               <button
-                type="button"
+                type='button'
                 className={'a-btn a-btn-icon'}
                 onClick={this.addThirdPartyComponentToLayout.bind(this, componentPackage, component)}
               >
                 <span className='a-btn-icon-text'>{componentPackage} - {component}</span>
               </button>
             </div>
-          ))
+          ));
         })}
       </div>
-    )
+    );
   }
 
   public handleNext(component: any, id: string) {
@@ -156,6 +162,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             );
           })}
         </div>
+        {this.renderContainer()}
         {this.renderThirdPartyComponents()}
         <div className='d-block'>
           <ExternalApiModalComponent />

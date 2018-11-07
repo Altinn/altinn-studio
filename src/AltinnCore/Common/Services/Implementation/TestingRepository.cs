@@ -40,12 +40,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="test">The test metadata</param>
         /// <returns>A boolean indicating if saving was ok</returns>
-        public bool UpdateTest(string org, string service, string edition, TestMetadata test)
+        public bool UpdateTest(string org, string service, TestMetadata test)
         {
-            string dirName = _settings.GetTestPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string dirName = _settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             bool updated = false;
 
             if(!Directory.Exists(dirName))
@@ -70,12 +69,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="name">The name of the test file</param>
         /// <returns>The content of the test</returns>
-        public string GetTest(string org, string service, string edition, string name)
+        public string GetTest(string org, string service, string name)
         {
-            IList<TestMetadata> tests = GetTests(org, service, edition, true, name);
+            IList<TestMetadata> tests = GetTests(org, service, true, name);
             string test = null;
             if (tests.Count == 1) {
                 test = tests.First().Content;
@@ -89,15 +88,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+
         /// <param name="includeContent">Controls if the test content should be included. Default is false.</param>
         /// /// <param name="filterPattern">Pattern to filter the returned tests</param>
         /// <returns>All the tests</returns>
-        public IList<TestMetadata> GetTests(string org, string service, string edition, bool includeContent = false, string filterPattern = "*")
+        public IList<TestMetadata> GetTests(string org, string service, bool includeContent = false, string filterPattern = "*")
         {
             IList<TestMetadata> tests = new List<TestMetadata>();
 
-            string dirName = _settings.GetTestPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string dirName = _settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if(!Directory.Exists(dirName))
             {
                 return tests;

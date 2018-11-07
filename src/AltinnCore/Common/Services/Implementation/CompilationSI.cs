@@ -50,7 +50,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The service repository service</param>
         /// <param name="logger">The logger</param>
         public CompilationSI(
-            IOptions<ServiceRepositorySettings> configuration, 
+            IOptions<ServiceRepositorySettings> configuration,
             ApplicationPartManager partManager,
             IViewCompiler compilationService,
             IRepository repositoryService,
@@ -70,42 +70,39 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>Was the package creation successful</returns>
-        public bool CreateServicePackage(string org, string service, string edition)
+        public bool CreateServicePackage(string org, string service)
         {
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service, edition);
+            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
 
-            string packagesDir = _settings.GetServicePackagesPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string tempDir = _settings.GetTemporaryPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string packagesDir = _settings.GetServicePackagesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string tempDir = _settings.GetTemporaryPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             string tempDirName = Path.GetRandomFileName();
             string tempDirPath = tempDir + tempDirName + "/";
 
-            CopyDirectoryContents(_settings.GetViewPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.VIEW_FOLDER_NAME);
-            CopyDirectoryContents(_settings.GetMetadataPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.METADATA_FOLDER_NAME);
-            CopyDirectoryContents(_settings.GetCodelistPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.CODELISTS_FOLDER_NAME);
-            CopyDirectoryContents(_settings.GetResourcePath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.RESOURCE_FOLDER_NAME);
+            CopyDirectoryContents(_settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.METADATA_FOLDER_NAME);
+            CopyDirectoryContents(_settings.GetCodelistPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.CODELISTS_FOLDER_NAME);
+            CopyDirectoryContents(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), tempDirPath + ServiceRepositorySettings.RESOURCE_FOLDER_NAME);
 
             Directory.CreateDirectory(tempDirPath + "/Assemblies/");
             Directory.CreateDirectory(packagesDir);
 
             string compileResult = string.Empty;
-            string assemblyName = CreateServiceAssembly(org, service, edition, tempDirPath + "/Assemblies/").AssemblyName;
+            string assemblyName = CreateServiceAssembly(org, service, tempDirPath + "/Assemblies/").AssemblyName;
 
             ServicePackageDetails details = new ServicePackageDetails
             {
                 AssemblyName = assemblyName,
                 Organization = org,
                 Service = service,
-                Edition = edition,
                 CreatedDateTime = DateTime.Now
             };
 
             string detailsAsJson = JsonConvert.SerializeObject(details);
             string filePath = tempDirPath + "/ServicePackageDetails.json";
             File.WriteAllText(filePath, detailsAsJson, Encoding.UTF8);
-            
+
             ZipFile.CreateFromDirectory(tempDirPath, packagesDir + tempDirName + ".zip");
 
             Directory.Delete(tempDirPath, true);
@@ -118,16 +115,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <param name="outputLocation">The directory where the resulting assembly should be saved</param>
         /// <param name="loadAssemblyContext">Defines if assembly should be loaded in context</param>
         /// <returns>The assembly name</returns>
-        public CodeCompilationResult CreateServiceAssembly(string org, string service, string edition, string outputLocation = null, bool loadAssemblyContext = true)
+        public CodeCompilationResult CreateServiceAssembly(string org, string service, string outputLocation = null, bool loadAssemblyContext = true)
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
-            string assemblykey = org + "_" + service + "_" + edition;
+            string assemblykey = org + "_" + service;
 
-            List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, service, edition);
+            List<AltinnCoreFile> implementationFiles = _repository.GetImplementationFiles(org, service);
 
             DateTime lastChanged = new DateTime(2000, 01, 01);
             foreach (AltinnCoreFile file in implementationFiles)
@@ -144,21 +140,21 @@ namespace AltinnCore.Common.Services.Implementation
                 return compilationResult;
             }
 
-            SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, service, edition);
+            SyntaxTree[] syntaxTrees = GetSyntaxTrees(org, service);
             List<MetadataReference> references = new List<MetadataReference>();
             Assembly root = Assembly.GetEntryAssembly();
-           
+
             string assemblyName = Path.GetRandomFileName();
 
             MetadataReferenceFeature referenceFeature = new MetadataReferenceFeature();
             _partManager.PopulateFeature(referenceFeature);
-            
+
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: syntaxTrees,
                 references: referenceFeature.MetadataReferences,
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            
+
             using (var pdbMs = new MemoryStream())
             using (var ms = new MemoryStream())
             {
@@ -167,7 +163,7 @@ namespace AltinnCore.Common.Services.Implementation
                 stopWatch.Start();
                 if (!string.IsNullOrEmpty(outputLocation))
                 {
-                   result = compilation.Emit(outputLocation + assemblyName + ".dll", outputLocation + assemblyName + ".pdb");
+                    result = compilation.Emit(outputLocation + assemblyName + ".dll", outputLocation + assemblyName + ".pdb");
                 }
                 else
                 {
@@ -237,7 +233,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                         _assemblyNames.Add(assemblykey, compilationResult);
                     }
-                   
+
                     return compilationResult;
                 }
             }
@@ -278,16 +274,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The syntax tree</returns>
-        private SyntaxTree[] GetSyntaxTrees(string org, string service, string edition)
+        private SyntaxTree[] GetSyntaxTrees(string org, string service)
         {
             List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
-            string dir = _settings.GetEditionPath(org, service, edition, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string dir = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var ext = new List<string> { ".cs" };
             var codeFiles = Directory.GetFiles(dir, "*.*", SearchOption.AllDirectories)
                  .Where(s => ext.Any(e => s.EndsWith(e)));
-            
+
             foreach (string filePath in codeFiles)
             {
                 using (var stream = File.OpenRead(filePath))

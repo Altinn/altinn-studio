@@ -8,12 +8,12 @@ export interface IAppConfigState {
 }
 
 const initialState: IAppConfigState = {
-  designMode: true
+  designMode: true,
 };
 
 const appConfigReducer: Reducer<IAppConfigState> = (
   state: IAppConfigState = initialState,
-  action?: Action
+  action?: Action,
 ): IAppConfigState => {
   if (!action) {
     return state;
@@ -23,12 +23,14 @@ const appConfigReducer: Reducer<IAppConfigState> = (
     case AppDataActionTypes.SET_DESIGN_MODE: {
       const { designMode } = action as AppDataActions.ISetDesignModeAction;
       let className = 'a-bgBlueLight flex-column d-flex';
-      if (designMode) className = 'a-bgWhite';
+      if (designMode) {
+        className = 'a-bgWhite';
+      }
       document.body.className = className;
       return update<IAppConfigState>(state, {
         designMode: {
           $set: designMode,
-        }
+        },
       });
     }
 

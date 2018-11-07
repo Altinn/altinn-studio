@@ -52,7 +52,7 @@ const actions: IAppConfigActionDispatchers = {
   loadTextResourcesRejected: AppDataActions.loadTextResourcesRejectedAction,
   fetchCodeLists: AppDataActions.fetchCodeListsAction,
   fetchCodeListsFulfilled: AppDataActions.fetchCodeListsFulfilledAction,
-  fetchCodeListsRejected: AppDataActions.fetchCodeListsRejectedAction
+  fetchCodeListsRejected: AppDataActions.fetchCodeListsRejectedAction,
 };
 
 /**

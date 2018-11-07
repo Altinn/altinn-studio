@@ -1,10 +1,10 @@
+import * as React from 'react';
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import * as ThirdPartyActions from '../../actions/thirdPartyComponentsActions/actions';
 import ThirdPartyComponentsActionDispatcher from '../../actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import * as ThirdPartyActionTypes from '../../actions/thirdPartyComponentsActions/thirdPartyComponentsActionTypes';
 import { get } from '../../utils/networking';
-import * as React from 'react';
 
 function* fetchThirdPartyComponentsSaga(action: ThirdPartyActions.IFetchThirdPartyComponent): SagaIterator {
   try {
@@ -12,18 +12,18 @@ function* fetchThirdPartyComponentsSaga(action: ThirdPartyActions.IFetchThirdPar
     if (!fetchedDefinitions || !fetchedDefinitions.packages) {
       yield call(
         ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponentsFulfilled,
-        null
+        null,
       );
       return;
     }
     let fetchedPackages: any = {};
-    for (let externalPackage of fetchedDefinitions.packages) {
+    for (const externalPackage of fetchedDefinitions.packages) {
       const fetchedSrc: any = yield call(get, externalPackage.location);
       const evaluatedSrc: any = eval(fetchedSrc);
       let fetchedComponents = {};
-      for (let component in evaluatedSrc.Components) {
+      for (const component in evaluatedSrc.Components) {
         fetchedComponents = Object.assign(fetchedComponents, {
-          [component]: React.createElement(evaluatedSrc.Components[component])
+          [component]: React.createElement(evaluatedSrc.Components[component]),
         });
       }
       fetchedPackages = Object.assign(fetchedPackages, {
@@ -32,7 +32,7 @@ function* fetchThirdPartyComponentsSaga(action: ThirdPartyActions.IFetchThirdPar
     }
     yield call(
       ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponentsFulfilled,
-      fetchedPackages
+      fetchedPackages,
     );
   } catch (err) {
     yield call(

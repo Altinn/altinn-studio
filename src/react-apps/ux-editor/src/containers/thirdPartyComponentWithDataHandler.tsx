@@ -15,7 +15,7 @@ export const thirdPartyComponentWithElementHandler =
         component,
         {
           onHandleDataUpdate,
-        }
+        },
       )
     );
-  }
+  };

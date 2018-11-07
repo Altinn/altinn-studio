@@ -54,8 +54,8 @@ const components: IComponent[] = [
     customProperties: {
       textResourceId: 'Standard.Button.Submit',
       customType: 'Standard',
-    }
-  }
+    },
+  },
 ];
 
 export default components;
