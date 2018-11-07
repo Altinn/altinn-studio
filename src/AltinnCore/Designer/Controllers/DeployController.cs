@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -43,7 +43,6 @@ namespace AltinnCore.Designer.Controllers
             {
                 ViewBag.ServiceUnavailable = true;
             }
-            ViewBag.test = _configuration["KvSetting:SecretUri"];
             
             return View();
         }
