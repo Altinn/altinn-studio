@@ -1,4 +1,5 @@
-﻿Microsoft Visual Studio Solution File, Format Version 12.00
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26114.2
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -8,15 +9,17 @@ Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-co
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AltinnCore", "AltinnCore", "{16DBADD5-01B0-460B-A11F-413805ECE4B1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltinnCore.Designer", "src\AltinnCore\Designer\AltinnCore.Designer.csproj", "{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Designer", "src\AltinnCore\Designer\AltinnCore.Designer.csproj", "{A8CEDA65-1EC3-4D9E-857C-BFCFA796315C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltinnCore.Runtime", "src\AltinnCore\Runtime\AltinnCore.Runtime.csproj", "{05798ABD-2FDC-48B4-8D69-780A0A4D4977}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Runtime", "src\AltinnCore\Runtime\AltinnCore.Runtime.csproj", "{05798ABD-2FDC-48B4-8D69-780A0A4D4977}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltinnCore.RepositoryClient", "src\AltinnCore\RepositoryClient\AltinnCore.RepositoryClient.csproj", "{56522D68-18AC-45CA-99D7-5A3D62227FE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.RepositoryClient", "src\AltinnCore\RepositoryClient\AltinnCore.RepositoryClient.csproj", "{56522D68-18AC-45CA-99D7-5A3D62227FE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltinnCore.ServiceLibrary", "src\AltinnCore\ServiceLibrary\AltinnCore.ServiceLibrary.csproj", "{07110B78-ABBE-493A-946C-309791E80EE8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.ServiceLibrary", "src\AltinnCore\ServiceLibrary\AltinnCore.ServiceLibrary.csproj", "{07110B78-ABBE-493A-946C-309791E80EE8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltinnCore.Common", "src\AltinnCore\Common\AltinnCore.Common.csproj", "{807306DE-965E-49E2-A533-2245962EF1F5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Common", "src\AltinnCore\Common\AltinnCore.Common.csproj", "{807306DE-965E-49E2-A533-2245962EF1F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Runtime.Db", "src\AltinnCore\RuntimeDb\AltinnCore.Runtime.Db.csproj", "{A79098B5-197B-4688-B444-A67FCE7A3A1E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +51,10 @@ Global
 		{807306DE-965E-49E2-A533-2245962EF1F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{807306DE-965E-49E2-A533-2245962EF1F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{807306DE-965E-49E2-A533-2245962EF1F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A79098B5-197B-4688-B444-A67FCE7A3A1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A79098B5-197B-4688-B444-A67FCE7A3A1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A79098B5-197B-4688-B444-A67FCE7A3A1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A79098B5-197B-4688-B444-A67FCE7A3A1E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
