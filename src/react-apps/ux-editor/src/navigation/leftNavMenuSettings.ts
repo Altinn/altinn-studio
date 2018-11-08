@@ -4,11 +4,13 @@ export const leftNavMenuSettings: any = {
     {
       displayText: 'Tjenesteoversikt',
       navLink: '#',
+      iconName: 'ai ai-archive',
       items: [],
     },
     {
       displayText: 'Tjenesteflyt',
       navLink: '#',
+      iconName: 'ai ai-archive',
       items: [
         {
           navLink: '#',
@@ -30,6 +32,7 @@ export const leftNavMenuSettings: any = {
     {
       displayText: 'Tjenestelogikk',
       navLink: '#',
+      iconName: 'ai ai-archive',
       items: [
         {
           name: 'Valideringer',
@@ -46,16 +49,19 @@ export const leftNavMenuSettings: any = {
     {
       displayText: 'Datamodell',
       navLink: '#',
+      iconName: 'ai ai-archive',
       items: [],
     },
     {
       displayText: 'Oversettelse',
       navLink: '#',
+      iconName: 'ai ai-archive',
       items: [],
     },
     {
       displayText: 'Tekst',
       navLink: '#',
+      iconName: 'ai ai-archive',
       items: [],
     },
   ],
