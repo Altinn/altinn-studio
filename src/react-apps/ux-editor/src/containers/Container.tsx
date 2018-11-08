@@ -20,6 +20,7 @@ export interface IProvidedContainerProps {
 export interface IContainerProps extends IProvidedContainerProps {
   dataModelGroup?: string;
   itemOrder: any;
+  order: any;
   components: any;
   containers: any;
   repeating: boolean;
@@ -173,16 +174,41 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       dataModelGroup: this.props.dataModelGroup,
       index: this.props.index + 1,
     };
-    FormDesignerActionDispatchers.addFormContainer(container, this.props.id, null, (createdContainer, createdContainerId) => {
-      this.props.itemOrder.forEach((element: any) => {
-        if (this.props.components[element]) {
-          FormDesignerActionDispatchers.addFormComponent(this.props.components[element], createdContainerId);
-        } else if (this.props.containers[element]) {
-          FormDesignerActionDispatchers.addFormContainer(this.props.containers[element], null, createdContainerId);
-        }
+    FormDesignerActionDispatchers.addFormContainer(
+      container, this.props.id, null, (createdContainer, createdContainerId) => {
+        this.props.itemOrder.forEach((elementId: any) => {
+
+          if (this.props.components[elementId]) {
+            this.createNewRepeatingGroupComponent(this.props.components[elementId], createdContainerId)
+
+          } else if (this.props.containers[elementId]) {
+            this.createNewRepeatingGroupContainer(elementId, this.props.containers[elementId], createdContainerId);
+          }
+        });
       });
-    });
   }
+
+  public createNewRepeatingGroupContainer = (containerToCopyId: string, newContainer: ICreateFormContainer, addToId: string) => {
+    // creates a new container and adds every sub-component/container from the one we are "copying"
+    // TODO: check if there exists rules etc
+    FormDesignerActionDispatchers.addFormContainer(
+      newContainer, null, addToId, (createdContainer, createdContainerId) => {
+        this.props.order[containerToCopyId].forEach((subElement: any) => {
+          if (this.props.components[subElement]) {
+            // recursive call because subcontainers may contain several layers of subcontainers
+            FormDesignerActionDispatchers.addFormComponent(this.props.components[subElement], createdContainerId);
+          } else if (this.props.containers[subElement]) {
+            this.createNewRepeatingGroupContainer(subElement, this.props.containers[subElement], createdContainerId);
+          }
+        });
+      });
+  }
+
+  public createNewRepeatingGroupComponent = (newComponent: ICreateFormComponent, addToId: string) => {
+    // TODO: check of there exists rules etc
+    FormDesignerActionDispatchers.addFormComponent(newComponent, addToId);
+  }
+
   public changeActiveFormContainer = () => {
     if (!this.props.baseContainer && this.props.designMode) {
       FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
@@ -208,6 +234,7 @@ const makeMapStateToProps = () => {
       id: props.id,
       index: container.index,
       itemOrder: order[props.id],
+      order,
       components: GetLayoutComponentsSelector(state),
       containers,
       designMode: GetDesignModeSelector(state),
