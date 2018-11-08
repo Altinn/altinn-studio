@@ -4,7 +4,7 @@ import * as ActionTypes from '../../formDesignerActionTypes';
 export interface IAddFormContainerAction extends Action {
   container: ICreateFormContainer;
   positionAfterId?: string;
-  activeContainer?: string;
+  activeContainerId?: string;
   callback?: (...args: any[]) => any;
 }
 
@@ -23,14 +23,14 @@ export interface IAddFormContainerActionRejected extends Action {
 export function addFormContainerAction(
   container: ICreateFormContainer,
   positionAfterId?: string,
-  activeContainer?: string,
+  activeContainerId?: string,
   callback?: (...args: any[]) => any,
 ): IAddFormContainerAction {
   return {
     type: ActionTypes.ADD_FORM_CONTAINER,
     container,
     positionAfterId,
-    activeContainer,
+    activeContainerId,
     callback,
   };
 }
