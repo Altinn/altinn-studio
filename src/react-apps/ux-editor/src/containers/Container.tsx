@@ -178,10 +178,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
   public changeActiveFormContainer = (e) => {
     e.stopPropagation();
-    
-    if (!this.props.baseContainer && this.props.designMode) {
-      FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
-    }
+    FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
   }
   public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);

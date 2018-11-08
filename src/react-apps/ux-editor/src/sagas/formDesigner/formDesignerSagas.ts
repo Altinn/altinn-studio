@@ -82,9 +82,21 @@ function* addFormContainerSaga({
       baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     }
     if (activeContainerId) {
-      yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, activeContainerId);
+      yield call(
+        FormDesignerActionDispatchers.addFormContainerFulfilled,
+        container,
+        id,
+        positionAfterId,
+        activeContainerId,
+      );
     } else {
-      yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, baseContainerId);
+      yield call(
+        FormDesignerActionDispatchers.addFormContainerFulfilled,
+        container,
+        id,
+        positionAfterId,
+        baseContainerId,
+      );
     }
     yield call(FormDesignerActionDispatchers.addActiveFormContainer, id);
     if (callback) {
