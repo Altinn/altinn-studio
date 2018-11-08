@@ -3,7 +3,7 @@ version: '3.6'
 networks:
   altinncore_network:
     external: false
-
+  
 services:
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
@@ -21,7 +21,7 @@ services:
       - altinn_designer
     build:
       context: ./src/LoadBalancer
-
+  
   altinn_designer:
     container_name: altinn-designer
     image: altinncore:latest
@@ -29,7 +29,7 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "/Users/malinmilford/AltinnCore/Repos:/AltinnCore/Repos"
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
@@ -48,7 +48,7 @@ services:
     build:
       context: .
       dockerfile: src/AltinnCore/Designer/Dockerfile
-
+  
   altinn_runtime:
     container_name: altinn-runtime
     image: altinncoreruntime:latest
@@ -56,7 +56,7 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "/Users/malinmilford/AltinnCore/Repos:/AltinnCore/Repos"
+      - "C:/AltinnCore/Repos:/AltinnCore/Repos"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5005
@@ -72,7 +72,7 @@ services:
     build:
       context: .
       dockerfile: src/AltinnCore/Runtime/Dockerfile
-
+  
   altinn_repositories:
     container_name: altinn-repositories
     image: gitea/gitea:1.5.1
