@@ -70,6 +70,7 @@ export function* watchAddFormComponentSaga(): SagaIterator {
 function* addFormContainerSaga({
   container,
   positionAfterId,
+  activeContainer,
 }: FormDesignerActions.IAddFormContainerAction): SagaIterator {
   try {
     const id = uuid();
@@ -79,7 +80,12 @@ function* addFormContainerSaga({
       && Object.keys(formDesignerState.layout.order).length > 0) {
       baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     }
-    yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, baseContainerId);
+    if (activeContainer) {
+      yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, activeContainer);
+    } else {
+      yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, id, positionAfterId, baseContainerId);
+    }
+    yield call(FormDesignerActionDispatchers.addActiveFormContainer, id);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormContainerRejected, err);
   }
