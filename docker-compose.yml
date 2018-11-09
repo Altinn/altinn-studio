@@ -90,7 +90,7 @@ services:
     image: altinncoreruntimedb:latest
     restart: always
     ports:
-      - "5001:5001"
+      - "44355:44355"
     build:
       context: .
       dockerfile: src/AltinnCore/RuntimeDb/Dockerfile
