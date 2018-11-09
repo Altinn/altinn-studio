@@ -52,25 +52,7 @@ namespace AltinnCore.Designer.Controllers
 		{
 			return Content(_repository.GetJsonFormLayout(org, service), "text/plain", Encoding.UTF8);
 		}
-
-        /// TODO
-        [HttpGet]
-        public FileResult ZipAndSendRepo(string org, string service, string developer)
-        {
-            string startPath = $@"C:\AltinnCore\Repos\{developer}\{org}\{service}";
-            string zipPath = $@"C:\AltinnCore\Repos\{developer}\{org}\{service}.zip";
-
-            if (System.IO.File.Exists(zipPath))
-            {
-                System.IO.File.Delete(zipPath);
-            }
-
-            ZipFile.CreateFromDirectory(startPath, zipPath);
-
-            FileStream fileToSend = System.IO.File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            return File(fileToSend, "application/zip", service + ".zip");
-        }
+        
 
         /// <summary>
         /// Get third party components listed as JSON

@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -22,37 +24,45 @@ namespace AltinnCore.Common.Services.Implementation
 
         public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
         {
-            string archiveDirectory = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/";
-
-            if (!Directory.Exists(archiveDirectory))
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "ArchiveServiceModel")}&instanceId={instanceId}";
+            using (HttpClient client = new HttpClient())
             {
-                Directory.CreateDirectory(archiveDirectory);
-            }
-
-            string formDataFilePath =  archiveDirectory + instanceId + ".xml";
-
-            using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
-            {
+                client.BaseAddress = new Uri(apiUrl);
                 XmlSerializer serializer = new XmlSerializer(type);
-                serializer.Serialize(stream, dataToSerialize);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    serializer.Serialize(stream, dataToSerialize);
+                    stream.Position = 0;
+                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
+                    if (!response.Result.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Unable to archive service model");
+                    }
+                }
             }
         }
 
         public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
         {
-            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/" + instanceId + ".xml";
-
-            XmlSerializer serializer = new XmlSerializer(type);
-            try
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "GetArchivedServiceModel")}&instanceId={instanceId}";
+            using (HttpClient client = new HttpClient())
             {
-                using (Stream stream = File.Open(formDataFilePath, FileMode.Open, FileAccess.Read))
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                XmlSerializer serializer = new XmlSerializer(type);
+                try
                 {
-                    return serializer.Deserialize(stream);
+                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                    {
+                        return serializer.Deserialize(stream);
+                    }
                 }
-            }
-            catch
-            {
-                return Activator.CreateInstance(type);
+                catch(Exception ex)
+                {
+                    return Activator.CreateInstance(type);
+                }
             }
         }
     }

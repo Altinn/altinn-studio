@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -21,6 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
         /// </summary>
         /// <param name="repositorySettings">The service repository settings</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
         public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;
@@ -36,21 +39,25 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId used to find the party on disc</param>
         /// <returns>The deserialized form model</returns>
-        public object GetFormModel(int formID, Type type, string org, string service, int partyId)
+        public object GetFormModel(int formID, Type type, string org, string service, int partyId, string developer = null)
         {
-            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/" + formID + ".xml";
-
-            XmlSerializer serializer = new XmlSerializer(type);
-            try
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "GetFormModel")}&formID={formID}";
+            using (HttpClient client = new HttpClient())
             {
-                using (Stream stream = File.Open(formDataFilePath, FileMode.Open, FileAccess.Read))
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                XmlSerializer serializer = new XmlSerializer(type);
+                try
                 {
-                    return serializer.Deserialize(stream);
+                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                    {
+                        return serializer.Deserialize(stream);
+                    }
                 }
-            }
-            catch
-            {
-                return Activator.CreateInstance(type);
+                catch
+                {
+                    return Activator.CreateInstance(type);
+                }
             }
         }
 
@@ -59,26 +66,30 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="type">The type</param>
         /// <param name="partyId">The partyId</param>
         /// <param name="prefillkey">The prefill key</param>
         /// <returns>A deserialized prefilled form model</returns>
         public object GetPrefill(string org, string service, Type type, int partyId, string prefillkey)
         {
-            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Testdataforparty/" + partyId + "/prefill/" + prefillkey + ".xml";
-
-            XmlSerializer serializer = new XmlSerializer(type);
-            try
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "GetPrefill")}&prefillkey={prefillkey}";
+            using (HttpClient client = new HttpClient())
             {
-                using (Stream stream = File.Open(formDataFilePath, FileMode.Open, FileAccess.Read))
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                XmlSerializer serializer = new XmlSerializer(type);
+                try
                 {
-                    return serializer.Deserialize(stream);
+                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                    {
+                        return serializer.Deserialize(stream);
+                    }
                 }
-            }
-            catch
-            {
-                return null;
+                catch
+                {
+                    return null;
+                }
             }
         }
 
@@ -91,23 +102,25 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="partyId">The partyId</param>
         public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId)
         {
-            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/" + formId + ".xml";
-
-            try
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "SaveFormModel")}&formId={formId}";
+            using (HttpClient client = new HttpClient())
             {
-                using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
+                client.BaseAddress = new Uri(apiUrl);
+                XmlSerializer serializer = new XmlSerializer(type);
+                using (MemoryStream stream = new MemoryStream())
                 {
-                    XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);
+                    stream.Position = 0;
+                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
+                    if (!response.Result.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Unable to save form model");
+                    }
                 }
-            }
-            catch
-            {
-                throw;
             }
         }
     }

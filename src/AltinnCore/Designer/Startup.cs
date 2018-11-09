@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -200,7 +200,7 @@ namespace AltinnCore.Designer
                   defaults: new { controller = "Service" },
                   constraints: new
                   {
-                    controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                    controller = @"(Codelist|Config|DataSource|Service|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|RuntimeAPI)",
                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                     id = "[a-zA-Z0-9_\\-]{1,30}"
                   });

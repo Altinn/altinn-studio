@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -28,7 +28,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
         /// <returns>The form model</returns>
-        object GetFormModel(int formId, Type type, string org, string service, int partyId);
+        object GetFormModel(int formId, Type type, string org, string service, int partyId, string developer = null);
 
         /// <summary>
         /// Operation that returns a prefill populated form model

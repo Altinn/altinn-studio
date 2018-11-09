@@ -70,7 +70,7 @@ namespace AltinnCore.Runtime.Controllers
 		public IActionResult Index(string org, string service, int reporteeId)
 		{
             var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $@"http://altinn3.no/designer/{org}/{service}/React/ZipAndSendRepo?developer={AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}";
+            string apiUrl = $@"http://altinn3.no/designer/{org}/{service}/RuntimeAPI/ZipAndSendRepo?developer={AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);

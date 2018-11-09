@@ -1,5 +1,4 @@
-﻿using AltinnCore.Common.Constants;
-using Microsoft.AspNetCore.Http;
+using System;
 
 namespace AltinnCore.Common.Configuration
 {
@@ -18,10 +17,15 @@ namespace AltinnCore.Common.Configuration
 		/// </summary>
 		public const string RESOURCE_FOLDER_NAME = "Resources/";
 
-		/// <summary>
-		/// Constant for the location of service tests
+        /// <summary>
+		/// Constant for the location of the testdata for parties folder
 		/// </summary>
-		public const string TEST_FOLDER_NAME = "Test/";
+		public const string TESTDATA_FOR_PARTY_FOLDER_NAME = "Testdataforparty/";
+        
+        /// <summary>
+        /// Constant for the location of service tests
+        /// </summary>
+        public const string TEST_FOLDER_NAME = "Test/";
 
 		/// <summary>
 		/// Constant for the service binaries
@@ -244,13 +248,30 @@ namespace AltinnCore.Common.Configuration
 			return $"{RepositoryLocation}{developer}{org}/{service}/";
 		}
 
-		/// <summary>
-		/// 
-		/// </summary
-		/// <param name="org">The Organization code for the service owner</param>
-		/// <param name="service">The service code for the current service</param>
-		/// <returns>The full path, ending with "/"</return>
-		public string GetFormLayoutPath(string org, string service, string developer)
+        /// <summary>
+        /// Gets the full path to the testdata for party directory
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">The current user, service developer</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetTestdataForPartyPath(string org, string service, string developer = null)
+        {
+            if (developer != null)
+            {
+                developer += "/";
+            }
+
+            return $"{RepositoryLocation}{developer}{org}/{service}/{TESTDATA_FOR_PARTY_FOLDER_NAME}";
+        }
+
+        /// <summary>
+        /// 
+        /// </summary
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>The full path, ending with "/"</return>
+        public string GetFormLayoutPath(string org, string service, string developer)
 		{
 			if (developer != null)
 			{
@@ -472,5 +493,15 @@ namespace AltinnCore.Common.Configuration
 		{
 			return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
 		}
-	}
+
+        /// <summary>
+        /// Gets the path to the runtime api for sharing files between runtime and designer
+        /// </summary>
+        public string GetRuntimeAPIPath(string org, string service, string developer, int partyId, string nameOfMethod)
+        {
+            string repositoryBaseURL = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") ?? RepositoryBaseURL;
+
+            return $"{repositoryBaseURL}/designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
+        }
+    }
 }
