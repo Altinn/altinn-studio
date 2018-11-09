@@ -174,7 +174,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       index: this.props.index + 1,
     };
 
-    FormDesignerActionDispatchers.addFormContainer(container, this.props.id, null);
+    FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
   }
   public changeActiveFormContainer = (e: any) => {
     e.stopPropagation();
