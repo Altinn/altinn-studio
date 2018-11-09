@@ -188,15 +188,13 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       });
   }
 
-  public createNewRepeatingGroupContainer = (containerToCopyId: string, newContainer: ICreateFormContainer, addToId: string) => {
-    // creates a new container and adds every sub-component/container from the one we are "copying"
+  public createNewRepeatingGroupContainer = (containerToCopyId: string, newContainer: ICreateFormContainer, addToContainerId: string) => {
     // TODO: check if there exists rules etc
     FormDesignerActionDispatchers.addFormContainer(
-      newContainer, null, addToId, (createdContainer, createdContainerId) => {
+      newContainer, null, addToContainerId, (createdContainer, createdContainerId) => {
         this.props.order[containerToCopyId].forEach((subElement: any) => {
           if (this.props.components[subElement]) {
-            // recursive call because subcontainers may contain several layers of subcontainers
-            FormDesignerActionDispatchers.addFormComponent(this.props.components[subElement], createdContainerId);
+            this.createNewRepeatingGroupComponent(this.props.components[subElement], createdContainerId);
           } else if (this.props.containers[subElement]) {
             this.createNewRepeatingGroupContainer(subElement, this.props.containers[subElement], createdContainerId);
           }
@@ -205,7 +203,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public createNewRepeatingGroupComponent = (newComponent: ICreateFormComponent, addToId: string) => {
-    // TODO: check of there exists rules etc
+    // TODO: check if there exists rules etc
     FormDesignerActionDispatchers.addFormComponent(newComponent, addToId);
   }
 
