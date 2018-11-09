@@ -5,6 +5,7 @@ import LandingPage from '../page-objects/landingPage';
 import CommonPage from '../page-objects/common';
 import HeaderPage from '../page-objects/headerPage';
 import RepoPage from '../page-objects/repoPage';
+import TestData from '../TestData';
 
 let app = new App();
 let common = new CommonPage();
@@ -12,6 +13,7 @@ let loginPage = new LoginPage();
 let landingPage = new LandingPage();
 let header = new HeaderPage();
 let repoPage = new RepoPage();
+const userTrym = new TestData('trymen', 'extten@brreg.no', 'Cumulus212', 'basic');
 
 fixture('Logging in')
   .page(app.baseUrl)
@@ -23,7 +25,7 @@ fixture('Logging in')
     await app.after();
   })
   .beforeEach(async t => {
-    await common.login('oit@brreg.no', 'test123', loginPage);
+    await common.login(userTrym.userEmail, userTrym.password, loginPage);
   })
   .afterEach(async t => {
     await common.logout(header);
@@ -44,5 +46,5 @@ test('Login and create new repo', async t => {
     .typeText(repoPage.title, 'automatedTestRepo')
     .expect(repoPage.title.value).eql('automatedTestRepo')
     .click(repoPage.submitButton)
-    .expect(getPageUrl()).contains('itryti/automatedTestRepo');
+    .expect(getPageUrl()).contains(userTrym.userName + '/automatedTestRepo');
 });
