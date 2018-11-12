@@ -2,28 +2,11 @@ import { createStyles, Theme } from '@material-ui/core/styles';
 
 const drawerWidth = 250;
 export const styles = (theme: Theme) => createStyles({
-  root: {
-    display: 'flex',
-  },
-  menuButton: {
-    marginLeft: 12,
-    marginRight: 36,
-  },
-  hide: {
-    display: 'none',
-  },
   drawer: {
     width: drawerWidth,
     flexShrink: 0,
     whiteSpace: 'nowrap',
     top: '64 !important',
-  },
-  drawerOpen: {
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
-    }),
   },
   drawerClose: {
     transition: theme.transitions.create('width', {
@@ -36,10 +19,49 @@ export const styles = (theme: Theme) => createStyles({
       width: theme.spacing.unit * 9 + 1,
     },
   },
+  drawerOpen: {
+    width: drawerWidth,
+    transition: theme.transitions.create('width', {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
+  hide: {
+    display: 'none',
+  },
+  menuButton: {
+    marginLeft: 12,
+    marginRight: 36,
+  },
+  menuItemText: {
+    fontSize: '1.5rem',
+  },
+  menuItemTextClosed: {
+    visibility: 'hidden',
+  },
+  menuSubItemText: {
+    fontSize: '1.2rem',
+  },
+  nested: {
+    paddingLeft: theme.spacing.unit * 4,
+    fontSize: '20px',
+  },
   paper: {
     top: 69,
     position: 'absolute',
     background: 'lightgrey',
+  },
+  root: {
+    display: 'flex',
+  },
+  selectedMenuItem: {
+    color: 'white',
+    textDecoration: 'underline',
+    background: 'grey',
+  },
+  selectedMenuItemText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
   toggleButton: {
     position: 'fixed',
@@ -55,32 +77,10 @@ export const styles = (theme: Theme) => createStyles({
   toggleButtonOpen: {
     width: drawerWidth,
   },
-  nested: {
-    paddingLeft: theme.spacing.unit * 4,
-    fontSize: '20px',
-  },
-  menuItemText: {
-    fontSize: '1.5rem',
-  },
-  menuSubItemText: {
-    fontSize: '1.2rem',
-  },
-  toggleMenuText: {
-    color: 'white',
-  },
   toggleMenu: {
     background: 'grey',
   },
-  menuItemTextClosed: {
-    visibility: 'hidden',
-  },
-  selectedMenuItem: {
+  toggleMenuText: {
     color: 'white',
-    textDecoration: 'underline',
-    background: 'grey',
-  },
-  selectedMenuItemText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
 });
