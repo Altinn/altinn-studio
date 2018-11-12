@@ -1,4 +1,4 @@
-﻿@model AltinnCore.Common.Models.AltinnStudioViewModel
+@model AltinnCore.Common.Models.AltinnStudioViewModel
 @using AltinnCore.ServiceLibrary.Configuration;
 @using AltinnCore.ServiceLibrary.ServiceMetadata;
 
@@ -122,7 +122,7 @@ else
           <a title="Konfigurasjon" asp-route-controller="Config" asp-route="serviceRoute"><i class="fa fa-fw fa-2x fa-cog" aria-hidden="true"></i></a>
           <a title="Sikkerhet" asp-route-controller="Config" asp-route="serviceRoute" asp-route-action="Security"><i class="fa fa-fw fa-2x fa-shield-alt" aria-hidden="true"></i></a>
           <a title="Prosess" asp-route-controller="Workflow" asp-route="serviceRoute"><i class="fa fa-fw fa-2x fa-tasks" aria-hidden="true"></i></a>
-          <a title="Deploy" href="#"><i class="fa fa-fw fa-2x fa-bolt" aria-hidden="true"></i></a>
+          <a title="Deploy" asp-route-controller="Deploy" asp-route="serviceRoute"><i class="fa fa-fw fa-2x fa-bolt" aria-hidden="true"></i></a>
         </div>
       </div>
     }
