@@ -169,45 +169,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public handleAddNewGroup = () => {
-    const container: ICreateFormContainer = {
-      repeating: this.props.repeating,
-      dataModelGroup: this.props.dataModelGroup,
-      index: this.props.index + 1,
-    };
     FormDesignerActionDispatchers.createRepeatingGroup(this.props.id);
-    /* FormDesignerActionDispatchers.addFormContainer(
-      container, this.props.id, null, (createdContainer, createdContainerId) => {
-        this.props.itemOrder.forEach((elementId: any) => {
-
-          if (this.props.components[elementId]) {
-            this.createNewRepeatingGroupComponent(this.props.components[elementId], createdContainerId)
-
-          } else if (this.props.containers[elementId]) {
-            this.createNewRepeatingGroupContainer(elementId, this.props.containers[elementId], createdContainerId);
-          }
-        });
-      });
-      */
   }
 
-  public createNewRepeatingGroupContainer = (containerToCopyId: string, newContainer: ICreateFormContainer, addToContainerId: string) => {
-    // TODO: check if there exists rules etc
-    FormDesignerActionDispatchers.addFormContainer(
-      newContainer, null, addToContainerId, null, (createdContainer, createdContainerId) => {
-        this.props.order[containerToCopyId].forEach((subElement: any) => {
-          if (this.props.components[subElement]) {
-            this.createNewRepeatingGroupComponent(this.props.components[subElement], createdContainerId);
-          } else if (this.props.containers[subElement]) {
-            this.createNewRepeatingGroupContainer(subElement, this.props.containers[subElement], createdContainerId);
-          }
-        });
-      });
-  }
-
-  public createNewRepeatingGroupComponent = (newComponent: ICreateFormComponent, addToId: string) => {
-    // TODO: check if there exists rules etc
-    FormDesignerActionDispatchers.addFormComponent(newComponent, addToId);
-  }
   public changeActiveFormContainer = (e: any) => {
     e.stopPropagation();
     FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);

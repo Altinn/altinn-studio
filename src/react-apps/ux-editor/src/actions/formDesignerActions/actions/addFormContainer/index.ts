@@ -14,6 +14,7 @@ export interface IAddFormContainerActionFulfilled extends Action {
   id: string;
   positionAfterId?: string;
   addToId?: string;
+  activeContainerId?: string;
   baseContainerId?: string;
   callback?: (...args: any[]) => any;
 }
@@ -45,6 +46,7 @@ export function addFormContainerActionFulfilled(
   positionAfterId?: string,
   baseContainerId?: string,
   addToId?: string,
+  activeContainerId?: string,
   callback?: (...args: any[]) => any,
 ): IAddFormContainerActionFulfilled {
   return {
@@ -53,6 +55,7 @@ export function addFormContainerActionFulfilled(
     id,
     positionAfterId,
     addToId,
+    activeContainerId,
     baseContainerId,
     callback,
   };

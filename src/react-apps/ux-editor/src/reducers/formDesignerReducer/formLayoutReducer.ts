@@ -110,6 +110,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       }
 
       if (addToId) {
+        console.log("INN ADD TO ID: " + addToId);
         return update<IFormLayoutState>(state, {
           containers: {
             [id]: {

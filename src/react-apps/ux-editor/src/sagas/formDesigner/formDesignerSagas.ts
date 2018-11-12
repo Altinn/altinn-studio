@@ -370,20 +370,19 @@ export function* createRepeatingGroupSaga({ id }: FormDesignerActions.ICreateRep
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     const containers = formDesignerState.layout.containers;
-
     const newContainer: ICreateFormContainer = {
       repeating: containers[id].repeating,
-      index: containers[id].index,
-      hidden: containers[id].repeating,
+      index: (containers[id].index != null) ? (containers[id].index + 1) : null,
+      hidden: containers[id].hidden,
       dataModelGroup: containers[id].dataModelGroup,
     };
+
     yield call(createRepeatingContainer, id, newContainer);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.createRepeatingGroupRejected, err);
   }
 }
 
-// Helper function for createRepeatingGroup saga
 function* createRepeatingContainer(
   containerToCopyId: string,
   container: ICreateFormContainer,
@@ -395,19 +394,27 @@ function* createRepeatingContainer(
   const order = formDesignerState.layout.order;
   const createdContainerId = uuid();
   const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
+  if (!addToId) {
+    addToId = baseContainerId;
+  }
+  yield call(FormDesignerActionDispatchers.addActiveFormContainer, baseContainerId);
   yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
     container,
     createdContainerId,
     null,
     addToId,
+    null,
     baseContainerId);
+  yield call(FormDesignerActionDispatchers.addActiveFormContainer, createdContainerId);
 
   for (const elementId of order[containerToCopyId]) {
     if (components[elementId]) {
-      yield call(FormDesignerActionDispatchers.addFormComponent, components[elementId], createdContainerId);
+      const createdConmponentId = uuid();
+      yield call(FormDesignerActionDispatchers.addFormComponentFulfilled,
+        components[elementId], createdConmponentId, createdContainerId);
     } else if (containers[elementId]) {
       const newContainer: ICreateFormContainer = {
-        index: (containers[elementId].index) ? (containers[elementId].index + 1) : null,
+        index: (containers[elementId].index != null) ? (containers[elementId].index + 1) : null,
         repeating: containers[elementId].repeating,
         hidden: containers[elementId].hidden,
         dataModelGroup: containers[elementId].dataModelGroup,
