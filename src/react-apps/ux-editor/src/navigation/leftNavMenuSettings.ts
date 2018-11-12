@@ -1,3 +1,7 @@
+const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+const { org, service } = altinnWindow;
+const servicePath = `${org}/${service}`;
+
 export const leftNavMenuSettings: any = {
   menuTitle: 'Tjenesteoversikt',
   menuHierarchy: [
@@ -31,7 +35,7 @@ export const leftNavMenuSettings: any = {
     },
     {
       displayText: 'Tjenestelogikk',
-      navLink: '#',
+      navLink: `${altinnWindow.location.origin}/designer/${servicePath}/Rules/Code`,
       iconName: 'ai ai-archive',
       items: [
         {
@@ -48,19 +52,19 @@ export const leftNavMenuSettings: any = {
     },
     {
       displayText: 'Datamodell',
-      navLink: '#',
+      navLink: `${altinnWindow.location.origin}/designer/${servicePath}/Model`,
       iconName: 'ai ai-archive',
       items: [],
     },
     {
       displayText: 'Oversettelse',
-      navLink: '#',
+      navLink: `${altinnWindow.location.origin}/designer/${servicePath}/Text`,
       iconName: 'ai ai-archive',
       items: [],
     },
     {
-      displayText: 'Tekst',
-      navLink: '#',
+      displayText: 'Test',
+      navLink: `${altinnWindow.location.origin}/${servicePath}/runtime/ManualTesting`,
       iconName: 'ai ai-archive',
       items: [],
     },

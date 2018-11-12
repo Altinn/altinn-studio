@@ -65,6 +65,8 @@ class NavMenu extends React.Component<any, any> {
     if (menuItem.items && menuItem.items.length > 0) {
       this.handleSubmenuClicked(id);
     }
+
+    window.location = menuItem.navLink;
   }
 
   public render() {
@@ -110,7 +112,7 @@ class NavMenu extends React.Component<any, any> {
                   />
                 </ListItem>
                 {menuItem.items && menuItem.items.length > 0 ?
-                  <Collapse 
+                  <Collapse
                     in={this.state.openSubMenus.indexOf(index) > -1}
                   >
                     <List component='div' disablePadding={true}>
