@@ -5,96 +5,11 @@ import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import { createStyles, withStyles, WithStyles, Theme } from '@material-ui/core/styles';
+import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import {leftNavMenuSettings} from './leftNavMenuSettings';
-
-const drawerWidth = 250;
-
-const styles = (theme: Theme) => createStyles({
-  root: {
-    display: 'flex'
-  },
-  menuButton: {
-    marginLeft: 12,
-    marginRight: 36,
-  },
-  hide: {
-    display: 'none'
-  },
-  drawer: {
-    width: drawerWidth,
-    flexShrink: 0,
-    whiteSpace: 'nowrap',
-    top: '64 !important',
-  },
-  drawerOpen: {
-    width: drawerWidth,
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen
-    })
-  },
-  drawerClose: {
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.leavingScreen
-    }),
-    overflowX: 'hidden',
-    width: theme.spacing.unit * 7 + 1,
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 9 + 1
-    }
-  },
-  paper: {
-    top: 69,
-    position: 'absolute',
-    background: 'lightgrey',
-  },
-  toggleButton: {
-    position: 'fixed',
-    bottom: 0,
-    left: 0,
-  },
-  toggleButtonClosed: {
-    width: theme.spacing.unit * 7 + 1,
-    [theme.breakpoints.up('sm')]: {
-      width: theme.spacing.unit * 9 + 1,
-    }
-  },
-  toggleButtonOpen: {
-    width: drawerWidth,
-  },
-  nested: {
-    paddingLeft: theme.spacing.unit * 4,
-    fontSize: '20px',
-  },
-  menuItemText: {
-    fontSize: '1.5rem',
-  },
-  menuSubItemText: {
-    fontSize: '1.2rem',
-  },
-  toggleMenuText: {
-    color: 'white',
-  },
-  toggleMenu: {
-    background: 'grey',
-  },
-  menuItemTextClosed: {
-    visibility: 'hidden',
-  },
-  selectedMenuItem: {
-    color: 'white',
-    textDecoration: 'underline',
-    background: 'grey',
-  },
-  selectedMenuItemText: {
-    color: 'white',
-    fontWeight: 'bold',
-  },
-});
+import {styles} from './navMenuStyles';
 
 export interface INavMenuState {
   open: boolean;
@@ -108,15 +23,15 @@ class NavMenu extends React.Component<any, any> {
     open: false,
     openSubMenus: [] as number[],
     selectedMenuItem: '',
-  }
+  };
 
   public handleNavMenuOpen = () => {
     this.setState({ open: true });
-  };
+  }
 
   public handleNavMenuClose = () => {
     this.setState({ open: false });
-  };
+  }
 
   public toggleNavMenu = () => {
     if (this.state.open) {
@@ -124,7 +39,7 @@ class NavMenu extends React.Component<any, any> {
     } else {
       this.handleNavMenuOpen();
     }
-  };
+  }
 
   public handleSubmenuClicked = (id: number) => {
     const openIdIndex = this.state.openSubMenus.indexOf(id);
@@ -145,8 +60,8 @@ class NavMenu extends React.Component<any, any> {
     this.setState((state: any) => {
       return {
         selectedMenuItem: menuItem.displayText,
-      }
-    })
+      };
+    });
     if (menuItem.items && menuItem.items.length > 0) {
       this.handleSubmenuClicked(id);
     }
@@ -175,8 +90,8 @@ class NavMenu extends React.Component<any, any> {
             {leftNavMenuSettings.menuHierarchy.map((menuItem: any, index: number) => {
               return (
               <div key={index}>
-                <ListItem 
-                  button
+                <ListItem
+                  button={true}
                   onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
                   classes={{root: classNames({
                     [classes.selectedMenuItem]: this.state.selectedMenuItem === menuItem.displayText})}}
@@ -184,7 +99,7 @@ class NavMenu extends React.Component<any, any> {
                   {/* <ListItemIcon>
                     <i className={menuItem.iconName}/>
                   </ListItemIcon> */}
-                  <ListItemText 
+                  <ListItemText
                     classes={{
                       primary: classNames(classes.menuItemText, {
                         [classes.menuItemTextClosed]: !this.state.open,
@@ -198,13 +113,14 @@ class NavMenu extends React.Component<any, any> {
                   <Collapse 
                     in={this.state.openSubMenus.indexOf(index) > -1}
                   >
-                    <List component='div' disablePadding>
+                    <List component='div' disablePadding={true}>
                       {menuItem.items.map((item: any, i: number) => {
                       return (
-                        <ListItem button className={classes.nested} key={i}>
+                        <ListItem button={true} className={classes.nested} key={i}>
                         <ListItemText
-                          inset
-                          classes={{primary: classNames(classes.menuSubItemText)}} primary={item.name}
+                          inset={true}
+                          classes={{primary: classNames(classes.menuSubItemText)}}
+                          primary={item.name}
                         />
                         </ListItem>
                       );
@@ -215,21 +131,26 @@ class NavMenu extends React.Component<any, any> {
                 <Divider />
               </div>
               );
-            }
+            },
             )}
           </List>
-          <List classes={{root: classNames(classes.toggleMenu, classes.toggleButton, {
-            [classes.toggleButtonOpen]: this.state.open,
-            [classes.toggleButtonClosed]: !this.state.open,
-          })}}>
+          <List
+            classes={{root: classNames(classes.toggleMenu, classes.toggleButton, {
+              [classes.toggleButtonOpen]: this.state.open,
+              [classes.toggleButtonClosed]: !this.state.open,
+            })}}
+          >
             <ListItem
-              button
+              button={true}
               onClick={this.toggleNavMenu}
             >
               <ListItemIcon classes={{root: classNames(classes.toggleMenuText)}}>
                 {this.state.open ? <i className='ai ai-back'/> : <i className='ai ai-expand'/>}
               </ListItemIcon>
-              <ListItemText classes={{primary: classNames(classes.menuItemText, classes.toggleMenuText)}} primary={'Skjul meny'} />
+              <ListItemText
+                classes={{primary: classNames(classes.menuItemText, classes.toggleMenuText)}}
+                primary={'Skjul meny'}
+              />
             </ListItem>
           </List>
         </Drawer>

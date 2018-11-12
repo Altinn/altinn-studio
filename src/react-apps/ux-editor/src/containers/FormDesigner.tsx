@@ -2,9 +2,9 @@ import * as React from 'react';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
+import NavMenu from '../navigation/NavMenu';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
-import  NavMenu  from '../navigation/NavMenu';
 
 export interface IFormDesignerProps { }
 export interface IFormDesignerState { }
