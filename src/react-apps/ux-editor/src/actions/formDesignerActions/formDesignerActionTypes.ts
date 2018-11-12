@@ -60,3 +60,8 @@ export const ADD_ACTIVE_FORM_CONTAINER_REJECTED: string = `${moduleName}.ADD_ACT
 export const GENERATE_REPEATING_GROUPS: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
 export const GENERATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
 export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
+
+// Create new repeating group
+export const CREATE_REPEATING_GROUP: string = `${moduleName}.CREATE_REPEATING_GROUP`;
+export const CREATE_REPEATING_GORUP_FULFILLED: string = `${moduleName}.CREATE_REPEATING_GROUP_FULFILLED`;
+export const CREATE_REPEATING_GORUP_REJECTED: string = `${moduleName}.CREATE_REPEATING_GROUP_REJECTED`;

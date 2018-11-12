@@ -174,8 +174,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       dataModelGroup: this.props.dataModelGroup,
       index: this.props.index + 1,
     };
-    FormDesignerActionDispatchers.addFormContainer(
-      container, this.props.id, null, null, (createdContainer, createdContainerId) => {
+    FormDesignerActionDispatchers.createRepeatingGroup(this.props.id);
+    /* FormDesignerActionDispatchers.addFormContainer(
+      container, this.props.id, null, (createdContainer, createdContainerId) => {
         this.props.itemOrder.forEach((elementId: any) => {
 
           if (this.props.components[elementId]) {
@@ -186,6 +187,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
           }
         });
       });
+      */
   }
 
   public createNewRepeatingGroupContainer = (containerToCopyId: string, newContainer: ICreateFormContainer, addToContainerId: string) => {

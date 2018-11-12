@@ -48,6 +48,14 @@ export interface IFormDesignerActionDispatchers
   addActiveFormContainerRejected: (
     error: Error,
   ) => FormDesignerActions.IAddActiveFormContainerRejected;
+  createRepeatingGroup: (
+    id: string,
+  ) => FormDesignerActions.ICreateRepeatingGroupAction;
+  createRepeatingGroupFulfilled: (
+  ) => FormDesignerActions.ICreateRepeatingGroupFulfilled;
+  createRepeatingGroupRejected: (
+    error: Error,
+  ) => FormDesignerActions.ICreateRepeatingGroupRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -140,6 +148,9 @@ const actions: IFormDesignerActionDispatchers = {
   addActiveFormContainer: FormDesignerActions.addActiveFormContainerAction,
   addActiveFormContainerFulfilled: FormDesignerActions.addActiveFormContainerActionFulfilled,
   addActiveFormContainerRejected: FormDesignerActions.addActiveFormContainerRejected,
+  createRepeatingGroup: FormDesignerActions.createRepeatingGroupAction,
+  createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
+  createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,

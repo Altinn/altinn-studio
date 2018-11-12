@@ -1,11 +1,14 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, takeLatest, put } from 'redux-saga/effects';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { get, post } from '../../utils/networking';
+import { addFormComponentActionFulfilled } from '../../actions/formDesignerActions/actions';
+import { createDecipher } from 'crypto';
+import { create } from 'domain';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
@@ -55,6 +58,7 @@ function* addFormComponentSaga({
       activeContainer,
       callback,
     );
+    return id; // returns created id
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
   }
@@ -104,6 +108,7 @@ function* addFormContainerSaga({
     if (callback) {
       callback(container, id);
     }
+    return id;
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormContainerRejected, err);
   }
@@ -358,5 +363,63 @@ export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,
     toggleFormContainerRepeatingSaga,
+  );
+}
+
+export function* createRepeatingGroupSaga({ id }: FormDesignerActions.ICreateRepeatingGroupAction): SagaIterator {
+  try {
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const containers = formDesignerState.layout.containers;
+
+    const newContainer: ICreateFormContainer = {
+      repeating: containers[id].repeating,
+      index: containers[id].index,
+      hidden: containers[id].repeating,
+      dataModelGroup: containers[id].dataModelGroup,
+    };
+    yield call(createRepeatingContainer, id, newContainer);
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.createRepeatingGroupRejected, err);
+  }
+}
+
+// Helper function for createRepeatingGroup saga
+function* createRepeatingContainer(
+  containerToCopyId: string,
+  container: ICreateFormContainer,
+  addToId?: string): SagaIterator {
+
+  const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+  const components = formDesignerState.layout.components;
+  const containers = formDesignerState.layout.containers;
+  const order = formDesignerState.layout.order;
+  const createdContainerId = uuid();
+  const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
+  yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
+    container,
+    createdContainerId,
+    null,
+    addToId,
+    baseContainerId);
+
+  for (const elementId of order[containerToCopyId]) {
+    if (components[elementId]) {
+      yield call(FormDesignerActionDispatchers.addFormComponent, components[elementId], createdContainerId);
+    } else if (containers[elementId]) {
+      const newContainer: ICreateFormContainer = {
+        index: (containers[elementId].index) ? (containers[elementId].index + 1) : null,
+        repeating: containers[elementId].repeating,
+        hidden: containers[elementId].hidden,
+        dataModelGroup: containers[elementId].dataModelGroup,
+      };
+      yield call(createRepeatingContainer, elementId, newContainer, createdContainerId);
+    }
+  }
+}
+
+export function* watchCreateRepeatingGroupSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.CREATE_REPEATING_GROUP,
+    createRepeatingGroupSaga,
   );
 }
