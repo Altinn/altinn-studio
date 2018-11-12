@@ -9,7 +9,7 @@ RUN dotnet build AltinnCore.Runtime.Db.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore.Runtime.Db.csproj -c Release -o /app_output
 
 FROM microsoft/dotnet:2.1-aspnetcore-runtime AS final
-EXPOSE 5001
+EXPOSE 44355
 WORKDIR /App
 COPY --from=build /app_output .
 ENTRYPOINT ["dotnet", "AltinnCore.Runtime.Db.dll"]

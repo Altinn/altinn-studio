@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -207,12 +207,12 @@ namespace AltinnCore.Designer
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
                    name: "defaultRoute2",
-                   template: "{controller}/{action=Index}/{id?}",
+                   template: "{controller}/{action=StartPage}/{id?}",
                    defaults: new { controller = "Home" });
 
                 routes.MapRoute(
                     name: "defaultRoute",
-                    template: "{action=Index}/{id?}",
+                    template: "{action=StartPage}/{id?}",
                     defaults: new { controller = "Home" });
             });
         }
