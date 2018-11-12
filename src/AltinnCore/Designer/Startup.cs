@@ -60,24 +60,24 @@ namespace AltinnCore.Designer
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
             }
 
-      services.AddSingleton<IArchive, ArchiveSILocalDev>();
-      services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
-      services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
-      services.AddSingleton<ICompilation, CompilationSI>();
-      services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-      services.AddSingleton<IDataSourceService, DataSourceSI>();
-      services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-      services.AddSingleton<IForm, FormSILocalDev>();
-      services.AddSingleton<IProfile, ProfileSILocalDev>();
-      services.AddSingleton<IRegister, RegisterSILocalDev>();
-      services.AddSingleton<IRepository, RepositorySI>();
-      services.AddSingleton<IServicePackageRepository, RepositorySI>();
-      services.AddSingleton<ITestdata, TestdataSILocalDev>();
-      services.AddSingleton<ITestingRepository, TestingRepository>();
-      services.AddSingleton<IGitea, GiteaAPIWrapper>();
-      services.AddSingleton<ISourceControl, SourceControlSI>();
-      services.AddSingleton(Configuration);
-      services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IArchive, ArchiveSILocalDev>();
+            services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
+            services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
+            services.AddSingleton<ICompilation, CompilationSI>();
+            services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
+            services.AddSingleton<IDataSourceService, DataSourceSI>();
+            services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
+            services.AddSingleton<IForm, FormSILocalDev>();
+            services.AddSingleton<IProfile, ProfileSILocalDev>();
+            services.AddSingleton<IRegister, RegisterSILocalDev>();
+            services.AddSingleton<IRepository, RepositorySI>();
+            services.AddSingleton<IServicePackageRepository, RepositorySI>();
+            services.AddSingleton<ITestdata, TestdataSILocalDev>();
+            services.AddSingleton<ITestingRepository, TestingRepository>();
+            services.AddSingleton<IGitea, GiteaAPIWrapper>();
+            services.AddSingleton<ISourceControl, SourceControlSI>();
+            services.AddSingleton(Configuration);
+            services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
             services.AddResponseCompression();
 
@@ -128,17 +128,17 @@ namespace AltinnCore.Designer
             });
             mvc.AddXmlSerializerFormatters();
 
-      services.AddLocalization();
-      services.Configure<RequestLocalizationOptions>(
-          options =>
-          {
-            var supportedCultures = new List<CultureInfo>
-                  {
+            services.AddLocalization();
+            services.Configure<RequestLocalizationOptions>(
+                options =>
+                {
+                    var supportedCultures = new List<CultureInfo>
+                        {
                             // The current supported languages. Can easily be added more. 
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
                             new CultureInfo("nn-NO")
-                        };
+                              };
 
                     options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
                     options.SupportedCultures = supportedCultures;
@@ -193,17 +193,16 @@ namespace AltinnCore.Designer
                     {
                         controller = "Codelist|Owner|Config"
                     });
-
-        routes.MapRoute(
-                  name: "serviceRoute",
-                  template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
-                  defaults: new { controller = "Service" },
-                  constraints: new
-                  {
-                    controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
-                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    id = "[a-zA-Z0-9_\\-]{1,30}"
-                  });
+                routes.MapRoute(
+                          name: "serviceRoute",
+                          template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
+                          defaults: new { controller = "Service" },
+                          constraints: new
+                          {
+                              controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy)",
+                              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                              id = "[a-zA-Z0-9_\\-]{1,30}"
+                          });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
