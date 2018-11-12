@@ -41,7 +41,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The deserialized form model</returns>
         public object GetFormModel(int formID, Type type, string org, string service, int partyId, string developer = null)
         {
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "GetFormModel")}&formID={formID}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath("GetFormModel", org, service, developer, partyId)}&formID={formID}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -73,7 +73,7 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetPrefill(string org, string service, Type type, int partyId, string prefillkey)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "GetPrefill")}&prefillkey={prefillkey}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath("GetPrefill", org, service, developer, partyId)}&prefillkey={prefillkey}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -106,7 +106,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(org, service, developer, partyId, "SaveFormModel")}&formId={formId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath("SaveFormModel", org, service, developer, partyId)}&formId={formId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);

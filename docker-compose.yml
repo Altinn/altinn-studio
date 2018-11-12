@@ -19,6 +19,7 @@ services:
     depends_on:
       - altinn_repositories
       - altinn_designer
+      - altinn_runtime
     build:
       context: ./src/LoadBalancer
   
@@ -60,7 +61,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5005
-      - ServiceRepositorySettings:RepositoryLocation=/AltinnCore/Repos/
+      - ServiceRepositorySettings:RepositoryLocation=/AltinnRuntime/Repos/
       - ServiceRepositorySettings:EnableGiteaIntegration=true
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1

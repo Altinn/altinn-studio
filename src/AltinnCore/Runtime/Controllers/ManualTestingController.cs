@@ -67,37 +67,45 @@ namespace AltinnCore.Runtime.Controllers
 		/// <param name="reporteeId">The reporteeId</param>
 		/// <returns>The test message box</returns>
 		[Authorize]
-		public IActionResult Index(string org, string service, int reporteeId)
+		public async Task<IActionResult> Index(string org, string service, int reporteeId)
 		{
             var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $@"http://altinn3.no/designer/{org}/{service}/RuntimeAPI/ZipAndSendRepo?developer={AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}";
+            string apiUrl = _settings.GetRuntimeAPIPath("ZipAndSendRepo", org, service, developer);
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/zip"));
 
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                string zipPath = $@"C:\Runtime\Repos\{developer}\{org}\{service}\result.zip";
-                string extractPath = $@"C:\Runtime\Repos\{developer}\{org}\{service}\";
+                Console.WriteLine("**** Fetching from API " + apiUrl);
+                HttpResponseMessage response = await client.GetAsync(apiUrl);
+                string zipPath = $"{_settings.GetServicePath(org, service, developer)}{service}.zip";
+                string extractPath = _settings.GetServicePath(org, service, developer);
+                Console.WriteLine("**** Creating repo for: " + zipPath);
                 if (!Directory.Exists(extractPath))
                 {
+                    Console.WriteLine("**** Creating directory: " + extractPath);
                     Directory.CreateDirectory(extractPath);
                 } else
                 {
+                    Console.WriteLine("**** Deleting and creating new directory: ");
                     Directory.Delete(extractPath, true);
                     Directory.CreateDirectory(extractPath);
                 }
 
-                using (System.IO.Stream s = response.Result.Content.ReadAsStreamAsync().Result)
+                Console.WriteLine("**** Starting reading from stream");
+                using (Stream s = response.Content.ReadAsStreamAsync().Result)
                 {
                     using (var w = System.IO.File.OpenWrite(zipPath))
                     {
+                        Console.WriteLine("**** Reading form stream ");
                         s.CopyTo(w);
                     }
                 }
 
+                Console.WriteLine("**** Unzipping file");
                 ZipFile.ExtractToDirectory(zipPath, extractPath);
+                Console.WriteLine("**** DONE unzipping file");
             }
 
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);

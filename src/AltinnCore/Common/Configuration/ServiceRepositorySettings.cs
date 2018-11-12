@@ -497,11 +497,18 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the path to the runtime api for sharing files between runtime and designer
         /// </summary>
-        public string GetRuntimeAPIPath(string org, string service, string developer, int partyId, string nameOfMethod)
+        public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0)
         {
             string repositoryBaseURL = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") ?? RepositoryBaseURL;
 
-            return $"{repositoryBaseURL}/designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
+            if (partyId == 0)
+            {
+                return $"{repositoryBaseURL}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}";
+            }
+            else
+            {
+                return $"{repositoryBaseURL}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
+            }
         }
     }
 }
