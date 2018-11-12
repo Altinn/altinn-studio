@@ -1,0 +1,61 @@
+@{
+  Layout = "";
+}
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- CSS -->
+  <link rel="stylesheet" href="~/designer/css/bootstrap.min.css" asp-append-version="true">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+  <style>
+    .btn-lg {
+      color: black !important;
+      border: 3px solid black;
+      font-size: 32px;
+      width: 200px;
+    }
+
+    .grey-background {
+      background-color: #E5E5E5;
+    }
+
+    .navbar {
+      background-color: #F5F5F5;
+    }
+
+    .nav-link {
+      color: black;
+      font-size: 32px;
+    }
+
+      .nav-link:hover {
+        color: black;
+      }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <img src="~/designer/img/altinnStudio.png" />
+      </div>
+      <ul class="nav navbar-nav">
+        <li><a class="nav-link" href="/user/login">Logg inn <i class="fa fa-fw fa-user-circle" aria-hidden="true"></i></a></li>
+      </ul>
+    </div>
+  </nav>
+  <div class="row grey-background" style="padding-top:100px">
+    <div class="col-12  pt-5 text-center">
+      <h1> Velkommen til Altinn studio. Din platform for utvikling av tjenester.</h1>
+    </div>
+  </div>
+  <div class="row grey-background" style="height:50vh;padding-bottom:20px">
+    <div class="col-12 pt-5 text-center">
+      <input type="button" class="btn-lg btn-primary-outline text-center" onclick="location.href='/user/login'" value="Logg inn" />
+    </div>
+  </div>
+</body>
+</html>

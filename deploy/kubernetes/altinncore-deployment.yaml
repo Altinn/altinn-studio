@@ -37,12 +37,14 @@ spec:
     spec:
       containers:
       - name: altinn-designer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:564
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:805
         ports:
         - containerPort: 5000
         volumeMounts:
         - name: altinn-repo-storage
           mountPath: "/AltinnCore/Repos"
+        - name: altinn-appsettings
+          mountPath: "/altinn-appsettings"
         env:
         - name: GiteaEndpoint
           value: altinn.studio
@@ -64,9 +66,13 @@ spec:
       - name: altinn-repo-storage
         persistentVolumeClaim:
           claimName: altinn-storage-repo-volume-claim
+      - name: altinn-appsettings
+        secret:
+          secretName: altinn-appsettings-secret
       imagePullSecrets:
       - name: acrsecret
 ---
+
 #####################################################################################################################################
 # Altinn-runtime will not be deployed until we have adressed the technical difficulties we have encountered with sharing of volumes #
 #####################################################################################################################################

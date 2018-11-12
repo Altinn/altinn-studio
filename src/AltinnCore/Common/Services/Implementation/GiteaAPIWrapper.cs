@@ -1,4 +1,4 @@
-﻿using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
@@ -93,7 +93,7 @@ namespace AltinnCore.Common.Services.Implementation
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
             {
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/org/" + org + "/repos");
-                new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
