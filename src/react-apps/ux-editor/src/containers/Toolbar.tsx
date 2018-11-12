@@ -60,23 +60,30 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
-  public addContainerToLayout() {
+  public addContainerToLayout(activeContainer: string) {
     FormActionDispatcher.addFormContainer({
       repeating: false,
       dataModelGroup: null,
       index: 0,
+
     } as ICreateFormContainer,
+      null,
+      activeContainer,
     );
   }
 
   public renderContainer() {
+    const onClickEvent = () => {
+      this.addContainerToLayout(this.props.activeContainer);
+    };
     return (
       <div className='row a-topTasks'>
         <div className='col col-lg-12'>
           <button
             type='button'
             className={'a-btn a-btn-icon'}
-            onClick={this.addContainerToLayout}>
+            onClick={onClickEvent}
+          >
             <span className='a-btn-icon-text'>Add container</span>
           </button>
         </div>

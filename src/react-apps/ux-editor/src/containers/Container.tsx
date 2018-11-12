@@ -175,7 +175,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       index: this.props.index + 1,
     };
     FormDesignerActionDispatchers.addFormContainer(
-      container, this.props.id, null, (createdContainer, createdContainerId) => {
+      container, this.props.id, null, null, (createdContainer, createdContainerId) => {
         this.props.itemOrder.forEach((elementId: any) => {
 
           if (this.props.components[elementId]) {
@@ -191,7 +191,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public createNewRepeatingGroupContainer = (containerToCopyId: string, newContainer: ICreateFormContainer, addToContainerId: string) => {
     // TODO: check if there exists rules etc
     FormDesignerActionDispatchers.addFormContainer(
-      newContainer, null, addToContainerId, (createdContainer, createdContainerId) => {
+      newContainer, null, addToContainerId, null, (createdContainer, createdContainerId) => {
         this.props.order[containerToCopyId].forEach((subElement: any) => {
           if (this.props.components[subElement]) {
             this.createNewRepeatingGroupComponent(this.props.components[subElement], createdContainerId);
@@ -206,11 +206,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     // TODO: check if there exists rules etc
     FormDesignerActionDispatchers.addFormComponent(newComponent, addToId);
   }
-
-  public changeActiveFormContainer = () => {
-    if (!this.props.baseContainer && this.props.designMode) {
-      FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
-    }
+  public changeActiveFormContainer = (e: any) => {
+    e.stopPropagation();
+    FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
   }
   public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);

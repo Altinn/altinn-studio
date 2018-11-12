@@ -23,6 +23,7 @@ export interface IFormDesignerActionDispatchers
     container: ICreateFormContainer,
     positionAfterId?: string,
     addToId?: string,
+    activeContainerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerAction;
   addFormContainerFulfilled: (
