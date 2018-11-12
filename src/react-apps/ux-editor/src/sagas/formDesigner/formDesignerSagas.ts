@@ -397,7 +397,6 @@ function* createRepeatingContainer(
   if (!addToId) {
     addToId = baseContainerId;
   }
-  yield call(FormDesignerActionDispatchers.addActiveFormContainer, baseContainerId);
   yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
     container,
     createdContainerId,
@@ -405,7 +404,6 @@ function* createRepeatingContainer(
     addToId,
     null,
     baseContainerId);
-  yield call(FormDesignerActionDispatchers.addActiveFormContainer, createdContainerId);
 
   for (const elementId of order[containerToCopyId]) {
     if (components[elementId]) {
