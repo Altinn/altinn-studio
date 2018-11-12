@@ -1,12 +1,16 @@
 import * as React from 'react';
+import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
-import FormActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+
+
+import '../styles/Toolbar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
@@ -38,7 +42,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return {
       label: c.name,
       actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
+        FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
           title: c.name,
@@ -61,7 +65,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public addContainerToLayout() {
-    FormActionDispatcher.addFormContainer({
+    FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
       index: 0,
@@ -84,7 +88,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     );
   }
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
-    FormActionDispatcher.addFormComponent({
+    FormDesignerActionDispatchers.addFormComponent({
       component: THIRD_PARTY_COMPONENT,
       title: `${componentPackage}.${componentName}`,
     });
@@ -129,7 +133,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public handleComponentUpdate = (updatedComponent: IFormComponent): void => {
-    FormActionDispatcher.updateFormComponent(
+    FormDesignerActionDispatchers.updateFormComponent(
       updatedComponent,
       this.state.selectedCompId,
       this.props.activeContainer,
@@ -145,23 +149,55 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-3'}>
-        <div className='row a-topTasks'>
-          {this.toolbarComponents.map((component, index) => {
-            return (
-              <div className='col col-lg-12' key={index}>
-                <button
-                  type='button'
-                  className={'a-btn a-btn-icon'}
-                  onClick={component.actionMethod}
-                >
-                  <span className='a-btn-icon-text'>
-                    {component.label}
-                  </span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
+
+
+        <Droppable droppableId='ITEMS' isDropDisabled={true}>
+
+          {(provided, snapshot) => (
+
+            <div className='row a-topTasks' ref={provided.innerRef}>
+              {this.toolbarComponents.map((component, index) => {
+                return (
+
+                  <Draggable
+                    key={index}
+                    draggableId={index}
+                    index={index}
+                  >
+
+                    {(provided, snapshot) => (
+                      <React.Fragment>
+                        <div
+                          className='col col-lg-12 a-item'
+                          key={index}
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          isdragging={snapshot.isDragging.toString()}
+
+                        >
+
+
+                          {component.label}
+
+                          <div onClick={component.actionMethod} className='a-add'>Add component</div>
+                        </div>
+                      </React.Fragment>
+                    )}
+                  </Draggable>
+
+
+                );
+              })}
+              {provided.placeholder}
+            </div>
+          )}
+
+        </Droppable>
+
+
+
+
         {this.renderContainer()}
         {this.renderThirdPartyComponents()}
         <div className='d-block'>

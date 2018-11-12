@@ -12,6 +12,8 @@ import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 
+import { Draggable, Droppable } from 'react-beautiful-dnd';
+
 export interface IProvidedContainerProps {
   id: string;
   baseContainer?: boolean;
@@ -62,41 +64,56 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   public render() {
     return (
       <div>
-        <div
-          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
-          onClick={this.changeActiveFormContainer}
-        >
-          {
-            this.props.designMode && !this.props.baseContainer &&
-            <div className='row'>
-              <div className='col-1'>
-                {this.renderDeleteGroupButton()}
-              </div>
-              <div className='col-3 offset-8 row'>
-                <span className='col-6'>Repeating:</span>
-                <div className='col-5'>
-                  <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
-                </div>
-              </div>
-            </div>
-          }
 
-          {this.props.itemOrder.map((id: string, index: number) => (
-            this.props.components[id] ? this.renderFormComponent(id, index) :
-              (this.props.containers[id] ? this.renderContainer(id) : null)
-          ))}
-          {
-            !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-            <button
-              className={'a-btn a-btn-action offset-10'}
-              onClick={this.handleContainerDelete}
+
+
+        <Droppable droppableId='DEST'>
+          {(provided, snapshot) => (
+
+            <div
+              className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
+              onClick={this.changeActiveFormContainer}
+              ref={provided.innerRef}
+              id='thatz'
             >
-              <span>Fjern gruppe</span>
-            </button>
-          }
-        </div>
+
+              {
+                this.props.designMode && !this.props.baseContainer &&
+                <div className='row'>
+                  <div className='col-1'>
+                    {this.renderDeleteGroupButton()}
+                  </div>
+                  <div className='col-3 offset-8 row'>
+                    <span className='col-6'>Repeating:</span>
+                    <div className='col-5'>
+                      <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
+                    </div>
+                  </div>
+                </div>
+              }
+
+              {this.props.itemOrder.map((id: string, index: number) => (
+                this.props.components[id] ? this.renderFormComponent(id, index) :
+                  (this.props.containers[id] ? this.renderContainer(id) : null)
+              ))}
+              {
+                !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
+                <button
+                  className={'a-btn a-btn-action offset-10'}
+                  onClick={this.handleContainerDelete}
+                >
+                  <span>Fjern gruppe</span>
+                </button>
+              }
+
+            </div>
+
+          )}
+        </Droppable>
 
         {!this.props.designMode && this.renderNewGroupButton()}
+
+
       </div>
     );
   }
@@ -157,13 +174,33 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       return null;
     }
     return (
-      <FormComponentWrapper
-        key={key}
-        id={id}
-        handleDataUpdate={this.handleComponentDataUpdate}
-        formData={this.props.formData[this.props.components[id].dataModelBinding] ?
-          this.props.formData[this.props.components[id].dataModelBinding] : ''}
-      />
+      <Draggable
+        key={id}
+        draggableId={id}
+        index={id}>
+        {(provided, snapshot) => (
+          <div
+            ref={
+              provided.innerRef
+            }
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            isdragging={
+              snapshot.isDragging.toString()
+            }
+          >
+
+            <FormComponentWrapper
+              key={key}
+              id={id}
+              handleDataUpdate={this.handleComponentDataUpdate}
+              formData={this.props.formData[this.props.components[id].dataModelBinding] ?
+                this.props.formData[this.props.components[id].dataModelBinding] : ''}
+            />
+
+          </div>
+        )}
+      </Draggable>
     );
   }
 
