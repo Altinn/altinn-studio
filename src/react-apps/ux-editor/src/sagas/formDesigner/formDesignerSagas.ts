@@ -6,9 +6,6 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { get, post } from '../../utils/networking';
-import { addFormComponentActionFulfilled } from '../../actions/formDesignerActions/actions';
-import { createDecipher } from 'crypto';
-import { create } from 'domain';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
@@ -410,6 +407,7 @@ function* createRepeatingContainer(
       const createdConmponentId = uuid();
       yield call(FormDesignerActionDispatchers.addFormComponentFulfilled,
         components[elementId], createdConmponentId, createdContainerId);
+
     } else if (containers[elementId]) {
       const newContainer: ICreateFormContainer = {
         index: (containers[elementId].index != null) ? (containers[elementId].index + 1) : null,
@@ -417,6 +415,7 @@ function* createRepeatingContainer(
         hidden: containers[elementId].hidden,
         dataModelGroup: containers[elementId].dataModelGroup,
       };
+      // Recursive call, since containers can have sub-containers.
       yield call(createRepeatingContainer, elementId, newContainer, createdContainerId);
     }
   }
