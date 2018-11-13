@@ -25,20 +25,12 @@ class NavMenu extends React.Component<any, any> {
     selectedMenuItem: '',
   };
 
-  public handleNavMenuOpen = () => {
-    this.setState({ open: true });
-  }
-
-  public handleNavMenuClose = () => {
-    this.setState({ open: false });
-  }
-
   public toggleNavMenu = () => {
-    if (this.state.open) {
-      this.handleNavMenuClose();
-    } else {
-      this.handleNavMenuOpen();
-    }
+    this.setState((state: any) => {
+      return {
+        open: !state.open,
+      };
+    });
   }
 
   public handleSubmenuClicked = (id: number) => {
@@ -56,7 +48,6 @@ class NavMenu extends React.Component<any, any> {
   }
 
   public handleMenuItemClicked = (menuItem: any, id: number) => {
-    console.log('Menu item clicked: ', menuItem.displayText);
     this.setState((state: any) => {
       return {
         selectedMenuItem: menuItem.displayText,
@@ -98,9 +89,6 @@ class NavMenu extends React.Component<any, any> {
                   classes={{root: classNames({
                     [classes.selectedMenuItem]: this.state.selectedMenuItem === menuItem.displayText})}}
                 >
-                  {/* <ListItemIcon>
-                    <i className={menuItem.iconName}/>
-                  </ListItemIcon> */}
                   <ListItemText
                     classes={{
                       primary: classNames(classes.menuItemText, {
@@ -150,7 +138,9 @@ class NavMenu extends React.Component<any, any> {
                 {this.state.open ? <i className='ai ai-back'/> : <i className='ai ai-expand'/>}
               </ListItemIcon>
               <ListItemText
-                classes={{primary: classNames(classes.menuItemText, classes.toggleMenuText)}}
+                classes={{primary: classNames(classes.menuItemText, classes.toggleMenuText, {
+                  [classes.menuItemTextClosed]: !this.state.open,
+                })}}
                 primary={'Skjul meny'}
               />
             </ListItem>
