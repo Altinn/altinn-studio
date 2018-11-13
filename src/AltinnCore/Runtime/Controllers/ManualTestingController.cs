@@ -77,35 +77,27 @@ namespace AltinnCore.Runtime.Controllers
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/zip"));
 
-                Console.WriteLine("**** Fetching from API " + apiUrl);
                 HttpResponseMessage response = await client.GetAsync(apiUrl);
                 string zipPath = $"{_settings.GetServicePath(org, service, developer)}{service}.zip";
                 string extractPath = _settings.GetServicePath(org, service, developer);
-                Console.WriteLine("**** Creating repo for: " + zipPath);
                 if (!Directory.Exists(extractPath))
                 {
-                    Console.WriteLine("**** Creating directory: " + extractPath);
                     Directory.CreateDirectory(extractPath);
                 } else
                 {
-                    Console.WriteLine("**** Deleting and creating new directory: ");
                     Directory.Delete(extractPath, true);
                     Directory.CreateDirectory(extractPath);
                 }
 
-                Console.WriteLine("**** Starting reading from stream");
                 using (Stream s = response.Content.ReadAsStreamAsync().Result)
                 {
                     using (var w = System.IO.File.OpenWrite(zipPath))
                     {
-                        Console.WriteLine("**** Reading form stream ");
                         s.CopyTo(w);
                     }
                 }
 
-                Console.WriteLine("**** Unzipping file");
                 ZipFile.ExtractToDirectory(zipPath, extractPath);
-                Console.WriteLine("**** DONE unzipping file");
             }
 
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);

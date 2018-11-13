@@ -90,10 +90,15 @@ namespace AltinnCore.Common.Configuration
 		/// </summary>
 		public string RepositoryBaseURL { get; set; }
 
-		/// <summary>
-		/// Gets or sets the Internal repository BaseURL
-		/// </summary>
-		public string InternalRepositoryBaseURL { get; set; }
+        /// <summary>
+        /// Gets or sets the Runtime API endpoint
+        /// </summary>
+        public string RuntimeAPIEndPoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Internal repository BaseURL
+        /// </summary>
+        public string InternalRepositoryBaseURL { get; set; }
 
 		/// <summary>
 		/// Gets or sets the GiteaCookieName
@@ -245,7 +250,8 @@ namespace AltinnCore.Common.Configuration
 				developer += "/";
 			}
 
-			return $"{RepositoryLocation}{developer}{org}/{service}/";
+            string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
+            return $"{repositoryLocation}{developer}{org}/{service}/";
 		}
 
         /// <summary>
@@ -499,15 +505,15 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0)
         {
-            string repositoryBaseURL = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") ?? RepositoryBaseURL;
+            string runtimeAPIEndPoint = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RuntimeAPIEndPoint") ?? RuntimeAPIEndPoint;
 
             if (partyId == 0)
             {
-                return $"{repositoryBaseURL}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}";
+                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}";
             }
             else
             {
-                return $"{repositoryBaseURL}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
+                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
             }
         }
     }

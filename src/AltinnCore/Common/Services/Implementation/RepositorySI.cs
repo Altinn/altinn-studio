@@ -432,7 +432,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetRuleHandler(string org, string service)
         {
-            string filePath = _settings.GetRuleHandlerPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -1408,26 +1408,7 @@ namespace AltinnCore.Common.Services.Implementation
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
-            string serviceResourceDirectoryPath = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                serviceResourceDirectoryPath = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/" + org;
-            }
-            else
-            {
-                serviceResourceDirectoryPath = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/" + org;
-            }
-
-            if (!string.IsNullOrEmpty(service))
-            {
-                serviceResourceDirectoryPath += "/" + service;
-            }
-            else
-            {
-                serviceResourceDirectoryPath += "/" + org;
-            }
-
-            serviceResourceDirectoryPath += "/resources/";
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             if (File.Exists(serviceResourceDirectoryPath + resource))
             {
