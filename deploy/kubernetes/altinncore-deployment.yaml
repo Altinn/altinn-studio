@@ -1,28 +1,28 @@
-# apiVersion: extensions/v1beta1
-# kind: Deployment
-# metadata:
-#   name: altinn-repositories
-# spec:
-#   replicas: 1
-#   template:
-#     metadata:
-#       labels:
-#         app: altinn-repositories
-#     spec:
-#       containers:
-#       - name: altinn-repositories
-#         image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.8
-#         ports:
-#         - containerPort: 3000
-#         volumeMounts:
-#         - name: altinn-gitea-storage
-#           mountPath: "/data/git"
-#       volumes:
-#       - name: altinn-gitea-storage
-#         persistentVolumeClaim:
-#           claimName: altinn-storage-gitea-volume-claim
-#       imagePullSecrets:
-#       - name: acrsecret
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: altinn-repositories
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: altinn-repositories
+    spec:
+      containers:
+      - name: altinn-repositories
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.8
+        ports:
+        - containerPort: 3000
+        volumeMounts:
+        - name: altinn-gitea-storage
+          mountPath: "/data/git"
+      volumes:
+      - name: altinn-gitea-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-gitea-volume-claim
+      imagePullSecrets:
+      - name: acrsecret
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: altinn-designer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:858master
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:858
         ports:
         - containerPort: 5000
         volumeMounts:
@@ -73,9 +73,6 @@ spec:
       - name: acrsecret
 ---
 
-#####################################################################################################################################
-# Altinn-runtime will not be deployed until we have adressed the technical difficulties we have encountered with sharing of volumes #
-#####################################################################################################################################
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -93,8 +90,8 @@ spec:
         ports:
         - containerPort: 5005
         volumeMounts:
-        - name: altinn-repo-storage
-          mountPath: "/AltinnCore/Repos"
+        - name: altinn-runtime-repo-storage
+          mountPath: "/AltinnRuntime/Repos"
         env:
           - name: GiteaEndpoint
             value: altinn.studio
@@ -107,7 +104,7 @@ spec:
           - name: ASPNETCORE_URLS
             value: http://+:5005
           - name: ServiceRepositorySettings__RepositoryLocation
-            value: /AltinnCore/Repos/
+            value: /AltinnRuntime/Repos/
           - name: ServiceRepositorySettings__RepositoryBaseURL
             value: http://altinn-repositories:3000
           - name: ServiceRepositorySettings__EnableGiteaIntegration
@@ -115,8 +112,8 @@ spec:
           - name: ServiceRepositorySettings__RuntimeAPIEndPoint
             value:http://altinn.studio/
       volumes:
-      - name: altinn-repo-storage
+      - name: altinn-runtime-repo-storage
         persistentVolumeClaim:
-          claimName: altinn-storage-repo-volume-claim
+          claimName: altinn-storage-runtime-repo-volume-claim
       imagePullSecrets:
       - name: acrsecret

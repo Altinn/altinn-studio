@@ -1,19 +1,31 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: altinn-storage-gitea-volume-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: managed-premium
-  resources:
-    requests:
-      storage: 250Gi
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: altinn-storage-gitea-volume-claim
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: managed-premium
+#   resources:
+#     requests:
+#       storage: 250Gi
+# ---
+# apiVersion: v1
+# kind: PersistentVolumeClaim
+# metadata:
+#   name: altinn-storage-repo-volume-claim
+# spec:
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: managed-premium
+#   resources:
+#     requests:
+#       storage: 200Gi
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: altinn-storage-repo-volume-claim
+  name: altinn-storage-runtime-repo-volume-claim
 spec:
   accessModes:
     - ReadWriteOnce
