@@ -1,4 +1,4 @@
-import { Selector, t } from 'testcafe';
+import { ClientFunction, Selector, t } from 'testcafe';
 import { addSyntheticLeadingComment } from 'typescript';
 import LandingPage from './landingPage';
 
@@ -6,6 +6,7 @@ export default class CommonPage {
   constructor() {
     this.repoLogoutButton = Selector("#navbar > div.right.stackable.menu").withText("Log out");
     this.designerLogoutButton = Selector("#navbarSupportedContent > ul:nth-child(2) > li").withText("Log out");
+    this.getPageUrl = ClientFunction(() => window.location.href);
   }
 
   async login(username, password, loginPage) {
@@ -37,6 +38,11 @@ export default class CommonPage {
     await t
       .hover(header.userMenu)
       .click(header.logOutButton);
+  }
+
+  async ensureUserHasNoRepos(user, landingPage, repoPage) {
+    await t.click(landingPage.repoLink);
+    await repoPage.ensureUserHasNoRepos(user, landingPage);
   }
 
 }

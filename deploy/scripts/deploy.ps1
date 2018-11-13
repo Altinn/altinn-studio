@@ -52,9 +52,12 @@ az acr create --name $containerRegistryName --resource-group $resourceGroupName 
 
 Write-Output "Creating service principal for container registry"
 $servicePrincipalName = Read-Host -Prompt "Service princpal name"
-$acrResources = (az acr list --query "[0].{id:id,loginServer:loginServer}" --output tsv).split("`t")
+$acrResources = (az acr list --resource-group $resourceGroupName --query "[0].{id:id,loginServer:loginServer}" --output tsv).split("`t")
 $servicePrincipalPassword = az ad sp create-for-rbac --name $servicePrincipalName --role Reader --scopes $acrResources[0] --query password --output tsv
 $servicePrincipalId = az ad sp show --id http://$servicePrincipalName --query appId --output tsv
+
+Write-Output "Adding appsetting secrets"
+kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json
 
 Write-Output "Creating kubernetes secret with service principal"
 $secretName = Read-Host -Prompt "Secret name"
