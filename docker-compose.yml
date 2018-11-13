@@ -19,7 +19,6 @@ services:
     depends_on:
       - altinn_repositories
       - altinn_designer
-      - altinn_runtime
     build:
       context: ./src/LoadBalancer
   
