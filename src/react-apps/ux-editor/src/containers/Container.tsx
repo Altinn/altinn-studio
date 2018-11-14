@@ -201,7 +201,7 @@ const makeMapStateToProps = () => {
       containers,
       designMode: GetDesignModeSelector(state),
       repeating: container.repeating,
-      formData: GetFormDataSelector(state, props),
+      formData: GetFormDataSelector(state, props, container.index),
       dataModelGroup: container.dataModelGroup,
       formContainerActive: GetActiveFormContainer(state, props),
     };
