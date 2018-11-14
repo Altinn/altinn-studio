@@ -5,7 +5,7 @@ const formDataSelector = (state: IAppState) => {
   return state.formFiller.formData;
 };
 
-const formDataForContainerSelector = (state: IAppState, props: any) => {
+const formDataForContainerSelector = (state: IAppState, props: any, index?: number) => {
   const layout = state.formDesigner.layout;
   const componentsInContainer = Object.keys(layout.components).filter(
     (componentId: string) => {
@@ -22,15 +22,14 @@ const formDataForContainerSelector = (state: IAppState, props: any) => {
     if (!formDataKey) {
       continue;
     }
-    if (container.repeating && container.dataModelGroup) {
-      formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${props.index}]`);
+    if (container.repeating && container.dataModelGroup && index != null) {
+      formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${index}]`);
     }
     const formData = state.formFiller.formData;
     if (formData[formDataKey]) {
       filteredFormData[component.dataModelBinding] = formData[formDataKey];
     }
   }
-
   return filteredFormData;
 };
 
