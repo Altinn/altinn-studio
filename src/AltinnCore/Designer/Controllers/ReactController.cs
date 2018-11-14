@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using AltinnCore.Common.Services.Interfaces;
@@ -39,6 +39,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Get form layout as JSON
+        /// </summary>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
 		/// <returns>The model representation as JSON</returns>
@@ -50,6 +51,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Get third party components listed as JSON
+        /// </summary>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
 		/// <returns>The model representation as JSON</returns>
@@ -61,6 +63,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Get rule handler in JSON structure
+        /// </summary>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
 		/// <returns>The model representation as JSON</returns>
@@ -72,6 +75,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Get text resource as JSON for specified language
+        /// </summary>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
 		/// <param name="id">The language id for the text resource file</param>
@@ -85,6 +89,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Save form layout as JSON
+        /// </summary>
 		/// <param name="jsonData">The code list data to save</param>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
@@ -103,6 +108,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Save form layout as JSON
+        /// </summary>
 		/// <param name="jsonData">The code list data to save</param>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
@@ -121,6 +127,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Save JSON data as file
+        /// </summary>
 		/// <param name="jsonData">The code list data to save</param>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
@@ -140,6 +147,7 @@ namespace AltinnCore.Designer.Controllers
 
 		/// <summary>
 		/// Get JSON file in JSON structure
+        /// </summary>
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
 		/// <param name="fileName">The filename to read from</param>
