@@ -59,7 +59,7 @@ namespace AltinnCore.RepositoryClient.Model
         public Repository(string CloneUrl = default(string), DateTime? CreatedAt = default(DateTime?), string DefaultBranch = default(string), string Description = default(string), bool? Empty = default(bool?), bool? Fork = default(bool?), long? ForksCount = default(long?), string FullName = default(string), string HtmlUrl = default(string), long? Id = default(long?), bool? Mirror = default(bool?), string Name = default(string), long? OpenIssuesCount = default(long?), User Owner = default(User), Repository Parent = default(Repository), Permission Permissions = default(Permission), bool? _Private = default(bool?), long? Size = default(long?), string SshUrl = default(string), long? StarsCount = default(long?), DateTime? UpdatedAt = default(DateTime?), long? WatchersCount = default(long?), string Website = default(string))
         {
             this.CloneUrl = CloneUrl;
-            this.CreatedAt = CreatedAt.ToString(); ;
+            this.CreatedAt = CreatedAt.ToString();
             this.DefaultBranch = DefaultBranch;
             this.Description = Description;
             this.Empty = Empty;
@@ -387,7 +387,8 @@ namespace AltinnCore.RepositoryClient.Model
         /// <returns>Hash code</returns>
         public override int GetHashCode()
         {
-            unchecked // Overflow is fine, just wrap
+            // Overflow is fine, just wrap
+            unchecked
             {
                 int hashCode = 41;
                 if (this.CloneUrl != null)
