@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AltinnCore.Runtime.Db.Configuration;
 using AltinnCore.Runtime.Db.Models;
 using Microsoft.Azure.Documents;
@@ -5,10 +9,6 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Runtime.Db.Repository
 {

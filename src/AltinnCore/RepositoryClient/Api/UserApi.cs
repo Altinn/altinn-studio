@@ -12,9 +12,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using RestSharp;
 using AltinnCore.RepositoryClient.Client;
 using AltinnCore.RepositoryClient.Model;
+using RestSharp;
 
 namespace AltinnCore.RepositoryClient.Api
 {

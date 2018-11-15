@@ -1,4 +1,9 @@
-﻿using AltinnCore.Common.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Api;
@@ -11,11 +16,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Runtime.Controllers
 {

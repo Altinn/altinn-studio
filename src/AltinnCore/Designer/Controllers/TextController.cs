@@ -1,9 +1,9 @@
+using System.Collections.Generic;
+using System.Linq;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AltinnCore.Designer.Controllers
 {

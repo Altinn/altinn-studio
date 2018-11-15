@@ -1,4 +1,8 @@
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -7,10 +11,6 @@ using AltinnCore.ServiceLibrary.Extensions;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Runtime.Controllers
 {
