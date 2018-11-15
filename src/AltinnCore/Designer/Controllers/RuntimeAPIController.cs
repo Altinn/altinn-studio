@@ -39,9 +39,8 @@ namespace AltinnCore.Designer.Controllers
 
             ZipFile.CreateFromDirectory(startPath, zipPath);
             FileStream fileToSend = System.IO.File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-            //System.IO.File.Delete(zipPath);
 
-            return File(fileToSend, "application/zip", service + ".zip");
+            return File(fileToSend, "application/zip", $"{service}{Path.GetExtension(zipPath)}");
         }
 
         /// <summary>

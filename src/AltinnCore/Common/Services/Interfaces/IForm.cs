@@ -27,6 +27,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
+        /// <param name="developer">The name of the developer if any</param>
         /// <returns>The form model</returns>
         object GetFormModel(int formId, Type type, string org, string service, int partyId, string developer = null);
 

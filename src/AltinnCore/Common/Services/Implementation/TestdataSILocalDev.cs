@@ -24,6 +24,8 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string getFormInstancesApiMethod = "GetFormInstances";
+        private const string getServicePrefillApiMethod = "GetServicePrefill";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestdataSILocalDev"/> class
@@ -47,7 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = _settings.GetRuntimeAPIPath("GetFormInstances", org, service, developer, partyId);
+            string apiUrl = _settings.GetRuntimeAPIPath(getFormInstancesApiMethod, org, service, developer, partyId);
             List<ServiceInstance> returnList = new List<ServiceInstance>();
             using (HttpClient client = new HttpClient())
             {
@@ -82,13 +84,27 @@ namespace AltinnCore.Common.Services.Implementation
         public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = _settings.GetRuntimeAPIPath("GetServicePrefill", org, service, developer, partyId);
+            string apiUrl = _settings.GetRuntimeAPIPath(getServicePrefillApiMethod, org, service, developer, partyId);
             List<ServicePrefill> returnList = new List<ServicePrefill>();
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                returnList = response.Result.Content.ReadAsAsync<List<ServicePrefill>>().Result;
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    try
+                    {
+                        returnList = response.Result.Content.ReadAsAsync<List<ServicePrefill>>().Result;
+                    }
+                    catch
+                    {
+                        return returnList;
+                    }
+                }
+                else
+                {
+                    return returnList;
+                }
             }
 
             return returnList;

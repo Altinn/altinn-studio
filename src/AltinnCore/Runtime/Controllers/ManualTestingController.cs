@@ -74,9 +74,7 @@ namespace AltinnCore.Runtime.Controllers
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
-                Console.WriteLine("############### the path is: " + apiUrl);
                 HttpResponseMessage response = await client.GetAsync(apiUrl);
-                Console.WriteLine("############### the response is: " + response.ToString());
                 string zipPath = $"{_settings.GetServicePath(org, service, developer)}{service}.zip";
                 string extractPath = _settings.GetServicePath(org, service, developer);
                 if (!Directory.Exists(extractPath))
@@ -97,7 +95,6 @@ namespace AltinnCore.Runtime.Controllers
                     }
                 }
 
-                Console.WriteLine("############### Extracting zip");
                 ZipFile.ExtractToDirectory(zipPath, extractPath);
             }
 

@@ -18,6 +18,9 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string getFormModelApiMethod = "GetFormModel";
+        private const string saveFormModelApiMethod = "SaveFormModel";
+        private const string getPrefillApiMethod = "GetPrefill";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
@@ -38,23 +41,31 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId used to find the party on disc</param>
+        /// <param name="developer">The name of the developer if any</param>
         /// <returns>The deserialized form model</returns>
         public object GetFormModel(int formID, Type type, string org, string service, int partyId, string developer = null)
         {
-            string apiUrl = $"{_settings.GetRuntimeAPIPath("GetFormModel", org, service, developer, partyId)}&formID={formID}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(getFormModelApiMethod, org, service, developer, partyId)}&formID={formID}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                try
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    try
                     {
-                        return serializer.Deserialize(stream);
+                        using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                        {
+                            return serializer.Deserialize(stream);
+                        }
+                    }
+                    catch
+                    {
+                        return Activator.CreateInstance(type);
                     }
                 }
-                catch
+                else
                 {
                     return Activator.CreateInstance(type);
                 }
@@ -73,20 +84,26 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetPrefill(string org, string service, Type type, int partyId, string prefillkey)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath("GetPrefill", org, service, developer, partyId)}&prefillkey={prefillkey}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(getPrefillApiMethod, org, service, developer, partyId)}&prefillkey={prefillkey}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                try
-                {
-                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                if (response.Result.IsSuccessStatusCode){
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    try
                     {
-                        return serializer.Deserialize(stream);
+                        using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                        {
+                            return serializer.Deserialize(stream);
+                        }
+                    }
+                    catch
+                    {
+                        return null;
                     }
                 }
-                catch
+                else
                 {
                     return null;
                 }
@@ -106,7 +123,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath("SaveFormModel", org, service, developer, partyId)}&formId={formId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(saveFormModelApiMethod, org, service, developer, partyId)}&formId={formId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);

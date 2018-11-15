@@ -272,7 +272,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// 
+        /// Method that returns the path to the form layout file
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -284,11 +284,11 @@ namespace AltinnCore.Common.Configuration
 				developer += "/";
 			}
 
-			return $"{RepositoryLocation}/{developer}{org}/{service}/";
-		}
+			return $"{RepositoryLocation}/{developer}{org}/{service}/{FormLayoutJSONFileName}";
+        }
 
 		/// <summary>
-		/// 
+		/// Method that returns the path to the third party component file
 		/// </summary
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
@@ -300,7 +300,7 @@ namespace AltinnCore.Common.Configuration
 				developer += "/";
 			}
 
-			return $"{RepositoryLocation}/{developer}{org}/{service}/";
+			return $"{RepositoryLocation}/{developer}{org}/{service}/{ThirdPartyComponentsJSONFileName}";
 		}
 
 		/// <summary>

@@ -393,7 +393,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetJsonFormLayout(string org, string service)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -413,7 +413,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetJsonThirdPartyComponents(string org, string service)
         {
-            string filePath = _settings.GetThirdPartyComponentsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
+            string filePath = _settings.GetThirdPartyComponentsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -452,7 +452,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetJsonFile(string org, string service, string fileName)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
+            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -472,7 +472,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool SaveJsonFormLayout(string org, string service, string resource)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
+            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -488,7 +488,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool SaveJsonThirdPartyComponents(string org, string service, string resource)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
+            string filePath = _settings.GetThirdPartyComponentsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
@@ -504,7 +504,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool SaveJsonFile(string org, string service, string resource, string fileName)
         {
-            string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
+            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 

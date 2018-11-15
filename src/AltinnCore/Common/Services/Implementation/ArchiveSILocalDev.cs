@@ -15,6 +15,8 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string archiveServiceModelApiMethod = "ArchiveServiceModel";
+        private const string getArchivedServiceModelApiMethod = "GetArchivedServiceModel";
 
         public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
@@ -25,7 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
         public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath("ArchiveServiceModel", org, service, developer, partyId)}&instanceId={instanceId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(archiveServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -46,23 +48,31 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath("GetArchivedServiceModel", org, service, developer, partyId)}&instanceId={instanceId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(getArchivedServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                try
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    try
                     {
-                        return serializer.Deserialize(stream);
+                        using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                        {
+                            return serializer.Deserialize(stream);
+                        }
+                    }
+                    catch
+                    {
+                        return Activator.CreateInstance(type);
                     }
                 }
-                catch
+                else
                 {
                     return Activator.CreateInstance(type);
                 }
+
             }
         }
     }
