@@ -1,9 +1,3 @@
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.RepositoryClient.Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,6 +6,12 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.RepositoryClient.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {

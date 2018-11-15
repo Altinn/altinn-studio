@@ -1,9 +1,9 @@
-using AltinnCore.Common.Constants;
-using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Text;
+using AltinnCore.Common.Constants;
+using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Common.Helpers
 {

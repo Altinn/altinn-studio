@@ -1,5 +1,5 @@
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using System.Collections.Generic;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

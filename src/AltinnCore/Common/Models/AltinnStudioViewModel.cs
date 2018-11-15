@@ -1,9 +1,9 @@
-﻿using AltinnCore.RepositoryClient.Model;
-using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using AltinnCore.RepositoryClient.Model;
+using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Models
 {

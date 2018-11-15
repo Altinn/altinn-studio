@@ -1,7 +1,7 @@
+using System.Collections.Generic;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace AltinnCore.Designer.Controllers
 {

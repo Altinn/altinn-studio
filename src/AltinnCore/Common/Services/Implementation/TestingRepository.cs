@@ -1,12 +1,12 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace AltinnCore.Common.Services.Implementation
 {

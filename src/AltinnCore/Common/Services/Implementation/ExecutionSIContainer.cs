@@ -18,12 +18,12 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
-    using AltinnCore.Common.Helpers;
-    using AltinnCore.Common.Helpers.Extensions;
-    using Microsoft.AspNetCore.Http;
     using System.Reflection;
     using System.Runtime.Loader;
     using System.Text;
+    using AltinnCore.Common.Helpers;
+    using AltinnCore.Common.Helpers.Extensions;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)

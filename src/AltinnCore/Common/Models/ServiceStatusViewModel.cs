@@ -1,7 +1,7 @@
-using AltinnCore.ServiceLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Models
 {
