@@ -7,10 +7,12 @@ export default class CommonPage {
     this.repoLogoutButton = Selector("#navbar > div.right.stackable.menu").withText("Log out");
     this.designerLogoutButton = Selector("#navbarSupportedContent > ul:nth-child(2) > li").withText("Log out");
     this.getPageUrl = ClientFunction(() => window.location.href);
+    this.homeButton = Selector(".navbar").withAttribute("title", "Startside");
   }
 
   async login(username, password, loginPage) {
     await t
+      .click(loginPage.welcomeLoginButton)
       .typeText(loginPage.userInput, username)
       .typeText(loginPage.passwordInput, password)
       .click(loginPage.loginButton);
@@ -45,4 +47,10 @@ export default class CommonPage {
     await repoPage.ensureUserHasNoRepos(user, landingPage);
   }
 
+  async returnToHomePage() {
+    repoProfileHomeButton = Selector("#navbar > div.item.brand > a > img"); //the home button, should the user be on the repository profile page
+    var home = repoProfileHomeButton.exists ? repoProfileHomeButton : homeButton;
+    await t
+      .click(home);
+  }
 }

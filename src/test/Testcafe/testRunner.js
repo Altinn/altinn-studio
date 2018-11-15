@@ -10,7 +10,7 @@ createTestCafe()
       .browsers(['chrome'])
       .concurrency(1)
       //.speed(0.75)
-      .screenshots('./screenshots', { takeOnFails: true })
+      .screenshots('./screenshots', { takeOnFails: false })
       .reporter('spec')
       .src(['./repository_tests/login_create_new_repo.js'])
       .run({
