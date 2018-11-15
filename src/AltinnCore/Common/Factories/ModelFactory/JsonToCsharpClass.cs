@@ -6,15 +6,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
 {
     public class JsonToCsharpClass : IJsonToCsharpClassConfig
     {
+        /// <inheritdoc/>
         public string Namespace { get; set; }
+        /// <inheritdoc/>
         public string MainClass { get; set; }
+        /// <inheritdoc/>
         public bool UseSingleFile { get; set; }
 
 
         public void CreateClass(JObject[] jsonData, JsonDataTypes type)
         {
             var JsonDataFields = new Dictionary<string, JsonDataTypes>();
-            var FieldJsonData = new Dictionary<string, IList<Object>>();
+            var FieldJsonData = new Dictionary<string, IList<object>>();
 
             foreach (var jobj in jsonData)
             {

@@ -43,6 +43,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private bool _isInsideRead;
         private JsonReader _reader;
 
+        /// <inheritdoc/>
         public override bool CanRead
         {
             get
@@ -54,6 +55,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             }
         }
 
+        /// <inheritdoc/>
         public sealed override bool CanWrite
         {
             get { return false; }
@@ -68,16 +70,19 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             _typeMappingPropertyName = typeMappingPropertyName;
         }
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type objectType)
         {
             return _typeMappingPropertyName != null;
         }
 
+        /// <inheritdoc/>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Comment)

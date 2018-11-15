@@ -63,13 +63,13 @@ namespace AltinnCore.Designer.Controllers
             return View(model);
         }
 
-    [Authorize]
-    [HttpGet]
-    public IActionResult CloneRemoteRepo(string org, string repo)
-    {
-      _sourceControl.CloneRemoteRepository(org, repo);
-      return View();
-    }
+        [Authorize]
+        [HttpGet]
+        public IActionResult CloneRemoteRepo(string org, string repo)
+        {
+            _sourceControl.CloneRemoteRepository(org, repo);
+            return View();
+        }
 
 
         /// <summary>

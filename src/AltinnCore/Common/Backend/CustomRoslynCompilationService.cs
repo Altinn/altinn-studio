@@ -77,6 +77,7 @@ namespace AltinnCore.Common.Backend
             }
         }
 
+        /// <inheritdoc/>
         public Task<CompiledViewDescriptor> CompileAsync(string relativePath)
         {
             throw new NotImplementedException();

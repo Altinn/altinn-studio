@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.Common.Configuration
+namespace AltinnCore.Common.Configuration
 {
     /// <summary>
     /// General configuration settings
@@ -48,10 +48,10 @@
           }
         }
 
-    /// <summary>
-    /// Gets the path to the validation handler template
-    /// </summary>
-    public string ValidationHandlerTemplate
+        /// <summary>
+        /// Gets the path to the validation handler template
+        /// </summary>
+        public string ValidationHandlerTemplate
         {
             get
             {

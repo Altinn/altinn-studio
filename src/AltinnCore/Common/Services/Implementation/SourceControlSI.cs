@@ -28,8 +28,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
-        public SourceControlSI(IOptions<ServiceRepositorySettings> repositorySettings,
-                IOptions<GeneralSettings> generalSettings, IDefaultFileFactory defaultFileFactory, IHttpContextAccessor httpContextAccessor, IGitea gitea)
+        public SourceControlSI(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IDefaultFileFactory defaultFileFactory,
+            IHttpContextAccessor httpContextAccessor,
+            IGitea gitea)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -47,7 +51,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new CloneOptions();
-            cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+            cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
             Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
         }
 
@@ -78,6 +82,7 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
+        /// <inheritdoc/>
         public void PullRemoteChanges(string org, string repository)
         {
             using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
@@ -92,7 +97,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 pullOptions.FetchOptions = new FetchOptions();
                 pullOptions.FetchOptions.CredentialsProvider = (_url, _user, _cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 MergeResult mergeResult = Commands.Pull(
                     repo,
@@ -108,12 +113,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repostory"></param>
         public void FetchRemoteChanges(string org, string repository)
         {
-            string logMessage = "";
+            string logMessage = string.Empty;
             using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
             {
                 FetchOptions fetchOptions = new FetchOptions();
                 fetchOptions.CredentialsProvider = (_url, _user, _cred) =>
-                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
@@ -174,7 +179,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 PushOptions options = new PushOptions();
                 options.CredentialsProvider = (_url, _user, _cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 repo.Network.Push(remote, @"refs/heads/master", options);
 

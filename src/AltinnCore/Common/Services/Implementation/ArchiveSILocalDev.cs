@@ -20,6 +20,7 @@ namespace AltinnCore.Common.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <inheritdoc/>
         public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
         {
             string archiveDirectory = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/";
@@ -38,6 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
         {
             string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/" + instanceId + ".xml";

@@ -79,6 +79,7 @@ namespace AltinnCore.Runtime.Db.Models
 
         [JsonProperty(PropertyName = "message")]
         public Correspondence Message { get; set; }
+        /// <inheritdoc/>
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);

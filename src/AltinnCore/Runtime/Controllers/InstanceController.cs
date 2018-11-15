@@ -44,7 +44,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="serviceExecutionService">The serviceExecutionService (set in Startup.cs)</param>
         /// <param name="profileService">The profileService (set in Startup.cs)</param>
         /// <param name="archiveService">The archive service</param>
-        public InstanceController(IAuthorization authorizationService,
+        public InstanceController(
+            IAuthorization authorizationService,
             ILogger<InstanceController> logger,
             IRegister registerService,
             IForm formService,
@@ -334,15 +335,15 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
 
-                  return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
+                return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
             }
 
-             startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
-                .Select(x => new SelectListItem
-                {
-                    Text = x.ReporteeNumber + " " + x.ReporteeName,
-                    Value = x.PartyID.ToString()
-                }).ToList();
+            startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
+               .Select(x => new SelectListItem
+               {
+                   Text = x.ReporteeNumber + " " + x.ReporteeName,
+                   Value = x.PartyID.ToString()
+               }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
             return View(startServiceModel);
@@ -398,7 +399,7 @@ namespace AltinnCore.Runtime.Controllers
 
             if (apiResult.Status.Equals(ApiStatusType.ContainsError))
             {
-               Response.StatusCode = 202;
+                Response.StatusCode = 202;
             }
             else
             {

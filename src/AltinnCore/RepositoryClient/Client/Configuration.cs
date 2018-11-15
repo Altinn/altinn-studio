@@ -53,14 +53,17 @@ namespace AltinnCore.RepositoryClient.Client
             var status = (int)response.StatusCode;
             if (status >= 400)
             {
-                return new ApiException(status,
+                return new ApiException(
+                    status,
                     string.Format("Error calling {0}: {1}", methodName, response.Content),
                     response.Content);
             }
             if (status == 0)
             {
-                return new ApiException(status,
-                    string.Format("Error calling {0}: {1}", methodName, response.ErrorMessage), response.ErrorMessage);
+                return new ApiException(
+                    status,
+                    string.Format("Error calling {0}: {1}", methodName, response.ErrorMessage),
+                    response.ErrorMessage);
             }
             return null;
         };
@@ -175,8 +178,8 @@ namespace AltinnCore.RepositoryClient.Client
         /// <param name="timeout">HTTP connection timeout (in milliseconds)</param>
         /// <param name="userAgent">HTTP user agent</param>
         [Obsolete("Use explicit object construction and setting of properties.", true)]
+        // ReSharper disable UnusedParameter.Local
         public Configuration(
-            // ReSharper disable UnusedParameter.Local
             ApiClient apiClient = null,
             IDictionary<string, string> defaultHeader = null,
             string username = null,
@@ -222,7 +225,7 @@ namespace AltinnCore.RepositoryClient.Client
             }
         }
 
-        private String _basePath = null;
+        private string _basePath = null;
         /// <summary>
         /// Gets or sets the base path for API access.
         /// </summary>
@@ -277,9 +280,9 @@ namespace AltinnCore.RepositoryClient.Client
         /// <returns>API key with prefix.</returns>
         public string GetApiKeyWithPrefix(string apiKeyIdentifier)
         {
-            var apiKeyValue = "";
+            var apiKeyValue = string.Empty;
             ApiKey.TryGetValue(apiKeyIdentifier, out apiKeyValue);
-            var apiKeyPrefix = "";
+            var apiKeyPrefix = string.Empty;
             if (ApiKeyPrefix.TryGetValue(apiKeyIdentifier, out apiKeyPrefix))
                 return apiKeyPrefix + " " + apiKeyValue;
             else
@@ -415,9 +418,9 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Returns a string with essential information for debugging.
         /// </summary>
-        public static String ToDebugReport()
+        public static string ToDebugReport()
         {
-            String report = "C# SDK (IO.Swagger) Debug Report:\n";
+            string report = "C# SDK (IO.Swagger) Debug Report:\n";
             report += "    OS: " + System.Environment.OSVersion + "\n";
             report += "    .NET Framework Version: " + System.Environment.Version + "\n";
             report += "    Version of the API: 1.1.1\n";

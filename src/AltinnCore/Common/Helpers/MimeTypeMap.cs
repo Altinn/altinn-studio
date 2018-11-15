@@ -13,7 +13,8 @@ namespace AltinnCore.Common.Helpers
 
         private static IDictionary<string, string> BuildMappings()
         {
-            var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) {
+            var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
 
                 #region Big freaking list of mime types
 
@@ -32,7 +33,6 @@ namespace AltinnCore.Common.Helpers
                 //
                 // Some added based on http://www.iana.org/assignments/media-types/media-types.xhtml
                 // which lists mime types, but not extensions
-                //
                 { ".323", "text/h323" },
                 { ".3g2", "video/3gpp2" },
                 { ".3gp", "video/3gpp" },
@@ -679,10 +679,8 @@ namespace AltinnCore.Common.Helpers
                 { "video/x-la-asf", ".lsf" },
                 { "video/x-ms-asf", ".asf" },
                 { "x-world/x-vrml", ".xof" },
-
                 #endregion
-
-                };
+            };
 
             var cache = mappings.ToList(); // need ToList() to avoid modifying while still enumerating
 

@@ -213,6 +213,7 @@ namespace AltinnCore.Common.Services.Implementation
             return codeList;
         }
 
+        /// <inheritdoc/>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             return _repository.GetServiceResource(org, service, resource);

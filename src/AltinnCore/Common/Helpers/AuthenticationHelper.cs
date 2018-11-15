@@ -34,7 +34,7 @@ namespace AltinnCore.Common.Helpers
                 return context.Request.Cookies[sessionCookieId];
             }
 
-           return null;
+            return null;
         }
     }
 }

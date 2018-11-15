@@ -152,8 +152,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return newKey;
         }
 
-        private void BuildJsonRecursive(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements,
-            string parentTrail, CultureDictionary allTexts)
+        private void BuildJsonRecursive(
+            XElement currentComplexType,
+            Dictionary<string, ElementMetadata> allElements,
+            string parentTrail,
+            CultureDictionary allTexts)
         {
             // Process attributes
             AddAttributeElements(currentComplexType, allElements, parentTrail);
@@ -166,13 +169,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 var propertyNamesUsed = new List<string>();
                 foreach (var childElement in sequenceElements)
                 {
-                    ProcessChildElement(currentComplexType, childElement, allElements, parentTrail, propertyNamesUsed,
+                    ProcessChildElement(
+                        currentComplexType,
+                        childElement,
+                        allElements,
+                        parentTrail,
+                        propertyNamesUsed,
                         allTexts);
                 }
             }
         }
 
-        private void ProcessChildElement(XElement currentComplexType,
+        private void ProcessChildElement(
+            XElement currentComplexType,
             XElement childElement,
             Dictionary<string, ElementMetadata> allElements,
             string parentTrail,
@@ -248,13 +257,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                             if (propertyNamesUsed.Contains(typeName.Split('-')[0]))
                             {
-                                ProcessSimpleContent(actualElement, simpleContent, allElements,
-                                    $"{parentTrail}/{typeName.Split('-')[0]}2", typeName.Split('.')[0]);
+                                ProcessSimpleContent(actualElement, simpleContent, allElements, $"{parentTrail}/{typeName.Split('-')[0]}2", typeName.Split('.')[0]);
                             }
                             else
                             {
-                                ProcessSimpleContent(actualElement, simpleContent, allElements,
-                                    $"{parentTrail}/{typeName.Split('-')[0]}", typeName.Split('.')[0]);
+                                ProcessSimpleContent(actualElement, simpleContent, allElements, $"{parentTrail}/{typeName.Split('-')[0]}", typeName.Split('.')[0]);
                             }
 
                             AddAttributeElements(currentElement, allElements, $"{parentTrail}/{typeName.Split('-')[0]}");
@@ -539,8 +546,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return elements;
         }
 
-        private void ProcessSimpleContent(XElement actualElement, XElement simpleContent,
-            Dictionary<string, ElementMetadata> allElements, string parentTrail, string parentName)
+        private void ProcessSimpleContent(
+            XElement actualElement,
+            XElement simpleContent,
+            Dictionary<string, ElementMetadata> allElements,
+            string parentTrail,
+            string parentName)
         {
             var elementMetadata = new ElementMetadata
             {
@@ -560,8 +571,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (simpleContent.Element(XDocName.Extension) != null)
             {
-                WriteRestrictions(elementMetadata.Restrictions, simpleContent.Element(XDocName.Extension),
-                    elementMetadata);
+                WriteRestrictions(elementMetadata.Restrictions, simpleContent.Element(XDocName.Extension), elementMetadata);
 
                 AddAttributeElements(simpleContent.Element(XDocName.Extension), allElements, parentTrail);
             }
@@ -569,8 +579,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             allElements.Add(elementMetadata.ID, elementMetadata);
         }
 
-        private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements,
-            string parentTrail)
+        private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements, string parentTrail)
         {
             if (currentComplexType == null) return;
 
@@ -593,7 +602,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         if ((attributeType.AttributeValue("type") != null) &&
                             attributeType.AttributeValue("type").Contains(":"))
                         {
-                            attributeElementMetadata.XsdValueType = (BaseValueType)Enum.Parse(typeof(BaseValueType),
+                            attributeElementMetadata.XsdValueType = (BaseValueType)Enum.Parse(
+                                typeof(BaseValueType),
                                 attributeType.AttributeValue("type").Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, attributeType.AttributeValue("type").Split(':')[1].Skip(1)));
 
                             if (string.IsNullOrEmpty(attributeName))
@@ -673,7 +683,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if ((element.AttributeValue("type") != null) && element.AttributeValue("type").Contains(":"))
                 {
-                    elementMetadata.XsdValueType = (BaseValueType)Enum.Parse(typeof(BaseValueType),
+                    elementMetadata.XsdValueType = (BaseValueType)Enum.Parse(
+                        typeof(BaseValueType),
                         element.AttributeValue("type").Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, element.AttributeValue("type").Split(':')[1].Skip(1)));
                 }
             }
@@ -685,8 +696,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             elementMetadata.Restrictions = restrictions;
         }
 
-        private void WriteRestrictions(Dictionary<string, Restriction> restrictions, XElement restriction,
-            ElementMetadata elementMetadata)
+        private void WriteRestrictions(Dictionary<string, Restriction> restrictions, XElement restriction, ElementMetadata elementMetadata)
         {
             var xsdDataType = restriction.AttributeValue("base");
 
@@ -702,7 +712,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if ((xsdDataType != null) && xsdDataType.Contains(":"))
                 {
                     elementMetadata.XsdValueType =
-                        (BaseValueType)Enum.Parse(typeof(BaseValueType),
+                        (BaseValueType)Enum.Parse(
+                            typeof(BaseValueType),
                             xsdDataType.Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, xsdDataType.Split(':')[1].Skip(1)));
                 }
             }

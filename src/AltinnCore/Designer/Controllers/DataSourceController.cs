@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
@@ -31,7 +31,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>Returns the data source to the index view</returns>
         public ActionResult Index(string org, string service)
         {
-             IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service);
+            IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service);
             return View(datasources);
         }
 

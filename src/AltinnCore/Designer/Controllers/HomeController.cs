@@ -213,13 +213,15 @@ namespace AltinnCore.Designer.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
-                            new AuthenticationProperties
-                            {
-                                ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
-                                IsPersistent = false,
-                                AllowRefresh = false
-                            });
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
+                    IsPersistent = false,
+                    AllowRefresh = false
+                });
 
             return LocalRedirect(goToUrl);
         }

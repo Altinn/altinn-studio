@@ -146,7 +146,8 @@ namespace AltinnCore.Designer.Controllers
         {
             _repository.DeleteCodeList(org, service, name);
 
-            return RedirectToRoute(routeName,
+            return RedirectToRoute(
+                routeName,
                 new { action = "Index", controller = "Codelist", org, service });
         }
 

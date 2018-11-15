@@ -26,8 +26,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
-        public TestingRepository(IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings, IDefaultFileFactory defaultFileFactory, IHttpContextAccessor httpContextAccessor)
+        public TestingRepository(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IDefaultFileFactory defaultFileFactory,
+            IHttpContextAccessor httpContextAccessor)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -57,7 +60,7 @@ namespace AltinnCore.Common.Services.Implementation
                 test.FileName = test.Name + ".cs";
             }
 
-            File.WriteAllText(dirName + test.FileName, test.Content ?? "");
+            File.WriteAllText(dirName + test.FileName, test.Content ?? string.Empty);
             updated = true;
 
             return updated;

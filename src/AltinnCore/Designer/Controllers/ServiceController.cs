@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -46,13 +46,13 @@ namespace AltinnCore.Designer.Controllers
             model.Org = org;
             model.ServiceMetadata = metadata;
 
-              if (_sourceControl.IsLocalRepo(org, service))
-                    {
-                      model.IsLocalRepo = true;
-                      model.RepositoryContent = _sourceControl.Status(org, service);
-                     _sourceControl.FetchRemoteChanges(org, service);
-                      model.CommitsBehind = _sourceControl.CheckRemoteUpdates(org, service);
-              }
+            if (_sourceControl.IsLocalRepo(org, service))
+            {
+                model.IsLocalRepo = true;
+                model.RepositoryContent = _sourceControl.Status(org, service);
+                _sourceControl.FetchRemoteChanges(org, service);
+                model.CommitsBehind = _sourceControl.CheckRemoteUpdates(org, service);
+            }
 
             ViewBag.HasCreatedResources = _repository.GetLanguages(org, service).Any();
             ViewBag.HasSetConfiguration = _repository.GetConfiguration(org, service, "basic.json") != null;
@@ -97,26 +97,26 @@ namespace AltinnCore.Designer.Controllers
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             _sourceControl.PullRemoteChanges(org, service);
-             return RedirectToAction("index", new { Org = org, Service = service });
+            return RedirectToAction("index", new { Org = org, Service = service });
         }
 
 
-          /// <summary>
-          /// This method pushes changes to remote repository
-          /// </summary>
-          /// <param name="commitInfo">The commit info</param>
-          /// <returns>Redirects back to the codelist front page</returns>
-          [HttpPost]
-          [Authorize]
-          public IActionResult PushChanges(CommitInfo commitInfo)
-          {
+        /// <summary>
+        /// This method pushes changes to remote repository
+        /// </summary>
+        /// <param name="commitInfo">The commit info</param>
+        /// <returns>Redirects back to the codelist front page</returns>
+        [HttpPost]
+        [Authorize]
+        public IActionResult PushChanges(CommitInfo commitInfo)
+        {
             _sourceControl.PushChangesForRepository(commitInfo);
             return RedirectToAction("index", new { commitInfo.Org, Service = commitInfo.Repository });
-          }
+        }
 
-          [Authorize]
-          public IActionResult Clone(string org, string service)
-          {
+        [Authorize]
+        public IActionResult Clone(string org, string service)
+        {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             string token = _sourceControl.GetAppToken();
 
@@ -129,7 +129,7 @@ namespace AltinnCore.Designer.Controllers
                 return Redirect("/Home/AppToken");
             }
 
-              return RedirectToAction("Index", new { org, service });
+            return RedirectToAction("Index", new { org, service });
         }
     }
 }

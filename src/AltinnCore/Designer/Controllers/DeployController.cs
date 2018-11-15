@@ -75,8 +75,10 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    object buildContent = new {
-                        definition = new {
+                    object buildContent = new
+                    {
+                        definition = new
+                        {
                             id = 12
                         },
                         parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\""
@@ -128,7 +130,7 @@ namespace AltinnCore.Designer.Controllers
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
-                    using (HttpResponseMessage response = await client.GetAsync(String.Format("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds/{0}?api-version=5.0-preview.4", buildId)))
+                    using (HttpResponseMessage response = await client.GetAsync(string.Format("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds/{0}?api-version=5.0-preview.4", buildId)))
                     {
                         response.EnsureSuccessStatusCode();
                         buildModel = await response.Content.ReadAsAsync<BuildModel>();

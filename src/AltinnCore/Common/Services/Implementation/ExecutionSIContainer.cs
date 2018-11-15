@@ -207,6 +207,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
+        /// <inheritdoc/>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
