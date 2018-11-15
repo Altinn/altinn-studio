@@ -165,7 +165,8 @@ namespace AltinnCore.RepositoryClient.Model
         /// <returns>Hash code</returns>
         public override int GetHashCode()
         {
-            unchecked // Overflow is fine, just wrap
+            // Overflow is fine, just wrap
+            unchecked
             {
                 int hashCode = 41;
                 if (this.CreatedAt != null)

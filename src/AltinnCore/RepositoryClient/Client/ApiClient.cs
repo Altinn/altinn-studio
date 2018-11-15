@@ -137,7 +137,8 @@ namespace AltinnCore.RepositoryClient.Client
                // request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentType);
             }
 
-            if (postBody != null) // http body (model or byte[]) parameter
+            // http body (model or byte[]) parameter
+            if (postBody != null)
             {
                 request.AddParameter(contentType, postBody, ParameterType.RequestBody);
             }
@@ -277,7 +278,8 @@ namespace AltinnCore.RepositoryClient.Client
         public object Deserialize(IRestResponse response, Type type)
         {
             IList<Parameter> headers = response.Headers;
-            if (type == typeof(byte[])) // return byte array
+            // return byte array
+            if (type == typeof(byte[]))
             {
                 return response.RawBytes;
             }
@@ -306,12 +308,14 @@ namespace AltinnCore.RepositoryClient.Client
                 return stream;
             }
 
-            if (type.Name.StartsWith("System.Nullable`1[[System.DateTime")) // return a datetime object
+            // return a datetime object
+            if (type.Name.StartsWith("System.Nullable`1[[System.DateTime"))
             {
                 return DateTime.Parse(response.Content,  null, System.Globalization.DateTimeStyles.RoundtripKind);
             }
 
-            if (type == typeof(String) || type.Name.StartsWith("System.Nullable")) // return primitive type
+            // return primitive type
+            if (type == typeof(String) || type.Name.StartsWith("System.Nullable"))
             {
                 return ConvertType(response.Content, type);
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -102,7 +102,8 @@ namespace AltinnCore.RepositoryClient.Model
         /// <returns>Hash code</returns>
         public override int GetHashCode()
         {
-            unchecked // Overflow is fine, just wrap
+            // Overflow is fine, just wrap
+            unchecked
             {
                 int hashCode = 41;
                 if (this.Data != null)
