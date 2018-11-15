@@ -35,7 +35,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ISourceControl _sourceControl;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class 
+        /// Initializes a new instance of the <see cref="RepositorySI"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
@@ -120,7 +120,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Updates serviceMetadata
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>    
+        /// <param name="service">The service code for the current service</param>
         /// <param name="serviceMetadata">The service Metadata</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool UpdateServiceMetadata(string org, string service, ServiceMetadata serviceMetadata)
@@ -169,7 +169,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
 
-            
+
         }
 
         #endregion
@@ -179,7 +179,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Returns the content of a configuration file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>  
+        /// <param name="service">The service code for the current service</param>
         /// <param name="name">The name of the configuration</param>
         /// <returns>A string containing the file content</returns>
         public string GetConfiguration(string org, string service, string name)
@@ -230,11 +230,11 @@ namespace AltinnCore.Common.Services.Implementation
             string resourcePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(resourcePath, serviceTextsAllLanguages);
 
-            //Get Org level text resources
+            // Get Org level text resources
             string orgResourcePath = _settings.GetOrgTextResourcePath(org, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(orgResourcePath, serviceTextsAllLanguages);
 
-            //Get altinn common level text resources
+            // Get altinn common level text resources
             string commonResourcePath = _settings.GetCommonTextResourcePath(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(commonResourcePath, serviceTextsAllLanguages);
 
@@ -1049,7 +1049,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
 
-            // First verify if there exist a remote repo 
+            // First verify if there exist a remote repo
             try
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);

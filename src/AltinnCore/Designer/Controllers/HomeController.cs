@@ -89,7 +89,7 @@ namespace AltinnCore.Designer.Controllers
             }
 
             model.RepositorySearch = repositorySearch;
-            //IList<OrgConfiguration> owners = _repository.GetOwners();
+            // IList<OrgConfiguration> owners = _repository.GetOwners();
             return View(model);
         }
 

@@ -21,7 +21,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class 
+        /// Initializes a new instance of the <see cref="RepositorySI"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
@@ -47,11 +47,11 @@ namespace AltinnCore.Common.Services.Implementation
             string dirName = _settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             bool updated = false;
 
-            if(!Directory.Exists(dirName))
+            if (!Directory.Exists(dirName))
             {
                 Directory.CreateDirectory(dirName);
             }
-           
+
             if (string.IsNullOrEmpty(test.FileName)) {
                 // TODO: Use type
                 test.FileName = test.Name + ".cs";
@@ -59,7 +59,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             File.WriteAllText(dirName + test.FileName, test.Content ?? "");
             updated = true;
-            
+
             return updated;
         }
 
@@ -97,7 +97,7 @@ namespace AltinnCore.Common.Services.Implementation
             IList<TestMetadata> tests = new List<TestMetadata>();
 
             string dirName = _settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if(!Directory.Exists(dirName))
+            if (!Directory.Exists(dirName))
             {
                 return tests;
             }

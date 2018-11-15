@@ -1,4 +1,4 @@
-﻿
+
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -51,17 +51,17 @@ namespace AltinnCore.Runtime.Controllers
             CodeCompilationResult codeCompilationResult = null)
         {
             ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
-			CodeCompilationResult compilation = null;
+            CodeCompilationResult compilation = null;
 
-			if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
-			{
-				compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
+            if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
+            {
+                compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
 
-				var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
+                var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
 
-				ServiceStatusViewModel model = CreateModel(serviceIdentifier, compilation, metadata);
+                ServiceStatusViewModel model = CreateModel(serviceIdentifier, compilation, metadata);
 
-				return View(model);
+                return View(model);
 
             }
 
@@ -98,7 +98,7 @@ namespace AltinnCore.Runtime.Controllers
             }
         }
 
-        private static string NiceSeparatedFileList( IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
+        private static string NiceSeparatedFileList(IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
         {
             if (infos == null || criteria == null)
             {
@@ -146,8 +146,7 @@ namespace AltinnCore.Runtime.Controllers
         private ServiceStatusViewModel CreateModel(
             ServiceIdentifier serviceIdentifier,
             CodeCompilationResult compilationResult,
-            ServiceMetadata serviceMetadata
-            )
+            ServiceMetadata serviceMetadata)
         {
             var userMessages =
                 CompilationUserMessages(compilationResult)

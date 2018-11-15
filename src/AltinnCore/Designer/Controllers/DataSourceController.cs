@@ -22,7 +22,7 @@ namespace AltinnCore.Designer.Controllers
         {
             _dataSourceService = dataSourceService;
         }
-        
+
         /// <summary>
         /// The Index view for the data source page
         /// </summary>
@@ -66,7 +66,7 @@ namespace AltinnCore.Designer.Controllers
         {
             return View();
         }
-        
+
         /// <summary>
         /// Http post for creating the JSON data source file.
         /// </summary>
@@ -80,7 +80,7 @@ namespace AltinnCore.Designer.Controllers
             if (ModelState.IsValid)
             {
                 _dataSourceService.Create(org, service, model.Description, model.Url);
-                
+
                 return RedirectToAction("Index");
             }
 
@@ -88,7 +88,7 @@ namespace AltinnCore.Designer.Controllers
 
             return View("Create", model);
         }
-        
+
         /// <summary>
         /// Http post for the edit action
         /// </summary>
@@ -110,7 +110,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 ModelState.AddModelError("AltinnModelIdMissing", "Fant ikke noe å oppdatere!");
             }
-            
+
             if (!ModelState.IsValid || selected == null)
             {
                 ViewBag.ErrorMessages = ModelState.Values.SelectMany(s => s.Errors).ToList();

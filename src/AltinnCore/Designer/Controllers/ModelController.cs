@@ -30,7 +30,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// The default action presenting the 
+        /// The default action presenting the
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>

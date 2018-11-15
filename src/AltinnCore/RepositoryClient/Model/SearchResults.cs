@@ -89,13 +89,11 @@ namespace AltinnCore.RepositoryClient.Model
                 (
                     this.Data == input.Data ||
                     this.Data != null &&
-                    this.Data.SequenceEqual(input.Data)
-                ) &&
+                    this.Data.SequenceEqual(input.Data)) &&
                 (
                     this.Ok == input.Ok ||
                     (this.Ok != null &&
-                    this.Ok.Equals(input.Ok))
-                );
+                    this.Ok.Equals(input.Ok)));
         }
 
         /// <summary>

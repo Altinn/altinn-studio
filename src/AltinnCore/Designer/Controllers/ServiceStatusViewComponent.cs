@@ -1,4 +1,4 @@
-﻿
+
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
@@ -84,7 +84,7 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private static string NiceSeparatedFileList( IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
+        private static string NiceSeparatedFileList(IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
         {
             if (infos == null || criteria == null)
             {

@@ -45,7 +45,7 @@ namespace AltinnCore.Designer.Controllers
             model.Service = service;
             model.Org = org;
             model.ServiceMetadata = metadata;
-            
+
               if (_sourceControl.IsLocalRepo(org, service))
                     {
                       model.IsLocalRepo = true;

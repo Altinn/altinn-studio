@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 
@@ -11,20 +11,20 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public bool UseSingleFile { get; set; }
 
 
-        public void CreateClass(JObject [] jsonData, JsonDataTypes type)
+        public void CreateClass(JObject[] jsonData, JsonDataTypes type)
         {
-            var JsonDataFields =  new Dictionary<string, JsonDataTypes>();
+            var JsonDataFields = new Dictionary<string, JsonDataTypes>();
             var FieldJsonData = new Dictionary<string, IList<Object>>();
 
             foreach (var jobj in jsonData)
             {
                 foreach (var property in jobj.Properties())
                 {
-                    
+
                 }
-                
+
             }
-            
+
         }
 
 

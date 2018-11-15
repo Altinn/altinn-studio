@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 /// <summary>
-/// 
+///
 /// </summary>
 namespace AltinnCore.Runtime.Controllers
 {
@@ -47,7 +47,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Method to retrieve textresources 
+        /// Method to retrieve textresources
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>

@@ -80,7 +80,7 @@
                 return TemplateLocation + "/GeneratedMethods.cs";
             }
         }
-        
+
         /// <summary>
         /// Gets the path to the default Dockerfile file
         /// </summary>

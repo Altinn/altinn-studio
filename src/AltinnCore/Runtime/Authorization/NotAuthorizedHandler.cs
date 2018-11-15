@@ -7,7 +7,7 @@ namespace AltinnCore.Runtime.Authorization
 {
     /// <summary>
     /// This handler is called by the authentication/Authorization framework when user is redirected by a authorization
-    /// handler 
+    /// handler
     /// </summary>
     public static class NotAuthorizedHandler
     {

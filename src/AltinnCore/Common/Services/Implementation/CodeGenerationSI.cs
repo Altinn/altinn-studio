@@ -42,7 +42,7 @@ namespace AltinnCore.Common.Services.Implementation
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
         }
-        
+
         /// <summary>
         /// Method which generates a class containing calculation and validation logic for a service based on the
         /// given input
@@ -75,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
             };
             CreateClassFromTemplate(org, service, eventLogic, allMethods, serviceMetadata);
         }
-        
+
         /// <summary>
         /// Gets details about all available rule types
         /// </summary>
@@ -350,11 +350,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         private void CreateClassFromTemplate(
-            string org, string service, Dictionary<ServiceEventType, string> eventLogic, 
+            string org, string service, Dictionary<ServiceEventType, string> eventLogic,
             Dictionary<string, string> methods, ServiceMetadata serviceMetadata)
         {
             eventLogic.OrderBy(x => x.Key);
-            
+
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.GeneratedMethodsTemplate, Encoding.UTF8);
 
@@ -373,7 +373,7 @@ namespace AltinnCore.Common.Services.Implementation
                 + _settings.GeneratedMethodsFileName;
 
             textData = textData.Replace(CodeGeneration.DefaultServiceModelName, serviceMetadata.Elements.Values.First(el => el.ParentElement == null).ID);
-            
+
             File.WriteAllText(generatedMethodsFilePath, textData, Encoding.UTF8);
         }
 
@@ -387,7 +387,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             StringBuilder iteratorBuilder = new StringBuilder();
             Dictionary<string, Iterator> newIterators = new Dictionary<string, Iterator>();
-            
+
             foreach (KeyValuePair<string, Iterator> iterator in iterators.Where(x => !existingIterators.ContainsKey(x.Key)))
             {
                 existingIterators.Add(iterator.Key, iterator.Value);
@@ -418,7 +418,7 @@ namespace AltinnCore.Common.Services.Implementation
                     "if ({0}) {{ {1} }}",
                     condition,
                     body);
-            
+
             // TODO: Check which iterators has been added to this specific rule container
             if (newIterators.Any())
             {
@@ -449,7 +449,7 @@ namespace AltinnCore.Common.Services.Implementation
         private string CreateRule(int ruleContainerId, Rule rule, Dictionary<string, Iterator> allIterators, ServiceMetadata serviceMetadata)
         {
             Dictionary<string, Iterator> currentIterators = allIterators.Where(i => i.Key.EndsWith($"_{ruleContainerId}")).ToDictionary(x => x.Key, x => x.Value);
-            
+
             return string.Format(
                 GetRuleType(rule.RuleTypeId).Template,
                 rule.Parameters.OrderBy(x => x.Index).Select(x => !serviceMetadata.Elements.ContainsKey(x.Value) ? "\"" + x.Value + "\"" : GetIndexedElementId(x.Value, currentIterators)).ToArray());
@@ -487,7 +487,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (currentElement.MaxOccurs > 1)
                 {
                     // Need iterator
-                    if (!iterators.ContainsKey($"{currentId}_{containerId}")) 
+                    if (!iterators.ContainsKey($"{currentId}_{containerId}"))
                     {
                         iterators.Add($"{currentId}_{containerId}", CreateIterator(currentId, iterators, serviceMetadata, reservedIndexNames));
                     }
@@ -551,7 +551,7 @@ namespace AltinnCore.Common.Services.Implementation
             ServiceMetadata serviceMetadata)
         {
             Dictionary<string, Iterator> currentIterators = allIterators.Where(i => i.Key.EndsWith($"_{ruleContainerId}")).ToDictionary(x => x.Key, x => x.Value);
-            
+
             StringBuilder conditionBuilder = new StringBuilder();
             for (int i = 0; i < conditions.Count(); i++)
             {
@@ -576,13 +576,13 @@ namespace AltinnCore.Common.Services.Implementation
 
                     List<string> formattedParameters = GetFormattedParameters(conditionType.Parameters, currentPart.Parameters, currentIterators, allMethods, serviceMetadata);
 
-                    //This is an actual condition part
+                    // This is an actual condition part
                     conditionBuilder.Append(
                         string.Format(
                             conditionType.Template,
                             formattedParameters.ToArray()));
 
-                    //conditionBuilder.Append(
+                    // conditionBuilder.Append(
                     //    string.Format(
                     //        conditionType.Template,
                     //        currentPart.Parameters.OrderBy(x => x.Index).Select(x => ProcessValue(x.Value, serviceMetadata, currentIterators, allMethods)).ToArray()));
@@ -598,9 +598,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         private List<string> GetFormattedParameters(
-            List<ParameterDetails> conditionTypeParameters, 
-            List<Parameter> submittedParameters, 
-            Dictionary<string, Iterator> currentIterators, 
+            List<ParameterDetails> conditionTypeParameters,
+            List<Parameter> submittedParameters,
+            Dictionary<string, Iterator> currentIterators,
             Dictionary<string, string> allMethods,
             ServiceMetadata serviceMetadata)
         {
@@ -627,7 +627,7 @@ namespace AltinnCore.Common.Services.Implementation
                     : serviceMetadata.Elements.ContainsKey(submittedValue.Value.Substring($"${method}(".Length, submittedValue.Value.Length - 1 - $"${method}(".Length));
 
                 string processedValue = ProcessValue(submittedValue.Value, serviceMetadata, currentIterators, allMethods);
-                
+
                 foreach (Models.ValueType supportedType in details.SupportedTypes)
                 {
                     if (supportedType == Models.ValueType.Decimal)
@@ -743,10 +743,10 @@ namespace AltinnCore.Common.Services.Implementation
                     throw new Exception("Unsupported value type");
                 }
             }
-            
+
             return result;
         }
-        
+
         private string ProcessValue(string value, ServiceMetadata serviceMetadata, Dictionary<string, Iterator> allIterators, Dictionary<string, string> allMethods)
         {
             if (!serviceMetadata.Elements.ContainsKey(value))
@@ -783,7 +783,7 @@ namespace AltinnCore.Common.Services.Implementation
                 return GetIndexedElementId(value, allIterators);
             }
         }
-        
+
         private string GetIndexedElementId(string oldId, Dictionary<string, Iterator> allIterators)
         {
             foreach (Iterator iterator in allIterators.Values)
@@ -884,7 +884,7 @@ namespace AltinnCore.Common.Services.Implementation
             return str.ToUpper();
         }
     }
-    
+
     /// <summary>
     /// Internal helper class for creating iterators
     /// </summary>

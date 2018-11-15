@@ -8,7 +8,7 @@ using System.Linq;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller for resources 
+    /// Controller for resources
     /// </summary>
     public class TextController : Controller
     {
@@ -56,7 +56,7 @@ namespace AltinnCore.Designer.Controllers
         public IActionResult GetLanguages(string org, string service)
         {
             List<string> languages = _repository.GetLanguages(org, service);
-            return Json(languages);   
+            return Json(languages);
         }
 
         /// <summary>
@@ -74,7 +74,7 @@ namespace AltinnCore.Designer.Controllers
             JObject json = jsonData;
 
             // Sort resource texts by id
-            JArray resources = json["resources"] as JArray; 
+            JArray resources = json["resources"] as JArray;
             JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
             json["resources"].Replace(sorted);
 

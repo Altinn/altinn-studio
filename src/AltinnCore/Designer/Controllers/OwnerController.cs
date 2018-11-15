@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -37,9 +37,9 @@ namespace AltinnCore.Designer.Controllers
         /// and a list of all services under the current service owner
         /// </returns>
         [Authorize]
-        public IActionResult Index(string org) 
+        public IActionResult Index(string org)
         {
-            //IList<ServiceConfiguration> services = _repository.GetServices(org);
+            // IList<ServiceConfiguration> services = _repository.GetServices(org);
             return View();
         }
 
@@ -55,7 +55,7 @@ namespace AltinnCore.Designer.Controllers
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             string token = _sourceControl.GetAppToken();
-            if(string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(token))
             {
                 model.MissingAppToken = true;
             }

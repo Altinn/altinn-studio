@@ -24,7 +24,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="codeGenerationService">The code generation service</param>
         /// <param name="compilationService">The service compilation service</param>
         public RulesController(
-            IRepository repositoryService, 
+            IRepository repositoryService,
             ICodeGeneration codeGenerationService,
             ICompilation compilationService)
         {
@@ -57,7 +57,7 @@ namespace AltinnCore.Designer.Controllers
         {
              return View();
         }
-        
+
         /// <summary>
         /// Action for creating a new rule
         /// </summary>
@@ -99,7 +99,7 @@ namespace AltinnCore.Designer.Controllers
             _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
 
             _repository.UpdateRules(org, service, existingRules);
-            
+
             return Json(rule);
         }
 
@@ -115,7 +115,7 @@ namespace AltinnCore.Designer.Controllers
         {
             List<RuleContainer> rules = _repository.GetRules(org, service);
             RuleContainer rule = rules.FirstOrDefault(r => r.Id == id);
-            
+
             return View(rule);
         }
 
@@ -145,7 +145,7 @@ namespace AltinnCore.Designer.Controllers
             _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
 
             _repository.UpdateRules(org, service, existingRules);
-            
+
             return Ok();
         }
 
@@ -228,7 +228,7 @@ namespace AltinnCore.Designer.Controllers
             List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, service);
             CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, null, false);
 
-            // Check to see if any of the files has compiliation errors or warnings           
+            // Check to see if any of the files has compiliation errors or warnings
             foreach (AltinnCoreFile coreFile in altinnCoreFiles)
             {
                 if (compResult.CompilationInfo != null
@@ -260,7 +260,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The View</returns>
         public IActionResult File(string org, string service, string name)
         {
-            ViewBag.FileName = name; 
+            ViewBag.FileName = name;
             return View();
         }
 
@@ -286,7 +286,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Updates a given 
+        /// Updates a given
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>

@@ -68,14 +68,14 @@ namespace AltinnCore.Common.Services.Implementation
 
                     if (File.Exists(archiveFilePath))
                     {
-                       serviceInstance.LastChanged =  File.GetLastWriteTime(archiveFilePath);
+                       serviceInstance.LastChanged = File.GetLastWriteTime(archiveFilePath);
                        serviceInstance.IsArchived = true;
                     }
 
                     formInstances.Add(serviceInstance);
                 }
 
-               
+
             }
 
             return formInstances;

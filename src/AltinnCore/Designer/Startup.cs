@@ -30,7 +30,7 @@ namespace AltinnCore.Designer
 {
     /// <summary>
     /// This is the class that set up the application during startup
-    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/> 
+    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/>
     /// </summary>
     public class Startup
     {
@@ -44,7 +44,7 @@ namespace AltinnCore.Designer
 
         /// <summary>
         /// Configures the services available for the asp.net Core application
-        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/> 
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/>
         /// </summary>
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
@@ -134,7 +134,7 @@ namespace AltinnCore.Designer
                 {
                     var supportedCultures = new List<CultureInfo>
                         {
-                            // The current supported languages. Can easily be added more. 
+                            // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
                             new CultureInfo("nn-NO")
@@ -148,7 +148,7 @@ namespace AltinnCore.Designer
 
         /// <summary>
         /// Configure the application.
-        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/> 
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
         /// </summary>
         /// <param name="app">The application builder</param>
         /// <param name="env">Hosting environment</param>
@@ -163,8 +163,8 @@ namespace AltinnCore.Designer
                 app.UseExceptionHandler("/Error");
             }
 
-            //app.UseHsts();
-            //app.UseHttpsRedirection();
+            // app.UseHsts();
+            // app.UseHttpsRedirection();
             app.UseAuthentication();
 
             app.UseResponseCompression();

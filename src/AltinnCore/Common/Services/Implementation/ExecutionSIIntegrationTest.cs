@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
     /// This is the implementation of the Service Execution Service that uses local service packages (zip files) to retrieve the
-    /// content for a service. This to more simulate the production scenario where this information would be stored in a database. 
+    /// content for a service. This to more simulate the production scenario where this information would be stored in a database.
     /// </summary>
     public class ExecutionSIIntegrationTest : IExecution
     {
@@ -33,7 +33,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly CustomRoslynCompilationService _compilation;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIIntegrationTest"/> class 
+        /// Initializes a new instance of the <see cref="ExecutionSIIntegrationTest"/> class
         /// </summary>
         /// <param name="roslynCompilationService">The compilation service needed (set in startup.cs)</param>
         /// <param name="repositorySettings">The repository setting service needed (set in startup.cs)</param>
@@ -87,7 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
                 context.ServiceMetaData = GetServiceMetaData(archive);
                 context.WorkFlow = GetWorkflow(archive);
             }
-            
+
             if (context.ServiceMetaData?.Elements != null)
             {
                 context.RootName = context.ServiceMetaData.Elements.Values.First(e => e.ParentElement == null).Name;
@@ -151,7 +151,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _compilation.ServiceReferences.Remove(assemblykey);
             }
-          
+
             memoryStream.Seek(0, SeekOrigin.Begin);
             MetadataReference newReference = MetadataReference.CreateFromStream(memoryStream);
             _compilation.ServiceReferences.Add(assemblykey, newReference);

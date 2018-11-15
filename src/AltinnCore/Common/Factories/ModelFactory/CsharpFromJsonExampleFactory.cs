@@ -55,7 +55,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     var index = 0;
                     foreach (var item in items)
                     {
-                        item.Type.AssignedName = $"{namedCollection.Key}{index++:000}";
+                        item.Type.AssignedName = $"{namedCollection.Key}{index++ :000}";
                     }
                 }
             }

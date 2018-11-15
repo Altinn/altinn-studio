@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IGitea _gitea;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class 
+        /// Initializes a new instance of the <see cref="RepositorySI"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
@@ -97,8 +97,7 @@ namespace AltinnCore.Common.Services.Implementation
                 MergeResult mergeResult = Commands.Pull(
                     repo,
                     new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
-                    pullOptions
-                );
+                    pullOptions);
             }
         }
 
@@ -160,7 +159,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (!remote.PushUrl.Equals(remoteUrl))
                 {
                     // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files. 
+                    // Requires adminstrator access to update files.
                     repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 
@@ -218,7 +217,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Method for storing AppToken in Developers folder. This is not the permanent solution 
+        /// Method for storing AppToken in Developers folder. This is not the permanent solution
         /// </summary>
         /// <param name="token">The</param>
         public void StoreAppTokenForUser(string token)
@@ -282,7 +281,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the local 
+        /// Returns the local
         /// </summary>
         /// <param name="org">The organization owning the repostory</param>
         /// <param name="repository">The name of the repository</param>
@@ -302,7 +301,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the remote repo 
+        /// Returns the remote repo
         /// </summary>
         /// <param name="org">The organization owning the repository</param>
         /// <param name="repository">The repository</param>

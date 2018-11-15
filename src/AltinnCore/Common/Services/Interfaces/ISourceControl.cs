@@ -51,8 +51,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The repository</param>
         /// <returns>The number of commits behind</returns>
         int? CheckRemoteUpdates(string org, string repository);
-       
-    
+
+
         /// <summary>
         /// Pull remote changes
         /// </summary>
@@ -69,7 +69,7 @@ namespace AltinnCore.Common.Services.Interfaces
         List<RepositoryContent> Status(string org, string repository);
 
         /// <summary>
-        /// Verifies if developer has a local repo 
+        /// Verifies if developer has a local repo
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="repository">The name of the local repo</param>

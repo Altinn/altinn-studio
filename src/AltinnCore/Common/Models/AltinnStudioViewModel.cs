@@ -11,12 +11,12 @@ namespace AltinnCore.Common.Models
     {
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public string Org { get; set; }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         public string Service { get; set; }
 

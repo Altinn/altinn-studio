@@ -9,7 +9,7 @@ namespace AltinnCore.Common.Services
 {
     /// <summary>
     /// This implements the services available in the platform that can be used by services.
-    /// After it is set in production only new methods can be added. 
+    /// After it is set in production only new methods can be added.
     /// </summary>
     public class PlatformServices : IPlatformServices
     {

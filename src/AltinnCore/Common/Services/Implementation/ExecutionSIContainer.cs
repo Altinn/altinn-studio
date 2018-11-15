@@ -39,7 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class 
+        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
@@ -203,7 +203,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Raw contents of a code list file</returns>
         public string GetCodelist(string org, string service, string name)
         {
-            // Not relevant in a container scenario. 
+            // Not relevant in a container scenario.
             return null;
         }
 

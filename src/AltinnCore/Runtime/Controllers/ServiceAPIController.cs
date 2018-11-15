@@ -68,12 +68,12 @@ namespace AltinnCore.Runtime.Controllers
             _form = formService;
             _repository = repositoryService;
             _execution = executionService;
-            _profile = profileService;  
+            _profile = profileService;
             _userHelper = new UserHelper(_profile, _register);
         }
 
         /// <summary>
-        /// This method returns the 
+        /// This method returns the
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -104,7 +104,7 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.Service = service;
             ViewBag.FormID = instanceId;
 
-            // Assign the RequestContext and ViewBag to the serviceImplementation so 
+            // Assign the RequestContext and ViewBag to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
@@ -115,7 +115,7 @@ namespace AltinnCore.Runtime.Controllers
 
             ViewBag.PlatformServices = platformServices;
 
-            // Getting the Form Data from datastore 
+            // Getting the Form Data from datastore
             object serviceModel = this._form.GetFormModel(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
@@ -126,7 +126,7 @@ namespace AltinnCore.Runtime.Controllers
             // Assing the populated service model to the service implementation
             serviceImplementation.SetServiceModel(serviceModel);
 
-            // ServiceEvent 1: HandleGetDataEvent 
+            // ServiceEvent 1: HandleGetDataEvent
             // Runs the event where the service developer can implement functionality to retrieve data from internal/external sources
             // based on the data in the service model
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
@@ -141,7 +141,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// This method handles posts from REST clients
         /// It supports xml or JSON
-        /// The binding is handled by a custom Model binder to support that 
+        /// The binding is handled by a custom Model binder to support that
         /// the Deserialization of the ServiceModel will happen inside the controller.
         /// </summary>
         /// <param name="model">The model as JSON/xml in a string parameter</param>
@@ -157,7 +157,7 @@ namespace AltinnCore.Runtime.Controllers
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            ApiResult apiResult = new ApiResult(); 
+            ApiResult apiResult = new ApiResult();
 
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
@@ -172,7 +172,7 @@ namespace AltinnCore.Runtime.Controllers
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
-            // Assign the Requestcontext and ViewBag to the serviceImplementation so 
+            // Assign the Requestcontext and ViewBag to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
@@ -198,15 +198,15 @@ namespace AltinnCore.Runtime.Controllers
 
             if (!ModelState.IsValid)
             {
-                // The validatate instansiation failed 
+                // The validatate instansiation failed
                 MapModelStateToApiResult(ModelState, apiResult, serviceContext);
                 apiResult.Status = ApiStatusType.Rejected;
                 Response.StatusCode = 403;
-          
+
                 return new ObjectResult(apiResult);
             }
 
-            // ServiceEvent 2: HandleGetDataEvent 
+            // ServiceEvent 2: HandleGetDataEvent
             // Runs the event where the service developer can implement functionality to retrieve data from internal/external sources
             // based on the data in the service model
             await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
@@ -220,13 +220,13 @@ namespace AltinnCore.Runtime.Controllers
 
                 if (apiMode.Equals(ApiMode.Calculate))
                 {
-                    // Returns a updated Service model with new calculated data.     
+                    // Returns a updated Service model with new calculated data.
                     return Ok(serviceModel);
                 }
             }
 
             // ServiceEvent 4: HandleValidationEvent
-            // Perform additional Validation defined by the service developer. 
+            // Perform additional Validation defined by the service developer.
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
 
             // Run the model Validation that handles validation defined on the model
@@ -236,7 +236,7 @@ namespace AltinnCore.Runtime.Controllers
             if (apiMode.Equals(ApiMode.Validate) || (!ModelState.IsValid && !apiMode.Equals(ApiMode.Create)))
             {
                 MapModelStateToApiResult(ModelState, apiResult, serviceContext);
-                
+
                 if (apiResult.Status.Equals(ApiStatusType.ContainsError))
                 {
                     if (apiMode.Equals(ApiMode.Validate))
@@ -293,7 +293,7 @@ namespace AltinnCore.Runtime.Controllers
         // Get the serviceContext containing all metadata about current service
         ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
-        // Assign the Requestcontext and ViewBag to the serviceImplementation so 
+        // Assign the Requestcontext and ViewBag to the serviceImplementation so
         // service developer can use the information in any of the service events that is called
         serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
@@ -314,14 +314,14 @@ namespace AltinnCore.Runtime.Controllers
 
         serviceImplementation.SetServiceModel(serviceModel);
 
-        // ServiceEvent 2: HandleGetDataEvent 
+        // ServiceEvent 2: HandleGetDataEvent
         // Runs the event where the service developer can implement functionality to retrieve data from internal/external sources
         // based on the data in the service model
         await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
 
-        // RunService 3: Calcuation 
+        // RunService 3: Calcuation
         await serviceImplementation.RunServiceEvent(ServiceEventType.Calculation);
-      
+
       // ServiceEvent 3: HandleCalculationEvent
       // Perform Calculation defined by the service developer
       // Only perform when the mode is to create a new instance or to specific calculate
@@ -329,13 +329,13 @@ namespace AltinnCore.Runtime.Controllers
         {
           if (apiMode.Equals(ApiMode.Calculate))
           {
-            // Returns a updated Service model with new calculated data.     
+            // Returns a updated Service model with new calculated data.
             return Ok(serviceModel);
           }
         }
 
         // ServiceEvent 4: HandleValidationEvent
-        // Perform additional Validation defined by the service developer. 
+        // Perform additional Validation defined by the service developer.
         await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
 
         // Run the model Validation that handles validation defined on the model
@@ -363,7 +363,7 @@ namespace AltinnCore.Runtime.Controllers
           return Ok(apiResult);
         }
 
-  
+
         // Save Formdata to database
         this._form.SaveFormModel(
             serviceModel,
@@ -399,7 +399,7 @@ namespace AltinnCore.Runtime.Controllers
             // Load the service implementation for the requested service
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
-            // Get the service context containing metadata about the service 
+            // Get the service context containing metadata about the service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
@@ -419,8 +419,8 @@ namespace AltinnCore.Runtime.Controllers
             dynamic serviceModel = serviceImplementation.CreateNewServiceModel();
             serviceImplementation.SetServiceModel(serviceModel);
 
-            // Assign the different context information to the service implementation making it possible for 
-            // the service developer to take use of this information 
+            // Assign the different context information to the service implementation making it possible for
+            // the service developer to take use of this information
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
             // Run the Data Retriavel event where service developer can potensial load any data without any user input
@@ -447,7 +447,7 @@ namespace AltinnCore.Runtime.Controllers
             // Load the service implementation for the requested service
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
-            // Get the service context containing metadata about the service 
+            // Get the service context containing metadata about the service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
@@ -466,8 +466,8 @@ namespace AltinnCore.Runtime.Controllers
             // Create a new instance of the service model (a Get to lookup will always create a new service model)
             dynamic serviceModel = null;
 
-            // Assign the different context information to the service implementation making it possible for 
-            // the service developer to take use of this information 
+            // Assign the different context information to the service implementation making it possible for
+            // the service developer to take use of this information
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
             // Do Model Binding and update form data
@@ -476,8 +476,8 @@ namespace AltinnCore.Runtime.Controllers
             {
                 Response.StatusCode = 403;
                 return new ObjectResult(apiResult);
-            } 
-            
+            }
+
             serviceImplementation.SetServiceModel(serviceModel);
 
             // Run the Data Retriavel event where service developer can potensial load any data without any user input

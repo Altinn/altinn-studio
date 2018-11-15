@@ -43,7 +43,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 ViewBag.ServiceUnavailable = true;
             }
-            
+
             return View();
         }
 
@@ -63,11 +63,11 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = false,
-                    Message = "Deployment unavailable" 
+                    Message = "Deployment unavailable"
                 });
             }
             string credentials = _configuration["AccessTokenDevOps"];
-            
+
             string result = string.Empty;
             try
             {

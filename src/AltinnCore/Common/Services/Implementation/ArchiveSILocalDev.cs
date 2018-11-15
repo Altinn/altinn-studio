@@ -29,7 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(archiveDirectory);
             }
 
-            string formDataFilePath =  archiveDirectory + instanceId + ".xml";
+            string formDataFilePath = archiveDirectory + instanceId + ".xml";
 
             using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
             {

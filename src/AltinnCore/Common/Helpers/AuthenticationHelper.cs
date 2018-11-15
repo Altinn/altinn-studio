@@ -1,4 +1,4 @@
-﻿using AltinnCore.Common.Constants;
+using AltinnCore.Common.Constants;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ namespace AltinnCore.Common.Helpers
         {
             string userName = null;
 
-            if(context.User != null)
+            if (context.User != null)
             {
                 foreach (Claim claim in context.User.Claims)
                 {

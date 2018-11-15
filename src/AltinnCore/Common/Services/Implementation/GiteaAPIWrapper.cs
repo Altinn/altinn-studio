@@ -198,7 +198,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         /// <summary>
         /// Does not work because of GITEA BUG. Will create Issue for the one mentioned here
-        /// https://github.com/go-gitea/gitea/issues/3842 
+        /// https://github.com/go-gitea/gitea/issues/3842
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>

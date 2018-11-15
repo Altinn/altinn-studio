@@ -9,7 +9,7 @@
     using Microsoft.AspNetCore.Mvc.Filters;
 
     /// <summary>
-    /// AuthorizationHandler that is created for handling access to service instances. 
+    /// AuthorizationHandler that is created for handling access to service instances.
     /// Authorizes based om InstanceAccessRequirement and instance id from route
     /// <see href="https://docs.asp.net/en/latest/security/authorization/policies.html"/> for details about authorization
     /// in asp.net core
@@ -56,7 +56,7 @@
                 context.Fail();
             }
 
-            return Task.CompletedTask; 
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -77,10 +77,10 @@
             {
                 if (claim.Type.Equals(AltinnCoreClaimTypes.AuthenticationLevel))
                 {
-                    currentAuthLevel = Convert.ToInt32(claim.Value);                  
+                    currentAuthLevel = Convert.ToInt32(claim.Value);
                 }
             }
-     
+
             if (currentAuthLevel < 2)
             {
                 requredAuthLevel = 2;
@@ -89,7 +89,7 @@
             {
                 requredAuthLevel = 0;
             }
-        
+
             return true;
         }
     }

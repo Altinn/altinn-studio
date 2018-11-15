@@ -42,7 +42,7 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetCodelist(string org, string service, string name);
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>

@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 namespace AltinnCore.Designer.TagHelpers
 {
     [HtmlTargetElement("button", Attributes = AltinnTextAttributeName)]
-    public class ButtonTagHelper: TagHelper
+    public class ButtonTagHelper : TagHelper
     {
         private const string AltinnTextAttributeName = "altinn-text";
 

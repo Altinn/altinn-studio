@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
@@ -22,7 +22,7 @@ namespace AltinnCore.RepositoryClient.CustomApi
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
 
             Uri giteaUrl = new Uri("http://altinn3.no:3000/api/v1/user");
-            Cookie cookie = new Cookie(giteaCoookieId, giteaSession,"/","altinn3.no");
+            Cookie cookie = new Cookie(giteaCoookieId, giteaSession, "/", "altinn3.no");
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };

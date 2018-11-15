@@ -54,7 +54,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="org"></param>
         /// <returns></returns>
@@ -109,6 +109,6 @@ namespace AltinnCore.Runtime.Controllers
         {
             return View();
         }
-     
+
      }
 }

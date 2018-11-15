@@ -100,7 +100,7 @@ namespace AltinnCore.Designer.TagHelpers
         }
 
         /// <summary>
-        /// This method replaces the error text key in validation attribute comming from model 
+        /// This method replaces the error text key in validation attribute comming from model
         /// https://github.com/aspnet/Mvc/tree/a78f77afde003c4a3fcf5dd7b6dc13dd9c85f825/src/Microsoft.AspNetCore.Mvc.DataAnnotations/Internal
         /// and other attributes that uses altinn text key
         /// </summary>
@@ -122,7 +122,7 @@ namespace AltinnCore.Designer.TagHelpers
                     attributeKey.Equals("data-val-length") ||
                     attributeKey.Equals("placeholder"))
                 {
-                    // Replaces the attribute 
+                    // Replaces the attribute
                     tagHelperOutput.Attributes[i] = new TagHelperAttribute(tagHelperOutput.Attributes[i].Name,
                         ServiceTextHelper.GetServiceText(tagHelperOutput.Attributes[i].Value.ToString(), serviceContext.ServiceText, null, serviceContext.CurrentCulture));
                 }

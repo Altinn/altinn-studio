@@ -1,4 +1,4 @@
-﻿using AltinnCore.Runtime.Db.Configuration;
+using AltinnCore.Runtime.Db.Configuration;
 using AltinnCore.Runtime.Db.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
@@ -23,7 +23,7 @@ namespace AltinnCore.Runtime.Db.Repository
 
         public FormDataRepository(IOptions<AzureCosmosSettings> cosmosettings)
         {
-            //Retrieve configuration values from appsettings.json
+            // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
             _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey);
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
@@ -62,21 +62,21 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <param name="reporteeElementId">the id of the reporteeelement</param>
         /// <param name="formId">the id of the form</param>
         /// <returns>the form data for the given parameters</returns>
-        public async Task<FormData> GetFormDataFromCollectionAsync(string reporteeId, string reporteeElementId,string formId)
+        public async Task<FormData> GetFormDataFromCollectionAsync(string reporteeId, string reporteeElementId, string formId)
         {
             try
             {
                 string sqlQuery = $"SELECT * FROM FORMDATA WHERE FORMDATA.reporteeElementId = '{reporteeElementId}' and FORMDATA.formId = '{formId}'";
                 IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId) }).AsDocumentQuery();
-                FormData formData = null; 
+                FormData formData = null;
                 while (query.HasMoreResults)
                 {
                     FeedResponse<FormData> res = await query.ExecuteNextAsync<FormData>();
-                    if(res.Count != 0)
+                    if (res.Count != 0)
                     {
                         formData = res.First();
                         break;
-                    }                    
+                    }
                 }
                 return formData;
             }

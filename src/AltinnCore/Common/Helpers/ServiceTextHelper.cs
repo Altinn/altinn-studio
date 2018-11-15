@@ -29,7 +29,7 @@ namespace AltinnCore.Common.Helpers
                 if (textParams != null && textParams.Count > 0)
                 {
                     object[] stringList = new object[textParams.Count];
-                    
+
                     for (int i = 0; i < textParams.Count; i++)
                     {
                         stringList[i] = textParams[i];

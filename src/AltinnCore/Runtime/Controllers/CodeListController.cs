@@ -17,7 +17,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Returns 
+        /// Returns
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>

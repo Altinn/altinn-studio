@@ -1,4 +1,4 @@
-﻿using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// Gets or sets the user messages.
         /// </summary>
-        public IList<UserMessage> UserMessages { get; set; }  = new List<UserMessage>();
+        public IList<UserMessage> UserMessages { get; set; } = new List<UserMessage>();
 
         /// <summary>
         /// Gets or sets the compilation messages.

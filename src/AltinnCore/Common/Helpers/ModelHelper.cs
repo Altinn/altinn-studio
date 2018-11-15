@@ -33,7 +33,7 @@ namespace AltinnCore.Common.Helpers
                 {
                     forName = forName.Remove(startIndex, (stopIndex - startIndex) + 1);
 
-                    //In case of group in group
+                    // In case of group in group
                     if (!forName.Contains("["))
                     {
                         hasIndex = false;

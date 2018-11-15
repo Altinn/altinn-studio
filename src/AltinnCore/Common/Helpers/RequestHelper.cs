@@ -22,7 +22,7 @@ namespace AltinnCore.Common.Helpers
                 Params = new Dictionary<string, string>(),
                 InstanceId = instanceId
             };
-            
+
             if (queryCollection != null)
             {
                 foreach (string key in queryCollection.Keys)
@@ -36,7 +36,7 @@ namespace AltinnCore.Common.Helpers
 
         /// <summary>
         /// Checks the request for the standard user actions for the plattform
-        /// based on 
+        /// based on
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -49,7 +49,7 @@ namespace AltinnCore.Common.Helpers
                 {
                     return UserActionType.NavigateNext;
                 }
-                
+
                 if (form.ContainsKey("NavigationButtonPrevious"))
                 {
                     return UserActionType.NavigatePrevious;
