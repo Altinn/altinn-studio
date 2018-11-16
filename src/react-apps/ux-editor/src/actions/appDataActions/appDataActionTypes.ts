@@ -27,3 +27,8 @@ export const LOAD_TEXT_RESOURCES_REJECTED: string = `${moduleName}.LOAD_TEXT_RES
 export const FETCH_CODE_LISTS: string = `${moduleName}.FETCH_CODE_LISTS`;
 export const FETCH_CODE_LISTS_FULFILLED: string = `${moduleName}.FETCH_CODE_LISTS_FULFILLED`;
 export const FETCH_CODE_LISTS_REJECTED: string = `${moduleName}.FETCH_CODE_LISTS_REJECTED`;
+
+// All fetch language actions
+export const FETCH_LANGUAGE: string = `${moduleName}.FETCH_LANGUAGE`;
+export const FETCH_LANGUAGE_FULFILLED: string = `${moduleName}.FETCH_LANGUAGE_FULFILLED`;
+export const FETCH_LANGUAGE_REJECTED: string = `${moduleName}.FETCH_LANGUAGE_REJECTED`;

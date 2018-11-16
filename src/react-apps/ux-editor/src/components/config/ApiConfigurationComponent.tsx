@@ -11,6 +11,7 @@ export interface IProvidedProps {
   saveEdit: (updatedConnection: any) => void;
   cancelEdit: () => void;
   deleteConnection: (connectionId: any) => void;
+  language: any;
 }
 
 export interface IApiConfigurationProps extends IProvidedProps {
@@ -325,7 +326,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               className='a-btn a-btn-success mr-2'
               onClick={this.handleSaveEdit}
             >
-              Save
+              {this.props.language ? this.props.language.general.save : 'Save'}
             </button>
             :
             null
@@ -413,6 +414,7 @@ const mapsStateToProps = (state: IAppState, props: IProvidedProps): IApiConfigur
     APIs: state.serviceConfigurations.APIs,
     dataModelElements: state.appData.dataModel.model,
     codeLists: state.appData.codeLists.codeLists,
+    language: state.appData.language.language,
   };
 };
 

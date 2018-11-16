@@ -25,6 +25,7 @@ export interface IToolbarProps {
   textResources: ITextResource[];
   thirdPartyComponents: any;
   activeContainer: string;
+  language: any;
 }
 export interface IToolbarState {
   modalOpen: boolean;
@@ -84,7 +85,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             className={'a-btn a-btn-icon'}
             onClick={onClickEvent}
           >
-            <span className='a-btn-icon-text'>Add container</span>
+            <span className='a-btn-icon-text'>
+              {this.props.language ? this.props.language['ux-editor'].toolbar_add_container : 'container'}
+            </span>
           </button>
         </div>
       </div>
@@ -149,6 +152,15 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     });
   }
 
+  public setToolbarLabel = (label: any) => {
+    if (label === 'Header') {
+      this.props.language ? label = this.props.language['ux-editor'].toolbar_header : label = label;
+    } else if (label === 'FileUpload') {
+      this.props.language ? label = this.props.language['ux-editor'].toolbar_file_upload : label = label;
+    }
+    return label;
+  }
+
   public render() {
     return (
       <div className={'col-sm-3'}>
@@ -162,7 +174,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                   onClick={component.actionMethod}
                 >
                   <span className='a-btn-icon-text'>
-                    {component.label}
+                    {this.setToolbarLabel(component.label)}
                   </span>
                 </button>
               </div>
@@ -210,6 +222,7 @@ const mapsStateToProps = (
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
     activeContainer: state.formDesigner.layout.activeContainer,
+    language: state.appData.language.language,
   };
 };
 

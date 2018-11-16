@@ -82,3 +82,21 @@ export function* watchLoadTextResourcesSaga(): SagaIterator {
 export function* watchFetchRuleModelSaga(): SagaIterator {
   yield takeLatest(AppDataActionTypes.FETCH_RULE_MODEL, fetchRuleModelSaga);
 }
+export function* fetchLanguageSaga({
+  url,
+  languageCode,
+}: AppDataActions.IFetchLanguageAction): SagaIterator {
+  try {
+    const language = yield call(get, url, { params: { languageCode } });
+    yield call(AppDataActionDispatchers.fetchLanguageFulfilled, language);
+  } catch (err) {
+    yield call(AppDataActionDispatchers.fetchLanguageRecjeted, err);
+  }
+}
+
+export function* watchFetchLanguageSaga(): SagaIterator {
+  yield takeLatest(
+    AppDataActionTypes.FETCH_LANGUAGE,
+    fetchLanguageSaga,
+  );
+}

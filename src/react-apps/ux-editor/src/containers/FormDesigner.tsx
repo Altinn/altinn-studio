@@ -1,11 +1,14 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
-export interface IFormDesignerProps { }
+export interface IFormDesignerProps {
+  language: any;
+}
 export interface IFormDesignerState { }
 
 class FormDesigner extends React.Component<
@@ -17,7 +20,8 @@ class FormDesigner extends React.Component<
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
 
-    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+    FormDesignerActionDispatchers.fetchFormLayout(
+      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
   }
 
@@ -38,7 +42,7 @@ class FormDesigner extends React.Component<
 
     return (
       <button type='button' className='a-btn a-btn-success' onClick={handleSaveButton}>
-        Save
+        {this.props.language ? this.props.language.general.save : 'Save'}
       </button>
     );
   }
@@ -47,7 +51,9 @@ class FormDesigner extends React.Component<
     return (
       <div className='container mb-3'>
         <div className='row mt-3'>
-          <h1>Form designer</h1>
+          <h1>
+            {this.props.language ? this.props.language['ux-editor'].form_designer : 'Form designer'}
+          </h1>
         </div>
         <div className='row bigger-container mt-3'>
           <Toolbar />
@@ -67,4 +73,12 @@ class FormDesigner extends React.Component<
   }
 }
 
-export default FormDesigner;
+const mapsStateToProps = (
+  state: IAppState,
+): IFormDesignerProps => {
+  return {
+    language: state.appData.language.language,
+  };
+};
+
+export default connect(mapsStateToProps)(FormDesigner);
