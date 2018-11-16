@@ -9,6 +9,7 @@ export interface IProvidedProps {
   selectedElement: string;
   onDataModelChange: (dataModelField: string) => void;
   hideRestrictions?: boolean;
+  language: any;
 }
 
 export interface ISelectDataModelState {
@@ -39,7 +40,10 @@ export class SelectDataModel extends React.Component<
       return (
         <li className='a-dotted'>
           <div className='row'>
-            <div className='col-12'>Please select a field in the data model</div>
+            <div className='col-12'>
+              {this.props.language ? this.props.language['ux-editor'].modal_restrictions_helper
+                : 'Please select a field in the data model'}
+            </div>
           </div>
         </li>
       );
@@ -50,7 +54,9 @@ export class SelectDataModel extends React.Component<
       Object.keys(selected.Restrictions).length === 0 ? (
         <li className='a-dotted'>
           <div className='row'>
-            <div className='col-12'>No restrictions to show</div>
+            <div className='col-12'>
+              {this.props.language ? this.props.language['ux-editor'].modal_restrictions_empty
+                : 'No restrictions to show'}</div>
           </div>
         </li>)
         :
@@ -70,7 +76,10 @@ export class SelectDataModel extends React.Component<
   public render() {
     return (
       <div className='form-group a-form-group mt-1'>
-        <label className='a-form-label' htmlFor='nameField'>Select field in data model:</label>
+        <label className='a-form-label' htmlFor='nameField'>
+          {this.props.language ? this.props.language['ux-editor'].modal_data_model_helper
+            : 'Select field in data model'}:
+        </label>
         <div className='a-form-group-items input-group'>
           <select
             name={'selectDataModel'}
@@ -78,7 +87,8 @@ export class SelectDataModel extends React.Component<
             onChange={this.onDataModelChange}
             className='custom-select a-custom-select'
           >
-            <option value={''}>{'Velg knytning:'}</option>
+            <option value={''}>{this.props.language ? this.props.language['ux-editor'].modal_data_model_input
+              : 'Select field'}</option>
             {this.props.dataModelElements.map((element) => {
               if (!element.DataBindingName || element.Type !== 'Field') {
                 return null;
@@ -98,8 +108,9 @@ export class SelectDataModel extends React.Component<
                 <div className='row'>
                   <div className='col'>
                     <span className='a-fontBold'>
-                      Restrictions from data model
-                  </span>
+                      {this.props.language ? this.props.language['ux-editor'].modal_restrictions
+                        : 'Restrictions from data model'}
+                    </span>
                   </div>
                 </div>
               </li>
@@ -120,6 +131,7 @@ const mapStateToProps = (
     selectedElement: props.selectedElement,
     onDataModelChange: props.onDataModelChange,
     dataModelElements: state.appData.dataModel.model,
+    language: state.appData.language.language,
   };
 };
 
