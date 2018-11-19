@@ -81,7 +81,6 @@ namespace AltinnCore.Common.Backend
             throw new NotImplementedException();
         }
 
-        /// <inheritdoc />
         /*public CompilationResult Compile(RelativeFileInfo fileInfo, string compilationContent)
         {
             if (fileInfo == null)
