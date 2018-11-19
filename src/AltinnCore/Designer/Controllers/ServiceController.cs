@@ -100,7 +100,6 @@ namespace AltinnCore.Designer.Controllers
             return RedirectToAction("index", new { Org = org, Service = service });
         }
 
-
         /// <summary>
         /// This method pushes changes to remote repository
         /// </summary>

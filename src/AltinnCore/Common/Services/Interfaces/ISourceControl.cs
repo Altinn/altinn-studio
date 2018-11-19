@@ -51,7 +51,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <returns>The number of commits behind</returns>
         int? CheckRemoteUpdates(string org, string repository);
 
-
         /// <summary>
         /// Pull remote changes
         /// </summary>

@@ -40,7 +40,6 @@ namespace AltinnCore.Designer
             Configuration = configuration;
         }
 
-
         /// <summary>
         /// Configures the services available for the asp.net Core application
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/>
@@ -92,7 +91,6 @@ namespace AltinnCore.Designer
             {
                 repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
             }
-
 
             if (!Directory.Exists(repoLocation))
             {

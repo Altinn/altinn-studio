@@ -442,7 +442,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-
         private string GetDataBindingName(string id)
         {
             string[] paths = id.Split(".");

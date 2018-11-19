@@ -67,7 +67,6 @@ namespace AltinnCore.Common.Services.Implementation
             return updated;
         }
 
-
         /// <summary>
         /// Get the view content for a given razor file on disk
         /// </summary>

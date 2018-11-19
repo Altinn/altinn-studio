@@ -36,7 +36,6 @@ namespace AltinnCore.Designer.Controllers
             return View();
         }
 
-
         /// <summary>
         /// Get form layout as JSON
         /// </summary>
@@ -157,7 +156,5 @@ namespace AltinnCore.Designer.Controllers
         {
             return Content(_repository.GetJsonFile(org, service, fileName), "application/javascript", Encoding.UTF8);
         }
-
-
     }
 }

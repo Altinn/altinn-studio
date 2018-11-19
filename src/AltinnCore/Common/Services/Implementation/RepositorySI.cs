@@ -109,7 +109,6 @@ namespace AltinnCore.Common.Services.Implementation
                 resourceDirectoryInfo.Create();
             }
 
-
             var filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
@@ -176,13 +175,9 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 throw;
             }
-
-
-
         }
 
         #endregion
-
 
         /// <summary>
         /// Returns the content of a configuration file
@@ -293,7 +288,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
             return resourceTexts;
         }
-
 
         /// <summary>
         /// Returns the service languages
@@ -577,8 +571,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             return true;
         }
-
-
 
         /// <summary>
         /// Deletes the language resource for a given language id
@@ -1055,7 +1047,6 @@ namespace AltinnCore.Common.Services.Implementation
                 // Happens when developer has not cloned org repo
             }
 
-
             // First verify if there exist a remote repo
             try
             {
@@ -1460,7 +1451,6 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(path);
             }
         }
-
 
         private static string ViewResourceKey(string viewName)
         {

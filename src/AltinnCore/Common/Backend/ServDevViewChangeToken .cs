@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.Extensions.Primitives;
-
 
 namespace AltinnCore.Common.Backend
 {

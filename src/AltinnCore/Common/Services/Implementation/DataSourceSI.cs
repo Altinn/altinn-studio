@@ -287,7 +287,6 @@ namespace AltinnCore.Common.Services.Implementation
                 filePath = $"{_settings.RepositoryLocation}{org}";
             }
 
-
             if (!string.IsNullOrEmpty(service))
             {
                 filePath += "/" + service;

@@ -222,7 +222,6 @@ namespace AltinnCore.RepositoryClient.Client
 
         #endregion Constructors
 
-
         #region Properties
 
         private ApiClient _apiClient = null;
@@ -446,7 +445,6 @@ namespace AltinnCore.RepositoryClient.Client
         {
             return new ApiClient(BasePath) { Configuration = this };
         }
-
 
         /// <summary>
         /// Returns a string with essential information for debugging.

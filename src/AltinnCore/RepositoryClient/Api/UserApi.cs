@@ -3109,7 +3109,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -3220,7 +3219,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -3328,7 +3326,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3439,7 +3436,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -3547,7 +3543,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3657,7 +3652,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3779,7 +3773,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3903,7 +3896,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -4012,7 +4004,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4124,7 +4115,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -4233,7 +4223,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4345,7 +4334,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -4441,7 +4429,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4540,7 +4527,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -4636,7 +4622,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4735,7 +4720,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -4831,7 +4815,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4930,7 +4913,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -5026,7 +5008,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -5125,7 +5106,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -5221,7 +5201,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -5320,7 +5299,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -5416,7 +5394,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -5515,7 +5492,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -5611,7 +5587,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -5709,7 +5684,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6246,7 +6220,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -6356,7 +6329,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6478,7 +6450,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6602,7 +6573,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -6698,7 +6668,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6796,7 +6765,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7120,7 +7088,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -7231,7 +7198,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -7327,7 +7293,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7426,7 +7391,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -7521,7 +7485,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7619,7 +7582,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -7715,7 +7677,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7813,7 +7774,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7923,7 +7883,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8035,7 +7994,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -8144,7 +8102,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8256,7 +8213,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -8365,7 +8321,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8477,7 +8432,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -8586,7 +8540,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8698,7 +8651,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -8807,7 +8759,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8919,7 +8870,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -9028,7 +8978,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -9140,7 +9089,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -9249,7 +9197,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -9361,7 +9308,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -9471,7 +9417,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -9583,7 +9528,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -9718,7 +9662,6 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
             }
 
-
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
@@ -9852,7 +9795,6 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
             }
-
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))

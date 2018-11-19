@@ -71,7 +71,6 @@ namespace AltinnCore.Designer.Controllers
             return View();
         }
 
-
         /// <summary>
         /// Action used to create a new service under the current service owner
         /// </summary>

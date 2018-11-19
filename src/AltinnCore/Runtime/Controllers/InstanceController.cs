@@ -66,7 +66,6 @@ namespace AltinnCore.Runtime.Controllers
             _testdata = testDataService;
         }
 
-
         /// <summary>
         /// Action used for SPA
         /// </summary>
@@ -91,8 +90,6 @@ namespace AltinnCore.Runtime.Controllers
             // TODO Add info for REACT app.
             return View();
         }
-
-
 
         /// <summary>
         /// Action where user can send in reporting service

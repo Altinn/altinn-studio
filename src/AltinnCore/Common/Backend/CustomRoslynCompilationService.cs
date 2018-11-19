@@ -46,8 +46,6 @@ namespace AltinnCore.Common.Backend
         private readonly CSharpCompiler _csharpCompiler;
         private readonly ILogger _logger;
         private readonly IList<CompiledViewDescriptor> _precompiledViews;*/
-
-
         /*public CustomRoslynCompilationService(
             IFileProvider fileProvider,
             RazorTemplateEngine templateEngine,

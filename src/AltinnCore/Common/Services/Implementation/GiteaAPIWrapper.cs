@@ -26,8 +26,6 @@ namespace AltinnCore.Common.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
         }
 
-
-
         /// <inheritdoc/>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
         {
@@ -125,7 +123,6 @@ namespace AltinnCore.Common.Services.Implementation
             return repository;
         }
 
-
         /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
@@ -145,7 +142,6 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(_settings.ApiEndPoint + "/repos/search?");
             }
 
-
             giteaUrl = new Uri(giteaUrl.OriginalString + "limit=" + 50);
             giteaUrl = new Uri(giteaUrl.OriginalString + "&page=" + page);
             if (onlyAdmin)
@@ -156,7 +152,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&q=" + keyWord);
             }
-
 
             Cookie cookie = null;
             if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
@@ -195,8 +190,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             return repository;
         }
-
-
 
         /// <summary>
         /// Does not work because of GITEA BUG. Will create Issue for the one mentioned here
