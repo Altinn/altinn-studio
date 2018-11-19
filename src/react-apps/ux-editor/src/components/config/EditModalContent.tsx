@@ -388,6 +388,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         <SelectDataModelComponent
           onDataModelChange={this.handleDataModelChange}
           selectedElement={this.state.component.dataModelBinding}
+          language={this.props.language}
         />) : null);
   }
 

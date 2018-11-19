@@ -114,12 +114,14 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
               saveEdit={this.handleSaveChange}
               cancelEdit={this.handleCloseModal}
               deleteConnection={this.handleDeleteConnection}
+              language={this.props.language}
             />
             :
             <ApiConfigurationComponent
               saveEdit={this.handleSaveChange}
               cancelEdit={this.handleCloseModal}
               deleteConnection={(connectionId: any) => this.handleDeleteConnection(connectionId)}
+              language={this.props.language}
             />
           }
         </Modal>

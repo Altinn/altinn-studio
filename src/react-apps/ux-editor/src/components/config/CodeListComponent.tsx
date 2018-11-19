@@ -11,6 +11,7 @@ export interface ICodeListComponentProps {
   addMapping: () => void;
   handleMappingChange: (id: any, name: string, value: any) => void;
   removeMapping: (id: any) => void;
+  language: any;
 }
 
 export interface ICodeListComponentState { }
@@ -78,6 +79,7 @@ export class CodeListComponent extends React.Component<ICodeListComponentProps, 
                             onDataModelChange={this.props.handleMappingChange.bind(null, id, 'mappingObject')}
                             selectedElement={this.props.componentApiResponseMappingsById[id].mappingObject}
                             hideRestrictions={true}
+                            language={this.props.language}
                           />
                         </div>
                       </div>

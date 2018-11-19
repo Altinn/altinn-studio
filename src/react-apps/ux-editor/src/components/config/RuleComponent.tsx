@@ -173,6 +173,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                             onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
                             selectedElement={this.state.ruleConnection.inputParams[paramName]}
                             hideRestrictions={true}
+                            language={this.props.language}
                           />
                         </div>
                       </div>
@@ -208,6 +209,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                       onDataModelChange={this.handleOutParamDataChange.bind(null, 'outParam0')}
                       selectedElement={this.state.ruleConnection.outParams.outParam0}
                       hideRestrictions={true}
+                      language={this.props.language}
                     />
                   </div>
                 </div>

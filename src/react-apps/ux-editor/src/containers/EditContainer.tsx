@@ -15,6 +15,7 @@ export interface IEditContainerProps {
   id: string;
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
+  language: any;
 }
 
 export interface IEditContainerState {
@@ -77,6 +78,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             cancelEdit={this.handleCloseModal}
             dataModel={this.props.dataModel}
             textResources={this.props.textResources}
+            language={this.props.language}
           />
         </Modal>
         <div
@@ -109,6 +111,7 @@ const mapsStateToProps = (
     id: props.id,
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
+    language: state.appData.language.language,
   };
 };
 

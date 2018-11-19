@@ -382,6 +382,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
                   addMapping={this.addMapping}
                   handleMappingChange={this.handleMappingChange}
                   removeMapping={this.removeMapping}
+                  language={this.props.language}
                 />
               </div>
               :
@@ -399,6 +400,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
                   removeMapping={this.removeMapping}
                   handleClientParamsChange={this.handleClientParamsChange}
                   handleMetaParamsChange={this.handleMetaParamsChange}
+                  language={this.props.language}
                 />
               </div>
             )

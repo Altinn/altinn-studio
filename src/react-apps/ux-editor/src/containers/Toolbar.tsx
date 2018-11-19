@@ -208,6 +208,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             cancelEdit={this.handleCloseModal}
             dataModel={this.props.dataModel}
             textResources={this.props.textResources}
+            language={this.props.language}
           />
         </Modal>
       </div>
