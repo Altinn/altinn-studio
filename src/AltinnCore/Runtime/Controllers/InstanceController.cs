@@ -86,7 +86,7 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
             {
                 return RedirectToAction("Receipt", new { org, service, instanceId });
@@ -224,7 +224,7 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, platformServices);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.Reportee.PartyId);
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
             return View();

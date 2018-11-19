@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -14,14 +14,18 @@ namespace AltinnCore.Designer.Controllers
     public class RuntimeAPIController : Controller
     {
         private readonly ServiceRepositorySettings _settings;
+        private readonly IExecution _execution;
+        private readonly ITestdata _testdataSI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeAPIController"/> class.
         /// </summary>
         /// <param name="repositorySettings">The repository settings</param>
-        public RuntimeAPIController(IOptions<ServiceRepositorySettings> repositorySettings)
+        public RuntimeAPIController(IOptions<ServiceRepositorySettings> repositorySettings, IExecution executionSI, ITestdata testdataSIDesigner)
         {
             _settings = repositorySettings.Value;
+            _execution = executionSI;
+            _testdataSI = testdataSIDesigner;
         }
 
         /// <summary>
@@ -30,17 +34,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public FileResult ZipAndSendRepo(string org, string service, string developer)
         {
-            string startPath = _settings.GetServicePath(org, service, developer);
-            string zipPath = $"{_settings.GetOrgPath(org, developer)}{service}.zip";
-            if (System.IO.File.Exists(zipPath))
-            {
-                System.IO.File.Delete(zipPath);
-            }
-
-            ZipFile.CreateFromDirectory(startPath, zipPath);
-            FileStream fileToSend = System.IO.File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            return File(fileToSend, "application/zip", $"{service}{Path.GetExtension(zipPath)}");
+            return File(_execution.ZipAndReturnFile(org, service, developer), "application/zip", $"{service}.zip");
         }
 
         /// <summary>
@@ -50,8 +44,7 @@ namespace AltinnCore.Designer.Controllers
         public FileResult GetFormModel(string org, string service, string developer, int partyId, int formID)
         {
             string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{formID}.xml";
-            FileStream fileToSend = System.IO.File.Open(formDataFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return File(fileToSend, "application/xml", $"{formID}.xml");
+            return File(_execution.GetFileStream(formDataFilePath), "application/xml", $"{formID}.xml");
         }
 
         /// <summary>
@@ -60,9 +53,8 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public FileResult GetPrefill(string org, string service, string developer, int partyId, string prefillkey)
         {
-            string PrefillFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/prefill/{prefillkey}.xml";
-            FileStream fileToSend = System.IO.File.Open(PrefillFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return File(fileToSend, "application/xml", $"{prefillkey}.xml");
+            string prefillFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/prefill/{prefillkey}.xml";
+            return File(_execution.GetFileStream(prefillFilePath), "application/xml", $"{prefillkey}.xml");
         }
 
         /// <summary>
@@ -71,9 +63,8 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public FileResult GetArchivedServiceModel(string org, string service, string developer, int partyId, int instanceId)
         {
-            string PrefillFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/{instanceId}.xml";
-            FileStream fileToSend = System.IO.File.Open(PrefillFilePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return File(fileToSend, "application/xml", $"{instanceId}.xml");
+            string prefillFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/{instanceId}.xml";
+            return File(_execution.GetFileStream(prefillFilePath), "application/xml", $"{instanceId}.xml");
         }
 
         /// <summary>
@@ -82,38 +73,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public List<ServiceInstance> GetFormInstances(string org, string service, string developer, int partyId)
         {
-            List<ServiceInstance> formInstances = new List<ServiceInstance>();
-            string formDataFilePath = _settings.GetTestdataForPartyPath(org, service, developer) + partyId;
-            string archiveFolderPath = $"{formDataFilePath}/Archive/";
-
-            if (!Directory.Exists(archiveFolderPath))
-            {
-                Directory.CreateDirectory(archiveFolderPath);
-            }
-
-            string[] files = Directory.GetFiles(formDataFilePath);
-            foreach (string file in files)
-            {
-                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int instanceId))
-                {
-                    ServiceInstance serviceInstance = new ServiceInstance()
-                    {
-                        ServiceInstanceID = instanceId,
-                        LastChanged = System.IO.File.GetLastWriteTime(file)
-                    };
-
-                    string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";
-                    if (System.IO.File.Exists(archiveFilePath))
-                    {
-                        serviceInstance.LastChanged = System.IO.File.GetLastWriteTime(archiveFilePath);
-                        serviceInstance.IsArchived = true;
-                    }
-
-                    formInstances.Add(serviceInstance);
-                }
-            }
-
-            return formInstances;
+            return _testdataSI.GetFormInstances(partyId, org, service, developer);
         }
 
         /// <summary>
@@ -122,20 +82,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public List<ServicePrefill> GetServicePrefill(string org, string service, string developer, int partyId)
         {
-            List<ServicePrefill> formInstances = new List<ServicePrefill>();
-            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Prefill/";
-            if (!Directory.Exists(formDataFilePath))
-            {
-                Directory.CreateDirectory(formDataFilePath);
-            }
-
-            string[] files = Directory.GetFiles(formDataFilePath);
-            foreach (string file in files)
-            {
-                formInstances.Add(new ServicePrefill() { PrefillKey = Path.GetFileNameWithoutExtension(file), LastChanged = System.IO.File.GetLastWriteTime(file) });
-            }
-
-            return formInstances;
+            return _testdataSI.GetServicePrefill(partyId, org, service, developer);
         }
 
         /// <summary>
@@ -145,10 +92,7 @@ namespace AltinnCore.Designer.Controllers
         public void SaveFormModel(string org, string service, string developer, int partyId, int formId)
         {
             string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{formId}.xml";
-            using (Stream stream = System.IO.File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
-            {
-                Request.Body.CopyTo(stream);
-            }
+            _execution.SaveToFile(formDataFilePath, Request.Body);
         }
 
         /// <summary>
@@ -163,11 +107,8 @@ namespace AltinnCore.Designer.Controllers
                 Directory.CreateDirectory(archiveDirectory);
             }
 
-            string formDataFilePath = archiveDirectory + instanceId + ".xml";
-            using (Stream stream = System.IO.File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
-            {
-                Request.Body.CopyTo(stream);
-            }
+            string formDataFilePath = $"{archiveDirectory}{instanceId}.xml";
+            _execution.SaveToFile(formDataFilePath, Request.Body);
         }
     }
 }

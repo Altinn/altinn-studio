@@ -72,10 +72,10 @@ namespace AltinnCore.Designer
             services.AddSingleton<IRegister, RegisterSILocalDev>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestdata, TestdataSILocalDev>();
             services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
+            services.AddSingleton<ITestdata, TestdataSIDesigner>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
