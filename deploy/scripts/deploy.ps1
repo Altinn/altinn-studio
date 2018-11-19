@@ -25,7 +25,7 @@ while (!($clusterName -match '^[a-z,A-Z,0-9,-]*$')) {
 }
 
 Write-Output "Setting up the kubernetes cluster..."
-az aks create --resource-group $resourceGroupName --name $clusterName --generate-ssh-keys
+az aks create --resource-group $resourceGroupName --name $clusterName --generate-ssh-keys --service-cidr 10.0.0.0/16
 
 Write-Output "Installing kubernetes cli"
 az aks install-cli
@@ -49,9 +49,6 @@ $servicePrincipalName = Read-Host -Prompt "Service princpal name"
 $acrResources = (az acr list --resource-group $resourceGroupName --query "[0].{id:id,loginServer:loginServer}" --output tsv).split("`t")
 $servicePrincipalPassword = az ad sp create-for-rbac --name $servicePrincipalName --role Reader --scopes $acrResources[0] --query password --output tsv
 $servicePrincipalId = az ad sp show --id http://$servicePrincipalName --query appId --output tsv
-
-Write-Output "Adding appsetting secrets"
-kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json
 
 Write-Output "Creating kubernetes secret with service principal"
 $secretName = Read-Host -Prompt "Secret name"
