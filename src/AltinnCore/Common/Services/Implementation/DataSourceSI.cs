@@ -133,7 +133,7 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = GetNextId(dataSourceModel).ToString(),
                 Description = description,
                 Url = url,
-                Opprettet = DateTime.Now
+                Opprettet = DateTime.Now,
             };
 
             dataSourceModel.UrlResources.DataSourceUrls.Add(newItem.Id, newItem);
@@ -264,8 +264,8 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 UrlResources = new UrlResources
                 {
-                    DataSourceUrls = new Dictionary<string, DataSourceModel>()
-                }
+                    DataSourceUrls = new Dictionary<string, DataSourceModel>(),
+                },
             };
         }
 

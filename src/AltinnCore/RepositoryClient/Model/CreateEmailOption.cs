@@ -89,9 +89,8 @@ namespace AltinnCore.RepositoryClient.Model
                 return false;
 
             return
-                (
                     this.Emails == input.Emails ||
-                    this.Emails != null &&
+                    (this.Emails != null &&
                     this.Emails.SequenceEqual(input.Emails));
         }
 
@@ -106,7 +105,7 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Emails != null)
-                    hashCode = hashCode * 59 + this.Emails.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Emails.GetHashCode();
                 return hashCode;
             }
         }

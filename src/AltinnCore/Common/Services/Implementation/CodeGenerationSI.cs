@@ -76,7 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
                 { ServiceEventType.Calculation, finalRule }, // TODO: Add option to choose which event rules should be linked to
                 { ServiceEventType.Instantiation, string.Empty },
                 { ServiceEventType.ValidateInstantiation, string.Empty },
-                { ServiceEventType.Validation, string.Empty }
+                { ServiceEventType.Validation, string.Empty },
             };
             CreateClassFromTemplate(org, service, eventLogic, allMethods, serviceMetadata);
         }
@@ -105,8 +105,8 @@ namespace AltinnCore.Common.Services.Implementation
                         Description = "Felt/gruppe feilen skal legges til",
                         SupportedTypes = new List<Models.ValueType>
                         {
-                            Models.ValueType.ModelProperty
-                        }
+                            Models.ValueType.ModelProperty,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -114,10 +114,10 @@ namespace AltinnCore.Common.Services.Implementation
                         Description = "Feilmelding (ressurstekst)",
                         SupportedTypes = new List<Models.ValueType>
                         {
-                            Models.ValueType.String
-                        }
-                    }
-                }
+                            Models.ValueType.String,
+                        },
+                    },
+                },
                 },
 
                 new RuleType
@@ -133,8 +133,8 @@ namespace AltinnCore.Common.Services.Implementation
                         Description = "Feltet som skal få satt verdi",
                         SupportedTypes = new List<Models.ValueType>
                         {
-                            Models.ValueType.ModelProperty
-                        }
+                            Models.ValueType.ModelProperty,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -146,10 +146,10 @@ namespace AltinnCore.Common.Services.Implementation
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
                             Models.ValueType.Int64,
-                            Models.ValueType.String
-                        }
-                    }
-                }
+                            Models.ValueType.String,
+                        },
+                    },
+                },
                 },
 
                 new RuleType
@@ -162,10 +162,10 @@ namespace AltinnCore.Common.Services.Implementation
                     new ParameterDetails
                     {
                         Index = 1,
-                        Description = "Gruppen som skal blankes ut"
-                    }
-                }
-                }
+                        Description = "Gruppen som skal blankes ut",
+                    },
+                },
+                },
             };
             return ruleTypes;
         }
@@ -197,8 +197,8 @@ namespace AltinnCore.Common.Services.Implementation
                             Models.ValueType.String,
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
+                            Models.ValueType.Int64,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -209,10 +209,10 @@ namespace AltinnCore.Common.Services.Implementation
                             Models.ValueType.String,
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
-                    }
-                }
+                            Models.ValueType.Int64,
+                        },
+                    },
+                },
                 },
 
                 // Greater than
@@ -232,8 +232,8 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
+                            Models.ValueType.Int64,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -243,10 +243,10 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
-                    }
-                }
+                            Models.ValueType.Int64,
+                        },
+                    },
+                },
                 },
 
                 // Greater than or equal
@@ -266,8 +266,8 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
+                            Models.ValueType.Int64,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -277,10 +277,10 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
-                    }
-                }
+                            Models.ValueType.Int64,
+                        },
+                    },
+                },
                 },
 
                 // Less than
@@ -300,8 +300,8 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
+                            Models.ValueType.Int64,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -311,10 +311,10 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
-                    }
-                }
+                            Models.ValueType.Int64,
+                        },
+                    },
+                },
                 },
 
                 // Less than or equal
@@ -334,8 +334,8 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
+                            Models.ValueType.Int64,
+                        },
                     },
                     new ParameterDetails
                     {
@@ -345,11 +345,11 @@ namespace AltinnCore.Common.Services.Implementation
                         {
                             Models.ValueType.Decimal,
                             Models.ValueType.Int32,
-                            Models.ValueType.Int64
-                        }
-                    }
-                }
-                }
+                            Models.ValueType.Int64,
+                        },
+                    },
+                },
+                },
             };
             return conditionTypes;
         }
@@ -539,7 +539,7 @@ namespace AltinnCore.Common.Services.Implementation
             var iterator = new Iterator
             {
                 IndexName = indexName,
-                ElementName = variableName
+                ElementName = variableName,
             };
             return iterator;
         }

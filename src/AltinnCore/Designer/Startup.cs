@@ -114,7 +114,7 @@ namespace AltinnCore.Designer
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized
+                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
                     };
                 });
 
@@ -136,7 +136,7 @@ namespace AltinnCore.Designer
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO")
+                            new CultureInfo("nn-NO"),
                         };
 
                     options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
@@ -176,9 +176,9 @@ namespace AltinnCore.Designer
                     headers.CacheControl = new CacheControlHeaderValue()
                     {
                         Public = true,
-                        MaxAge = TimeSpan.FromMinutes(60)
+                        MaxAge = TimeSpan.FromMinutes(60),
                     };
-                }
+                },
             });
 
             app.UseMvc(routes =>
@@ -190,7 +190,7 @@ namespace AltinnCore.Designer
                     defaults: new { controller = "Owner" },
                     constraints: new
                     {
-                        controller = "Codelist|Owner|Config"
+                        controller = "Codelist|Owner|Config",
                     });
                 routes.MapRoute(
                           name: "serviceRoute",
@@ -200,7 +200,7 @@ namespace AltinnCore.Designer
                           {
                               controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy)",
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                              id = "[a-zA-Z0-9_\\-]{1,30}"
+                              id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
 
                 // -------------------------- DEFAULT ------------------------- //

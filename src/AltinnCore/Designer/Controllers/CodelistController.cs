@@ -129,7 +129,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Kodeliste lagret"
+                Message = "Kodeliste lagret",
             });
         }
 

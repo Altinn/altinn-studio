@@ -91,8 +91,8 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     MergeOptions = new MergeOptions()
                     {
-                        FastForwardStrategy = FastForwardStrategy.Default
-                    }
+                        FastForwardStrategy = FastForwardStrategy.Default,
+                    },
                 };
 
                 pullOptions.FetchOptions = new FetchOptions();

@@ -131,11 +131,11 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Admin != null)
-                    hashCode = hashCode * 59 + this.Admin.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Admin.GetHashCode();
                 if (this.Pull != null)
-                    hashCode = hashCode * 59 + this.Pull.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Pull.GetHashCode();
                 if (this.Push != null)
-                    hashCode = hashCode * 59 + this.Push.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Push.GetHashCode();
                 return hashCode;
             }
         }

@@ -53,7 +53,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             var serviceMetadata = new ServiceMetadata
             {
-                Elements = new Dictionary<string, ElementMetadata>()
+                Elements = new Dictionary<string, ElementMetadata>(),
             };
             this.xsd = xsd;
             this.secondaryXsds = secondaryXsds;
@@ -101,7 +101,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 Name = rootName,
                 XPath = "/" + rootName,
                 Type = ElementType.Group,
-                TypeName = !string.IsNullOrEmpty(rootTypeName) ? rootTypeName : rootName
+                TypeName = !string.IsNullOrEmpty(rootTypeName) ? rootTypeName : rootName,
             };
             if (rootElement == null)
             {
@@ -555,7 +555,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             var elementMetadata = new ElementMetadata
             {
-                Restrictions = new Dictionary<string, Restriction>()
+                Restrictions = new Dictionary<string, Restriction>(),
             };
 
             string newTrail = $"{parentTrail}/Value";

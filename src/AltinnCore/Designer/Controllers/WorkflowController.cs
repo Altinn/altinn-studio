@@ -63,7 +63,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Prosessflyt lagret"
+                Message = "Prosessflyt lagret",
             });
         }
 

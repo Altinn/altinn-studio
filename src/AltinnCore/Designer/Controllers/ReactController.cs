@@ -102,7 +102,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Skjema lagret"
+                Message = "Skjema lagret",
             });
         }
 
@@ -121,7 +121,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Tredjeparts komponenter lagret"
+                Message = "Tredjeparts komponenter lagret",
             });
         }
 
@@ -141,7 +141,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = fileName + " saved"
+                Message = fileName + " saved",
             });
         }
 

@@ -83,7 +83,7 @@ namespace AltinnCore.Designer.Controllers
         {
             var meta = new TestMetadata
             {
-                Name = id
+                Name = id,
             };
             string test = _testingRepository.GetTest(org, service, id);
 

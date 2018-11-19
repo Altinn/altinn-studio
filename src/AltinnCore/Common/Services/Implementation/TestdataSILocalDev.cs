@@ -61,7 +61,7 @@ namespace AltinnCore.Common.Services.Implementation
                     ServiceInstance serviceInstance = new ServiceInstance()
                     {
                         ServiceInstanceID = instanceId,
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     };
 
                     string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";

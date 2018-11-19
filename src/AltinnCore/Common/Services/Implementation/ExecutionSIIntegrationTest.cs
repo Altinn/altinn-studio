@@ -76,7 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
             var activePackage = GetActivePackage(org, service);
             var context = new ServiceContext
                               {
-                                  CurrentCulture = CultureInfo.CurrentUICulture.Name
+                                  CurrentCulture = CultureInfo.CurrentUICulture.Name,
                               };
 
             using (var archive = _packageRepository.GetZipArchive(activePackage))

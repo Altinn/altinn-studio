@@ -200,19 +200,19 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.AutoInit != null)
-                    hashCode = hashCode * 59 + this.AutoInit.GetHashCode();
+                    hashCode = (hashCode * 59) + this.AutoInit.GetHashCode();
                 if (this.Description != null)
-                    hashCode = hashCode * 59 + this.Description.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Description.GetHashCode();
                 if (this.Gitignores != null)
-                    hashCode = hashCode * 59 + this.Gitignores.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Gitignores.GetHashCode();
                 if (this.License != null)
-                    hashCode = hashCode * 59 + this.License.GetHashCode();
+                    hashCode = (hashCode * 59) + this.License.GetHashCode();
                 if (this.Name != null)
-                    hashCode = hashCode * 59 + this.Name.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Name.GetHashCode();
                 if (this.IsPrivate != null)
-                    hashCode = hashCode * 59 + this.IsPrivate.GetHashCode();
+                    hashCode = (hashCode * 59) + this.IsPrivate.GetHashCode();
                 if (this.Readme != null)
-                    hashCode = hashCode * 59 + this.Readme.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Readme.GetHashCode();
                 return hashCode;
             }
         }

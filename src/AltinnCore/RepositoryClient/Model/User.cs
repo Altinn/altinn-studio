@@ -161,15 +161,15 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.AvatarUrl != null)
-                    hashCode = hashCode * 59 + this.AvatarUrl.GetHashCode();
+                    hashCode = (hashCode * 59) + this.AvatarUrl.GetHashCode();
                 if (this.Email != null)
-                    hashCode = hashCode * 59 + this.Email.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Email.GetHashCode();
                 if (this.FullName != null)
-                    hashCode = hashCode * 59 + this.FullName.GetHashCode();
+                    hashCode = (hashCode * 59) + this.FullName.GetHashCode();
                 if (this.Id != null)
-                    hashCode = hashCode * 59 + this.Id.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Id.GetHashCode();
                 if (this.Login != null)
-                    hashCode = hashCode * 59 + this.Login.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Login.GetHashCode();
                 return hashCode;
             }
         }

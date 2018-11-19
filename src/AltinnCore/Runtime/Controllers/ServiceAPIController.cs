@@ -506,7 +506,7 @@ namespace AltinnCore.Runtime.Controllers
                     {
                         Key = modelKey,
                         ValidationState = (ApiModelValidationState)(int)entry.ValidationState,
-                        Errors = new List<ApiModelError>()
+                        Errors = new List<ApiModelError>(),
                     };
                     foreach (ModelError error in entry.Errors)
                     {

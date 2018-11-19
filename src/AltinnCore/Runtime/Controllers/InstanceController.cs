@@ -245,10 +245,10 @@ namespace AltinnCore.Runtime.Controllers
                     .Select(x => new SelectListItem
                     {
                         Text = x.ReporteeNumber + " " + x.ReporteeName,
-                        Value = x.PartyID.ToString()
+                        Value = x.PartyID.ToString(),
                     })
                     .ToList(),
-                ServiceID = org + "_" + service
+                ServiceID = org + "_" + service,
             };
             return View(startServiceModel);
         }
@@ -342,7 +342,7 @@ namespace AltinnCore.Runtime.Controllers
                .Select(x => new SelectListItem
                {
                    Text = x.ReporteeNumber + " " + x.ReporteeName,
-                   Value = x.PartyID.ToString()
+                   Value = x.PartyID.ToString(),
                }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());

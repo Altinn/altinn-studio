@@ -80,7 +80,7 @@ namespace AltinnCore.Runtime.Controllers
                 PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
-                ReporteeID = requestContext.Reportee.PartyId
+                ReporteeID = requestContext.Reportee.PartyId,
             };
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
@@ -191,7 +191,7 @@ namespace AltinnCore.Runtime.Controllers
                 {
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
                     IsPersistent = false,
-                    AllowRefresh = false
+                    AllowRefresh = false,
                 });
 
             string goToUrl = "/";

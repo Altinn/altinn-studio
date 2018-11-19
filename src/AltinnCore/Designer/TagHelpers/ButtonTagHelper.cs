@@ -66,7 +66,7 @@ namespace AltinnCore.Designer.TagHelpers
             if (!string.IsNullOrEmpty(AltinnText))
             {
                 if (serviceContext.ServiceText.ContainsKey(AltinnText)
-                    && (serviceContext.ServiceText[AltinnText].ContainsKey(serviceContext.CurrentCulture)))
+                    && serviceContext.ServiceText[AltinnText].ContainsKey(serviceContext.CurrentCulture))
                 {
                     output.Content.SetHtmlContent(ServiceTextHelper.SetTextParams(serviceContext.ServiceText[AltinnText][serviceContext.CurrentCulture], requestContext, serviceContext));
                 }
