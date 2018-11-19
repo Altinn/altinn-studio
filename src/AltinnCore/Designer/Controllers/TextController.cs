@@ -82,7 +82,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Språk lagret"
+                Message = "Språk lagret",
             });
         }
 

@@ -120,7 +120,7 @@ namespace AltinnCore.Designer.Controllers
                 var config = new OrgConfiguration
                 {
                     Name = name,
-                    Code = code.ToUpper()
+                    Code = code.ToUpper(),
                 };
 
                 _repository.CreateOrg(config);
@@ -220,7 +220,7 @@ namespace AltinnCore.Designer.Controllers
                 {
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
                     IsPersistent = false,
-                    AllowRefresh = false
+                    AllowRefresh = false,
                 });
 
             return LocalRedirect(goToUrl);

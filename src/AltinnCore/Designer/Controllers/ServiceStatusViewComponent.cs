@@ -143,7 +143,7 @@ namespace AltinnCore.Designer.Controllers
                        {
                            ServiceIdentifier = serviceIdentifier,
                            CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
-                           UserMessages = userMessages
+                           UserMessages = userMessages,
                        };
         }
 

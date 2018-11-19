@@ -38,7 +38,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 SafeParentName = SafeIdentifier(p.ParentName, true),
                                 ParentIsArray = p.Parent != null && p.Parent.IsArray,
-                                Type = p
+                                Type = p,
                             })
                     .GroupBy(d => d.SafeParentName)
                     .ToList();

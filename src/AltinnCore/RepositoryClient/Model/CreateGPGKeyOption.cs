@@ -107,10 +107,9 @@ namespace AltinnCore.RepositoryClient.Model
             }
 
             return
-                (
                     this.ArmoredPublicKey == input.ArmoredPublicKey ||
                     (this.ArmoredPublicKey != null &&
-                    this.ArmoredPublicKey.Equals(input.ArmoredPublicKey)));
+                    this.ArmoredPublicKey.Equals(input.ArmoredPublicKey));
         }
 
         /// <summary>
@@ -125,7 +124,7 @@ namespace AltinnCore.RepositoryClient.Model
                 int hashCode = 41;
                 if (this.ArmoredPublicKey != null)
                 {
-                    hashCode = hashCode * 59 + this.ArmoredPublicKey.GetHashCode();
+                    hashCode = (hashCode * 59) + this.ArmoredPublicKey.GetHashCode();
                 }
 
                 return hashCode;

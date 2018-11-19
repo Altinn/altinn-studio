@@ -345,7 +345,7 @@ namespace AltinnCore.Common.Services.Implementation
                         var textObject = new JObject
                         {
                             new JProperty("id", text.Key),
-                            new JProperty("value", localizedText.Value)
+                            new JProperty("value", localizedText.Value),
                         };
                         resourceTextsAsJson[localizedText.Key].Add(text.Key, textObject);
                     }
@@ -477,7 +477,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveJsonFormLayout(string org, string service, string resource)
         {
             string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.FormLayoutJSONFileName;
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -493,7 +493,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveJsonThirdPartyComponents(string org, string service, string resource)
         {
             string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ThirdPartyComponentsJSONFileName;
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -509,7 +509,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveJsonFile(string org, string service, string resource, string fileName)
         {
             string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "/Resources/" + fileName;
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -552,7 +552,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveConfiguration(string org, string service, string name, string config)
         {
             string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, config, Encoding.UTF8);
 
             return true;
@@ -569,7 +569,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveResource(string org, string service, string id, string resource)
         {
             string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -627,7 +627,7 @@ namespace AltinnCore.Common.Services.Implementation
             try
             {
                 string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
-                (new FileInfo(filePath)).Directory.Create();
+                new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
             catch
@@ -642,7 +642,7 @@ namespace AltinnCore.Common.Services.Implementation
                     try
                     {
                         string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
-                        (new FileInfo(filePath)).Directory.Create();
+                        new FileInfo(filePath).Directory.Create();
                         File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
                     }
                     catch
@@ -791,7 +791,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (!File.Exists(filename))
             {
-                (new FileInfo(filename)).Directory.Create();
+                new FileInfo(filename).Directory.Create();
                 using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
@@ -828,9 +828,9 @@ namespace AltinnCore.Common.Services.Implementation
             if (!File.Exists(filename))
             {
                 // Verify if directory exist. Should Exist if Cloning of new repository worked
-                if (!(new FileInfo(filename)).Directory.Exists)
+                if (!new FileInfo(filename).Directory.Exists)
                 {
-                    (new FileInfo(filename)).Directory.Create();
+                    new FileInfo(filename).Directory.Create();
                 }
 
                 using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
@@ -1158,7 +1158,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 filePath += $"/codelists/{name}.json";
 
-                (new FileInfo(filePath)).Directory.Create();
+                new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, codeList, Encoding.UTF8);
             }
             catch
@@ -1248,7 +1248,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     FilePath = file,
                     FileName = Path.GetFileName(file),
-                    LastChanged = File.GetLastWriteTime(file)
+                    LastChanged = File.GetLastWriteTime(file),
                 };
 
                 coreFiles.Add(corefile);
@@ -1261,7 +1261,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     FilePath = file,
                     FileName = System.IO.Path.GetFileName(file),
-                    LastChanged = File.GetLastWriteTime(file)
+                    LastChanged = File.GetLastWriteTime(file),
                 };
 
                 coreFiles.Add(corefile);
@@ -1276,7 +1276,7 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         FilePath = file,
                         FileName = System.IO.Path.GetFileName(file),
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     };
 
                     coreFiles.Add(corefile);

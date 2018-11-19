@@ -90,8 +90,8 @@ namespace AltinnCore.RepositoryClient.Model
             return
                 (
                     this.Data == input.Data ||
-                    this.Data != null &&
-                    this.Data.SequenceEqual(input.Data)) &&
+                    (this.Data != null &&
+                    this.Data.SequenceEqual(input.Data))) &&
                 (
                     this.Ok == input.Ok ||
                     (this.Ok != null &&
@@ -110,12 +110,12 @@ namespace AltinnCore.RepositoryClient.Model
                 int hashCode = 41;
                 if (this.Data != null)
                 {
-                    hashCode = hashCode * 59 + this.Data.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Data.GetHashCode();
                 }
 
                 if (this.Ok != null)
                 {
-                    hashCode = hashCode * 59 + this.Ok.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Ok.GetHashCode();
                 }
 
                 return hashCode;

@@ -52,7 +52,7 @@ namespace AltinnCore.Designer.Controllers
                 Id = selected?.Id ?? string.Empty,
                 Url = selected?.Url ?? string.Empty,
                 Description = selected?.Description ?? string.Empty,
-                Opprettet = selected?.Opprettet ?? DateTime.Now
+                Opprettet = selected?.Opprettet ?? DateTime.Now,
             };
 
             return View(model);

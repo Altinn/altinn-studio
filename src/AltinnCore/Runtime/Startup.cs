@@ -120,7 +120,7 @@ namespace AltinnCore.Runtime
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized
+                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
                     };
                 });
 
@@ -149,7 +149,7 @@ namespace AltinnCore.Runtime
                             // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO")
+                            new CultureInfo("nn-NO"),
                         };
 
                     options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
@@ -184,9 +184,9 @@ namespace AltinnCore.Runtime
                     headers.CacheControl = new CacheControlHeaderValue()
                     {
                         Public = true,
-                        MaxAge = TimeSpan.FromMinutes(60)
+                        MaxAge = TimeSpan.FromMinutes(60),
                     };
-                }
+                },
             });
 
             app.UseMvc(routes =>
@@ -201,7 +201,7 @@ namespace AltinnCore.Runtime
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"\d+"
+                        instanceId = @"\d+",
                     });
 
                 routes.MapRoute(
@@ -213,7 +213,7 @@ namespace AltinnCore.Runtime
                        action = "EditSPA",
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                       instanceId = @"\d+"
+                       instanceId = @"\d+",
                    });
 
                 // ---------------------------- API -------------------------- //
@@ -258,15 +258,15 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
-                    name: "apiPutRoute",
-                    template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
-                    defaults: new { action = "Index", controller = "ServiceAPI" },
-                    constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"\d+"
-                    });
+                 name: "apiPutRoute",
+                 template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
+                 defaults: new { action = "Index", controller = "ServiceAPI" },
+                 constraints: new
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"\d+",
+                 });
 
                 routes.MapRoute(
                     name: "codelistRoute",
@@ -289,15 +289,15 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
-                    name: "serviceRoute",
-                    template: "runtime/{org}/{service}/{controller}/{action=Index}/{id?}",
-                    defaults: new { controller = "Service" },
-                    constraints: new
-                    {
-                        controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        id = "[a-zA-Z0-9_\\-]{1,30}"
-                    });
+            name: "serviceRoute",
+            template: "runtime/{org}/{service}/{controller}/{action=Index}/{id?}",
+            defaults: new { controller = "Service" },
+            constraints: new
+            {
+                controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                id = "[a-zA-Z0-9_\\-]{1,30}",
+            });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(

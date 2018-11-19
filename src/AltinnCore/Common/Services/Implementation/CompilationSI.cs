@@ -96,7 +96,7 @@ namespace AltinnCore.Common.Services.Implementation
                 AssemblyName = assemblyName,
                 Organization = org,
                 Service = service,
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = DateTime.Now,
             };
 
             string detailsAsJson = JsonConvert.SerializeObject(details);
@@ -187,7 +187,7 @@ namespace AltinnCore.Common.Services.Implementation
                             Severity = diag.Severity.ToString(),
                             Code = diag.Id,
                             WarningLevel = diag.WarningLevel,
-                            LineNumber = diag.Location.GetLineSpan().StartLinePosition.Line + 1
+                            LineNumber = diag.Location.GetLineSpan().StartLinePosition.Line + 1,
                         };
 
                         if (diag.Severity.Equals(DiagnosticSeverity.Warning))

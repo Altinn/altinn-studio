@@ -134,17 +134,17 @@ namespace AltinnCore.RepositoryClient.Model
                 int hashCode = 41;
                 if (this.EmailId != null)
                 {
-                    hashCode = hashCode * 59 + this.EmailId.GetHashCode();
+                    hashCode = (hashCode * 59) + this.EmailId.GetHashCode();
                 }
 
                 if (this.Primary != null)
                 {
-                    hashCode = hashCode * 59 + this.Primary.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Primary.GetHashCode();
                 }
 
                 if (this.Verified != null)
                 {
-                    hashCode = hashCode * 59 + this.Verified.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Verified.GetHashCode();
                 }
 
                 return hashCode;

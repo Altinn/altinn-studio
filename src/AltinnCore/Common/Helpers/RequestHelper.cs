@@ -20,7 +20,7 @@ namespace AltinnCore.Common.Helpers
             var context = new RequestContext
             {
                 Params = new Dictionary<string, string>(),
-                InstanceId = instanceId
+                InstanceId = instanceId,
             };
 
             if (queryCollection != null)

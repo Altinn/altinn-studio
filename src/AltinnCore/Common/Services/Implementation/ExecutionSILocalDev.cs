@@ -81,7 +81,7 @@ namespace AltinnCore.Common.Services.Implementation
                 ServiceText = _repository.GetServiceTexts(org, service),
                 ServiceMetaData = _repository.GetServiceMetaData(org, service),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(org, service)
+                WorkFlow = _repository.GetWorkFlow(org, service),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)

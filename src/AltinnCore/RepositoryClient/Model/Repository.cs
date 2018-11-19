@@ -396,42 +396,42 @@ namespace AltinnCore.RepositoryClient.Model
                 int hashCode = 41;
                 if (this.CloneUrl != null)
                 {
-                    hashCode = hashCode * 59 + this.CloneUrl.GetHashCode();
+                    hashCode = (hashCode * 59) + this.CloneUrl.GetHashCode();
                 }
 
                 if (this.CreatedAt != null)
                 {
-                    hashCode = hashCode * 59 + this.CreatedAt.GetHashCode();
+                    hashCode = (hashCode * 59) + this.CreatedAt.GetHashCode();
                 }
 
                 if (this.DefaultBranch != null)
                 {
-                    hashCode = hashCode * 59 + this.DefaultBranch.GetHashCode();
+                    hashCode = (hashCode * 59) + this.DefaultBranch.GetHashCode();
                 }
 
                 if (this.Description != null)
                 {
-                    hashCode = hashCode * 59 + this.Description.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Description.GetHashCode();
                 }
 
                 if (this.Empty != null)
                 {
-                    hashCode = hashCode * 59 + this.Empty.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Empty.GetHashCode();
                 }
 
                 if (this.Fork != null)
                 {
-                    hashCode = hashCode * 59 + this.Fork.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Fork.GetHashCode();
                 }
 
                 if (this.ForksCount != null)
                 {
-                    hashCode = hashCode * 59 + this.ForksCount.GetHashCode();
+                    hashCode = (hashCode * 59) + this.ForksCount.GetHashCode();
                 }
 
                 if (this.FullName != null)
                 {
-                    hashCode = hashCode * 59 + this.FullName.GetHashCode();
+                    hashCode = (hashCode * 59) + this.FullName.GetHashCode();
                 }
 
                 if (this.HtmlUrl != null)
@@ -446,32 +446,32 @@ namespace AltinnCore.RepositoryClient.Model
 
                 if (this.Mirror != null)
                 {
-                    hashCode = hashCode * 59 + this.Mirror.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Mirror.GetHashCode();
                 }
 
                 if (this.Name != null)
                 {
-                    hashCode = hashCode * 59 + this.Name.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Name.GetHashCode();
                 }
 
                 if (this.OpenIssuesCount != null)
                 {
-                    hashCode = hashCode * 59 + this.OpenIssuesCount.GetHashCode();
+                    hashCode = (hashCode * 59) + this.OpenIssuesCount.GetHashCode();
                 }
 
                 if (this.Owner != null)
                 {
-                    hashCode = hashCode * 59 + this.Owner.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Owner.GetHashCode();
                 }
 
                 if (this.Parent != null)
                 {
-                    hashCode = hashCode * 59 + this.Parent.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Parent.GetHashCode();
                 }
 
                 if (this.Permissions != null)
                 {
-                    hashCode = hashCode * 59 + this.Permissions.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Permissions.GetHashCode();
                 }
 
                 if (this.IsPrivate != null)
@@ -481,32 +481,32 @@ namespace AltinnCore.RepositoryClient.Model
 
                 if (this.Size != null)
                 {
-                    hashCode = hashCode * 59 + this.Size.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Size.GetHashCode();
                 }
 
                 if (this.SshUrl != null)
                 {
-                    hashCode = hashCode * 59 + this.SshUrl.GetHashCode();
+                    hashCode = (hashCode * 59) + this.SshUrl.GetHashCode();
                 }
 
                 if (this.StarsCount != null)
                 {
-                    hashCode = hashCode * 59 + this.StarsCount.GetHashCode();
+                    hashCode = (hashCode * 59) + this.StarsCount.GetHashCode();
                 }
 
                 if (this.UpdatedAt != null)
                 {
-                    hashCode = hashCode * 59 + this.UpdatedAt.GetHashCode();
+                    hashCode = (hashCode * 59) + this.UpdatedAt.GetHashCode();
                 }
 
                 if (this.WatchersCount != null)
                 {
-                    hashCode = hashCode * 59 + this.WatchersCount.GetHashCode();
+                    hashCode = (hashCode * 59) + this.WatchersCount.GetHashCode();
                 }
 
                 if (this.Website != null)
                 {
-                    hashCode = hashCode * 59 + this.Website.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Website.GetHashCode();
                 }
 
                 return hashCode;

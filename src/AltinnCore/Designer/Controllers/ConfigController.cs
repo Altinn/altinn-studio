@@ -60,7 +60,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Konfigurasjon lagret"
+                Message = "Konfigurasjon lagret",
             });
         }
 

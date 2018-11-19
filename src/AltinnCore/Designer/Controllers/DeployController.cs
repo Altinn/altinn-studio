@@ -63,7 +63,7 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = false,
-                    Message = "Deployment unavailable"
+                    Message = "Deployment unavailable",
                 });
             }
 
@@ -80,9 +80,9 @@ namespace AltinnCore.Designer.Controllers
                     {
                         definition = new
                         {
-                            id = 12
+                            id = 12,
                         },
-                        parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\""
+                        parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -100,7 +100,7 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = true,
-                    Message = "Deployment failed " + ex
+                    Message = "Deployment failed " + ex,
                 });
             }
 
@@ -108,7 +108,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 Success = true,
                 BuildId = result,
-                Message = "Deployment status: " + result
+                Message = "Deployment status: " + result,
             });
         }
 
@@ -144,7 +144,7 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = true,
-                    Status = "Deployment failed " + ex
+                    Status = "Deployment failed " + ex,
                 });
             }
 
@@ -155,7 +155,7 @@ namespace AltinnCore.Designer.Controllers
                 buildModel.Result,
                 buildModel.Status,
                 buildModel.StartTime,
-                buildModel.FinishTime
+                buildModel.FinishTime,
             });
         }
     }

@@ -113,7 +113,7 @@ namespace AltinnCore.Common.Services.Implementation
                 var test = new TestMetadata
                 {
                     Name = Path.GetFileNameWithoutExtension(filename),
-                    FileName = filename
+                    FileName = filename,
                 };
                 if (includeContent)
                 {

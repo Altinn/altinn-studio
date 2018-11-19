@@ -1823,14 +1823,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -1932,14 +1932,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2042,14 +2042,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2152,14 +2152,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2275,7 +2275,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -2283,7 +2283,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2400,7 +2400,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -2408,7 +2408,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2510,14 +2510,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2614,14 +2614,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2725,7 +2725,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -2733,7 +2733,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2837,7 +2837,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -2845,7 +2845,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -2957,7 +2957,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -2965,7 +2965,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3082,7 +3082,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -3090,7 +3090,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3199,7 +3199,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -3207,7 +3207,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3311,7 +3311,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -3319,7 +3319,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3423,14 +3423,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3534,14 +3534,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3645,14 +3645,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3756,14 +3756,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -3875,7 +3875,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -3883,7 +3883,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4000,7 +4000,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -4008,7 +4008,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4118,14 +4118,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4230,14 +4230,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4342,14 +4342,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4454,14 +4454,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4558,14 +4558,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4657,14 +4657,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4756,14 +4756,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4855,14 +4855,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -4954,14 +4954,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5053,14 +5053,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5152,14 +5152,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5251,14 +5251,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5350,14 +5350,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5449,14 +5449,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5548,14 +5548,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5647,14 +5647,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5746,14 +5746,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5845,14 +5845,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -5945,14 +5945,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6054,14 +6054,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6163,14 +6163,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6272,14 +6272,14 @@ namespace AltinnCore.RepositoryClient.Api
             // to determine the Content-Type header
             string[] localVarHttpContentTypes = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6387,7 +6387,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -6395,7 +6395,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6499,7 +6499,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -6507,7 +6507,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6619,7 +6619,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -6627,7 +6627,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6744,7 +6744,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
@@ -6752,7 +6752,7 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpHeaderAccepts = new string[]
             {
                 "application/json",
-                "text/html"
+                "text/html",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6854,14 +6854,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -6953,14 +6953,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7053,14 +7053,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7162,14 +7162,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7278,14 +7278,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7390,14 +7390,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7494,14 +7494,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7593,14 +7593,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7691,14 +7691,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7789,14 +7789,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7888,14 +7888,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -7987,14 +7987,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8094,14 +8094,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8206,14 +8206,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8318,14 +8318,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8430,14 +8430,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8542,14 +8542,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8654,14 +8654,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8766,14 +8766,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8878,14 +8878,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -8990,14 +8990,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9102,14 +9102,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9214,14 +9214,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9326,14 +9326,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9438,14 +9438,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9550,14 +9550,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9658,14 +9658,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9771,14 +9771,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -9904,14 +9904,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
@@ -10042,14 +10042,14 @@ namespace AltinnCore.RepositoryClient.Api
             string[] localVarHttpContentTypes = new string[]
             {
                 "application/json",
-                "text/plain"
+                "text/plain",
             };
             string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
             string[] localVarHttpHeaderAccepts = new string[]
             {
-                "application/json"
+                "application/json",
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)

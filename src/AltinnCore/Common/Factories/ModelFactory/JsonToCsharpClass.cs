@@ -38,7 +38,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             String,
             Object,
             Array,
-            Dictionary
+            Dictionary,
         }
     }
 }
