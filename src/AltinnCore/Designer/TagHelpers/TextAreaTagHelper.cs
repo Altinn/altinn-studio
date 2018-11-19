@@ -21,6 +21,7 @@ namespace AltinnCore.Designer.TagHelpers
         private const string ForAttributeName = "altinn-for";
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="TextAreaTagHelper"/> class.
         /// Creates a new <see cref="TextAreaTagHelper"/>.
         /// </summary>
         /// <param name="generator">The <see cref="IHtmlGenerator"/>.</param>

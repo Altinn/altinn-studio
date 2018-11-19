@@ -16,7 +16,7 @@ namespace AltinnCore.Designer.TagHelpers
         private const string AltinnTextAttributeName = "altinn-text";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HTagHelper"/> class.
+        /// Initializes a new instance of the <see cref="ButtonTagHelper"/> class.
         /// </summary>
         /// <param name="generator">The current html generator</param>
         public ButtonTagHelper(IHtmlGenerator generator)

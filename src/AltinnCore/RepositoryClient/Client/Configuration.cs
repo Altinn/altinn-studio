@@ -215,7 +215,7 @@ namespace AltinnCore.RepositoryClient.Client
         }
 
         /// <summary>
-        /// Initializes a new instance of the Configuration class.
+        /// Initializes a new instance of the <see cref="Configuration"/> class.
         /// </summary>
         /// <param name="apiClient">Api client.</param>
         [Obsolete("This constructor caused unexpected sharing of static data. It is no longer supported.", true)]
