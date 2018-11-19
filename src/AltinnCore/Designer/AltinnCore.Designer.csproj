@@ -37,6 +37,7 @@
   <ItemGroup>
     <CoreTemplates Include="../Templates/**/*" />
     <CoreTestdata Include="../Testdata/**/*" />
+    <CoreLanguage Include="../Common/Languages/ini/*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,8 +55,10 @@
   <Target Name="AfterPublishScript" AfterTargets="Publish">
     <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />
     <MakeDir Directories="$(PublishDir)Testdata" Condition="!Exists('$(PublishDir)Testdata')" />
+    <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
     <Copy SourceFiles="@(CoreTemplates)" DestinationFolder="$(PublishDir)Templates" />
     <Copy SourceFiles="@(CoreTestdata)" DestinationFolder="$(PublishDir)Testdata\%(RecursiveDir)" />
+    <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
   </Target>
 
 </Project>

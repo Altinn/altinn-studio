@@ -5,11 +5,20 @@ using IniParser;
 using IniParser.Model;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Extensions.Configuration;
+using AltinnCore.Common.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
 {
     public class LanguageController : Controller
     {
+        private readonly GeneralSettings _generalSettings;
+        public LanguageController(
+            IOptions<GeneralSettings> generalSettings)
+        {
+            _generalSettings = generalSettings.Value;
+        }
         /// <summary>
         /// Reads ini files, converts it to json
         /// </summary>
@@ -22,9 +31,17 @@ namespace AltinnCore.Designer.Controllers
         {
             var parser = new FileIniDataParser();
             string currentDirectory = Directory.GetCurrentDirectory();
-            string path = Path.Combine(currentDirectory, $@"..\Common\Languages\ini\{languageCode}.ini");
- 
-            IniData parsedData = parser.ReadFile(path, Encoding.UTF8);
+            string filePath = string.Empty;
+            if (Environment.GetEnvironmentVariable("GeneralSettings__LanguageFilesLocation") != null)
+            {
+                filePath = Path.Combine(currentDirectory, $"{Environment.GetEnvironmentVariable("GeneralSettings__LanguageFilesLocation")}{languageCode}.ini");
+            }
+            else
+            {
+                filePath = Path.Combine(currentDirectory, $"{_generalSettings.LanguageFilesLocation}{languageCode}.ini");
+            }
+
+            IniData parsedData = parser.ReadFile(filePath, Encoding.UTF8);
             var obj = new Dictionary<string, Dictionary<string, string>>();
 
             //Iterate through all the sections
