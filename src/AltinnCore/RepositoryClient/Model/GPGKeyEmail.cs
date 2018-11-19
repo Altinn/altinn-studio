@@ -94,7 +94,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(GPGKeyEmail input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -118,9 +120,15 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Email != null)
+                {
                     hashCode = (hashCode * 59) + this.Email.GetHashCode();
+                }
+
                 if (this.Verified != null)
+                {
                     hashCode = (hashCode * 59) + this.Verified.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

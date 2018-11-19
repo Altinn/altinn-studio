@@ -55,7 +55,8 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(dirName);
             }
 
-            if (string.IsNullOrEmpty(test.FileName)) {
+            if (string.IsNullOrEmpty(test.FileName))
+            {
                 // TODO: Use type
                 test.FileName = test.Name + ".cs";
             }
@@ -65,7 +66,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             return updated;
         }
-
 
         /// <summary>
         /// Get the view content for a given razor file on disk
@@ -79,7 +79,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             IList<TestMetadata> tests = GetTests(org, service, true, name);
             string test = null;
-            if (tests.Count == 1) {
+            if (tests.Count == 1)
+            {
                 test = tests.First().Content;
             }
 

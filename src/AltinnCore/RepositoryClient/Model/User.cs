@@ -125,7 +125,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(User input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -161,15 +163,30 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.AvatarUrl != null)
+                {
                     hashCode = (hashCode * 59) + this.AvatarUrl.GetHashCode();
+                }
+
                 if (this.Email != null)
+                {
                     hashCode = (hashCode * 59) + this.Email.GetHashCode();
+                }
+
                 if (this.FullName != null)
+                {
                     hashCode = (hashCode * 59) + this.FullName.GetHashCode();
+                }
+
                 if (this.Id != null)
+                {
                     hashCode = (hashCode * 59) + this.Id.GetHashCode();
+                }
+
                 if (this.Login != null)
+                {
                     hashCode = (hashCode * 59) + this.Login.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

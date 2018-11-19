@@ -236,7 +236,6 @@ namespace AltinnCore.Common.Services.Implementation
             return codeCompilationResult.AssemblyName;
         }
 
-
         /// <summary>
         /// Returns the service metadata for a service
         /// </summary>

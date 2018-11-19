@@ -41,7 +41,6 @@ namespace AltinnCore.Designer.Controllers
             return View(model);
         }
 
-
         /// <summary>
         /// View Status for codelists
         /// </summary>
@@ -59,7 +58,6 @@ namespace AltinnCore.Designer.Controllers
 
             return View(model);
         }
-
 
         /// <summary>
         /// This method pushes changes to remote repository
@@ -150,7 +148,6 @@ namespace AltinnCore.Designer.Controllers
                 routeName,
                 new { action = "Index", controller = "Codelist", org, service });
         }
-
 
         [HttpGet]
         public IActionResult CodeLists(string org, string service)

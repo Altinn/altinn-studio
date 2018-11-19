@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using AltinnCore.RepositoryClient.Model;
@@ -9,7 +9,6 @@ namespace AltinnCore.Common.Models
 {
     public class AltinnStudioViewModel
     {
-
         /// <summary>
         ///
         /// </summary>

@@ -13,7 +13,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <inheritdoc/>
         public bool UseSingleFile { get; set; }
 
-
         public void CreateClass(JObject[] jsonData, JsonDataTypes type)
         {
             var jsonDataFields = new Dictionary<string, JsonDataTypes>();
@@ -23,13 +22,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 foreach (var property in jobj.Properties())
                 {
-
                 }
 
             }
 
         }
-
 
         public class JsonDataTypes
         {

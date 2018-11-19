@@ -86,7 +86,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(DeleteEmailOption input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return                
                     this.Emails == input.Emails ||
@@ -105,7 +107,10 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Emails != null)
+                {
                     hashCode = (hashCode * 59) + this.Emails.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

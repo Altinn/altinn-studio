@@ -34,7 +34,9 @@ namespace AltinnCore.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
         /// </summary>
         [JsonConstructorAttribute]
-        protected CreateGPGKeyOption() { }
+        protected CreateGPGKeyOption()
+        {
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
         /// </summary>
@@ -99,7 +101,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(CreateGPGKeyOption input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                     this.ArmoredPublicKey == input.ArmoredPublicKey ||
@@ -118,7 +122,10 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.ArmoredPublicKey != null)
+                {
                     hashCode = (hashCode * 59) + this.ArmoredPublicKey.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

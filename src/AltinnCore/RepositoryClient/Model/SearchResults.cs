@@ -83,7 +83,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(SearchResults input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -107,9 +109,15 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Data != null)
+                {
                     hashCode = (hashCode * 59) + this.Data.GetHashCode();
+                }
+
                 if (this.Ok != null)
+                {
                     hashCode = (hashCode * 59) + this.Ok.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

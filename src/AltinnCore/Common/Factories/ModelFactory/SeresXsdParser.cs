@@ -442,7 +442,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-
         private string GetDataBindingName(string id)
         {
             string[] paths = id.Split(".");
@@ -581,7 +580,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements, string parentTrail)
         {
-            if (currentComplexType == null) return;
+            if (currentComplexType == null)
+            {
+                return;
+            }
 
             var attributeElements = currentComplexType.Elements(XDocName.Attribute).ToList();
             foreach (var attribute in attributeElements)

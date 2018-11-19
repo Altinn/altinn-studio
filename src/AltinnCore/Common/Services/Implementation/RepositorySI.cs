@@ -109,7 +109,6 @@ namespace AltinnCore.Common.Services.Implementation
                 resourceDirectoryInfo.Create();
             }
 
-
             var filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
@@ -176,13 +175,9 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 throw;
             }
-
-
-
         }
 
         #endregion
-
 
         /// <summary>
         /// Returns the content of a configuration file
@@ -293,7 +288,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
             return resourceTexts;
         }
-
 
         /// <summary>
         /// Returns the service languages
@@ -554,7 +548,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if everything went ok</returns>
         public bool SaveConfiguration(string org, string service, string name, string config)
         {
-
             string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
             new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, config, Encoding.UTF8);
@@ -578,8 +571,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             return true;
         }
-
-
 
         /// <summary>
         /// Deletes the language resource for a given language id
@@ -823,7 +814,8 @@ namespace AltinnCore.Common.Services.Implementation
 
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
 
-            if (!repoCreated) {
+            if (!repoCreated)
+            {
                 AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
             }
 
@@ -1054,7 +1046,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 // Happens when developer has not cloned org repo
             }
-
 
             // First verify if there exist a remote repo
             try
@@ -1460,7 +1451,6 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(path);
             }
         }
-
 
         private static string ViewResourceKey(string viewName)
         {

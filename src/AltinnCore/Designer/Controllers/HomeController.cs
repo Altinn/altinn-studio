@@ -93,9 +93,6 @@ namespace AltinnCore.Designer.Controllers
             return View(model);
         }
 
-
-
-
         /// <summary>
         /// View for creating new org
         /// </summary>

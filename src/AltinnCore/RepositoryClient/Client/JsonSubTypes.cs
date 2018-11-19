@@ -49,7 +49,9 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             get
             {
                 if (!_isInsideRead)
+                {
                     return true;
+                }
 
                 return !string.IsNullOrEmpty(_reader.Path);
             }
@@ -86,7 +88,9 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Comment)
+            {
                 reader.Read();
+            }
 
             switch (reader.TokenType)
             {
@@ -209,10 +213,16 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private Type GetTypeFromDiscriminatorValue(JObject jObject, Type parentType)
         {
             JToken jToken;
-            if (!jObject.TryGetValue(_typeMappingPropertyName, out jToken)) return null;
+            if (!jObject.TryGetValue(_typeMappingPropertyName, out jToken))
+            {
+                return null;
+            }
 
             var discriminatorValue = jToken.ToObject<object>();
-            if (discriminatorValue == null) return null;
+            if (discriminatorValue == null)
+            {
+                return null;
+            }
 
             var typeMapping = GetSubTypeMapping(parentType);
             if (typeMapping.Any())
@@ -225,7 +235,9 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private static Type GetTypeByName(string typeName, Type parentType)
         {
             if (typeName == null)
+            {
                 return null;
+            }
 
             var insideAssembly = parentType.GetTypeInfo().Assembly;
 
@@ -255,7 +267,9 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private static object ConvertJsonValueToType(object objectType, Type targetlookupValueType)
         {
             if (targetlookupValueType.GetTypeInfo().IsEnum)
+            {
                 return Enum.ToObject(targetlookupValueType, objectType);
+            }
 
             return Convert.ChangeType(objectType, targetlookupValueType);
         }

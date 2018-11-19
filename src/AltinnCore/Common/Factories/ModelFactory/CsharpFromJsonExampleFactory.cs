@@ -210,7 +210,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             public IList<PropertyDescription> Properties { get; } = new List<PropertyDescription>();
 
-
             public IList<TypeDescription> CollectionChildTypes { get; } = new List<TypeDescription>();
 
             public string ClassDeclaration()
@@ -248,7 +247,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             private IEnumerable<string> PropertyDeclarations
                 => Properties.Select(CsharpFromJsonExampleFactory.GenerateProperty);
         }
-
 
         public class PropertyDescription : ItemDescription
         {

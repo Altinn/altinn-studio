@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -64,7 +64,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The service Implementation</returns>
         public IServiceImplementation GetServiceImplementation(string org, string service)
         {
-
             string assemblykey = org + "_" + service;
             string implementationTypeName = null;
             Type type = null;

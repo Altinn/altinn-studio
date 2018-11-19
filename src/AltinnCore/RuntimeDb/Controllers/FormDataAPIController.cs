@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -31,7 +31,11 @@ namespace AltinnCore.Runtime.Db.Controllers
         public async Task<ActionResult<string>> Get(string reporteeId, string reporteeElementId, string formId)
         {
             var result = await _formDataRepository.GetFormDataFromCollectionAsync(reporteeId, reporteeElementId, formId);
-            if (result == null) return NotFound();
+            if (result == null)
+            {
+                return NotFound();
+            }
+
             return Ok(result);
         }
 
@@ -40,7 +44,11 @@ namespace AltinnCore.Runtime.Db.Controllers
         public async Task<ActionResult> Post([FromBody] FormData formData)
         {
             var result = await _formDataRepository.InsertFormDataIntoCollectionAsync(formData);
-            if (result == null) return BadRequest();
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
             return Ok(result);
         }
 

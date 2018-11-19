@@ -136,7 +136,6 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         public string WorkFlowFileName { get; set; } = "workflow.json";
 
-
         /// <summary>
         /// Gets or sets React file name
         /// </summary>
@@ -378,7 +377,6 @@ namespace AltinnCore.Common.Configuration
             return CODELISTS_FOLDER_NAME;
         }
 
-
         /// <summary>
         /// Get Resource Folder name
         /// </summary>
@@ -387,7 +385,6 @@ namespace AltinnCore.Common.Configuration
         {
             return RESOURCE_FOLDER_NAME;
         }
-
 
         /// <summary>
         /// Returns the Metadata folder name
@@ -405,8 +402,7 @@ namespace AltinnCore.Common.Configuration
         public string GetBinaryFolder()
         {
             return BINARY_FOLDER_NAME;
-        }
-
+        } 
 
         /// <summary>
         /// Gets the full path to model directory

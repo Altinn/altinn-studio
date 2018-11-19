@@ -66,7 +66,6 @@ namespace AltinnCore.Common.Configuration
             return globalDefaultPath;
         }
 
-
         /// <inheritdoc/>
         public FileInfo GetWebAppStyleDefaultFile(string fileName, string org = null)
         {

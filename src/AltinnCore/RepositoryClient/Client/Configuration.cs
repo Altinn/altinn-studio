@@ -74,7 +74,11 @@ namespace AltinnCore.RepositoryClient.Client
         /// <value>Configuration.</value>
         public static Configuration Default
         {
-            get { return _globalConfiguration; }
+            get
+            {
+                return _globalConfiguration;
+            }
+
             set
             {
                 lock (GlobalConfigSync)
@@ -137,13 +141,24 @@ namespace AltinnCore.RepositoryClient.Client
             string basePath = "http://localhost/api/v1") : this()
         {
             if (string.IsNullOrWhiteSpace(basePath))
+            {
                 throw new ArgumentException("The provided basePath is invalid.", "basePath");
+            }
+
             if (defaultHeader == null)
+            {
                 throw new ArgumentNullException("defaultHeader");
+            }
+
             if (apiKey == null)
+            {
                 throw new ArgumentNullException("apiKey");
+            }
+
             if (apiKeyPrefix == null)
+            {
                 throw new ArgumentNullException("apiKeyPrefix");
+            }
 
             BasePath = basePath;
 
@@ -193,7 +208,6 @@ namespace AltinnCore.RepositoryClient.Client
             string userAgent = "Swagger-Codegen/1.0.0/csharp")
             // ReSharper restore UnusedParameter.Local
         {
-
         }
 
         /// <summary>
@@ -204,11 +218,9 @@ namespace AltinnCore.RepositoryClient.Client
         // ReSharper disable once UnusedParameter.Local
         public Configuration(ApiClient apiClient)
         {
-
         }
 
         #endregion Constructors
-
 
         #region Properties
 
@@ -220,7 +232,11 @@ namespace AltinnCore.RepositoryClient.Client
         {
             get
             {
-                if (_apiClient == null) _apiClient = CreateApiClient();
+                if (_apiClient == null)
+                {
+                    _apiClient = CreateApiClient();
+                }
+
                 return _apiClient;
             }
         }
@@ -229,12 +245,18 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Gets or sets the base path for API access.
         /// </summary>
-        public virtual string BasePath {
-            get { return _basePath; }
-            set {
+        public virtual string BasePath
+        {
+            get
+            {
+                return _basePath;
+            }
+
+            set
+            {
                 _basePath = value;
-                // pass-through to ApiClient if it's set.
-                if (_apiClient != null) {
+                if (_apiClient != null)
+                {
                     _apiClient.RestClient.BaseUrl = new Uri(_basePath);
                 }
             }
@@ -250,7 +272,6 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         public virtual int Timeout
         {
-
             get { return ApiClient.RestClient.Timeout; }
             set { ApiClient.RestClient.Timeout = value; }
         }
@@ -284,9 +305,13 @@ namespace AltinnCore.RepositoryClient.Client
             ApiKey.TryGetValue(apiKeyIdentifier, out apiKeyValue);
             var apiKeyPrefix = string.Empty;
             if (ApiKeyPrefix.TryGetValue(apiKeyIdentifier, out apiKeyPrefix))
+            {
                 return apiKeyPrefix + " " + apiKeyValue;
+            }
             else
+            {
                 return apiKeyValue;
+            }
         }
 
         /// <summary>
@@ -301,7 +326,10 @@ namespace AltinnCore.RepositoryClient.Client
         /// <value>Folder path.</value>
         public virtual string TempFolderPath
         {
-            get { return _tempFolderPath; }
+            get
+            {
+                return _tempFolderPath;
+            }
 
             set
             {
@@ -311,14 +339,10 @@ namespace AltinnCore.RepositoryClient.Client
                     _tempFolderPath = Path.GetTempPath();
                     return;
                 }
-
-                // create the directory if it does not exist
                 if (!Directory.Exists(value))
                 {
                     Directory.CreateDirectory(value);
                 }
-
-                // check if the path contains directory separator at the end
                 if (value[value.Length - 1] == Path.DirectorySeparatorChar)
                 {
                     _tempFolderPath = value;
@@ -340,7 +364,11 @@ namespace AltinnCore.RepositoryClient.Client
         /// <value>The DateTimeFormat string</value>
         public virtual string DateTimeFormat
         {
-            get { return _dateTimeFormat; }
+            get
+            {
+                return _dateTimeFormat;
+            }
+
             set
             {
                 if (string.IsNullOrEmpty(value))
@@ -349,9 +377,6 @@ namespace AltinnCore.RepositoryClient.Client
                     _dateTimeFormat = ISO8601_DATETIME_FORMAT;
                     return;
                 }
-
-                // Caution, no validation when you choose date time format other than ISO 8601
-                // Take a look at the above links
                 _dateTimeFormat = value;
             }
         }
@@ -362,7 +387,10 @@ namespace AltinnCore.RepositoryClient.Client
         /// <value>The prefix of the API key.</value>
         public virtual IDictionary<string, string> ApiKeyPrefix
         {
-            get { return _apiKeyPrefix; }
+            get
+            {
+                return _apiKeyPrefix;
+            }
             set
             {
                 if (value == null)
@@ -379,7 +407,11 @@ namespace AltinnCore.RepositoryClient.Client
         /// <value>The API key.</value>
         public virtual IDictionary<string, string> ApiKey
         {
-            get { return _apiKey; }
+            get
+            {
+                return _apiKey;
+            }
+
             set
             {
                 if (value == null)
@@ -413,7 +445,6 @@ namespace AltinnCore.RepositoryClient.Client
         {
             return new ApiClient(BasePath) { Configuration = this };
         }
-
 
         /// <summary>
         /// Returns a string with essential information for debugging.

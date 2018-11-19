@@ -270,7 +270,6 @@ namespace AltinnCore.Runtime.Controllers
             return Ok(apiResult);
         }
 
-
         [Authorize]
         [HttpPut]
         public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
@@ -362,7 +361,6 @@ namespace AltinnCore.Runtime.Controllers
 
                 return Ok(apiResult);
             }
-
 
             // Save Formdata to database
             this._form.SaveFormModel(

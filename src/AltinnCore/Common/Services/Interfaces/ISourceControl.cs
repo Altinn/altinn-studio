@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
-
     /// <summary>
     /// Interface for source control functionality
     /// </summary>
@@ -51,7 +50,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The repository</param>
         /// <returns>The number of commits behind</returns>
         int? CheckRemoteUpdates(string org, string repository);
-
 
         /// <summary>
         /// Pull remote changes

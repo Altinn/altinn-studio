@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using AltinnCore.Common.Configuration;
@@ -74,8 +74,6 @@ namespace AltinnCore.Common.Services.Implementation
 
                     formInstances.Add(serviceInstance);
                 }
-
-
             }
 
             return formInstances;
