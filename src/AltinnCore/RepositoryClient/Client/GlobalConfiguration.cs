@@ -28,6 +28,5 @@ namespace AltinnCore.RepositoryClient.Client
     /// </remarks>
     public partial class GlobalConfiguration : Configuration
     {
-
     }
 }

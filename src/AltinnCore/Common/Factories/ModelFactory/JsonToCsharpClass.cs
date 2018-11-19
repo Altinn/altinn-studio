@@ -23,7 +23,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 foreach (var property in jobj.Properties())
                 {
-
                 }
 
             }

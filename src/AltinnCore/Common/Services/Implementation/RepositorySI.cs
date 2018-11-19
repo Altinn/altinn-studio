@@ -554,7 +554,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if everything went ok</returns>
         public bool SaveConfiguration(string org, string service, string name, string config)
         {
-
             string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
             (new FileInfo(filePath)).Directory.Create();
             File.WriteAllText(filePath, config, Encoding.UTF8);

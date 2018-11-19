@@ -178,7 +178,6 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<ConditionType> conditionTypes = new List<ConditionType>
             {
-
                 // Equal to
                 new ConditionType
                 {

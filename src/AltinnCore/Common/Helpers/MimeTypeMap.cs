@@ -15,7 +15,6 @@ namespace AltinnCore.Common.Helpers
         {
             var mappings = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-
                 #region Big freaking list of mime types
 
                 // maps both ways,

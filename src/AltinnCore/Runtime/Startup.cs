@@ -30,7 +30,6 @@ namespace AltinnCore.Runtime
 {
     public class Startup
     {
-
         public IConfiguration Configuration { get; }
 
         public Startup(IConfiguration configuration)
@@ -47,8 +46,6 @@ namespace AltinnCore.Runtime
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
         {
-
-
             string runtimeMode = string.Empty;
             if (Environment.GetEnvironmentVariable("GeneralSettings__RuntimeMode") != null)
             {

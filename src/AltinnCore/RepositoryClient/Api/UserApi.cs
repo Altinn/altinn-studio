@@ -1686,7 +1686,11 @@ namespace AltinnCore.RepositoryClient.Api
                 }
                 return _exceptionFactory;
             }
-            set { _exceptionFactory = value; }
+
+            set
+            {
+                _exceptionFactory = value;
+            }
         }
 
         /// <summary>
@@ -1731,7 +1735,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of Repository</returns>
         public ApiResponse<Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null)
         {
-
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -1839,7 +1842,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (Repository)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null)
         {
-
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -1946,7 +1948,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         public ApiResponse<List<Email>> UserAddEmailWithHttpInfo(CreateEmailOption body = null)
         {
-
             var localVarPath = "/user/emails";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -2055,7 +2056,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserAddEmailAsyncWithHttpInfo(CreateEmailOption body = null)
         {
-
             var localVarPath = "/user/emails";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -2405,7 +2405,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserCreateTokenWithHttpInfo(string name = null)
         {
-
             var localVarPath = "/users/{username}/tokens";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -2508,7 +2507,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserCreateTokenAsyncWithHttpInfo(string name = null)
         {
-
             var localVarPath = "/users/{username}/tokens";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -4417,7 +4415,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserCurrentListFollowersWithHttpInfo()
         {
-
             var localVarPath = "/user/followers";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -4516,7 +4513,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowersAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/followers";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -4614,7 +4610,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserCurrentListFollowingWithHttpInfo()
         {
-
             var localVarPath = "/user/following";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -4713,7 +4708,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowingAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/following";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -4811,7 +4805,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         public ApiResponse<List<GPGKey>> UserCurrentListGPGKeysWithHttpInfo()
         {
-
             var localVarPath = "/user/gpg_keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -4910,7 +4903,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserCurrentListGPGKeysAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/gpg_keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5008,7 +5000,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         public ApiResponse<List<PublicKey>> UserCurrentListKeysWithHttpInfo()
         {
-
             var localVarPath = "/user/keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5107,7 +5098,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserCurrentListKeysAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5205,7 +5195,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserCurrentListReposWithHttpInfo()
         {
-
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5304,7 +5293,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListReposAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/repos";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5402,7 +5390,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserCurrentListStarredWithHttpInfo()
         {
-
             var localVarPath = "/user/starred";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5501,7 +5488,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListStarredAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/starred";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5599,7 +5585,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         public ApiResponse<List<Repository>> UserCurrentListSubscriptionsWithHttpInfo()
         {
-
             var localVarPath = "/user/subscriptions";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5698,7 +5683,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/subscriptions";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5798,7 +5782,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of GPGKey</returns>
         public ApiResponse<GPGKey> UserCurrentPostGPGKeyWithHttpInfo(CreateGPGKeyOption form = null)
         {
-
             var localVarPath = "/user/gpg_keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -5906,7 +5889,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentPostGPGKeyAsyncWithHttpInfo(CreateGPGKeyOption form = null)
         {
-
             var localVarPath = "/user/gpg_keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -6013,7 +5995,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of PublicKey</returns>
         public ApiResponse<PublicKey> UserCurrentPostKeyWithHttpInfo(CreateKeyOption body = null)
         {
-
             var localVarPath = "/user/keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -6121,7 +6102,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentPostKeyAsyncWithHttpInfo(CreateKeyOption body = null)
         {
-
             var localVarPath = "/user/keys";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -6692,7 +6672,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;TrackedTime&gt;</returns>
         public ApiResponse<List<TrackedTime>> UserCurrentTrackedTimesWithHttpInfo()
         {
-
             var localVarPath = "/user/times";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -6791,7 +6770,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;TrackedTime&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<TrackedTime>>> UserCurrentTrackedTimesAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/times";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -6890,7 +6868,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null)
         {
-
             var localVarPath = "/user/emails";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -6998,7 +6975,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null)
         {
-
             var localVarPath = "/user/emails";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -7325,7 +7301,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of User</returns>
         public ApiResponse<User> UserGetCurrentWithHttpInfo()
         {
-
             var localVarPath = "/user";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -7424,7 +7399,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (User)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<User>> UserGetCurrentAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -7521,7 +7495,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of Object(void)</returns>
         public ApiResponse<object> UserGetTokensWithHttpInfo()
         {
-
             var localVarPath = "/users/{username}/tokens";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -7619,7 +7592,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse</returns>
         public async System.Threading.Tasks.Task<ApiResponse<object>> UserGetTokensAsyncWithHttpInfo()
         {
-
             var localVarPath = "/users/{username}/tokens";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -7717,7 +7689,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         public ApiResponse<List<Email>> UserListEmailsWithHttpInfo()
         {
-
             var localVarPath = "/user/emails";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -7816,7 +7787,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserListEmailsAsyncWithHttpInfo()
         {
-
             var localVarPath = "/user/emails";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -9465,7 +9435,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         public ApiResponse<List<User>> UserSearchWithHttpInfo(string q = null, int? limit = null)
         {
-
             var localVarPath = "/users/search";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
@@ -9578,7 +9547,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         public async System.Threading.Tasks.Task<ApiResponse<List<User>>> UserSearchAsyncWithHttpInfo(string q = null, int? limit = null)
         {
-
             var localVarPath = "/users/search";
             var localVarPathParams = new Dictionary<string, string>();
             var localVarQueryParams = new List<KeyValuePair<string, string>>();
