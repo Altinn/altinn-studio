@@ -52,9 +52,24 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </summary>
         public enum JsonTypesEnum
         {
+            /// <summary>
+            /// string type
+            /// </summary>
             String,
+
+            /// <summary>
+            /// object type
+            /// </summary>
             Object,
+
+            /// <summary>
+            /// array type
+            /// </summary>
             Array,
+
+            /// <summary>
+            /// dictionary type
+            /// </summary>
             Dictionary,
         }
     }
