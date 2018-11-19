@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -186,14 +186,16 @@ namespace AltinnCore.Common.Services.Implementation
                 .DeserializeAllAs<ResourceCollection>();
         }
 
+        /// <inheritdoc/>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             throw new NotImplementedException();
         }
 
-    public ServiceMetadata GetServiceMetaData(string org, string service)
-    {
-      throw new NotImplementedException();
+        /// <inheritdoc/>
+        public ServiceMetadata GetServiceMetaData(string org, string service)
+        {
+          throw new NotImplementedException();
+        }
     }
-  }
 }

@@ -47,6 +47,7 @@ namespace AltinnCore.Common.Configuration
             return globalDefaultPath;
         }
 
+        /// <inheritdoc/>
         public FileInfo GetWebAppDefaultFile(string fileName, string org = null)
         {
             if (!string.IsNullOrEmpty(org))
@@ -66,6 +67,7 @@ namespace AltinnCore.Common.Configuration
         }
 
 
+        /// <inheritdoc/>
         public FileInfo GetWebAppStyleDefaultFile(string fileName, string org = null)
         {
             if (!string.IsNullOrEmpty(org))

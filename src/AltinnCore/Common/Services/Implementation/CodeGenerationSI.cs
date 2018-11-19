@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -34,8 +34,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="generalSettings">The general application settings</param>
         /// <param name="settings">The service repository settings</param>
         /// <param name="repositoryService">The service repository service</param>
-        public CodeGenerationSI(IOptions<GeneralSettings> generalSettings, IOptions<ServiceRepositorySettings> settings,
-            IRepository repositoryService, IHttpContextAccessor httpContextAccessor)
+        public CodeGenerationSI(
+            IOptions<GeneralSettings> generalSettings,
+            IOptions<ServiceRepositorySettings> settings,
+            IRepository repositoryService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _generalSettings = generalSettings.Value;
             _settings = settings.Value;
@@ -52,8 +55,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="ruleContainers">The rule containers to generate logic based on</param>
         /// <param name="serviceMetadata">The service metadata of the service to generate the class for</param>
         public void CreateCalculationsAndValidationsClass(
-            string org, string service,
-            List<RuleContainer> ruleContainers, ServiceMetadata serviceMetadata)
+            string org,
+            string service,
+            List<RuleContainer> ruleContainers,
+            ServiceMetadata serviceMetadata)
         {
             List<char> reservedIndexNames = new List<char>();
             Dictionary<string, Iterator> allIterators = new Dictionary<string, Iterator>();
@@ -350,8 +355,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         private void CreateClassFromTemplate(
-            string org, string service, Dictionary<ServiceEventType, string> eventLogic,
-            Dictionary<string, string> methods, ServiceMetadata serviceMetadata)
+            string org,
+            string service,
+            Dictionary<ServiceEventType, string> eventLogic,
+            Dictionary<string, string> methods,
+            ServiceMetadata serviceMetadata)
         {
             eventLogic.OrderBy(x => x.Key);
 
@@ -377,9 +385,12 @@ namespace AltinnCore.Common.Services.Implementation
             File.WriteAllText(generatedMethodsFilePath, textData, Encoding.UTF8);
         }
 
-        private string CreateRulesRecursive(RuleContainer ruleContainer, Dictionary<string, Iterator> existingIterators,
+        private string CreateRulesRecursive(
+            RuleContainer ruleContainer,
+            Dictionary<string, Iterator> existingIterators,
             Dictionary<string, string> existingMethods,
-            ServiceMetadata serviceMetadata, List<char> reservedIndexNames)
+            ServiceMetadata serviceMetadata,
+            List<char> reservedIndexNames)
         {
             Dictionary<string, Iterator> iterators = new Dictionary<string, Iterator>();
             CreateIterators(ruleContainer, iterators, serviceMetadata, reservedIndexNames);
@@ -455,12 +466,15 @@ namespace AltinnCore.Common.Services.Implementation
                 rule.Parameters.OrderBy(x => x.Index).Select(x => !serviceMetadata.Elements.ContainsKey(x.Value) ? "\"" + x.Value + "\"" : GetIndexedElementId(x.Value, currentIterators)).ToArray());
         }
 
-        private Dictionary<string, Iterator> CreateIterators(RuleContainer ruleContainer, Dictionary<string, Iterator> iterators,
-            ServiceMetadata serviceMetadata, List<char> reservedIndexNames)
+        private Dictionary<string, Iterator> CreateIterators(
+            RuleContainer ruleContainer,
+            Dictionary<string, Iterator> iterators,
+            ServiceMetadata serviceMetadata,
+            List<char> reservedIndexNames)
         {
             foreach (Condition condition in ruleContainer.Conditions)
             {
-                foreach (Parameter parameter in condition.Parameters.Where(x => !String.IsNullOrEmpty(x.Value)))
+                foreach (Parameter parameter in condition.Parameters.Where(x => !string.IsNullOrEmpty(x.Value)))
                 {
                     string elementId = parameter.Value;
 
@@ -475,8 +489,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         private Dictionary<string, Iterator> CreateIterator(
-            int containerId, string elementId, ServiceMetadata serviceMetadata,
-            List<char> reservedIndexNames, Dictionary<string, Iterator> iterators)
+            int containerId,
+            string elementId,
+            ServiceMetadata serviceMetadata,
+            List<char> reservedIndexNames,
+            Dictionary<string, Iterator> iterators)
         {
             List<string> idParts = elementId.Split('.').ToList();
             string currentId = idParts[0];
@@ -502,8 +519,11 @@ namespace AltinnCore.Common.Services.Implementation
             return iterators;
         }
 
-        private Iterator CreateIterator(string elementId, Dictionary<string, Iterator> existingIterators,
-            ServiceMetadata serviceMetadata, List<char> reservedIndexNames)
+        private Iterator CreateIterator(
+            string elementId,
+            Dictionary<string, Iterator> existingIterators,
+            ServiceMetadata serviceMetadata,
+            List<char> reservedIndexNames)
         {
             ElementMetadata elementMetadata = serviceMetadata.Elements[elementId];
 
@@ -545,7 +565,9 @@ namespace AltinnCore.Common.Services.Implementation
             return indexName;
         }
 
-        private string CreateConditionRecursive(int ruleContainerId, List<Condition> conditions,
+        private string CreateConditionRecursive(
+            int ruleContainerId,
+            List<Condition> conditions,
             Dictionary<string, Iterator> allIterators,
             Dictionary<string, string> allMethods,
             ServiceMetadata serviceMetadata)
@@ -830,8 +852,13 @@ namespace AltinnCore.Common.Services.Implementation
             return method;
         }
 
-        private string GenerateAritmeticMethod(string fieldId, string methodName, string body,
-            string variableType, string variableName, ServiceMetadata serviceMetadata)
+        private string GenerateAritmeticMethod(
+            string fieldId,
+            string methodName,
+            string body,
+            string variableType,
+            string variableName,
+            ServiceMetadata serviceMetadata)
         {
             Dictionary<string, Iterator> iterators = new Dictionary<string, Iterator>();
             List<char> reservedIndexNames = new List<char>();

@@ -73,9 +73,9 @@ namespace AltinnCore.RepositoryClient.Client
         /// with default configuration.
         /// </summary>
         /// <param name="basePath">The base path.</param>
-        public ApiClient(String basePath = "http://localhost/api/v1")
+        public ApiClient(string basePath = "http://localhost/api/v1")
         {
-           if (String.IsNullOrEmpty(basePath))
+            if (string.IsNullOrEmpty(basePath))
                 throw new ArgumentException("basePath cannot be empty");
 
             RestClient = new RestClient(basePath);
@@ -108,10 +108,15 @@ namespace AltinnCore.RepositoryClient.Client
 
         // Creates and sets up a RestRequest prior to a call.
         private RestRequest PrepareRequest(
-            String path, RestSharp.Method method, List<KeyValuePair<String, String>> queryParams, Object postBody,
-            Dictionary<String, String> headerParams, Dictionary<String, String> formParams,
-            Dictionary<String, FileParameter> fileParams, Dictionary<String, String> pathParams,
-            String contentType)
+            string path,
+            RestSharp.Method method,
+            List<KeyValuePair<string, string>> queryParams,
+            object postBody,
+            Dictionary<string, string> headerParams,
+            Dictionary<string, string> formParams,
+            Dictionary<string, FileParameter> fileParams,
+            Dictionary<string, string> pathParams,
+            string contentType)
         {
             var request = new RestRequest(path, method);
 
@@ -159,15 +164,27 @@ namespace AltinnCore.RepositoryClient.Client
         /// <param name="pathParams">Path parameters.</param>
         /// <param name="contentType">Content Type of the request</param>
         /// <returns>Object</returns>
-        public Object CallApi(
-            String path, RestSharp.Method method, List<KeyValuePair<String, String>> queryParams, Object postBody,
-            Dictionary<String, String> headerParams, Dictionary<String, String> formParams,
-            Dictionary<String, FileParameter> fileParams, Dictionary<String, String> pathParams,
-            String contentType)
+        public object CallApi(
+            string path,
+            RestSharp.Method method,
+            List<KeyValuePair<string, string>> queryParams,
+            object postBody,
+            Dictionary<string, string> headerParams,
+            Dictionary<string, string> formParams,
+            Dictionary<string, FileParameter> fileParams,
+            Dictionary<string, string> pathParams,
+            string contentType)
         {
             RestRequest request = PrepareRequest(
-                path, method, queryParams, postBody, headerParams, formParams, fileParams,
-                pathParams, contentType);
+                path,
+                method,
+                queryParams,
+                postBody,
+                headerParams,
+                formParams,
+                fileParams,
+                pathParams,
+                contentType);
 
             // set timeout
 
@@ -179,7 +196,7 @@ namespace AltinnCore.RepositoryClient.Client
             IRestResponse response = RestClient.Execute(request);
             InterceptResponse(request, response);
 
-            return (Object)response;
+            return (object)response;
         }
         /// <summary>
         /// Makes the asynchronous HTTP request.
@@ -194,19 +211,31 @@ namespace AltinnCore.RepositoryClient.Client
         /// <param name="pathParams">Path parameters.</param>
         /// <param name="contentType">Content type.</param>
         /// <returns>The Task instance.</returns>
-        public async System.Threading.Tasks.Task<Object> CallApiAsync(
-            String path, RestSharp.Method method, List<KeyValuePair<String, String>> queryParams, Object postBody,
-            Dictionary<String, String> headerParams, Dictionary<String, String> formParams,
-            Dictionary<String, FileParameter> fileParams, Dictionary<String, String> pathParams,
-            String contentType)
+        public async System.Threading.Tasks.Task<object> CallApiAsync(
+            string path,
+            RestSharp.Method method,
+            List<KeyValuePair<string, string>> queryParams,
+            object postBody,
+            Dictionary<string, string> headerParams,
+            Dictionary<string, string> formParams,
+            Dictionary<string, FileParameter> fileParams,
+            Dictionary<string, string> pathParams,
+            string contentType)
         {
             RestRequest request = PrepareRequest(
-                path, method, queryParams, postBody, headerParams, formParams, fileParams,
-                pathParams, contentType);
+                path,
+                method,
+                queryParams,
+                postBody,
+                headerParams,
+                formParams,
+                fileParams,
+                pathParams,
+                contentType);
             InterceptRequest(request);
             var response = await RestClient.ExecuteTaskAsync(request);
             InterceptResponse(request, response);
-            return (Object)response;
+            return (object)response;
         }
 
         /// <summary>
@@ -289,7 +318,7 @@ namespace AltinnCore.RepositoryClient.Client
             {
                 if (headers != null)
                 {
-                    var filePath = String.IsNullOrEmpty(Configuration.TempFolderPath)
+                    var filePath = string.IsNullOrEmpty(Configuration.TempFolderPath)
                         ? Path.GetTempPath()
                         : Configuration.TempFolderPath;
                     var regex = new Regex(@"Content-Disposition=.*filename=['""]?([^'""\s]+)['""]?$");
@@ -298,7 +327,7 @@ namespace AltinnCore.RepositoryClient.Client
                         var match = regex.Match(header.ToString());
                         if (match.Success)
                         {
-                            string fileName = filePath + SanitizeFilename(match.Groups[1].Value.Replace("\"", "").Replace("'", ""));
+                            string fileName = filePath + SanitizeFilename(match.Groups[1].Value.Replace("\"", string.Empty).Replace("'", string.Empty));
                             File.WriteAllBytes(fileName, response.RawBytes);
                             return new FileStream(fileName, FileMode.Open);
                         }
@@ -315,7 +344,7 @@ namespace AltinnCore.RepositoryClient.Client
             }
 
             // return primitive type
-            if (type == typeof(String) || type.Name.StartsWith("System.Nullable"))
+            if (type == typeof(string) || type.Name.StartsWith("System.Nullable"))
             {
                 return ConvertType(response.Content, type);
             }
@@ -336,7 +365,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="obj">Object.</param>
         /// <returns>JSON string.</returns>
-        public String Serialize(object obj)
+        public string Serialize(object obj)
         {
             try
             {
@@ -358,7 +387,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="mime">MIME</param>
         /// <returns>Returns True if MIME type is json.</returns>
-        public bool IsJsonMime(String mime)
+        public bool IsJsonMime(string mime)
         {
             var jsonRegex = new Regex("(?i)^(application/json|[^;/ \t]+/[^;/ \t]+[+]json)[ \t]*(;.*)?$");
             return mime != null && (jsonRegex.IsMatch(mime) || mime.Equals("application/json-patch+json"));
@@ -371,7 +400,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="contentTypes">The Content-Type array to select from.</param>
         /// <returns>The Content-Type header to use.</returns>
-        public String SelectHeaderContentType(String[] contentTypes)
+        public string SelectHeaderContentType(string[] contentTypes)
         {
             if (contentTypes.Length == 0)
                 return "application/json";
@@ -392,7 +421,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="accepts">The accepts array to select from.</param>
         /// <returns>The Accept header to use.</returns>
-        public String SelectHeaderAccept(String[] accepts)
+        public string SelectHeaderAccept(string[] accepts)
         {
             if (accepts.Length == 0)
                 return null;
@@ -400,7 +429,7 @@ namespace AltinnCore.RepositoryClient.Client
             if (accepts.Contains("application/json", StringComparer.OrdinalIgnoreCase))
                 return "application/json";
 
-            return String.Join(",", accepts);
+            return string.Join(",", accepts);
         }
 
         /// <summary>

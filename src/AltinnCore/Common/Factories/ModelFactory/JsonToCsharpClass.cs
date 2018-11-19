@@ -6,8 +6,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 {
     public class JsonToCsharpClass : IJsonToCsharpClassConfig
     {
+        /// <inheritdoc/>
         public string Namespace { get; set; }
+        /// <inheritdoc/>
         public string MainClass { get; set; }
+        /// <inheritdoc/>
         public bool UseSingleFile { get; set; }
 
 

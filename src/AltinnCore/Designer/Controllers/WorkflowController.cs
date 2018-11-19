@@ -23,7 +23,8 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The serviceRepository service</param>
         /// <param name="settings">The service repository settings</param>
         /// <param name="defaultFileFactory">The default file factory</param>
-        public WorkflowController(IHostingEnvironment hostingEnvironment,
+        public WorkflowController(
+            IHostingEnvironment hostingEnvironment,
             IRepository repository,
             IOptions<ServiceRepositorySettings> settings,
             IDefaultFileFactory defaultFileFactory)

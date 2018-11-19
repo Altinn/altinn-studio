@@ -220,13 +220,13 @@ namespace AltinnCore.RepositoryClient.Model
         /// </summary>
         [DataMember(Name="website", EmitDefaultValue=false)]
         public string Website { get; set; }
-    public bool IsClonedToLocal { get; set; }
+        public bool IsClonedToLocal { get; set; }
 
-    /// <summary>
-    /// Returns the string presentation of the object
-    /// </summary>
-    /// <returns>String presentation of the object</returns>
-    public override string ToString()
+        /// <summary>
+        /// Returns the string presentation of the object
+        /// </summary>
+        /// <returns>String presentation of the object</returns>
+        public override string ToString()
         {
             var sb = new StringBuilder();
             sb.Append("class Repository {\n");

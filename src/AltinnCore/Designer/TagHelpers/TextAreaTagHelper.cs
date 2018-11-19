@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -123,7 +123,8 @@ namespace AltinnCore.Designer.TagHelpers
                     attributeKey.Equals("placeholder"))
                 {
                     // Replaces the attribute
-                    tagHelperOutput.Attributes[i] = new TagHelperAttribute(tagHelperOutput.Attributes[i].Name,
+                    tagHelperOutput.Attributes[i] = new TagHelperAttribute(
+                        tagHelperOutput.Attributes[i].Name,
                         ServiceTextHelper.GetServiceText(tagHelperOutput.Attributes[i].Value.ToString(), serviceContext.ServiceText, null, serviceContext.CurrentCulture));
                 }
             }

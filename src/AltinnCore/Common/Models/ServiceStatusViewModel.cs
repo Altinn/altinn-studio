@@ -95,7 +95,7 @@ namespace AltinnCore.Common.Models
             /// <summary>  The error.  </summary>
             /// <param name="msg"> The message. </param>
             /// <returns> The <see cref="UserMessage"/>. An instance marked as error. </returns>
-           public static UserMessage Error(string msg)
+            public static UserMessage Error(string msg)
             {
                 return new UserMessage { IsError = true, Message = msg ?? string.Empty };
             }

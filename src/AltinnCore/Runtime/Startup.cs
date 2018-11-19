@@ -195,41 +195,41 @@ namespace AltinnCore.Runtime
 
             app.UseMvc(routes =>
             {
-          // ---------------------------- UI --------------------------- //
-          routes.MapRoute(
-              name: "uiRoute",
-              template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
-              defaults: new { controller = "Instance" },
-              constraints: new
-                  {
-                      action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
-                      controller = "Instance",
-                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                      instanceId = @"\d+"
-                  });
+                // ---------------------------- UI --------------------------- //
+                routes.MapRoute(
+                    name: "uiRoute",
+                    template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
+                    defaults: new { controller = "Instance" },
+                    constraints: new
+                    {
+                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
+                        controller = "Instance",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        instanceId = @"\d+"
+                    });
 
                 routes.MapRoute(
                    name: "uiEditRoute",
                    template: "runtime/{org}/{service}/{instanceId}",
                    defaults: new { action = "EditSPA", controller = "Instance" },
                    constraints: new
-                       {
-                           action = "EditSPA",
-                           controller = "Instance",
-                           service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                           instanceId = @"\d+"
-                       });
+                   {
+                       action = "EditSPA",
+                       controller = "Instance",
+                       service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                       instanceId = @"\d+"
+                   });
 
-          // ---------------------------- API -------------------------- //
-          routes.MapRoute(
-              name: "resourceRoute",
-              template: "runtime/api/resource/{org}/{service}/{id}",
-              defaults: new { action = "Index", controller = "Resource" },
-              constraints: new
-                  {
-                      controller = "Resource",
-                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                  });
+                // ---------------------------- API -------------------------- //
+                routes.MapRoute(
+                    name: "resourceRoute",
+                    template: "runtime/api/resource/{org}/{service}/{id}",
+                    defaults: new { action = "Index", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
 
 
 
@@ -238,41 +238,41 @@ namespace AltinnCore.Runtime
           template: "runtime/api/textresources/{org}/{service}",
           defaults: new { action = "TextResources", controller = "Resource" },
           constraints: new
-              {
-                  controller = "Resource",
-                  service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-              });
+          {
+              controller = "Resource",
+              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+          });
 
                 routes.MapRoute(
           name: "metadataRoute",
           template: "runtime/api/metadata/{org}/{service}/{action=Index}",
           defaults: new { controller = "Resource" },
           constraints: new
-              {
-                  controller = "Resource",
-                  service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-              });
+          {
+              controller = "Resource",
+              service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+          });
 
                 routes.MapRoute(
                 name: "apiPostRoute",
                 template: "runtime/api/{reportee}/{org}/{service}/{apiMode}",
                 defaults: new { action = "Index", controller = "ServiceAPI" },
                 constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+                {
+                    controller = "ServiceAPI",
+                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                });
 
                 routes.MapRoute(
                  name: "apiPutRoute",
                  template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
                  defaults: new { action = "Index", controller = "ServiceAPI" },
                  constraints: new
-                     {
-                         controller = "ServiceAPI",
-                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                         instanceId = @"\d+"
-                     });
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"\d+"
+                 });
 
 
                 routes.MapRoute(
@@ -280,38 +280,38 @@ namespace AltinnCore.Runtime
            template: "runtime/api/{controller}/{org}/{service}/{action=Index}/{name}",
            defaults: new { controller = "Codelist" },
            constraints: new
-               {
-                   controller = "Codelist",
-                   service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-               });
+           {
+               controller = "Codelist",
+               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+           });
 
                 routes.MapRoute(
                 name: "apiRoute",
                 template: "runtime/api/{reportee}/{org}/{service}/{action=Index}/{instanceId?}",
                 defaults: new { controller = "ServiceAPI" },
                 constraints: new
-                    {
-                        controller = "ServiceAPI",
-                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    });
+                {
+                    controller = "ServiceAPI",
+                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                });
 
                 routes.MapRoute(
             name: "serviceRoute",
             template: "runtime/{org}/{service}/{controller}/{action=Index}/{id?}",
             defaults: new { controller = "Service" },
             constraints: new
-                {
-                    controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
-                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                    id = "[a-zA-Z0-9_\\-]{1,30}"
-                });
+            {
+                controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                id = "[a-zA-Z0-9_\\-]{1,30}"
+            });
 
 
-          // -------------------------- DEFAULT ------------------------- //
-          routes.MapRoute(
-                   name: "defaultRoute2",
-                   template: "runtime/{controller}/{action=Index}/{id?}",
-                   defaults: new { controller = "ServiceCatalogue" });
+                // -------------------------- DEFAULT ------------------------- //
+                routes.MapRoute(
+                         name: "defaultRoute2",
+                         template: "runtime/{controller}/{action=Index}/{id?}",
+                         defaults: new { controller = "ServiceCatalogue" });
 
                 routes.MapRoute(
               name: "defaultRoute",

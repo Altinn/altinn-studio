@@ -40,8 +40,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
-        public RepositorySI(IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings, IDefaultFileFactory defaultFileFactory, IHttpContextAccessor httpContextAccessor, IGitea gitea, ISourceControl sourceControl)
+        public RepositorySI(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IDefaultFileFactory defaultFileFactory,
+            IHttpContextAccessor httpContextAccessor,
+            IGitea gitea,
+            ISourceControl sourceControl)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -84,16 +89,20 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(servicePath);
             }
 
-            var metaDataDir = _settings.GetMetadataPath(serviceMetadata.Org,
-                serviceMetadata.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var metaDataDir = _settings.GetMetadataPath(
+                serviceMetadata.Org,
+                serviceMetadata.Service,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
             {
                 metaDirectoryInfo.Create();
             }
 
-            var resourceDir = _settings.GetResourcePath(serviceMetadata.Org,
-                serviceMetadata.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var resourceDir = _settings.GetResourcePath(
+                serviceMetadata.Org,
+                serviceMetadata.Service,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
             {
@@ -319,8 +328,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="texts">The texts to be saved</param>
-        public void SaveServiceTexts(string org, string service,
-            Dictionary<string, Dictionary<string, string>> texts)
+        public void SaveServiceTexts(string org, string service, Dictionary<string, Dictionary<string, string>> texts)
         {
             // Language, key, value
             Dictionary<string, Dictionary<string, JObject>> resourceTextsAsJson =
@@ -602,8 +610,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="serviceMetadata">The service metadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current service</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata,
-            XDocument mainXsd)
+        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, XDocument mainXsd)
         {
             var modelGenerator = new JsonMetadataParser();
 

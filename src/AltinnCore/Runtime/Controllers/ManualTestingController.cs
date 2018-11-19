@@ -39,8 +39,13 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="profileService">The profileService (configured in Startup.cs)</param>
         /// <param name="registerService">The registerService (configured in Startup.cs)</param>
         /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>
-        public ManualTestingController(ITestdata testdataService, IProfile profileService, IRegister registerService,
-            IAuthorization authorizationService, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper)
+        public ManualTestingController(
+            ITestdata testdataService,
+            IProfile profileService,
+            IRegister registerService,
+            IAuthorization authorizationService,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IGitea giteaWrapper)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -110,7 +115,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="culture">The culture to set</param>
         /// <param name="returnUrl">The returnUrl</param>
         /// <returns>Redirect to returnUrl</returns>
-        public IActionResult SetLanguage(string culture,
+        public IActionResult SetLanguage(
+            string culture,
             string returnUrl)
         {
             Response.Cookies.Append(
@@ -178,7 +184,9 @@ namespace AltinnCore.Runtime.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
                 new AuthenticationProperties
                 {
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(200),

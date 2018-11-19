@@ -31,7 +31,8 @@ namespace AltinnCore.Runtime.Db.Repository
             databaseId = _cosmosettings.Database;
             collectionId = _cosmosettings.Collection;
             _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
-            _client.CreateDocumentCollectionIfNotExistsAsync(_databaseUri,
+            _client.CreateDocumentCollectionIfNotExistsAsync(
+                _databaseUri,
                 new DocumentCollection { Id = _cosmosettings.Collection }).GetAwaiter().GetResult();
         }
 

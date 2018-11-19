@@ -88,7 +88,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCheckFollowingWithHttpInfo(string follower, string followee);
+        ApiResponse<object> UserCheckFollowingWithHttpInfo(string follower, string followee);
         /// <summary>
         /// Create an access token
         /// </summary>
@@ -109,7 +109,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="name"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCreateTokenWithHttpInfo(string name = null);
+        ApiResponse<object> UserCreateTokenWithHttpInfo(string name = null);
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
@@ -130,7 +130,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentCheckFollowingWithHttpInfo(string followee);
+        ApiResponse<object> UserCurrentCheckFollowingWithHttpInfo(string followee);
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
@@ -153,7 +153,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentCheckStarringWithHttpInfo(string owner, string repo);
+        ApiResponse<object> UserCurrentCheckStarringWithHttpInfo(string owner, string repo);
         /// <summary>
         /// Unfollow a user
         /// </summary>
@@ -174,7 +174,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to unfollow</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentDeleteFollowWithHttpInfo(string username);
+        ApiResponse<object> UserCurrentDeleteFollowWithHttpInfo(string username);
         /// <summary>
         /// Remove a GPG key
         /// </summary>
@@ -195,7 +195,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id);
+        ApiResponse<object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id);
         /// <summary>
         /// Delete a public key
         /// </summary>
@@ -216,7 +216,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentDeleteKeyWithHttpInfo(int? id);
+        ApiResponse<object> UserCurrentDeleteKeyWithHttpInfo(int? id);
         /// <summary>
         /// Unstar the given repo
         /// </summary>
@@ -239,7 +239,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentDeleteStarWithHttpInfo(string owner, string repo);
+        ApiResponse<object> UserCurrentDeleteStarWithHttpInfo(string owner, string repo);
         /// <summary>
         /// Get a GPG key
         /// </summary>
@@ -477,7 +477,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to follow</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentPutFollowWithHttpInfo(string username);
+        ApiResponse<object> UserCurrentPutFollowWithHttpInfo(string username);
         /// <summary>
         /// Star the given repo
         /// </summary>
@@ -500,7 +500,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserCurrentPutStarWithHttpInfo(string owner, string repo);
+        ApiResponse<object> UserCurrentPutStarWithHttpInfo(string owner, string repo);
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
@@ -540,7 +540,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null);
+        ApiResponse<object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null);
         /// <summary>
         /// Get a user
         /// </summary>
@@ -599,7 +599,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </remarks>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of Object(void)</returns>
-        ApiResponse<Object> UserGetTokensWithHttpInfo();
+        ApiResponse<object> UserGetTokensWithHttpInfo();
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
@@ -880,7 +880,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCheckFollowingAsyncWithHttpInfo(string follower, string followee);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCheckFollowingAsyncWithHttpInfo(string follower, string followee);
         /// <summary>
         /// Create an access token
         /// </summary>
@@ -901,7 +901,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="name"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCreateTokenAsyncWithHttpInfo(string name = null);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCreateTokenAsyncWithHttpInfo(string name = null);
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
@@ -922,7 +922,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee);
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
@@ -945,7 +945,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentCheckStarringAsyncWithHttpInfo(string owner, string repo);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckStarringAsyncWithHttpInfo(string owner, string repo);
         /// <summary>
         /// Unfollow a user
         /// </summary>
@@ -966,7 +966,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username);
         /// <summary>
         /// Remove a GPG key
         /// </summary>
@@ -987,7 +987,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id);
         /// <summary>
         /// Delete a public key
         /// </summary>
@@ -1008,7 +1008,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id);
         /// <summary>
         /// Unstar the given repo
         /// </summary>
@@ -1031,7 +1031,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteStarAsyncWithHttpInfo(string owner, string repo);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteStarAsyncWithHttpInfo(string owner, string repo);
         /// <summary>
         /// Get a GPG key
         /// </summary>
@@ -1269,7 +1269,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentPutFollowAsyncWithHttpInfo(string username);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutFollowAsyncWithHttpInfo(string username);
         /// <summary>
         /// Star the given repo
         /// </summary>
@@ -1292,7 +1292,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentPutStarAsyncWithHttpInfo(string owner, string repo);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutStarAsyncWithHttpInfo(string owner, string repo);
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
@@ -1332,7 +1332,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null);
+        System.Threading.Tasks.Task<ApiResponse<object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null);
         /// <summary>
         /// Get a user
         /// </summary>
@@ -1391,7 +1391,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </remarks>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse</returns>
-        System.Threading.Tasks.Task<ApiResponse<Object>> UserGetTokensAsyncWithHttpInfo();
+        System.Threading.Tasks.Task<ApiResponse<object>> UserGetTokensAsyncWithHttpInfo();
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
@@ -1620,7 +1620,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// Initializes a new instance of the <see cref="UserApi"/> class.
         /// </summary>
         /// <returns></returns>
-        public UserApi(String basePath)
+        public UserApi(string basePath)
         {
             this.Configuration = new Configuration { BasePath = basePath };
 
@@ -1647,7 +1647,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// Gets the base path of the API client.
         /// </summary>
         /// <value>The base path</value>
-        public String GetBasePath()
+        public string GetBasePath()
         {
             return this.Configuration.ApiClient.RestClient.BaseUrl.ToString();
         }
@@ -1657,7 +1657,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <value>The base path</value>
         [Obsolete("SetBasePath is deprecated, please do 'Configuration.ApiClient = new ApiClient(\"http://new-path\")' instead.")]
-        public void SetBasePath(String basePath)
+        public void SetBasePath(string basePath)
         {
             // do nothing
         }
@@ -1689,7 +1689,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <returns>Dictionary of HTTP header</returns>
         [Obsolete("DefaultHeader is deprecated, please use Configuration.DefaultHeader instead.")]
-        public IDictionary<String, String> DefaultHeader()
+        public IDictionary<string, string> DefaultHeader()
         {
             return new ReadOnlyDictionary<string, string>(this.Configuration.DefaultHeader);
         }
@@ -1728,24 +1728,26 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/repos";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -1759,31 +1761,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -1793,7 +1802,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Repository>(localVarStatusCode,
+            return new ApiResponse<Repository>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (Repository)Configuration.ApiClient.Deserialize(localVarResponse, typeof(Repository)));
         }
@@ -1821,24 +1831,26 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/repos";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -1852,31 +1864,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -1886,7 +1905,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Repository>(localVarStatusCode,
+            return new ApiResponse<Repository>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (Repository)Configuration.ApiClient.Deserialize(localVarResponse, typeof(Repository)));
         }
@@ -1913,25 +1933,27 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/emails";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -1945,31 +1967,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -1979,7 +2008,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Email>>(localVarStatusCode,
+            return new ApiResponse<List<Email>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Email>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Email>)));
         }
@@ -2007,25 +2037,27 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/emails";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -2039,31 +2071,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2073,7 +2112,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Email>>(localVarStatusCode,
+            return new ApiResponse<List<Email>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Email>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Email>)));
         }
@@ -2097,7 +2137,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCheckFollowingWithHttpInfo(string follower, string followee)
+        public ApiResponse<object> UserCheckFollowingWithHttpInfo(string follower, string followee)
         {
             // verify the required parameter 'follower' is set
             if (follower == null)
@@ -2107,26 +2147,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCheckFollowing");
 
             var localVarPath = "/users/{follower}/following/{followee}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -2134,31 +2176,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2168,7 +2217,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2193,7 +2243,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCheckFollowingAsyncWithHttpInfo(string follower, string followee)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCheckFollowingAsyncWithHttpInfo(string follower, string followee)
         {
             // verify the required parameter 'follower' is set
             if (follower == null)
@@ -2203,26 +2253,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCheckFollowing");
 
             var localVarPath = "/users/{follower}/following/{followee}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -2230,31 +2282,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2264,7 +2323,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2286,59 +2346,68 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="name"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCreateTokenWithHttpInfo(string name = null)
+        public ApiResponse<object> UserCreateTokenWithHttpInfo(string name = null)
         {
 
             var localVarPath = "/users/{username}/tokens";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (name != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "name", name)); // query parameter
+            if (name != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2348,7 +2417,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2371,59 +2441,68 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="name"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCreateTokenAsyncWithHttpInfo(string name = null)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCreateTokenAsyncWithHttpInfo(string name = null)
         {
 
             var localVarPath = "/users/{username}/tokens";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (name != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "name", name)); // query parameter
+            if (name != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2433,7 +2512,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2455,64 +2535,73 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentCheckFollowingWithHttpInfo(string followee)
+        public ApiResponse<object> UserCurrentCheckFollowingWithHttpInfo(string followee)
         {
             // verify the required parameter 'followee' is set
             if (followee == null)
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCurrentCheckFollowing");
 
             var localVarPath = "/user/following/{followee}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2522,7 +2611,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2545,64 +2635,73 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee)
         {
             // verify the required parameter 'followee' is set
             if (followee == null)
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCurrentCheckFollowing");
 
             var localVarPath = "/user/following/{followee}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2612,7 +2711,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2636,7 +2736,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentCheckStarringWithHttpInfo(string owner, string repo)
+        public ApiResponse<object> UserCurrentCheckStarringWithHttpInfo(string owner, string repo)
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
@@ -2646,26 +2746,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentCheckStarring");
 
             var localVarPath = "/user/starred/{owner}/{repo}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -2673,31 +2775,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2707,7 +2816,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2732,7 +2842,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentCheckStarringAsyncWithHttpInfo(string owner, string repo)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckStarringAsyncWithHttpInfo(string owner, string repo)
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
@@ -2742,26 +2852,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentCheckStarring");
 
             var localVarPath = "/user/starred/{owner}/{repo}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -2769,31 +2881,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2803,7 +2922,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2825,64 +2945,73 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to unfollow</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentDeleteFollowWithHttpInfo(string username)
+        public ApiResponse<object> UserCurrentDeleteFollowWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentDeleteFollow");
 
             var localVarPath = "/user/following/{username}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2892,7 +3021,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -2915,64 +3045,73 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentDeleteFollow");
 
             var localVarPath = "/user/following/{username}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -2982,7 +3121,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3004,63 +3144,72 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id)
+        public ApiResponse<object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id)
         {
             // verify the required parameter 'id' is set
             if (id == null)
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteGPGKey");
 
             var localVarPath = "/user/gpg_keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3070,7 +3219,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3093,63 +3243,72 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id)
         {
             // verify the required parameter 'id' is set
             if (id == null)
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteGPGKey");
 
             var localVarPath = "/user/gpg_keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3159,7 +3318,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3181,63 +3341,72 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentDeleteKeyWithHttpInfo(int? id)
+        public ApiResponse<object> UserCurrentDeleteKeyWithHttpInfo(int? id)
         {
             // verify the required parameter 'id' is set
             if (id == null)
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteKey");
 
             var localVarPath = "/user/keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3247,7 +3416,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3270,63 +3440,72 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id)
         {
             // verify the required parameter 'id' is set
             if (id == null)
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteKey");
 
             var localVarPath = "/user/keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3336,7 +3515,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3360,7 +3540,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentDeleteStarWithHttpInfo(string owner, string repo)
+        public ApiResponse<object> UserCurrentDeleteStarWithHttpInfo(string owner, string repo)
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
@@ -3370,26 +3550,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentDeleteStar");
 
             var localVarPath = "/user/starred/{owner}/{repo}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -3397,31 +3579,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3431,7 +3620,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3456,7 +3646,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentDeleteStarAsyncWithHttpInfo(string owner, string repo)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteStarAsyncWithHttpInfo(string owner, string repo)
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
@@ -3466,26 +3656,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentDeleteStar");
 
             var localVarPath = "/user/starred/{owner}/{repo}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -3493,31 +3685,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3527,7 +3726,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -3557,56 +3757,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetGPGKey");
 
             var localVarPath = "/user/gpg_keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3616,7 +3825,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<GPGKey>(localVarStatusCode,
+            return new ApiResponse<GPGKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (GPGKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(GPGKey)));
         }
@@ -3647,56 +3857,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetGPGKey");
 
             var localVarPath = "/user/gpg_keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3706,7 +3925,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<GPGKey>(localVarStatusCode,
+            return new ApiResponse<GPGKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (GPGKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(GPGKey)));
         }
@@ -3736,56 +3956,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetKey");
 
             var localVarPath = "/user/keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3795,7 +4024,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<PublicKey>(localVarStatusCode,
+            return new ApiResponse<PublicKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (PublicKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(PublicKey)));
         }
@@ -3826,56 +4056,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetKey");
 
             var localVarPath = "/user/keys/{id}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3885,7 +4124,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<PublicKey>(localVarStatusCode,
+            return new ApiResponse<PublicKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (PublicKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(PublicKey)));
         }
@@ -3910,55 +4150,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/followers";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -3968,7 +4217,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -3994,55 +4244,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/followers";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4052,7 +4311,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -4077,55 +4337,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/following";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4135,7 +4404,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -4161,55 +4431,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/following";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4219,7 +4498,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -4244,55 +4524,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/gpg_keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4302,7 +4591,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<GPGKey>>(localVarStatusCode,
+            return new ApiResponse<List<GPGKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<GPGKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<GPGKey>)));
         }
@@ -4328,55 +4618,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/gpg_keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4386,7 +4685,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<GPGKey>>(localVarStatusCode,
+            return new ApiResponse<List<GPGKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<GPGKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<GPGKey>)));
         }
@@ -4411,55 +4711,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4469,7 +4778,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<PublicKey>>(localVarStatusCode,
+            return new ApiResponse<List<PublicKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<PublicKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<PublicKey>)));
         }
@@ -4495,55 +4805,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4553,7 +4872,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<PublicKey>>(localVarStatusCode,
+            return new ApiResponse<List<PublicKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<PublicKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<PublicKey>)));
         }
@@ -4578,55 +4898,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/repos";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4636,7 +4965,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -4662,55 +4992,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/repos";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4720,7 +5059,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -4745,55 +5085,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/starred";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4803,7 +5152,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -4829,55 +5179,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/starred";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4887,7 +5246,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -4912,55 +5272,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/subscriptions";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -4970,7 +5339,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -4996,55 +5366,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/subscriptions";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5054,7 +5433,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -5081,24 +5461,26 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/gpg_keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -5112,31 +5494,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5146,7 +5535,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<GPGKey>(localVarStatusCode,
+            return new ApiResponse<GPGKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (GPGKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(GPGKey)));
         }
@@ -5174,24 +5564,26 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/gpg_keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -5205,31 +5597,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5239,7 +5638,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<GPGKey>(localVarStatusCode,
+            return new ApiResponse<GPGKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (GPGKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(GPGKey)));
         }
@@ -5266,24 +5666,26 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -5297,31 +5699,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5331,7 +5740,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<PublicKey>(localVarStatusCode,
+            return new ApiResponse<PublicKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (PublicKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(PublicKey)));
         }
@@ -5359,24 +5769,26 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -5390,31 +5802,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.POST, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.POST,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5424,7 +5843,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<PublicKey>(localVarStatusCode,
+            return new ApiResponse<PublicKey>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (PublicKey)Configuration.ApiClient.Deserialize(localVarResponse, typeof(PublicKey)));
         }
@@ -5446,64 +5866,73 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to follow</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentPutFollowWithHttpInfo(string username)
+        public ApiResponse<object> UserCurrentPutFollowWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentPutFollow");
 
             var localVarPath = "/user/following/{username}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.PUT, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.PUT,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5513,7 +5942,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -5536,64 +5966,73 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentPutFollowAsyncWithHttpInfo(string username)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutFollowAsyncWithHttpInfo(string username)
         {
             // verify the required parameter 'username' is set
             if (username == null)
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentPutFollow");
 
             var localVarPath = "/user/following/{username}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.PUT, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.PUT,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5603,7 +6042,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -5627,7 +6067,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserCurrentPutStarWithHttpInfo(string owner, string repo)
+        public ApiResponse<object> UserCurrentPutStarWithHttpInfo(string owner, string repo)
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
@@ -5637,26 +6077,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentPutStar");
 
             var localVarPath = "/user/starred/{owner}/{repo}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -5664,31 +6106,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.PUT, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.PUT,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5698,7 +6147,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -5723,7 +6173,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserCurrentPutStarAsyncWithHttpInfo(string owner, string repo)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutStarAsyncWithHttpInfo(string owner, string repo)
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
@@ -5733,26 +6183,28 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentPutStar");
 
             var localVarPath = "/user/starred/{owner}/{repo}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json",
                 "text/html"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -5760,31 +6212,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.PUT, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.PUT,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5794,7 +6253,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -5819,55 +6279,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/times";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5877,7 +6346,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<TrackedTime>>(localVarStatusCode,
+            return new ApiResponse<List<TrackedTime>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<TrackedTime>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<TrackedTime>)));
         }
@@ -5903,55 +6373,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/times";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -5961,7 +6440,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<TrackedTime>>(localVarStatusCode,
+            return new ApiResponse<List<TrackedTime>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<TrackedTime>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<TrackedTime>)));
         }
@@ -5983,29 +6463,31 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null)
+        public ApiResponse<object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null)
         {
 
             var localVarPath = "/user/emails";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -6019,31 +6501,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6053,7 +6542,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -6076,29 +6566,31 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null)
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null)
         {
 
             var localVarPath = "/user/emails";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -6112,31 +6604,38 @@ namespace AltinnCore.RepositoryClient.Api
             }
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.DELETE, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.DELETE,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6146,7 +6645,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -6176,56 +6676,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserGet");
 
             var localVarPath = "/users/{username}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6235,7 +6744,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<User>(localVarStatusCode,
+            return new ApiResponse<User>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (User)Configuration.ApiClient.Deserialize(localVarResponse, typeof(User)));
         }
@@ -6266,56 +6776,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserGet");
 
             var localVarPath = "/users/{username}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6325,7 +6844,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<User>(localVarStatusCode,
+            return new ApiResponse<User>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (User)Configuration.ApiClient.Deserialize(localVarResponse, typeof(User)));
         }
@@ -6350,55 +6870,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6408,7 +6937,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<User>(localVarStatusCode,
+            return new ApiResponse<User>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (User)Configuration.ApiClient.Deserialize(localVarResponse, typeof(User)));
         }
@@ -6434,55 +6964,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6492,7 +7031,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<User>(localVarStatusCode,
+            return new ApiResponse<User>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (User)Configuration.ApiClient.Deserialize(localVarResponse, typeof(User)));
         }
@@ -6512,59 +7052,68 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of Object(void)</returns>
-        public ApiResponse<Object> UserGetTokensWithHttpInfo()
+        public ApiResponse<object> UserGetTokensWithHttpInfo()
         {
 
             var localVarPath = "/users/{username}/tokens";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6574,7 +7123,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -6595,59 +7145,68 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse</returns>
-        public async System.Threading.Tasks.Task<ApiResponse<Object>> UserGetTokensAsyncWithHttpInfo()
+        public async System.Threading.Tasks.Task<ApiResponse<object>> UserGetTokensAsyncWithHttpInfo()
         {
 
             var localVarPath = "/users/{username}/tokens";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6657,7 +7216,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<Object>(localVarStatusCode,
+            return new ApiResponse<object>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 null);
         }
@@ -6682,55 +7242,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/emails";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6740,7 +7309,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Email>>(localVarStatusCode,
+            return new ApiResponse<List<Email>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Email>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Email>)));
         }
@@ -6766,55 +7336,64 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/user/emails";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6824,7 +7403,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Email>>(localVarStatusCode,
+            return new ApiResponse<List<Email>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Email>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Email>)));
         }
@@ -6854,56 +7434,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowers");
 
             var localVarPath = "/users/{username}/followers";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -6913,7 +7502,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -6944,56 +7534,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowers");
 
             var localVarPath = "/users/{username}/followers";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7003,7 +7602,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -7033,56 +7633,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowing");
 
             var localVarPath = "/users/{username}/following";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7092,7 +7701,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -7123,56 +7733,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowing");
 
             var localVarPath = "/users/{username}/following";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7182,7 +7801,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -7212,56 +7832,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListGPGKeys");
 
             var localVarPath = "/users/{username}/gpg_keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7271,7 +7900,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<GPGKey>>(localVarStatusCode,
+            return new ApiResponse<List<GPGKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<GPGKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<GPGKey>)));
         }
@@ -7302,56 +7932,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListGPGKeys");
 
             var localVarPath = "/users/{username}/gpg_keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7361,7 +8000,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<GPGKey>>(localVarStatusCode,
+            return new ApiResponse<List<GPGKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<GPGKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<GPGKey>)));
         }
@@ -7391,56 +8031,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListKeys");
 
             var localVarPath = "/users/{username}/keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7450,7 +8099,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<PublicKey>>(localVarStatusCode,
+            return new ApiResponse<List<PublicKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<PublicKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<PublicKey>)));
         }
@@ -7481,56 +8131,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListKeys");
 
             var localVarPath = "/users/{username}/keys";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7540,7 +8199,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<PublicKey>>(localVarStatusCode,
+            return new ApiResponse<List<PublicKey>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<PublicKey>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<PublicKey>)));
         }
@@ -7570,56 +8230,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListRepos");
 
             var localVarPath = "/users/{username}/repos";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7629,7 +8298,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -7660,56 +8330,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListRepos");
 
             var localVarPath = "/users/{username}/repos";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7719,7 +8398,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -7749,56 +8429,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListStarred");
 
             var localVarPath = "/users/{username}/starred";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7808,7 +8497,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -7839,56 +8529,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListStarred");
 
             var localVarPath = "/users/{username}/starred";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7898,7 +8597,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -7928,56 +8628,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListSubscriptions");
 
             var localVarPath = "/users/{username}/subscriptions";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -7987,7 +8696,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -8018,56 +8728,65 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListSubscriptions");
 
             var localVarPath = "/users/{username}/subscriptions";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
             if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -8077,7 +8796,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<Repository>>(localVarStatusCode,
+            return new ApiResponse<List<Repository>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<Repository>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<Repository>)));
         }
@@ -8106,57 +8826,66 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/users/search";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (q != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "q", q)); // query parameter
-            if (limit != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "limit", limit)); // query parameter
+            if (q != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
+            if (limit != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -8166,7 +8895,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -8196,57 +8926,66 @@ namespace AltinnCore.RepositoryClient.Api
         {
 
             var localVarPath = "/users/search";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (q != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "q", q)); // query parameter
-            if (limit != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "limit", limit)); // query parameter
+            if (q != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
+            if (limit != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -8256,7 +8995,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<User>>(localVarStatusCode,
+            return new ApiResponse<List<User>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<User>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<User>)));
         }
@@ -8296,25 +9036,27 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'user' when calling UserApi->UserTrackedTimes");
 
             var localVarPath = "/repos/{owner}/{repo}/times/{tracker}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -8323,31 +9065,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (user != null) localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -8357,7 +9106,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<TrackedTime>>(localVarStatusCode,
+            return new ApiResponse<List<TrackedTime>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<TrackedTime>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<TrackedTime>)));
         }
@@ -8398,25 +9148,27 @@ namespace AltinnCore.RepositoryClient.Api
                 throw new ApiException(400, "Missing required parameter 'user' when calling UserApi->UserTrackedTimes");
 
             var localVarPath = "/repos/{owner}/{repo}/times/{tracker}";
-            var localVarPathParams = new Dictionary<String, String>();
-            var localVarQueryParams = new List<KeyValuePair<String, String>>();
-            var localVarHeaderParams = new Dictionary<String, String>(Configuration.DefaultHeader);
-            var localVarFormParams = new Dictionary<String, String>();
-            var localVarFileParams = new Dictionary<String, FileParameter>();
-            Object localVarPostBody = null;
+            var localVarPathParams = new Dictionary<string, string>();
+            var localVarQueryParams = new List<KeyValuePair<string, string>>();
+            var localVarHeaderParams = new Dictionary<string, string>(Configuration.DefaultHeader);
+            var localVarFormParams = new Dictionary<string, string>();
+            var localVarFileParams = new Dictionary<string, FileParameter>();
+            object localVarPostBody = null;
 
             // to determine the Content-Type header
-            String[] localVarHttpContentTypes = new String[] {
+            string[] localVarHttpContentTypes = new string[]
+            {
                 "application/json",
                 "text/plain"
             };
-            String localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
+            string localVarHttpContentType = Configuration.ApiClient.SelectHeaderContentType(localVarHttpContentTypes);
 
             // to determine the Accept header
-            String[] localVarHttpHeaderAccepts = new String[] {
+            string[] localVarHttpHeaderAccepts = new string[]
+            {
                 "application/json"
             };
-            String localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
+            string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
@@ -8425,31 +9177,38 @@ namespace AltinnCore.RepositoryClient.Api
             if (user != null) localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
 
             // authentication (AccessToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
             // authentication (AuthorizationHeaderToken) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
             // authentication (BasicAuth) required
             // http basic authentication required
-            if (!String.IsNullOrEmpty(Configuration.Username) || !String.IsNullOrEmpty(Configuration.Password))
+            if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
             // authentication (Token) required
-            if (!String.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
+            if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
-                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs("", "token", Configuration.GetApiKeyWithPrefix("token")));
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "token", Configuration.GetApiKeyWithPrefix("token")));
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(localVarPath,
-                Method.GET, localVarQueryParams, localVarPostBody, localVarHeaderParams, localVarFormParams, localVarFileParams,
-                localVarPathParams, localVarHttpContentType);
+            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+                localVarPath,
+                Method.GET,
+                localVarQueryParams,
+                localVarPostBody,
+                localVarHeaderParams,
+                localVarFormParams,
+                localVarFileParams,
+                localVarPathParams,
+                localVarHttpContentType);
 
             int localVarStatusCode = (int)localVarResponse.StatusCode;
 
@@ -8459,7 +9218,8 @@ namespace AltinnCore.RepositoryClient.Api
                 if (exception != null) throw exception;
             }
 
-            return new ApiResponse<List<TrackedTime>>(localVarStatusCode,
+            return new ApiResponse<List<TrackedTime>>(
+                localVarStatusCode,
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<TrackedTime>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<TrackedTime>)));
         }

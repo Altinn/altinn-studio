@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -82,7 +82,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>The Service model as JSON or XML for the given instanceId</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpGet]
-       public async Task<IActionResult> Index(string org, string service, int instanceId)
+        public async Task<IActionResult> Index(string org, string service, int instanceId)
         {
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
@@ -271,128 +271,128 @@ namespace AltinnCore.Runtime.Controllers
         }
 
 
-      [Authorize]
-      [HttpPut]
-      public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
-      {
-        Stopwatch stopwatch = new Stopwatch();
-        stopwatch.Start();
-
-        ApiResult apiResult = new ApiResult();
-
-        // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-        IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
-
-        // Create and populate the RequestContext object and make it available for the service implementation so
-        // service developer can implement logic based on information about the request and the user performing
-        // the request
-        RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
-        requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
-        requestContext.Reportee = requestContext.UserContext.Reportee;
-
-        // Get the serviceContext containing all metadata about current service
-        ServiceContext serviceContext = _execution.GetServiceContext(org, service);
-
-        // Assign the Requestcontext and ViewBag to the serviceImplementation so
-        // service developer can use the information in any of the service events that is called
-        serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
-
-        // Set the platform services to the ServiceImplementation so the AltinnCore service can take
-        // use of the plattform services
-        PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
-        serviceImplementation.SetPlatformServices(platformServices);
-
-        ViewBag.PlatformServices = platformServices;
-
-        dynamic serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);
-        if (serviceModel == null)
+        [Authorize]
+        [HttpPut]
+        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
         {
-          // The parsing did not create any result
-          Response.StatusCode = 403;
-          return new ObjectResult(apiResult);
-        }
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
 
-        serviceImplementation.SetServiceModel(serviceModel);
+            ApiResult apiResult = new ApiResult();
 
-        // ServiceEvent 2: HandleGetDataEvent
-        // Runs the event where the service developer can implement functionality to retrieve data from internal/external sources
-        // based on the data in the service model
-        await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
+            // Getting the Service Specific Implementation contained in external DLL migrated from TUL
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
 
-        // RunService 3: Calcuation
-        await serviceImplementation.RunServiceEvent(ServiceEventType.Calculation);
+            // Create and populate the RequestContext object and make it available for the service implementation so
+            // service developer can implement logic based on information about the request and the user performing
+            // the request
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.Reportee = requestContext.UserContext.Reportee;
 
-      // ServiceEvent 3: HandleCalculationEvent
-      // Perform Calculation defined by the service developer
-      // Only perform when the mode is to create a new instance or to specific calculate
-      if (apiMode.Equals(ApiMode.Calculate) || apiMode.Equals(ApiMode.Create))
-        {
-          if (apiMode.Equals(ApiMode.Calculate))
-          {
-            // Returns a updated Service model with new calculated data.
-            return Ok(serviceModel);
-          }
-        }
+            // Get the serviceContext containing all metadata about current service
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
-        // ServiceEvent 4: HandleValidationEvent
-        // Perform additional Validation defined by the service developer.
-        await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
+            // Assign the Requestcontext and ViewBag to the serviceImplementation so
+            // service developer can use the information in any of the service events that is called
+            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
-        // Run the model Validation that handles validation defined on the model
-        TryValidateModel(serviceModel);
+            // Set the platform services to the ServiceImplementation so the AltinnCore service can take
+            // use of the plattform services
+            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            serviceImplementation.SetPlatformServices(platformServices);
 
-        // If ApiMode is only validate the instance should not be created and only return any validation errors
-        if (apiMode.Equals(ApiMode.Validate) || (!ModelState.IsValid && !apiMode.Equals(ApiMode.Create)))
-        {
-          MapModelStateToApiResult(ModelState, apiResult, serviceContext);
+            ViewBag.PlatformServices = platformServices;
 
-          if (apiResult.Status.Equals(ApiStatusType.ContainsError))
-          {
-            if (apiMode.Equals(ApiMode.Validate))
+            dynamic serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);
+            if (serviceModel == null)
             {
-              Response.StatusCode = 202;
-            }
-            else
-            {
-              Response.StatusCode = 400;
+                // The parsing did not create any result
+                Response.StatusCode = 403;
+                return new ObjectResult(apiResult);
             }
 
-            return new ObjectResult(apiResult);
-          }
+            serviceImplementation.SetServiceModel(serviceModel);
 
-          return Ok(apiResult);
+            // ServiceEvent 2: HandleGetDataEvent
+            // Runs the event where the service developer can implement functionality to retrieve data from internal/external sources
+            // based on the data in the service model
+            await serviceImplementation.RunServiceEvent(ServiceEventType.DataRetrieval);
+
+            // RunService 3: Calcuation
+            await serviceImplementation.RunServiceEvent(ServiceEventType.Calculation);
+
+            // ServiceEvent 3: HandleCalculationEvent
+            // Perform Calculation defined by the service developer
+            // Only perform when the mode is to create a new instance or to specific calculate
+            if (apiMode.Equals(ApiMode.Calculate) || apiMode.Equals(ApiMode.Create))
+            {
+                if (apiMode.Equals(ApiMode.Calculate))
+                {
+                    // Returns a updated Service model with new calculated data.
+                    return Ok(serviceModel);
+                }
+            }
+
+            // ServiceEvent 4: HandleValidationEvent
+            // Perform additional Validation defined by the service developer.
+            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
+
+            // Run the model Validation that handles validation defined on the model
+            TryValidateModel(serviceModel);
+
+            // If ApiMode is only validate the instance should not be created and only return any validation errors
+            if (apiMode.Equals(ApiMode.Validate) || (!ModelState.IsValid && !apiMode.Equals(ApiMode.Create)))
+            {
+                MapModelStateToApiResult(ModelState, apiResult, serviceContext);
+
+                if (apiResult.Status.Equals(ApiStatusType.ContainsError))
+                {
+                    if (apiMode.Equals(ApiMode.Validate))
+                    {
+                        Response.StatusCode = 202;
+                    }
+                    else
+                    {
+                        Response.StatusCode = 400;
+                    }
+
+                    return new ObjectResult(apiResult);
+                }
+
+                return Ok(apiResult);
+            }
+
+
+            // Save Formdata to database
+            this._form.SaveFormModel(
+                serviceModel,
+                instanceId,
+                serviceImplementation.GetServiceModelType(),
+                org,
+                service,
+                requestContext.UserContext.ReporteeId);
+
+            apiResult.InstanceId = instanceId;
+            apiResult.Status = ApiStatusType.Ok;
+            if (!requestContext.RequiresClientSideReleoad)
+            {
+                return Ok(apiResult);
+            }
+            {
+                Response.StatusCode = 303;
+                return new ObjectResult(apiResult);
+            }
         }
 
-
-        // Save Formdata to database
-        this._form.SaveFormModel(
-            serviceModel,
-            instanceId,
-            serviceImplementation.GetServiceModelType(),
-            org,
-            service,
-            requestContext.UserContext.ReporteeId);
-
-        apiResult.InstanceId = instanceId;
-        apiResult.Status = ApiStatusType.Ok;
-        if (!requestContext.RequiresClientSideReleoad)
-        {
-          return Ok(apiResult);
-        }
-        {
-          Response.StatusCode = 303;
-          return new ObjectResult(apiResult);
-        }
-    }
-
-    /// <summary>
-    /// A method to get data for a lookup service that does not require input from user
-    /// </summary>
-    /// <param name="reportee">The reportee number (organization number or ssn)</param>
-    /// <param name="org">The Organization code for the service owner</param>
-    /// <param name="service">The service code for the current service</param>
-    /// <returns>The lookup result</returns>
-    [Authorize(Policy = "ServiceRead")]
+        /// <summary>
+        /// A method to get data for a lookup service that does not require input from user
+        /// </summary>
+        /// <param name="reportee">The reportee number (organization number or ssn)</param>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>The lookup result</returns>
+        [Authorize(Policy = "ServiceRead")]
         [HttpGet]
         public async Task<IActionResult> Lookup(string reportee, string org, string service)
         {

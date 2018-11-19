@@ -28,6 +28,7 @@ namespace AltinnCore.Common.Services.Implementation
 
 
 
+        /// <inheritdoc/>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
         {
             AltinnCore.RepositoryClient.Model.User user = null;
@@ -125,6 +126,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
 
+        /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);

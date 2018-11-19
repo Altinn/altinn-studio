@@ -166,6 +166,7 @@ namespace AltinnCore.Common.Services.Implementation
             Save(file, root);
         }
 
+        /// <inheritdoc/>
         public async Task<string> TestRestApi(string url)
         {
             using (HttpClient client = new HttpClient())
