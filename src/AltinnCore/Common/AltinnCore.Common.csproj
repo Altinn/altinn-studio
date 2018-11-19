@@ -10,7 +10,6 @@
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.8.2" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.0-preview-0027" />
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.0.47" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,16 +17,17 @@
     <ProjectReference Include="..\ServiceLibrary\AltinnCore.ServiceLibrary.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61" />    
+    <AdditionalFiles Include="C:\Repos\altinn-studio\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
   <PropertyGroup>
     <CodeAnalysisRuleSet>C:\Repos\altinn-studio\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   
-  <ItemGroup>
-    <AdditionalFiles Include="C:\Repos\altinn-studio\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
-  </ItemGroup>  
-
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>

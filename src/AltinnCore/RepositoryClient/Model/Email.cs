@@ -38,7 +38,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// <param name="Verified">Verified.</param>
         public Email(string _Email = default(string), bool? Primary = default(bool?), bool? Verified = default(bool?))
         {
-            this._Email = _Email;
+            this.EmailId = _Email;
             this.Primary = Primary;
             this.Verified = Verified;
         }
@@ -47,7 +47,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// Gets or Sets _Email
         /// </summary>
         [DataMember(Name="email", EmitDefaultValue=false)]
-        public string _Email { get; set; }
+        public string EmailId { get; set; }
 
         /// <summary>
         /// Gets or Sets Primary
@@ -69,7 +69,7 @@ namespace AltinnCore.RepositoryClient.Model
         {
             var sb = new StringBuilder();
             sb.Append("class Email {\n");
-            sb.Append("  _Email: ").Append(_Email).Append("\n");
+            sb.Append("  _Email: ").Append(EmailId).Append("\n");
             sb.Append("  Primary: ").Append(Primary).Append("\n");
             sb.Append("  Verified: ").Append(Verified).Append("\n");
             sb.Append("}\n");
@@ -107,9 +107,9 @@ namespace AltinnCore.RepositoryClient.Model
 
             return
                 (
-                    this._Email == input._Email ||
-                    (this._Email != null &&
-                    this._Email.Equals(input._Email))) &&
+                    this.EmailId == input.EmailId ||
+                    (this.EmailId != null &&
+                    this.EmailId.Equals(input.EmailId))) &&
                 (
                     this.Primary == input.Primary ||
                     (this.Primary != null &&
@@ -130,8 +130,8 @@ namespace AltinnCore.RepositoryClient.Model
             unchecked
             {
                 int hashCode = 41;
-                if (this._Email != null)
-                    hashCode = hashCode * 59 + this._Email.GetHashCode();
+                if (this.EmailId != null)
+                    hashCode = hashCode * 59 + this.EmailId.GetHashCode();
                 if (this.Primary != null)
                     hashCode = hashCode * 59 + this.Primary.GetHashCode();
                 if (this.Verified != null)

@@ -163,7 +163,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
 
             var targetType = GetType(jObject, objectType) ?? objectType;
 
-            return _ReadJson(CreateAnotherReader(jObject, reader), targetType, null, serializer);
+            return ReadJsonObject(CreateAnotherReader(jObject, reader), targetType, null, serializer);
         }
 
         private static JsonReader CreateAnotherReader(JObject jObject, JsonReader reader)
@@ -255,7 +255,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             return Convert.ChangeType(objectType, targetlookupValueType);
         }
 
-        protected object _ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        protected object ReadJsonObject(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             _reader = reader;
             _isInsideRead = true;

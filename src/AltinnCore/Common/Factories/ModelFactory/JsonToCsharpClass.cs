@@ -13,8 +13,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         public void CreateClass(JObject[] jsonData, JsonDataTypes type)
         {
-            var JsonDataFields = new Dictionary<string, JsonDataTypes>();
-            var FieldJsonData = new Dictionary<string, IList<Object>>();
+            var jsonDataFields = new Dictionary<string, JsonDataTypes>();
+            var fieldJsonData = new Dictionary<string, IList<Object>>();
 
             foreach (var jobj in jsonData)
             {

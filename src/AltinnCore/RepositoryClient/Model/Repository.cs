@@ -74,7 +74,7 @@ namespace AltinnCore.RepositoryClient.Model
             this.Owner = Owner;
             this.Parent = Parent;
             this.Permissions = Permissions;
-            this._Private = _Private;
+            this.IsPrivate = _Private;
             this.Size = Size;
             this.SshUrl = SshUrl;
             this.StarsCount = StarsCount;
@@ -183,7 +183,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// Gets or Sets _Private
         /// </summary>
         [DataMember(Name="private", EmitDefaultValue=false)]
-        public bool? _Private { get; set; }
+        public bool? IsPrivate { get; set; }
 
         /// <summary>
         /// Gets or Sets Size
@@ -246,7 +246,7 @@ namespace AltinnCore.RepositoryClient.Model
             sb.Append("  Owner: ").Append(Owner).Append("\n");
             sb.Append("  Parent: ").Append(Parent).Append("\n");
             sb.Append("  Permissions: ").Append(Permissions).Append("\n");
-            sb.Append("  _Private: ").Append(_Private).Append("\n");
+            sb.Append("  _Private: ").Append(IsPrivate).Append("\n");
             sb.Append("  Size: ").Append(Size).Append("\n");
             sb.Append("  SshUrl: ").Append(SshUrl).Append("\n");
             sb.Append("  StarsCount: ").Append(StarsCount).Append("\n");
@@ -352,9 +352,9 @@ namespace AltinnCore.RepositoryClient.Model
                     (this.Permissions != null &&
                     this.Permissions.Equals(input.Permissions))) &&
                 (
-                    this._Private == input._Private ||
-                    (this._Private != null &&
-                    this._Private.Equals(input._Private))) &&
+                    this.IsPrivate == input.IsPrivate ||
+                    (this.IsPrivate != null &&
+                    this.IsPrivate.Equals(input.IsPrivate))) &&
                 (
                     this.Size == input.Size ||
                     (this.Size != null &&
@@ -423,8 +423,8 @@ namespace AltinnCore.RepositoryClient.Model
                     hashCode = hashCode * 59 + this.Parent.GetHashCode();
                 if (this.Permissions != null)
                     hashCode = hashCode * 59 + this.Permissions.GetHashCode();
-                if (this._Private != null)
-                    hashCode = hashCode * 59 + this._Private.GetHashCode();
+                if (this.IsPrivate != null)
+                    hashCode = hashCode * 59 + this.IsPrivate.GetHashCode();
                 if (this.Size != null)
                     hashCode = hashCode * 59 + this.Size.GetHashCode();
                 if (this.SshUrl != null)

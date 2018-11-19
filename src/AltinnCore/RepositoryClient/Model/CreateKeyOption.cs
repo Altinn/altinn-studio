@@ -61,7 +61,7 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 this.Title = Title;
             }
-            this._ReadOnly = _ReadOnly;
+            this.IsReadOnly = _ReadOnly;
         }
 
         /// <summary>
@@ -76,7 +76,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// </summary>
         /// <value>Describe if the key has only read access or read/write</value>
         [DataMember(Name="read_only", EmitDefaultValue=false)]
-        public bool? _ReadOnly { get; set; }
+        public bool? IsReadOnly { get; set; }
 
         /// <summary>
         /// Title of the key to add
@@ -94,7 +94,7 @@ namespace AltinnCore.RepositoryClient.Model
             var sb = new StringBuilder();
             sb.Append("class CreateKeyOption {\n");
             sb.Append("  Key: ").Append(Key).Append("\n");
-            sb.Append("  _ReadOnly: ").Append(_ReadOnly).Append("\n");
+            sb.Append("  _ReadOnly: ").Append(IsReadOnly).Append("\n");
             sb.Append("  Title: ").Append(Title).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
@@ -135,9 +135,9 @@ namespace AltinnCore.RepositoryClient.Model
                     (this.Key != null &&
                     this.Key.Equals(input.Key))) &&
                 (
-                    this._ReadOnly == input._ReadOnly ||
-                    (this._ReadOnly != null &&
-                    this._ReadOnly.Equals(input._ReadOnly))) &&
+                    this.IsReadOnly == input.IsReadOnly ||
+                    (this.IsReadOnly != null &&
+                    this.IsReadOnly.Equals(input.IsReadOnly))) &&
                 (
                     this.Title == input.Title ||
                     (this.Title != null &&
@@ -156,8 +156,8 @@ namespace AltinnCore.RepositoryClient.Model
                 int hashCode = 41;
                 if (this.Key != null)
                     hashCode = hashCode * 59 + this.Key.GetHashCode();
-                if (this._ReadOnly != null)
-                    hashCode = hashCode * 59 + this._ReadOnly.GetHashCode();
+                if (this.IsReadOnly != null)
+                    hashCode = hashCode * 59 + this.IsReadOnly.GetHashCode();
                 if (this.Title != null)
                     hashCode = hashCode * 59 + this.Title.GetHashCode();
                 return hashCode;

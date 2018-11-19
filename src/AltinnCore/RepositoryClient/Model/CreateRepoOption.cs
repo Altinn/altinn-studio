@@ -60,7 +60,7 @@ namespace AltinnCore.RepositoryClient.Model
             this.Description = Description;
             this.Gitignores = Gitignores;
             this.License = License;
-            this._Private = _Private;
+            this.IsPrivate = _Private;
             this.Readme = Readme;
         }
 
@@ -104,7 +104,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// </summary>
         /// <value>Whether the repository is private</value>
         [DataMember(Name="private", EmitDefaultValue=false)]
-        public bool? _Private { get; set; }
+        public bool? IsPrivate { get; set; }
 
         /// <summary>
         /// Readme of the repository to create
@@ -126,7 +126,7 @@ namespace AltinnCore.RepositoryClient.Model
             sb.Append("  Gitignores: ").Append(Gitignores).Append("\n");
             sb.Append("  License: ").Append(License).Append("\n");
             sb.Append("  Name: ").Append(Name).Append("\n");
-            sb.Append("  _Private: ").Append(_Private).Append("\n");
+            sb.Append("  _Private: ").Append(IsPrivate).Append("\n");
             sb.Append("  Readme: ").Append(Readme).Append("\n");
             sb.Append("}\n");
             return sb.ToString();
@@ -181,8 +181,8 @@ namespace AltinnCore.RepositoryClient.Model
                     (this.Name != null &&
                     this.Name.Equals(input.Name))) &&
                 (
-                    this._Private == input._Private || (this._Private != null &&
-                    this._Private.Equals(input._Private))) &&
+                    this.IsPrivate == input.IsPrivate || (this.IsPrivate != null &&
+                    this.IsPrivate.Equals(input.IsPrivate))) &&
                 (
                     this.Readme == input.Readme ||
                     (this.Readme != null &&
@@ -209,8 +209,8 @@ namespace AltinnCore.RepositoryClient.Model
                     hashCode = hashCode * 59 + this.License.GetHashCode();
                 if (this.Name != null)
                     hashCode = hashCode * 59 + this.Name.GetHashCode();
-                if (this._Private != null)
-                    hashCode = hashCode * 59 + this._Private.GetHashCode();
+                if (this.IsPrivate != null)
+                    hashCode = hashCode * 59 + this.IsPrivate.GetHashCode();
                 if (this.Readme != null)
                     hashCode = hashCode * 59 + this.Readme.GetHashCode();
                 return hashCode;
