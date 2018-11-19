@@ -294,7 +294,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'codelist'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {'Code list'}
+            {this.props.language ? this.props.language['ux-editor'].modal_configure_api_code_list : 'Code list'}
           </label>
         </div>
         <div
@@ -308,7 +308,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'externalapi'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {'External API'}
+            {this.props.language ? this.props.language['ux-editor'].modal_configure_api_extermnal_api : 'External API'}
           </label>
         </div>
       </div>
@@ -338,11 +338,13 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               className='a-btn a-btn-danger mr-2'
               onClick={this.handleDeleteConnection}
             >
-              Delete
+              {this.props.language ? this.props.language.general.delete : 'Delete'}
             </button>
             : null
           }
-          <a onClick={this.props.cancelEdit}>Cancel</a>
+          <a onClick={this.props.cancelEdit}>
+            {this.props.language ? this.props.language.general.cancel : 'Cancel'}
+          </a>
         </div>
       </div >
     );
@@ -357,7 +359,10 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               <i className='ai ai-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>Configure API connection</span>
+              <span className='a-iconText-text-large'>
+                {this.props.language ? this.props.language['ux-editor'].modal_configure_api_header
+                  : 'Configure API connection'}
+              </span>
             </h1>
           </div>
         </div>

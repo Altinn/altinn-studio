@@ -13,6 +13,7 @@ export interface IConditionalRenderingComponentProps {
   deleteConnection?: (connectionId: any) => void;
   formLayoutContainers: any;
   order: IFormLayoutOrder;
+  language: any;
 }
 
 class ConditionalRendering extends React.Component<IConditionalRenderingComponentProps, any> {
@@ -231,13 +232,19 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               <i className='ai ai-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>Configure conditional rendering rule</span>
+              <span className='a-iconText-text-large'>
+                {this.props.language ? this.props.language['ux-editor'].modal_configure_conditional_rendering_header
+                  : 'Configure conditional rendering rule'}
+              </span>
             </h1>
           </div>
         </div>
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
-            <label htmlFor='selectConditionalRule' className='a-form-label'>Conditional rendering rule</label>
+            <label htmlFor='selectConditionalRule' className='a-form-label'>
+              {this.props.language ? this.props.language['ux-editor'].modal_configure_conditional_rendering_helper
+                : 'Conditional rendering rule'}
+            </label>
             <select
               name='selectConditionalRule'
               onChange={this.handleSelectedMethodChange}
@@ -256,7 +263,11 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           {this.state.conditionalRendering.selectedFunction ?
             <>
               <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>Configure input parameters</h2>
+                <h2 className='a-h4'>
+                  {this.props.language ?
+                    this.props.language['ux-editor'].modal_configure_conditional_rendering_configure_input_header
+                    : 'Configure input parameters'}
+                </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
                   (key: any, index: any) => {
                     const paramName = key;
@@ -265,7 +276,8 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
                             <label className='a-form-label' htmlFor={paramName}>
-                              Input param name
+                              {this.props.language ? this.props.language['ux-editor'].
+                                modal_configure_conditional_rendering_configure_input_param_helper : 'Input param name'}
                             </label>
                             <input
                               id={paramName}
@@ -290,17 +302,26 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   })}
               </div>
               <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>Configure output and action </h2>
+                <h2 className='a-h4'>
+                  {this.props.language ?
+                    this.props.language['ux-editor'].modal_configure_conditional_rendering_configure_output_header
+                    : 'Configure output and action'}
+                </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
-                    <label className='a-form-label' htmlFor={'select_action'}>{'Select action'}</label>
+                    <label className='a-form-label' htmlFor={'select_action'}>
+                      {this.props.language ? this.props.language['ux-editor'].
+                        modal_configure_conditional_rendering_configure_output_action_helper : 'Select action'}
+                    </label>
                     <select
                       id={'select_action'}
                       value={this.state.conditionalRendering.selectedAction}
                       onChange={this.handleActionChange}
                       className='custom-select a-custom-select'
                     >
-                      <option value={''}>{'Action:'}</option>
+                      <option value={''}>
+                        {this.props.language ? this.props.language.general.action : 'Action'}
+                      </option>
                       {this.state.selectableActions.map((value: string, key: any) => {
                         return (
                           <option key={key} value={value}>{value}</option>
@@ -310,7 +331,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   </div>
                 </div>
                 <p className='mt-2'>
-                  {'that should be performed on the following fields if method returns true'}
+                  {this.props.language ? this.props.language['ux-editor'].
+                    modal_configure_conditional_rendering_configure_output_field_helper
+                    : 'that should be performed on the following fields if method returns true'}
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
@@ -322,7 +345,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                           value={this.state.conditionalRendering.selectedFields[key]}
                           className='custom-select a-custom-select mb-1'
                         >
-                          <option value={''}>{'Select field:'}</option>
+                          <option value={''}>
+                            {this.props.language ? this.props.language.general.select_field : 'Select field'}
+                          </option>
                           {
                             this.renderCondtionalRenderingTargetOptions()
                           }
@@ -347,7 +372,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                       className='a-btn'
                       onClick={this.addNewField}
                     >
-                      Add new field mapping
+                      {this.props.language ? this.props.language['ux-editor'].
+                        modal_configure_conditional_rendering_configure_add_new_field_mapping
+                        : 'Add new field mapping'}
                     </button>
                   </div>
                 </div>
@@ -358,16 +385,20 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           <div className='row mt-3'>
             <div className='col'>
               {this.state.conditionalRendering.selectedFunction ?
-                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>Save</button>
+                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
+                  {this.props.language ? this.props.language.general.save : 'Save'}
+                </button>
                 : null
               }
               {this.props.connectionId ?
                 <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
-                  Delete
+                  {this.props.language ? this.props.language.general.delete : 'Delete'}
                 </button>
                 : null
               }
-              <a onClick={this.props.cancelEdit}>Cancel</a>
+              <a onClick={this.props.cancelEdit}>
+                {this.props.language ? this.props.language.general.cancel : 'Cancel'}
+              </a>
             </div>
           </div>
         </div>
@@ -384,6 +415,7 @@ const mapStateToProps = (state: IAppState, props: any): any => {
     formLayoutComponents: state.formDesigner.layout.components,
     formLayoutContainers: state.formDesigner.layout.containers,
     order: state.formDesigner.layout.order,
+    language: state.appData.language.language,
   };
 };
 

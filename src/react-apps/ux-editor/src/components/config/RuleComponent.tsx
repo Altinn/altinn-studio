@@ -11,6 +11,7 @@ export interface IRuleComponentProps {
   dataModelElements: IDataModelFieldElement;
   ruleConnection: any;
   deleteConnection?: (connectionId: any) => void;
+  language: any;
 }
 
 class Rule extends React.Component<IRuleComponentProps, any> {
@@ -111,13 +112,19 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               <i className='ai ai-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>Configure rules</span>
+              <span className='a-iconText-text-large'>
+                {this.props.language ? this.props.language['ux-editor'].modal_configure_rules_header
+                  : 'Configure rules'}
+              </span>
             </h1>
           </div>
         </div>
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
-            <label htmlFor='selectRule' className='a-form-label'>Rule</label>
+            <label htmlFor='selectRule' className='a-form-label'>
+              {this.props.language ? this.props.language['ux-editor'].modal_configure_rules_helper
+                : 'Rule'}
+            </label>
             <select
               name='selectRule'
               onChange={this.handleSelectedMethodChange}
@@ -135,7 +142,10 @@ class Rule extends React.Component<IRuleComponentProps, any> {
           {this.state.ruleConnection.selectedFunction ?
             <>
               <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>Configure input parameters</h2>
+                <h2 className='a-h4'>
+                  {this.props.language ? this.props.language['ux-editor'].
+                    modal_configure_rules_configure_input_header : 'Configure input parameters'}
+                </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
                   (key: any, index: any) => {
                     const paramName = key;
@@ -144,7 +154,8 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
                             <label className='a-form-label' htmlFor={paramName}>
-                              Input param name
+                              {this.props.language ? this.props.language['ux-editor'].
+                                modal_configure_rules_configure_input_param_helper : 'Input param name'}
                             </label>
                             <input
                               id={paramName}
@@ -169,13 +180,17 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   })}
               </div>
               <div className='form-group a-form-group mt-2'>
-                <h2 className='a-h4'>Configure output parameters</h2>
+                <h2 className='a-h4'>
+                  {this.props.language ? this.props.language['ux-editor'].
+                    modal_configure_rules_configure_output_header : 'Configure output parameters'}
+                </h2>
                 {/* length is always 1 since method always returns just one thing */}
                 <div className='align-items-center mt-1 row' key='0'>
                   <div className='col col-3'>
                     <div className='form-group a-form-group mt-1 disabled'>
                       <label className='a-form-label' htmlFor='outParam'>
-                        Out param name
+                        {this.props.language ? this.props.language['ux-editor'].
+                          modal_configure_rules_configure_output_param_helper : 'Out param name'}
                       </label>
                       <input
                         id='outParam0'
@@ -203,17 +218,21 @@ class Rule extends React.Component<IRuleComponentProps, any> {
           <div className='row mt-3'>
             <div className='col'>
               {this.state.ruleConnection.selectedFunction ?
-                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>Save</button>
+                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
+                  {this.props.language ? this.props.language.general.save : 'Save'}
+                </button>
                 :
                 null
               }
               {this.props.connectionId ?
                 <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
-                  Delete
+                  {this.props.language ? this.props.language.general.delete : 'Delete'}
                 </button>
                 : null
               }
-              <a onClick={this.props.cancelEdit}>Cancel</a>
+              <a onClick={this.props.cancelEdit}>
+                {this.props.language ? this.props.language.general.cancel : 'Cancel'}
+              </a>
             </div>
           </div>
         </div>
@@ -228,6 +247,7 @@ const mapsStateToProps = (state: IAppState, props: any): any => {
     dataModelElements: state.appData.dataModel.model,
     ruleConnection: state.serviceConfigurations.ruleConnection,
     selectedFunction: props.selectedFunction,
+    language: state.appData.language.language,
   };
 };
 
