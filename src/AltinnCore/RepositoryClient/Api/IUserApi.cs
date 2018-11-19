@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Gitea API.
  *
  * This documentation describes the Gitea API.
