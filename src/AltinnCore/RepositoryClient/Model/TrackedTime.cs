@@ -175,7 +175,8 @@ namespace AltinnCore.RepositoryClient.Model
                 }
 
                 if (this.Time != null)
-                    hashCode = (hashCode * 59 + this.Time.GetHashCode();
+                { 
+                    hashCode = (hashCode * 59) + this.Time.GetHashCode();
                 }
 
                 if (this.UserId != null)

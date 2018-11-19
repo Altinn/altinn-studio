@@ -435,12 +435,12 @@ namespace AltinnCore.RepositoryClient.Model
 
                 if (this.HtmlUrl != null)
                 {
-                    hashCode = hashCode * 59 + this.HtmlUrl.GetHashCode();
+                    hashCode = (hashCode * 59) + this.HtmlUrl.GetHashCode();
                 }
 
                 if (this.Id != null)
                 {
-                    hashCode = hashCode * 59 + this.Id.GetHashCode();
+                    hashCode = (hashCode * 59) + this.Id.GetHashCode();
                 }
 
                 if (this.Mirror != null)
@@ -475,7 +475,7 @@ namespace AltinnCore.RepositoryClient.Model
 
                 if (this.IsPrivate != null)
                 {
-                    hashCode = hashCode * 59 + this.IsPrivate.GetHashCode();
+                    hashCode = (hashCode * 59) + this.IsPrivate.GetHashCode();
                 }
 
                 if (this.Size != null)
