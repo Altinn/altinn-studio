@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,6 +20,7 @@ namespace AltinnCore.Designer.TagHelpers
         {
             Generator = generator;
         }
+
         /// <summary>
         /// Gets or sets the resource text key to use when replacing content
         /// </summary>

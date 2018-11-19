@@ -197,8 +197,8 @@ namespace AltinnCore.RepositoryClient.Client
                 contentType);
 
             // set timeout
-
             RestClient.Timeout = Configuration.Timeout;
+
             // set user agent
             RestClient.UserAgent = Configuration.UserAgent;
 
@@ -208,6 +208,7 @@ namespace AltinnCore.RepositoryClient.Client
 
             return (object)response;
         }
+
         /// <summary>
         /// Makes the asynchronous HTTP request.
         /// </summary>
@@ -313,6 +314,7 @@ namespace AltinnCore.RepositoryClient.Client
 
                     flattenedString.Append(param);
                 }
+
                 return flattenedString.ToString();
             }
             else
@@ -330,6 +332,7 @@ namespace AltinnCore.RepositoryClient.Client
         public object Deserialize(IRestResponse response, Type type)
         {
             IList<Parameter> headers = response.Headers;
+
             // return byte array
             if (type == typeof(byte[]))
             {
@@ -356,6 +359,7 @@ namespace AltinnCore.RepositoryClient.Client
                         }
                     }
                 }
+
                 var stream = new MemoryStream(response.RawBytes);
                 return stream;
             }
@@ -499,6 +503,7 @@ namespace AltinnCore.RepositoryClient.Client
                 {
                     ms.Write(buf, 0, count);
                 }
+
                 return ms.ToArray();
             }
         }

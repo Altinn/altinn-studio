@@ -37,6 +37,7 @@ namespace AltinnCore.RepositoryClient.Model
         protected CreateKeyOption()
         {
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
         /// </summary>
@@ -54,6 +55,7 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 this.Key = Key;
             }
+
             // to ensure "Title" is required (not null)
             if (Title == null)
             {
@@ -63,6 +65,7 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 this.Title = Title;
             }
+
             this.IsReadOnly = _ReadOnly;
         }
 
@@ -187,5 +190,4 @@ namespace AltinnCore.RepositoryClient.Model
             yield break;
         }
     }
-
 }

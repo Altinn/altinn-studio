@@ -38,6 +38,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 model.RepositoryContent = _sourceControl.Status(org, "codelists");
             }
+
             return View(model);
         }
 
@@ -168,6 +169,7 @@ namespace AltinnCore.Designer.Controllers
                 codeLists.Add(new CodeList() { CodeListName = kvp.Key, Id = index });
                 index++;
             }
+
             return Json(codeLists);
         }
     }

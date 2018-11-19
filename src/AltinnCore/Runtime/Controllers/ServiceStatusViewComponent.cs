@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,7 +61,6 @@ namespace AltinnCore.Runtime.Controllers
                 ServiceStatusViewModel model = CreateModel(serviceIdentifier, compilation, metadata);
 
                 return View(model);
-
             }
 
             return View(new ServiceStatusViewModel());

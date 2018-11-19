@@ -24,6 +24,7 @@ namespace AltinnCore.RepositoryClient.Api
     public interface IUserApi : IApiAccessor
     {
         #region Synchronous Operations
+
         /// <summary>
         /// Create a repository
         /// </summary>
@@ -45,6 +46,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Repository</returns>
         ApiResponse<Repository> CreateCurrentUserRepoWithHttpInfo(CreateRepoOption body = null);
+
         /// <summary>
         /// Add email addresses
         /// </summary>
@@ -66,6 +68,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         ApiResponse<List<Email>> UserAddEmailWithHttpInfo(CreateEmailOption body = null);
+
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
@@ -89,6 +92,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCheckFollowingWithHttpInfo(string follower, string followee);
+
         /// <summary>
         /// Create an access token
         /// </summary>
@@ -110,6 +114,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="name"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCreateTokenWithHttpInfo(string name = null);
+
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
@@ -131,6 +136,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="followee">username of followed user</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentCheckFollowingWithHttpInfo(string followee);
+
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
@@ -154,6 +160,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="repo">name of the repo</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentCheckStarringWithHttpInfo(string owner, string repo);
+
         /// <summary>
         /// Unfollow a user
         /// </summary>
@@ -175,6 +182,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user to unfollow</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteFollowWithHttpInfo(string username);
+
         /// <summary>
         /// Remove a GPG key
         /// </summary>
@@ -196,6 +204,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteGPGKeyWithHttpInfo(int? id);
+
         /// <summary>
         /// Delete a public key
         /// </summary>
@@ -217,6 +226,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to delete</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteKeyWithHttpInfo(int? id);
+
         /// <summary>
         /// Unstar the given repo
         /// </summary>
@@ -240,6 +250,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentDeleteStarWithHttpInfo(string owner, string repo);
+
         /// <summary>
         /// Get a GPG key
         /// </summary>
@@ -261,6 +272,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to get</param>
         /// <returns>ApiResponse of GPGKey</returns>
         ApiResponse<GPGKey> UserCurrentGetGPGKeyWithHttpInfo(int? id);
+
         /// <summary>
         /// Get a public key
         /// </summary>
@@ -282,6 +294,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to get</param>
         /// <returns>ApiResponse of PublicKey</returns>
         ApiResponse<PublicKey> UserCurrentGetKeyWithHttpInfo(int? id);
+
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
@@ -301,6 +314,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserCurrentListFollowersWithHttpInfo();
+
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
@@ -320,6 +334,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserCurrentListFollowingWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
@@ -339,6 +354,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         ApiResponse<List<GPGKey>> UserCurrentListGPGKeysWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
@@ -358,6 +374,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         ApiResponse<List<PublicKey>> UserCurrentListKeysWithHttpInfo();
+
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
@@ -377,6 +394,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserCurrentListReposWithHttpInfo();
+
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
@@ -396,6 +414,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserCurrentListStarredWithHttpInfo();
+
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
@@ -415,6 +434,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserCurrentListSubscriptionsWithHttpInfo();
+
         /// <summary>
         /// Create a GPG key
         /// </summary>
@@ -436,6 +456,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="form"> (optional)</param>
         /// <returns>ApiResponse of GPGKey</returns>
         ApiResponse<GPGKey> UserCurrentPostGPGKeyWithHttpInfo(CreateGPGKeyOption form = null);
+
         /// <summary>
         /// Create a public key
         /// </summary>
@@ -457,6 +478,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of PublicKey</returns>
         ApiResponse<PublicKey> UserCurrentPostKeyWithHttpInfo(CreateKeyOption body = null);
+
         /// <summary>
         /// Follow a user
         /// </summary>
@@ -478,6 +500,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user to follow</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentPutFollowWithHttpInfo(string username);
+
         /// <summary>
         /// Star the given repo
         /// </summary>
@@ -501,6 +524,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="repo">name of the repo to star</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserCurrentPutStarWithHttpInfo(string owner, string repo);
+
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
@@ -520,6 +544,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;TrackedTime&gt;</returns>
         ApiResponse<List<TrackedTime>> UserCurrentTrackedTimesWithHttpInfo();
+
         /// <summary>
         /// Delete email addresses
         /// </summary>
@@ -541,6 +566,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserDeleteEmailWithHttpInfo(DeleteEmailOption body = null);
+
         /// <summary>
         /// Get a user
         /// </summary>
@@ -562,6 +588,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user to get</param>
         /// <returns>ApiResponse of User</returns>
         ApiResponse<User> UserGetWithHttpInfo(string username);
+
         /// <summary>
         /// Get the authenticated user
         /// </summary>
@@ -581,6 +608,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of User</returns>
         ApiResponse<User> UserGetCurrentWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
@@ -600,6 +628,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of Object(void)</returns>
         ApiResponse<object> UserGetTokensWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
@@ -619,6 +648,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>ApiResponse of List&lt;Email&gt;</returns>
         ApiResponse<List<Email>> UserListEmailsWithHttpInfo();
+
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
@@ -640,6 +670,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserListFollowersWithHttpInfo(string username);
+
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
@@ -661,6 +692,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserListFollowingWithHttpInfo(string username);
+
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
@@ -682,6 +714,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;GPGKey&gt;</returns>
         ApiResponse<List<GPGKey>> UserListGPGKeysWithHttpInfo(string username);
+
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
@@ -703,6 +736,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;PublicKey&gt;</returns>
         ApiResponse<List<PublicKey>> UserListKeysWithHttpInfo(string username);
+
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
@@ -724,6 +758,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserListReposWithHttpInfo(string username);
+
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
@@ -745,6 +780,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserListStarredWithHttpInfo(string username);
+
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
@@ -766,6 +802,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of the user</param>
         /// <returns>ApiResponse of List&lt;Repository&gt;</returns>
         ApiResponse<List<Repository>> UserListSubscriptionsWithHttpInfo(string username);
+
         /// <summary>
         /// Search for users
         /// </summary>
@@ -789,6 +826,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>ApiResponse of List&lt;User&gt;</returns>
         ApiResponse<List<User>> UserSearchWithHttpInfo(string q = null, int? limit = null);
+
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
@@ -816,6 +854,7 @@ namespace AltinnCore.RepositoryClient.Api
         ApiResponse<List<TrackedTime>> UserTrackedTimesWithHttpInfo(string owner, string repo, string user);
         #endregion Synchronous Operations
         #region Asynchronous Operations
+
         /// <summary>
         /// Create a repository
         /// </summary>
@@ -837,6 +876,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (Repository)</returns>
         System.Threading.Tasks.Task<ApiResponse<Repository>> CreateCurrentUserRepoAsyncWithHttpInfo(CreateRepoOption body = null);
+
         /// <summary>
         /// Add email addresses
         /// </summary>
@@ -858,6 +898,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserAddEmailAsyncWithHttpInfo(CreateEmailOption body = null);
+
         /// <summary>
         /// Check if one user is following another user
         /// </summary>
@@ -881,6 +922,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCheckFollowingAsyncWithHttpInfo(string follower, string followee);
+
         /// <summary>
         /// Create an access token
         /// </summary>
@@ -902,6 +944,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="name"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCreateTokenAsyncWithHttpInfo(string name = null);
+
         /// <summary>
         /// Check whether a user is followed by the authenticated user
         /// </summary>
@@ -923,6 +966,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="followee">username of followed user</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckFollowingAsyncWithHttpInfo(string followee);
+
         /// <summary>
         /// Whether the authenticated is starring the repo
         /// </summary>
@@ -946,6 +990,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="repo">name of the repo</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentCheckStarringAsyncWithHttpInfo(string owner, string repo);
+
         /// <summary>
         /// Unfollow a user
         /// </summary>
@@ -967,6 +1012,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user to unfollow</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteFollowAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// Remove a GPG key
         /// </summary>
@@ -988,6 +1034,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteGPGKeyAsyncWithHttpInfo(int? id);
+
         /// <summary>
         /// Delete a public key
         /// </summary>
@@ -1009,6 +1056,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to delete</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteKeyAsyncWithHttpInfo(int? id);
+
         /// <summary>
         /// Unstar the given repo
         /// </summary>
@@ -1032,6 +1080,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="repo">name of the repo to unstar</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentDeleteStarAsyncWithHttpInfo(string owner, string repo);
+
         /// <summary>
         /// Get a GPG key
         /// </summary>
@@ -1053,6 +1102,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to get</param>
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentGetGPGKeyAsyncWithHttpInfo(int? id);
+
         /// <summary>
         /// Get a public key
         /// </summary>
@@ -1074,6 +1124,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="id">id of key to get</param>
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentGetKeyAsyncWithHttpInfo(int? id);
+
         /// <summary>
         /// List the authenticated user&#39;s followers
         /// </summary>
@@ -1093,6 +1144,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowersAsyncWithHttpInfo();
+
         /// <summary>
         /// List the users that the authenticated user is following
         /// </summary>
@@ -1112,6 +1164,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserCurrentListFollowingAsyncWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s GPG keys
         /// </summary>
@@ -1131,6 +1184,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserCurrentListGPGKeysAsyncWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s public keys
         /// </summary>
@@ -1150,6 +1204,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserCurrentListKeysAsyncWithHttpInfo();
+
         /// <summary>
         /// List the repos that the authenticated user owns or has access to
         /// </summary>
@@ -1169,6 +1224,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListReposAsyncWithHttpInfo();
+
         /// <summary>
         /// The repos that the authenticated user has starred
         /// </summary>
@@ -1188,6 +1244,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListStarredAsyncWithHttpInfo();
+
         /// <summary>
         /// List repositories watched by the authenticated user
         /// </summary>
@@ -1207,6 +1264,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserCurrentListSubscriptionsAsyncWithHttpInfo();
+
         /// <summary>
         /// Create a GPG key
         /// </summary>
@@ -1228,6 +1286,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="form"> (optional)</param>
         /// <returns>Task of ApiResponse (GPGKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<GPGKey>> UserCurrentPostGPGKeyAsyncWithHttpInfo(CreateGPGKeyOption form = null);
+
         /// <summary>
         /// Create a public key
         /// </summary>
@@ -1249,6 +1308,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse (PublicKey)</returns>
         System.Threading.Tasks.Task<ApiResponse<PublicKey>> UserCurrentPostKeyAsyncWithHttpInfo(CreateKeyOption body = null);
+
         /// <summary>
         /// Follow a user
         /// </summary>
@@ -1270,6 +1330,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user to follow</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutFollowAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// Star the given repo
         /// </summary>
@@ -1293,6 +1354,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="repo">name of the repo to star</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserCurrentPutStarAsyncWithHttpInfo(string owner, string repo);
+
         /// <summary>
         /// List the current user&#39;s tracked times
         /// </summary>
@@ -1312,6 +1374,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;TrackedTime&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<TrackedTime>>> UserCurrentTrackedTimesAsyncWithHttpInfo();
+
         /// <summary>
         /// Delete email addresses
         /// </summary>
@@ -1333,6 +1396,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="body"> (optional)</param>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserDeleteEmailAsyncWithHttpInfo(DeleteEmailOption body = null);
+
         /// <summary>
         /// Get a user
         /// </summary>
@@ -1354,6 +1418,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user to get</param>
         /// <returns>Task of ApiResponse (User)</returns>
         System.Threading.Tasks.Task<ApiResponse<User>> UserGetAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// Get the authenticated user
         /// </summary>
@@ -1373,6 +1438,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (User)</returns>
         System.Threading.Tasks.Task<ApiResponse<User>> UserGetCurrentAsyncWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s access tokens
         /// </summary>
@@ -1392,6 +1458,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse</returns>
         System.Threading.Tasks.Task<ApiResponse<object>> UserGetTokensAsyncWithHttpInfo();
+
         /// <summary>
         /// List the authenticated user&#39;s email addresses
         /// </summary>
@@ -1411,6 +1478,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <returns>Task of ApiResponse (List&lt;Email&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Email>>> UserListEmailsAsyncWithHttpInfo();
+
         /// <summary>
         /// List the given user&#39;s followers
         /// </summary>
@@ -1432,6 +1500,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserListFollowersAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// List the users that the given user is following
         /// </summary>
@@ -1453,6 +1522,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserListFollowingAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// List the given user&#39;s GPG keys
         /// </summary>
@@ -1474,6 +1544,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;GPGKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<GPGKey>>> UserListGPGKeysAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// List the given user&#39;s public keys
         /// </summary>
@@ -1495,6 +1566,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;PublicKey&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<PublicKey>>> UserListKeysAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// List the repos owned by the given user
         /// </summary>
@@ -1516,6 +1588,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListReposAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// The repos that the given user has starred
         /// </summary>
@@ -1537,6 +1610,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListStarredAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// List the repositories watched by a user
         /// </summary>
@@ -1558,6 +1632,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="username">username of the user</param>
         /// <returns>Task of ApiResponse (List&lt;Repository&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<Repository>>> UserListSubscriptionsAsyncWithHttpInfo(string username);
+
         /// <summary>
         /// Search for users
         /// </summary>
@@ -1581,6 +1656,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <param name="limit">maximum number of users to return (optional)</param>
         /// <returns>Task of ApiResponse (List&lt;User&gt;)</returns>
         System.Threading.Tasks.Task<ApiResponse<List<User>>> UserSearchAsyncWithHttpInfo(string q = null, int? limit = null);
+
         /// <summary>
         /// List a user&#39;s tracked times in a repo
         /// </summary>
@@ -1684,6 +1760,7 @@ namespace AltinnCore.RepositoryClient.Api
                 {
                     throw new InvalidOperationException("Multicast delegate for ExceptionFactory is unsupported.");
                 }
+
                 return _exceptionFactory;
             }
 
@@ -1775,17 +1852,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -1831,7 +1911,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<Repository> localVarResponse = await CreateCurrentUserRepoAsyncWithHttpInfo(body);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -1882,17 +1961,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -1989,17 +2071,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2045,7 +2130,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Email>> localVarResponse = await UserAddEmailAsyncWithHttpInfo(body);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -2097,17 +2181,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2169,6 +2256,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'follower' when calling UserApi->UserCheckFollowing");
             }
+
             // verify the required parameter 'followee' is set
             if (followee == null)
             {
@@ -2218,17 +2306,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2274,7 +2365,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCheckFollowingAsync(string follower, string followee)
         {
              await UserCheckFollowingAsyncWithHttpInfo(follower, followee);
-
         }
 
         /// <summary>
@@ -2291,6 +2381,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'follower' when calling UserApi->UserCheckFollowing");
             }
+
             // verify the required parameter 'followee' is set
             if (followee == null)
             {
@@ -2340,17 +2431,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2441,17 +2535,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2496,7 +2593,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCreateTokenAsync(string name = null)
         {
              await UserCreateTokenAsyncWithHttpInfo(name);
-
         }
 
         /// <summary>
@@ -2543,17 +2639,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2652,17 +2751,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2707,7 +2809,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentCheckFollowingAsync(string followee)
         {
              await UserCurrentCheckFollowingAsyncWithHttpInfo(followee);
-
         }
 
         /// <summary>
@@ -2762,17 +2863,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2834,6 +2938,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentCheckStarring");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
@@ -2883,17 +2988,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -2939,7 +3047,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentCheckStarringAsync(string owner, string repo)
         {
              await UserCurrentCheckStarringAsyncWithHttpInfo(owner, repo);
-
         }
 
         /// <summary>
@@ -2956,6 +3063,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentCheckStarring");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
@@ -3005,17 +3113,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3114,17 +3225,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3169,7 +3283,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentDeleteFollowAsync(string username)
         {
              await UserCurrentDeleteFollowAsyncWithHttpInfo(username);
-
         }
 
         /// <summary>
@@ -3224,17 +3337,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3332,17 +3448,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3387,7 +3506,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentDeleteGPGKeyAsync(int? id)
         {
              await UserCurrentDeleteGPGKeyAsyncWithHttpInfo(id);
-
         }
 
         /// <summary>
@@ -3441,17 +3559,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3549,17 +3670,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3604,7 +3728,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentDeleteKeyAsync(int? id)
         {
              await UserCurrentDeleteKeyAsyncWithHttpInfo(id);
-
         }
 
         /// <summary>
@@ -3658,17 +3781,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3730,6 +3856,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentDeleteStar");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
@@ -3779,17 +3906,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -3835,7 +3965,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentDeleteStarAsync(string owner, string repo)
         {
              await UserCurrentDeleteStarAsyncWithHttpInfo(owner, repo);
-
         }
 
         /// <summary>
@@ -3852,6 +3981,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentDeleteStar");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
@@ -3901,17 +4031,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4010,17 +4143,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4066,7 +4202,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<GPGKey> localVarResponse = await UserCurrentGetGPGKeyAsyncWithHttpInfo(id);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -4120,17 +4255,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4229,17 +4367,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4285,7 +4426,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<PublicKey> localVarResponse = await UserCurrentGetKeyAsyncWithHttpInfo(id);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -4339,17 +4479,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4435,17 +4578,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4490,7 +4636,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<User>> localVarResponse = await UserCurrentListFollowersAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -4532,17 +4677,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4628,17 +4776,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4683,7 +4834,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<User>> localVarResponse = await UserCurrentListFollowingAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -4725,17 +4875,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4821,17 +4974,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -4876,7 +5032,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<GPGKey>> localVarResponse = await UserCurrentListGPGKeysAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -4918,17 +5073,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5014,17 +5172,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5069,7 +5230,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<PublicKey>> localVarResponse = await UserCurrentListKeysAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -5111,17 +5271,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5207,17 +5370,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5262,7 +5428,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Repository>> localVarResponse = await UserCurrentListReposAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -5304,17 +5469,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5400,17 +5568,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5455,7 +5626,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Repository>> localVarResponse = await UserCurrentListStarredAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -5497,17 +5667,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5593,17 +5766,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5648,7 +5824,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Repository>> localVarResponse = await UserCurrentListSubscriptionsAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -5690,17 +5865,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5796,17 +5974,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -5852,7 +6033,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<GPGKey> localVarResponse = await UserCurrentPostGPGKeyAsyncWithHttpInfo(form);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -5903,17 +6083,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6009,17 +6192,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6065,7 +6251,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<PublicKey> localVarResponse = await UserCurrentPostKeyAsyncWithHttpInfo(body);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -6116,17 +6301,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6225,17 +6413,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6280,7 +6471,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentPutFollowAsync(string username)
         {
              await UserCurrentPutFollowAsyncWithHttpInfo(username);
-
         }
 
         /// <summary>
@@ -6335,17 +6525,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6407,6 +6600,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentPutStar");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
@@ -6456,17 +6650,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6512,7 +6709,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserCurrentPutStarAsync(string owner, string repo)
         {
              await UserCurrentPutStarAsyncWithHttpInfo(owner, repo);
-
         }
 
         /// <summary>
@@ -6529,6 +6725,7 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentPutStar");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
@@ -6578,17 +6775,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6674,17 +6874,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6729,7 +6932,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<TrackedTime>> localVarResponse = await UserCurrentTrackedTimesAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -6771,17 +6973,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6877,17 +7082,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -6932,7 +7140,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserDeleteEmailAsync(DeleteEmailOption body = null)
         {
              await UserDeleteEmailAsyncWithHttpInfo(body);
-
         }
 
         /// <summary>
@@ -6984,17 +7191,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7093,17 +7303,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7149,7 +7362,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<User> localVarResponse = await UserGetAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -7203,17 +7415,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7299,17 +7514,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7354,7 +7572,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<User> localVarResponse = await UserGetCurrentAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -7396,17 +7613,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7491,17 +7711,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7545,7 +7768,6 @@ namespace AltinnCore.RepositoryClient.Api
         public async System.Threading.Tasks.Task UserGetTokensAsync()
         {
              await UserGetTokensAsyncWithHttpInfo();
-
         }
 
         /// <summary>
@@ -7587,17 +7809,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7683,17 +7908,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7738,7 +7966,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Email>> localVarResponse = await UserListEmailsAsyncWithHttpInfo();
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -7780,17 +8007,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7889,17 +8119,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -7945,7 +8178,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<User>> localVarResponse = await UserListFollowersAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -7999,17 +8231,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8108,17 +8343,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8164,7 +8402,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<User>> localVarResponse = await UserListFollowingAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -8218,17 +8455,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8327,17 +8567,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8383,7 +8626,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<GPGKey>> localVarResponse = await UserListGPGKeysAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -8437,17 +8679,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8546,17 +8791,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8602,7 +8850,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<PublicKey>> localVarResponse = await UserListKeysAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -8656,17 +8903,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8765,17 +9015,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8821,7 +9074,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Repository>> localVarResponse = await UserListReposAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -8875,17 +9127,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -8984,17 +9239,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9040,7 +9298,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Repository>> localVarResponse = await UserListStarredAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -9094,17 +9351,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9203,17 +9463,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9259,7 +9522,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<Repository>> localVarResponse = await UserListSubscriptionsAsyncWithHttpInfo(username);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -9313,17 +9575,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9423,17 +9688,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9480,7 +9748,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<User>> localVarResponse = await UserSearchAsyncWithHttpInfo(q, limit);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -9534,17 +9801,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9609,11 +9879,13 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserTrackedTimes");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserTrackedTimes");
             }
+
             // verify the required parameter 'user' is set
             if (user == null)
             {
@@ -9667,17 +9939,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9725,7 +10000,6 @@ namespace AltinnCore.RepositoryClient.Api
         {
              ApiResponse<List<TrackedTime>> localVarResponse = await UserTrackedTimesAsyncWithHttpInfo(owner, repo, user);
              return localVarResponse.Data;
-
         }
 
         /// <summary>
@@ -9743,11 +10017,13 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserTrackedTimes");
             }
+
             // verify the required parameter 'repo' is set
             if (repo == null)
             {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserTrackedTimes");
             }
+
             // verify the required parameter 'user' is set
             if (user == null)
             {
@@ -9801,17 +10077,20 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "access_token", Configuration.GetApiKeyWithPrefix("access_token")));
             }
+
             // authentication (AuthorizationHeaderToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("Authorization")))
             {
                 localVarHeaderParams["Authorization"] = Configuration.GetApiKeyWithPrefix("Authorization");
             }
+
             // authentication (BasicAuth) required
             // http basic authentication required
             if (!string.IsNullOrEmpty(Configuration.Username) || !string.IsNullOrEmpty(Configuration.Password))
             {
                 localVarHeaderParams["Authorization"] = "Basic " + ApiClient.Base64Encode(Configuration.Username + ":" + Configuration.Password);
             }
+
             // authentication (Token) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("token")))
             {
@@ -9846,6 +10125,5 @@ namespace AltinnCore.RepositoryClient.Api
                 localVarResponse.Headers.ToDictionary(x => x.Name, x => x.Value.ToString()),
                 (List<TrackedTime>)Configuration.ApiClient.Deserialize(localVarResponse, typeof(List<TrackedTime>)));
         }
-
     }
 }

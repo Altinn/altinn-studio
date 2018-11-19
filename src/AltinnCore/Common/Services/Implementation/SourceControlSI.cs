@@ -182,7 +182,6 @@ namespace AltinnCore.Common.Services.Implementation
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 repo.Network.Push(remote, @"refs/heads/master", options);
-
             }
         }
 
@@ -237,6 +236,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
             }
+
             File.WriteAllText(path, token);
         }
 
@@ -255,6 +255,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
             }
+
             string token = null;
 
             if (File.Exists(path))
@@ -279,6 +280,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
             }
+
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -302,6 +304,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 localpath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}";
             }
+
             return localpath;
         }
 

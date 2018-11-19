@@ -48,7 +48,5 @@ namespace AltinnCore.RepositoryClient.Client
             this.Headers = headers;
             this.Data = data;
         }
-
     }
-
 }

@@ -175,6 +175,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 string result = await content.ReadAsStringAsync();
                 var json = JsonConvert.DeserializeObject(result);
+
                 // var generateClasses = new JsonToCsharpClass();
                 // generateClasses.CreateClass(json);
                 return JsonConvert.SerializeObject(json, Formatting.Indented);

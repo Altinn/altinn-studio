@@ -220,6 +220,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// </summary>
         [DataMember(Name="website", EmitDefaultValue=false)]
         public string Website { get; set; }
+
         public bool IsClonedToLocal { get; set; }
 
         /// <summary>
@@ -522,5 +523,4 @@ namespace AltinnCore.RepositoryClient.Model
             yield break;
         }
     }
-
 }

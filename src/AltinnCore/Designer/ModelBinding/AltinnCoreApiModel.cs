@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.Designer.ModelBinding
 {
     /// <summary>

@@ -449,6 +449,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 return null;
             }
+
             string dataBindingName = string.Empty;
             for (int i = 1; i < paths.Length; i++)
             {

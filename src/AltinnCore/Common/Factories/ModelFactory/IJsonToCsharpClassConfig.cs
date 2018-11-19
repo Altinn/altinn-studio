@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.Common.Factories.ModelFactory
 {
     public interface IJsonToCsharpClassConfig

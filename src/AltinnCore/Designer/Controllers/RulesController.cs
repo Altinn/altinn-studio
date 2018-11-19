@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -304,6 +304,7 @@ namespace AltinnCore.Designer.Controllers
           {
             _repository.SaveImplementationFile(org, service, fileName, fileContent);
           }
+
           return StatusCode(200);
         }
 

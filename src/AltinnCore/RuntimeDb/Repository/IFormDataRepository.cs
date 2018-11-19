@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,7 +12,9 @@ namespace AltinnCore.Runtime.Db.Repository
     public interface IFormDataRepository
     {
         Task<FormData> GetFormDataFromCollectionAsync(string reporteeId, string reporteeElementId, string formId);
+
         Task<FormData> InsertFormDataIntoCollectionAsync(FormData item);
+
         Task<FormData> UpdateFormDataInCollectionAsync(string id, FormData item);
     }
 }

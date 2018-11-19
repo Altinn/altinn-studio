@@ -9,14 +9,14 @@ using Newtonsoft.Json.Linq;
 namespace AltinnCore.RepositoryClient.JsonSubTypes
 {
     // Copied from project https://github.com/manuc66/JsonSubTypes
-    //  https://raw.githubusercontent.com/manuc66/JsonSubTypes/07403192ea3f4959f6d42f5966ac56ceb0d6095b/JsonSubTypes/JsonSubtypes.cs
-
+    // https://raw.githubusercontent.com/manuc66/JsonSubTypes/07403192ea3f4959f6d42f5966ac56ceb0d6095b/JsonSubTypes/JsonSubtypes.cs
     public class JsonSubtypes : JsonConverter
     {
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
         public class KnownSubTypeAttribute : Attribute
         {
             public Type SubType { get; private set; }
+
             public object AssociatedValue { get; private set; }
 
             public KnownSubTypeAttribute(Type subType, object associatedValue)
@@ -25,10 +25,12 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                 AssociatedValue = associatedValue;
             }
         }
+
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
         public class KnownSubTypeWithPropertyAttribute : Attribute
         {
             public Type SubType { get; private set; }
+
             public string PropertyName { get; private set; }
 
             public KnownSubTypeWithPropertyAttribute(Type subType, string propertyName)
@@ -129,12 +131,14 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                         throw new Exception("Array: Unrecognized token: " + reader.TokenType);
                 }
             }
+
             if (targetType.IsArray)
             {
                 var array = Array.CreateInstance(targetType.GetElementType(), list.Count);
                 list.CopyTo(array, 0);
                 list = array;
             }
+
             return list;
         }
 
@@ -149,6 +153,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             {
                 list = (IList)Activator.CreateInstance(targetContainerType);
             }
+
             return list;
         }
 
@@ -163,6 +168,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             {
                 elementType = arrayOrGenericContainer.GenericTypeArguments[0];
             }
+
             return elementType;
         }
 
@@ -194,6 +200,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             {
                 return GetTypeByPropertyPresence(jObject, parentType);
             }
+
             return GetTypeFromDiscriminatorValue(jObject, parentType);
         }
 
@@ -207,6 +214,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                     return type.SubType;
                 }
             }
+
             return null;
         }
 
@@ -229,6 +237,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             {
                 return GetTypeFromMapping(typeMapping, discriminatorValue);
             }
+
             return GetTypeByName(discriminatorValue as string, parentType);
         }
 
@@ -247,6 +256,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                 var searchLocation = parentType.FullName.Substring(0, parentType.FullName.Length - parentType.Name.Length);
                 typeByName = insideAssembly.GetType(searchLocation + typeName, false, true);
             }
+
             return typeByName;
         }
 

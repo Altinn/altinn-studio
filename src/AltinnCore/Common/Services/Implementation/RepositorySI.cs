@@ -77,6 +77,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 serviceOrgPath = _settings.RepositoryLocation + serviceMetadata.Org;
             }
+
             string servicePath = serviceOrgPath + "/" + serviceMetadata.Service;
 
             if (!Directory.Exists(serviceOrgPath))
@@ -173,6 +174,7 @@ namespace AltinnCore.Common.Services.Implementation
                     filedata = File.ReadAllText(filename, Encoding.UTF8);
                     return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
                 }
+
                 throw;
             }
         }
@@ -286,6 +288,7 @@ namespace AltinnCore.Common.Services.Implementation
                     }
                 }
             }
+
             return resourceTexts;
         }
 
@@ -1073,6 +1076,7 @@ namespace AltinnCore.Common.Services.Implementation
             // TODO: FIND OUT WHAT SHOULD BE HERE
             return $"http://altinn3.no/{org}/codelists.git";
         }
+
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
             return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;
@@ -1098,6 +1102,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 codelistDirectoryPath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
             }
+
             if (!string.IsNullOrEmpty(service))
             {
                 codelistDirectoryPath += "/" + service;
@@ -1431,7 +1436,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return fileContent;
-
         }
 
         private void CheckAndCreateDeveloperFolder()

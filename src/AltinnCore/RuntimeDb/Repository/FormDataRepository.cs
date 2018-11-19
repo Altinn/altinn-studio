@@ -79,6 +79,7 @@ namespace AltinnCore.Runtime.Db.Repository
                         break;
                     }
                 }
+
                 return formData;
             }
             catch (DocumentClientException e)
@@ -114,6 +115,5 @@ namespace AltinnCore.Runtime.Db.Repository
                 throw ex;
             }
         }
-
     }
 }

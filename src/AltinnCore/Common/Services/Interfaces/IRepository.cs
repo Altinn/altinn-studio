@@ -367,6 +367,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="fileName">The file name</param>
         /// <returns>Returns the json object as a string</returns>
         string GetJsonFile(string org, string service, string fileName);
-
     }
 }
