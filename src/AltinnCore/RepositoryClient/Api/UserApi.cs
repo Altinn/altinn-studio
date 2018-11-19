@@ -1799,7 +1799,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("CreateCurrentUserRepo", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<Repository>(
@@ -1902,7 +1903,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("CreateCurrentUserRepo", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<Repository>(
@@ -2005,7 +2007,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserAddEmail", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Email>>(
@@ -2109,7 +2112,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserAddEmail", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Email>>(
@@ -2172,8 +2176,10 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (follower != null) localVarPathParams.Add("follower", Configuration.ApiClient.ParameterToString(follower)); // path parameter
-            if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            if (follower != null)
+                localVarPathParams.Add("follower", Configuration.ApiClient.ParameterToString(follower)); // path parameter
+            if (followee != null)
+                localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2214,7 +2220,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCheckFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2278,8 +2285,10 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (follower != null) localVarPathParams.Add("follower", Configuration.ApiClient.ParameterToString(follower)); // path parameter
-            if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            if (follower != null)
+                localVarPathParams.Add("follower", Configuration.ApiClient.ParameterToString(follower)); // path parameter
+            if (followee != null)
+                localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2320,7 +2329,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCheckFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2373,7 +2383,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (name != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
+            if (name != null)
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2414,7 +2425,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCreateToken", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2468,7 +2480,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (name != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
+            if (name != null)
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2509,7 +2522,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCreateToken", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2567,7 +2581,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            if (followee != null)
+                localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2608,7 +2623,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2667,7 +2683,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (followee != null) localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            if (followee != null)
+                localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2708,7 +2725,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2771,8 +2789,10 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2813,7 +2833,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckStarring", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2877,8 +2898,10 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2919,7 +2942,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckStarring", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -2977,7 +3001,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3018,7 +3044,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteFollow", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3077,7 +3104,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3118,7 +3147,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteFollow", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3175,7 +3205,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3216,7 +3248,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteGPGKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3274,7 +3307,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3315,7 +3350,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteGPGKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3372,7 +3408,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3413,7 +3451,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3471,7 +3510,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3512,7 +3553,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3575,8 +3617,12 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3617,7 +3663,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteStar", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3681,8 +3728,12 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3723,7 +3774,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteStar", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -3781,7 +3833,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3822,7 +3876,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentGetGPGKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<GPGKey>(
@@ -3881,7 +3936,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -3922,7 +3979,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentGetGPGKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<GPGKey>(
@@ -3980,7 +4038,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4021,7 +4081,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentGetKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<PublicKey>(
@@ -4080,7 +4141,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (id != null) localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            if (id != null)
+                localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -4121,7 +4184,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentGetKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<PublicKey>(
@@ -4214,7 +4278,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowers", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -4308,7 +4373,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowers", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -4401,7 +4467,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -4495,7 +4562,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -4588,7 +4656,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListGPGKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -4682,7 +4751,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListGPGKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -4775,7 +4845,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -4869,7 +4940,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -4962,7 +5034,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListRepos", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5056,7 +5129,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListRepos", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5149,7 +5223,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListStarred", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5243,7 +5318,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListStarred", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5336,7 +5412,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListSubscriptions", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5430,7 +5507,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentListSubscriptions", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5532,7 +5610,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPostGPGKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<GPGKey>(
@@ -5635,7 +5714,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPostGPGKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<GPGKey>(
@@ -5737,7 +5817,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPostKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<PublicKey>(
@@ -5840,7 +5921,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPostKey", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<PublicKey>(
@@ -5898,7 +5980,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -5939,7 +6023,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPutFollow", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -5998,7 +6083,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6039,7 +6126,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPutFollow", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -6102,8 +6190,12 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6144,7 +6236,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPutStar", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -6208,8 +6301,12 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6250,7 +6347,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentPutStar", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -6343,7 +6441,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentTrackedTimes", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<TrackedTime>>(
@@ -6437,7 +6536,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserCurrentTrackedTimes", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<TrackedTime>>(
@@ -6539,7 +6639,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserDeleteEmail", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -6642,7 +6743,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserDeleteEmail", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -6700,7 +6802,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6741,7 +6845,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserGet", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<User>(
@@ -6800,7 +6905,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -6841,7 +6948,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserGet", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<User>(
@@ -6934,7 +7042,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserGetCurrent", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<User>(
@@ -7028,7 +7137,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserGetCurrent", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<User>(
@@ -7120,7 +7230,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserGetTokens", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -7213,7 +7324,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserGetTokens", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<object>(
@@ -7306,7 +7418,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListEmails", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Email>>(
@@ -7400,7 +7513,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListEmails", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Email>>(
@@ -7458,7 +7572,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7499,7 +7615,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListFollowers", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -7558,7 +7675,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7599,7 +7718,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListFollowers", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -7657,7 +7777,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7698,7 +7820,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -7757,7 +7880,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7798,7 +7923,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListFollowing", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -7856,7 +7982,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7897,7 +8025,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListGPGKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -7956,7 +8085,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -7997,7 +8128,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListGPGKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -8055,7 +8187,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8096,7 +8230,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -8155,7 +8290,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8196,7 +8333,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListKeys", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -8254,7 +8392,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8295,7 +8435,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListRepos", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8354,7 +8495,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8395,7 +8538,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListRepos", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8453,7 +8597,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8494,7 +8640,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListStarred", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8553,7 +8700,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8594,7 +8743,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListStarred", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8652,7 +8802,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8693,7 +8845,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListSubscriptions", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8752,7 +8905,9 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (username != null) localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            if (username != null)
+                localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8793,7 +8948,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserListSubscriptions", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8850,8 +9006,12 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (q != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
-            if (limit != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
+            if (q != null)
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
+
+            if (limit != null)
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8892,7 +9052,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserSearch", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -8950,8 +9111,12 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (q != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
-            if (limit != null) localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
+            if (q != null)
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
+
+            if (limit != null)
+                localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -8992,7 +9157,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserSearch", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<User>>(
@@ -9060,9 +9226,15 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
-            if (user != null) localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+
+            if (user != null)
+                localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -9103,7 +9275,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserTrackedTimes", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<TrackedTime>>(
@@ -9172,9 +9345,15 @@ namespace AltinnCore.RepositoryClient.Api
             if (localVarHttpHeaderAccept != null)
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
 
-            if (owner != null) localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
-            if (repo != null) localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
-            if (user != null) localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
+            if (owner != null)
+                localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+
+            if (repo != null)
+                localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+
+            if (user != null)
+                localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
+
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -9215,7 +9394,8 @@ namespace AltinnCore.RepositoryClient.Api
             if (ExceptionFactory != null)
             {
                 Exception exception = ExceptionFactory("UserTrackedTimes", localVarResponse);
-                if (exception != null) throw exception;
+                if (exception != null)
+                    throw exception;
             }
 
             return new ApiResponse<List<TrackedTime>>(

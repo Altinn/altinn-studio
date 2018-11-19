@@ -823,7 +823,8 @@ namespace AltinnCore.Common.Services.Implementation
 
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
 
-            if (!repoCreated) {
+            if (!repoCreated)
+            {
                 AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
             }
 

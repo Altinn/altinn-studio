@@ -209,10 +209,12 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private Type GetTypeFromDiscriminatorValue(JObject jObject, Type parentType)
         {
             JToken jToken;
-            if (!jObject.TryGetValue(_typeMappingPropertyName, out jToken)) return null;
+            if (!jObject.TryGetValue(_typeMappingPropertyName, out jToken))
+                return null;
 
             var discriminatorValue = jToken.ToObject<object>();
-            if (discriminatorValue == null) return null;
+            if (discriminatorValue == null)
+                return null;
 
             var typeMapping = GetSubTypeMapping(parentType);
             if (typeMapping.Any())
