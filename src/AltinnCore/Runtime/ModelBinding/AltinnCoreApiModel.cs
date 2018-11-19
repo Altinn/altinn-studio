@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.Runtime.ModelBinding
 {
     /// <summary>

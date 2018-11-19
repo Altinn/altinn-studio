@@ -58,5 +58,4 @@ namespace AltinnCore.RepositoryClient.Client
             this.ErrorContent = errorContent;
         }
     }
-
 }

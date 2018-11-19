@@ -37,6 +37,7 @@ namespace AltinnCore.RepositoryClient.Model
         protected CreateGPGKeyOption()
         {
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateGPGKeyOption" /> class.
         /// </summary>
@@ -140,5 +141,4 @@ namespace AltinnCore.RepositoryClient.Model
             yield break;
         }
     }
-
 }

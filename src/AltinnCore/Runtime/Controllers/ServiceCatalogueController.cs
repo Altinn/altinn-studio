@@ -109,6 +109,5 @@ namespace AltinnCore.Runtime.Controllers
         {
             return View();
         }
-
      }
 }

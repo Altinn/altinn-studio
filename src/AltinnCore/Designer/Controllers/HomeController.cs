@@ -58,6 +58,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 return View("StartPage");
             }
+
             return this.RedirectToAction("Index", "Home");
         }
 
@@ -89,6 +90,7 @@ namespace AltinnCore.Designer.Controllers
             }
 
             model.RepositorySearch = repositorySearch;
+
             // IList<OrgConfiguration> owners = _repository.GetOwners();
             return View(model);
         }
@@ -190,6 +192,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
                         }
+
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 
@@ -222,6 +225,7 @@ namespace AltinnCore.Designer.Controllers
 
             return LocalRedirect(goToUrl);
         }
+
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -240,6 +244,5 @@ namespace AltinnCore.Designer.Controllers
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
         }
-
     }
 }

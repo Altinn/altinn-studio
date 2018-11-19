@@ -37,6 +37,7 @@ namespace AltinnCore.RepositoryClient.Model
         protected CreateRepoOption()
         {
         }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
         /// </summary>
@@ -58,6 +59,7 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 this.Name = Name;
             }
+
             this.AutoInit = AutoInit;
             this.Description = Description;
             this.Gitignores = Gitignores;
@@ -252,5 +254,4 @@ namespace AltinnCore.RepositoryClient.Model
             yield break;
         }
     }
-
 }

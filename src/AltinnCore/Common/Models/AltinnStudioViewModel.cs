@@ -35,6 +35,7 @@ namespace AltinnCore.Common.Models
         public CommitInfo CommitInfo { get; set; }
 
         public int? CommitsBehind { get; set; }
+
         public List<Repository> Repositories { get; set; }
 
         public RepositorySearch RepositorySearch { get; set; }

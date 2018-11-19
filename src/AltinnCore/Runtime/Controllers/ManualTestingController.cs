@@ -150,6 +150,7 @@ namespace AltinnCore.Runtime.Controllers
                         {
                             return Redirect(Environment.GetEnvironmentVariable("GiteaEndpoint") + "/user/login");
                         }
+
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 

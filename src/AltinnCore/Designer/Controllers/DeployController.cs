@@ -66,6 +66,7 @@ namespace AltinnCore.Designer.Controllers
                     Message = "Deployment unavailable",
                 });
             }
+
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;

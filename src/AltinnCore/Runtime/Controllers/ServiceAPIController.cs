@@ -377,6 +377,7 @@ namespace AltinnCore.Runtime.Controllers
             {
                 return Ok(apiResult);
             }
+
             {
                 Response.StatusCode = 303;
                 return new ObjectResult(apiResult);

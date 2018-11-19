@@ -58,6 +58,7 @@ namespace AltinnCore.RepositoryClient.Client
                     string.Format("Error calling {0}: {1}", methodName, response.Content),
                     response.Content);
             }
+
             if (status == 0)
             {
                 return new ApiException(
@@ -65,6 +66,7 @@ namespace AltinnCore.RepositoryClient.Client
                     string.Format("Error calling {0}: {1}", methodName, response.ErrorMessage),
                     response.ErrorMessage);
             }
+
             return null;
         };
 
@@ -193,6 +195,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// <param name="timeout">HTTP connection timeout (in milliseconds)</param>
         /// <param name="userAgent">HTTP user agent</param>
         [Obsolete("Use explicit object construction and setting of properties.", true)]
+
         // ReSharper disable UnusedParameter.Local
         public Configuration(
             ApiClient apiClient = null,
@@ -206,6 +209,7 @@ namespace AltinnCore.RepositoryClient.Client
             string dateTimeFormat = null,
             int timeout = 100000,
             string userAgent = "Swagger-Codegen/1.0.0/csharp")
+
             // ReSharper restore UnusedParameter.Local
         {
         }
@@ -215,6 +219,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="apiClient">Api client.</param>
         [Obsolete("This constructor caused unexpected sharing of static data. It is no longer supported.", true)]
+
         // ReSharper disable once UnusedParameter.Local
         public Configuration(ApiClient apiClient)
         {
@@ -225,6 +230,7 @@ namespace AltinnCore.RepositoryClient.Client
         #region Properties
 
         private ApiClient _apiClient = null;
+
         /// <summary>
         /// Gets an instance of an ApiClient for this configuration
         /// </summary>
@@ -242,6 +248,7 @@ namespace AltinnCore.RepositoryClient.Client
         }
 
         private string _basePath = null;
+
         /// <summary>
         /// Gets or sets the base path for API access.
         /// </summary>
@@ -339,10 +346,12 @@ namespace AltinnCore.RepositoryClient.Client
                     _tempFolderPath = Path.GetTempPath();
                     return;
                 }
+
                 if (!Directory.Exists(value))
                 {
                     Directory.CreateDirectory(value);
                 }
+
                 if (value[value.Length - 1] == Path.DirectorySeparatorChar)
                 {
                     _tempFolderPath = value;
@@ -377,6 +386,7 @@ namespace AltinnCore.RepositoryClient.Client
                     _dateTimeFormat = ISO8601_DATETIME_FORMAT;
                     return;
                 }
+
                 _dateTimeFormat = value;
             }
         }
@@ -391,12 +401,14 @@ namespace AltinnCore.RepositoryClient.Client
             {
                 return _apiKeyPrefix;
             }
+
             set
             {
                 if (value == null)
                 {
                     throw new InvalidOperationException("ApiKeyPrefix collection may not be null.");
                 }
+
                 _apiKeyPrefix = value;
             }
         }
@@ -418,6 +430,7 @@ namespace AltinnCore.RepositoryClient.Client
                 {
                     throw new InvalidOperationException("ApiKey collection may not be null.");
                 }
+
                 _apiKey = value;
             }
         }

@@ -39,6 +39,7 @@ namespace AltinnCore.Runtime
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
+
         /// <summary>
         /// Configures the services available for the asp.net Core application
         /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/>
@@ -57,7 +58,6 @@ namespace AltinnCore.Runtime
             }
 
             // Adding services to Dependency Injection TODO: Make this environment specific
-
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();

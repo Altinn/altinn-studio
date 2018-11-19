@@ -33,6 +33,7 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri giteaUrl = null;
             Cookie cookie = null;
+
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
@@ -94,6 +95,7 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/org/" + org + "/repos");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
+
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
@@ -148,6 +150,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&uid=" + user.Id);
             }
+
             if (!string.IsNullOrEmpty(keyWord))
             {
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&q=" + keyWord);
@@ -162,6 +165,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
+
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
@@ -211,6 +215,7 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/users/" + user.Login + "/tokens?name=" + name);
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
+
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };

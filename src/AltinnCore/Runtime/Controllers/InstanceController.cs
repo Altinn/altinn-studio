@@ -87,6 +87,7 @@ namespace AltinnCore.Runtime.Controllers
             {
                 return RedirectToAction("Receipt", new { org, service, instanceId });
             }
+
             // TODO Add info for REACT app.
             return View();
         }
@@ -418,6 +419,7 @@ namespace AltinnCore.Runtime.Controllers
             {
                 requestContext.Form = Request.Form;
             }
+
             return requestContext;
         }
 

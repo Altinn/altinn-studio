@@ -198,5 +198,4 @@ namespace AltinnCore.RepositoryClient.Model
             yield break;
         }
     }
-
 }

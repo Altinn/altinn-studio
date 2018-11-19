@@ -8,8 +8,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
     {
         /// <inheritdoc/>
         public string Namespace { get; set; }
+
         /// <inheritdoc/>
         public string MainClass { get; set; }
+
         /// <inheritdoc/>
         public bool UseSingleFile { get; set; }
 
@@ -23,9 +25,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 foreach (var property in jobj.Properties())
                 {
                 }
-
             }
-
         }
 
         public class JsonDataTypes

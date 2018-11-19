@@ -270,6 +270,5 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             public JToken ParentArray { get; set; }
         }
-
     }
 }
