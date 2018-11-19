@@ -153,10 +153,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public setToolbarLabel = (label: any) => {
-    if (label === 'Header') {
-      this.props.language ? label = this.props.language['ux-editor'].toolbar_header : label = label;
-    } else if (label === 'FileUpload') {
-      this.props.language ? label = this.props.language['ux-editor'].toolbar_file_upload : label = label;
+    if (this.props.language) {
+      if (label === 'Header') {
+        label = this.props.language['ux-editor'].toolbar_header;
+      } else if (label === 'FileUpload') {
+        label = this.props.language['ux-editor'].toolbar_file_upload;
+      }
     }
     return label;
   }
