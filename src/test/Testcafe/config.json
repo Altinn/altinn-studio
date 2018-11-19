@@ -7,5 +7,8 @@
   },
   "uat": {
     "baseUrl": "base for uat"
+  },
+  "prod": {
+    "baseUrl": "https://altinn.studio/"
   }
 }

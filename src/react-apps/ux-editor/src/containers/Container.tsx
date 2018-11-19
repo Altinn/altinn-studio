@@ -213,10 +213,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
     FormDesignerActionDispatchers.addFormContainer(container, this.props.id);
   }
-  public changeActiveFormContainer = () => {
-    if (!this.props.baseContainer && this.props.designMode) {
-      FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
-    }
+  public changeActiveFormContainer = (e: any) => {
+    e.stopPropagation();
+    FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
   }
   public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
@@ -242,7 +241,7 @@ const makeMapStateToProps = () => {
       containers,
       designMode: GetDesignModeSelector(state),
       repeating: container.repeating,
-      formData: GetFormDataSelector(state, props),
+      formData: GetFormDataSelector(state, props, container.index),
       dataModelGroup: container.dataModelGroup,
       formContainerActive: GetActiveFormContainer(state, props),
     };

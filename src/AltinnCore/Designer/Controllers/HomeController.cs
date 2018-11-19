@@ -1,4 +1,4 @@
-﻿using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -47,7 +47,22 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// The default action presenting a list of available services
+        /// the default page for altinn studio when the user is not logged inn
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult StartPage()
+        {
+            string sessionId = Request.Cookies[_settings.GiteaCookieName];
+            AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
+            if (user == null)
+            {
+                return View("StartPage");
+            }
+            return this.RedirectToAction("Index", "Home");
+        }
+
+        /// <summary>
+        /// The default action presenting a list of available services when the user is logged in
         /// </summary>
         /// <returns>The front page</returns>
         [Authorize]
