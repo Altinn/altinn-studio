@@ -33,7 +33,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             public object AssociatedValue { get; private set; }
 
             /// <summary>
-            /// Gets or sets known sub type
+            /// Initializes a new instance of the <see cref="KnownSubTypeAttribute"/> class
             /// </summary>
             /// <param name="subType"></param>
             /// <param name="associatedValue"></param>
@@ -61,7 +61,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             public string PropertyName { get; private set; }
 
             /// <summary>
-            /// Gets or sets attributes
+            /// Initializes a new instance of the <see cref="KnownSubTypeWithPropertyAttribute"/> class
             /// </summary>
             /// <param name="subType"></param>
             /// <param name="propertyName"></param>
@@ -98,14 +98,14 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         }
 
         /// <summary>
-        /// json sub types
+        /// Initializes a new instance of the <see cref="JsonSubtypes"/> class
         /// </summary>
         public JsonSubtypes()
         {
         }
 
         /// <summary>
-        /// json sub types
+        /// Initializes a new instance of the <see cref="JsonSubtypes"/> class
         /// </summary>
         /// <param name="typeMappingPropertyName"></param>
         public JsonSubtypes(string typeMappingPropertyName)

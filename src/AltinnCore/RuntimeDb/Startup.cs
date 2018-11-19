@@ -22,7 +22,7 @@ namespace AltinnCore.Runtime.Db
     public class Startup
     {
         /// <summary>
-        /// Configure startup
+        /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
         /// <param name="configuration"></param>
         public Startup(IConfiguration configuration)

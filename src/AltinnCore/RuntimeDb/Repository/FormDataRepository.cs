@@ -25,7 +25,7 @@ namespace AltinnCore.Runtime.Db.Repository
         private readonly AzureCosmosSettings _cosmosettings;
 
         /// <summary>
-        /// configuration for form data
+        /// Initializes a new instance of the <see cref="FormDataRepository"/> class
         /// </summary>
         /// <param name="cosmosettings"></param>
         public FormDataRepository(IOptions<AzureCosmosSettings> cosmosettings)

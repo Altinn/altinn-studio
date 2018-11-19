@@ -20,7 +20,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ApplicationPartManager _partManager;
 
         /// <summary>
-        /// features configuration
+        /// Initializes a new instance of the <see cref="FeaturesController"/> class
         /// </summary>
         /// <param name="partManager"></param>
         public FeaturesController(ApplicationPartManager partManager)

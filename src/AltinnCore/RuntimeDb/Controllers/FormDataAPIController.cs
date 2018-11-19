@@ -18,7 +18,7 @@ namespace AltinnCore.Runtime.Db.Controllers
         private readonly IFormDataRepository _formDataRepository;
 
         /// <summary>
-        /// form data api configuration
+        /// Initializes a new instance of the <see cref="FormDataAPIController"/> class
         /// </summary>
         /// <param name="formDataRepository"></param>
         public FormDataAPIController(IFormDataRepository formDataRepository)

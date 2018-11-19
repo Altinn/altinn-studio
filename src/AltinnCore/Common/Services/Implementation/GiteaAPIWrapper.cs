@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// configuration for gitea wrapper
+        /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
         /// </summary>
         /// <param name="repositorySettings"></param>
         /// <param name="httpContextAccessor"></param>

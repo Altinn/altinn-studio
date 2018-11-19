@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// configuration for archive service
+        /// Initializes a new instance of the <see cref="ArchiveSILocalDev"/> class
         /// </summary>
         /// <param name="repositorySettings"></param>
         /// <param name="httpContextAccessor"></param>

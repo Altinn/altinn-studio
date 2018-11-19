@@ -15,7 +15,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IExecution _execution;
 
         /// <summary>
-        /// code list configuration
+        /// Initializes a new instance of the <see cref="CodelistController"/> class
         /// </summary>
         /// <param name="executionService"></param>
         public CodelistController(IExecution executionService)
