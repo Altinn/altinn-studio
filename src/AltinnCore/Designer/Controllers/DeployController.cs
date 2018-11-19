@@ -11,6 +11,9 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.Controllers
 {
+    /// <summary>
+    /// Implementation for deploy actions
+    /// </summary>
     public class DeployController : Controller
     {
         private readonly ISourceControl _sourceControl;

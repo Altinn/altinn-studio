@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Runtime.Db.Repository
 {
+    /// <summary>
+    /// repository for form data
+    /// </summary>
     public class FormDataRepository : IFormDataRepository
     {
         private readonly Uri _databaseUri;
@@ -21,6 +24,10 @@ namespace AltinnCore.Runtime.Db.Repository
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
 
+        /// <summary>
+        /// configuration for form data
+        /// </summary>
+        /// <param name="cosmosettings"></param>
         public FormDataRepository(IOptions<AzureCosmosSettings> cosmosettings)
         {
             // Retrieve configuration values from appsettings.json

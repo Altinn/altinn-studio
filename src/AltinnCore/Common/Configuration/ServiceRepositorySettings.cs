@@ -396,7 +396,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        ///
+        /// Get binary folder name
         /// </summary>
         /// <returns></returns>
         public string GetBinaryFolder()

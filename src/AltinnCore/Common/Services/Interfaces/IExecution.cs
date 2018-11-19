@@ -1,4 +1,4 @@
-﻿using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -42,7 +42,7 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetCodelist(string org, string service, string name);
 
         /// <summary>
-        ///
+        /// Get the resource for the given parameters
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>

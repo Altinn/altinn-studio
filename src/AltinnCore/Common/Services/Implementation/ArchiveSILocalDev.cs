@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
@@ -9,11 +9,19 @@ using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
+    /// <summary>
+    /// Implementation for archive service
+    /// </summary>
     public class ArchiveSILocalDev : IArchive
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// configuration for archive service
+        /// </summary>
+        /// <param name="repositorySettings"></param>
+        /// <param name="httpContextAccessor"></param>
         public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;

@@ -1025,6 +1025,10 @@ namespace AltinnCore.Common.Services.Implementation
             return rules;
         }
 
+        /// <summary>
+        /// Create and clone the organisation's code list
+        /// </summary>
+        /// <param name="org"></param>
         public void CreateAndCloneOrgCodeLists(string org)
         {
             try
@@ -1077,6 +1081,12 @@ namespace AltinnCore.Common.Services.Implementation
             return $"http://altinn3.no/{org}/codelists.git";
         }
 
+        /// <summary>
+        /// create a repository in gitea for the given organisation and options
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="createRepoOption"></param>
+        /// <returns></returns>
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
             return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;

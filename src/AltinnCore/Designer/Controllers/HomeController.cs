@@ -174,6 +174,10 @@ namespace AltinnCore.Designer.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Login
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Login()
         {
             string userName = "TestUser";
@@ -226,18 +230,31 @@ namespace AltinnCore.Designer.Controllers
             return LocalRedirect(goToUrl);
         }
 
+        /// <summary>
+        /// Logout 
+        /// </summary>
+        /// <returns></returns>
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/user/logout");
         }
 
+        /// <summary>
+        /// Go to app token view
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult AppToken()
         {
             return View();
         }
 
+        /// <summary>
+        /// Store app token for user
+        /// </summary>
+        /// <param name="appKey"></param>
+        /// <returns></returns>
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)
         {

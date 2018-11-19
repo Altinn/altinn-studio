@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
@@ -73,6 +73,15 @@ namespace AltinnCore.Runtime.Controllers
             return StatusCode(404);
         }
 
+        /// <summary>
+        /// Get the service meta data
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <param name="texts"></param>
+        /// <param name="restrictions"></param>
+        /// <param name="attributes"></param>
+        /// <returns></returns>
         [HttpGet]
         public ActionResult ServiceMetaData(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
         {

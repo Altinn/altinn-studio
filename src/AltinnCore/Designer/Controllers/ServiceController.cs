@@ -91,6 +91,12 @@ namespace AltinnCore.Designer.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Get the changes in the remote repository
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
         [HttpGet]
         [Authorize]
         public IActionResult PullRemoteChanges(string org, string service)
@@ -113,6 +119,12 @@ namespace AltinnCore.Designer.Controllers
             return RedirectToAction("index", new { commitInfo.Org, Service = commitInfo.Repository });
         }
 
+        /// <summary>
+        /// clone a repository
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
         [Authorize]
         public IActionResult Clone(string org, string service)
         {

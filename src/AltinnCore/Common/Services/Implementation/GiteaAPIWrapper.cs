@@ -15,11 +15,19 @@ using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
+    /// <summary>
+    /// Implementation for gitea wrapper
+    /// </summary>
     public class GiteaAPIWrapper : IGitea
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// configuration for gitea wrapper
+        /// </summary>
+        /// <param name="repositorySettings"></param>
+        /// <param name="httpContextAccessor"></param>
         public GiteaAPIWrapper(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;

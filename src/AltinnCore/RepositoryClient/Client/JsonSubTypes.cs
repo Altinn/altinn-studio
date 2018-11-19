@@ -10,15 +10,33 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
 {
     // Copied from project https://github.com/manuc66/JsonSubTypes
     // https://raw.githubusercontent.com/manuc66/JsonSubTypes/07403192ea3f4959f6d42f5966ac56ceb0d6095b/JsonSubTypes/JsonSubtypes.cs
+
+    /// <summary>
+    /// A discriminated Json sub-type Converter implementation for .NET
+    /// </summary>
     public class JsonSubtypes : JsonConverter
     {
+        /// <summary>
+        /// Known sub type attributes
+        /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
         public class KnownSubTypeAttribute : Attribute
         {
+            /// <summary>
+            /// Gets or sets sub type
+            /// </summary>
             public Type SubType { get; private set; }
 
+            /// <summary>
+            /// Gets or sets associated value
+            /// </summary>
             public object AssociatedValue { get; private set; }
 
+            /// <summary>
+            /// Gets or sets known sub type
+            /// </summary>
+            /// <param name="subType"></param>
+            /// <param name="associatedValue"></param>
             public KnownSubTypeAttribute(Type subType, object associatedValue)
             {
                 SubType = subType;
@@ -26,13 +44,27 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             }
         }
 
+        /// <summary>
+        /// known type with property attribute
+        /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
         public class KnownSubTypeWithPropertyAttribute : Attribute
         {
+            /// <summary>
+            /// Gets or sets sub type
+            /// </summary>
             public Type SubType { get; private set; }
 
+            /// <summary>
+            /// Gets or sets property name
+            /// </summary>
             public string PropertyName { get; private set; }
 
+            /// <summary>
+            /// Gets or sets attributes
+            /// </summary>
+            /// <param name="subType"></param>
+            /// <param name="propertyName"></param>
             public KnownSubTypeWithPropertyAttribute(Type subType, string propertyName)
             {
                 SubType = subType;
@@ -65,10 +97,17 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             get { return false; }
         }
 
+        /// <summary>
+        /// json sub types
+        /// </summary>
         public JsonSubtypes()
         {
         }
 
+        /// <summary>
+        /// json sub types
+        /// </summary>
+        /// <param name="typeMappingPropertyName"></param>
         public JsonSubtypes(string typeMappingPropertyName)
         {
             _typeMappingPropertyName = typeMappingPropertyName;
@@ -194,6 +233,12 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             return jObjectReader;
         }
 
+        /// <summary>
+        /// Get type of json object
+        /// </summary>
+        /// <param name="jObject"></param>
+        /// <param name="parentType"></param>
+        /// <returns></returns>
         public Type GetType(JObject jObject, Type parentType)
         {
             if (_typeMappingPropertyName == null)
@@ -284,6 +329,14 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             return Convert.ChangeType(objectType, targetlookupValueType);
         }
 
+        /// <summary>
+        /// read json object
+        /// </summary>
+        /// <param name="reader"></param>
+        /// <param name="objectType"></param>
+        /// <param name="existingValue"></param>
+        /// <param name="serializer"></param>
+        /// <returns></returns>
         protected object ReadJsonObject(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             _reader = reader;

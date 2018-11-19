@@ -14,6 +14,9 @@ using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
+    /// <summary>
+    /// Implmentation for source control 
+    /// </summary>
     public class SourceControlSI : ISourceControl
     {
         private readonly IDefaultFileFactory _defaultFileFactory;

@@ -231,6 +231,13 @@ namespace AltinnCore.Common.Services.Implementation
             return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
         }
 
+        /// <summary>
+        /// Get workflow for the service
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <param name="edition"></param>
+        /// <returns></returns>
         public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.WorkFlowFileName;

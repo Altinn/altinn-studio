@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -49,6 +49,12 @@ namespace AltinnCore.Common.Helpers
             return forName;
         }
 
+        /// <summary>
+        /// Map the state of the model to api result object
+        /// </summary>
+        /// <param name="modelState"></param>
+        /// <param name="apiResult"></param>
+        /// <param name="serviceContext"></param>
         public static void MapModelStateToApiResult(ModelStateDictionary modelState, ApiResult apiResult, ServiceContext serviceContext)
         {
             apiResult.ModelStateEntries = new List<ApiModelStateEntry>();

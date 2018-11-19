@@ -4,6 +4,9 @@ using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
+    /// <summary>
+    /// implementation for json to charp
+    /// </summary>
     public class JsonToCsharpClass : IJsonToCsharpClassConfig
     {
         /// <inheritdoc/>
@@ -15,6 +18,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <inheritdoc/>
         public bool UseSingleFile { get; set; }
 
+        /// <summary>
+        /// create class
+        /// </summary>
+        /// <param name="jsonData"></param>
+        /// <param name="type"></param>
         public void CreateClass(JObject[] jsonData, JsonDataTypes type)
         {
             var jsonDataFields = new Dictionary<string, JsonDataTypes>();
@@ -28,11 +36,20 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
+        /// <summary>
+        /// json data types
+        /// </summary>
         public class JsonDataTypes
         {
+            /// <summary>
+            /// type
+            /// </summary>
             public JsonTypesEnum Type { get; }
         }
 
+        /// <summary>
+        /// json types
+        /// </summary>
         public enum JsonTypesEnum
         {
             String,

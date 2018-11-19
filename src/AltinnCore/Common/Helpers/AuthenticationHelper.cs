@@ -7,8 +7,16 @@ using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Common.Helpers
 {
+    /// <summary>
+    /// helper class for authentication
+    /// </summary>
     public static class AuthenticationHelper
     {
+        /// <summary>
+        /// Gets the service developer's user name
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static string GetDeveloperUserName(HttpContext context)
         {
             string userName = null;
@@ -27,6 +35,12 @@ namespace AltinnCore.Common.Helpers
             return userName;
         }
 
+        /// <summary>
+        /// Gets the gitea session for the given session id
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="sessionCookieId"></param>
+        /// <returns></returns>
         public static string GetGiteaSession(HttpContext context, string sessionCookieId)
          {
             if (context.Request.Cookies != null && context.Request.Cookies.ContainsKey(sessionCookieId))
