@@ -24,10 +24,8 @@ namespace AltinnCore.Designer.Controllers
             string currentDirectory = Directory.GetCurrentDirectory();
             string path = Path.Combine(currentDirectory, $@"..\Common\Languages\ini\{languageCode}.ini");
  
-                IniData parsedData = parser.ReadFile(path, Encoding.UTF8);
-                var test = parsedData;
-
-                var obj = new Dictionary<string, Dictionary<string, string>>();
+            IniData parsedData = parser.ReadFile(path, Encoding.UTF8);
+            var obj = new Dictionary<string, Dictionary<string, string>>();
 
             //Iterate through all the sections
             foreach (SectionData section in parsedData.Sections)
