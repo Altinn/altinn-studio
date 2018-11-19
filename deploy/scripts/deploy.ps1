@@ -23,15 +23,9 @@ while (!($clusterName -match '^[a-z,A-Z,0-9,-]*$')) {
   Write-Output "Looks like the cluster name is invalid"
   $clusterName = Read-Host -Prompt "Cluster name"
 }
-$nodeCount = Read-Host -Prompt "Node count"
-while (!($nodeCount -match '^[0-9]*$')) {
-  Write-Output "Looks like the number of nodes is invalid try a new number"
-  $nodeCount = Read-Host -Prompt "Node count"
-}
-$clusterVersion = Read-Host -Prompt "Cluster version"
 
 Write-Output "Setting up the kubernetes cluster..."
-az aks create --resource-group $resourceGroupName --name $clusterName --node-count $nodeCount  --kubernetes-version $clusterVersion --generate-ssh-keys
+az aks create --resource-group $resourceGroupName --name $clusterName --generate-ssh-keys
 
 Write-Output "Installing kubernetes cli"
 az aks install-cli
@@ -68,6 +62,44 @@ while (!($secretName -match '^[a-zA-Z0-9,-,_]*$')) {
 }
 kubectl create secret docker-registry $secretName --docker-server $acrResources[1] --docker-username $servicePrincipalId --docker-password $servicePrincipalPassword --docker-email $dockerEmail
 
+Write-Output "Creating postgresql database server"
+$databaseServerName = Read-Host -Prompt "Database server name"
+$databaseAdminUser = Read-Host -Prompt "Database admin user name"
+$databaseAdminPassword = Read-Host -Prompt "Database admin password"
+$databaseSKU = "GP_Gen5_32"
+$databaseSSLEnforcement = "Enabled"
+
+Write-Output "Setting up postgresql database server..."
+az postgres server create -l $location -g $resourceGroupName -n $databaseServerName -u $databaseAdminUser -p $databaseAdminPassword --sku-name $databaseSKU --ssl-enforcement $databaseSSLEnforcement
+
+$databaseServerAdress = $databaseServerName + ".postgres.database.azure.com"
+$databaseServerAdminLogin = $databaseAdminUser + "@" + $databaseServerName
+
+$kubernetesResourceGroupName = "MC_" + $resourceGroupName + "_" + $clusterName + "_" + $location
+
+Write-Output "Creating vnet rule on the database server"
+$vnetRuleName = Read-Host -Prompt "Name for the vnet rule"
+$clusterVnetId = az network vnet list -g $kubernetesResourceGroupName --query "[0].subnets[0].id" -o tsv
+az postgres server vnet-rule create -n $vnetRuleName -g $resourceGroupName -s $databaseServerName --subnet $clusterVnetId
+
+Write-Output "Creating database on the database server"
+$databaseName = Read-Host -Prompt "Database name"
+az postgres db create -n $databaseName -g $resourceGroupName -s $databaseServerName
+
+Write-Output "Creating kubernetes secret with database login credentials"
+$databaseSecretName = Read-Host -Prompt "Kubernetes secret name"
+echo -n $databaseServerAdress > ./databaseAdress
+echo -n $databaseServerAdminLogin > ./databaseAdminUsername
+echo -n $databaseAdminPassword > ./databaseAdminPassword
+echo -n $databaseName > ./databaseName
+
+kubectl create secret generic $databaseSecretName --from-file=./databaseAdress --from-file=./databaseAdminUsername --from-file=./databaseAdminPassword --from-file=./databaseName
+
+rm ./databaseAdress
+rm ./databaseAdminUsername
+rm ./databaseAdminPassword
+rm ./databaseName
+
 Write-Output "Creating public ip adress in kubernetes resource group"
 $publicIpAdressName = Read-Host -Prompt "Public ip adress name"
 while (!($publicIpAdressName -match '^[a-zA-Z0-9,-,_]*$')) {
@@ -75,6 +107,5 @@ while (!($publicIpAdressName -match '^[a-zA-Z0-9,-,_]*$')) {
   $publicIpAdressName = Read-Host -Prompt "Public ip adress name"
 }
 
-$kubernetesResourceGroupName = "MC_" + $resourceGroupName + "_" + $clusterName + "_" + $location
 Write-Output "Creating public static ip adress in kubernetes resource group"
 az network public-ip create --resource-group $kubernetesResourceGroupName --name $publicIpAdressName --allocation-method Static
