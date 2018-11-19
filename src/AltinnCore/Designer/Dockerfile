@@ -16,7 +16,7 @@ COPY /src .
 COPY --from=generate-designer-js /wwwroot /AltinnCore/Designer/wwwroot
 COPY --from=generate-react-apps ./applications/service-development/dist/service-development.js /AltinnCore/Designer/wwwroot/designer/js/react/service-development.js
 COPY --from=generate-react-apps ./applications/dashboard/dist/dashboard.js /AltinnCore/Designer/wwwroot/designer/js/react/dashboard.js
-COPY --from=generate-react-apps ./applications/service-development/dist/service-development.css /AltinnCore/Designer/wwwroot/designer/css/service-development.css
+COPY --from=generate-react-apps ./applications/service-development/dist/service-development.css /AltinnCore/Designer/wwwroot/designer/css/react/service-development.css
 COPY --from=generate-react-apps ./applications/dashboard/dist/dashboard.css /AltinnCore/Designer/wwwroot/designer/css/dashboard.css
 RUN dotnet build AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
