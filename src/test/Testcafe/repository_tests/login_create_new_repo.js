@@ -13,7 +13,7 @@ let loginPage = new LoginPage();
 let landingPage = new LandingPage();
 let header = new HeaderPage();
 let repoPage = new RepoPage();
-const testUser = new TestData('itryti', 'oit@brreg.no', 'test123', 'basic');
+const testUser = new TestData('trymen', 'extten@brreg.no', 'test123', 'basic');
 let firstRun = true;
 
 fixture('adminster repos')
@@ -32,7 +32,7 @@ fixture('adminster repos')
     }
   })
   .afterEach(async t => {
-
+    common.returnToHomePage();
   });
 
 const getPageUrl = ClientFunction(() => window.location.href);
