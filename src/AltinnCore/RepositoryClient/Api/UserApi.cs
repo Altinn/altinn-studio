@@ -1635,10 +1635,15 @@ namespace AltinnCore.RepositoryClient.Api
         /// <returns></returns>
         public UserApi(Configuration configuration = null)
         {
-            if (configuration == null) // use the default one in Configuration
+            // use the default one in Configuration
+            if (configuration == null)
+            {
                 this.Configuration = Configuration.Default;
+            }
             else
+            {
                 this.Configuration = configuration;
+            }
 
             ExceptionFactory = AltinnCore.RepositoryClient.Client.Configuration.DefaultExceptionFactory;
         }
@@ -1749,7 +1754,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -1800,7 +1807,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("CreateCurrentUserRepo", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<Repository>(
@@ -1853,7 +1862,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -1904,7 +1915,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("CreateCurrentUserRepo", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<Repository>(
@@ -1957,7 +1970,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -2008,7 +2023,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserAddEmail", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Email>>(
@@ -2062,7 +2079,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -2113,7 +2132,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserAddEmail", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Email>>(
@@ -2145,10 +2166,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'follower' is set
             if (follower == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'follower' when calling UserApi->UserCheckFollowing");
+            }
             // verify the required parameter 'followee' is set
             if (followee == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCheckFollowing");
+            }
 
             var localVarPath = "/users/{follower}/following/{followee}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2174,12 +2199,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (follower != null)
+            {
                 localVarPathParams.Add("follower", Configuration.ApiClient.ParameterToString(follower)); // path parameter
+            }
+
             if (followee != null)
+            {
                 localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2221,7 +2253,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCheckFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2254,10 +2288,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'follower' is set
             if (follower == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'follower' when calling UserApi->UserCheckFollowing");
+            }
             // verify the required parameter 'followee' is set
             if (followee == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCheckFollowing");
+            }
 
             var localVarPath = "/users/{follower}/following/{followee}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2283,12 +2321,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (follower != null)
+            {
                 localVarPathParams.Add("follower", Configuration.ApiClient.ParameterToString(follower)); // path parameter
+            }
+
             if (followee != null)
+            {
                 localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2330,7 +2375,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCheckFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2381,10 +2428,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (name != null)
+            {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2426,7 +2477,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCreateToken", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2478,10 +2531,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (name != null)
+            {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "name", name)); // query parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2523,7 +2580,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCreateToken", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2553,7 +2612,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'followee' is set
             if (followee == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCurrentCheckFollowing");
+            }
 
             var localVarPath = "/user/following/{followee}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2579,10 +2640,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (followee != null)
+            {
                 localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2624,7 +2689,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2655,7 +2722,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'followee' is set
             if (followee == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'followee' when calling UserApi->UserCurrentCheckFollowing");
+            }
 
             var localVarPath = "/user/following/{followee}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2681,10 +2750,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (followee != null)
+            {
                 localVarPathParams.Add("followee", Configuration.ApiClient.ParameterToString(followee)); // path parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2726,7 +2799,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2758,10 +2833,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentCheckStarring");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentCheckStarring");
+            }
 
             var localVarPath = "/user/starred/{owner}/{repo}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2787,12 +2866,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
+
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2834,7 +2920,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckStarring", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2867,10 +2955,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentCheckStarring");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentCheckStarring");
+            }
 
             var localVarPath = "/user/starred/{owner}/{repo}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2896,12 +2988,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
+
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
             // authentication (AccessToken) required
             if (!string.IsNullOrEmpty(Configuration.GetApiKeyWithPrefix("access_token")))
@@ -2943,7 +3042,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentCheckStarring", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -2973,7 +3074,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentDeleteFollow");
+            }
 
             var localVarPath = "/user/following/{username}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -2999,10 +3102,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3045,7 +3152,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteFollow", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3076,7 +3185,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentDeleteFollow");
+            }
 
             var localVarPath = "/user/following/{username}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3102,10 +3213,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3148,7 +3263,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteFollow", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3178,7 +3295,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteGPGKey");
+            }
 
             var localVarPath = "/user/gpg_keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3203,10 +3322,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3249,7 +3372,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteGPGKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3280,7 +3405,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteGPGKey");
+            }
 
             var localVarPath = "/user/gpg_keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3305,10 +3432,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3351,7 +3482,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteGPGKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3381,7 +3514,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteKey");
+            }
 
             var localVarPath = "/user/keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3406,10 +3541,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3452,7 +3591,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3483,7 +3624,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentDeleteKey");
+            }
 
             var localVarPath = "/user/keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3508,10 +3651,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3554,7 +3701,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3586,10 +3735,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentDeleteStar");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentDeleteStar");
+            }
 
             var localVarPath = "/user/starred/{owner}/{repo}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3615,13 +3768,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
 
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3664,7 +3823,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteStar", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3697,10 +3858,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentDeleteStar");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentDeleteStar");
+            }
 
             var localVarPath = "/user/starred/{owner}/{repo}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3726,13 +3891,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
 
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3775,7 +3946,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentDeleteStar", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -3806,7 +3979,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetGPGKey");
+            }
 
             var localVarPath = "/user/gpg_keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3831,10 +4006,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3877,7 +4056,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentGetGPGKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<GPGKey>(
@@ -3909,7 +4090,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetGPGKey");
+            }
 
             var localVarPath = "/user/gpg_keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -3934,10 +4117,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -3980,7 +4167,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentGetGPGKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<GPGKey>(
@@ -4011,7 +4200,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetKey");
+            }
 
             var localVarPath = "/user/keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -4036,10 +4227,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -4082,7 +4277,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentGetKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<PublicKey>(
@@ -4114,7 +4311,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'id' is set
             if (id == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'id' when calling UserApi->UserCurrentGetKey");
+            }
 
             var localVarPath = "/user/keys/{id}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -4139,10 +4338,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (id != null)
+            {
                 localVarPathParams.Add("id", Configuration.ApiClient.ParameterToString(id)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -4185,7 +4388,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentGetKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<PublicKey>(
@@ -4236,7 +4441,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4279,7 +4486,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowers", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -4331,7 +4540,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4374,7 +4585,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowers", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -4425,7 +4638,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4468,7 +4683,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -4520,7 +4737,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4563,7 +4782,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -4614,7 +4835,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4657,7 +4880,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListGPGKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -4709,7 +4934,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4752,7 +4979,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListGPGKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -4803,7 +5032,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4846,7 +5077,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -4898,7 +5131,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -4941,7 +5176,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -4992,7 +5229,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -5035,7 +5274,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListRepos", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5087,7 +5328,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -5130,7 +5373,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListRepos", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5181,7 +5426,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -5224,7 +5471,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListStarred", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5276,7 +5525,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -5319,7 +5570,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListStarred", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5370,7 +5623,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -5413,7 +5668,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListSubscriptions", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5465,7 +5722,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -5508,7 +5767,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentListSubscriptions", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -5560,7 +5821,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (form != null && form.GetType() != typeof(byte[]))
             {
@@ -5611,7 +5874,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPostGPGKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<GPGKey>(
@@ -5664,7 +5929,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (form != null && form.GetType() != typeof(byte[]))
             {
@@ -5715,7 +5982,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPostGPGKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<GPGKey>(
@@ -5767,7 +6036,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -5818,7 +6089,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPostKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<PublicKey>(
@@ -5871,7 +6144,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -5922,7 +6197,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPostKey", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<PublicKey>(
@@ -5952,7 +6229,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentPutFollow");
+            }
 
             var localVarPath = "/user/following/{username}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -5978,10 +6257,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -6024,7 +6307,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPutFollow", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -6055,7 +6340,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserCurrentPutFollow");
+            }
 
             var localVarPath = "/user/following/{username}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -6081,10 +6368,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -6127,7 +6418,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPutFollow", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -6159,10 +6452,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentPutStar");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentPutStar");
+            }
 
             var localVarPath = "/user/starred/{owner}/{repo}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -6188,13 +6485,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
 
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -6237,7 +6540,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPutStar", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -6270,10 +6575,14 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserCurrentPutStar");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserCurrentPutStar");
+            }
 
             var localVarPath = "/user/starred/{owner}/{repo}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -6299,13 +6608,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
 
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -6348,7 +6663,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentPutStar", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -6399,7 +6716,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -6442,7 +6761,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentTrackedTimes", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<TrackedTime>>(
@@ -6494,7 +6815,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -6537,7 +6860,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserCurrentTrackedTimes", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<TrackedTime>>(
@@ -6589,7 +6914,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -6640,7 +6967,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserDeleteEmail", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -6693,7 +7022,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (body != null && body.GetType() != typeof(byte[]))
             {
@@ -6744,7 +7075,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserDeleteEmail", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -6775,7 +7108,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserGet");
+            }
 
             var localVarPath = "/users/{username}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -6800,10 +7135,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -6846,7 +7185,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserGet", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<User>(
@@ -6878,7 +7219,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserGet");
+            }
 
             var localVarPath = "/users/{username}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -6903,10 +7246,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -6949,7 +7296,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserGet", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<User>(
@@ -7000,7 +7349,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -7043,7 +7394,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserGetCurrent", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<User>(
@@ -7095,7 +7448,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -7138,7 +7493,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserGetCurrent", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<User>(
@@ -7188,7 +7545,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -7231,7 +7590,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserGetTokens", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -7282,7 +7643,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -7325,7 +7688,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserGetTokens", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<object>(
@@ -7376,7 +7741,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -7419,7 +7786,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListEmails", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Email>>(
@@ -7471,7 +7840,9 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
 
             // authentication (AccessToken) required
@@ -7514,7 +7885,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListEmails", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Email>>(
@@ -7545,7 +7918,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowers");
+            }
 
             var localVarPath = "/users/{username}/followers";
             var localVarPathParams = new Dictionary<string, string>();
@@ -7570,10 +7945,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -7616,7 +7995,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListFollowers", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -7648,7 +8029,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowers");
+            }
 
             var localVarPath = "/users/{username}/followers";
             var localVarPathParams = new Dictionary<string, string>();
@@ -7673,10 +8056,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -7719,7 +8106,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListFollowers", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -7750,7 +8139,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowing");
+            }
 
             var localVarPath = "/users/{username}/following";
             var localVarPathParams = new Dictionary<string, string>();
@@ -7775,10 +8166,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -7821,7 +8216,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -7853,7 +8250,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListFollowing");
+            }
 
             var localVarPath = "/users/{username}/following";
             var localVarPathParams = new Dictionary<string, string>();
@@ -7878,10 +8277,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -7924,7 +8327,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListFollowing", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -7955,7 +8360,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListGPGKeys");
+            }
 
             var localVarPath = "/users/{username}/gpg_keys";
             var localVarPathParams = new Dictionary<string, string>();
@@ -7980,10 +8387,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8026,7 +8437,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListGPGKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -8058,7 +8471,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListGPGKeys");
+            }
 
             var localVarPath = "/users/{username}/gpg_keys";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8083,10 +8498,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8129,7 +8548,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListGPGKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<GPGKey>>(
@@ -8160,7 +8581,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListKeys");
+            }
 
             var localVarPath = "/users/{username}/keys";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8185,10 +8608,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8231,7 +8658,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -8263,7 +8692,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListKeys");
+            }
 
             var localVarPath = "/users/{username}/keys";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8288,10 +8719,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8334,7 +8769,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListKeys", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<PublicKey>>(
@@ -8365,7 +8802,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListRepos");
+            }
 
             var localVarPath = "/users/{username}/repos";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8390,10 +8829,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8436,7 +8879,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListRepos", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8468,7 +8913,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListRepos");
+            }
 
             var localVarPath = "/users/{username}/repos";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8493,10 +8940,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8539,7 +8990,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListRepos", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8570,7 +9023,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListStarred");
+            }
 
             var localVarPath = "/users/{username}/starred";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8595,10 +9050,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8641,7 +9100,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListStarred", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8673,7 +9134,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListStarred");
+            }
 
             var localVarPath = "/users/{username}/starred";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8698,10 +9161,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8744,7 +9211,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListStarred", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8775,7 +9244,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListSubscriptions");
+            }
 
             var localVarPath = "/users/{username}/subscriptions";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8800,10 +9271,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8846,7 +9321,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListSubscriptions", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -8878,7 +9355,9 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'username' is set
             if (username == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'username' when calling UserApi->UserListSubscriptions");
+            }
 
             var localVarPath = "/users/{username}/subscriptions";
             var localVarPathParams = new Dictionary<string, string>();
@@ -8903,10 +9382,14 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (username != null)
+            {
                 localVarPathParams.Add("username", Configuration.ApiClient.ParameterToString(username)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -8949,7 +9432,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserListSubscriptions", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<Repository>>(
@@ -9004,13 +9489,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (q != null)
+            {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
+            }
 
             if (limit != null)
+            {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -9053,7 +9544,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserSearch", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -9109,13 +9602,19 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (q != null)
+            {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "q", q)); // query parameter
+            }
 
             if (limit != null)
+            {
                 localVarQueryParams.AddRange(Configuration.ApiClient.ParameterToKeyValuePairs(string.Empty, "limit", limit)); // query parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -9158,7 +9657,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserSearch", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<User>>(
@@ -9193,13 +9694,19 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserTrackedTimes");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserTrackedTimes");
+            }
             // verify the required parameter 'user' is set
             if (user == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'user' when calling UserApi->UserTrackedTimes");
+            }
 
             var localVarPath = "/repos/{owner}/{repo}/times/{tracker}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -9224,16 +9731,24 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
 
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
             if (user != null)
+            {
                 localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -9276,7 +9791,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserTrackedTimes", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<TrackedTime>>(
@@ -9312,13 +9829,19 @@ namespace AltinnCore.RepositoryClient.Api
         {
             // verify the required parameter 'owner' is set
             if (owner == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'owner' when calling UserApi->UserTrackedTimes");
+            }
             // verify the required parameter 'repo' is set
             if (repo == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'repo' when calling UserApi->UserTrackedTimes");
+            }
             // verify the required parameter 'user' is set
             if (user == null)
+            {
                 throw new ApiException(400, "Missing required parameter 'user' when calling UserApi->UserTrackedTimes");
+            }
 
             var localVarPath = "/repos/{owner}/{repo}/times/{tracker}";
             var localVarPathParams = new Dictionary<string, string>();
@@ -9343,16 +9866,24 @@ namespace AltinnCore.RepositoryClient.Api
             };
             string localVarHttpHeaderAccept = Configuration.ApiClient.SelectHeaderAccept(localVarHttpHeaderAccepts);
             if (localVarHttpHeaderAccept != null)
+            {
                 localVarHeaderParams.Add("Accept", localVarHttpHeaderAccept);
+            }
 
             if (owner != null)
+            {
                 localVarPathParams.Add("owner", Configuration.ApiClient.ParameterToString(owner)); // path parameter
+            }
 
             if (repo != null)
+            {
                 localVarPathParams.Add("repo", Configuration.ApiClient.ParameterToString(repo)); // path parameter
+            }
 
             if (user != null)
+            {
                 localVarPathParams.Add("user", Configuration.ApiClient.ParameterToString(user)); // path parameter
+            }
 
 
             // authentication (AccessToken) required
@@ -9395,7 +9926,9 @@ namespace AltinnCore.RepositoryClient.Api
             {
                 Exception exception = ExceptionFactory("UserTrackedTimes", localVarResponse);
                 if (exception != null)
+                {
                     throw exception;
+                }
             }
 
             return new ApiResponse<List<TrackedTime>>(

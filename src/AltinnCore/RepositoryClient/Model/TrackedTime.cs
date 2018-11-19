@@ -122,7 +122,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(TrackedTime input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -158,15 +160,30 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Created != null)
+                {
                     hashCode = hashCode * 59 + this.Created.GetHashCode();
+                }
+
                 if (this.Id != null)
+                {
                     hashCode = hashCode * 59 + this.Id.GetHashCode();
+                }
+
                 if (this.IssueId != null)
+                {
                     hashCode = hashCode * 59 + this.IssueId.GetHashCode();
+                }
+
                 if (this.Time != null)
+                {
                     hashCode = hashCode * 59 + this.Time.GetHashCode();
+                }
+
                 if (this.UserId != null)
+                {
                     hashCode = hashCode * 59 + this.UserId.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

@@ -86,7 +86,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(CreateEmailOption input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -106,7 +108,10 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Emails != null)
+                {
                     hashCode = hashCode * 59 + this.Emails.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

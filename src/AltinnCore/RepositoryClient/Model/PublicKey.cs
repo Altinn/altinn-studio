@@ -130,7 +130,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(PublicKey input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -170,17 +172,35 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.CreatedAt != null)
+                {
                     hashCode = hashCode * 59 + this.CreatedAt.GetHashCode();
+                }
+
                 if (this.Fingerprint != null)
+                {
                     hashCode = hashCode * 59 + this.Fingerprint.GetHashCode();
+                }
+
                 if (this.Id != null)
+                {
                     hashCode = hashCode * 59 + this.Id.GetHashCode();
+                }
+
                 if (this.Key != null)
+                {
                     hashCode = hashCode * 59 + this.Key.GetHashCode();
+                }
+
                 if (this.Title != null)
+                {
                     hashCode = hashCode * 59 + this.Title.GetHashCode();
+                }
+
                 if (this.Url != null)
+                {
                     hashCode = hashCode * 59 + this.Url.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

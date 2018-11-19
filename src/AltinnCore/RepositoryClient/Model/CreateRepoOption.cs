@@ -34,7 +34,9 @@ namespace AltinnCore.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
         /// </summary>
         [JsonConstructorAttribute]
-        protected CreateRepoOption() { }
+        protected CreateRepoOption()
+        {
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateRepoOption" /> class.
         /// </summary>
@@ -159,7 +161,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(CreateRepoOption input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -200,19 +204,40 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.AutoInit != null)
+                {
                     hashCode = hashCode * 59 + this.AutoInit.GetHashCode();
+                }
+
                 if (this.Description != null)
+                {
                     hashCode = hashCode * 59 + this.Description.GetHashCode();
+                }
+
                 if (this.Gitignores != null)
+                {
                     hashCode = hashCode * 59 + this.Gitignores.GetHashCode();
+                }
+
                 if (this.License != null)
+                {
                     hashCode = hashCode * 59 + this.License.GetHashCode();
+                }
+
                 if (this.Name != null)
+                {
                     hashCode = hashCode * 59 + this.Name.GetHashCode();
+                }
+
                 if (this.IsPrivate != null)
+                {
                     hashCode = hashCode * 59 + this.IsPrivate.GetHashCode();
+                }
+
                 if (this.Readme != null)
+                {
                     hashCode = hashCode * 59 + this.Readme.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

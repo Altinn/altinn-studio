@@ -32,7 +32,10 @@ namespace AltinnCore.Runtime.Db.Controllers
         {
             var result = await _formDataRepository.GetFormDataFromCollectionAsync(reporteeId, reporteeElementId, formId);
             if (result == null)
+            {
                 return NotFound();
+            }
+
             return Ok(result);
         }
 
@@ -42,7 +45,10 @@ namespace AltinnCore.Runtime.Db.Controllers
         {
             var result = await _formDataRepository.InsertFormDataIntoCollectionAsync(formData);
             if (result == null)
+            {
                 return BadRequest();
+            }
+
             return Ok(result);
         }
 

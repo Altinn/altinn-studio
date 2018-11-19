@@ -184,7 +184,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(GPGKey input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -248,29 +250,65 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.CanCertify != null)
+                {
                     hashCode = hashCode * 59 + this.CanCertify.GetHashCode();
+                }
+
                 if (this.CanEncryptComms != null)
+                {
                     hashCode = hashCode * 59 + this.CanEncryptComms.GetHashCode();
+                }
+
                 if (this.CanEncryptStorage != null)
+                {
                     hashCode = hashCode * 59 + this.CanEncryptStorage.GetHashCode();
+                }
+
                 if (this.CanSign != null)
+                {
                     hashCode = hashCode * 59 + this.CanSign.GetHashCode();
+                }
+
                 if (this.CreatedAt != null)
+                {
                     hashCode = hashCode * 59 + this.CreatedAt.GetHashCode();
+                }
+
                 if (this.Emails != null)
+                {
                     hashCode = hashCode * 59 + this.Emails.GetHashCode();
+                }
+
                 if (this.ExpiresAt != null)
+                {
                     hashCode = hashCode * 59 + this.ExpiresAt.GetHashCode();
+                }
+
                 if (this.Id != null)
+                {
                     hashCode = hashCode * 59 + this.Id.GetHashCode();
+                }
+
                 if (this.KeyId != null)
+                {
                     hashCode = hashCode * 59 + this.KeyId.GetHashCode();
+                }
+
                 if (this.PrimaryKeyId != null)
+                {
                     hashCode = hashCode * 59 + this.PrimaryKeyId.GetHashCode();
+                }
+
                 if (this.PublicKey != null)
+                {
                     hashCode = hashCode * 59 + this.PublicKey.GetHashCode();
+                }
+
                 if (this.Subkeys != null)
+                {
                     hashCode = hashCode * 59 + this.Subkeys.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

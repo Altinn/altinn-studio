@@ -76,7 +76,9 @@ namespace AltinnCore.RepositoryClient.Client
         public ApiClient(string basePath = "http://localhost/api/v1")
         {
             if (string.IsNullOrEmpty(basePath))
+            {
                 throw new ArgumentException("basePath cannot be empty");
+            }
 
             RestClient = new RestClient(basePath);
             Configuration = Client.Configuration.Default;
@@ -122,19 +124,27 @@ namespace AltinnCore.RepositoryClient.Client
 
             // add path parameter, if any
             foreach (var param in pathParams)
+            {
                 request.AddParameter(param.Key, param.Value, ParameterType.UrlSegment);
+            }
 
             // add header parameter, if any
             foreach (var param in headerParams)
+            {
                 request.AddHeader(param.Key, param.Value);
+            }
 
             // add query parameter, if any
             foreach (var param in queryParams)
+            {
                 request.AddQueryParameter(param.Key, param.Value);
+            }
 
             // add form parameter, if any
             foreach (var param in formParams)
+            {
                 request.AddParameter(param.Key, param.Value);
+            }
 
             // add file parameter, if any
             foreach (var param in fileParams)
@@ -257,9 +267,13 @@ namespace AltinnCore.RepositoryClient.Client
         public FileParameter ParameterToFile(string name, Stream stream)
         {
             if (stream is FileStream)
+            {
                 return FileParameter.Create(name, ReadAsBytes(stream), Path.GetFileName(((FileStream)stream).Name));
+            }
             else
+            {
                 return FileParameter.Create(name, ReadAsBytes(stream), "no_file_name_provided");
+            }
         }
 
         /// <summary>
@@ -272,30 +286,39 @@ namespace AltinnCore.RepositoryClient.Client
         public string ParameterToString(object obj)
         {
             if (obj is DateTime)
+            {
                 // Return a formatted date string - Can be customized with Configuration.DateTimeFormat
                 // Defaults to an ISO 8601, using the known as a Round-trip date/time pattern ("o")
                 // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx#Anchor_8
                 // For example: 2009-06-15T13:45:30.0000000
                 return ((DateTime)obj).ToString(Configuration.DateTimeFormat);
+            }
             else if (obj is DateTimeOffset)
+            {
                 // Return a formatted date string - Can be customized with Configuration.DateTimeFormat
                 // Defaults to an ISO 8601, using the known as a Round-trip date/time pattern ("o")
                 // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx#Anchor_8
                 // For example: 2009-06-15T13:45:30.0000000
                 return ((DateTimeOffset)obj).ToString(Configuration.DateTimeFormat);
+            }
             else if (obj is IList)
             {
                 var flattenedString = new StringBuilder();
                 foreach (var param in (IList)obj)
                 {
                     if (flattenedString.Length > 0)
+                    {
                         flattenedString.Append(",");
+                    }
+
                     flattenedString.Append(param);
                 }
                 return flattenedString.ToString();
             }
             else
+            {
                 return Convert.ToString(obj);
+            }
         }
 
         /// <summary>
@@ -403,12 +426,16 @@ namespace AltinnCore.RepositoryClient.Client
         public string SelectHeaderContentType(string[] contentTypes)
         {
             if (contentTypes.Length == 0)
+            {
                 return "application/json";
+            }
 
             foreach (var contentType in contentTypes)
             {
                 if (IsJsonMime(contentType.ToLower()))
+                {
                     return contentType;
+                }
             }
 
             return contentTypes[0]; // use the first content type specified in 'consumes'
@@ -424,10 +451,14 @@ namespace AltinnCore.RepositoryClient.Client
         public string SelectHeaderAccept(string[] accepts)
         {
             if (accepts.Length == 0)
+            {
                 return null;
+            }
 
             if (accepts.Contains("application/json", StringComparer.OrdinalIgnoreCase))
+            {
                 return "application/json";
+            }
 
             return string.Join(",", accepts);
         }

@@ -137,13 +137,24 @@ namespace AltinnCore.RepositoryClient.Client
             string basePath = "http://localhost/api/v1") : this()
         {
             if (string.IsNullOrWhiteSpace(basePath))
+            {
                 throw new ArgumentException("The provided basePath is invalid.", "basePath");
+            }
+
             if (defaultHeader == null)
+            {
                 throw new ArgumentNullException("defaultHeader");
+            }
+
             if (apiKey == null)
+            {
                 throw new ArgumentNullException("apiKey");
+            }
+
             if (apiKeyPrefix == null)
+            {
                 throw new ArgumentNullException("apiKeyPrefix");
+            }
 
             BasePath = basePath;
 
@@ -221,7 +232,10 @@ namespace AltinnCore.RepositoryClient.Client
             get
             {
                 if (_apiClient == null)
+                {
                     _apiClient = CreateApiClient();
+                }
+
                 return _apiClient;
             }
         }
@@ -288,9 +302,13 @@ namespace AltinnCore.RepositoryClient.Client
             ApiKey.TryGetValue(apiKeyIdentifier, out apiKeyValue);
             var apiKeyPrefix = string.Empty;
             if (ApiKeyPrefix.TryGetValue(apiKeyIdentifier, out apiKeyPrefix))
+            {
                 return apiKeyPrefix + " " + apiKeyValue;
+            }
             else
+            {
                 return apiKeyValue;
+            }
         }
 
         /// <summary>

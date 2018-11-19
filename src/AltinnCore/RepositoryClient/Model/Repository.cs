@@ -284,7 +284,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(Repository input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -392,51 +394,120 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.CloneUrl != null)
+                {
                     hashCode = hashCode * 59 + this.CloneUrl.GetHashCode();
+                }
+
                 if (this.CreatedAt != null)
+                {
                     hashCode = hashCode * 59 + this.CreatedAt.GetHashCode();
+                }
+
                 if (this.DefaultBranch != null)
+                {
                     hashCode = hashCode * 59 + this.DefaultBranch.GetHashCode();
+                }
+
                 if (this.Description != null)
+                {
                     hashCode = hashCode * 59 + this.Description.GetHashCode();
+                }
+
                 if (this.Empty != null)
+                {
                     hashCode = hashCode * 59 + this.Empty.GetHashCode();
+                }
+
                 if (this.Fork != null)
+                {
                     hashCode = hashCode * 59 + this.Fork.GetHashCode();
+                }
+
                 if (this.ForksCount != null)
+                {
                     hashCode = hashCode * 59 + this.ForksCount.GetHashCode();
+                }
+
                 if (this.FullName != null)
+                {
                     hashCode = hashCode * 59 + this.FullName.GetHashCode();
+                }
+
                 if (this.HtmlUrl != null)
+                {
                     hashCode = hashCode * 59 + this.HtmlUrl.GetHashCode();
+                }
+
                 if (this.Id != null)
+                {
                     hashCode = hashCode * 59 + this.Id.GetHashCode();
+                }
+
                 if (this.Mirror != null)
+                {
                     hashCode = hashCode * 59 + this.Mirror.GetHashCode();
+                }
+
                 if (this.Name != null)
+                {
                     hashCode = hashCode * 59 + this.Name.GetHashCode();
+                }
+
                 if (this.OpenIssuesCount != null)
+                {
                     hashCode = hashCode * 59 + this.OpenIssuesCount.GetHashCode();
+                }
+
                 if (this.Owner != null)
+                {
                     hashCode = hashCode * 59 + this.Owner.GetHashCode();
+                }
+
                 if (this.Parent != null)
+                {
                     hashCode = hashCode * 59 + this.Parent.GetHashCode();
+                }
+
                 if (this.Permissions != null)
+                {
                     hashCode = hashCode * 59 + this.Permissions.GetHashCode();
+                }
+
                 if (this.IsPrivate != null)
+                {
                     hashCode = hashCode * 59 + this.IsPrivate.GetHashCode();
+                }
+
                 if (this.Size != null)
+                {
                     hashCode = hashCode * 59 + this.Size.GetHashCode();
+                }
+
                 if (this.SshUrl != null)
+                {
                     hashCode = hashCode * 59 + this.SshUrl.GetHashCode();
+                }
+
                 if (this.StarsCount != null)
+                {
                     hashCode = hashCode * 59 + this.StarsCount.GetHashCode();
+                }
+
                 if (this.UpdatedAt != null)
+                {
                     hashCode = hashCode * 59 + this.UpdatedAt.GetHashCode();
+                }
+
                 if (this.WatchersCount != null)
+                {
                     hashCode = hashCode * 59 + this.WatchersCount.GetHashCode();
+                }
+
                 if (this.Website != null)
+                {
                     hashCode = hashCode * 59 + this.Website.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

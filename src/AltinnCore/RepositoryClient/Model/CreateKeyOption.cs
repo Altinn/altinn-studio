@@ -34,7 +34,9 @@ namespace AltinnCore.RepositoryClient.Model
         /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
         /// </summary>
         [JsonConstructorAttribute]
-        protected CreateKeyOption() { }
+        protected CreateKeyOption()
+        {
+        }
         /// <summary>
         /// Initializes a new instance of the <see cref="CreateKeyOption" /> class.
         /// </summary>
@@ -127,7 +129,9 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(CreateKeyOption input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
@@ -155,11 +159,20 @@ namespace AltinnCore.RepositoryClient.Model
             {
                 int hashCode = 41;
                 if (this.Key != null)
+                {
                     hashCode = hashCode * 59 + this.Key.GetHashCode();
+                }
+
                 if (this.IsReadOnly != null)
+                {
                     hashCode = hashCode * 59 + this.IsReadOnly.GetHashCode();
+                }
+
                 if (this.Title != null)
+                {
                     hashCode = hashCode * 59 + this.Title.GetHashCode();
+                }
+
                 return hashCode;
             }
         }
