@@ -45,6 +45,9 @@
     <Content Update="Views\Home\AppToken.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
+    <Content Update="Views\Dashboard\Index.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
     <Content Update="Views\Service\Status.cshtml">
       <Pack>$(IncludeRazorContentInPack)</Pack>
     </Content>
