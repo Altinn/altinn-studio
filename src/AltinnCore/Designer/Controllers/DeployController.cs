@@ -118,10 +118,10 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets deployment status
         /// </summary>
+        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="edition">The edition code for the current service</param>
-        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <returns>The build status of the deployment build</returns>
         [HttpPost]
         public async Task<JsonResult> FetchDeploymentStatus([FromBody]dynamic buildId, string org, string service, string edition)

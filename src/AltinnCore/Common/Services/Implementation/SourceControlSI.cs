@@ -156,8 +156,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Add all changes in service repo and push to remote
         /// </summary>
-        /// <param name="org">The owner organization</param>
-        /// <param name="service">The service</param>
         /// <param name="commitInfo">the commit information for the service</param>
         public void PushChangesForRepository(CommitInfo commitInfo)
         {

@@ -965,9 +965,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// The get zip archive.
         /// </summary>
-        /// <param name="servicePackageDetails">
-        /// The service package details. Expect PackageName to be the file name.
-        /// </param>
         /// <param name="details">the service package details</param>
         /// <returns>
         /// The <see cref="ZipArchive"/>.
