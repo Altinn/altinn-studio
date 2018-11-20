@@ -1,13 +1,21 @@
 import * as React from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
+import * as uuid from 'uuid/v1';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
+import components from '../components';
 import NavMenu from '../navigation/NavMenu';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
+
 export interface IFormDesignerProps { }
 export interface IFormDesignerState { }
+
+export enum LayoutItemType {
+  Container = 'CONTAINER',
+  Component = 'COMPONENT',
+}
 
 class FormDesigner extends React.Component<
   IFormDesignerProps,
@@ -44,27 +52,62 @@ class FormDesigner extends React.Component<
     );
   }
 
+  public handleNext(component: any, id: string) {
+    this.setState({
+      selectedComp: component,
+      selectedCompId: id,
+      modalOpen: true,
+    });
+  }
+
   public onDragEnd = result => {
+    const { source, destination } = result;
+    let activeId;
 
-    console.log('YOLO from FormDesigner');
+    if (!destination) {
+      return;
+    }
+
+    switch (source.droppableId) {
+      case destination.droppableId:
+        activeId = result.draggableId;
+        console.log('original position: ', source);
+        console.log('new position: ', destination);
+        FormDesignerActionDispatchers.updateFormComponentOrderAction(
+          activeId,
+          destination.index,
+          source.index,
+        )
+        break;
+
+      default:
+        console.log('default');
+        const c = components[source.index].customProperties;
+        const customProperties = !c ? {} : c;
+        activeId = uuid();
+        FormDesignerActionDispatchers.addFormComponent({
+          component: components[source.index].name,
+          itemType: 'LayoutItemType.Component',
+          title: components[source.index].name,
+          ...JSON.parse(JSON.stringify(customProperties)),
+        }
+          // , null, (component: any, id: string) => {
+          //   this.handleNext(components[source.index], activeId);
+          // },
+        );
+
+
+        break;
+    }
+
     console.log('result: ', result);
-
-    // FormDesignerActionDispatchers.addFormComponent({
-    // component: c.name,
-    // itemType: LayoutItemType.Component,
-    // title: c.name,
-    // ...JSON.parse(JSON.stringify('customProperties')),
-    // }, null, (component: any, id: string) => {
-    // this.handleNext(component, id);
-    // },
-    // );
 
     return;
   }
 
   public render() {
-    return (
 
+    return (
       <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
         <NavMenu />
         <div style={{ paddingLeft: 72 }}>

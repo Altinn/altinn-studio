@@ -74,7 +74,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
               onClick={this.changeActiveFormContainer}
               ref={provided.innerRef}
-              id='thatz'
             >
 
               {
@@ -173,11 +172,13 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     if (this.props.components[id].hidden && !this.props.designMode) {
       return null;
     }
+
     return (
       <Draggable
-        key={id}
+        key={key}
         draggableId={id}
-        index={id}>
+        index={key}
+      >
         {(provided, snapshot) => (
           <div
             ref={
@@ -185,9 +186,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
             }
             {...provided.draggableProps}
             {...provided.dragHandleProps}
-            isdragging={
-              snapshot.isDragging.toString()
-            }
+            isdragging={snapshot.isDragging.toString()}
           >
 
             <FormComponentWrapper
@@ -215,7 +214,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
   public changeActiveFormContainer = (e: any) => {
     e.stopPropagation();
-    FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
+    // FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
   }
   public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
@@ -232,11 +231,11 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetLayoutContainersSelector(state);
     const container = containers[props.id];
-    const order = GetLayoutOrderSelector(state);
+    const order = state.formDesigner.layout.order[props.id];
     return {
       id: props.id,
       index: container.index,
-      itemOrder: order[props.id],
+      itemOrder: order,
       components: GetLayoutComponentsSelector(state),
       containers,
       designMode: GetDesignModeSelector(state),
@@ -249,4 +248,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-export const Container = connect(makeMapStateToProps)(ContainerComponent);
+export const Container = connect(makeMapStateToProps())(ContainerComponent);

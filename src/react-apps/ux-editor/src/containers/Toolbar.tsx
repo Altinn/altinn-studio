@@ -153,10 +153,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     });
   }
 
+  public onDragEnd = () => {
+    console.log('Do Nothing');
+  }
+
   public render() {
     return (
       <div className={'col-sm-3'}>
-
 
         <Droppable droppableId='ITEMS' isDropDisabled={true}>
 
@@ -165,30 +168,32 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <div className='row a-topTasks' ref={provided.innerRef}>
               {this.toolbarComponents.map((component, index) => {
                 return (
-
                   <Draggable
                     key={index}
-                    draggableId={index}
+                    draggableId={index.toString()}
                     index={index}
                   >
-
                     {(provided, snapshot) => (
                       <React.Fragment>
                         <div
                           className='col col-lg-12 a-item'
+                          id={'trulz-' + index}
                           key={index}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           isdragging={snapshot.isDragging.toString()}
-
                         >
-
-
                           {component.label}
-
                           <div onClick={component.actionMethod} className='a-add'>Add component</div>
                         </div>
+
+                        {snapshot.isDragging && (
+                          <div className='col col-lg-12 a-item a-item-clone' style={{ display: 'none' }}>
+                            {component.label}
+                          </div>
+                        )}
+
                       </React.Fragment>
                     )}
                   </Draggable>
@@ -201,9 +206,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           )}
 
         </Droppable>
-
-
-
 
         {this.renderContainer()}
         {this.renderThirdPartyComponents()}

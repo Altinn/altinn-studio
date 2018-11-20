@@ -10,3 +10,4 @@ export * from './selectFormComponent';
 export * from './updateDataModelBinding';
 export * from './updateFormComponent';
 export * from './updateFormContainer';
+export * from './updateFormComponentOrder';

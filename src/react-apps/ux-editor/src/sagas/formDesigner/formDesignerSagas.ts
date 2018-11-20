@@ -6,10 +6,12 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { get, post } from '../../utils/networking';
+import { Component } from 'react';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
+const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.layout.order;
 
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {
@@ -357,5 +359,28 @@ export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.TOGGLE_FORM_CONTAINER_REPEAT,
     toggleFormContainerRepeatingSaga,
+  );
+}
+
+export function* updateFormComponentOrderSaga({
+  id, newPosition, oldPosition,
+}: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
+  console.log('sagas ftw ', id, newPosition, oldPosition);
+  const ComponentOrder: any = yield select(selectFormDesignerOrder);
+
+  const containerId: string = Object.keys(ComponentOrder)[0];
+  let order: string[] = ComponentOrder[containerId];
+
+  order.splice(oldPosition, 1);
+  order.splice(newPosition, 0, id);
+  yield call(
+    FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled, order, containerId,
+  )
+}
+
+export function* watchUpdateFormComponentOrderSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ORDER,
+    updateFormComponentOrderSaga,
   );
 }
