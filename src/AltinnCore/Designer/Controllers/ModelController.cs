@@ -34,7 +34,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The model main page</returns>
         public ActionResult Index(string org, string service)
         {
@@ -133,7 +132,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The model as C#</returns>
         [HttpGet]
         public ActionResult GetModel(string org, string service)
@@ -146,7 +144,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The model representation as XSD</returns>
         [HttpGet]
         public ActionResult GetXsd(string org, string service)

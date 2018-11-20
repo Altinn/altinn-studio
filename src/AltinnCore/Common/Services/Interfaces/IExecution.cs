@@ -44,9 +44,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Get the resource for the given parameters
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="resource"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="resource">the resource</param>
         /// <returns>The service resource</returns>
         byte[] GetServiceResource(string org, string service, string resource);
 

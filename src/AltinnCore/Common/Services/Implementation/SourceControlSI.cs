@@ -50,8 +50,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Clone remote repository
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repository"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repository">the name of the repository</param>
         public void CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
@@ -63,8 +63,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Verifies if developer has a local repo
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
         /// <returns>A bool indicating if the repository is a local one or not</returns>
         public bool IsLocalRepo(string org, string service)
         {
@@ -114,8 +114,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Fetches the remote changes
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repository"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repository">the repository</param>
         public void FetchRemoteChanges(string org, string repository)
         {
             string logMessage = string.Empty;

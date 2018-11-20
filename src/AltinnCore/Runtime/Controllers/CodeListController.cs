@@ -17,7 +17,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="CodelistController"/> class
         /// </summary>
-        /// <param name="executionService"></param>
+        /// <param name="executionService">the execution service handler</param>
         public CodelistController(IExecution executionService)
         {
           _execution = executionService;
@@ -26,9 +26,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Returns
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="name"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="name">name</param>
         /// <returns>The codelist</returns>
         public IActionResult Index(string org, string service, string name)
         {

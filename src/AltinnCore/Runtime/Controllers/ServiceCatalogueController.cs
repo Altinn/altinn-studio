@@ -59,7 +59,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Get list of available services
         /// </summary>
-        /// <param name="org"></param>
+        /// <param name="org">the organisation</param>
         /// <returns>The view for the services</returns>
         [Authorize]
         public IActionResult Services(string org)

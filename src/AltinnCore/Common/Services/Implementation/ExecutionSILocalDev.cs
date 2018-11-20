@@ -98,7 +98,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>A new instanceId</returns>
         public int GetNewServiceInstanceID(string org, string service)
         {
@@ -113,7 +112,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>List of code lists</returns>
         public Dictionary<string, CodeList> GetCodelists(string org, string service)
         {
@@ -241,7 +239,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The service metadata for a service</returns>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {

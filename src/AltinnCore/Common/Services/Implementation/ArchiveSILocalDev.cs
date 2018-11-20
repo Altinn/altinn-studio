@@ -20,8 +20,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="ArchiveSILocalDev"/> class
         /// </summary>
-        /// <param name="repositorySettings"></param>
-        /// <param name="httpContextAccessor"></param>
+        /// <param name="repositorySettings">the repository settings</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;

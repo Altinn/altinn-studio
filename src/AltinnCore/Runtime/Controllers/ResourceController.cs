@@ -48,8 +48,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Method to retrieve textresources
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
         /// <returns>The text resource file content or 404</returns>
         public IActionResult TextResources(string org, string service)
         {
@@ -75,11 +75,11 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Get the service meta data
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="texts"></param>
-        /// <param name="restrictions"></param>
-        /// <param name="attributes"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="texts">whether text is set</param>
+        /// <param name="restrictions">whether  restrictions are set</param>
+        /// <param name="attributes">whether attributes are set</param>
         /// <returns>The service metadata</returns>
         [HttpGet]
         public ActionResult ServiceMetaData(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)

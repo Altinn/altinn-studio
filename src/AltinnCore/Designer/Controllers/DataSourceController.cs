@@ -140,9 +140,9 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Test action
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="id"></param>
+        /// <param name="org">the organisationt</param>
+        /// <param name="service">the service</param>
+        /// <param name="id">the id</param>
         /// <returns>The test view</returns>
         public IActionResult Test(string org, string service, string id)
         {

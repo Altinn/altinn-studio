@@ -696,7 +696,7 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Get mime type for the given file extension
         /// </summary>
-        /// <param name="extension"></param>
+        /// <param name="extension">the file extension</param>
         /// <returns>The mime type</returns>
         public static string GetMimeType(string extension)
         {
@@ -716,7 +716,7 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Get the file extension based on the mime type
         /// </summary>
-        /// <param name="mimeType"></param>
+        /// <param name="mimeType">the mime type of the file</param>
         /// <returns>The file extention based on the mime type</returns>
         public static string GetExtension(string mimeType)
         {

@@ -31,7 +31,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The view with JSON editor</returns>
         public IActionResult Index(string org, string service)
         {
@@ -51,7 +50,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>List of languages as JSON</returns>
         public IActionResult GetLanguages(string org, string service)
         {
@@ -66,7 +64,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code> )</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>A View with update status</returns>
         [HttpPost]
         public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string service)

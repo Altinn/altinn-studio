@@ -27,7 +27,7 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <summary>
         /// Initializes a new instance of the <see cref="FormDataRepository"/> class
         /// </summary>
-        /// <param name="cosmosettings"></param>
+        /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         public FormDataRepository(IOptions<AzureCosmosSettings> cosmosettings)
         {
             // Retrieve configuration values from appsettings.json
@@ -46,7 +46,7 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <summary>
         /// To insert new form data into formdata collection
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">the form data</param>
         /// <returns>The deserialized formdata saved to file</returns>
         public async Task<FormData> InsertFormDataIntoCollectionAsync(FormData item)
         {
@@ -105,8 +105,8 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <summary>
         /// Update form data for a given form id
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="item"></param>
+        /// <param name="id">the id of the form to be updated</param>
+        /// <param name="item">the form data to be updated</param>
         /// <returns>The formdata save to file</returns>
         public async Task<FormData> UpdateFormDataInCollectionAsync(string id, FormData item)
         {

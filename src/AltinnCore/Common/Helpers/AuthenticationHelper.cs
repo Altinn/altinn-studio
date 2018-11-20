@@ -15,6 +15,7 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Gets the service developer's user name
         /// </summary>
+        /// <param name="context">the http context</param>
         /// <param name="context"></param>
         public static string GetDeveloperUserName(HttpContext context)
         {
@@ -37,8 +38,8 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Gets the gitea session for the given session id
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="sessionCookieId"></param>
+        /// <param name="context">the http context</param>
+        /// <param name="sessionCookieId">the session cookie id</param>
         /// <returns>The gitea session</returns>
         public static string GetGiteaSession(HttpContext context, string sessionCookieId)
          {

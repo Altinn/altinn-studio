@@ -40,7 +40,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The View for JSON editor</returns>
         public IActionResult Index(string org, string service)
         {
@@ -53,7 +52,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="jsonData">The JSON Data</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>A View with update status</returns>
         [HttpPost]
         public IActionResult SaveWorkflow([FromBody]dynamic jsonData, string org, string service)
@@ -83,7 +81,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The JSON workflow</returns>
         [HttpGet]
         public IActionResult GetWorkflow(string org, string service)

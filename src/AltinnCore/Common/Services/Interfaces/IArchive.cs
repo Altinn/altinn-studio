@@ -10,23 +10,23 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// the archive service model
         /// </summary>
-        /// <param name="dataToSerialize"></param>
-        /// <param name="instanceId"></param>
-        /// <param name="type"></param>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="partyId"></param>
-        /// <typeparam name="T">The generic type parameter.</typeparam>
+        /// <param name="dataToSerialize">data to be serialized</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="type">the type</param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="partyId">the party id</param>
+        /// <typeparam name="T">the generic type parameter</typeparam>
         void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId);
 
         /// <summary>
         /// Get the archive service model
         /// </summary>
-        /// <param name="instanceId"></param>
-        /// <param name="type"></param>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="partyId"></param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="type">the type</param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service></param>
+        /// <param name="partyId">the party id</param>
         /// <returns>The archived service model</returns>
         object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId);
     }

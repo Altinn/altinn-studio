@@ -13,7 +13,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Clone service repository to local repo
         /// </summary>
-        /// <param name="org"></param>
+        /// <param name="org">the organisation</param>
         /// <param name="repository">Name of the repository</param>
         void CloneRemoteRepository(string org, string repository);
 
@@ -38,8 +38,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repository"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repository">name of the repository</param>
         void PullRemoteChanges(string org, string repository);
 
         /// <summary>
@@ -53,8 +53,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Pull remote changes
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repository"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repository">name of the repository</param>
         void FetchRemoteChanges(string org, string repository);
 
         /// <summary>

@@ -38,7 +38,7 @@ namespace AltinnCore.Common.Helpers
         /// Checks the request for the standard user actions for the plattform
         /// based on
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="request">the http request</param>
         /// <returns>the standard user action</returns>
         public static UserActionType GetStandardUserAction(HttpRequest request)
         {

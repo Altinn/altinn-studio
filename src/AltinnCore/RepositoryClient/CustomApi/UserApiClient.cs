@@ -25,7 +25,7 @@ namespace AltinnCore.RepositoryClient.CustomApi
         /// <summary>
         /// Get current user
         /// </summary>
-        /// <param name="giteaSession"></param>
+        /// <param name="giteaSession">the gitea session</param>
         /// <returns>The current user</returns>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
         {

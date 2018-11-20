@@ -18,16 +18,16 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Get default web app file
         /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="org"></param>
+        /// <param name="fileName">the file name</param>
+        /// <param name="org">the organisation</param>
         /// <returns>The web app default file</returns>
         FileInfo GetWebAppDefaultFile(string fileName, string org = null);
 
         /// <summary>
         /// Get the default styles file for React app
         /// </summary>
-        /// <param name="fileName"></param>
-        /// <param name="org"></param>
+        /// <param name="fileName">the file name</param>
+        /// <param name="org">the organisation</param>
         /// <returns>The default styles file</returns>
         FileInfo GetWebAppStyleDefaultFile(string fileName, string org = null);
     }

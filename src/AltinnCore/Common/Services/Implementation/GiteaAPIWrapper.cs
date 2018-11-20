@@ -26,8 +26,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
         /// </summary>
-        /// <param name="repositorySettings"></param>
-        /// <param name="httpContextAccessor"></param>
+        /// <param name="repositorySettings">the repository settings</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public GiteaAPIWrapper(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;
@@ -86,9 +86,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create repository
         /// </summary>
-        /// <param name="giteaSession"></param>
-        /// <param name="org"></param>
-        /// <param name="createRepoOption"></param>
+        /// <param name="giteaSession">the gitea session</param>
+        /// <param name="org">the organisation</param>
+        /// <param name="createRepoOption">the options for creating repository</param>
         /// <returns>The newly created repository</returns>
         public async Task<Repository> CreateRepositoryForOrg(string giteaSession, string org, CreateRepoOption createRepoOption)
         {
@@ -207,7 +207,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Does not work because of GITEA BUG. Will create Issue for the one mentioned here
         /// https://github.com/go-gitea/gitea/issues/3842
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">app token name</param>
         /// <returns>null</returns>
         public string CreateAppToken(string name)
         {

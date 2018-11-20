@@ -20,7 +20,7 @@ namespace AltinnCore.Runtime.Db.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="FormDataAPIController"/> class
         /// </summary>
-        /// <param name="formDataRepository"></param>
+        /// <param name="formDataRepository">the form data repository handler</param>
         public FormDataAPIController(IFormDataRepository formDataRepository)
         {
             _formDataRepository = formDataRepository;
@@ -40,9 +40,9 @@ namespace AltinnCore.Runtime.Db.Controllers
         /// <summary>
         /// Get the formdata for the given reportee element id and the formid
         /// </summary>
-        /// <param name="reporteeId"></param>
-        /// <param name="reporteeElementId"></param>
-        /// <param name="formId"></param>
+        /// <param name="reporteeId">the owner of the reportee element</param>
+        /// <param name="reporteeElementId">the reportee element id</param>
+        /// <param name="formId">the form id</param>
         /// <returns>The get response</returns>
         // GET api/formdataapi/reporteeId/?reporteeElementId&formId
         [HttpGet("{reporteeId}")]
@@ -60,7 +60,7 @@ namespace AltinnCore.Runtime.Db.Controllers
         /// <summary>
         /// Save the form data
         /// </summary>
-        /// <param name="formData"></param>
+        /// <param name="formData">the form data to be stored</param>
         /// <returns>If the request was successful or not</returns>
         // POST api/formdataapi
         [HttpPost]
@@ -73,27 +73,6 @@ namespace AltinnCore.Runtime.Db.Controllers
             }
 
             return Ok(result);
-        }
-
-        /// <summary>
-        /// Update the form data
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="value"></param>
-        // PUT api/values/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        /// <summary>
-        /// Delete the formdata
-        /// </summary>
-        /// <param name="id"></param>
-        // DELETE api/values/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
         }
     }
 }

@@ -235,9 +235,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Get workflow for the service
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="edition"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="edition">the service edition</param>
         /// <returns>The workflow for the service</returns>
         public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
         {

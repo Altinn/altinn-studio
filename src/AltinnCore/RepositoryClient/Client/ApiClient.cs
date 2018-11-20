@@ -583,7 +583,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Check if generic object is a collection.
         /// </summary>
-        /// <param name="value"></param>
+        /// <param name="value">the value object</param>
         /// <returns>True if object is a collection type</returns>
         private static bool IsCollection(object value)
         {

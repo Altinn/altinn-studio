@@ -70,11 +70,11 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Action used for SPA
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="instanceId"></param>
-        /// <param name="view"></param>
-        /// <param name="itemId"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="view">name of the view</param>
+        /// <param name="itemId">the item id</param>
         /// <returns>The react view or the receipt</returns>
         [Authorize(Policy = "InstanceRead")]
         public IActionResult EditSPA(string org, string service, int instanceId, string view, int? itemId)
@@ -229,7 +229,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The start service View</returns>
         [Authorize]
         public IActionResult StartService(string org, string service)
@@ -349,9 +348,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// validate the model
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="instanceId"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="instanceId">the instance id</param>
         /// <returns>The api response</returns>
         public async Task<IActionResult> ModelValidation(string org, string service, int instanceId)
         {

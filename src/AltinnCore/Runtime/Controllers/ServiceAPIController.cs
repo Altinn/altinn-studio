@@ -271,11 +271,11 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Default action for service api
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="instanceId"></param>
-        /// <param name="apiMode"></param>
+        /// <param name="model">the api model</param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="apiMode">the mode of the api</param>
         /// <returns>The api result</returns>
         [Authorize]
         [HttpPut]
@@ -442,7 +442,6 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="reportee">The reportee number (organization number or ssn)</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The lookup result</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpPost]

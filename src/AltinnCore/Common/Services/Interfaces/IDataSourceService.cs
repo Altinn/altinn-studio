@@ -57,7 +57,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// test the rest api with the url
         /// </summary>
-        /// <param name="url"></param>
+        /// <param name="url">the api url to be tested</param>
         /// <returns>The jason from the test api</returns>
         Task<string> TestRestApi(string url);
     }

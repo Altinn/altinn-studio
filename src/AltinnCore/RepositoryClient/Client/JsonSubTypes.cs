@@ -35,8 +35,8 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             /// <summary>
             /// Initializes a new instance of the <see cref="KnownSubTypeAttribute"/> class
             /// </summary>
-            /// <param name="subType"></param>
-            /// <param name="associatedValue"></param>
+            /// <param name="subType">the sub type</param>
+            /// <param name="associatedValue">the associated value</param>
             public KnownSubTypeAttribute(Type subType, object associatedValue)
             {
                 SubType = subType;
@@ -63,8 +63,8 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             /// <summary>
             /// Initializes a new instance of the <see cref="KnownSubTypeWithPropertyAttribute"/> class
             /// </summary>
-            /// <param name="subType"></param>
-            /// <param name="propertyName"></param>
+            /// <param name="subType">the sub type</param>
+            /// <param name="propertyName">the property name</param>
             public KnownSubTypeWithPropertyAttribute(Type subType, string propertyName)
             {
                 SubType = subType;
@@ -107,7 +107,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         /// <summary>
         /// Initializes a new instance of the <see cref="JsonSubtypes"/> class
         /// </summary>
-        /// <param name="typeMappingPropertyName"></param>
+        /// <param name="typeMappingPropertyName">the type mapping property</param>
         public JsonSubtypes(string typeMappingPropertyName)
         {
             _typeMappingPropertyName = typeMappingPropertyName;
@@ -236,8 +236,8 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         /// <summary>
         /// Get type of json object
         /// </summary>
-        /// <param name="jObject"></param>
-        /// <param name="parentType"></param>
+        /// <param name="jObject">the json oject</param>
+        /// <param name="parentType">the parent type</param>
         /// <returns>The type</returns>
         public Type GetType(JObject jObject, Type parentType)
         {
@@ -332,10 +332,10 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         /// <summary>
         /// read json object
         /// </summary>
-        /// <param name="reader"></param>
-        /// <param name="objectType"></param>
-        /// <param name="existingValue"></param>
-        /// <param name="serializer"></param>
+        /// <param name="reader">the json reader</param>
+        /// <param name="objectType">the type</param>
+        /// <param name="existingValue">existing value</param>
+        /// <param name="serializer">the json serializer</param>
         /// <returns>returns deserialized object?</returns>
         protected object ReadJsonObject(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
