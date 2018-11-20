@@ -22,6 +22,8 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ServiceController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service</param>
+        /// <param name="compilationService">the compilation service handler</param>
+        /// <param name="sourceControl">the source control service handler</param>
         public ServiceController(IRepository repositoryService, ICompilation compilationService, ISourceControl sourceControl)
         {
             _repository = repositoryService;

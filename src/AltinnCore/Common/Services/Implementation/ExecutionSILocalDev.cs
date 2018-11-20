@@ -40,6 +40,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public ExecutionSILocalDev(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
@@ -137,7 +138,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="name">The name of the code list</param>
         /// <returns>The code list</returns>
         public CodeList GetCodeListByName(string org, string service, string name)

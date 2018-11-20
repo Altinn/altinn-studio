@@ -28,6 +28,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="compilation"> The service compilation service.  </param>
         /// <param name="repository"> The service Repository Service. </param>
         /// <param name="viewRepository">The view repository</param>
+        /// <param name="generalSettings">the general setting for the repository</param>
         public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IOptions<GeneralSettings> generalSettings)
         {
             _compilation = compilation;

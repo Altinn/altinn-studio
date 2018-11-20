@@ -139,11 +139,11 @@
     <Rule Id="SA1604" Action="Error" />
     <Rule Id="SA1605" Action="Error" />
     <Rule Id="SA1606" Action="Error" />
-    <Rule Id="SA1607" Action="None" />
-    <Rule Id="SA1608" Action="None" />
-    <Rule Id="SA1610" Action="None" />
-    <Rule Id="SA1611" Action="None" />
-    <Rule Id="SA1612" Action="None" />
+    <Rule Id="SA1607" Action="Error" />
+    <Rule Id="SA1608" Action="Error" />
+    <Rule Id="SA1610" Action="Error" />
+    <Rule Id="SA1611" Action="Error" />
+    <Rule Id="SA1612" Action="Error" />
     <Rule Id="SA1613" Action="None" />
     <Rule Id="SA1614" Action="None" />
     <Rule Id="SA1615" Action="None" />

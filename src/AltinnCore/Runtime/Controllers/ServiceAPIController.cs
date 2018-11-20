@@ -77,7 +77,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="instanceId">The instanceId</param>
         /// <returns>The Service model as JSON or XML for the given instanceId</returns>
         [Authorize(Policy = "ServiceRead")]
@@ -147,7 +146,6 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="model">The model as JSON/xml in a string parameter</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="apiMode">The mode that data is submitted</param>
         /// <returns>The result</returns>
         [Authorize]

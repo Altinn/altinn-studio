@@ -63,7 +63,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-
         /// <param name="rule">The rule to be created</param>
         /// <returns>JSON representation of the created rule</returns>
         [HttpPost]

@@ -34,6 +34,9 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="logger">The logger</param>
+        /// <param name="repositorySettings">the repository setting servie handler</param>
+        /// <param name="giteaWrapper">the gitea wrapper handler</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public ServiceCatalogueController(IRepository repositoryService, ILogger<ServiceCatalogueController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor)
         {
             _repository = repositoryService;

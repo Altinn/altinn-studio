@@ -34,6 +34,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="generalSettings">The general application settings</param>
         /// <param name="settings">The service repository settings</param>
         /// <param name="repositoryService">The service repository service</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public CodeGenerationSI(
             IOptions<GeneralSettings> generalSettings,
             IOptions<ServiceRepositorySettings> settings,

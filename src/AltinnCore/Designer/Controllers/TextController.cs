@@ -91,7 +91,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>Deletes a language resource</returns>
         [HttpDelete]
@@ -117,7 +116,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>The JSON config</returns>
         [HttpGet]

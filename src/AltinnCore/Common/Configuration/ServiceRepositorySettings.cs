@@ -232,6 +232,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetServicePath(string org, string service, string developer = null)
         {
@@ -248,6 +249,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</return>
         public string GetFormLayoutPath(string org, string service, string developer)
         {
@@ -264,6 +266,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>        
         /// <returns>The full path, ending with "/"</return>
         public string GetThirdPartyComponentsPath(string org, string service, string developer)
         {
@@ -280,6 +283,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</return>
         public string GetRuleHandlerPath(string org, string service, string developer)
         {
@@ -296,6 +300,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetServicePackagesPath(string org, string service, string developer)
         {
@@ -307,6 +312,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetTemporaryPath(string org, string service, string developer)
         {
@@ -318,6 +324,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetResourcePath(string org, string service, string developer)
         {
@@ -329,6 +336,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetTestPath(string org, string service, string developer)
         {
@@ -340,6 +348,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetTestDataPath(string org, string service, string developer)
         {
@@ -351,6 +360,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetMetadataPath(string org, string service, string developer)
         {
@@ -362,6 +372,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetCodelistPath(string org, string service, string developer)
         {
@@ -402,13 +413,14 @@ namespace AltinnCore.Common.Configuration
         public string GetBinaryFolder()
         {
             return BINARY_FOLDER_NAME;
-        } 
+        }
 
         /// <summary>
         /// Gets the full path to model directory
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetModelPath(string org, string service, string developer)
         {
@@ -420,6 +432,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetImplementationPath(string org, string service, string developer)
         {
@@ -431,6 +444,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetRulesPath(string org, string service, string developer)
         {
@@ -442,6 +456,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</returns>
         public string GetDataSourcePath(string org, string service, string developer)
         {

@@ -21,6 +21,7 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="OwnerController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service</param>
+        /// <param name="sourceControl">the source control</param>
         public OwnerController(IRepository repositoryService, ISourceControl sourceControl)
         {
             _repository = repositoryService;

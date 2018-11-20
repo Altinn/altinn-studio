@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
@@ -21,6 +21,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
         /// </summary>
         /// <param name="repositorySettings">The service repository settings</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;
@@ -59,7 +60,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="type">The type</param>
         /// <param name="partyId">The partyId</param>
         /// <param name="prefillkey">The prefill key</param>
@@ -91,7 +91,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="partyId">The partyId</param>
         public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId)
         {
