@@ -5,7 +5,6 @@ using IniParser;
 using IniParser.Model;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Extensions.Configuration;
 using AltinnCore.Common.Configuration;
 using Microsoft.Extensions.Options;
 
@@ -19,6 +18,7 @@ namespace AltinnCore.Designer.Controllers
         {
             _generalSettings = generalSettings.Value;
         }
+
         /// <summary>
         /// Reads ini files, converts it to json
         /// </summary>
@@ -29,9 +29,12 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public IActionResult getLanguageAsJSON(string org, string service, string languageCode)
         {
-            var parser = new FileIniDataParser();
+            FileIniDataParser Parser = new FileIniDataParser();
+            Dictionary<string, Dictionary<string, string>> outerDict = new Dictionary<string, Dictionary<string, string>>();
+            Dictionary<string, string> objDict = new Dictionary<string, string>();
             string currentDirectory = Directory.GetCurrentDirectory();
             string filePath = string.Empty;
+
             if (Environment.GetEnvironmentVariable("GeneralSettings__LanguageFilesLocation") != null)
             {
                 filePath = Path.Combine(currentDirectory, $"{Environment.GetEnvironmentVariable("GeneralSettings__LanguageFilesLocation")}{languageCode}.ini");
@@ -41,13 +44,11 @@ namespace AltinnCore.Designer.Controllers
                 filePath = Path.Combine(currentDirectory, $"{_generalSettings.LanguageFilesLocation}{languageCode}.ini");
             }
 
-            IniData parsedData = parser.ReadFile(filePath, Encoding.UTF8);
-            var obj = new Dictionary<string, Dictionary<string, string>>();
+            IniData parsedData = Parser.ReadFile(filePath, Encoding.UTF8);
 
             //Iterate through all the sections
             foreach (SectionData section in parsedData.Sections)
             {
-                var objDict = new Dictionary<string, string>();
 
                 //Iterate through all the keys in the current section
                 //printing the values
@@ -56,10 +57,10 @@ namespace AltinnCore.Designer.Controllers
                     objDict.Add(key.KeyName, key.Value);
 
                 }
-                obj.Add(section.SectionName, objDict);
+                outerDict.Add(section.SectionName, objDict);
 
             }
-            var json = Newtonsoft.Json.JsonConvert.SerializeObject(obj);
+            string json = Newtonsoft.Json.JsonConvert.SerializeObject(outerDict);
 
             return Content(json, "application/json", Encoding.UTF8);
         }
