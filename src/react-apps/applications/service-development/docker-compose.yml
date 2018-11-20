@@ -3,7 +3,7 @@ version: '3'
 services:
 
   sample-app:
-    container_name: react-poc
+    container_name: service-development
     build:
       context: .
       dockerfile: Dockerfile
