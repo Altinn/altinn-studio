@@ -1,22 +1,23 @@
+import { shallow } from 'enzyme';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
-import { shallow } from 'enzyme';
 
 import { InputComponent } from '../../../src/components/base/InputComponent';
 
 describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockComponent: any;
+  // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: () => void;
   let mockIsValid: boolean;
 
   beforeEach(() => {
-    mockId = "mock-id";
+    mockId = 'mock-id';
     mockComponent = {
       id: mockId,
-      component: "Input",
-      type: "text",
+      component: 'Input',
+      type: 'text',
       disabled: false,
       required: false,
     };
@@ -32,7 +33,7 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
-      />
+      />,
     );
     expect(rendered).toMatchSnapshot();
   });
@@ -45,9 +46,9 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
-      />
+      />,
     );
     const input = wrapper.find('input');
-    input.simulate('onBlur')
+    input.simulate('onBlur');
   });
 });

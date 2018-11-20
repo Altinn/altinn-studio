@@ -6,16 +6,17 @@ import { FileUploadComponent } from '../../../src/components/base/FileUploadComp
 describe('>>> components/base/FileUploadComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockComponent: any;
+  // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockIsValid: boolean;
 
   beforeEach(() => {
-    mockId = "mock-id";
+    mockId = 'mock-id';
     mockComponent = {
       id: mockId,
-      title: "test-fileuploader",
-      component: "Checkboxes",
+      title: 'test-fileuploader',
+      component: 'Checkboxes',
     };
     mockHandleDataChange = (data: any) => null;
     mockIsValid = true;
@@ -29,7 +30,7 @@ describe('>>> components/base/FileUploadComponent.tsx --- Snapshot', () => {
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
-      />
+      />,
     );
     expect(rendered).toMatchSnapshot();
   });

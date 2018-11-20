@@ -6,6 +6,7 @@ import { DropdownComponent } from '../../../src/components/base/DropdownComponen
 describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockComponent: any;
+  // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
@@ -13,18 +14,18 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
   let mockDesignMode: boolean;
 
   beforeEach(() => {
-    mockId = "mock-id";
+    mockId = 'mock-id';
     mockComponent = {
       id: mockId,
-      title: "test-dropdowncomponent",
-      component: "Checkboxes",
+      title: 'test-dropdowncomponent',
+      component: 'Checkboxes',
       options: [{
         label: 'test-label-1',
-        value: 'test-1'
+        value: 'test-1',
       }, {
         label: 'test-label-1',
-        value: 'test-1'
-      }]
+        value: 'test-1',
+      }],
     };
     mockHandleDataChange = (data: any) => null;
     mockGetTextResource = (resourceKey: string) => 'test';
@@ -42,7 +43,7 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         designMode={mockDesignMode}
-      />
+      />,
     );
     expect(rendered).toMatchSnapshot();
   });

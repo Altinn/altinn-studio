@@ -6,16 +6,17 @@ import { TextAreaComponent } from '../../../src/components/base/TextAreaComponen
 describe('>>> components/base/TextAreaComponent.tsx --- Snapshot', () => {
   let mockId: string;
   let mockComponent: any;
+  // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockIsValid: boolean;
 
   beforeEach(() => {
-    mockId = "mock-id";
+    mockId = 'mock-id';
     mockComponent = {
       id: mockId,
-      title: "test-textarea",
-      component: "Checkboxes",
+      title: 'test-textarea',
+      component: 'Checkboxes',
     };
     mockHandleDataChange = (data: any) => null;
     mockIsValid = true;
@@ -29,7 +30,7 @@ describe('>>> components/base/TextAreaComponent.tsx --- Snapshot', () => {
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
-      />
+      />,
     );
     expect(rendered).toMatchSnapshot();
   });
