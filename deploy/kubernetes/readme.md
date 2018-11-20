@@ -36,10 +36,13 @@ Then push the image you tagged, by running the command:
 
 - Check that the image-names and images-tags specified in `altinncore-loadbalancer.yaml` and `altinncore-deployment.yaml` are correct with what you have in Azure ACR
 - Check that the images pull secret name is correct (To doublecheck, run the command `kubectl get sercrets`)
+- Make a keyvault and add the access key to the pipeline in the vault, then add values for the keyvault into  `altinn-appsettings-secret.json`, and run
+  - `kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json`
+  to make a secret that allows pods to get keys from the vault.
 
 ``` yaml
 imagePullSecrets:
-      - name: acr-auth #replace with your kubernetes secret name
+      - name: acr-auth #replace with your kubernetes secret name for the azure container registry authentication
 ```
 
 - The one of the steps of that script creates a public static ip, you'll need this adress in `altinncore-loadbalancer.yaml`. Fill the ip adress in at the second to last line, where it says
