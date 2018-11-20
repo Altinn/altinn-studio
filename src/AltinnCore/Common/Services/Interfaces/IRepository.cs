@@ -204,6 +204,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
+        /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>Was the service creation successful</returns>
         bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
 
@@ -356,6 +357,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="resource">The content of the resource file</param>
+        /// <param name="fileName">the name of the file</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         bool SaveJsonFile(string org, string service, string resource, string fileName);
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -49,6 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="compilationService">The compilation service</param>
         /// <param name="repositoryService">The service repository service</param>
         /// <param name="logger">The logger</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public CompilationSI(
             IOptions<ServiceRepositorySettings> configuration,
             ApplicationPartManager partManager,

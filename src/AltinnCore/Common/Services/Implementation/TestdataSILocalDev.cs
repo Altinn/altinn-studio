@@ -27,6 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public TestdataSILocalDev(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             this._testdataRepositorySettings = testdataRepositorySettings.Value;

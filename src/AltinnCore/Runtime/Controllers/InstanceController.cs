@@ -44,6 +44,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="serviceExecutionService">The serviceExecutionService (set in Startup.cs)</param>
         /// <param name="profileService">The profileService (set in Startup.cs)</param>
         /// <param name="archiveService">The archive service</param>
+        /// <param name="testDataService">the test data service handler</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -142,7 +143,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="instanceId">The instanceId</param>
         /// <param name="view">The ViewName</param>
         /// <returns>Redirect user to the receipt page</returns>
@@ -193,7 +193,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="instanceId">The instanceId</param>
         /// <returns>The receipt view</returns>
         public IActionResult Receipt(string org, string service, int instanceId)

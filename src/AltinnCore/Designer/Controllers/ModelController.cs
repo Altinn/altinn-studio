@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Linq;
@@ -47,7 +47,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="thefile">The main XSD</param>
         /// <param name="secondaryFiles">Secondary xsd</param>
         /// <returns>Return JSON of the generated model</returns>
@@ -90,7 +89,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="texts">Boolean indicating if text should be included</param>
         /// <param name="restrictions">Boolean indicating if restrictions should be included</param>
         /// <param name="attributes">Boolean indicating if attributes should be included</param>
@@ -107,7 +105,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="serviceMetadata">The new service metadata</param>
         /// <returns>Was the request a success</returns>
         [HttpPost]

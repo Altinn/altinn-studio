@@ -37,6 +37,10 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="logger">The logger</param>
+        /// <param name="repositorySettings">settings for the repository</param>
+        /// <param name="giteaWrapper">the gitea wrapper</param>
+        /// <param name="httpContextAccessor">the httpcontext accessor</param>
+        /// <param name="sourceControl">the source control</param>
         public HomeController(IRepository repositoryService, ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
         {
             _repository = repositoryService;
@@ -65,6 +69,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// The default action presenting a list of available services when the user is logged in
         /// </summary>
+        /// <param name="repositorySearch">the search parameter object</param>
         /// <returns>The front page</returns>
         [Authorize]
         public ActionResult Index(RepositorySearch repositorySearch)

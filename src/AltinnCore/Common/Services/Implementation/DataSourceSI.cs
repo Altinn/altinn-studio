@@ -29,6 +29,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="defaultFileFactory">Pass in IDefaultFileFactory interface as a parameter.</param>
         /// <param name="repositorySettings">Pass in IOptions interface as a parameter.</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public DataSourceSI(IDefaultFileFactory defaultFileFactory, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _defaultFileFactory = defaultFileFactory;

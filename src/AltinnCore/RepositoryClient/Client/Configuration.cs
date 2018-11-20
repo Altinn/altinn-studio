@@ -136,6 +136,10 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Initializes a new instance of the <see cref="Configuration" /> class
         /// </summary>
+        /// <param name="defaultHeader">the default header</param>
+        /// <param name="apiKey">the api key</param>
+        /// <param name="apiKeyPrefix">the api key prefix</param>
+        /// <param name="basePath">the base path</param>
         public Configuration(
             IDictionary<string, string> defaultHeader,
             IDictionary<string, string> apiKey,

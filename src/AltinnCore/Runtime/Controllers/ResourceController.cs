@@ -32,7 +32,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="id">The name of the resource</param>
         /// <returns>File content with content type set</returns>
         public IActionResult Index(string org, string service, string id)

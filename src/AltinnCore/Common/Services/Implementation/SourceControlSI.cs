@@ -31,6 +31,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="gitea">gitea</param>
         public SourceControlSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -113,7 +115,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Fetches the remote changes
         /// </summary>
         /// <param name="org"></param>
-        /// <param name="repostory"></param>
+        /// <param name="repository"></param>
         public void FetchRemoteChanges(string org, string repository)
         {
             string logMessage = string.Empty;
@@ -156,6 +158,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The owner organization</param>
         /// <param name="service">The service</param>
+        /// <param name="commitInfo">the commit information for the service</param>
         public void PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));

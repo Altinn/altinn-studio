@@ -40,6 +40,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="gitea">gitea</param>
+        /// <param name="sourceControl">the source control</param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -505,6 +508,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="resource">The content of the resource file</param>
+        /// <param name="fileName">the filename</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool SaveJsonFile(string org, string service, string resource, string fileName)
         {
@@ -810,6 +814,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
+        /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>Was the service creation successful</returns>
         public bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
@@ -963,6 +968,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="servicePackageDetails">
         /// The service package details. Expect PackageName to be the file name.
         /// </param>
+        /// <param name="details">the service package details</param>
         /// <returns>
         /// The <see cref="ZipArchive"/>.
         /// </returns>

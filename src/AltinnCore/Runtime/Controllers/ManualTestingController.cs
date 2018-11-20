@@ -38,7 +38,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testdataService">The testDataService (configured in Startup.cs)</param>
         /// <param name="profileService">The profileService (configured in Startup.cs)</param>
         /// <param name="registerService">The registerService (configured in Startup.cs)</param>
-        /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>
+        /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>        
+        /// <param name="repositorySettings">the repository setting service handler</param>
+        /// <param name="giteaWrapper">the gitea wrapper handler</param> 
         public ManualTestingController(
             ITestdata testdataService,
             IProfile profileService,

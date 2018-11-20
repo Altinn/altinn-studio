@@ -26,6 +26,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public TestingRepository(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -72,7 +73,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="name">The name of the test file</param>
         /// <returns>The content of the test</returns>
         public string GetTest(string org, string service, string name)
@@ -92,7 +92,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="includeContent">Controls if the test content should be included. Default is false.</param>
         /// /// <param name="filterPattern">Pattern to filter the returned tests</param>
         /// <returns>All the tests</returns>

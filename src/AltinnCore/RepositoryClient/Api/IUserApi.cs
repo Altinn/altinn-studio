@@ -1239,6 +1239,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Initializes a new instance of the <see cref="UserApi"/> class.
         /// </summary>
+        /// <param name="basePath">base path for the user api</param>
         /// <returns></returns>
         public UserApi(string basePath)
         {
@@ -1280,6 +1281,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// <summary>
         /// Sets the base path of the API client.
         /// </summary>
+        /// <param name="basePath">the base path for th user api</param>
         /// <value>The base path</value>
         [Obsolete("SetBasePath is deprecated, please do 'Configuration.ApiClient = new ApiClient(\"http://new-path\")' instead.")]
         public void SetBasePath(string basePath)

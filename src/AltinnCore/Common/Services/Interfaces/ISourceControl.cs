@@ -34,6 +34,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="commitInfo">the commit information for the service</param>
         void PushChangesForRepository(CommitInfo commitInfo);
 
         /// <summary>
