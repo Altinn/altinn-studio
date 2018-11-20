@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org"></param>
         /// <param name="service"></param>
         /// <param name="partyId"></param>
-        /// <returns></returns>
+        /// <returns>The archived service model</returns>
         object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId);
     }
 }

@@ -65,7 +65,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <returns></returns>
+        /// <returns>A bool indicating if the repository is a local one or not</returns>
         public bool IsLocalRepo(string org, string service)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -247,7 +247,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Return the App Token generated to let AltinnCore contact GITEA on behalf of service developer
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The app token</returns>
         public string GetAppToken()
         {
             string path = null;
@@ -296,7 +296,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization owning the repostory</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns></returns>
+        /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
         {
             string localpath = null;
@@ -317,7 +317,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization owning the repository</param>
         /// <param name="repository">The repository</param>
-        /// <returns></returns>
+        /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)

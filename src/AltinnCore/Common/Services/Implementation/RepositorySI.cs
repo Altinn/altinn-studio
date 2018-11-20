@@ -1089,7 +1089,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org"></param>
         /// <param name="createRepoOption"></param>
-        /// <returns></returns>
+        /// <returns>The newly created repository</returns>
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
             return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;
@@ -1418,7 +1418,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="resource">The service resource file name</param>
-        /// <returns></returns>
+        /// <returns>The service resource</returns>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;

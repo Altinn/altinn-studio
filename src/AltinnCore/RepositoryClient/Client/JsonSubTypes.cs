@@ -238,7 +238,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         /// </summary>
         /// <param name="jObject"></param>
         /// <param name="parentType"></param>
-        /// <returns></returns>
+        /// <returns>The type</returns>
         public Type GetType(JObject jObject, Type parentType)
         {
             if (_typeMappingPropertyName == null)
@@ -336,7 +336,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         /// <param name="objectType"></param>
         /// <param name="existingValue"></param>
         /// <param name="serializer"></param>
-        /// <returns></returns>
+        /// <returns>returns deserialized object?</returns>
         protected object ReadJsonObject(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             _reader = reader;

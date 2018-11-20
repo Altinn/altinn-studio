@@ -29,7 +29,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="org"></param>
         /// <param name="service"></param>
         /// <param name="name"></param>
-        /// <returns></returns>
+        /// <returns>The codelist</returns>
         public IActionResult Index(string org, string service, string name)
         {
             string codelist = _execution.GetCodelist(org, service, name);

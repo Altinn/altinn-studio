@@ -1228,7 +1228,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// Initializes a new instance of the <see cref="UserApi"/> class.
         /// </summary>
         /// <param name="basePath">base path for the user api</param>
-        /// <returns></returns>
         public UserApi(string basePath)
         {
             this.Configuration = new Configuration { BasePath = basePath };
@@ -1241,7 +1240,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// using Configuration object
         /// </summary>
         /// <param name="configuration">An instance of Configuration</param>
-        /// <returns></returns>
         public UserApi(Configuration configuration = null)
         {
             // use the default one in Configuration

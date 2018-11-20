@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Http;
 
@@ -39,7 +39,7 @@ namespace AltinnCore.Common.Helpers
         /// based on
         /// </summary>
         /// <param name="request"></param>
-        /// <returns></returns>
+        /// <returns>the standard user action</returns>
         public static UserActionType GetStandardUserAction(HttpRequest request)
         {
             if (request != null && request.Method.ToUpper() == "POST")

@@ -156,7 +156,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <returns></returns>
+        /// <returns>The codelists as json</returns>
         [HttpGet]
         public IActionResult CodeLists(string org, string service)
         {

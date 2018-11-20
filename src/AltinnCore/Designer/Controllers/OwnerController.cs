@@ -69,7 +69,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="repo"></param>
-        /// <returns></returns>
+        /// <returns>The clone remote repoository view</returns>
         [Authorize]
         [HttpGet]
         public IActionResult CloneRemoteRepo(string org, string repo)

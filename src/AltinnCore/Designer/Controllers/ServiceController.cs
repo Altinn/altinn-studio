@@ -98,7 +98,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <returns></returns>
+        /// <returns>The service with changes</returns>
         [HttpGet]
         [Authorize]
         public IActionResult PullRemoteChanges(string org, string service)
@@ -126,7 +126,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <returns></returns>
+        /// <returns>The home app token page or the clone page</returns>
         [Authorize]
         public IActionResult Clone(string org, string service)
         {

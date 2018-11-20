@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Helpers
@@ -48,7 +48,7 @@ namespace AltinnCore.Common.Helpers
         /// <param name="serviceText">The service text</param>
         /// <param name="requestContext"></param>
         /// <param name="serviceContext"></param>
-        /// <returns></returns>
+        /// <returns>The edited service text</returns>
         public static string SetTextParams(string serviceText, RequestContext requestContext, ServiceContext serviceContext)
         {
             if (serviceText.Contains("{altinncore:"))

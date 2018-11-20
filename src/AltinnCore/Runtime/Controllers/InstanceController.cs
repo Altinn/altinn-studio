@@ -75,7 +75,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceId"></param>
         /// <param name="view"></param>
         /// <param name="itemId"></param>
-        /// <returns></returns>
+        /// <returns>The react view or the receipt</returns>
         [Authorize(Policy = "InstanceRead")]
         public IActionResult EditSPA(string org, string service, int instanceId, string view, int? itemId)
         {
@@ -352,7 +352,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="org"></param>
         /// <param name="service"></param>
         /// <param name="instanceId"></param>
-        /// <returns></returns>
+        /// <returns>The api response</returns>
         public async Task<IActionResult> ModelValidation(string org, string service, int instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store

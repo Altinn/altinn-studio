@@ -50,7 +50,7 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org"></param>
         /// <param name="service"></param>
-        /// <returns></returns>
+        /// <returns>The text resource file content or 404</returns>
         public IActionResult TextResources(string org, string service)
         {
             string defaultLang = "nb-NO";
@@ -80,7 +80,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="texts"></param>
         /// <param name="restrictions"></param>
         /// <param name="attributes"></param>
-        /// <returns></returns>
+        /// <returns>The service metadata</returns>
         [HttpGet]
         public ActionResult ServiceMetaData(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
         {

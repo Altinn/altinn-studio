@@ -269,14 +269,14 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Default action gor service api
+        /// Default action for service api
         /// </summary>
         /// <param name="model"></param>
         /// <param name="org"></param>
         /// <param name="service"></param>
         /// <param name="instanceId"></param>
         /// <param name="apiMode"></param>
-        /// <returns></returns>
+        /// <returns>The api result</returns>
         [Authorize]
         [HttpPut]
         public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)

@@ -17,14 +17,14 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <param name="reporteeId"></param>
         /// <param name="reporteeElementId"></param>
         /// <param name="formId"></param>
-        /// <returns></returns>
+        /// <returns>The form data for the given parameters</returns>
         Task<FormData> GetFormDataFromCollectionAsync(string reporteeId, string reporteeElementId, string formId);
 
         /// <summary>
         /// insert new formdata into collection
         /// </summary>
         /// <param name="item"></param>
-        /// <returns></returns>
+        /// <returns>The formdata inserted into collection</returns>
         Task<FormData> InsertFormDataIntoCollectionAsync(FormData item);
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace AltinnCore.Runtime.Db.Repository
         /// </summary>
         /// <param name="id"></param>
         /// <param name="item"></param>
-        /// <returns></returns>
+        /// <returns>The updated form data</returns>
         Task<FormData> UpdateFormDataInCollectionAsync(string id, FormData item);
     }
 }

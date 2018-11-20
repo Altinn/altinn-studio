@@ -20,7 +20,7 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="org"></param>
-        /// <returns></returns>
+        /// <returns>The web app default file</returns>
         FileInfo GetWebAppDefaultFile(string fileName, string org = null);
 
         /// <summary>

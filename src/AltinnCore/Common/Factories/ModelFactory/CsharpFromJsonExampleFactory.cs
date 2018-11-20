@@ -239,7 +239,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             /// <summary>
             /// class declaration
             /// </summary>
-            /// <returns></returns>
             public string ClassDeclaration()
             {
                 const string Indent = "    ";
@@ -259,7 +258,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             /// <summary>
             /// all class declaration
             /// </summary>
-            /// <returns></returns>
             public IEnumerable<string> AllClassDeclarations()
             {
                 return AllTypeDescriptions().Select(p => p.ClassDeclaration());
@@ -268,7 +266,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             /// <summary>
             /// description of types
             /// </summary>
-            /// <returns></returns>
+            /// <returns>All the type descriptions</returns>
             public IEnumerable<TypeDescription> AllTypeDescriptions()
             {
                 var children = from p in Properties where p.IsClass && p.ObjectType != null select p.ObjectType;

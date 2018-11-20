@@ -31,7 +31,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// home
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The features view</returns>
         public IActionResult Index()
         {
             var viewModel = new FeaturesViewModel();

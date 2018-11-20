@@ -62,7 +62,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns></returns>
+        /// <returns>List of repositories with status</returns>
         List<RepositoryContent> Status(string org, string repository);
 
         /// <summary>

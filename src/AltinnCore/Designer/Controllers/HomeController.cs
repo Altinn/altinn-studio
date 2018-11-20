@@ -53,7 +53,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// the default page for altinn studio when the user is not logged inn
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The start page</returns>
         public ActionResult StartPage()
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
@@ -182,7 +182,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Login
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The login page</returns>
         public async Task<IActionResult> Login()
         {
             string userName = "TestUser";
@@ -238,7 +238,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Logout 
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The logout page</returns>
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -248,7 +248,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Go to app token view
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The app token view</returns>
         [HttpGet]
         public IActionResult AppToken()
         {
@@ -259,7 +259,7 @@ namespace AltinnCore.Designer.Controllers
         /// Store app token for user
         /// </summary>
         /// <param name="appKey"></param>
-        /// <returns></returns>
+        /// <returns>redirects user</returns>
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)
         {

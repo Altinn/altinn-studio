@@ -15,7 +15,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Get the current user
         /// </summary>
         /// <param name="giteaSession"></param>
-        /// <returns></returns>
+        /// <returns>The current user</returns>
         Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession);
 
         /// <summary>
@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="giteaSession"></param>
         /// <param name="org"></param>
         /// <param name="createRepoOption"></param>
-        /// <returns></returns>
+        /// <returns>The newly created for the repository</returns>
         Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepositoryForOrg(string giteaSession, string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
 
         /// <summary>
@@ -33,14 +33,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="onlyAdmin"></param>
         /// <param name="keyWord"></param>
         /// <param name="page"></param>
-        /// <returns></returns>
+        /// <returns>The repositories matching the search</returns>
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
 
         /// <summary>
         /// Create app token
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>
+        /// <returns>null</returns>
         string CreateAppToken(string name);
   }
 }

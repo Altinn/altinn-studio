@@ -89,7 +89,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="giteaSession"></param>
         /// <param name="org"></param>
         /// <param name="createRepoOption"></param>
-        /// <returns></returns>
+        /// <returns>The newly created repository</returns>
         public async Task<Repository> CreateRepositoryForOrg(string giteaSession, string org, CreateRepoOption createRepoOption)
         {
             AltinnCore.RepositoryClient.Model.Repository repository = null;
@@ -208,7 +208,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// https://github.com/go-gitea/gitea/issues/3842
         /// </summary>
         /// <param name="name"></param>
-        /// <returns></returns>
+        /// <returns>null</returns>
         public string CreateAppToken(string name)
         {
             string token = null;

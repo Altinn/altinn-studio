@@ -47,7 +47,7 @@ namespace AltinnCore.Runtime.Db.Repository
         /// To insert new form data into formdata collection
         /// </summary>
         /// <param name="item"></param>
-        /// <returns></returns>
+        /// <returns>The deserialized formdata saved to file</returns>
         public async Task<FormData> InsertFormDataIntoCollectionAsync(FormData item)
         {
             try
@@ -107,7 +107,7 @@ namespace AltinnCore.Runtime.Db.Repository
         /// </summary>
         /// <param name="id"></param>
         /// <param name="item"></param>
-        /// <returns></returns>
+        /// <returns>The formdata save to file</returns>
         public async Task<FormData> UpdateFormDataInCollectionAsync(string id, FormData item)
         {
             try

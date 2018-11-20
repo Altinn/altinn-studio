@@ -29,7 +29,7 @@ namespace AltinnCore.Runtime.Db.Controllers
         /// <summary>
         /// Default test api
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The test return values</returns>
         // GET api/values
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
@@ -43,7 +43,7 @@ namespace AltinnCore.Runtime.Db.Controllers
         /// <param name="reporteeId"></param>
         /// <param name="reporteeElementId"></param>
         /// <param name="formId"></param>
-        /// <returns></returns>
+        /// <returns>The get response</returns>
         // GET api/formdataapi/reporteeId/?reporteeElementId&formId
         [HttpGet("{reporteeId}")]
         public async Task<ActionResult<string>> Get(string reporteeId, string reporteeElementId, string formId)
@@ -61,7 +61,7 @@ namespace AltinnCore.Runtime.Db.Controllers
         /// Save the form data
         /// </summary>
         /// <param name="formData"></param>
-        /// <returns></returns>
+        /// <returns>If the request was successful or not</returns>
         // POST api/formdataapi
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] FormData formData)
