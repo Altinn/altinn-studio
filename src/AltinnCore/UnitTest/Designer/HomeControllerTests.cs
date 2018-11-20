@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using System;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Designer
@@ -19,7 +18,7 @@ namespace AltinnCore.UnitTest.Designer
     public class HomeControllerTests
     {
         /// <summary>
-        /// Verifies that 7 repositories is returned. 
+        /// Verifies that 7 repositories is returned.
         /// </summary>
         [Fact]
         public void Index_GetSevenReposFromOrgWhereFourIsClonedLocallyAllListed()
@@ -30,13 +29,18 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
-            Moq.Mock<IGitea> moqGiteaWrappeer = GetMoqGiteaWrapperForIndexTest();
-            Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
+            Moq.Mock<IGitea> moqGiteaWrappeer = this.GetMoqGiteaWrapperForIndexTest();
+            Moq.Mock<ISourceControl> moqSourceControl = this.GetMoqSourceControlForIndexTest();
 
             RepositorySearch repositorySearch = new RepositorySearch();
 
-            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(moqRepository.Object, moqLogger.Object,
-                moqServiceRepositorySettings.Object, moqGiteaWrappeer.Object,moqHttpContextAccessor.Object,  moqSourceControl.Object);
+            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
+                moqRepository.Object,
+                moqLogger.Object,
+                moqServiceRepositorySettings.Object,
+                moqGiteaWrappeer.Object,
+                moqHttpContextAccessor.Object,
+                moqSourceControl.Object);
 
             // Act
             ActionResult result = controller.Index(repositorySearch);
@@ -47,6 +51,9 @@ namespace AltinnCore.UnitTest.Designer
             Assert.Equal(7, model.Repositories.Count);
         }
 
+        /// <summary>
+        /// Verifies that 7 repositories is returned
+        /// </summary>
         [Fact]
         public void Index_GetSevenReposFromOrgWhereFourIsClonedLocallyOnlyLocallyClonedListed()
         {
@@ -56,14 +63,19 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
-            Moq.Mock<IGitea> moqGiteaWrappeer = GetMoqGiteaWrapperForIndexTest();
-            Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
+            Moq.Mock<IGitea> moqGiteaWrappeer = this.GetMoqGiteaWrapperForIndexTest();
+            Moq.Mock<ISourceControl> moqSourceControl = this.GetMoqSourceControlForIndexTest();
 
             RepositorySearch repositorySearch = new RepositorySearch();
             repositorySearch.OnlyLocalRepositories = true;
 
-            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(moqRepository.Object, moqLogger.Object,
-                moqServiceRepositorySettings.Object, moqGiteaWrappeer.Object, moqHttpContextAccessor.Object, moqSourceControl.Object);
+            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
+                moqRepository.Object,
+                moqLogger.Object,
+                moqServiceRepositorySettings.Object,
+                moqGiteaWrappeer.Object,
+                moqHttpContextAccessor.Object,
+                moqSourceControl.Object);
 
             // Act
             ActionResult result = controller.Index(repositorySearch);
@@ -73,9 +85,6 @@ namespace AltinnCore.UnitTest.Designer
             AltinnStudioViewModel model = Assert.IsAssignableFrom<AltinnStudioViewModel>(viewResult.Model);
             Assert.Equal(4, model.Repositories.Count);
         }
-
-
-
 
         private Moq.Mock<ISourceControl> GetMoqSourceControlForIndexTest()
         {
@@ -106,6 +115,5 @@ namespace AltinnCore.UnitTest.Designer
             moqGiteaWrappeer.Setup(gitea => gitea.SearchRepository(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(search);
             return moqGiteaWrappeer;
         }
-
     }
 }
