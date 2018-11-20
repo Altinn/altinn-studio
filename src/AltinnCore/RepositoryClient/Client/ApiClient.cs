@@ -540,7 +540,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// Sanitize filename by removing the path
         /// </summary>
         /// <param name="filename">Filename</param>
-        /// <returns>Filename</returns>
+        /// <returns>The filename</returns>
         public static string SanitizeFilename(string filename)
         {
             Match match = Regex.Match(filename, @".*[/\\](.*)$");
