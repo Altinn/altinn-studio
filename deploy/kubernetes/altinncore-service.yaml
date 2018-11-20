@@ -18,12 +18,12 @@ spec:
   selector: 
     app: altinn-designer
 ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: altinn-runtime
-# spec:
-#   ports:
-#   - port: 5005
-#   selector: 
-#     app: altinn-runtime
+apiVersion: v1
+kind: Service
+metadata:
+  name: altinn-runtime
+spec:
+  ports:
+  - port: 5005
+  selector: 
+    app: altinn-runtime

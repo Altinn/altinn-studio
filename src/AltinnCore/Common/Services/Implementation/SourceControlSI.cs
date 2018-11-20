@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IGitea _gitea;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class 
+        /// Initializes a new instance of the <see cref="SourceControlSI"/> class 
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
