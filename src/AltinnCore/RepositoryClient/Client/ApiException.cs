@@ -24,7 +24,7 @@ namespace AltinnCore.RepositoryClient.Client
         public int ErrorCode { get; set; }
 
         /// <summary>
-        /// Gets or sets the error content (body json object)
+        /// Gets the error content (body json object)
         /// </summary>
         /// <value>The error content (Http response body).</value>
         public dynamic ErrorContent { get; private set; }

@@ -63,7 +63,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
-        /// <returns></returns>
         void UserCheckFollowing(string follower, string followee);
 
         /// <summary>
@@ -80,7 +79,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="name"> (optional)</param>
-        /// <returns></returns>
         void UserCreateToken(string name = null);
 
         /// <summary>
@@ -96,7 +94,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="followee">username of followed user</param>
-        /// <returns></returns>
         void UserCurrentCheckFollowing(string followee);
 
         /// <summary>
@@ -113,7 +110,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
-        /// <returns></returns>
         void UserCurrentCheckStarring(string owner, string repo);
 
         /// <summary>
@@ -130,7 +126,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to unfollow</param>
-        /// <returns></returns>
         void UserCurrentDeleteFollow(string username);
 
         /// <summary>
@@ -146,7 +141,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
-        /// <returns></returns>
         void UserCurrentDeleteGPGKey(int? id);
 
         /// <summary>
@@ -162,7 +156,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
-        /// <returns></returns>
         void UserCurrentDeleteKey(int? id);
 
         /// <summary>
@@ -179,7 +172,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
-        /// <returns></returns>
         void UserCurrentDeleteStar(string owner, string repo);
 
         /// <summary>
@@ -358,7 +350,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to follow</param>
-        /// <returns></returns>
         void UserCurrentPutFollow(string username);
 
         /// <summary>
@@ -375,7 +366,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
-        /// <returns></returns>
         void UserCurrentPutStar(string owner, string repo);
 
         /// <summary>
@@ -406,7 +396,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="body"> (optional)</param>
-        /// <returns></returns>
         void UserDeleteEmail(DeleteEmailOption body = null);
 
         /// <summary>
@@ -451,7 +440,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// List the authenticated user&#39;s access tokens
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
-        /// <returns></returns>
         void UserGetTokens();
 
         /// <summary>
@@ -1331,7 +1319,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <param name="key">Header field name.</param>
         /// <param name="value">Header field value.</param>
-        /// <returns></returns>
         [Obsolete("AddDefaultHeader is deprecated, please use Configuration.AddDefaultHeader instead.")]
         public void AddDefaultHeader(string key, string value)
         {
@@ -1782,7 +1769,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="follower">username of following user</param>
         /// <param name="followee">username of followed user</param>
-        /// <returns></returns>
         public void UserCheckFollowing(string follower, string followee)
         {
              UserCheckFollowingWithHttpInfo(follower, followee);
@@ -2031,7 +2017,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="name"> (optional)</param>
-        /// <returns></returns>
         public void UserCreateToken(string name = null)
         {
              UserCreateTokenWithHttpInfo(name);
@@ -2239,7 +2224,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="followee">username of followed user</param>
-        /// <returns></returns>
         public void UserCurrentCheckFollowing(string followee)
         {
              UserCurrentCheckFollowingWithHttpInfo(followee);
@@ -2464,7 +2448,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="owner">owner of the repo</param>
         /// <param name="repo">name of the repo</param>
-        /// <returns></returns>
         public void UserCurrentCheckStarring(string owner, string repo)
         {
              UserCurrentCheckStarringWithHttpInfo(owner, repo);
@@ -2713,7 +2696,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to unfollow</param>
-        /// <returns></returns>
         public void UserCurrentDeleteFollow(string username)
         {
              UserCurrentDeleteFollowWithHttpInfo(username);
@@ -2937,7 +2919,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
-        /// <returns></returns>
         public void UserCurrentDeleteGPGKey(int? id)
         {
              UserCurrentDeleteGPGKeyWithHttpInfo(id);
@@ -3159,7 +3140,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="id">id of key to delete</param>
-        /// <returns></returns>
         public void UserCurrentDeleteKey(int? id)
         {
              UserCurrentDeleteKeyWithHttpInfo(id);
@@ -3382,7 +3362,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="owner">owner of the repo to unstar</param>
         /// <param name="repo">name of the repo to unstar</param>
-        /// <returns></returns>
         public void UserCurrentDeleteStar(string owner, string repo)
         {
              UserCurrentDeleteStarWithHttpInfo(owner, repo);
@@ -5901,7 +5880,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="username">username of user to follow</param>
-        /// <returns></returns>
         public void UserCurrentPutFollow(string username)
         {
              UserCurrentPutFollowWithHttpInfo(username);
@@ -6126,7 +6104,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="owner">owner of the repo to star</param>
         /// <param name="repo">name of the repo to star</param>
-        /// <returns></returns>
         public void UserCurrentPutStar(string owner, string repo)
         {
              UserCurrentPutStarWithHttpInfo(owner, repo);
@@ -6573,7 +6550,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
         /// <param name="body"> (optional)</param>
-        /// <returns></returns>
         public void UserDeleteEmail(DeleteEmailOption body = null)
         {
              UserDeleteEmailWithHttpInfo(body);
@@ -7212,7 +7188,6 @@ namespace AltinnCore.RepositoryClient.Api
         /// List the authenticated user&#39;s access tokens
         /// </summary>
         /// <exception cref="IO.Swagger.Client.ApiException">Thrown when fails to make API call</exception>
-        /// <returns></returns>
         public void UserGetTokens()
         {
              UserGetTokensWithHttpInfo();

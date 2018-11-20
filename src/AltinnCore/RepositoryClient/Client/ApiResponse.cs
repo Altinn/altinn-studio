@@ -16,22 +16,23 @@ namespace AltinnCore.RepositoryClient.Client
     /// <summary>
     /// API Response
     /// </summary>
+    /// <typeparam name="T">The generic type parameter.</typeparam>
     public class ApiResponse<T>
     {
         /// <summary>
-        /// Gets or sets the status code (HTTP status code)
+        /// Gets the status code (HTTP status code)
         /// </summary>
         /// <value>The status code.</value>
         public int StatusCode { get; private set; }
 
         /// <summary>
-        /// Gets or sets the HTTP headers
+        /// Gets the HTTP headers
         /// </summary>
         /// <value>HTTP headers</value>
         public IDictionary<string, string> Headers { get; private set; }
 
         /// <summary>
-        /// Gets or sets the data (parsed HTTP body)
+        /// Gets the data (parsed HTTP body)
         /// </summary>
         /// <value>The data.</value>
         public T Data { get; private set; }
