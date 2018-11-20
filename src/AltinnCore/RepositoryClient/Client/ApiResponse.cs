@@ -16,6 +16,7 @@ namespace AltinnCore.RepositoryClient.Client
     /// <summary>
     /// API Response
     /// </summary>
+    /// <typeparam name="T">The generic type parameter.</typeparam>
     public class ApiResponse<T>
     {
         /// <summary>
