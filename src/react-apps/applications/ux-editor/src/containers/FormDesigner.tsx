@@ -2,7 +2,6 @@ import * as React from 'react';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import NavMenu from '../navigation/NavMenu';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
@@ -47,7 +46,6 @@ class FormDesigner extends React.Component<
   public render() {
     return (
       <div style={{display: 'flex', width: '100%', alignItems: 'stretch'}}>
-          <NavMenu/>
         <div style={{paddingLeft: 72}}>
           <div className='container mb-3'>
             <div className='row mt-3'>
