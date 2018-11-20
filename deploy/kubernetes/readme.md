@@ -36,8 +36,9 @@ Then push the image you tagged, by running the command:
 
 - Check that the image-names and images-tags specified in `altinncore-loadbalancer.yaml` and `altinncore-deployment.yaml` are correct with what you have in Azure ACR
 - Check that the images pull secret name is correct (To doublecheck, run the command `kubectl get sercrets`)
-- Make that a keyvault is created in the resource group, and a secret is created with the `altinn-appsettings-secret.json` file as data
-  - `kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json` (when you have filled out the correct data into the json-file)
+- Make a keyvault and add the access key to the pipeline in the vault, then add values for the keyvault into  `altinn-appsettings-secret.json`, and run
+  - `kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json`
+  to make a secret that allows pods to get keys from the vault.
 
 ``` yaml
 imagePullSecrets:
