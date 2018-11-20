@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace AltinnCore.Designer.TagHelpers
 {
+    /// <summary>
+    /// button tag helper
+    /// </summary>
     [HtmlTargetElement("button", Attributes = AltinnTextAttributeName)]
     public class ButtonTagHelper : TagHelper
     {

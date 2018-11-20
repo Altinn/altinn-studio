@@ -347,6 +347,13 @@ namespace AltinnCore.Runtime.Controllers
             return View(startServiceModel);
         }
 
+        /// <summary>
+        /// validate the model
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <param name="instanceId"></param>
+        /// <returns></returns>
         public async Task<IActionResult> ModelValidation(string org, string service, int instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store

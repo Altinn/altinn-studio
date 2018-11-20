@@ -33,8 +33,15 @@ namespace AltinnCore.Designer
     /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// Gets the application configuration
+        /// </summary>
         public IConfiguration Configuration { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class
+        /// </summary>
+        /// <param name="configuration"></param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;

@@ -8,14 +8,25 @@ using System.Threading.Tasks;
 
 namespace AltinnCore.RepositoryClient.CustomApi
 {
+    /// <summary>
+    /// client for user api
+    /// </summary>
     public class UserApiClient
     {
         private string giteaCoookieId = "i_like_gitea";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UserApiClient"/> class
+        /// </summary>
         public UserApiClient()
         {
         }
 
+        /// <summary>
+        /// Get current user
+        /// </summary>
+        /// <param name="giteaSession"></param>
+        /// <returns></returns>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
         {
             AltinnCore.RepositoryClient.Model.User user;

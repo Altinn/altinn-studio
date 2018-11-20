@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace AltinnCore.Designer.TagHelpers
 {
+    /// <summary>
+    /// anchor tag helper
+    /// </summary>
     [HtmlTargetElement("a", Attributes = AltinnTextKeyAttributeName)]
     public class ATagHelper : TagHelper
     {

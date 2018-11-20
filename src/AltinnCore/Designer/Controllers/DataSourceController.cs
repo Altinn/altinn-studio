@@ -137,6 +137,13 @@ namespace AltinnCore.Designer.Controllers
             return RedirectToAction("Index");
         }
 
+        /// <summary>
+        /// Test action
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
         public IActionResult Test(string org, string service, string id)
         {
             // TODO: This is no good

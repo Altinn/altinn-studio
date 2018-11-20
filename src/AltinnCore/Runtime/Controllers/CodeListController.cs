@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,10 +7,17 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Runtime.Controllers
 {
+    /// <summary>
+    /// code list actions
+    /// </summary>
     public class CodelistController : Controller
     {
         private readonly IExecution _execution;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CodelistController"/> class
+        /// </summary>
+        /// <param name="executionService"></param>
         public CodelistController(IExecution executionService)
         {
           _execution = executionService;

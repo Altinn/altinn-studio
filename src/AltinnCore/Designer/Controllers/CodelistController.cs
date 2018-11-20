@@ -150,6 +150,12 @@ namespace AltinnCore.Designer.Controllers
                 new { action = "Index", controller = "Codelist", org, service });
         }
 
+        /// <summary>
+        /// Get code list
+        /// </summary>
+        /// <param name="org"></param>
+        /// <param name="service"></param>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult CodeLists(string org, string service)
         {

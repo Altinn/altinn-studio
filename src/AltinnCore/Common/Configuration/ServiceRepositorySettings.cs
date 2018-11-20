@@ -244,7 +244,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        ///
+        /// Get the path for the form layout file
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -260,7 +260,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        ///
+        /// Get the path for the third party component
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -396,7 +396,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        ///
+        /// Get binary folder name
         /// </summary>
         /// <returns></returns>
         public string GetBinaryFolder()

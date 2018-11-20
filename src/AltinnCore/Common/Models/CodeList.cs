@@ -4,6 +4,9 @@ using System.Text;
 
 namespace AltinnCore.Common.Models
 {
+    /// <summary>
+    /// code list
+    /// </summary>
     public class CodeList
     {
         /// <summary>

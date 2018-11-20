@@ -54,7 +54,7 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        ///
+        /// Get list of available services
         /// </summary>
         /// <param name="org"></param>
         /// <returns></returns>

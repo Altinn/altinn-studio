@@ -16,7 +16,7 @@ namespace AltinnCore.Common.Configuration
         FileInfo GetJsonDefaultFile(string fileName, string org = null);
 
         /// <summary>
-        ///
+        /// Get default web app file
         /// </summary>
         /// <param name="fileName"></param>
         /// <param name="org"></param>
