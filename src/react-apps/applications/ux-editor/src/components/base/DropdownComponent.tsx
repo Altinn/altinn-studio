@@ -29,7 +29,8 @@ export class DropdownComponent
       <select
         id={this.props.id}
         value={this.props.formData}
-        className={this.props.isValid ? 'custom-select a-custom-select' : 'custom-select a-custom-select validation-error'}
+        className={this.props.isValid ? 'custom-select a-custom-select'
+        : 'custom-select a-custom-select validation-error'}
         onChange={this.onDataChanged}
       >
         {options.map((option, index) => (
