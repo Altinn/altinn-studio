@@ -16,7 +16,7 @@ namespace AltinnCore.Common.Helpers
         /// Gets the service developer's user name
         /// </summary>
         /// <param name="context">the http context</param>
-        /// <param name="context"></param>
+        /// <returns>The developer user name</returns>
         public static string GetDeveloperUserName(HttpContext context)
         {
             string userName = null;

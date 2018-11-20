@@ -239,6 +239,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             /// <summary>
             /// class declaration
             /// </summary>
+            /// <returns>The string builder for the class declaration</returns>
             public string ClassDeclaration()
             {
                 const string Indent = "    ";
@@ -258,6 +259,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             /// <summary>
             /// all class declaration
             /// </summary>
+            /// <returns>The all the class declarations</returns>
             public IEnumerable<string> AllClassDeclarations()
             {
                 return AllTypeDescriptions().Select(p => p.ClassDeclaration());

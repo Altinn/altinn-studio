@@ -381,6 +381,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the CodeList folder
         /// </summary>
+        /// <returns>The codelist folder</returns>
         public string GetCodeListFolder()
         {
             return CODELISTS_FOLDER_NAME;
@@ -389,6 +390,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Get Resource Folder name
         /// </summary>
+        /// <returns>The resource folder</returns>
         public string GetResourceFolder()
         {
             return RESOURCE_FOLDER_NAME;
@@ -397,6 +399,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Returns the Metadata folder name
         /// </summary>
+        /// <returns>The metadata folder</returns>
         public string GetMetadataFolder()
         {
             return METADATA_FOLDER_NAME;
@@ -405,6 +408,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Get binary folder name
         /// </summary>
+        /// <returns>The binary folder</returns>
         public string GetBinaryFolder()
         {
             return BINARY_FOLDER_NAME;
