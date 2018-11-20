@@ -28,7 +28,6 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Version of the package.
         /// </summary>
-        /// <value>Version of the package.</value>
         public const string Version = "1.0.0";
 
         /// <summary>

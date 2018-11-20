@@ -42,7 +42,6 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// email addresses to add
         /// </summary>
-        /// <value>email addresses to add</value>
         [DataMember(Name="emails", EmitDefaultValue=false)]
         public List<string> Emails { get; set; }
 

@@ -50,7 +50,6 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// URL to the user&#39;s avatar
         /// </summary>
-        /// <value>URL to the user&#39;s avatar</value>
         [DataMember(Name="avatar_url", EmitDefaultValue=false)]
         public string AvatarUrl { get; set; }
 
@@ -63,21 +62,18 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// the user&#39;s full name
         /// </summary>
-        /// <value>the user&#39;s full name</value>
         [DataMember(Name="full_name", EmitDefaultValue=false)]
         public string FullName { get; set; }
 
         /// <summary>
         /// the user&#39;s id
         /// </summary>
-        /// <value>the user&#39;s id</value>
         [DataMember(Name="id", EmitDefaultValue=false)]
         public long? Id { get; set; }
 
         /// <summary>
         /// the user&#39;s username
         /// </summary>
-        /// <value>the user&#39;s username</value>
         [DataMember(Name="login", EmitDefaultValue=false)]
         public string Login { get; set; }
 

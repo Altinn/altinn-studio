@@ -68,7 +68,6 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Time in seconds
         /// </summary>
-        /// <value>Time in seconds</value>
         [DataMember(Name="time", EmitDefaultValue=false)]
         public long? Time { get; set; }
 

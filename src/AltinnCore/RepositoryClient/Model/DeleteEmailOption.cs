@@ -42,7 +42,6 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// email addresses to delete
         /// </summary>
-        /// <value>email addresses to delete</value>
         [DataMember(Name="emails", EmitDefaultValue=false)]
         public List<string> Emails { get; set; }
 

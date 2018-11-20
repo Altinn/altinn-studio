@@ -58,7 +58,6 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// An armored GPG key to add
         /// </summary>
-        /// <value>An armored GPG key to add</value>
         [DataMember(Name="armored_public_key", EmitDefaultValue=false)]
         public string ArmoredPublicKey { get; set; }
 
