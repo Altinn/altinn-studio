@@ -17,17 +17,16 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
-	using AltinnCore.Common.Helpers;
-	using AltinnCore.Common.Helpers.Extensions;
-	using Microsoft.AspNetCore.Http;
     using System.IO.Compression;
+    using AltinnCore.Common.Helpers;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
     /// </summary>
     public class ExecutionSILocalDev : IExecution
-	{
-		private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
+    {
+        private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
 
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
@@ -235,22 +234,22 @@ namespace AltinnCore.Common.Services.Implementation
             return codeCompilationResult.AssemblyName;
         }
 
-
-		/// <summary>
-		/// Returns the service metadata for a service
-		/// </summary>
-		/// <param name="org">The Organization code for the service owner</param>
-		/// <param name="service">The service code for the current service</param>
-
-		/// <returns>The service metadata for a service</returns>
-		public ServiceMetadata GetServiceMetaData(string org, string service)
-		{
-			return _repository.GetServiceMetaData(org, service);
-		}
+        /// <summary>
+        /// Returns the service metadata for a service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>The service metadata for a service</returns>
+        public ServiceMetadata GetServiceMetaData(string org, string service)
+        {
+            return _repository.GetServiceMetaData(org, service);
+        }
 
         /// <summary>
         /// Method that receives a stream and saves it to the given path
         /// </summary>
+        /// <param name="path">The path to the file to be saved to</param>
+        /// <param name="streamToSave">The steam to save to the file</param>
         public void SaveToFile(string path, Stream streamToSave)
         {
             using (Stream stream = File.Open(path, FileMode.Create, FileAccess.ReadWrite))
@@ -262,6 +261,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Method that fetches the users repo, zips it and returns the zip file
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <returns>The zipped file</returns>
         public FileStream ZipAndReturnFile(string org, string service, string developer)
         {
             string startPath = _settings.GetServicePath(org, service, developer);
@@ -278,6 +281,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Method that fetches the file of the specified path
         /// </summary>
+        /// <param name="path">The path of the file to open</param>
+        /// <returns>The filestream for the given paths file</returns>
         public FileStream GetFileStream(string path)
         {
             return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);

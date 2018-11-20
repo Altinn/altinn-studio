@@ -24,8 +24,8 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string getFormInstancesApiMethod = "GetFormInstances";
-        private const string getServicePrefillApiMethod = "GetServicePrefill";
+        private const string GetFormInstancesApiMethod = "GetFormInstances";
+        private const string GetServicePrefillApiMethod = "GetServicePrefill";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestdataSILocalDev"/> class
@@ -50,7 +50,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The service instance list</returns>
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
-            string apiUrl = _settings.GetRuntimeAPIPath(getFormInstancesApiMethod, org, service, developer, partyId);
+            string apiUrl = _settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, org, service, developer, partyId);
             List<ServiceInstance> returnList = new List<ServiceInstance>();
             using (HttpClient client = new HttpClient())
             {
@@ -60,7 +60,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return returnList;
-
         }
 
         /// <summary>
@@ -85,7 +84,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of prefill to be used</returns>
         public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null)
         {
-            string apiUrl = _settings.GetRuntimeAPIPath(getServicePrefillApiMethod, org, service, developer, partyId);
+            string apiUrl = _settings.GetRuntimeAPIPath(GetServicePrefillApiMethod, org, service, developer, partyId);
             List<ServicePrefill> returnList = new List<ServicePrefill>();
             using (HttpClient client = new HttpClient())
             {

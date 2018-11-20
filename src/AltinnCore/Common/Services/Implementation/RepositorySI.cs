@@ -412,7 +412,6 @@ namespace AltinnCore.Common.Services.Implementation
             return fileData;
         }
 
-
         /// <summary>
         /// Get the Json third party components from disk
         /// </summary>

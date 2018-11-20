@@ -390,7 +390,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                requestContext.UserContext.ReporteeId,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             serviceImplementation.SetServiceModel(serviceModel);
 

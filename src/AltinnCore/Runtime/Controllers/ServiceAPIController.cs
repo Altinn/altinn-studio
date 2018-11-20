@@ -13,12 +13,12 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -51,6 +51,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="repositoryService">The repository service (set in Startup.cs)</param>
         /// <param name="executionService">The execution service (set in Startup.cs)</param>
         /// <param name="profileService">The profile service (set in Startup.cs)</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             ICompilation compilationService,
@@ -61,8 +62,7 @@ namespace AltinnCore.Runtime.Controllers
             IRepository repositoryService,
             IExecution executionService,
             IProfile profileService,
-            IHttpContextAccessor httpContextAccessor
-            )
+            IHttpContextAccessor httpContextAccessor)
         {
             _settings = settings.Value;
             _compilation = compilationService;
