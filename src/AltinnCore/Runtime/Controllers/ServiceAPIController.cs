@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -36,6 +37,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IExecution _execution;
         private readonly IProfile _profile;
         private UserHelper _userHelper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceAPIController"/> class
@@ -58,7 +60,9 @@ namespace AltinnCore.Runtime.Controllers
             IForm formService,
             IRepository repositoryService,
             IExecution executionService,
-            IProfile profileService)
+            IProfile profileService,
+            IHttpContextAccessor httpContextAccessor
+            )
         {
             _settings = settings.Value;
             _compilation = compilationService;
@@ -70,6 +74,7 @@ namespace AltinnCore.Runtime.Controllers
             _execution = executionService;
             _profile = profileService;  
             _userHelper = new UserHelper(_profile, _register);
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -121,7 +126,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             // Assing the populated service model to the service implementation
             serviceImplementation.SetServiceModel(serviceModel);

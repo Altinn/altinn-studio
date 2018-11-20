@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.IO;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -13,6 +15,8 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string archiveServiceModelApiMethod = "ArchiveServiceModel";
+        private const string getArchivedServiceModelApiMethod = "GetArchivedServiceModel";
 
         public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
@@ -22,37 +26,53 @@ namespace AltinnCore.Common.Services.Implementation
 
         public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
         {
-            string archiveDirectory = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/";
-
-            if (!Directory.Exists(archiveDirectory))
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(archiveServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+            using (HttpClient client = new HttpClient())
             {
-                Directory.CreateDirectory(archiveDirectory);
-            }
-
-            string formDataFilePath =  archiveDirectory + instanceId + ".xml";
-
-            using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
-            {
+                client.BaseAddress = new Uri(apiUrl);
                 XmlSerializer serializer = new XmlSerializer(type);
-                serializer.Serialize(stream, dataToSerialize);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    serializer.Serialize(stream, dataToSerialize);
+                    stream.Position = 0;
+                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
+                    if (!response.Result.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Unable to archive service model");
+                    }
+                }
             }
         }
 
         public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
         {
-            string formDataFilePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "Testdataforparty/" + partyId + "/Archive/" + instanceId + ".xml";
-
-            XmlSerializer serializer = new XmlSerializer(type);
-            try
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(getArchivedServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+            using (HttpClient client = new HttpClient())
             {
-                using (Stream stream = File.Open(formDataFilePath, FileMode.Open, FileAccess.Read))
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                if (response.Result.IsSuccessStatusCode)
                 {
-                    return serializer.Deserialize(stream);
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    try
+                    {
+                        using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                        {
+                            return serializer.Deserialize(stream);
+                        }
+                    }
+                    catch
+                    {
+                        return Activator.CreateInstance(type);
+                    }
                 }
-            }
-            catch
-            {
-                return Activator.CreateInstance(type);
+                else
+                {
+                    return Activator.CreateInstance(type);
+                }
+
             }
         }
     }
