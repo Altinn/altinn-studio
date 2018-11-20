@@ -20,7 +20,8 @@
   },
   "include": [
     "./src/**/*",
-    "../**/src/**/*"
+    "../shared/src/**/*",
+    "../ux-editor/src/**/*"
   ],
   "exclude": [
     "node_modules",
