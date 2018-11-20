@@ -1261,6 +1261,7 @@ namespace AltinnCore.RepositoryClient.Api
         /// Gets the base path of the API client.
         /// </summary>
         /// <value>The base path</value>
+        /// <returns>the base path</returns>
         public string GetBasePath()
         {
             return this.Configuration.ApiClient.RestClient.BaseUrl.ToString();

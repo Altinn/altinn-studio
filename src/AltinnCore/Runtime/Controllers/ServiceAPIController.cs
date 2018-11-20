@@ -442,7 +442,6 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="reportee">The reportee number (organization number or ssn)</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The lookup result</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpPost]

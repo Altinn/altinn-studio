@@ -24,7 +24,7 @@ namespace AltinnCore.Runtime.Db
         /// <summary>
         /// Initializes a new instance of the <see cref="Startup"/> class
         /// </summary>
-        /// <param name="configuration"></param>
+        /// <param name="configuration">the configuration for the database</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -38,7 +38,7 @@ namespace AltinnCore.Runtime.Db
         /// <summary>
         /// configure database setttings for the service
         /// </summary>
-        /// <param name="services"></param>        
+        /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
@@ -50,8 +50,8 @@ namespace AltinnCore.Runtime.Db
         /// <summary>
         /// default configuration
         /// </summary>
-        /// <param name="app"></param>
-        /// <param name="env"></param>
+        /// <param name="app">the application builder</param>
+        /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

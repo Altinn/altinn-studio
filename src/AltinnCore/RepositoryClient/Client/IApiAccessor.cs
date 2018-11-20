@@ -31,6 +31,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// Gets the base path of the API client.
         /// </summary>
         /// <value>The base path</value>
+        /// <returns>the base path</returns>
         string GetBasePath();
 
         /// <summary>

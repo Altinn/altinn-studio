@@ -229,7 +229,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The start service View</returns>
         [Authorize]
         public IActionResult StartService(string org, string service)

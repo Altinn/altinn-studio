@@ -14,24 +14,24 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <summary>
         /// Get form data for the given parameters
         /// </summary>
-        /// <param name="reporteeId"></param>
-        /// <param name="reporteeElementId"></param>
-        /// <param name="formId"></param>
+        /// <param name="reporteeId">the owner of the reportee element</param>
+        /// <param name="reporteeElementId">the reportee element id</param>
+        /// <param name="formId">the form id</param>
         /// <returns></returns>
         Task<FormData> GetFormDataFromCollectionAsync(string reporteeId, string reporteeElementId, string formId);
 
         /// <summary>
         /// insert new formdata into collection
         /// </summary>
-        /// <param name="item"></param>
+        /// <param name="item">the form data</param>
         /// <returns></returns>
         Task<FormData> InsertFormDataIntoCollectionAsync(FormData item);
 
         /// <summary>
         /// update existing form data
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="item"></param>
+        /// <param name="id">the id of the form</param>
+        /// <param name="item">the form data</param>
         /// <returns></returns>
         Task<FormData> UpdateFormDataInCollectionAsync(string id, FormData item);
     }

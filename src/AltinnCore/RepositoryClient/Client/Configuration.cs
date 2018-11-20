@@ -455,6 +455,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Creates a new <see cref="ApiClient" /> based on this <see cref="Configuration" /> instance.
         /// </summary>
+        /// <returns>the api client</returns>
         public ApiClient CreateApiClient()
         {
             return new ApiClient(BasePath) { Configuration = this };
@@ -463,6 +464,7 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Returns a string with essential information for debugging.
         /// </summary>
+        /// <returns>debug report</returns>
         public static string ToDebugReport()
         {
             string report = "C# SDK (IO.Swagger) Debug Report:\n";
