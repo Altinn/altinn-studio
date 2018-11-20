@@ -26,7 +26,7 @@ namespace AltinnCore.Designer
         /// <summary>
         /// Configure the configuration builder
         /// </summary>
-        /// <param name="args"></param>
+        /// <param name="args">arguments for creating build configuration</param>
         /// <returns></returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)

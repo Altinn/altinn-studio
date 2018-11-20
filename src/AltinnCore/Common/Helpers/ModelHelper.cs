@@ -52,9 +52,9 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Map the state of the model to api result object
         /// </summary>
-        /// <param name="modelState"></param>
-        /// <param name="apiResult"></param>
-        /// <param name="serviceContext"></param>
+        /// <param name="modelState">the model state</param>
+        /// <param name="apiResult">the api result object</param>
+        /// <param name="serviceContext">the service context</param>
         public static void MapModelStateToApiResult(ModelStateDictionary modelState, ApiResult apiResult, ServiceContext serviceContext)
         {
             apiResult.ModelStateEntries = new List<ApiModelStateEntry>();

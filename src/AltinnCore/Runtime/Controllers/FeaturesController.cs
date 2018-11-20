@@ -22,7 +22,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="FeaturesController"/> class
         /// </summary>
-        /// <param name="partManager"></param>
+        /// <param name="partManager">the application part manager handler</param>
         public FeaturesController(ApplicationPartManager partManager)
         {
             _partManager = partManager;

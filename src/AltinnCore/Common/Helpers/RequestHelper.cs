@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Http;
 
@@ -38,7 +38,7 @@ namespace AltinnCore.Common.Helpers
         /// Checks the request for the standard user actions for the plattform
         /// based on
         /// </summary>
-        /// <param name="request"></param>
+        /// <param name="request">the http request</param>
         /// <returns></returns>
         public static UserActionType GetStandardUserAction(HttpRequest request)
         {

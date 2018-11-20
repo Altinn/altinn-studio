@@ -111,8 +111,8 @@ namespace AltinnCore.Designer.TagHelpers
         /// https://github.com/aspnet/Mvc/tree/a78f77afde003c4a3fcf5dd7b6dc13dd9c85f825/src/Microsoft.AspNetCore.Mvc.DataAnnotations/Internal
         /// and other attributes that uses altinn text key
         /// </summary>
-        /// <param name="tagHelperOutput"></param>
-        /// <param name="serviceContext"></param>
+        /// <param name="tagHelperOutput">the tag helper output</param>
+        /// <param name="serviceContext">the service context</param>
         private void ReplaceAttributeTextKeysWithText(TagHelperOutput tagHelperOutput, ServiceContext serviceContext)
         {
             for (int i = 0; i < tagHelperOutput.Attributes.Count; i++)

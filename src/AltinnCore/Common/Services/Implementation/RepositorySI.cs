@@ -1031,7 +1031,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create and clone the organisation's code list
         /// </summary>
-        /// <param name="org"></param>
+        /// <param name="org">the organisation</param>
         public void CreateAndCloneOrgCodeLists(string org)
         {
             try
@@ -1087,8 +1087,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// create a repository in gitea for the given organisation and options
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="createRepoOption"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="createRepoOption">the options for creating a repository</param>
         /// <returns></returns>
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {

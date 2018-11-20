@@ -96,8 +96,8 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Get the changes in the remote repository
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
         /// <returns></returns>
         [HttpGet]
         [Authorize]
@@ -124,8 +124,8 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// clone a repository
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
         /// <returns></returns>
         [Authorize]
         public IActionResult Clone(string org, string service)

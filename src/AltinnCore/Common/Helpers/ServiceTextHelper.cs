@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Helpers
@@ -46,8 +46,8 @@ namespace AltinnCore.Common.Helpers
         /// Replaces the tags in service text with configured values in text from request context and service context
         /// </summary>
         /// <param name="serviceText">The service text</param>
-        /// <param name="requestContext"></param>
-        /// <param name="serviceContext"></param>
+        /// <param name="requestContext">the request context</param>
+        /// <param name="serviceContext">the servie context</param>
         /// <returns></returns>
         public static string SetTextParams(string serviceText, RequestContext requestContext, ServiceContext serviceContext)
         {

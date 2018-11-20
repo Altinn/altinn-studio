@@ -21,8 +21,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <summary>
         /// create class
         /// </summary>
-        /// <param name="jsonData"></param>
-        /// <param name="type"></param>
+        /// <param name="jsonData">json data</param>
+        /// <param name="type">type of json data</param>
         public void CreateClass(JObject[] jsonData, JsonDataTypes type)
         {
             var jsonDataFields = new Dictionary<string, JsonDataTypes>();

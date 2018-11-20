@@ -67,8 +67,8 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// clone a remote repository to local
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repo"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repo">the name of repository</param>
         /// <returns></returns>
         [Authorize]
         [HttpGet]

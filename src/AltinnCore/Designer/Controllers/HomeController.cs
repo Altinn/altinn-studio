@@ -258,7 +258,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Store app token for user
         /// </summary>
-        /// <param name="appKey"></param>
+        /// <param name="appKey">the app key</param>
         /// <returns></returns>
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)

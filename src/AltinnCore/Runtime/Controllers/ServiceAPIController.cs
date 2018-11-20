@@ -269,13 +269,13 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Default action gor service api
+        /// Default action for service api
         /// </summary>
-        /// <param name="model"></param>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="instanceId"></param>
-        /// <param name="apiMode"></param>
+        /// <param name="model">the api model</param>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="apiMode">the mode of the api</param>
         /// <returns></returns>
         [Authorize]
         [HttpPut]
