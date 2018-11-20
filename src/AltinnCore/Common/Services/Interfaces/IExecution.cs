@@ -1,5 +1,6 @@
-﻿using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using System.IO;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -57,5 +58,20 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">The service code for the current service</param>
         /// <returns>The service metadata for a service</returns>
         ServiceMetadata GetServiceMetaData(string org, string service);
+
+        /// <summary>
+        /// Method that receives a stream and saves it to the given path
+        /// </summary>
+        void SaveToFile(string path, Stream streamToSave);
+
+        /// <summary>
+        /// Method that fetches the users repo, zips it and returns the zip file
+        /// </summary>
+        FileStream ZipAndReturnFile(string org, string service, string developer);
+
+        /// <summary>
+        /// Method that fetches the file of the specified path
+        /// </summary>
+        FileStream GetFileStream(string path);
     }
 }

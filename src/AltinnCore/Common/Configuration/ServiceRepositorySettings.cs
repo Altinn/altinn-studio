@@ -1,5 +1,4 @@
-﻿using AltinnCore.Common.Constants;
-using Microsoft.AspNetCore.Http;
+using System;
 
 namespace AltinnCore.Common.Configuration
 {
@@ -18,10 +17,15 @@ namespace AltinnCore.Common.Configuration
 		/// </summary>
 		public const string RESOURCE_FOLDER_NAME = "Resources/";
 
-		/// <summary>
-		/// Constant for the location of service tests
+        /// <summary>
+		/// Constant for the location of the testdata for parties folder
 		/// </summary>
-		public const string TEST_FOLDER_NAME = "Test/";
+		public const string TESTDATA_FOR_PARTY_FOLDER_NAME = "Testdataforparty/";
+        
+        /// <summary>
+        /// Constant for the location of service tests
+        /// </summary>
+        public const string TEST_FOLDER_NAME = "Test/";
 
 		/// <summary>
 		/// Constant for the service binaries
@@ -86,10 +90,15 @@ namespace AltinnCore.Common.Configuration
 		/// </summary>
 		public string RepositoryBaseURL { get; set; }
 
-		/// <summary>
-		/// Gets or sets the Internal repository BaseURL
-		/// </summary>
-		public string InternalRepositoryBaseURL { get; set; }
+        /// <summary>
+        /// Gets or sets the Runtime API endpoint
+        /// </summary>
+        public string RuntimeAPIEndPoint { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Internal repository BaseURL
+        /// </summary>
+        public string InternalRepositoryBaseURL { get; set; }
 
 		/// <summary>
 		/// Gets or sets the GiteaCookieName
@@ -241,27 +250,45 @@ namespace AltinnCore.Common.Configuration
 				developer += "/";
 			}
 
-			return $"{RepositoryLocation}{developer}{org}/{service}/";
+            string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
+            return $"{repositoryLocation}{developer}{org}/{service}/";
 		}
 
-		/// <summary>
-		/// 
-		/// </summary
-		/// <param name="org">The Organization code for the service owner</param>
-		/// <param name="service">The service code for the current service</param>
-		/// <returns>The full path, ending with "/"</return>
-		public string GetFormLayoutPath(string org, string service, string developer)
+        /// <summary>
+        /// Gets the full path to the testdata for party directory
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">The current user, service developer</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetTestdataForPartyPath(string org, string service, string developer = null)
+        {
+            if (developer != null)
+            {
+                developer += "/";
+            }
+
+            return $"{RepositoryLocation}{developer}{org}/{service}/{TESTDATA_FOR_PARTY_FOLDER_NAME}";
+        }
+
+        /// <summary>
+        /// Method that returns the path to the form layout file
+        /// </summary
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>The full path, ending with "/"</return>
+        public string GetFormLayoutPath(string org, string service, string developer)
 		{
 			if (developer != null)
 			{
 				developer += "/";
 			}
 
-			return $"{RepositoryLocation}/{developer}{org}/{service}/";
-		}
+			return $"{RepositoryLocation}/{developer}{org}/{service}/{FormLayoutJSONFileName}";
+        }
 
 		/// <summary>
-		/// 
+		/// Method that returns the path to the third party component file
 		/// </summary
 		/// <param name="org">The Organization code for the service owner</param>
 		/// <param name="service">The service code for the current service</param>
@@ -273,7 +300,7 @@ namespace AltinnCore.Common.Configuration
 				developer += "/";
 			}
 
-			return $"{RepositoryLocation}/{developer}{org}/{service}/";
+			return $"{RepositoryLocation}/{developer}{org}/{service}/{ThirdPartyComponentsJSONFileName}";
 		}
 
 		/// <summary>
@@ -472,5 +499,22 @@ namespace AltinnCore.Common.Configuration
 		{
 			return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
 		}
-	}
+
+        /// <summary>
+        /// Gets the path to the runtime api for sharing files between runtime and designer
+        /// </summary>
+        public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0)
+        {
+            string runtimeAPIEndPoint = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RuntimeAPIEndPoint") ?? RuntimeAPIEndPoint;
+
+            if (partyId == 0)
+            {
+                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}";
+            }
+            else
+            {
+                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
+            }
+        }
+    }
 }

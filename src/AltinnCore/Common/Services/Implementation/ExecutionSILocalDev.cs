@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -20,11 +20,12 @@ namespace AltinnCore.Common.Services.Implementation
 	using AltinnCore.Common.Helpers;
 	using AltinnCore.Common.Helpers.Extensions;
 	using Microsoft.AspNetCore.Http;
+    using System.IO.Compression;
 
-	/// <summary>
-	/// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
-	/// </summary>
-	public class ExecutionSILocalDev : IExecution
+    /// <summary>
+    /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
+    /// </summary>
+    public class ExecutionSILocalDev : IExecution
 	{
 		private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
 
@@ -247,5 +248,40 @@ namespace AltinnCore.Common.Services.Implementation
 		{
 			return _repository.GetServiceMetaData(org, service);
 		}
-	}
+
+        /// <summary>
+        /// Method that receives a stream and saves it to the given path
+        /// </summary>
+        public void SaveToFile(string path, Stream streamToSave)
+        {
+            using (Stream stream = File.Open(path, FileMode.Create, FileAccess.ReadWrite))
+            {
+                streamToSave.CopyTo(stream);
+            }
+        }
+
+        /// <summary>
+        /// Method that fetches the users repo, zips it and returns the zip file
+        /// </summary>
+        public FileStream ZipAndReturnFile(string org, string service, string developer)
+        {
+            string startPath = _settings.GetServicePath(org, service, developer);
+            string zipPath = $"{_settings.GetOrgPath(org, developer)}{service}.zip";
+            if (File.Exists(zipPath))
+            {
+                File.Delete(zipPath);
+            }
+
+            ZipFile.CreateFromDirectory(startPath, zipPath);
+            return File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        }
+
+        /// <summary>
+        /// Method that fetches the file of the specified path
+        /// </summary>
+        public FileStream GetFileStream(string path)
+        {
+            return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+    }
 }

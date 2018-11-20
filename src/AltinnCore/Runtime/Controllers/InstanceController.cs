@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Backend;
@@ -31,6 +31,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IArchive _archive;
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -44,6 +45,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="serviceExecutionService">The serviceExecutionService (set in Startup.cs)</param>
         /// <param name="profileService">The profileService (set in Startup.cs)</param>
         /// <param name="archiveService">The archive service</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
         public InstanceController(IAuthorization authorizationService, 
             ILogger<InstanceController> logger, 
             IRegister registerService, 
@@ -52,7 +54,8 @@ namespace AltinnCore.Runtime.Controllers
             IExecution serviceExecutionService,
             IProfile profileService,
             IArchive archiveService,
-            ITestdata testDataService)
+            ITestdata testDataService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -63,6 +66,7 @@ namespace AltinnCore.Runtime.Controllers
             _userHelper = new UserHelper(profileService, _register);
             _archive = archiveService;
             _testdata = testDataService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
 
@@ -82,7 +86,7 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
             {
                 return RedirectToAction("Receipt", new { org, service, instanceId });
@@ -126,7 +130,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Identify the correct view
             // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceImplementation.SetServiceModel(serviceModel);
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
@@ -170,7 +174,7 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, platformServices);
 
             //Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceImplementation.SetServiceModel(serviceModel);
             
             ViewBag.FormID = instanceId;
@@ -220,7 +224,7 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, platformServices);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.Reportee.PartyId);
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
             return View();
@@ -382,7 +386,7 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             serviceImplementation.SetServiceModel(serviceModel);
 

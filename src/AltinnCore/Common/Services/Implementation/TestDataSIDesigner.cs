@@ -17,26 +17,22 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Services with functionality for test data under service development
     /// </summary>
-    public class TestdataSILocalDev : ITestdata
+    public class TestdataSIDesigner : ITestdata
     {
         private const string TESTUSERS_FILENAME = "testusers.json";
 
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string getFormInstancesApiMethod = "GetFormInstances";
-        private const string getServicePrefillApiMethod = "GetServicePrefill";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestdataSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="TestdataSIDesigner"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>
-        public TestdataSILocalDev(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
+        public TestdataSIDesigner(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings)
         {
             this._testdataRepositorySettings = testdataRepositorySettings.Value;
             this._settings = repositorySettings.Value;
-            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -47,18 +43,38 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="service">The service code for the current service</param>
         /// <param name="developer">The developer for the current service if any</param>
         /// <returns>The service instance list</returns>
-        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
+        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer= null)
         {
-            string apiUrl = _settings.GetRuntimeAPIPath(getFormInstancesApiMethod, org, service, developer, partyId);
-            List<ServiceInstance> returnList = new List<ServiceInstance>();
-            using (HttpClient client = new HttpClient())
+            List<ServiceInstance> formInstances = new List<ServiceInstance>();
+            string formDataFilePath = _settings.GetTestdataForPartyPath(org, service, developer) + partyId;
+            string archiveFolderPath = $"{formDataFilePath}/Archive/";
+            if (!Directory.Exists(archiveFolderPath))
             {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                returnList = response.Result.Content.ReadAsAsync<List<ServiceInstance>>().Result;
+                Directory.CreateDirectory(archiveFolderPath);
             }
 
-            return returnList;
+            string[] files = Directory.GetFiles(formDataFilePath);
+            foreach (string file in files)
+            {
+                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int instanceId))
+                {
+                    ServiceInstance serviceInstance = new ServiceInstance()
+                    {
+                        ServiceInstanceID = instanceId,
+                        LastChanged = File.GetLastWriteTime(file)
+                    };
+
+                    string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";
+                    if (File.Exists(archiveFilePath))
+                    {
+                        serviceInstance.LastChanged = File.GetLastWriteTime(archiveFilePath);
+                        serviceInstance.IsArchived = true;
+                    }
+
+                    formInstances.Add(serviceInstance);
+                }
+            }
+            return formInstances;
 
         }
 
@@ -84,30 +100,25 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of prefill to be used</returns>
         public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null)
         {
-            string apiUrl = _settings.GetRuntimeAPIPath(getServicePrefillApiMethod, org, service, developer, partyId);
-            List<ServicePrefill> returnList = new List<ServicePrefill>();
-            using (HttpClient client = new HttpClient())
+            List<ServicePrefill> formInstances = new List<ServicePrefill>();
+            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Prefill/";
+            if (!Directory.Exists(formDataFilePath))
             {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    try
-                    {
-                        returnList = response.Result.Content.ReadAsAsync<List<ServicePrefill>>().Result;
-                    }
-                    catch
-                    {
-                        return returnList;
-                    }
-                }
-                else
-                {
-                    return returnList;
-                }
+                Directory.CreateDirectory(formDataFilePath);
             }
 
-            return returnList;
+            string[] files = Directory.GetFiles(formDataFilePath);
+            foreach (string file in files)
+            {
+                formInstances.Add(
+                    new ServicePrefill()
+                    {
+                        PrefillKey = Path.GetFileNameWithoutExtension(file),
+                        LastChanged = File.GetLastWriteTime(file)
+                    });
+            }
+
+            return formInstances;
         }
     }
 }
