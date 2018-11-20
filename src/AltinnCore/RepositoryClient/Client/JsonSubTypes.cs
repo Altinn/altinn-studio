@@ -23,12 +23,12 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         public class KnownSubTypeAttribute : Attribute
         {
             /// <summary>
-            /// Gets or sets sub type
+            /// Gets the sub type
             /// </summary>
             public Type SubType { get; private set; }
 
             /// <summary>
-            /// Gets or sets associated value
+            /// Gets the associated value
             /// </summary>
             public object AssociatedValue { get; private set; }
 
@@ -51,12 +51,12 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         public class KnownSubTypeWithPropertyAttribute : Attribute
         {
             /// <summary>
-            /// Gets or sets sub type
+            /// Gets the sub type
             /// </summary>
             public Type SubType { get; private set; }
 
             /// <summary>
-            /// Gets or sets property name
+            /// Gets the property name
             /// </summary>
             public string PropertyName { get; private set; }
 
