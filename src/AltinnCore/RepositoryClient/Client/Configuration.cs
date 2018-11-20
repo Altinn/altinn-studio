@@ -447,7 +447,6 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="key">Header field name.</param>
         /// <param name="value">Header field value.</param>
-        /// <returns></returns>
         public void AddDefaultHeader(string key, string value)
         {
             DefaultHeader[key] = value;
@@ -456,7 +455,6 @@ namespace AltinnCore.RepositoryClient.Client
         /// <summary>
         /// Creates a new <see cref="ApiClient" /> based on this <see cref="Configuration" /> instance.
         /// </summary>
-        /// <returns></returns>
         public ApiClient CreateApiClient()
         {
             return new ApiClient(BasePath) { Configuration = this };
@@ -481,7 +479,6 @@ namespace AltinnCore.RepositoryClient.Client
         /// </summary>
         /// <param name="key">Api Key name.</param>
         /// <param name="value">Api Key value.</param>
-        /// <returns></returns>
         public void AddApiKey(string key, string value)
         {
             ApiKey[key] = value;
