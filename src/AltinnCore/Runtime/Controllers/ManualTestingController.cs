@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
+using System.Net.Http;
+using System.IO;
+using System.IO.Compression;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -28,9 +31,11 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IRegister _register;
         private readonly IAuthorization _authorization;
         private ITestdata _testdata;
+        private IExecution _execution;
         private UserHelper _userHelper;
         private readonly ServiceRepositorySettings _settings;
         private readonly IGitea _giteaApi;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -41,13 +46,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>        
         /// <param name="repositorySettings">the repository setting service handler</param>
         /// <param name="giteaWrapper">the gitea wrapper handler</param> 
-        public ManualTestingController(
-            ITestdata testdataService,
-            IProfile profileService,
-            IRegister registerService,
-            IAuthorization authorizationService,
-            IOptions<ServiceRepositorySettings> repositorySettings,
-            IGitea giteaWrapper)
+        public ManualTestingController(ITestdata testdataService, IProfile profileService, IRegister registerService,
+            IAuthorization authorizationService, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IExecution execution, IHttpContextAccessor contextAccessor)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -56,10 +56,12 @@ namespace AltinnCore.Runtime.Controllers
             _userHelper = new UserHelper(_profile, _register);
             _settings = repositorySettings.Value;
             _giteaApi = giteaWrapper;
+            _execution = execution;
+            _httpContextAccessor = contextAccessor;
         }
 
         /// <summary>
-        /// This methods list the instances for a given reportee for a service. This can be looked
+        /// This methods list the instances for a given reportee for a service. This can be looked 
         /// at as a simplified message box
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -67,8 +69,37 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="reporteeId">The reporteeId</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public IActionResult Index(string org, string service, int reporteeId)
+        public async Task<IActionResult> Index(string org, string service, int reporteeId)
         {
+            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = _settings.GetRuntimeAPIPath("ZipAndSendRepo", org, service, developer);
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                HttpResponseMessage response = await client.GetAsync(apiUrl);
+                string zipPath = $"{_settings.GetServicePath(org, service, developer)}{service}.zip";
+                string extractPath = _settings.GetServicePath(org, service, developer);
+                if (!Directory.Exists(extractPath))
+                {
+                    Directory.CreateDirectory(extractPath);
+                }
+                else
+                {
+                    Directory.Delete(extractPath, true);
+                    Directory.CreateDirectory(extractPath);
+                }
+
+                using (Stream s = response.Content.ReadAsStreamAsync().Result)
+                {
+                    using (var w = System.IO.File.OpenWrite(zipPath))
+                    {
+                        s.CopyTo(w);
+                    }
+                }
+
+                ZipFile.ExtractToDirectory(zipPath, extractPath);
+            }
+
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
@@ -82,7 +113,7 @@ namespace AltinnCore.Runtime.Controllers
                 PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
-                ReporteeID = requestContext.Reportee.PartyId,
+                ReporteeID = requestContext.Reportee.PartyId
             };
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
@@ -93,7 +124,7 @@ namespace AltinnCore.Runtime.Controllers
                 HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
             }
 
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             ViewBag.InstanceList = formInstances.OrderBy(r => r.LastChanged).ToList();
 
             return View(startServiceModel);

@@ -191,10 +191,33 @@ namespace AltinnCore.Common.Services.Implementation
             throw new NotImplementedException();
         }
 
-        /// <inheritdoc/>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
           throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Method that receives a stream and saves it to the given path
+        /// </summary>
+        public void SaveToFile(string path, Stream streamToSave)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Method that fetches the users repo, zips it and returns the zip file
+        /// </summary>
+        public FileStream ZipAndReturnFile(string org, string service, string developer)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Method that fetches the file of the specified path
+        /// </summary>
+        public FileStream GetFileStream(string path)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -1,5 +1,4 @@
-using AltinnCore.Common.Constants;
-using Microsoft.AspNetCore.Http;
+using System;
 
 namespace AltinnCore.Common.Configuration
 {
@@ -18,6 +17,11 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         public const string RESOURCE_FOLDER_NAME = "Resources/";
 
+        /// <summary>
+		/// Constant for the location of the testdata for parties folder
+		/// </summary>
+		public const string TESTDATA_FOR_PARTY_FOLDER_NAME = "Testdataforparty/";
+        
         /// <summary>
         /// Constant for the location of service tests
         /// </summary>
@@ -84,6 +88,11 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the Repository Base URL
         /// </summary>
         public string RepositoryBaseURL { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Runtime API endpoint
+        /// </summary>
+        public string RuntimeAPIEndPoint { get; set; }
 
         /// <summary>
         /// Gets or sets the Internal repository BaseURL
@@ -240,42 +249,58 @@ namespace AltinnCore.Common.Configuration
                 developer += "/";
             }
 
-            return $"{RepositoryLocation}{developer}{org}/{service}/";
+            string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
+            return $"{repositoryLocation}{developer}{org}/{service}/";
+		}
+
+        /// <summary>
+        /// Gets the full path to the testdata for party directory
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">The current user, service developer</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetTestdataForPartyPath(string org, string service, string developer = null)
+        {
+            if (developer != null)
+            {
+                developer += "/";
+            }
+
+            return $"{RepositoryLocation}{developer}{org}/{service}/{TESTDATA_FOR_PARTY_FOLDER_NAME}";
         }
 
         /// <summary>
-        /// Get the path for the form layout file
+        /// Method that returns the path to the form layout file
         /// </summary
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path, ending with "/"</return>
         public string GetFormLayoutPath(string org, string service, string developer)
-        {
-            if (developer != null)
-            {
-                developer += "/";
-            }
+		{
+			if (developer != null)
+			{
+				developer += "/";
+			}
 
-            return $"{RepositoryLocation}/{developer}{org}/{service}/";
+			return $"{RepositoryLocation}/{developer}{org}/{service}/{FormLayoutJSONFileName}";
         }
 
-        /// <summary>
-        /// Get the path for the third party component
-        /// </summary
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">the developer for the current service</param>        
-        /// <returns>The full path, ending with "/"</return>
-        public string GetThirdPartyComponentsPath(string org, string service, string developer)
-        {
-            if (developer != null)
-            {
-                developer += "/";
-            }
+		/// <summary>
+		/// Method that returns the path to the third party component file
+		/// </summary
+		/// <param name="org">The Organization code for the service owner</param>
+		/// <param name="service">The service code for the current service</param>
+		/// <returns>The full path, ending with "/"</return>
+		public string GetThirdPartyComponentsPath(string org, string service, string developer)
+		{
+			if (developer != null)
+			{
+				developer += "/";
+			}
 
-            return $"{RepositoryLocation}/{developer}{org}/{service}/";
-        }
+			return $"{RepositoryLocation}/{developer}{org}/{service}/{ThirdPartyComponentsJSONFileName}";
+		}
 
         /// <summary>
         /// Get the path to rule handler file
@@ -473,14 +498,31 @@ namespace AltinnCore.Common.Configuration
             return GetOrgPath(org, developer) + TEXTRESOURCE_ORG_FOLDER_NAME;
         }
 
+		/// <summary>
+		/// Gets the path to common text resources in altinn
+		/// </summary>
+		/// <param name="developer">The current user, service developer</param>
+		/// <returns>The path to common text resources in altinn, ending with "/"</returns>
+		public string GetCommonTextResourcePath(string developer)
+		{
+			return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
+		}
+
         /// <summary>
-        /// Gets the path to common text resources in altinn
+        /// Gets the path to the runtime api for sharing files between runtime and designer
         /// </summary>
-        /// <param name="developer">The current user, service developer</param>
-        /// <returns>The path to common text resources in altinn, ending with "/"</returns>
-        public string GetCommonTextResourcePath(string developer)
+        public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0)
         {
-            return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
+            string runtimeAPIEndPoint = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RuntimeAPIEndPoint") ?? RuntimeAPIEndPoint;
+
+            if (partyId == 0)
+            {
+                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}";
+            }
+            else
+            {
+                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
+            }
         }
     }
 }

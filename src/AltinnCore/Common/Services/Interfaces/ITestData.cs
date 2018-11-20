@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -20,8 +20,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="partyId">The partyId</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">The developer for the current service if any</param>
         /// <returns>List of form instances</returns>
-        List<ServiceInstance> GetFormInstances(int partyId, string org, string service);
+        List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null);
 
         /// <summary>
         /// Returns a list over local stored prefill for a given service
@@ -29,7 +30,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="partyId">The partyId for the test reportee</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">The developer for the current service if any</param>
         /// <returns>List over prefill</returns>
-        List<ServicePrefill> GetServicePrefill(int partyId, string org, string service);
+        List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null);
     }
 }

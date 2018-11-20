@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
       - name: altinn-designer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:805
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-core:#{Release.Artifacts.Designer.BuildId}#
         ports:
         - containerPort: 5000
         volumeMounts:
@@ -73,48 +73,47 @@ spec:
       - name: acrsecret
 ---
 
-#####################################################################################################################################
-# Altinn-runtime will not be deployed until we have adressed the technical difficulties we have encountered with sharing of volumes #
-#####################################################################################################################################
-# apiVersion: extensions/v1beta1
-# kind: Deployment
-# metadata:
-#   name: altinn-runtime
-# spec:
-#   replicas: 1
-#   template:
-#     metadata:
-#       labels:
-#         app: altinn-runtime
-#     spec:
-#       containers:
-#       - name: altinn-runtime
-#         image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:545
-#         ports:
-#         - containerPort: 5005
-#         volumeMounts:
-#         - name: altinn-repo-storage
-#           mountPath: "/AltinnCore/Repos"
-#         env:
-#           - name: GiteaEndpoint
-#             value: altinn.studio
-#           - name: GiteaLoginEndpoint
-#             value: https://altinn.studio/user/login
-#           - name: GiteaApiEndpoint
-#             value: https://altinn.studio/api/v1
-#           - name: ASPNETCORE_ENVIRONMENT
-#             value: Development
-#           - name: ASPNETCORE_URLS
-#             value: http://+:5005
-#           - name: ServiceRepositorySettings__RepositoryLocation
-#             value: /AltinnCore/Repos/
-#           - name: ServiceRepositorySettings__RepositoryBaseURL
-#             value: http://altinn-repositories:3000
-#           - name: ServiceRepositorySettings__EnableGiteaIntegration
-#             value: "true"
-#       volumes:
-#       - name: altinn-repo-storage
-#         persistentVolumeClaim:
-#           claimName: altinn-storage-repo-volume-claim
-#       imagePullSecrets:
-#       - name: acrsecret
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: altinn-runtime
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: altinn-runtime
+    spec:
+      containers:
+      - name: altinn-runtime
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-runtime:#{Release.Artifacts.Runtime.BuildId}#
+        ports:
+        - containerPort: 5005
+        volumeMounts:
+        - name: altinn-runtime-repo-storage
+          mountPath: "/AltinnRuntime/Repos"
+        env:
+          - name: GiteaEndpoint
+            value: altinn.studio
+          - name: GiteaLoginEndpoint
+            value: https://altinn.studio/user/login
+          - name: GiteaApiEndpoint
+            value: https://altinn.studio/api/v1
+          - name: ASPNETCORE_ENVIRONMENT
+            value: Development
+          - name: ASPNETCORE_URLS
+            value: http://+:5005
+          - name: ServiceRepositorySettings__RepositoryLocation
+            value: /AltinnRuntime/Repos/
+          - name: ServiceRepositorySettings__RepositoryBaseURL
+            value: http://altinn-repositories:3000
+          - name: ServiceRepositorySettings__EnableGiteaIntegration
+            value: "true"
+          - name: ServiceRepositorySettings__RuntimeAPIEndPoint
+            value: "https://altinn.studio/"
+      volumes:
+      - name: altinn-runtime-repo-storage
+        persistentVolumeClaim:
+          claimName: altinn-storage-runtime-repo-volume-claim
+      imagePullSecrets:
+      - name: acrsecret
