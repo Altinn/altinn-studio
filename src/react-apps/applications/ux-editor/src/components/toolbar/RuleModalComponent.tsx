@@ -3,6 +3,7 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import RuleConnectionActionDispatchers from '../../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import { RuleComponent } from '../config/RuleComponent';
+import fallbackLanguage from '../../../../shared/fallbackLanguage';
 
 export interface IRuleModalProps {
   ruleConnection: any;
@@ -76,7 +77,8 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
     return (
       <>
         <p className='a-fontSizeS mt-2 mb-1'>
-          {this.props.language ? this.props.language.ux_editor.rule_connection_header : 'Rule Connections'}
+          {this.props.language ? this.props.language.ux_editor.rule_connection_header :
+            fallbackLanguage.ux_editor.rule_connection_header}
         </p>
         <button
           type='button'
@@ -86,7 +88,7 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
         >
           <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
           <span className='a-fontSizeXS'>
-            {this.props.language ? this.props.language.general.add_connection : 'Add connection'}
+            {this.props.language ? this.props.language.general.add_connection : fallbackLanguage.add_connection}
           </span>
         </button>
         <Modal

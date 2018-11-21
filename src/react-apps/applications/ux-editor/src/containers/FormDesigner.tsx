@@ -5,6 +5,7 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
+import fallbackLanguage from '../../../shared/fallbackLanguage';
 
 export interface IFormDesignerProps {
   language: any;
@@ -42,7 +43,7 @@ class FormDesigner extends React.Component<
 
     return (
       <button type='button' className='a-btn a-btn-success' onClick={handleSaveButton}>
-        {this.props.language ? this.props.language.general.save : 'Save'}
+        {this.props.language ? this.props.language.general.save : fallbackLanguage.save}
       </button>
     );
   }
@@ -54,7 +55,8 @@ class FormDesigner extends React.Component<
 
           <div className='container mb-3'>
             <div className='row mt-3'>
-              <h1>{this.props.language ? this.props.language.ux_editor.form_designer : 'Form designer'}</h1>
+              <h1>{this.props.language ? this.props.language.ux_editor.form_designer :
+                fallbackLanguage.ux_editor.form_designer}</h1>
             </div>
             <div className='row bigger-container mt-3'>
               <Toolbar />

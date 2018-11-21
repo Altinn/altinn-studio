@@ -3,6 +3,7 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ApiActionDispatchers from '../../actions/apiActions/apiActionDispatcher';
 import { ApiConfigurationComponent } from '../config/ApiConfigurationComponent';
+import fallbackLanguage from '../../../../shared/fallbackLanguage';
 
 export interface IExternalApiModalProps {
   connections: any;
@@ -89,7 +90,8 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
     return (
       <>
         <p className='a-fontSizeS mt-2 mb-1'>
-          {this.props.language ? this.props.language.ux_editor.api_connection_header : 'Api connection'}
+          {this.props.language ? this.props.language.ux_editor.api_connection_header :
+            fallbackLanguage.ux_editor.api_connection_header}
         </p>
         <button
           type='button'
@@ -98,7 +100,7 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
         >
           <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
           <span className='a-fontSizeXS'>
-            {this.props.language ? this.props.language.general.add_connection : 'Add connection'}
+            {this.props.language ? this.props.language.general.add_connection : fallbackLanguage.add_connection}
           </span>
         </button>
         <Modal

@@ -5,6 +5,7 @@ import { ExternalApiComponent } from './ExternalAPIComponent';
 
 import * as uuid from 'uuid/v1'; // time
 import * as uuidv4 from 'uuid/v4'; // random
+import fallbackLanguage from '../../../../shared/fallbackLanguage';
 
 export interface IProvidedProps {
   connectionId?: any;
@@ -294,7 +295,8 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'codelist'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {this.props.language ? this.props.language.ux_editor.modal_configure_api_code_list : 'Code list'}
+            {this.props.language ? this.props.language.ux_editor.modal_configure_api_code_list :
+              fallbackLanguage.ux_editor.modal_configure_api_code_list}
           </label>
         </div>
         <div
@@ -308,7 +310,8 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'externalapi'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {this.props.language ? this.props.language.ux_editor.modal_configure_api_extermnal_api : 'External API'}
+            {this.props.language ? this.props.language.ux_editor.modal_configure_api_extermnal_api :
+              fallbackLanguage.ux_editor.modal_configure_api_extermnal_api}
           </label>
         </div>
       </div>
@@ -326,7 +329,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               className='a-btn a-btn-success mr-2'
               onClick={this.handleSaveEdit}
             >
-              {this.props.language ? this.props.language.general.save : 'Save'}
+              {this.props.language ? this.props.language.general.save : fallbackLanguage.save}
             </button>
             :
             null
@@ -338,12 +341,12 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               className='a-btn a-btn-danger mr-2'
               onClick={this.handleDeleteConnection}
             >
-              {this.props.language ? this.props.language.general.delete : 'Delete'}
+              {this.props.language ? this.props.language.general.delete : fallbackLanguage.delete}
             </button>
             : null
           }
           <a onClick={this.props.cancelEdit}>
-            {this.props.language ? this.props.language.general.cancel : 'Cancel'}
+            {this.props.language ? this.props.language.general.cancel : fallbackLanguage.cancel}
           </a>
         </div>
       </div >
@@ -361,7 +364,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
                 {this.props.language ? this.props.language.ux_editor.modal_configure_api_header
-                  : 'Configure API connection'}
+                  : fallbackLanguage.ux_editor.modal_configure_api_header}
               </span>
             </h1>
           </div>

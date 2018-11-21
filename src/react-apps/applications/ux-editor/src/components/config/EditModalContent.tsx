@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import fallbackLanguage from '../../.././../shared/fallbackLanguage';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 export interface IEditModalContentProps {
@@ -79,8 +80,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public handleAddOption = () => {
     const updatedComponent: IFormComponent = this.state.component;
     updatedComponent.options.push({
-      label: this.props.language ? this.props.language.general.label : 'Label',
-      value: this.props.language ? this.props.language.general.value : 'Value',
+      label: this.props.language ? this.props.language.general.label : fallbackLanguage.label,
+      value: this.props.language ? this.props.language.general.value : fallbackLanguage.value,
     });
     this.setState({
       component: updatedComponent,
@@ -201,7 +202,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 id={'InputIsDisabled'}
               />
               <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsDisabled'>
-                {this.props.language ? this.props.language.general.disabled : 'Disabled'}
+                {this.props.language ? this.props.language.general.disabled : fallbackLanguage.disabled}
               </label>
             </div>
             <div className='custom-control custom-control-stacked pl-0 custom-checkbox a-custom-checkbox'>
@@ -215,7 +216,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 id={'InputIsRequired'}
               />
               <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsRequired'>
-                {this.props.language ? this.props.language.general.required : 'Required'}
+                {this.props.language ? this.props.language.general.required : fallbackLanguage.required}
               </label>
             </div>
           </div>
@@ -226,17 +227,18 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <div className='form-group a-form-group mt-2'>
             <h2 className='a-h4'>
-              {this.props.language ? this.props.language.ux_editor.modal_options : 'Options'}
+              {this.props.language ? this.props.language.ux_editor.modal_options :
+                fallbackLanguage.ux_editor.modal_options}
             </h2>
             <div className='row align-items-center'>
               <div className='col-5'>
                 <label className='a-form-label'>
-                  {this.props.language ? this.props.language.general.label : 'Label'}
+                  {this.props.language ? this.props.language.general.label : fallbackLanguage.label}
                 </label>
               </div>
               <div className='col-5'>
                 <label className='a-form-label'>
-                  {this.props.language ? this.props.language.general.value : 'Value'}
+                  {this.props.language ? this.props.language.general.value : fallbackLanguage.value}
                 </label>
               </div>
             </div>
@@ -244,7 +246,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
                   <label htmlFor={'editModal_radiolabel-' + index} className='a-form-label sr-only'>
-                    {this.props.language ? this.props.language.ux_editor.modal_text : 'Text'}
+                    {this.props.language ? this.props.language.ux_editor.modal_text :
+                      fallbackLanguage.ux_editor.modal_text}
                   </label>
                   <select
                     id={'editModal_radiolabel-' + index}
@@ -253,7 +256,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                     value={option.label}
                   >}
                     <option key={'empty'} value={''}>
-                      {this.props.language ? this.props.language.general.choose_label : 'Choose label'}
+                      {this.props.language ? this.props.language.general.choose_label : fallbackLanguage.choose_label}
                     </option>
                     {this.renderTextResourceOptions()}
                   </select>
@@ -280,7 +283,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  {this.props.language ? this.props.language.ux_editor.modal_new_option : 'Add new option'}
+                  {this.props.language ? this.props.language.ux_editor.modal_new_option :
+                    fallbackLanguage.ux_editor.modal_new_option}
                 </button>
               </div>
               <div />
@@ -293,17 +297,18 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <div className='form-group a-form-group mt-2'>
             <h2 className='a-h4'>
-              {this.props.language ? this.props.language.ux_editor.modal_options : 'Options'}
+              {this.props.language ? this.props.language.ux_editor.modal_options :
+                fallbackLanguage.ux_editor.modal_options}
             </h2>
             <div className='row align-items-center'>
               <div className='col-5'>
                 <label className='a-form-label'>
-                  {this.props.language ? this.props.language.general.label : 'Label'}
+                  {this.props.language ? this.props.language.general.label : fallbackLanguage.label}
                 </label>
               </div>
               <div className='col-5'>
                 <label className='a-form-label'>
-                  {this.props.language ? this.props.language.general.value : 'Value'}
+                  {this.props.language ? this.props.language.general.value : fallbackLanguage.value}
                 </label>
               </div>
             </div>
@@ -312,7 +317,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
                   <label htmlFor={'editModal_dropdownlabel-' + index} className='a-form-label sr-only'>
-                    {this.props.language ? this.props.language.ux_editor.modal_text : 'Text'}
+                    {this.props.language ? this.props.language.ux_editor.modal_text :
+                      fallbackLanguage.ux_editor.modal_text}
                   </label>
                   <select
                     id={'editModal_dropdownlabel-' + index}
@@ -321,7 +327,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                     value={option.label}
                   >}
                     <option key={'empty'} value={''}>
-                      {this.props.language ? this.props.language.general.choose_label : 'Choose label'}
+                      {this.props.language ? this.props.language.general.choose_label : fallbackLanguage.choose_label}
                     </option>
                     {this.renderTextResourceOptions()}
                   </select>
@@ -351,7 +357,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  {this.props.language ? this.props.language.ux_editor.modal_new_option : 'Add new option'}
+                  {this.props.language ? this.props.language.ux_editor.modal_new_option :
+                    fallbackLanguage.ux_editor.modal_new_option}
                 </button>
               </div>
               <div />
@@ -364,7 +371,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <div className='form-group a-form-group'>
             <label className='a-form-label'>
-              {this.props.language ? this.props.language.ux_editor.modal_text_key : 'Text key'}
+              {this.props.language ? this.props.language.ux_editor.modal_text_key :
+                fallbackLanguage.ux_editor.modal_text_key}
             </label>
             <input
               type='text'
@@ -426,7 +434,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {this.props.language ? this.props.language.ux_editor.modal_properties_header : 'Edit properties'}
+                {this.props.language ? this.props.language.ux_editor.modal_properties_header :
+                  fallbackLanguage.ux_editor.modal_properties_header}
               </span>
             </h1>
           </div>
@@ -436,7 +445,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             {this.props.component.component !== 'ThirdParty' ? (
               <div className='form-group a-form-group mt-1'>
                 <label className='a-form-label' htmlFor='nameField'>
-                  {this.props.language ? this.props.language.ux_editor.modal_text : 'Text'}:
+                  {this.props.language ? this.props.language.ux_editor.modal_text :
+                    fallbackLanguage.ux_editor.modal_text}:
                 </label>
                 <div className='a-form-group-items input-group'>
                   <select
@@ -448,7 +458,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                     disabled={this.state.component.customType === 'Standard'}
                   >
                     <option value={''}>
-                      {this.props.language ? this.props.language.ux_editor.modal_text_input : 'Choose text'}
+                      {this.props.language ? this.props.language.ux_editor.modal_text_input :
+                        fallbackLanguage.ux_editor.modal_text_input}
                     </option>
                     {this.renderTextResourceOptions()}
                   </select>
@@ -462,10 +473,10 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           <div className='row mt-3'>
             <div className='col'>
               <button type='submit' className='a-btn a-btn-success mr-2' onClick={this.handleSaveChanged}>
-                {this.props.language ? this.props.language.general.save : 'Save'}
+                {this.props.language ? this.props.language.general.save : fallbackLanguage.save}
               </button>
               <a className='mr-2' onClick={this.props.cancelEdit}>
-                {this.props.language ? this.props.language.general.cancel : 'Cancel'}
+                {this.props.language ? this.props.language.general.cancel : fallbackLanguage.cancel}
               </a>
             </div>
           </div>

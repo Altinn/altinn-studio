@@ -3,6 +3,7 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ConditionalRenderingActionDispatchers from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import { ConditionalRenderingComponent } from '../config/ConditionalRenderingComponent';
+import fallbackLanguage from '../../../../shared/fallbackLanguage';
 
 export interface IConditionalRenderingModalProps {
   conditionalRendering: any;
@@ -99,7 +100,7 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
       <>
         <p className='a-fontSizeS mt-2 mb-1'>
           {this.props.language ? this.props.language.ux_editor.conditional_rendering_connection_header
-            : 'Conditional Rendering Connections'}
+            : fallbackLanguage.ux_editor.conditional_rendering_connection_header}
         </p>
         <button
           type='button'
@@ -108,7 +109,8 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
         >
           <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
           <span className='a-fontSizeXS'>
-            {this.props.language ? this.props.language.general.add_connection : 'Add connection'}
+            {this.props.language ? this.props.language.general.add_connection :
+              fallbackLanguage.add_connection}
           </span>
         </button>
         <Modal
