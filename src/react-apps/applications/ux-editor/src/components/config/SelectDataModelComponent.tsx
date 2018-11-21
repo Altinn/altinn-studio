@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import fallbackLanguage from '../../../../shared/fallbackLanguage';
 
 export interface ISelectDataModelProps extends IProvidedProps {
   dataModelElements: IDataModelFieldElement[];
@@ -42,8 +41,7 @@ export class SelectDataModel extends React.Component<
         <li className='a-dotted'>
           <div className='row'>
             <div className='col-12'>
-              {this.props.language ? this.props.language.ux_editor.modal_restrictions_helper
-                : fallbackLanguage.ux_editor.modal_restrictions_helper}
+              {this.props.language.ux_editor.modal_restrictions_helper}
             </div>
           </div>
         </li>
@@ -56,8 +54,8 @@ export class SelectDataModel extends React.Component<
         <li className='a-dotted'>
           <div className='row'>
             <div className='col-12'>
-              {this.props.language ? this.props.language.ux_editor.modal_restrictions_empty
-                : fallbackLanguage.ux_editor.modal_restrictions_empty}</div>
+              {this.props.language.ux_editor.modal_restrictions_empty}
+            </div>
           </div>
         </li>)
         :
@@ -78,8 +76,7 @@ export class SelectDataModel extends React.Component<
     return (
       <div className='form-group a-form-group mt-1'>
         <label className='a-form-label' htmlFor='nameField'>
-          {this.props.language ? this.props.language.ux_editor.modal_data_model_helper
-            : fallbackLanguage.ux_editor.modal_data_model_helper}:
+          {this.props.language.ux_editor.modal_data_model_helper}:
         </label>
         <div className='a-form-group-items input-group'>
           <select
@@ -88,8 +85,7 @@ export class SelectDataModel extends React.Component<
             onChange={this.onDataModelChange}
             className='custom-select a-custom-select'
           >
-            <option value={''}>{this.props.language ? this.props.language.ux_editor.modal_data_model_input
-              : fallbackLanguage.ux_editor.modal_data_model_input}</option>
+            <option value={''}>{this.props.language.ux_editor.modal_data_model_input}</option>
             {this.props.dataModelElements.map((element) => {
               if (!element.DataBindingName || element.Type !== 'Field') {
                 return null;
@@ -109,8 +105,7 @@ export class SelectDataModel extends React.Component<
                 <div className='row'>
                   <div className='col'>
                     <span className='a-fontBold'>
-                      {this.props.language ? this.props.language.ux_editor.modal_restrictions
-                        : fallbackLanguage.ux_editor.modal_restrictions}
+                      {this.props.language.ux_editor.modal_restrictions}
                     </span>
                   </div>
                 </div>

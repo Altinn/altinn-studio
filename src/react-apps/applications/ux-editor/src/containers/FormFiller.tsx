@@ -8,7 +8,6 @@ import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selector
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { Preview } from './Preview';
-import fallbackLanguage from '../../../shared/fallbackLanguage';
 
 export interface IFormFillerProps {
   validationErrors: any[];
@@ -65,7 +64,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.saveFormData}
       >
-        {this.props.language ? this.props.language.general.save : fallbackLanguage.save}
+        {this.props.language.general.save}
       </button>
     );
   }
@@ -79,7 +78,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.submitForm}
       >
-        {this.props.language ? this.props.language.general.control_submit : fallbackLanguage.control_submit}
+        {this.props.language.general.control_submit}
       </button>
     );
   }

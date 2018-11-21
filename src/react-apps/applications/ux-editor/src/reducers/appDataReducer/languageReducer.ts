@@ -1,5 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import fallbackLanguage from '../../../../shared/fallbackLanguage';
 import * as AppDataActions from '../../actions/appDataActions/actions';
 import * as AppDataActionTypes from '../../actions/appDataActions/appDataActionTypes';
 
@@ -8,7 +9,7 @@ export interface ILanguageState {
 }
 
 const initialState: ILanguageState = {
-  language: null,
+  language: fallbackLanguage,
 };
 
 const languageReducer: Reducer<ILanguageState> = (

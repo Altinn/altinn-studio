@@ -86,7 +86,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             onClick={onClickEvent}
           >
             <span className='a-btn-icon-text'>
-              {this.props.language ? this.props.language.ux_editor.toolbar_add_container : 'container'}
+              {this.props.language.ux_editor.toolbar_add_container}
             </span>
           </button>
         </div>

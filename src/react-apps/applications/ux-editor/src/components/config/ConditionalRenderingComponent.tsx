@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import * as uuid from 'uuid/v1'; // time
-import fallbackLanguage from '../../../../shared/fallbackLanguage';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 export interface IConditionalRenderingComponentProps {
@@ -234,8 +233,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {this.props.language ? this.props.language.ux_editor.modal_configure_conditional_rendering_header
-                  : fallbackLanguage.ux_editor.modal_configure_conditional_rendering_header}
+                {this.props.language.ux_editor.modal_configure_conditional_rendering_header}
               </span>
             </h1>
           </div>
@@ -243,8 +241,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
             <label htmlFor='selectConditionalRule' className='a-form-label'>
-              {this.props.language ? this.props.language.ux_editor.modal_configure_conditional_rendering_helper
-                : fallbackLanguage.ux_editor.modal_configure_conditional_rendering_helper}
+              {this.props.language.ux_editor.modal_configure_conditional_rendering_helper}
             </label>
             <select
               name='selectConditionalRule'
@@ -254,8 +251,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               id='selectConditionalRule'
             >
               <option value={''}>
-                {this.props.language ? this.props.language.general.choose_method
-                  : fallbackLanguage.choose_method}
+                {this.props.language.general.choose_method}
               </option>
               {this.props.ruleModelElements.map((funcObj: any, i: any) => {
                 return (
@@ -268,9 +264,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
             <>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {this.props.language ?
-                    this.props.language.ux_editor.modal_configure_conditional_rendering_configure_input_header
-                    : fallbackLanguage.ux_editor.modal_configure_conditional_rendering_configure_input_header}
+                  {this.props.language.ux_editor.modal_configure_conditional_rendering_configure_input_header}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
                   (key: any, index: any) => {
@@ -280,9 +274,8 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
                             <label className='a-form-label' htmlFor={paramName}>
-                              {this.props.language ? this.props.language.ux_editor.
-                                modal_configure_conditional_rendering_configure_input_param_helper : fallbackLanguage.
-                                  ux_editor.modal_configure_conditional_rendering_configure_input_param_helper}
+                              {this.props.language.
+                                ux_editor.modal_configure_conditional_rendering_configure_input_param_helper}
                             </label>
                             <input
                               id={paramName}
@@ -309,16 +302,13 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               </div>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {this.props.language ?
-                    this.props.language.ux_editor.modal_configure_conditional_rendering_configure_output_header
-                    : fallbackLanguage.ux_editor.modal_configure_conditional_rendering_configure_output_header}
+                  {this.props.language.ux_editor.modal_configure_conditional_rendering_configure_output_header}
                 </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
                     <label className='a-form-label' htmlFor={'select_action'}>
-                      {this.props.language ? this.props.language.ux_editor.
-                        modal_configure_conditional_rendering_configure_output_action_helper :
-                        fallbackLanguage.ux_editor.modal_configure_conditional_rendering_configure_output_action_helper}
+                      {this.props.language.
+                        ux_editor.modal_configure_conditional_rendering_configure_output_action_helper}
                     </label>
                     <select
                       id={'select_action'}
@@ -327,7 +317,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                       className='custom-select a-custom-select'
                     >
                       <option value={''}>
-                        {this.props.language ? this.props.language.general.action : 'Action'}
+                        {this.props.language.general.action}
                       </option>
                       {this.state.selectableActions.map((value: string, key: any) => {
                         return (
@@ -338,9 +328,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   </div>
                 </div>
                 <p className='mt-2'>
-                  {this.props.language ? this.props.language.ux_editor.
-                    modal_configure_conditional_rendering_configure_output_field_helper
-                    : fallbackLanguage.ux_editor.modal_configure_conditional_rendering_configure_output_field_helper}
+                  {this.props.language.ux_editor.modal_configure_conditional_rendering_configure_output_field_helper}
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
@@ -353,8 +341,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                           className='custom-select a-custom-select mb-1'
                         >
                           <option value={''}>
-                            {this.props.language ? this.props.language.general.select_field :
-                              fallbackLanguage.select_field}
+                            {this.props.language.general.select_field}
                           </option>
                           {
                             this.renderCondtionalRenderingTargetOptions()
@@ -380,9 +367,8 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                       className='a-btn'
                       onClick={this.addNewField}
                     >
-                      {this.props.language ? this.props.language.ux_editor.
-                        modal_configure_conditional_rendering_configure_add_new_field_mapping : fallbackLanguage.
-                          ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping}
+                      {this.props.language.ux_editor.
+                        modal_configure_conditional_rendering_configure_add_new_field_mapping}
                     </button>
                   </div>
                 </div>
@@ -394,18 +380,18 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
             <div className='col'>
               {this.state.conditionalRendering.selectedFunction ?
                 <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
-                  {this.props.language ? this.props.language.general.save : fallbackLanguage.save}
+                  {this.props.language.general.save}
                 </button>
                 : null
               }
               {this.props.connectionId ?
                 <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
-                  {this.props.language ? this.props.language.general.delete : fallbackLanguage.delete}
+                  {this.props.language.general.delete}
                 </button>
                 : null
               }
               <a onClick={this.props.cancelEdit}>
-                {this.props.language ? this.props.language.general.cancel : fallbackLanguage.cancel}
+                {this.props.language.general.cancel}
               </a>
             </div>
           </div>

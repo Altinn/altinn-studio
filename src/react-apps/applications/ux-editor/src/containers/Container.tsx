@@ -11,7 +11,6 @@ import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
-import fallbackLanguage from '../../../shared/fallbackLanguage';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -79,7 +78,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               </div>
               <div className='col-3 offset-8 row'>
                 <span className='col-7'>
-                  {this.props.language ? this.props.language.ux_editor.repeating : fallbackLanguage.ux_editor.repeating}
+                  {this.props.language.ux_editor.repeating}
                   :</span>
                 <div className='col-4'>
                   <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
@@ -99,9 +98,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               onClick={this.handleContainerDelete}
             >
               <span>
-                {this.props.language ?
-                  this.props.language.ux_editor.repeating_group_delete :
-                  fallbackLanguage.ux_editor.repeating_group_delete}
+                {this.props.language.ux_editor.repeating_group_delete}
               </span>
             </button>
           }
@@ -159,8 +156,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       >
         <i className={'ai ai-plus'} />
         <span>
-          {this.props.language ? this.props.language.ux_editor.repeating_group_add :
-            fallbackLanguage.ux_editor.repeating_group_add}
+          {this.props.language.ux_editor.repeating_group_add}
         </span>
       </button>
     );
