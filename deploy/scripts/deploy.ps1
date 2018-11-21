@@ -58,7 +58,6 @@ $databaseName = Read-Host -Prompt "Database name"
 az postgres db create -n $databaseName -g $resourceGroupName -s $databaseServerName
 
 Write-Output "Creating kubernetes secret with database login credentials"
-$databaseSecretName = Read-Host -Prompt "Kubernetes secret name"
 echo -n $databaseServerAdress > ./databaseAdress
 echo -n $databaseServerAdminLogin > ./databaseAdminUsername
 echo -n $databaseAdminPassword > ./databaseAdminPassword
