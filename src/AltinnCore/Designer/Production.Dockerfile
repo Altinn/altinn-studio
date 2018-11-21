@@ -6,7 +6,7 @@ RUN npm run gulp build
 
 #dotnet:2.1.300-sdk
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS build
-COPY /src .
+COPY /src/AltinnCore ./AltinnCore/
 COPY --from=generate-designer-js /wwwroot /AltinnCore/Designer/wwwroot
 RUN dotnet build AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore/Designer/AltinnCore.Designer.csproj -c Release -o /app_output
