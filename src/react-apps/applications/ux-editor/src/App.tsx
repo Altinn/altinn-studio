@@ -116,7 +116,6 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
   }
 
   public render() {
-    console.log('Testing docker build');
     return (
       <div className='App flex-column d-flex media-body'>
         <ErrorMessageComponent />
