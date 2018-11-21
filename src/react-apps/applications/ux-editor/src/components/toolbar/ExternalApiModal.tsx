@@ -89,7 +89,7 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
     return (
       <>
         <p className='a-fontSizeS mt-2 mb-1'>
-          {this.props.language ? this.props.language['ux-editor'].api_connection_header : 'Api connection'}
+          {this.props.language ? this.props.language.ux_editor.api_connection_header : 'Api connection'}
         </p>
         <button
           type='button'

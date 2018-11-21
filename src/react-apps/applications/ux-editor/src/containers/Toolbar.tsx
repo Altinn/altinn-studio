@@ -86,7 +86,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             onClick={onClickEvent}
           >
             <span className='a-btn-icon-text'>
-              {this.props.language ? this.props.language['ux-editor'].toolbar_add_container : 'container'}
+              {this.props.language ? this.props.language.ux_editor.toolbar_add_container : 'container'}
             </span>
           </button>
         </div>
@@ -155,9 +155,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public setToolbarLabel = (label: any) => {
     if (this.props.language) {
       if (label === 'Header') {
-        label = this.props.language['ux-editor'].toolbar_header;
+        label = this.props.language.ux_editor.toolbar_header;
       } else if (label === 'FileUpload') {
-        label = this.props.language['ux-editor'].toolbar_file_upload;
+        label = this.props.language.ux_editor.toolbar_file_upload;
       }
     }
     return label;

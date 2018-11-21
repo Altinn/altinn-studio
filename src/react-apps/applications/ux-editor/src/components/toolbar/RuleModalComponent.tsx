@@ -76,7 +76,7 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
     return (
       <>
         <p className='a-fontSizeS mt-2 mb-1'>
-          {this.props.language ? this.props.language['ux-editor'].rule_connection_header : 'Rule Connections'}
+          {this.props.language ? this.props.language.ux_editor.rule_connection_header : 'Rule Connections'}
         </p>
         <button
           type='button'

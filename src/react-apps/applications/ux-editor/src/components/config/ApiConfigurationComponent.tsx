@@ -294,7 +294,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'codelist'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {this.props.language ? this.props.language['ux-editor'].modal_configure_api_code_list : 'Code list'}
+            {this.props.language ? this.props.language.ux_editor.modal_configure_api_code_list : 'Code list'}
           </label>
         </div>
         <div
@@ -308,7 +308,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'externalapi'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {this.props.language ? this.props.language['ux-editor'].modal_configure_api_extermnal_api : 'External API'}
+            {this.props.language ? this.props.language.ux_editor.modal_configure_api_extermnal_api : 'External API'}
           </label>
         </div>
       </div>
@@ -360,7 +360,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {this.props.language ? this.props.language['ux-editor'].modal_configure_api_header
+                {this.props.language ? this.props.language.ux_editor.modal_configure_api_header
                   : 'Configure API connection'}
               </span>
             </h1>

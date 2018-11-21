@@ -78,7 +78,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               </div>
               <div className='col-3 offset-8 row'>
                 <span className='col-7'>
-                  {this.props.language ? this.props.language['ux-editor'].repeating : 'Repeating'}
+                  {this.props.language ? this.props.language.ux_editor.repeating : 'Repeating'}
                   :</span>
                 <div className='col-4'>
                   <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
@@ -99,7 +99,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
             >
               <span>
                 {this.props.language ?
-                  this.props.language['ux-editor'].repeating_group_delete : 'delete group'}
+                  this.props.language.ux_editor.repeating_group_delete : 'delete group'}
               </span>
             </button>
           }
@@ -157,7 +157,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       >
         <i className={'ai ai-plus'} />
         <span>
-          {this.props.language ? this.props.language['ux-editor'].repeating_group_add : 'add group'}
+          {this.props.language ? this.props.language.ux_editor.repeating_group_add : 'add group'}
         </span>
       </button>
     );

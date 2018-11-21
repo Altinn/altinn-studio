@@ -54,7 +54,7 @@ class FormDesigner extends React.Component<
 
           <div className='container mb-3'>
             <div className='row mt-3'>
-              <h1>{this.props.language ? this.props.language['ux-editor'].form_designer : 'Form designer'}</h1>
+              <h1>{this.props.language ? this.props.language.ux_editor.form_designer : 'Form designer'}</h1>
             </div>
             <div className='row bigger-container mt-3'>
               <Toolbar />

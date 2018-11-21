@@ -226,7 +226,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <div className='form-group a-form-group mt-2'>
             <h2 className='a-h4'>
-              {this.props.language ? this.props.language['ux-editor'].modal_options : 'Options'}
+              {this.props.language ? this.props.language.ux_editor.modal_options : 'Options'}
             </h2>
             <div className='row align-items-center'>
               <div className='col-5'>
@@ -244,7 +244,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
                   <label htmlFor={'editModal_radiolabel-' + index} className='a-form-label sr-only'>
-                    {this.props.language ? this.props.language['ux-editor'].modal_text : 'Text'}
+                    {this.props.language ? this.props.language.ux_editor.modal_text : 'Text'}
                   </label>
                   <select
                     id={'editModal_radiolabel-' + index}
@@ -280,7 +280,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  {this.props.language ? this.props.language['ux-editor'].modal_new_option : 'Add new option'}
+                  {this.props.language ? this.props.language.ux_editor.modal_new_option : 'Add new option'}
                 </button>
               </div>
               <div />
@@ -293,7 +293,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <div className='form-group a-form-group mt-2'>
             <h2 className='a-h4'>
-              {this.props.language ? this.props.language['ux-editor'].modal_options : 'Options'}
+              {this.props.language ? this.props.language.ux_editor.modal_options : 'Options'}
             </h2>
             <div className='row align-items-center'>
               <div className='col-5'>
@@ -312,7 +312,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
                   <label htmlFor={'editModal_dropdownlabel-' + index} className='a-form-label sr-only'>
-                    {this.props.language ? this.props.language['ux-editor'].modal_text : 'Text'}
+                    {this.props.language ? this.props.language.ux_editor.modal_text : 'Text'}
                   </label>
                   <select
                     id={'editModal_dropdownlabel-' + index}
@@ -351,7 +351,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  {this.props.language ? this.props.language['ux-editor'].modal_new_option : 'Add new option'}
+                  {this.props.language ? this.props.language.ux_editor.modal_new_option : 'Add new option'}
                 </button>
               </div>
               <div />
@@ -364,7 +364,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <div className='form-group a-form-group'>
             <label className='a-form-label'>
-              {this.props.language ? this.props.language['ux-editor'].modal_text_key : 'Text key'}
+              {this.props.language ? this.props.language.ux_editor.modal_text_key : 'Text key'}
             </label>
             <input
               type='text'
@@ -426,7 +426,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {this.props.language ? this.props.language['ux-editor'].modal_properties_header : 'Edit properties'}
+                {this.props.language ? this.props.language.ux_editor.modal_properties_header : 'Edit properties'}
               </span>
             </h1>
           </div>
@@ -436,7 +436,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             {this.props.component.component !== 'ThirdParty' ? (
               <div className='form-group a-form-group mt-1'>
                 <label className='a-form-label' htmlFor='nameField'>
-                  {this.props.language ? this.props.language['ux-editor'].modal_text : 'Text'}:
+                  {this.props.language ? this.props.language.ux_editor.modal_text : 'Text'}:
                 </label>
                 <div className='a-form-group-items input-group'>
                   <select
@@ -448,7 +448,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                     disabled={this.state.component.customType === 'Standard'}
                   >
                     <option value={''}>
-                      {this.props.language ? this.props.language['ux-editor'].modal_text_input : 'Choose text'}
+                      {this.props.language ? this.props.language.ux_editor.modal_text_input : 'Choose text'}
                     </option>
                     {this.renderTextResourceOptions()}
                   </select>

@@ -233,7 +233,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {this.props.language ? this.props.language['ux-editor'].modal_configure_conditional_rendering_header
+                {this.props.language ? this.props.language.ux_editor.modal_configure_conditional_rendering_header
                   : 'Configure conditional rendering rule'}
               </span>
             </h1>
@@ -242,7 +242,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
             <label htmlFor='selectConditionalRule' className='a-form-label'>
-              {this.props.language ? this.props.language['ux-editor'].modal_configure_conditional_rendering_helper
+              {this.props.language ? this.props.language.ux_editor.modal_configure_conditional_rendering_helper
                 : 'Conditional rendering rule'}
             </label>
             <select
@@ -265,7 +265,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
                   {this.props.language ?
-                    this.props.language['ux-editor'].modal_configure_conditional_rendering_configure_input_header
+                    this.props.language.ux_editor.modal_configure_conditional_rendering_configure_input_header
                     : 'Configure input parameters'}
                 </h2>
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
@@ -276,7 +276,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                         <div className='col-3 col'>
                           <div className='form-group a-form-group mt-1 disabled'>
                             <label className='a-form-label' htmlFor={paramName}>
-                              {this.props.language ? this.props.language['ux-editor'].
+                              {this.props.language ? this.props.language.ux_editor.
                                 modal_configure_conditional_rendering_configure_input_param_helper : 'Input param name'}
                             </label>
                             <input
@@ -305,13 +305,13 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
                   {this.props.language ?
-                    this.props.language['ux-editor'].modal_configure_conditional_rendering_configure_output_header
+                    this.props.language.ux_editor.modal_configure_conditional_rendering_configure_output_header
                     : 'Configure output and action'}
                 </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
                     <label className='a-form-label' htmlFor={'select_action'}>
-                      {this.props.language ? this.props.language['ux-editor'].
+                      {this.props.language ? this.props.language.ux_editor.
                         modal_configure_conditional_rendering_configure_output_action_helper : 'Select action'}
                     </label>
                     <select
@@ -332,7 +332,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   </div>
                 </div>
                 <p className='mt-2'>
-                  {this.props.language ? this.props.language['ux-editor'].
+                  {this.props.language ? this.props.language.ux_editor.
                     modal_configure_conditional_rendering_configure_output_field_helper
                     : 'that should be performed on the following fields if method returns true'}
                 </p>
@@ -373,7 +373,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                       className='a-btn'
                       onClick={this.addNewField}
                     >
-                      {this.props.language ? this.props.language['ux-editor'].
+                      {this.props.language ? this.props.language.ux_editor.
                         modal_configure_conditional_rendering_configure_add_new_field_mapping
                         : 'Add new field mapping'}
                     </button>

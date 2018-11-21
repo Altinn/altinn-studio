@@ -98,7 +98,7 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
     return (
       <>
         <p className='a-fontSizeS mt-2 mb-1'>
-          {this.props.language ? this.props.language['ux-editor'].conditional_rendering_connection_header
+          {this.props.language ? this.props.language.ux_editor.conditional_rendering_connection_header
             : 'Conditional Rendering Connections'}
         </p>
         <button
