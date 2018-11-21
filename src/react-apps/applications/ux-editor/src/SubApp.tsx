@@ -16,12 +16,14 @@ export default class SubApp extends React.Component<any, any> {
   }
 
   public render() {
+    console.log('Testing the dockerized build in Azure Devops');
+    console.log('New line');
     return (
       <Provider store={store}>
-      <HashRouter>
-        <App />
-      </HashRouter>
-    </Provider>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </Provider>
     );
   }
 }
