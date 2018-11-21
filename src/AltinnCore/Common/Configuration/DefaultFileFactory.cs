@@ -13,7 +13,7 @@ namespace AltinnCore.Common.Configuration
         private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DefaultFileFactory"/> class
+        /// Initializes a new instance of the <see cref="DefaultFileFactory"/> class.
         /// </summary>
         /// <param name="repositorySettings"> The service repository settings. </param>
         /// <param name="hostingEnvironment"> The hosting environment. </param>
