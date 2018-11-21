@@ -10,6 +10,9 @@ using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
 {
+    /// <summary>
+	/// This service will create a language API from ini-files
+	/// </summary>
     public class LanguageController : Controller
     {
         private readonly GeneralSettings _generalSettings;
