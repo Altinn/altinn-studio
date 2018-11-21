@@ -1,12 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { CodeListComponent } from './CodeListComponent';
-import { ExternalApiComponent } from './ExternalAPIComponent';
-
 import * as uuid from 'uuid/v1'; // time
 import * as uuidv4 from 'uuid/v4'; // random
-import fallbackLanguage from '../../../../shared/fallbackLanguage';
-
+import { CodeListComponent } from './CodeListComponent';
+import { ExternalApiComponent } from './ExternalAPIComponent';
 export interface IProvidedProps {
   connectionId?: any;
   saveEdit: (updatedConnection: any) => void;
