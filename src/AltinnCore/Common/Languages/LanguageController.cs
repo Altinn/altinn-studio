@@ -27,7 +27,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="languageCode">The current language code</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public IActionResult getLanguageAsJSON(string org, string service, string languageCode)
+        public IActionResult GetLanguageAsJSON(string org, string service, string languageCode)
         {
             FileIniDataParser Parser = new FileIniDataParser();
             Dictionary<string, Dictionary<string, string>> outerDict = new Dictionary<string, Dictionary<string, string>>();

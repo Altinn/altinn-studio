@@ -1,4 +1,4 @@
-namespace AltinnCore.Common.Configuration
+﻿namespace AltinnCore.Common.Configuration
 {
     /// <summary>
     /// General configuration settings
@@ -10,6 +10,9 @@ namespace AltinnCore.Common.Configuration
         /// </summary>
         public string TemplateLocation { get; set; }
 
+        /// <summary>
+        /// Gets or sets the location to search for language files
+        /// </summary>
         public string LanguageFilesLocation { get; set; }
 
         /// <summary>

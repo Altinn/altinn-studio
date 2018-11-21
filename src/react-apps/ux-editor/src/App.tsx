@@ -95,7 +95,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         `${altinnWindow.location.origin}/designer/${servicePath}/React/GetThirdPartyComponents`);
       // Fetch language
       appDataActionDispatcher.fetchLanguage(
-        `${altinnWindow.location.origin}/designer/${servicePath}/Language/getLanguageAsJSON`, 'nb');
+        `${altinnWindow.location.origin}/designer/${servicePath}/Language/GetLanguageAsJSON`, 'nb');
     }
   }
 
