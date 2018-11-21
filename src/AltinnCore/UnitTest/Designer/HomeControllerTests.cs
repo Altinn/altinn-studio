@@ -240,14 +240,57 @@ namespace AltinnCore.UnitTest.Designer
             { ControllerContext = controllerContext };
 
             // Act
-            var result = controller.Logout();
+            Task<IActionResult> result = controller.Logout();
 
             // Assert
             LocalRedirectResult redirectResult = Assert.IsType<LocalRedirectResult>(result.Result);
             Assert.Equal("/user/logout", redirectResult.Url);
         }
 
+        /// <summary>
+        /// Verifies adding app token.
+        /// </summary>
+        [Fact]
+        public void RegisterAppToken()
+        {
+            // Arrange
+            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
+            Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
+            Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
+            Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = GetMoqServiceRepositorySettings();
 
+            Moq.Mock<IGitea> moqGiteaWrappeer = GetMoqGiteaWrapperForIndexTest();
+            Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
+
+            Mock<IServiceProvider> serviceProviderMock = GetServiceProviderMock();
+
+            User user = new User();
+            user.Login = "Test";
+            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+
+            DefaultHttpContext httpContext = new DefaultHttpContext() { RequestServices = serviceProviderMock.Object };
+
+            var cookies = new[] { "i_like_gitea=234543556" };
+
+            httpContext.Request.Headers["Cookie"] = cookies;
+            var controllerContext = new ControllerContext()
+            {
+                HttpContext = httpContext
+            };
+
+            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(moqRepository.Object, moqLogger.Object,
+            moqServiceRepositorySettings.Object, moqGiteaWrappeer.Object, moqHttpContextAccessor.Object, moqSourceControl.Object)
+            { ControllerContext = controllerContext };
+
+           AppKey key = new AppKey() { Key = "12345" };
+
+            // Act
+            IActionResult result = controller.AppToken(key);
+
+            // Assert
+            RedirectResult redirectResult = Assert.IsType<RedirectResult>(result);
+            Assert.Equal("/", redirectResult.Url);
+        }
 
         private Moq.Mock<ISourceControl> GetMoqSourceControlForIndexTest()
         {
