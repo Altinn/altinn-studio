@@ -40,6 +40,10 @@
   </Target>
 
   <ItemGroup>
+    <None Remove="stylecop.json" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61" />
     <AdditionalFiles Include="C:\Repos\altinn-studio\stylecop.json">
       <Link>stylecop.json</Link>
@@ -49,8 +53,8 @@
   <PropertyGroup>
     <CodeAnalysisRuleSet>C:\Repos\altinn-studio\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.1\AltinnCore.Runtime.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.1\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>
 </Project>

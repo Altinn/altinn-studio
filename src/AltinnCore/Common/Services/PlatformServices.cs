@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;

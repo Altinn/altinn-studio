@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -68,7 +68,8 @@ namespace AltinnCore.ServiceLibrary.Extensions
         /// <returns>
         ///     Deserialized object
         /// </returns>
-        public static T DeserializeTo<T>(this string xmlSerializedObject) where T : new()
+        public static T DeserializeTo<T>(this string xmlSerializedObject)
+            where T : new()
         {
             using (XmlReader xmlReader = XmlReader.Create(new StringReader(xmlSerializedObject.TrimStart())))
             {

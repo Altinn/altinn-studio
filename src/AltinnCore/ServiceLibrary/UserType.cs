@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Enumeration for the available user types
@@ -23,6 +23,6 @@
         /// <summary>
         /// Anonymous user
         /// </summary>
-        Anonymous = 3
+        Anonymous = 3,
     }
 }

@@ -40,7 +40,7 @@ namespace AltinnCore.RepositoryClient.Model
         }
 
         /// <summary>
-        /// email addresses to add
+        /// The list of emails
         /// </summary>
         [DataMember(Name="emails", EmitDefaultValue=false)]
         public List<string> Emails { get; set; }

@@ -28,10 +28,21 @@ using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Runtime
 {
+    /// <summary>
+    /// This is the class that set up the application during startup
+    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/>
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// Gets the application configuration
+        /// </summary>
         public IConfiguration Configuration { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class
+        /// </summary>
+        /// <param name="configuration">the configuration for designer</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -158,7 +169,11 @@ namespace AltinnCore.Runtime
                 });
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// </summary>
+        /// <param name="app">The application builder</param>
+        /// <param name="env">The hosting environment</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
