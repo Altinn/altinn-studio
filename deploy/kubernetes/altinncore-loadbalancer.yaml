@@ -6,7 +6,7 @@ spec:
   replicas: 1
   template:
     metadata:
-      labels: 
+      labels:
         app: altinn-loadbalancer
     spec:
       containers:
