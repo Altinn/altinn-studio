@@ -1,16 +1,15 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { CodeListComponent } from './CodeListComponent';
-import { ExternalApiComponent } from './ExternalAPIComponent';
-
 import * as uuid from 'uuid/v1'; // time
 import * as uuidv4 from 'uuid/v4'; // random
-
+import { CodeListComponent } from './CodeListComponent';
+import { ExternalApiComponent } from './ExternalAPIComponent';
 export interface IProvidedProps {
   connectionId?: any;
   saveEdit: (updatedConnection: any) => void;
   cancelEdit: () => void;
   deleteConnection: (connectionId: any) => void;
+  language: any;
 }
 
 export interface IApiConfigurationProps extends IProvidedProps {
@@ -293,7 +292,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'codelist'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {'Code list'}
+            {this.props.language.ux_editor.modal_configure_api_code_list}
           </label>
         </div>
         <div
@@ -307,7 +306,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
             checked={this.state.apiType === 'externalapi'}
           />
           <label className='custom-control-label pl-3 a-radioButtons-title'>
-            {'External API'}
+            {this.props.language.ux_editor.modal_configure_api_extermnal_api}
           </label>
         </div>
       </div>
@@ -325,7 +324,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               className='a-btn a-btn-success mr-2'
               onClick={this.handleSaveEdit}
             >
-              Save
+              {this.props.language.general.save}
             </button>
             :
             null
@@ -337,11 +336,13 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               className='a-btn a-btn-danger mr-2'
               onClick={this.handleDeleteConnection}
             >
-              Delete
+              {this.props.language.general.delete}
             </button>
             : null
           }
-          <a onClick={this.props.cancelEdit}>Cancel</a>
+          <a onClick={this.props.cancelEdit}>
+            {this.props.language.general.cancel}
+          </a>
         </div>
       </div >
     );
@@ -356,7 +357,9 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
               <i className='ai ai-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>Configure API connection</span>
+              <span className='a-iconText-text-large'>
+                {this.props.language.ux_editor.modal_configure_api_header}
+              </span>
             </h1>
           </div>
         </div>
@@ -376,6 +379,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
                   addMapping={this.addMapping}
                   handleMappingChange={this.handleMappingChange}
                   removeMapping={this.removeMapping}
+                  language={this.props.language}
                 />
               </div>
               :
@@ -393,6 +397,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
                   removeMapping={this.removeMapping}
                   handleClientParamsChange={this.handleClientParamsChange}
                   handleMetaParamsChange={this.handleMetaParamsChange}
+                  language={this.props.language}
                 />
               </div>
             )
@@ -413,6 +418,7 @@ const mapsStateToProps = (state: IAppState, props: IProvidedProps): IApiConfigur
     APIs: state.serviceConfigurations.APIs,
     dataModelElements: state.appData.dataModel.model,
     codeLists: state.appData.codeLists.codeLists,
+    language: state.appData.language.language,
   };
 };
 

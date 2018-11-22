@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Enum containing values for the different types of parties
@@ -18,6 +18,6 @@
         /// <summary>
         /// Indicates that this party is a self identified user
         /// </summary>
-        SelfIdentified = 2
+        SelfIdentified = 2,
     }
 }

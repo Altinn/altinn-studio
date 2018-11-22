@@ -35,13 +35,21 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ISourceControl _sourceControl;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class 
+        /// Initializes a new instance of the <see cref="RepositorySI"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
-        public RepositorySI(IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings, IDefaultFileFactory defaultFileFactory, IHttpContextAccessor httpContextAccessor, IGitea gitea, ISourceControl sourceControl)
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="gitea">gitea</param>
+        /// <param name="sourceControl">the source control</param>
+        public RepositorySI(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IDefaultFileFactory defaultFileFactory,
+            IHttpContextAccessor httpContextAccessor,
+            IGitea gitea,
+            ISourceControl sourceControl)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -72,6 +80,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 serviceOrgPath = _settings.RepositoryLocation + serviceMetadata.Org;
             }
+
             string servicePath = serviceOrgPath + "/" + serviceMetadata.Service;
 
             if (!Directory.Exists(serviceOrgPath))
@@ -84,22 +93,25 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(servicePath);
             }
 
-            var metaDataDir = _settings.GetMetadataPath(serviceMetadata.Org,
-                serviceMetadata.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var metaDataDir = _settings.GetMetadataPath(
+                serviceMetadata.Org,
+                serviceMetadata.Service,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
             {
                 metaDirectoryInfo.Create();
             }
 
-            var resourceDir = _settings.GetResourcePath(serviceMetadata.Org,
-                serviceMetadata.Service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            var resourceDir = _settings.GetResourcePath(
+                serviceMetadata.Org,
+                serviceMetadata.Service,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             var resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
             {
                 resourceDirectoryInfo.Create();
             }
-
 
             var filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
@@ -120,7 +132,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Updates serviceMetadata
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>    
+        /// <param name="service">The service code for the current service</param>
         /// <param name="serviceMetadata">The service Metadata</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool UpdateServiceMetadata(string org, string service, ServiceMetadata serviceMetadata)
@@ -165,21 +177,18 @@ namespace AltinnCore.Common.Services.Implementation
                     filedata = File.ReadAllText(filename, Encoding.UTF8);
                     return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
                 }
+
                 throw;
             }
-
-
-
         }
 
         #endregion
-
 
         /// <summary>
         /// Returns the content of a configuration file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>  
+        /// <param name="service">The service code for the current service</param>
         /// <param name="name">The name of the configuration</param>
         /// <returns>A string containing the file content</returns>
         public string GetConfiguration(string org, string service, string name)
@@ -230,11 +239,11 @@ namespace AltinnCore.Common.Services.Implementation
             string resourcePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(resourcePath, serviceTextsAllLanguages);
 
-            //Get Org level text resources
+            // Get Org level text resources
             string orgResourcePath = _settings.GetOrgTextResourcePath(org, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(orgResourcePath, serviceTextsAllLanguages);
 
-            //Get altinn common level text resources
+            // Get altinn common level text resources
             string commonResourcePath = _settings.GetCommonTextResourcePath(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceTextsAllLanguages = GetResourceTexts(commonResourcePath, serviceTextsAllLanguages);
 
@@ -282,9 +291,9 @@ namespace AltinnCore.Common.Services.Implementation
                     }
                 }
             }
+
             return resourceTexts;
         }
-
 
         /// <summary>
         /// Returns the service languages
@@ -319,8 +328,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="texts">The texts to be saved</param>
-        public void SaveServiceTexts(string org, string service,
-            Dictionary<string, Dictionary<string, string>> texts)
+        public void SaveServiceTexts(string org, string service, Dictionary<string, Dictionary<string, string>> texts)
         {
             // Language, key, value
             Dictionary<string, Dictionary<string, JObject>> resourceTextsAsJson =
@@ -340,7 +348,7 @@ namespace AltinnCore.Common.Services.Implementation
                         var textObject = new JObject
                         {
                             new JProperty("id", text.Key),
-                            new JProperty("value", localizedText.Value)
+                            new JProperty("value", localizedText.Value),
                         };
                         resourceTextsAsJson[localizedText.Key].Add(text.Key, textObject);
                     }
@@ -403,7 +411,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             return fileData;
         }
-
 
         /// <summary>
         /// Get the Json third party components from disk
@@ -473,7 +480,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveJsonFormLayout(string org, string service, string resource)
         {
             string filePath = _settings.GetFormLayoutPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -489,7 +496,7 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveJsonThirdPartyComponents(string org, string service, string resource)
         {
             string filePath = _settings.GetThirdPartyComponentsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -501,11 +508,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="resource">The content of the resource file</param>
+        /// <param name="fileName">the filename</param>
         /// <returns>A boolean indicating if saving was ok</returns>
         public bool SaveJsonFile(string org, string service, string resource, string fileName)
         {
             string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
@@ -547,9 +555,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A boolean indicating if everything went ok</returns>
         public bool SaveConfiguration(string org, string service, string name, string config)
         {
-
             string filePath = _settings.GetMetadataPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name;
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, config, Encoding.UTF8);
 
             return true;
@@ -566,13 +573,11 @@ namespace AltinnCore.Common.Services.Implementation
         public bool SaveResource(string org, string service, string id, string resource)
         {
             string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + $"resource.{id}.json";
-            (new FileInfo(filePath)).Directory.Create();
+            new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
         }
-
-
 
         /// <summary>
         /// Deletes the language resource for a given language id
@@ -603,8 +608,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="serviceMetadata">The service metadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current service</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata,
-            XDocument mainXsd)
+        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, XDocument mainXsd)
         {
             var modelGenerator = new JsonMetadataParser();
 
@@ -627,7 +631,7 @@ namespace AltinnCore.Common.Services.Implementation
             try
             {
                 string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
-                (new FileInfo(filePath)).Directory.Create();
+                new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, classes, Encoding.UTF8);
             }
             catch
@@ -642,7 +646,7 @@ namespace AltinnCore.Common.Services.Implementation
                     try
                     {
                         string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
-                        (new FileInfo(filePath)).Directory.Create();
+                        new FileInfo(filePath).Directory.Create();
                         File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
                     }
                     catch
@@ -791,7 +795,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (!File.Exists(filename))
             {
-                (new FileInfo(filename)).Directory.Create();
+                new FileInfo(filename).Directory.Create();
                 using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
                 using (StreamWriter streamWriter = new StreamWriter(fileStream))
                 {
@@ -810,6 +814,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
+        /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>Was the service creation successful</returns>
         public bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
@@ -828,9 +833,9 @@ namespace AltinnCore.Common.Services.Implementation
             if (!File.Exists(filename))
             {
                 // Verify if directory exist. Should Exist if Cloning of new repository worked
-                if (!(new FileInfo(filename)).Directory.Exists)
+                if (!new FileInfo(filename).Directory.Exists)
                 {
-                    (new FileInfo(filename)).Directory.Create();
+                    new FileInfo(filename).Directory.Create();
                 }
 
                 using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
@@ -960,9 +965,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// The get zip archive.
         /// </summary>
-        /// <param name="servicePackageDetails">
-        /// The service package details. Expect PackageName to be the file name.
-        /// </param>
+        /// <param name="details">the service package details</param>
         /// <returns>
         /// The <see cref="ZipArchive"/>.
         /// </returns>
@@ -1025,6 +1028,10 @@ namespace AltinnCore.Common.Services.Implementation
             return rules;
         }
 
+        /// <summary>
+        /// Create and clone the organisation's code list
+        /// </summary>
+        /// <param name="org">the organisation</param>
         public void CreateAndCloneOrgCodeLists(string org)
         {
             try
@@ -1050,8 +1057,7 @@ namespace AltinnCore.Common.Services.Implementation
                 // Happens when developer has not cloned org repo
             }
 
-
-            // First verify if there exist a remote repo 
+            // First verify if there exist a remote repo
             try
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
@@ -1077,6 +1083,13 @@ namespace AltinnCore.Common.Services.Implementation
             // TODO: FIND OUT WHAT SHOULD BE HERE
             return $"http://altinn3.no/{org}/codelists.git";
         }
+
+        /// <summary>
+        /// create a repository in gitea for the given organisation and options
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="createRepoOption">the options for creating a repository</param>
+        /// <returns>The newly created repository</returns>
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
             return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;
@@ -1102,6 +1115,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 codelistDirectoryPath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}";
             }
+
             if (!string.IsNullOrEmpty(service))
             {
                 codelistDirectoryPath += "/" + service;
@@ -1157,7 +1171,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 filePath += $"/codelists/{name}.json";
 
-                (new FileInfo(filePath)).Directory.Create();
+                new FileInfo(filePath).Directory.Create();
                 File.WriteAllText(filePath, codeList, Encoding.UTF8);
             }
             catch
@@ -1247,7 +1261,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     FilePath = file,
                     FileName = Path.GetFileName(file),
-                    LastChanged = File.GetLastWriteTime(file)
+                    LastChanged = File.GetLastWriteTime(file),
                 };
 
                 coreFiles.Add(corefile);
@@ -1260,7 +1274,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     FilePath = file,
                     FileName = System.IO.Path.GetFileName(file),
-                    LastChanged = File.GetLastWriteTime(file)
+                    LastChanged = File.GetLastWriteTime(file),
                 };
 
                 coreFiles.Add(corefile);
@@ -1275,7 +1289,7 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         FilePath = file,
                         FileName = System.IO.Path.GetFileName(file),
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     };
 
                     coreFiles.Add(corefile);
@@ -1404,7 +1418,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="resource">The service resource file name</param>
-        /// <returns></returns>
+        /// <returns>The service resource</returns>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
@@ -1416,7 +1430,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return fileContent;
-
         }
 
         private void CheckAndCreateDeveloperFolder()
@@ -1436,7 +1449,6 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(path);
             }
         }
-
 
         private static string ViewResourceKey(string viewName)
         {

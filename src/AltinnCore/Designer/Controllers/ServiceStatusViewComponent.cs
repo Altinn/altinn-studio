@@ -1,14 +1,13 @@
-﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Extensions;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -84,7 +83,7 @@ namespace AltinnCore.Designer.Controllers
             }
         }
 
-        private static string NiceSeparatedFileList( IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
+        private static string NiceSeparatedFileList(IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
         {
             if (infos == null || criteria == null)
             {
@@ -144,7 +143,7 @@ namespace AltinnCore.Designer.Controllers
                        {
                            ServiceIdentifier = serviceIdentifier,
                            CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
-                           UserMessages = userMessages
+                           UserMessages = userMessages,
                        };
         }
 

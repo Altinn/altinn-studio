@@ -7,6 +7,7 @@ import { ApiConfigurationComponent } from '../config/ApiConfigurationComponent';
 export interface IExternalApiModalProps {
   connections: any;
   externalApisById: any;
+  language: any;
 }
 
 export interface IExternalApiModalState {
@@ -87,14 +88,18 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
   public render(): JSX.Element {
     return (
       <>
-        <p className='a-fontSizeS mt-2 mb-1'>Api connections</p>
+        <p className='a-fontSizeS mt-2 mb-1'>
+          {this.props.language.ux_editor.api_connection_header}
+        </p>
         <button
           type='button'
           className='a-btn a-btn-action a-fullWidthBtn a-btnBigger'
           onClick={this.createNewConnection}
         >
           <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
-          <span className='a-fontSizeXS'>Add connection</span>
+          <span className='a-fontSizeXS'>
+            {this.props.language.general.add_connection}
+          </span>
         </button>
         <Modal
           ariaHideApp={false}
@@ -109,12 +114,14 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
               saveEdit={this.handleSaveChange}
               cancelEdit={this.handleCloseModal}
               deleteConnection={this.handleDeleteConnection}
+              language={this.props.language}
             />
             :
             <ApiConfigurationComponent
               saveEdit={this.handleSaveChange}
               cancelEdit={this.handleCloseModal}
               deleteConnection={(connectionId: any) => this.handleDeleteConnection(connectionId)}
+              language={this.props.language}
             />
           }
         </Modal>
@@ -127,6 +134,7 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
 const mapStateToProps: (state: IAppState) => IExternalApiModalProps = (state: IAppState) => ({
   connections: state.serviceConfigurations.APIs.connections,
   externalApisById: state.serviceConfigurations.APIs.externalApisById,
+  language: state.appData.language.language,
 });
 
 export const ExternalApiModalComponent = connect(mapStateToProps)(ExternalApiModal);

@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary.Enums
+namespace AltinnCore.ServiceLibrary.Enums
 {
     /// <summary>
     /// Enumeration for all available service events
@@ -33,6 +33,6 @@
         /// <summary>
         /// The data retrieval event
         /// </summary>
-        DataRetrieval = 5
+        DataRetrieval = 5,
     }
 }

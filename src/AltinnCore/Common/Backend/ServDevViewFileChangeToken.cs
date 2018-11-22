@@ -4,11 +4,10 @@ using System.IO;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.Extensions.Primitives;
 
-
 namespace AltinnCore.Common.Backend
 {
     /// <summary>
-    /// Watcher to verify if there as been created a package 
+    /// Watcher to verify if there as been created a package
     /// </summary>
     public class ServDevViewFileChangeToken : IChangeToken
     {
@@ -17,7 +16,7 @@ namespace AltinnCore.Common.Backend
         private DateTime _lastRequested;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ServDevViewFileChangeToken"/> class. 
+        /// Initializes a new instance of the <see cref="ServDevViewFileChangeToken"/> class.
         /// </summary>
         /// <param name="repositoryFolder">The location of the service repository</param>
         /// <param name="view">The View name</param>
@@ -40,7 +39,7 @@ namespace AltinnCore.Common.Backend
         }
 
         /// <summary>
-        /// Gets a value indicating whether file has changed 
+        /// Gets a value indicating whether file has changed
         /// </summary>
         public bool HasChanged
         {
@@ -66,7 +65,7 @@ namespace AltinnCore.Common.Backend
         }
 
         /// <summary>
-        /// Empty method to set a Callback. Created to support interface 
+        /// Empty method to set a Callback. Created to support interface
         /// </summary>
         /// <param name="callback">The callback</param>
         /// <param name="state">The state</param>

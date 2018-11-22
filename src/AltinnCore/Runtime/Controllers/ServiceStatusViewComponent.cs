@@ -1,4 +1,7 @@
-﻿
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -7,10 +10,6 @@ using AltinnCore.ServiceLibrary.Extensions;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -28,7 +27,7 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="compilation"> The service compilation service.  </param>
         /// <param name="repository"> The service Repository Service. </param>
-        /// <param name="viewRepository">The view repository</param>
+        /// <param name="generalSettings">the general setting for the repository</param>
         public ServiceStatusViewComponent(ICompilation compilation, IRepository repository, IOptions<GeneralSettings> generalSettings)
         {
             _compilation = compilation;
@@ -51,18 +50,17 @@ namespace AltinnCore.Runtime.Controllers
             CodeCompilationResult codeCompilationResult = null)
         {
             ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
-			CodeCompilationResult compilation = null;
+            CodeCompilationResult compilation = null;
 
-			if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
-			{
-				compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
+            if (string.IsNullOrEmpty(_generalSettings.RuntimeMode) || !_generalSettings.RuntimeMode.Equals("ServiceContainer"))
+            {
+                compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
 
-				var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
+                var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
 
-				ServiceStatusViewModel model = CreateModel(serviceIdentifier, compilation, metadata);
+                ServiceStatusViewModel model = CreateModel(serviceIdentifier, compilation, metadata);
 
-				return View(model);
-
+                return View(model);
             }
 
             return View(new ServiceStatusViewModel());
@@ -98,7 +96,7 @@ namespace AltinnCore.Runtime.Controllers
             }
         }
 
-        private static string NiceSeparatedFileList( IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
+        private static string NiceSeparatedFileList(IEnumerable<CompilationInfo> infos, Func<CompilationInfo, bool> criteria)
         {
             if (infos == null || criteria == null)
             {
@@ -146,8 +144,7 @@ namespace AltinnCore.Runtime.Controllers
         private ServiceStatusViewModel CreateModel(
             ServiceIdentifier serviceIdentifier,
             CodeCompilationResult compilationResult,
-            ServiceMetadata serviceMetadata
-            )
+            ServiceMetadata serviceMetadata)
         {
             var userMessages =
                 CompilationUserMessages(compilationResult)
@@ -159,7 +156,7 @@ namespace AltinnCore.Runtime.Controllers
                        {
                            ServiceIdentifier = serviceIdentifier,
                            CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
-                           UserMessages = userMessages
+                           UserMessages = userMessages,
                        };
         }
 

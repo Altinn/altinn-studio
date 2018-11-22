@@ -41,9 +41,9 @@ namespace AltinnCore.Designer.Controllers
             return View();
         }
 
-
         /// <summary>
         /// Get form layout as JSON
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>The model representation as JSON</returns>
@@ -53,9 +53,9 @@ namespace AltinnCore.Designer.Controllers
             return Content(_repository.GetJsonFormLayout(org, service), "text/plain", Encoding.UTF8);
         }
 
-
         /// <summary>
         /// Get third party components listed as JSON
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>The model representation as JSON</returns>
@@ -67,6 +67,7 @@ namespace AltinnCore.Designer.Controllers
 
         /// <summary>
         /// Get rule handler in JSON structure
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>The model representation as JSON</returns>
@@ -78,6 +79,7 @@ namespace AltinnCore.Designer.Controllers
 
         /// <summary>
         /// Get text resource as JSON for specified language
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="id">The language id for the text resource file</param>
@@ -91,6 +93,7 @@ namespace AltinnCore.Designer.Controllers
 
         /// <summary>
         /// Save form layout as JSON
+        /// </summary>
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -103,12 +106,13 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Skjema lagret"
+                Message = "Skjema lagret",
             });
         }
 
         /// <summary>
         /// Save form layout as JSON
+        /// </summary>
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -121,12 +125,13 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Tredjeparts komponenter lagret"
+                Message = "Tredjeparts komponenter lagret",
             });
         }
 
         /// <summary>
         /// Save JSON data as file
+        /// </summary>
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -140,12 +145,13 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = fileName + " saved"
+                Message = fileName + " saved",
             });
         }
 
         /// <summary>
         /// Get JSON file in JSON structure
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="fileName">The filename to read from</param>
@@ -155,7 +161,5 @@ namespace AltinnCore.Designer.Controllers
         {
             return Content(_repository.GetJsonFile(org, service, fileName), "application/javascript", Encoding.UTF8);
         }
-
-
     }
 }

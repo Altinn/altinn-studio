@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,12 +27,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             JProperty rootProperty = metadata.Children<JProperty>().First();
             rootName = rootProperty.Name;
-            
+
             //// CreateModelFromJsonRecursive(rootProperty.Children<JObject>().First(), classes, rootName);
 
             return string.Empty;
         }
-        
+
         /// <summary>
         /// Create Model from ServiceMetadata object
         /// </summary>
@@ -54,10 +54,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 foreach (KeyValuePair<string, ElementMetadata> childElement in serviceMetadata.Elements.Where(e => e.Value.ParentElement == group.Value.ID))
                 {
                 }
-                
+
                 classBuilder.AppendLine("}");
             }
-     
+
             var writer = new StringBuilder()
                 .AppendLine("using System;")
                 .AppendLine("using System.Collections.Generic;")
@@ -66,7 +66,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 .AppendLine("using System.Xml.Serialization;")
                 .AppendLine("using System.ComponentModel.DataAnnotations;")
                 .AppendLine("using Microsoft.AspNetCore.Mvc.ModelBinding;")
-                .AppendLine("namespace " + String.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, serviceMetadata.Service))
+                .AppendLine("namespace " + string.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, serviceMetadata.Service))
                 .AppendLine("{")
                 ////Append all classes
                 .Append(string.Concat(classes.Values.Reverse()))
@@ -102,7 +102,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\")]");
                     }
-                 
+
                     if (element.Value.MaxOccurs > 1)
                     {
                         classBuilder.AppendLine("public List<" + dataType + "> " + element.Value.Name + " { get; set; }");
@@ -134,7 +134,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     if (element.Value.XsdValueType != null)
                     {
                          dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType.Value);
-                    }          
+                    }
 
                     WriteRestrictionAnnotations(classBuilder, element.Value);
                     classBuilder.AppendLine("    [XmlAttribute(\"" + element.Value.XName + "\")]");
@@ -157,7 +157,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                 }
             }
-            
+
             classBuilder.AppendLine("}");
 
             if (string.IsNullOrEmpty(parentElement.TypeName))
@@ -179,7 +179,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 errorMessage = ", ErrorMessage = \"" + element.Texts[TextCategoryType.Error.ToString()] + "\"";
             }
-            
+
             bool hasRange = false;
             if (element.Restrictions.Count > 0)
             {
@@ -192,13 +192,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     classBuilder.AppendLine("[MaxLength(" + element.Restrictions["maxLength"].Value + errorMessage + ")]");
                 }
-            
+
                 if (element.Restrictions.ContainsKey("minInclusive") && element.Restrictions.ContainsKey("maxInclusive"))
                 {
                     classBuilder.AppendLine("[Range(" + element.Restrictions["minInclusive"].Value + ", " + element.Restrictions["maxInclusive"].Value + errorMessage + ")]");
                     hasRange = true;
                 }
-            
+
                 if (element.Restrictions.ContainsKey("pattern"))
                 {
                     classBuilder.AppendLine("[RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
@@ -217,7 +217,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             switch (element.XsdValueType.Value)
             {
-                //case BaseValueType.Decimal:
+                // case BaseValueType.Decimal:
                 //    classBuilder.AppendLine("[Range(Decimal.MinValue,Decimal.MaxValue)]");
                 //    break;
                 case BaseValueType.Double:

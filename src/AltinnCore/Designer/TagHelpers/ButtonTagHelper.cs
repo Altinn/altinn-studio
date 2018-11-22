@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -7,13 +7,16 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace AltinnCore.Designer.TagHelpers
 {
+    /// <summary>
+    /// button tag helper
+    /// </summary>
     [HtmlTargetElement("button", Attributes = AltinnTextAttributeName)]
-    public class ButtonTagHelper: TagHelper
+    public class ButtonTagHelper : TagHelper
     {
         private const string AltinnTextAttributeName = "altinn-text";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HTagHelper"/> class.
+        /// Initializes a new instance of the <see cref="ButtonTagHelper"/> class.
         /// </summary>
         /// <param name="generator">The current html generator</param>
         public ButtonTagHelper(IHtmlGenerator generator)
@@ -66,7 +69,7 @@ namespace AltinnCore.Designer.TagHelpers
             if (!string.IsNullOrEmpty(AltinnText))
             {
                 if (serviceContext.ServiceText.ContainsKey(AltinnText)
-                    && (serviceContext.ServiceText[AltinnText].ContainsKey(serviceContext.CurrentCulture)))
+                    && serviceContext.ServiceText[AltinnText].ContainsKey(serviceContext.CurrentCulture))
                 {
                     output.Content.SetHtmlContent(ServiceTextHelper.SetTextParams(serviceContext.ServiceText[AltinnText][serviceContext.CurrentCulture], requestContext, serviceContext));
                 }

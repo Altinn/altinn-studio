@@ -40,7 +40,7 @@ namespace AltinnCore.Designer.TagHelpers
     public class PartialTagHelper : TagHelper
     {
         private readonly ICompositeViewEngine _viewEngine;
-        
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PartialTagHelper"/> class.
         /// </summary>
@@ -61,7 +61,7 @@ namespace AltinnCore.Designer.TagHelpers
         /// </summary>
         [HtmlAttributeName("name")]
         public string Name { get; set; }
-        
+
         /// <summary>
         /// Processes an element
         /// </summary>

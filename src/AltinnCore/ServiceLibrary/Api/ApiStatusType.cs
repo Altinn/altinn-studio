@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.ServiceLibrary.Api
 {
     /// <summary>
@@ -29,6 +28,6 @@ namespace AltinnCore.ServiceLibrary.Api
         /// <summary>
         /// The data has been rejected
         /// </summary>
-        Rejected = 4
+        Rejected = 4,
     }
 }

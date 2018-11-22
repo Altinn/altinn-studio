@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Http;
 
@@ -20,9 +20,9 @@ namespace AltinnCore.Common.Helpers
             var context = new RequestContext
             {
                 Params = new Dictionary<string, string>(),
-                InstanceId = instanceId
+                InstanceId = instanceId,
             };
-            
+
             if (queryCollection != null)
             {
                 foreach (string key in queryCollection.Keys)
@@ -36,10 +36,10 @@ namespace AltinnCore.Common.Helpers
 
         /// <summary>
         /// Checks the request for the standard user actions for the plattform
-        /// based on 
+        /// based on
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <param name="request">the http request</param>
+        /// <returns>the standard user action</returns>
         public static UserActionType GetStandardUserAction(HttpRequest request)
         {
             if (request != null && request.Method.ToUpper() == "POST")
@@ -49,7 +49,7 @@ namespace AltinnCore.Common.Helpers
                 {
                     return UserActionType.NavigateNext;
                 }
-                
+
                 if (form.ContainsKey("NavigationButtonPrevious"))
                 {
                     return UserActionType.NavigatePrevious;

@@ -16,6 +16,7 @@ export interface IFormFillerProps {
   dataModelElements: IDataModelFieldElement[];
   designMode: boolean;
   formDataCount: number;
+  language: any;
 }
 
 export interface IFormFillerState { }
@@ -63,7 +64,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.saveFormData}
       >
-        Save
+        {this.props.language.general.save}
       </button>
     );
   }
@@ -77,7 +78,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.submitForm}
       >
-        Control and submit
+        {this.props.language.general.control_submit}
       </button>
     );
   }
@@ -114,6 +115,7 @@ const makeMapStateToProps = () => {
       dataModelElements: GetDataModel(state),
       designMode: GetDesignMode(state),
       formDataCount: GetFormDataCount(state),
+      language: state.appData.language.language,
     };
   };
   return mapStateToProps;
