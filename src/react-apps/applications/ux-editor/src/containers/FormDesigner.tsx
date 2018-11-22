@@ -1,3 +1,5 @@
+import {createStyles, Grid, Theme, withStyles} from '@material-ui/core';
+import classNames = require('classnames');
 import * as React from 'react';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -5,8 +7,25 @@ import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfi
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
-export interface IFormDesignerProps { }
+export interface IFormDesignerProps {
+  classes: any;
+}
 export interface IFormDesignerState { }
+
+const styles = ((theme: Theme) => createStyles({
+  root: {
+    flexGrow: 1,
+    minHeight: 'calc(100vh - 70px - 1em)',
+    paddingTop: '1em',
+  },
+  container: {
+    height: 'calc(100vh - 70px - 1em)',
+  },
+  mainContent: {
+    borderLeft: '1px solid #C9C9C9',
+    borderRight: '1px solid #C9C9C9',
+  },
+}));
 
 class FormDesigner extends React.Component<
   IFormDesignerProps,
@@ -44,30 +63,30 @@ class FormDesigner extends React.Component<
   }
 
   public render() {
+    const {classes} = this.props;
     return (
-      <div style={{display: 'flex', width: '100%', alignItems: 'stretch'}}>
-        <div style={{paddingLeft: 72}}>
-          <div className='container mb-3'>
-            <div className='row mt-3'>
-              <h1>Form designer</h1>
+      <div className={classes.root}>
+        <Grid
+          container={true}
+          spacing={24}
+          classes={{container: classNames(classes.container)}}
+        >
+          <Grid item={true} xs={2}>
+            <Toolbar />
+          </Grid>
+          <Grid item={true} xs={8} className={classes.mainContent}>
+          <Preview />
+            <div className='col-12 justify-content-center d-flex mt-3'>
+              {this.renderSaveButton()}
             </div>
-            <div className='row bigger-container mt-3'>
-              <Toolbar />
-              <div className='col'>
-                <Preview />
-                <div className='col-12 justify-content-center d-flex mt-3'>
-                  {this.renderSaveButton()}
-                </div>
-              </div>
-            </div>
-            <div className='row'>
-              <div className='col-3' />
-            </div>
-          </div>
-        </div>
+          </Grid>
+          <Grid item={true}>
+            <div/>
+          </Grid>
+        </Grid>
       </div>
     );
   }
 }
 
-export default FormDesigner;
+export default withStyles(styles, {withTheme: true})(FormDesigner);

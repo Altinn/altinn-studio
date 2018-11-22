@@ -151,7 +151,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
   public render() {
     return (
-      <div className={'col-sm-3'}>
+      <div className={'col-sm-12'}>
         <div className='row a-topTasks'>
           {this.toolbarComponents.map((component, index) => {
             return (

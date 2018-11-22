@@ -18,8 +18,10 @@
   "author": "Altinn",
   "license": "MIT",
   "dependencies": {
+    "@material-ui/core": "^3.4.0",
     "axios": "0.18.0",
     "babel-core": "6.26.3",
+    "classnames": "^2.2.6",
     "deepmerge": "2.1.1",
     "dot-object": "^1.7.0",
     "immutability-helper": "2.7.0",
