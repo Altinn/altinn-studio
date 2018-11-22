@@ -9,7 +9,7 @@ export interface IConditionalRenderingActionDispatcher extends ActionCreatorsMap
   delConditionalRendering: (connectionId: any) => ConditionalRenderingActions.IDelConditionalRendering;
   delConditionalRenderingFulfilled: (newConnectionObj: any) => ConditionalRenderingActions.IDelConditionalRenderingFulfilled;
   delConditionalRenderingRejected: (error: Error) => ConditionalRenderingActions.IDelConditionalRenderingRejected;
-  checkIfConditionalRulesShouldRun: () => ConditionalRenderingActions.ICheckIfConditionalRulesShouldRun;
+  checkIfConditionalRulesShouldRun: (repeatingContainerId?: string) => ConditionalRenderingActions.ICheckIfConditionalRulesShouldRun;
 }
 
 const actions: IConditionalRenderingActionDispatcher = {

@@ -18,8 +18,12 @@ class FormDesigner extends React.Component<
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
 
-    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+    FormDesignerActionDispatchers.fetchFormLayout(
+      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
+    ManageServiceConfigurationDispatchers.fetchJsonFile(
+      `${altinnWindow.location.origin}/designer/${
+      servicePath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
 
   public renderSaveButton = (): JSX.Element => {
@@ -46,9 +50,9 @@ class FormDesigner extends React.Component<
 
   public render() {
     return (
-      <div style={{display: 'flex', width: '100%', alignItems: 'stretch'}}>
-          <NavMenu/>
-        <div style={{paddingLeft: 72}}>
+      <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
+        <NavMenu />
+        <div style={{ paddingLeft: 72 }}>
           <div className='container mb-3'>
             <div className='row mt-3'>
               <h1>Form designer</h1>

@@ -47,8 +47,8 @@ export const DELETE_FORM_CONTAINER_REJECTED: string = `${moduleName}.DELETE_FORM
 
 // Update form component actions
 export const UPDATE_FORM_CONTAINER: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
-export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
-export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
+export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FORM_CONTAINER_FULFILLED`;
+export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER_REJECTED`;
 export const TOGGLE_FORM_CONTAINER_REPEAT: string = `${moduleName}.TOGGLE_FORM_CONTAINER_REPEAT`;
 
 // Add active container actions

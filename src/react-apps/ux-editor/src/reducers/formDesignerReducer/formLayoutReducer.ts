@@ -91,6 +91,26 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
+      if (addToId && positionAfterId) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            [id]: {
+              $set: container,
+            },
+          },
+          order: {
+            [id]: {
+              $set: [],
+            },
+            [addToId]: {
+              $push: [id],
+            },
+            [baseContainerId]: {
+              $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
+            },
+          },
+        });
+      }
       if (positionAfterId) {
         return update<IFormLayoutState>(state, {
           containers: {
@@ -104,25 +124,6 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
             },
             [baseContainerId]: {
               $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
-            },
-          },
-        });
-      }
-
-      if (addToId) {
-        console.log("INN ADD TO ID: " + addToId);
-        return update<IFormLayoutState>(state, {
-          containers: {
-            [id]: {
-              $set: container,
-            },
-          },
-          order: {
-            [id]: {
-              $set: [],
-            },
-            [addToId]: {
-              $push: [id],
             },
           },
         });

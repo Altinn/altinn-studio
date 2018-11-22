@@ -50,9 +50,10 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       dataModelElement,
       dataBindingName,
     );
+    const repeatingContainerId = this.isRepeating() ? this.props.id : null;
 
-    ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun(repeatingContainerId);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, repeatingContainerId);
     ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
   }
 
