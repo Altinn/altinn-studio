@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: altinn-repositories
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.8
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.9
         ports:
         - containerPort: 3000
         volumeMounts:
@@ -47,11 +47,11 @@ spec:
           mountPath: "/altinn-appsettings"
         env:
         - name: GiteaEndpoint
-          value: altinn.studio
+          value: dev.altinn.studio
         - name: GiteaApiEndpoint
-          value: https://altinn.studio/api/v1
+          value: https://dev.altinn.studio/api/v1
         - name: GiteaLoginEndpoint
-          value: https://altinn.studio/user/login
+          value: https://dev.altinn.studio/user/login
         - name: ASPNETCORE_ENVIRONMENT
           value: Development
         - name: ASPNETCORE_URLS
@@ -94,11 +94,11 @@ spec:
           mountPath: "/AltinnRuntime/Repos"
         env:
           - name: GiteaEndpoint
-            value: altinn.studio
+            value: dev.altinn.studio
           - name: GiteaLoginEndpoint
-            value: https://altinn.studio/user/login
+            value: https://dev.altinn.studio/user/login
           - name: GiteaApiEndpoint
-            value: https://altinn.studio/api/v1
+            value: https://dev.altinn.studio/api/v1
           - name: ASPNETCORE_ENVIRONMENT
             value: Development
           - name: ASPNETCORE_URLS
@@ -110,7 +110,7 @@ spec:
           - name: ServiceRepositorySettings__EnableGiteaIntegration
             value: "true"
           - name: ServiceRepositorySettings__RuntimeAPIEndPoint
-            value: "https://altinn.studio/"
+            value: "https://dev.altinn.studio/"
       volumes:
       - name: altinn-runtime-repo-storage
         persistentVolumeClaim:
