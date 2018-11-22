@@ -14,7 +14,10 @@ namespace AltinnCore.Designer
     /// </summary>
     public class Program
     {
-
+        /// <summary>
+        /// The main method
+        /// </summary>
+        /// <param name="args">The Arguments</param>
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args).Build().Run();
