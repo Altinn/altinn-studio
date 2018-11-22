@@ -14,29 +14,6 @@ spec:
         image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.8
         ports:
         - containerPort: 3000
-        env:
-          - name: DB_TYPE
-            value: postgres
-          - name: DB_HOST
-            valueFrom:
-              secretKeyRef:
-                name: gitea-db-secret
-                key: databaseAdress
-          - name: DB_NAME
-            valueFrom:
-              secretKeyRef:
-                name: gitea-db-secret
-                key: databaseName
-          - name: DB_USER
-            valueFrom:
-              secretKeyRef:
-                name: gitea-db-secret
-                key: databaseAdminUsername
-          - name: DB_PASSWD
-            valueFrom:
-              secretKeyRef:
-                name: gitea-db-secret
-                key: databaseAdminPassword
         volumeMounts:
         - name: altinn-gitea-storage
           mountPath: "/data/git"
