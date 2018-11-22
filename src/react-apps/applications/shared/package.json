@@ -1,0 +1,48 @@
+{
+  "name": "shared",
+  "version": "0.1.0",
+  "private": true,
+  "author": "Altinn",
+  "license": "3-Clause BSD",
+  "dependencies": {
+    "@material-ui/core": "^3.4.0",
+    "classnames": "^2.2.6",
+    "react": "16.6.1"
+  },
+  "devDependencies": {
+    "@types/classnames": "^2.2.6",
+    "@types/react": "16.4.14",
+    "altinn-designsystem": "2.0.19",
+    "babel-jest": "^23.6.0",
+    "enzyme": "^3.7.0",
+    "enzyme-adapter-react-16": "^1.6.0",
+    "jest": "23.1.0",
+    "jest-environment-enzyme": "^7.0.0",
+    "jest-enzyme": "^7.0.0",
+    "react-test-renderer": "^16.4.0",
+    "ts-jest": "^23.10.4",
+    "typescript": "^3.1.4"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
+      "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
