@@ -57,15 +57,15 @@
     <Copy SourceFiles="@(CoreTestdata)" DestinationFolder="$(PublishDir)Testdata\%(RecursiveDir)" />
   </Target>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
     <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61" />
-    <AdditionalFiles Include="C:\Repos\altinn-studio\stylecop.json">
+    <AdditionalFiles Include="$(SolutionDir)stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
 
-  <PropertyGroup>
-    <CodeAnalysisRuleSet>C:\Repos\altinn-studio\Altinn3.ruleset</CodeAnalysisRuleSet>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
