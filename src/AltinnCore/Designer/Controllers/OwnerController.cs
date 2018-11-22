@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -21,6 +21,7 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="OwnerController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service</param>
+        /// <param name="sourceControl">the source control</param>
         public OwnerController(IRepository repositoryService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
@@ -37,9 +38,9 @@ namespace AltinnCore.Designer.Controllers
         /// and a list of all services under the current service owner
         /// </returns>
         [Authorize]
-        public IActionResult Index(string org) 
+        public IActionResult Index(string org)
         {
-            //IList<ServiceConfiguration> services = _repository.GetServices(org);
+            // IList<ServiceConfiguration> services = _repository.GetServices(org);
             return View();
         }
 
@@ -55,7 +56,7 @@ namespace AltinnCore.Designer.Controllers
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             string token = _sourceControl.GetAppToken();
-            if(string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(token))
             {
                 model.MissingAppToken = true;
             }
@@ -63,14 +64,19 @@ namespace AltinnCore.Designer.Controllers
             return View(model);
         }
 
-    [Authorize]
-    [HttpGet]
-    public IActionResult CloneRemoteRepo(string org, string repo)
-    {
-      _sourceControl.CloneRemoteRepository(org, repo);
-      return View();
-    }
-
+        /// <summary>
+        /// clone a remote repository to local
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="repo">the name of repository</param>
+        /// <returns>The clone remote repoository view</returns>
+        [Authorize]
+        [HttpGet]
+        public IActionResult CloneRemoteRepo(string org, string repo)
+        {
+            _sourceControl.CloneRemoteRepository(org, repo);
+            return View();
+        }
 
         /// <summary>
         /// Action used to create a new service under the current service owner

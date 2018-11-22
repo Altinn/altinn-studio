@@ -15,8 +15,12 @@ const cleanGlobs = [
 ];
 
 
-const jsOrgFile = '../../react-apps/ux-editor/dist/react-app.js';
-const cssOrgFile = '../../react-apps/ux-editor/dist/react-app.css';
+const jsServDevFile = '../../react-apps/applications/service-development/dist/service-development.js';
+const jsDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.js';
+const jsUiEditorFile = '../../react-apps/applications/ux-editor/dist/react-app.js';
+const cssServDevFile = '../../react-apps/applications/service-development/dist/service-development.css';
+const cssDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.css';
+const cssUiEditorFile = '../../react-apps/applications/ux-editor/dist/react-app.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
@@ -105,45 +109,127 @@ function cleanNodeModulePackages() {
 }
 
 function copyReactJs() {
+  copyDashboardJs();
+  copyServDevJs();
+  copyUiEditorJs();
+  return;
+}
+
+function copyReactCss() {
+  copyDashboardCss();
+  copyServDevCss();
+  copyUiEditorCss();
+  return;
+}
+
+function copyDashboardJs() {
   setTimeout(function () {
-    gulp.src(jsOrgFile).pipe(gulp.dest('./wwwroot/designer/js/formbuilder/'));
+    gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
 
   return;
 }
 
-function copyReactCss() {
+function copyServDevJs() {
   setTimeout(function () {
-    gulp.src(cssOrgFile).pipe(gulp.dest('./wwwroot/designer/css/'));
+    gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
+  }, 1000);
+
+  return;
+}
+
+function copyUiEditorJs() {
+  setTimeout(function () {
+    gulp.src(jsUiEditorFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
+  }, 1000);
+
+  return;
+}
+
+function copyDashboardCss() {
+  setTimeout(function () {
+    gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+  }, 1000);
+
+  return;
+}
+
+function copyServDevCss() {
+  setTimeout(function () {
+    gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+  }, 1000);
+
+  return;
+}
+
+function copyUiEditorCss() {
+  setTimeout(function () {
+    gulp.src(cssUiEditorFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
 
   return;
 }
 
 function deleteReactJs() {
-  return del('wwwroot/designer/js/formbuilder/react-app.js');
+  return del('wwwroot/designer/js/formbuilder/react/react-app.js');
 }
 
 function deleteReactCss() {
-  return del('wwwroot/designer/css/react-app.css');
+  return del('wwwroot/designer/css/react/react-app.css');
 }
 
 function setupWatchers(cb) {
-  var checkJsFile = setInterval(function () {
-    if (fs.existsSync(jsOrgFile)) {
-      jsWatcher = chokidar.watch(jsOrgFile);
+  var checkDashboardJsFile = setInterval(function () {
+    if (fs.existsSync(jsDashboardFile)) {
+      jsWatcher = chokidar.watch(jsDashboardFile);
       // jsWatcher.on('ready', copyReactJs);
-      jsWatcher.on('change', copyReactJs);
-      clearInterval(checkJsFile);
+      jsWatcher.on('change', copyDashboardJs);
+      clearInterval(checkDashboardJsFile);
     }
   }, 1000);
 
-  var checkCssFile = setInterval(function () {
-    if (fs.existsSync(cssOrgFile)) {
-      cssWatcher = chokidar.watch(cssOrgFile);
+  var checkServDevJsFile = setInterval(function () {
+    if (fs.existsSync(jsServDevFile)) {
+      jsWatcher = chokidar.watch(jsServDevFile);
+      // jsWatcher.on('ready', copyReactJs);
+      jsWatcher.on('change', copyServDevJs);
+      clearInterval(checkServDevJsFile);
+    }
+  }, 1000);
+
+  var checkUiEditorJsFile = setInterval(function () {
+    if (fs.existsSync(jsUiEditorFile)) {
+      jsWatcher = chokidar.watch(jsUiEditorFile);
+      // jsWatcher.on('ready', copyReactJs);
+      jsWatcher.on('change', copyUiEditorJs);
+      clearInterval(checkUiEditorJsFile);
+    }
+  }, 1000);
+
+  var checkDashboardCssFile = setInterval(function () {
+    if (fs.existsSync(cssDashboardFile)) {
+      cssWatcher = chokidar.watch(cssDashboardFile);
       // cssWatcher.on('ready', copyReactCss);
-      cssWatcher.on('change', copyReactCss);
-      clearInterval(checkCssFile);
+      cssWatcher.on('change', copyDashboardCss);
+      clearInterval(checkDashboardCssFile);
+    }
+  }, 1000);
+
+  var checkServDevCssFile = setInterval(function () {
+    if (fs.existsSync(cssServDevFile)) {
+      cssWatcher = chokidar.watch(cssServDevFile);
+      // cssWatcher.on('ready', copyReactCss);
+      cssWatcher.on('change', copyServDevCss);
+      clearInterval(checkServDevCssFile);
+    }
+  }, 1000);
+
+  var checkUiEditorCssFile = setInterval(function () {
+    if (fs.existsSync(cssUiEditorFile)) {
+      cssWatcher = chokidar.watch(cssUiEditorFile);
+      // cssWatcher.on('ready', copyReactCss);
+      cssWatcher.on('change', copyUiEditorCss);
+      clearInterval(checkUiEditorCssFile);
     }
   }, 1000);
 
@@ -165,7 +251,7 @@ gulp.task('clean', gulp.series(
   deleteReactJs,
   cleanNodeModulePackages,
   run('npm run clean', {
-    cwd: '../../react-apps/ux-editor',
+    cwd: '../../react-apps/applications/service-development',
   })
 ));
 
@@ -174,19 +260,19 @@ gulp.task('develop', gulp.parallel(
   setupWatchers,
   run('dotnet run'),
   run('npm run webpack-watch', {
-    cwd: '../../react-apps/ux-editor',
-  }),
+    cwd: '../../react-apps/applications/service-development',
+  })
 ));
 
 gulp.task('install-react-app-dependencies', gulp.series(
-  run('npm install', {
-    cwd: '../../react-apps/ux-editor',
+  run('lerna bootstrap --hoist', {
+    cwd: '../../react-apps',
   })
 ));
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../../react-apps/ux-editor',
+    cwd: '../../react-apps/applications/service-development',
   }),
   'copy-files'
 ]));

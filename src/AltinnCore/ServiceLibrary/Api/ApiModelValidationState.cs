@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.ServiceLibrary.Api
 {
     /// <summary>
@@ -24,6 +23,6 @@ namespace AltinnCore.ServiceLibrary.Api
         /// <summary>
         /// The field is skipped
         /// </summary>
-        Skipped = 3
+        Skipped = 3,
     }
 }

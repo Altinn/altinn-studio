@@ -8,29 +8,63 @@ using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.RepositoryClient.JsonSubTypes
 {
-    //  Copied from project https://github.com/manuc66/JsonSubTypes
-    //  https://raw.githubusercontent.com/manuc66/JsonSubTypes/07403192ea3f4959f6d42f5966ac56ceb0d6095b/JsonSubTypes/JsonSubtypes.cs
+    // Copied from project https://github.com/manuc66/JsonSubTypes
+    // https://raw.githubusercontent.com/manuc66/JsonSubTypes/07403192ea3f4959f6d42f5966ac56ceb0d6095b/JsonSubTypes/JsonSubtypes.cs
 
+    /// <summary>
+    /// A discriminated Json sub-type Converter implementation for .NET
+    /// </summary>
     public class JsonSubtypes : JsonConverter
     {
+        /// <summary>
+        /// Known sub type attributes
+        /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
         public class KnownSubTypeAttribute : Attribute
         {
+            /// <summary>
+            /// Gets the sub type
+            /// </summary>
             public Type SubType { get; private set; }
+
+            /// <summary>
+            /// Gets the associated value
+            /// </summary>
             public object AssociatedValue { get; private set; }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="KnownSubTypeAttribute"/> class
+            /// </summary>
+            /// <param name="subType">the sub type</param>
+            /// <param name="associatedValue">the associated value</param>
             public KnownSubTypeAttribute(Type subType, object associatedValue)
             {
                 SubType = subType;
                 AssociatedValue = associatedValue;
             }
         }
+
+        /// <summary>
+        /// known type with property attribute
+        /// </summary>
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = true)]
         public class KnownSubTypeWithPropertyAttribute : Attribute
         {
+            /// <summary>
+            /// Gets the sub type
+            /// </summary>
             public Type SubType { get; private set; }
+
+            /// <summary>
+            /// Gets the property name
+            /// </summary>
             public string PropertyName { get; private set; }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="KnownSubTypeWithPropertyAttribute"/> class
+            /// </summary>
+            /// <param name="subType">the sub type</param>
+            /// <param name="propertyName">the property name</param>
             public KnownSubTypeWithPropertyAttribute(Type subType, string propertyName)
             {
                 SubType = subType;
@@ -43,45 +77,61 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private bool _isInsideRead;
         private JsonReader _reader;
 
+        /// <inheritdoc/>
         public override bool CanRead
         {
             get
             {
                 if (!_isInsideRead)
+                {
                     return true;
+                }
 
                 return !string.IsNullOrEmpty(_reader.Path);
             }
         }
 
+        /// <inheritdoc/>
         public sealed override bool CanWrite
         {
             get { return false; }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSubtypes"/> class
+        /// </summary>
         public JsonSubtypes()
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="JsonSubtypes"/> class
+        /// </summary>
+        /// <param name="typeMappingPropertyName">the type mapping property</param>
         public JsonSubtypes(string typeMappingPropertyName)
         {
             _typeMappingPropertyName = typeMappingPropertyName;
         }
 
+        /// <inheritdoc/>
         public override bool CanConvert(Type objectType)
         {
             return _typeMappingPropertyName != null;
         }
 
+        /// <inheritdoc/>
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Comment)
+            {
                 reader.Read();
+            }
 
             switch (reader.TokenType)
             {
@@ -120,12 +170,14 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                         throw new Exception("Array: Unrecognized token: " + reader.TokenType);
                 }
             }
+
             if (targetType.IsArray)
             {
                 var array = Array.CreateInstance(targetType.GetElementType(), list.Count);
                 list.CopyTo(array, 0);
                 list = array;
             }
+
             return list;
         }
 
@@ -140,6 +192,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             {
                 list = (IList)Activator.CreateInstance(targetContainerType);
             }
+
             return list;
         }
 
@@ -154,6 +207,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             {
                 elementType = arrayOrGenericContainer.GenericTypeArguments[0];
             }
+
             return elementType;
         }
 
@@ -163,7 +217,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
 
             var targetType = GetType(jObject, objectType) ?? objectType;
 
-            return _ReadJson(CreateAnotherReader(jObject, reader), targetType, null, serializer);
+            return ReadJsonObject(CreateAnotherReader(jObject, reader), targetType, null, serializer);
         }
 
         private static JsonReader CreateAnotherReader(JObject jObject, JsonReader reader)
@@ -179,12 +233,19 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
             return jObjectReader;
         }
 
+        /// <summary>
+        /// Get type of json object
+        /// </summary>
+        /// <param name="jObject">the json oject</param>
+        /// <param name="parentType">the parent type</param>
+        /// <returns>The type</returns>
         public Type GetType(JObject jObject, Type parentType)
         {
             if (_typeMappingPropertyName == null)
             {
                 return GetTypeByPropertyPresence(jObject, parentType);
             }
+
             return GetTypeFromDiscriminatorValue(jObject, parentType);
         }
 
@@ -198,29 +259,39 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                     return type.SubType;
                 }
             }
+
             return null;
         }
 
         private Type GetTypeFromDiscriminatorValue(JObject jObject, Type parentType)
         {
             JToken jToken;
-            if (!jObject.TryGetValue(_typeMappingPropertyName, out jToken)) return null;
+            if (!jObject.TryGetValue(_typeMappingPropertyName, out jToken))
+            {
+                return null;
+            }
 
             var discriminatorValue = jToken.ToObject<object>();
-            if (discriminatorValue == null) return null;
+            if (discriminatorValue == null)
+            {
+                return null;
+            }
 
             var typeMapping = GetSubTypeMapping(parentType);
             if (typeMapping.Any())
             {
                 return GetTypeFromMapping(typeMapping, discriminatorValue);
             }
+
             return GetTypeByName(discriminatorValue as string, parentType);
         }
 
         private static Type GetTypeByName(string typeName, Type parentType)
         {
             if (typeName == null)
+            {
                 return null;
+            }
 
             var insideAssembly = parentType.GetTypeInfo().Assembly;
 
@@ -230,6 +301,7 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
                 var searchLocation = parentType.FullName.Substring(0, parentType.FullName.Length - parentType.Name.Length);
                 typeByName = insideAssembly.GetType(searchLocation + typeName, false, true);
             }
+
             return typeByName;
         }
 
@@ -250,12 +322,22 @@ namespace AltinnCore.RepositoryClient.JsonSubTypes
         private static object ConvertJsonValueToType(object objectType, Type targetlookupValueType)
         {
             if (targetlookupValueType.GetTypeInfo().IsEnum)
+            {
                 return Enum.ToObject(targetlookupValueType, objectType);
+            }
 
             return Convert.ChangeType(objectType, targetlookupValueType);
         }
 
-        protected object _ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        /// <summary>
+        /// read json object
+        /// </summary>
+        /// <param name="reader">the json reader</param>
+        /// <param name="objectType">the type</param>
+        /// <param name="existingValue">existing value</param>
+        /// <param name="serializer">the json serializer</param>
+        /// <returns>returns deserialized object?</returns>
+        protected object ReadJsonObject(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             _reader = reader;
             _isInsideRead = true;

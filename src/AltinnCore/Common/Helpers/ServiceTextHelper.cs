@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Helpers
@@ -29,7 +29,7 @@ namespace AltinnCore.Common.Helpers
                 if (textParams != null && textParams.Count > 0)
                 {
                     object[] stringList = new object[textParams.Count];
-                    
+
                     for (int i = 0; i < textParams.Count; i++)
                     {
                         stringList[i] = textParams[i];
@@ -46,9 +46,9 @@ namespace AltinnCore.Common.Helpers
         /// Replaces the tags in service text with configured values in text from request context and service context
         /// </summary>
         /// <param name="serviceText">The service text</param>
-        /// <param name="requestContext"></param>
-        /// <param name="serviceContext"></param>
-        /// <returns></returns>
+        /// <param name="requestContext">the request context</param>
+        /// <param name="serviceContext">the servie context</param>
+        /// <returns>The edited service text</returns>
         public static string SetTextParams(string serviceText, RequestContext requestContext, ServiceContext serviceContext)
         {
             if (serviceText.Contains("{altinncore:"))

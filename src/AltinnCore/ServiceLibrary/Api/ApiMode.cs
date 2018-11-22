@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.ServiceLibrary.Api
 {
     /// <summary>
@@ -34,6 +33,6 @@ namespace AltinnCore.ServiceLibrary.Api
         /// <summary>
         /// Read the form data
         /// </summary>
-        Read = 5
+        Read = 5,
     }
 }

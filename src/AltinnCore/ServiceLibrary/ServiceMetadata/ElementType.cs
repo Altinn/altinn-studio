@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
     /// <summary>
     /// Enumeration for the different type of service elements
@@ -18,6 +18,6 @@
         /// <summary>
         /// Xml attribute
         /// </summary>
-        Attribute
+        Attribute,
     }
 }
