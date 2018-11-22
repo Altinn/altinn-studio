@@ -7,12 +7,14 @@ export interface IFormDesignerActionDispatchers
   extends ActionCreatorsMapObject {
   addFormComponent: (
     component: ICreateFormComponent,
+    position: number,
     containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentAction;
   addFormComponentFulfilled: (
     component: any,
     id: string,
+    position: number,
     containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentActionFulfilled;

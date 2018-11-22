@@ -46,7 +46,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
-      const { component, id, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
+      const { component, id, position, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
       if (callback) {
         callback(component, id);
       }
@@ -59,7 +59,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
         order: {
           [containerId]: {
-            $push: [id],
+            $splice: [[position, 0, id]],
           },
         },
       });

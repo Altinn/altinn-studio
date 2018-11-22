@@ -65,7 +65,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public addContainerToLayout(activeContainer: string) {
-    FormActionDispatcher.addFormContainer({
+    FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
       index: 0,
@@ -165,7 +165,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
           {(provided, snapshot) => (
 
-            <div className='row a-topTasks' ref={provided.innerRef}>
+            <div className='row' ref={provided.innerRef}>
               {this.toolbarComponents.map((component, index) => {
                 return (
                   <Draggable
@@ -177,19 +177,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                       <React.Fragment>
                         <div
                           className='col col-lg-12 a-item'
-                          id={'trulz-' + index}
+                          id={index.toString()}
                           key={index}
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          isdragging={snapshot.isDragging.toString()}
+
                         >
                           {component.label}
-                          <div onClick={component.actionMethod} className='a-add'>Add component</div>
                         </div>
 
                         {snapshot.isDragging && (
-                          <div className='col col-lg-12 a-item a-item-clone' style={{ display: 'none' }}>
+                          <div className='col col-lg-12 a-item'>
                             {component.label}
                           </div>
                         )}
@@ -198,9 +197,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                     )}
                   </Draggable>
 
-
                 );
               })}
+
               {provided.placeholder}
             </div>
           )}

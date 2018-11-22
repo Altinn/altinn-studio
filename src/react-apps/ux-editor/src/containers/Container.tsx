@@ -65,8 +65,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (
       <div>
 
-
-
         <Droppable droppableId='DEST'>
           {(provided, snapshot) => (
 
@@ -111,8 +109,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
         </Droppable>
 
         {!this.props.designMode && this.renderNewGroupButton()}
-
-
       </div>
     );
   }

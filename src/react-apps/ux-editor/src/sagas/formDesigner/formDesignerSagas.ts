@@ -31,6 +31,7 @@ export function* watchAddActiveFormContainerSaga(): SagaIterator {
 
 function* addFormComponentSaga({
   component,
+  position,
   callback,
 }: FormDesignerActions.IAddFormComponentAction): SagaIterator {
   try {
@@ -54,6 +55,7 @@ function* addFormComponentSaga({
       FormDesignerActionDispatchers.addFormComponentFulfilled,
       component,
       id,
+      position,
       activeContainer,
       callback,
     );
@@ -365,7 +367,7 @@ export function* watchToggleFormContainerRepeatingSaga(): SagaIterator {
 export function* updateFormComponentOrderSaga({
   id, newPosition, oldPosition,
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
-  console.log('sagas ftw ', id, newPosition, oldPosition);
+
   const ComponentOrder: any = yield select(selectFormDesignerOrder);
 
   const containerId: string = Object.keys(ComponentOrder)[0];
@@ -375,7 +377,7 @@ export function* updateFormComponentOrderSaga({
   order.splice(newPosition, 0, id);
   yield call(
     FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled, order, containerId,
-  )
+  );
 }
 
 export function* watchUpdateFormComponentOrderSaga(): SagaIterator {

@@ -60,7 +60,7 @@ class FormDesigner extends React.Component<
     });
   }
 
-  public onDragEnd = result => {
+  public onDragEnd = (result: any) => {
     const { source, destination } = result;
     let activeId;
 
@@ -71,8 +71,6 @@ class FormDesigner extends React.Component<
     switch (source.droppableId) {
       case destination.droppableId:
         activeId = result.draggableId;
-        console.log('original position: ', source);
-        console.log('new position: ', destination);
         FormDesignerActionDispatchers.updateFormComponentOrderAction(
           activeId,
           destination.index,
@@ -81,7 +79,6 @@ class FormDesigner extends React.Component<
         break;
 
       default:
-        console.log('default');
         const c = components[source.index].customProperties;
         const customProperties = !c ? {} : c;
         activeId = uuid();
@@ -91,16 +88,13 @@ class FormDesigner extends React.Component<
           title: components[source.index].name,
           ...JSON.parse(JSON.stringify(customProperties)),
         }
+          , destination.index,
           // , null, (component: any, id: string) => {
           //   this.handleNext(components[source.index], activeId);
           // },
         );
-
-
         break;
     }
-
-    console.log('result: ', result);
 
     return;
   }
