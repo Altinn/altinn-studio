@@ -23,7 +23,9 @@ WORKDIR /
 RUN npm run build --prefix ./applications/dashboard
 
 # Create Dashboard base image
-FROM scratch
+FROM alpine
 WORKDIR /dist
 COPY --from=generate-dashboard ./applications/dashboard/dist/dashboard.js .
 COPY --from=generate-dashboard ./applications/dashboard/dist/dashboard.css .
+
+CMD ["echo", "done"]
