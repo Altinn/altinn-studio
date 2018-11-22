@@ -6,6 +6,7 @@ import { ConditionalRenderingComponent } from '../config/ConditionalRenderingCom
 
 export interface IConditionalRenderingModalProps {
   conditionalRendering: any;
+  language: any;
 }
 
 export interface IConditionalRenderingModalState {
@@ -13,7 +14,8 @@ export interface IConditionalRenderingModalState {
   selectedConnectionId: string;
 }
 
-class ConditionalRenderingModal extends React.Component<IConditionalRenderingModalProps, IConditionalRenderingModalState> {
+class ConditionalRenderingModal extends React.Component<IConditionalRenderingModalProps,
+  IConditionalRenderingModalState> {
   public state = {
     modalOpen: false,
     selectedConnectionId: null as any,
@@ -95,14 +97,18 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
   public render(): JSX.Element {
     return (
       <>
-        <p className='a-fontSizeS mt-2 mb-1'>Conditional Rendering Connections </p>
+        <p className='a-fontSizeS mt-2 mb-1'>
+          {this.props.language.ux_editor.conditional_rendering_connection_header}
+        </p>
         <button
           type='button'
           className='a-btn a-btn-action a-fullWidthBtn a-btnBigger'
           onClick={this.createNewConnection}
         >
           <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
-          <span className='a-fontSizeXS'>Add connection</span>
+          <span className='a-fontSizeXS'>
+            {this.props.language.general.add_connection}
+          </span>
         </button>
         <Modal
           isOpen={this.state.modalOpen}
@@ -134,6 +140,7 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
 
 const mapStateToProps: (state: IAppState) => IConditionalRenderingModalProps = (state: IAppState) => ({
   conditionalRendering: state.serviceConfigurations.conditionalRendering,
+  language: state.appData.language.language,
 });
 
 export const ConditionalRenderingModalComponent = connect(mapStateToProps)(ConditionalRenderingModal);

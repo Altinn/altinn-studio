@@ -11,6 +11,11 @@
         public string TemplateLocation { get; set; }
 
         /// <summary>
+        /// Gets or sets the location to search for language files
+        /// </summary>
+        public string LanguageFilesLocation { get; set; }
+
+        /// <summary>
         /// Gets or sets the runtime mode
         /// </summary>
         public string RuntimeMode { get; set; }
@@ -42,16 +47,16 @@
         /// </summary>
         public string RuleHandlerTemplate
         {
-          get
-          {
-            return TemplateLocation + "/RuleHandler.js";
-          }
+            get
+            {
+                return TemplateLocation + "/RuleHandler.js";
+            }
         }
 
-    /// <summary>
-    /// Gets the path to the validation handler template
-    /// </summary>
-    public string ValidationHandlerTemplate
+        /// <summary>
+        /// Gets the path to the validation handler template
+        /// </summary>
+        public string ValidationHandlerTemplate
         {
             get
             {
@@ -80,7 +85,7 @@
                 return TemplateLocation + "/GeneratedMethods.cs";
             }
         }
-        
+
         /// <summary>
         /// Gets the path to the default Dockerfile file
         /// </summary>
