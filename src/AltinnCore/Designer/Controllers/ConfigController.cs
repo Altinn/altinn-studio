@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller exposing 
+    /// Controller exposing
     /// </summary>
     public class ConfigController : Controller
     {
@@ -60,7 +60,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Konfigurasjon lagret"
+                Message = "Konfigurasjon lagret",
             });
         }
 

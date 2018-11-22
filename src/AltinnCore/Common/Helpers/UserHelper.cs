@@ -25,7 +25,7 @@ namespace AltinnCore.Common.Helpers
             this._profileService = profileService;
             this._registerService = registerService;
         }
-        
+
         /// <summary>
         /// Returns the user context
         /// </summary>
@@ -59,7 +59,7 @@ namespace AltinnCore.Common.Helpers
             }
 
             userContext.UserParty = _registerService.GetParty(userContext.PartyId);
-           
+
             if (context.Request.Cookies["altinncorereportee"] != null)
             {
                 userContext.ReporteeId = Convert.ToInt32(context.Request.Cookies["altinncorereportee"]);

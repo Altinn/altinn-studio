@@ -9,12 +9,12 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace AltinnCore.Runtime.Authorization
 {
     /// <summary>
-    /// Authorization handler that 
+    /// Authorization handler that
     /// </summary>
     public class ServiceAccessHandler : AuthorizationHandler<ServiceAccessRequirement>
     {
         /// <summary>
-        /// This method handles authorization scenarios where access is controlled by the 
+        /// This method handles authorization scenarios where access is controlled by the
         /// </summary>
         /// <param name="context">The AuthorizationHandlerContext</param>
         /// <param name="requirement">The given requirement</param>

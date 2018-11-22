@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Enumeration for the different actions a user can make when filling out a service
@@ -28,6 +28,6 @@
         /// <summary>
         /// Submit the service
         /// </summary>
-        Submit = 4
+        Submit = 4,
     }
 }

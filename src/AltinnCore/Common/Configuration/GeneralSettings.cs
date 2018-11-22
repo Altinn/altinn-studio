@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.Common.Configuration
+namespace AltinnCore.Common.Configuration
 {
     /// <summary>
     /// General configuration settings

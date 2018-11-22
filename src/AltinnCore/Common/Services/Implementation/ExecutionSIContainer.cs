@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -18,12 +17,12 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
-    using AltinnCore.Common.Helpers;
-    using AltinnCore.Common.Helpers.Extensions;
-    using Microsoft.AspNetCore.Http;
     using System.Reflection;
     using System.Runtime.Loader;
     using System.Text;
+    using AltinnCore.Common.Helpers;
+    using AltinnCore.Common.Helpers.Extensions;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
@@ -39,12 +38,13 @@ namespace AltinnCore.Common.Services.Implementation
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class 
+        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public ExecutionSIContainer(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
@@ -64,7 +64,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The service Implementation</returns>
         public IServiceImplementation GetServiceImplementation(string org, string service)
         {
-
             string assemblykey = org + "_" + service;
             string implementationTypeName = null;
             Type type = null;
@@ -109,7 +108,7 @@ namespace AltinnCore.Common.Services.Implementation
                 ServiceModelType = GetServiceImplementation(org, service).GetServiceModelType(),
                 ServiceMetaData = _repository.GetServiceMetaData(org, service),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(org, service)
+                WorkFlow = _repository.GetWorkFlow(org, service),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -203,10 +202,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Raw contents of a code list file</returns>
         public string GetCodelist(string org, string service, string name)
         {
-            // Not relevant in a container scenario. 
+            // Not relevant in a container scenario.
             return null;
         }
 
+        /// <inheritdoc/>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
@@ -232,6 +232,13 @@ namespace AltinnCore.Common.Services.Implementation
             return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
         }
 
+        /// <summary>
+        /// Get workflow for the service
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="edition">the service edition</param>
+        /// <returns>The workflow for the service</returns>
         public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.WorkFlowFileName;
@@ -239,25 +246,19 @@ namespace AltinnCore.Common.Services.Implementation
             return JsonConvert.DeserializeObject<List<WorkFlowStep>>(textData);
         }
 
-        /// <summary>
-        /// Method that receives a stream and saves it to the given path
-        /// </summary>
+        /// <inheritdoc/>
         public void SaveToFile(string path, Stream streamToSave)
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Method that fetches the users repo, zips it and returns the zip file
-        /// </summary>
+        /// <inheritdoc/>
         public FileStream ZipAndReturnFile(string org, string service, string developer)
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Method that fetches the file of the specified path
-        /// </summary>
+        /// <inheritdoc/>
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();

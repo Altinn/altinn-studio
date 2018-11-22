@@ -1,4 +1,3 @@
-﻿
 namespace AltinnCore.ServiceLibrary.Enums
 {
     /// <summary>
@@ -24,6 +23,6 @@ namespace AltinnCore.ServiceLibrary.Enums
         /// <summary>
         /// Error status
         /// </summary>
-        Error = 3
+        Error = 3,
     }
 }

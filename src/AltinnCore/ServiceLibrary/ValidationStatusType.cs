@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Enumeration for the available validation statuses
@@ -24,10 +24,10 @@
         /// Error during validation
         /// </summary>
         Error = 3,
-        
+
         /// <summary>
-        /// Validation result undefined
+        /// Undefined
         /// </summary>
-        Undefined = 4
+        Undefined = 4,
     }
 }

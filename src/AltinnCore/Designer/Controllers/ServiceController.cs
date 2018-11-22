@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -22,6 +22,8 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ServiceController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service</param>
+        /// <param name="compilationService">the compilation service handler</param>
+        /// <param name="sourceControl">the source control service handler</param>
         public ServiceController(IRepository repositoryService, ICompilation compilationService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
@@ -45,14 +47,14 @@ namespace AltinnCore.Designer.Controllers
             model.Service = service;
             model.Org = org;
             model.ServiceMetadata = metadata;
-            
-              if (_sourceControl.IsLocalRepo(org, service))
-                    {
-                      model.IsLocalRepo = true;
-                      model.RepositoryContent = _sourceControl.Status(org, service);
-                     _sourceControl.FetchRemoteChanges(org, service);
-                      model.CommitsBehind = _sourceControl.CheckRemoteUpdates(org, service);
-              }
+
+            if (_sourceControl.IsLocalRepo(org, service))
+            {
+                model.IsLocalRepo = true;
+                model.RepositoryContent = _sourceControl.Status(org, service);
+                _sourceControl.FetchRemoteChanges(org, service);
+                model.CommitsBehind = _sourceControl.CheckRemoteUpdates(org, service);
+            }
 
             ViewBag.HasCreatedResources = _repository.GetLanguages(org, service).Any();
             ViewBag.HasSetConfiguration = _repository.GetConfiguration(org, service, "basic.json") != null;
@@ -91,32 +93,43 @@ namespace AltinnCore.Designer.Controllers
             return View(model);
         }
 
+        /// <summary>
+        /// Get the changes in the remote repository
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <returns>The service with changes</returns>
         [HttpGet]
         [Authorize]
         public IActionResult PullRemoteChanges(string org, string service)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             _sourceControl.PullRemoteChanges(org, service);
-             return RedirectToAction("index", new { Org = org, Service = service });
+            return RedirectToAction("index", new { Org = org, Service = service });
         }
 
-
-          /// <summary>
-          /// This method pushes changes to remote repository
-          /// </summary>
-          /// <param name="commitInfo">The commit info</param>
-          /// <returns>Redirects back to the codelist front page</returns>
-          [HttpPost]
-          [Authorize]
-          public IActionResult PushChanges(CommitInfo commitInfo)
-          {
+        /// <summary>
+        /// This method pushes changes to remote repository
+        /// </summary>
+        /// <param name="commitInfo">The commit info</param>
+        /// <returns>Redirects back to the codelist front page</returns>
+        [HttpPost]
+        [Authorize]
+        public IActionResult PushChanges(CommitInfo commitInfo)
+        {
             _sourceControl.PushChangesForRepository(commitInfo);
             return RedirectToAction("index", new { commitInfo.Org, Service = commitInfo.Repository });
-          }
+        }
 
-          [Authorize]
-          public IActionResult Clone(string org, string service)
-          {
+        /// <summary>
+        /// clone a repository
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <returns>The home app token page or the clone page</returns>
+        [Authorize]
+        public IActionResult Clone(string org, string service)
+        {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
             string token = _sourceControl.GetAppToken();
 
@@ -129,7 +142,7 @@ namespace AltinnCore.Designer.Controllers
                 return Redirect("/Home/AppToken");
             }
 
-              return RedirectToAction("Index", new { org, service });
+            return RedirectToAction("Index", new { org, service });
         }
     }
 }

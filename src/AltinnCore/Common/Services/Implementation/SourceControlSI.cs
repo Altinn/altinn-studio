@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -6,14 +11,12 @@ using LibGit2Sharp;
 using LibGit2Sharp.Handlers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace AltinnCore.Common.Services.Implementation
 {
+    /// <summary>
+    /// Implmentation for source control 
+    /// </summary>
     public class SourceControlSI : ISourceControl
     {
         private readonly IDefaultFileFactory _defaultFileFactory;
@@ -23,13 +26,19 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IGitea _gitea;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SourceControlSI"/> class 
+        /// Initializes a new instance of the <see cref="SourceControlSI"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
-        public SourceControlSI(IOptions<ServiceRepositorySettings> repositorySettings,
-                IOptions<GeneralSettings> generalSettings, IDefaultFileFactory defaultFileFactory, IHttpContextAccessor httpContextAccessor, IGitea gitea)
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="gitea">gitea</param>
+        public SourceControlSI(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IDefaultFileFactory defaultFileFactory,
+            IHttpContextAccessor httpContextAccessor,
+            IGitea gitea)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -41,22 +50,22 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Clone remote repository
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repository"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repository">the name of the repository</param>
         public void CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new CloneOptions();
-            cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+            cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
             Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
         }
 
         /// <summary>
         /// Verifies if developer has a local repo
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <returns></returns>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <returns>A bool indicating if the repository is a local one or not</returns>
         public bool IsLocalRepo(string org, string service)
         {
             string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -78,6 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
+        /// <inheritdoc/>
         public void PullRemoteChanges(string org, string repository)
         {
             using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
@@ -86,35 +96,34 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     MergeOptions = new MergeOptions()
                     {
-                        FastForwardStrategy = FastForwardStrategy.Default
-                    }
+                        FastForwardStrategy = FastForwardStrategy.Default,
+                    },
                 };
 
                 pullOptions.FetchOptions = new FetchOptions();
                 pullOptions.FetchOptions.CredentialsProvider = (_url, _user, _cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 MergeResult mergeResult = Commands.Pull(
                     repo,
                     new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
-                    pullOptions
-                );
+                    pullOptions);
             }
         }
 
         /// <summary>
         /// Fetches the remote changes
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="repostory"></param>
+        /// <param name="org">the organisation</param>
+        /// <param name="repository">the repository</param>
         public void FetchRemoteChanges(string org, string repository)
         {
-            string logMessage = "";
+            string logMessage = string.Empty;
             using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
             {
                 FetchOptions fetchOptions = new FetchOptions();
                 fetchOptions.CredentialsProvider = (_url, _user, _cred) =>
-                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 foreach (Remote remote in repo.Network.Remotes)
                 {
@@ -147,8 +156,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Add all changes in service repo and push to remote
         /// </summary>
-        /// <param name="org">The owner organization</param>
-        /// <param name="service">The service</param>
+        /// <param name="commitInfo">the commit information for the service</param>
         public void PushChangesForRepository(CommitInfo commitInfo)
         {
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
@@ -160,7 +168,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (!remote.PushUrl.Equals(remoteUrl))
                 {
                     // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files. 
+                    // Requires adminstrator access to update files.
                     repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 
@@ -175,10 +183,9 @@ namespace AltinnCore.Common.Services.Implementation
 
                 PushOptions options = new PushOptions();
                 options.CredentialsProvider = (_url, _user, _cred) =>
-                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = "" };
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 repo.Network.Push(remote, @"refs/heads/master", options);
-
             }
         }
 
@@ -218,7 +225,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Method for storing AppToken in Developers folder. This is not the permanent solution 
+        /// Method for storing AppToken in Developers folder. This is not the permanent solution
         /// </summary>
         /// <param name="token">The</param>
         public void StoreAppTokenForUser(string token)
@@ -233,13 +240,14 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
             }
+
             File.WriteAllText(path, token);
         }
 
         /// <summary>
         /// Return the App Token generated to let AltinnCore contact GITEA on behalf of service developer
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The app token</returns>
         public string GetAppToken()
         {
             string path = null;
@@ -251,6 +259,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
             }
+
             string token = null;
 
             if (File.Exists(path))
@@ -275,6 +284,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/";
             }
+
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -282,11 +292,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the local 
+        /// Returns the local
         /// </summary>
         /// <param name="org">The organization owning the repostory</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns></returns>
+        /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
         {
             string localpath = null;
@@ -298,15 +308,16 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 localpath = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/{repository}";
             }
+
             return localpath;
         }
 
         /// <summary>
-        /// Returns the remote repo 
+        /// Returns the remote repo
         /// </summary>
         /// <param name="org">The organization owning the repository</param>
         /// <param name="repository">The repository</param>
-        /// <returns></returns>
+        /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)

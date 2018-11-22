@@ -1,11 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace AltinnCore.Common.Models
 {
+    /// <summary>
+    /// app key for the repository
+    /// </summary>
     public class AppKey
     {
-    public string Key { get; set; }
+        /// <summary>
+        /// key for the repository
+        /// </summary>
+        public string Key { get; set; }
     }
 }

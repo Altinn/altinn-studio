@@ -1,4 +1,4 @@
-﻿#region Namespace imports
+#region Namespace imports
 
 using System;
 using System.Collections.Generic;
@@ -177,10 +177,10 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         #region - ToString -s
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
+        /// A <see cref="string" /> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -188,13 +188,13 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         }
         
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="langauge">
         /// The language.
         /// </param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string langauge)
         {

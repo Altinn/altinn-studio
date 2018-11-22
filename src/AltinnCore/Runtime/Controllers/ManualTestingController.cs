@@ -1,24 +1,24 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using AltinnCore.Common.Configuration;
 using Microsoft.Extensions.Options;
-using System.Net.Http;
-using System.IO;
-using System.IO.Compression;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -43,9 +43,20 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testdataService">The testDataService (configured in Startup.cs)</param>
         /// <param name="profileService">The profileService (configured in Startup.cs)</param>
         /// <param name="registerService">The registerService (configured in Startup.cs)</param>
-        /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>
-        public ManualTestingController(ITestdata testdataService, IProfile profileService, IRegister registerService,
-            IAuthorization authorizationService, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IExecution execution, IHttpContextAccessor contextAccessor)
+        /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>        
+        /// <param name="repositorySettings">the repository setting service handler</param>
+        /// <param name="giteaWrapper">the gitea wrapper handler</param>
+        /// <param name="contextAccessor">The http context accessor</param>
+        /// <param name="execution">The executionSI</param>
+        public ManualTestingController(
+            ITestdata testdataService,
+            IProfile profileService,
+            IRegister registerService,
+            IAuthorization authorizationService,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IGitea giteaWrapper,
+            IExecution execution,
+            IHttpContextAccessor contextAccessor)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -111,7 +122,7 @@ namespace AltinnCore.Runtime.Controllers
                 PrefillList = _testdata.GetServicePrefill(requestContext.Reportee.PartyId, org, service)
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
-                ReporteeID = requestContext.Reportee.PartyId
+                ReporteeID = requestContext.Reportee.PartyId,
             };
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
@@ -146,7 +157,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="culture">The culture to set</param>
         /// <param name="returnUrl">The returnUrl</param>
         /// <returns>Redirect to returnUrl</returns>
-        public IActionResult SetLanguage(string culture,
+        public IActionResult SetLanguage(
+            string culture,
             string returnUrl)
         {
             Response.Cookies.Append(
@@ -180,6 +192,7 @@ namespace AltinnCore.Runtime.Controllers
                         {
                             return Redirect(Environment.GetEnvironmentVariable("GiteaEndpoint") + "/user/login");
                         }
+
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 
@@ -214,12 +227,14 @@ namespace AltinnCore.Runtime.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
                 new AuthenticationProperties
                 {
                     ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
                     IsPersistent = false,
-                    AllowRefresh = false
+                    AllowRefresh = false,
                 });
 
             string goToUrl = "/";
@@ -245,6 +260,5 @@ namespace AltinnCore.Runtime.Controllers
 
             return LocalRedirect(goToUrl);
         }
-
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
@@ -22,7 +22,7 @@ namespace AltinnCore.Designer.Controllers
         {
             _dataSourceService = dataSourceService;
         }
-        
+
         /// <summary>
         /// The Index view for the data source page
         /// </summary>
@@ -31,7 +31,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>Returns the data source to the index view</returns>
         public ActionResult Index(string org, string service)
         {
-             IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service);
+            IList<DataSourceModel> datasources = _dataSourceService.GetDatasources(org, service);
             return View(datasources);
         }
 
@@ -52,7 +52,7 @@ namespace AltinnCore.Designer.Controllers
                 Id = selected?.Id ?? string.Empty,
                 Url = selected?.Url ?? string.Empty,
                 Description = selected?.Description ?? string.Empty,
-                Opprettet = selected?.Opprettet ?? DateTime.Now
+                Opprettet = selected?.Opprettet ?? DateTime.Now,
             };
 
             return View(model);
@@ -66,7 +66,7 @@ namespace AltinnCore.Designer.Controllers
         {
             return View();
         }
-        
+
         /// <summary>
         /// Http post for creating the JSON data source file.
         /// </summary>
@@ -80,7 +80,7 @@ namespace AltinnCore.Designer.Controllers
             if (ModelState.IsValid)
             {
                 _dataSourceService.Create(org, service, model.Description, model.Url);
-                
+
                 return RedirectToAction("Index");
             }
 
@@ -88,7 +88,7 @@ namespace AltinnCore.Designer.Controllers
 
             return View("Create", model);
         }
-        
+
         /// <summary>
         /// Http post for the edit action
         /// </summary>
@@ -110,7 +110,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 ModelState.AddModelError("AltinnModelIdMissing", "Fant ikke noe å oppdatere!");
             }
-            
+
             if (!ModelState.IsValid || selected == null)
             {
                 ViewBag.ErrorMessages = ModelState.Values.SelectMany(s => s.Errors).ToList();
@@ -137,6 +137,13 @@ namespace AltinnCore.Designer.Controllers
             return RedirectToAction("Index");
         }
 
+        /// <summary>
+        /// Test action
+        /// </summary>
+        /// <param name="org">the organisationt</param>
+        /// <param name="service">the service</param>
+        /// <param name="id">the id</param>
+        /// <returns>The test view</returns>
         public IActionResult Test(string org, string service, string id)
         {
             // TODO: This is no good

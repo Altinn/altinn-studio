@@ -43,7 +43,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="service">The service code for the current service</param>
         /// <param name="developer">The developer for the current service if any</param>
         /// <returns>The service instance list</returns>
-        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer= null)
+        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
             List<ServiceInstance> formInstances = new List<ServiceInstance>();
             string formDataFilePath = _settings.GetTestdataForPartyPath(org, service, developer) + partyId;
@@ -61,7 +61,7 @@ namespace AltinnCore.Common.Services.Implementation
                     ServiceInstance serviceInstance = new ServiceInstance()
                     {
                         ServiceInstanceID = instanceId,
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     };
 
                     string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";
@@ -74,8 +74,8 @@ namespace AltinnCore.Common.Services.Implementation
                     formInstances.Add(serviceInstance);
                 }
             }
-            return formInstances;
 
+            return formInstances;
         }
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace AltinnCore.Common.Services.Implementation
                     new ServicePrefill()
                     {
                         PrefillKey = Path.GetFileNameWithoutExtension(file),
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     });
             }
 

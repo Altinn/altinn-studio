@@ -45,14 +45,14 @@ namespace AltinnCore.Designer.TagHelpers
         /// </summary>
         [HtmlAttributeName(AltinnTextKeyAttributeName)]
         public string AltinnTextKey { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the current view context (injected)
         /// </summary>
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
-        
+
         /// <summary>
         /// Gets the current html generator
         /// </summary>
@@ -82,4 +82,3 @@ namespace AltinnCore.Designer.TagHelpers
         }
     }
 }
-    

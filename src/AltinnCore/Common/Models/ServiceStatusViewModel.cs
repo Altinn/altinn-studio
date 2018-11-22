@@ -1,7 +1,7 @@
-﻿using AltinnCore.ServiceLibrary;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Models
 {
@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// Gets or sets the user messages.
         /// </summary>
-        public IList<UserMessage> UserMessages { get; set; }  = new List<UserMessage>();
+        public IList<UserMessage> UserMessages { get; set; } = new List<UserMessage>();
 
         /// <summary>
         /// Gets or sets the compilation messages.
@@ -95,7 +95,7 @@ namespace AltinnCore.Common.Models
             /// <summary>  The error.  </summary>
             /// <param name="msg"> The message. </param>
             /// <returns> The <see cref="UserMessage"/>. An instance marked as error. </returns>
-           public static UserMessage Error(string msg)
+            public static UserMessage Error(string msg)
             {
                 return new UserMessage { IsError = true, Message = msg ?? string.Empty };
             }

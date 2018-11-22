@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
     /// <summary>
     /// Enumeration for language
@@ -18,6 +18,6 @@
         /// <summary>
         /// English (united states) language
         /// </summary>
-        EnglishUnitedStates = 1033
+        EnglishUnitedStates = 1033,
     }
 }
