@@ -16,6 +16,11 @@ namespace AltinnCore.Designer.Controllers
     public class LanguageController : Controller
     {
         private readonly GeneralSettings _generalSettings;
+
+        /// <summary>
+		/// Initializes a new instance of the <see cref="LanguageController"/> class.
+		/// </summary>
+		/// <param name="generalSettings">The general settings</param>
         public LanguageController(
             IOptions<GeneralSettings> generalSettings)
         {
