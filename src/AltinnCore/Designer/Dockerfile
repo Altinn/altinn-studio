@@ -22,10 +22,16 @@ FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce7
 EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
-COPY --from=altinn-studio-service-development /dist/service-development.js /AltinnCore/Designer/wwwroot/designer/js/react/service-development.js
-COPY --from=altinn-studio-service-development /dist/service-development.css /AltinnCore/Designer/wwwroot/designer/css/react/service-development.css
-COPY --from=altinn-studio-dashboard /dist/dashboard.js /AltinnCore/Designer/wwwroot/designer/js/react/dashboard.js
-COPY --from=altinn-studio-dashboard /dist/dashboard.css /AltinnCore/Designer/wwwroot/designer/css/dashboard.css
+COPY --from=altinn-studio-service-development /dist/service-development.js ./wwwroot/designer/js/react/service-development.js
+COPY --from=altinn-studio-service-development /dist/service-development.css ./wwwroot/designer/css/react/service-development.css
+COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
+COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
 RUN mv Templates ..
 RUN mv Testdata ..
+
+# DEBUG
+WORKDIR /app/wwwroot/designer/js/react/
+RUN ls
+WORKDIR /app
+
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]
