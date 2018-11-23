@@ -127,7 +127,7 @@ namespace AltinnCore.UnitTest.Designer
         }
 
         /// <summary>
-        /// This test verifies that user is redirected to start page if user is not logged in
+        /// This test verifies that user is redirected to start page if user is logged in
         /// </summary>
         [Fact]
         public void StartPage_LoggedInUser()
@@ -173,7 +173,7 @@ namespace AltinnCore.UnitTest.Designer
         }
 
         /// <summary>
-        /// This tests logs inn a a user
+        /// This tests logs in a user
         /// </summary>
         [Fact]
         public void Login_LogInUser()
