@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Enumeration for the different source types for code lists
@@ -23,6 +23,6 @@
         /// <summary>
         /// Indicates that the code list source is the platform
         /// </summary>
-        Platform = 3
+        Platform = 3,
     }
 }

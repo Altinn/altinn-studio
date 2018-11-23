@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Backend;
@@ -31,6 +31,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IArchive _archive;
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -44,15 +45,19 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="serviceExecutionService">The serviceExecutionService (set in Startup.cs)</param>
         /// <param name="profileService">The profileService (set in Startup.cs)</param>
         /// <param name="archiveService">The archive service</param>
-        public InstanceController(IAuthorization authorizationService, 
-            ILogger<InstanceController> logger, 
-            IRegister registerService, 
+        /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="testDataService">the test data service handler</param>
+        public InstanceController(
+            IAuthorization authorizationService,
+            ILogger<InstanceController> logger,
+            IRegister registerService,
             IForm formService,
             IRepository repositoryService,
             IExecution serviceExecutionService,
             IProfile profileService,
             IArchive archiveService,
-            ITestdata testDataService)
+            ITestdata testDataService,
+            IHttpContextAccessor httpContextAccessor)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -63,18 +68,18 @@ namespace AltinnCore.Runtime.Controllers
             _userHelper = new UserHelper(profileService, _register);
             _archive = archiveService;
             _testdata = testDataService;
+            _httpContextAccessor = httpContextAccessor;
         }
 
-
         /// <summary>
-        /// Action used for SPA 
+        /// Action used for SPA
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <param name="instanceId"></param>
-        /// <param name="view"></param>
-        /// <param name="itemId"></param>
-        /// <returns></returns>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="view">name of the view</param>
+        /// <param name="itemId">the item id</param>
+        /// <returns>The react view or the receipt</returns>
         [Authorize(Policy = "InstanceRead")]
         public IActionResult EditSPA(string org, string service, int instanceId, string view, int? itemId)
         {
@@ -82,17 +87,16 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
             {
                 return RedirectToAction("Receipt", new { org, service, instanceId });
             }
+
             // TODO Add info for REACT app.
             return View();
         }
 
-
-     
         /// <summary>
         /// Action where user can send in reporting service
         /// </summary>
@@ -126,14 +130,14 @@ namespace AltinnCore.Runtime.Controllers
 
             // Identify the correct view
             // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceImplementation.SetServiceModel(serviceModel);
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
             ViewBag.FormID = instanceId;
             ViewBag.ServiceContext = serviceContext;
 
-            await serviceImplementation.RunServiceEvent(ServiceEventType.Validation); 
+            await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
             return View();
         }
 
@@ -143,7 +147,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="instanceId">The instanceId</param>
         /// <param name="view">The ViewName</param>
         /// <returns>Redirect user to the receipt page</returns>
@@ -165,14 +168,14 @@ namespace AltinnCore.Runtime.Controllers
 
             PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
             serviceImplementation.SetPlatformServices(platformServices);
-            
+
             // Assign data to the ViewBag so it is available to the service views or service implementation
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, platformServices);
 
-            //Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+            // Getting the Form Data from database
+            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             serviceImplementation.SetServiceModel(serviceModel);
-            
+
             ViewBag.FormID = instanceId;
             ViewBag.ServiceContext = serviceContext;
 
@@ -182,10 +185,10 @@ namespace AltinnCore.Runtime.Controllers
             if (ModelState.IsValid)
             {
                 _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
-                
+
                 return RedirectToAction("Receipt", new { org, service, instanceId });
             }
-            
+
             return View();
         }
 
@@ -194,7 +197,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="instanceId">The instanceId</param>
         /// <returns>The receipt view</returns>
         public IActionResult Receipt(string org, string service, int instanceId)
@@ -220,18 +222,17 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, platformServices);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.Reportee.PartyId);
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
             return View();
         }
-    
+
         /// <summary>
         /// The start Service operation used to start services
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The start service View</returns>
         [Authorize]
         public IActionResult StartService(string org, string service)
@@ -244,10 +245,10 @@ namespace AltinnCore.Runtime.Controllers
                     .Select(x => new SelectListItem
                     {
                         Text = x.ReporteeNumber + " " + x.ReporteeName,
-                        Value = x.PartyID.ToString()
+                        Value = x.PartyID.ToString(),
                     })
                     .ToList(),
-                ServiceID = org + "_" + service                
+                ServiceID = org + "_" + service,
             };
             return View(startServiceModel);
         }
@@ -265,7 +266,7 @@ namespace AltinnCore.Runtime.Controllers
             // Will compile code and load DLL in to memory for AltinnCore
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(startServiceModel.Org, startServiceModel.Service);
 
-            // Get the service context containing metadata about the service 
+            // Get the service context containing metadata about the service
             ServiceContext serviceContext = _execution.GetServiceContext(startServiceModel.Org, startServiceModel.Service);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
@@ -274,7 +275,7 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
 
-            // Populate the reportee information 
+            // Populate the reportee information
             requestContext.UserContext.Reportee = _register.GetParty(startServiceModel.ReporteeID);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
@@ -284,19 +285,19 @@ namespace AltinnCore.Runtime.Controllers
             serviceImplementation.SetPlatformServices(platformServices);
             ViewBag.PlatformServices = platformServices;
 
-            // Assign the different context information to the service implementation making it possible for 
-            // the service developer to take use of this information 
+            // Assign the different context information to the service implementation making it possible for
+            // the service developer to take use of this information
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
-            
+
             object serviceModel = null;
 
             if (!string.IsNullOrEmpty(startServiceModel.PrefillKey))
             {
                 _form.GetPrefill(
-                    startServiceModel.Org, 
-                    startServiceModel.Service, 
-                    serviceImplementation.GetServiceModelType(), 
-                    startServiceModel.ReporteeID, 
+                    startServiceModel.Org,
+                    startServiceModel.Service,
+                    serviceImplementation.GetServiceModelType(),
+                    startServiceModel.ReporteeID,
                     startServiceModel.PrefillKey);
             }
 
@@ -312,7 +313,7 @@ namespace AltinnCore.Runtime.Controllers
             // Run Instansiation event
             await serviceImplementation.RunServiceEvent(ServiceEventType.Instantiation);
 
-            // Run validate Instansiation event where 
+            // Run validate Instansiation event where
             await serviceImplementation.RunServiceEvent(ServiceEventType.ValidateInstantiation);
 
             // If ValidateInstansiation event has not added any errors the new form is saved and user is redirercted to the correct
@@ -327,27 +328,34 @@ namespace AltinnCore.Runtime.Controllers
                 int formID = _execution.GetNewServiceInstanceID(startServiceModel.Org, startServiceModel.Service);
 
                 _form.SaveFormModel(
-                    serviceModel, 
-                    formID, 
-                    serviceImplementation.GetServiceModelType(), 
-                    startServiceModel.Org, 
-                    startServiceModel.Service,  
+                    serviceModel,
+                    formID,
+                    serviceImplementation.GetServiceModelType(),
+                    startServiceModel.Org,
+                    startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
 
-                  return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
+                return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
             }
 
-             startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
-                .Select(x => new SelectListItem
-                {
-                    Text = x.ReporteeNumber + " " + x.ReporteeName,
-                    Value = x.PartyID.ToString()
-                }).ToList();
+            startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
+               .Select(x => new SelectListItem
+               {
+                   Text = x.ReporteeNumber + " " + x.ReporteeName,
+                   Value = x.PartyID.ToString(),
+               }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
             return View(startServiceModel);
         }
 
+        /// <summary>
+        /// validate the model
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <returns>The api response</returns>
         public async Task<IActionResult> ModelValidation(string org, string service, int instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
@@ -365,7 +373,7 @@ namespace AltinnCore.Runtime.Controllers
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service);
 
-            // Assign the Requestcontext and ViewBag to the serviceImplementation so 
+            // Assign the Requestcontext and ViewBag to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
 
@@ -382,7 +390,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             serviceImplementation.SetServiceModel(serviceModel);
 
@@ -390,7 +399,7 @@ namespace AltinnCore.Runtime.Controllers
             await TryUpdateModelAsync(serviceModel);
 
             // ServiceEvent : HandleValidationEvent
-            // Perform Validation defined by the service developer. 
+            // Perform Validation defined by the service developer.
             await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
 
             ApiResult apiResult = new ApiResult();
@@ -398,11 +407,11 @@ namespace AltinnCore.Runtime.Controllers
 
             if (apiResult.Status.Equals(ApiStatusType.ContainsError))
             {
-               Response.StatusCode = 202;
+                Response.StatusCode = 202;
             }
             else
             {
-                Response.StatusCode = 200;  
+                Response.StatusCode = 200;
             }
 
             return new ObjectResult(apiResult);
@@ -420,6 +429,7 @@ namespace AltinnCore.Runtime.Controllers
             {
                 requestContext.Form = Request.Form;
             }
+
             return requestContext;
         }
 

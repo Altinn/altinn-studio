@@ -23,15 +23,9 @@ while (!($clusterName -match '^[a-z,A-Z,0-9,-]*$')) {
   Write-Output "Looks like the cluster name is invalid"
   $clusterName = Read-Host -Prompt "Cluster name"
 }
-$nodeCount = Read-Host -Prompt "Node count"
-while (!($nodeCount -match '^[0-9]*$')) {
-  Write-Output "Looks like the number of nodes is invalid try a new number"
-  $nodeCount = Read-Host -Prompt "Node count"
-}
-$clusterVersion = Read-Host -Prompt "Cluster version"
 
 Write-Output "Setting up the kubernetes cluster..."
-az aks create --resource-group $resourceGroupName --name $clusterName --node-count $nodeCount  --kubernetes-version $clusterVersion --generate-ssh-keys
+az aks create --resource-group $resourceGroupName --name $clusterName --generate-ssh-keys --service-cidr 10.0.0.0/16
 
 Write-Output "Installing kubernetes cli"
 az aks install-cli
@@ -39,34 +33,42 @@ az aks install-cli
 Write-Output "Connecting to the cluster"
 az aks get-credentials --resource-group $resourceGroupName --name $clusterName
 
-Write-Output "Creating the container registry"
-$containerRegistryName = Read-Host -Prompt "Container registry name"
-while (!($containerRegistryName -match '^[a-zA-Z0-9]*$')) {
-  Write-Output "Looks like the registry name is invalid, type a new name"
-  $containerRegistryName = Read-Host -Prompt "Container registry name"
-}
-$containerRegistrySku = Read-Host -Prompt "Container registry SKU"
+Write-Output "Creating postgresql database server"
+$databaseServerName = Read-Host -Prompt "Database server name"
+$databaseAdminUser = Read-Host -Prompt "Database admin user name"
+$databaseAdminPassword = Read-Host -Prompt "Database admin password"
+$databaseSKU = "GP_Gen5_32"
+$databaseSSLEnforcement = "Enabled"
 
-Write-Output "Setting up container registry..."
-az acr create --name $containerRegistryName --resource-group $resourceGroupName --sku $containerRegistrySku
+Write-Output "Setting up postgresql database server..."
+az postgres server create -l $location -g $resourceGroupName -n $databaseServerName -u $databaseAdminUser -p $databaseAdminPassword --sku-name $databaseSKU --ssl-enforcement $databaseSSLEnforcement
 
-Write-Output "Creating service principal for container registry"
-$servicePrincipalName = Read-Host -Prompt "Service princpal name"
-$acrResources = (az acr list --resource-group $resourceGroupName --query "[0].{id:id,loginServer:loginServer}" --output tsv).split("`t")
-$servicePrincipalPassword = az ad sp create-for-rbac --name $servicePrincipalName --role Reader --scopes $acrResources[0] --query password --output tsv
-$servicePrincipalId = az ad sp show --id http://$servicePrincipalName --query appId --output tsv
+$databaseServerAdress = $databaseServerName + ".postgres.database.azure.com"
+$databaseServerAdminLogin = $databaseAdminUser + "@" + $databaseServerName
 
-Write-Output "Adding appsetting secrets"
-kubectl create secret generic altinn-appsettings-secret --from-file=altinn-appsettings-secret.json
+$kubernetesResourceGroupName = "MC_" + $resourceGroupName + "_" + $clusterName + "_" + $location
 
-Write-Output "Creating kubernetes secret with service principal"
-$secretName = Read-Host -Prompt "Secret name"
-$dockerEmail = Read-Host -Prompt "Your email"
-while (!($secretName -match '^[a-zA-Z0-9,-,_]*$')) {
-  Write-Output "Looks like the secret name is invalid"
-  $secretName = Read-Host -Prompt "Secret name"
-}
-kubectl create secret docker-registry $secretName --docker-server $acrResources[1] --docker-username $servicePrincipalId --docker-password $servicePrincipalPassword --docker-email $dockerEmail
+Write-Output "Creating vnet rule on the database server"
+$vnetRuleName = Read-Host -Prompt "Name for the vnet rule"
+$clusterVnetId = az network vnet list -g $kubernetesResourceGroupName --query "[0].subnets[0].id" -o tsv
+az postgres server vnet-rule create -n $vnetRuleName -g $resourceGroupName -s $databaseServerName --subnet $clusterVnetId
+
+Write-Output "Creating database on the database server"
+$databaseName = Read-Host -Prompt "Database name"
+az postgres db create -n $databaseName -g $resourceGroupName -s $databaseServerName
+
+Write-Output "Creating kubernetes secret with database login credentials"
+echo -n $databaseServerAdress > ./databaseAdress
+echo -n $databaseServerAdminLogin > ./databaseAdminUsername
+echo -n $databaseAdminPassword > ./databaseAdminPassword
+echo -n $databaseName > ./databaseName
+
+kubectl create secret generic gitea-db-secret --from-file=./databaseAdress --from-file=./databaseAdminUsername --from-file=./databaseAdminPassword --from-file=./databaseName
+
+rm ./databaseAdress
+rm ./databaseAdminUsername
+rm ./databaseAdminPassword
+rm ./databaseName
 
 Write-Output "Creating public ip adress in kubernetes resource group"
 $publicIpAdressName = Read-Host -Prompt "Public ip adress name"
@@ -75,6 +77,5 @@ while (!($publicIpAdressName -match '^[a-zA-Z0-9,-,_]*$')) {
   $publicIpAdressName = Read-Host -Prompt "Public ip adress name"
 }
 
-$kubernetesResourceGroupName = "MC_" + $resourceGroupName + "_" + $clusterName + "_" + $location
 Write-Output "Creating public static ip adress in kubernetes resource group"
 az network public-ip create --resource-group $kubernetesResourceGroupName --name $publicIpAdressName --allocation-method Static

@@ -6,12 +6,12 @@ spec:
   replicas: 1
   template:
     metadata:
-      labels: 
+      labels:
         app: altinn-loadbalancer
     spec:
       containers:
       - name: altinn-loadbalancer
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer:1.13.0
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer:1.14.0
         ports:
           - containerPort: 80
           - containerPort: 443

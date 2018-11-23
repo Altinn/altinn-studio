@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -20,15 +20,16 @@ namespace AltinnCore.Common.Services.Interfaces
         void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId);
 
         /// <summary>
-        /// Returns the Form model for a given from. 
+        /// Returns the Form model for a given from.
         /// </summary>
         /// <param name="formId">The formId</param>
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
+        /// <param name="developer">The name of the developer if any</param>
         /// <returns>The form model</returns>
-        object GetFormModel(int formId, Type type, string org, string service, int partyId);
+        object GetFormModel(int formId, Type type, string org, string service, int partyId, string developer = null);
 
         /// <summary>
         /// Operation that returns a prefill populated form model

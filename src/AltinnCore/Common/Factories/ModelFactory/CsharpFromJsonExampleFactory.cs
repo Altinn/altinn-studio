@@ -38,7 +38,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 SafeParentName = SafeIdentifier(p.ParentName, true),
                                 ParentIsArray = p.Parent != null && p.Parent.IsArray,
-                                Type = p
+                                Type = p,
                             })
                     .GroupBy(d => d.SafeParentName)
                     .ToList();
@@ -55,7 +55,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     var index = 0;
                     foreach (var item in items)
                     {
-                        item.Type.AssignedName = $"{namedCollection.Key}{index++:000}";
+                        item.Type.AssignedName = $"{namedCollection.Key}{index++ :000}";
                     }
                 }
             }
@@ -196,23 +196,50 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
+        /// <summary>
+        /// type description for json object to csharp
+        /// </summary>
         public class TypeDescription
         {
+            /// <summary>
+            /// name
+            /// </summary>
             public string Name => string.IsNullOrWhiteSpace(AssignedName) ? $"Class{Nr:000}" : AssignedName;
 
+            /// <summary>
+            /// assigned na,e
+            /// </summary>
             public string AssignedName { get; set; }
 
+            /// <summary>
+            /// number
+            /// </summary>
             public int Nr { get; set; }
 
+            /// <summary>
+            /// parent
+            /// </summary>
             public PropertyDescription Parent { get; set; }
 
+            /// <summary>
+            /// parent name
+            /// </summary>
             public string ParentName => Parent?.Name ?? string.Empty;
 
+            /// <summary>
+            /// properties
+            /// </summary>
             public IList<PropertyDescription> Properties { get; } = new List<PropertyDescription>();
 
-
+            /// <summary>
+            /// collection child types
+            /// </summary>
             public IList<TypeDescription> CollectionChildTypes { get; } = new List<TypeDescription>();
 
+            /// <summary>
+            /// class declaration
+            /// </summary>
+            /// <returns>The string builder for the class declaration</returns>
             public string ClassDeclaration()
             {
                 const string Indent = "    ";
@@ -229,11 +256,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return sb.ToString();
             }
 
+            /// <summary>
+            /// all class declaration
+            /// </summary>
+            /// <returns>The all the class declarations</returns>
             public IEnumerable<string> AllClassDeclarations()
             {
                 return AllTypeDescriptions().Select(p => p.ClassDeclaration());
             }
 
+            /// <summary>
+            /// description of types
+            /// </summary>
+            /// <returns>All the type descriptions</returns>
             public IEnumerable<TypeDescription> AllTypeDescriptions()
             {
                 var children = from p in Properties where p.IsClass && p.ObjectType != null select p.ObjectType;
@@ -249,29 +284,57 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 => Properties.Select(CsharpFromJsonExampleFactory.GenerateProperty);
         }
 
-
+        /// <summary>
+        /// property description
+        /// </summary>
         public class PropertyDescription : ItemDescription
         {
+            /// <summary>
+            /// Gets or sets name
+            /// </summary>
             public string Name { get; set; }
         }
 
+        /// <summary>
+        /// item description
+        /// </summary>
         public abstract class ItemDescription
         {
+            /// <summary>
+            /// tokem
+            /// </summary>
             public JToken Token { get; set; }
 
+            /// <summary>
+            /// type
+            /// </summary>
             public JTokenType Type => Token?.Type ?? JTokenType.None;
 
+            /// <summary>
+            /// object type
+            /// </summary>
             public TypeDescription ObjectType { get; set; }
 
+            /// <summary>
+            /// is class
+            /// </summary>
             public bool IsClass => Type == JTokenType.Object;
 
+            /// <summary>
+            /// is array
+            /// </summary>
             public bool IsArray => Type == JTokenType.Array;
         }
 
+        /// <summary>
+        /// description for array item
+        /// </summary>
         public class ArrayItemDescription : ItemDescription
         {
+            /// <summary>
+            /// parent array
+            /// </summary>
             public JToken ParentArray { get; set; }
         }
-
     }
 }

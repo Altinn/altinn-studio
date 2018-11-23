@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- Azure CLI 2.0 installed
+- Azure CLI 2.0 installed (Version 2.0.50 or higher)
 - Azure CLI configured to the subscription you would like to use
 
 ## Setting the subscription

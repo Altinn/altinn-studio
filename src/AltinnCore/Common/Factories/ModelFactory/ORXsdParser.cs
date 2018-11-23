@@ -22,7 +22,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public ORXsdParser()
         {
         }
-        
+
         /// <summary>
         /// Parses OR XSD into JSON
         /// </summary>
@@ -33,58 +33,58 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <returns>JSON structure representing the XSD</returns>
         public JObject ParseToJson(XDocument xsd)
         {
-            //this.xsd = xsd;
-            //XElement rootElement = xsd.Root.Element(XDocName.Element);
-            //if (rootElement == null)
-            //{
+            // this.xsd = xsd;
+            // XElement rootElement = xsd.Root.Element(XDocName.Element);
+            // if (rootElement == null)
+            // {
             //    throw new Exception("XSD without root is a bad idea...");
-            //}
+            // }
 
-            //XElement rootComplexType = rootElement.Element(XDocName.ComplexType);
-            //if (rootComplexType == null)
-            //{
+            // XElement rootComplexType = rootElement.Element(XDocName.ComplexType);
+            // if (rootComplexType == null)
+            // {
             //    throw new Exception("XSD missing root complexType..."); ;
-            //}
+            // }
 
-            //string rootName = rootElement.AttributeValue("name");
+            // string rootName = rootElement.AttributeValue("name");
 
-            //ServiceMetadata serviceMetadata = new ServiceMetadata();
-            //serviceMetadata.Elements = new Dictionary<string, ElementMetadata>();
+            // ServiceMetadata serviceMetadata = new ServiceMetadata();
+            // serviceMetadata.Elements = new Dictionary<string, ElementMetadata>();
 
-            //ElementMetadata rootElementMetadata = new ElementMetadata();
-            ////rootElementMetadata.CustomProperties 
+            // ElementMetadata rootElementMetadata = new ElementMetadata();
+            ////rootElementMetadata.CustomProperties
 
-            //var writer = new JTokenWriter();
-            //writer.WriteStartObject();
-            //writer.WritePropertyName(rootName);
-            //writer.WriteStartObject();
-            //if (includeAttributes)
-            //{
+            // var writer = new JTokenWriter();
+            // writer.WriteStartObject();
+            // writer.WritePropertyName(rootName);
+            // writer.WriteStartObject();
+            // if (includeAttributes)
+            // {
             //    writer.WritePropertyName("skjemanummer");
             //    writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "skjemanummer")));
 
-            //    writer.WritePropertyName("spesifikasjonsnummer");
+            // writer.WritePropertyName("spesifikasjonsnummer");
             //    writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "spesifikasjonsnummer")));
 
-            //    writer.WritePropertyName("blankettnummer");
+            // writer.WritePropertyName("blankettnummer");
             //    writer.WriteValue(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "blankettnummer"));
 
-            //    writer.WritePropertyName("tittel");
+            // writer.WritePropertyName("tittel");
             //    writer.WriteValue(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "tittel"));
 
-            //    writer.WritePropertyName("gruppeid");
+            // writer.WritePropertyName("gruppeid");
             //    writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "gruppeid")));
 
-            //    writer.WritePropertyName("etatid");
+            // writer.WritePropertyName("etatid");
             //    writer.WriteValue(""); // TODO
 
-            //    writer.WritePropertyName("xpath");
+            // writer.WritePropertyName("xpath");
             //    writer.WriteValue(rootName);
-            //}
+            // }
 
-            //XElement rootAnnotation = rootElement.Element(XDocName.Annotation);
-            //if (rootAnnotation != null && includeTexts)
-            //{
+            // XElement rootAnnotation = rootElement.Element(XDocName.Annotation);
+            // if (rootAnnotation != null && includeTexts)
+            // {
             //    CultureString labels = CreateCultureStringFromXElement(rootAnnotation, "LEDE");
             //    if (labels.Count > 0)
             //    {
@@ -97,13 +97,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
             //        }
             //        writer.WriteEndObject();
             //    }
-            //}
+            // }
 
             ////Build JSON recursively
-            //BuildJsonRecursive(rootComplexType, writer, "/" + rootName, includeTexts, includeRestrictions, includeAttributes);
+            // BuildJsonRecursive(rootComplexType, writer, "/" + rootName, includeTexts, includeRestrictions, includeAttributes);
 
-            //writer.WriteEndObject();
-            //writer.WriteEndObject();
+            // writer.WriteEndObject();
+            // writer.WriteEndObject();
             ////
 
             return null;
@@ -129,29 +129,29 @@ namespace AltinnCore.Common.Factories.ModelFactory
             XElement rootComplexType = rootElement.Element(XDocName.ComplexType);
             if (rootComplexType == null)
             {
-                throw new Exception("XSD missing root complexType..."); 
+                throw new Exception("XSD missing root complexType...");
             }
 
             Dictionary<string, string> classes = new Dictionary<string, string>();
             string rootName = rootElement.AttributeValue("name");
 
-            //writer.WritePropertyName("skjemanummer");
-            //writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "skjemanummer")));
+            // writer.WritePropertyName("skjemanummer");
+            // writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "skjemanummer")));
 
-            //writer.WritePropertyName("spesifikasjonsnummer");
-            //writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "spesifikasjonsnummer")));
+            // writer.WritePropertyName("spesifikasjonsnummer");
+            // writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "spesifikasjonsnummer")));
 
-            //writer.WritePropertyName("blankettnummer");
-            //writer.WriteValue(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "blankettnummer"));
+            // writer.WritePropertyName("blankettnummer");
+            // writer.WriteValue(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "blankettnummer"));
 
-            //writer.WritePropertyName("tittel");
-            //writer.WriteValue(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "tittel"));
+            // writer.WritePropertyName("tittel");
+            // writer.WriteValue(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "tittel"));
 
-            //writer.WritePropertyName("gruppeid");
-            //writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "gruppeid")));
+            // writer.WritePropertyName("gruppeid");
+            // writer.WriteValue(int.Parse(GetFixedAttributeValueFromAttributeName(rootComplexType.Elements(XDocName.Attribute), "gruppeid")));
 
-            //writer.WritePropertyName("etatid");
-            //writer.WriteValue("");
+            // writer.WritePropertyName("etatid");
+            // writer.WriteValue("");
 
             // Build C# model classes recursively
             BuildModelRecursive(rootComplexType, classes, rootName);
@@ -250,15 +250,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         ////propertyBuilder.AppendLine("public int GruppeId {get {return " + groupId +";} }");
                     }
 
-                    //string minOccStr = refElement.AttributeValue("minOccurs");
-                    //int minOccurs = string.IsNullOrEmpty(minOccStr) ? 1 : int.Parse(minOccStr);
-                    //writer.AppendLine("public int MinOccurs {get {return " + groupId + ";} }");
+                    // string minOccStr = refElement.AttributeValue("minOccurs");
+                    // int minOccurs = string.IsNullOrEmpty(minOccStr) ? 1 : int.Parse(minOccStr);
+                    // writer.AppendLine("public int MinOccurs {get {return " + groupId + ";} }");
                     ////
 
                     string maxOccursStr = refElement.AttributeValue("maxOccurs");
                     int maxOccurs = string.IsNullOrEmpty(maxOccursStr) ? 1 : int.Parse(maxOccursStr);
 
-                    //Prefer annotation from ref element
+                    // Prefer annotation from ref element
                     XElement annotationElement = refElement.Element(XDocName.Annotation) ?? element.Element(XDocName.Annotation);
                     if (annotationElement != null)
                     {
@@ -271,7 +271,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
 
                     string propertyDataType = className;
-                   
+
                     XElement simpleTypeAnnotationElement = null;
                     if (nextComplexType != null && nextComplexType.Element(XDocName.SimpleContent) != null)
                     {
@@ -281,9 +281,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         simpleTypeAnnotationElement = simpleType.Element(XDocName.Annotation);
                         XElement restriction = simpleType.Element(XDocName.Restriction);
 
-                        //int orid = int.Parse(extension.Element(XDocName.Attribute).AttributeValue("fixed"));
-                        //writer.WritePropertyName("orid");
-                        //writer.WriteValue(orid);
+                        // int orid = int.Parse(extension.Element(XDocName.Attribute).AttributeValue("fixed"));
+                        // writer.WritePropertyName("orid");
+                        // writer.WriteValue(orid);
                         ////
 
                         string xsdDataType = restriction.AttributeValue("base").ToLower();
@@ -329,12 +329,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 break;
                         }
 
-                        //string length = restriction.Element(XDocName.Length).AttributeValue("value");
-                        //if (!string.IsNullOrEmpty(length))
-                        //{
+                        // string length = restriction.Element(XDocName.Length).AttributeValue("value");
+                        // if (!string.IsNullOrEmpty(length))
+                        // {
                         //    writer.WritePropertyName("length");
                         //    writer.WriteValue(int.Parse(length));
-                        //}
+                        // }
                         ////
 
                         string minLength = restriction.Element(XDocName.MinLength).AttributeValue("value");
@@ -356,12 +356,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             propertyBuilder.AppendLine("    [Range(" + minInclusive + ", " + maxInclusive + ")]");
                         }
 
-                        //string totalDigits = restriction.Element(XDocName.TotalDigits).AttributeValue("value");
-                        //if (!string.IsNullOrEmpty(totalDigits))
-                        //{
+                        // string totalDigits = restriction.Element(XDocName.TotalDigits).AttributeValue("value");
+                        // if (!string.IsNullOrEmpty(totalDigits))
+                        // {
                         //    writer.WritePropertyName("totalDigits");
                         //    writer.WriteValue(int.Parse(totalDigits));
-                        //}
+                        // }
                         ////
 
                         string pattern = restriction.Element(XDocName.Pattern).AttributeValue("value");
@@ -370,9 +370,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             propertyBuilder.AppendLine("    [RegularExpression(@\"" + pattern + "\")]");
                         }
 
-                        //IEnumerable<XElement> enumerations = restriction.Elements(XDocName.Enumeration);
-                        //if (enumerations != null && enumerations.Count() > 0)
-                        //{
+                        // IEnumerable<XElement> enumerations = restriction.Elements(XDocName.Enumeration);
+                        // if (enumerations != null && enumerations.Count() > 0)
+                        // {
                         //    writer.WritePropertyName("enums");
                         //    writer.WriteStartArray();
                         //    foreach (var enumeration in enumerations)
@@ -380,10 +380,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         //        writer.WriteValue(enumeration.AttributeValue("value"));
                         //    }
                         //    writer.WriteEndArray();
-                        //}
+                        // }
                     }
-                
-                    //handle "bad" xsd with duplicate names in same group
+
+                    // handle "bad" xsd with duplicate names in same group
                     if (propertyNamesUsed.Contains(classShortRefName))
                     {
                         classShortRefName += "2";
@@ -398,11 +398,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     propertyBuilder.AppendLine("    public " + propertyDataType + " " + classShortRefName + " {get; set;}");
                     propertyNamesUsed.Add(classShortRefName);
 
-                    //Magic
+                    // Magic
                     BuildModelRecursive(nextComplexType, classes, className);
                 }
 
-                //Add class with properties
+                // Add class with properties
                 classes.Add(trail, CreateClass(trail, propertyBuilder.ToString()));
             }
         }
@@ -420,7 +420,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     XElement element = GetXElementByNameAttribute(refName);
                     XElement nextComplexType = element.Element(XDocName.ComplexType);
 
-                    //handle "bad" xsd with duplicate names in same group
+                    // handle "bad" xsd with duplicate names in same group
                     if (propertyNamesUsed.Contains(classShortRefName))
                     {
                         classShortRefName += "2";
@@ -543,8 +543,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             }
                         }
                     }
-        
-                    //Prefer annotation from ref element
+
+                    // Prefer annotation from ref element
                     XElement annotationElement = refElement.Element(XDocName.Annotation) ?? element.Element(XDocName.Annotation);
                     if (annotationElement != null && includeTexts)
                     {
@@ -609,8 +609,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             writer.WriteEndObject();
                         }
                     }
-   
-                    //Magic
+
+                    // Magic
                     BuildJsonRecursive(nextComplexType, writer, newTrail, includeTexts, includeRestrictions, includeAttributes);
 
                     writer.WriteEndObject();

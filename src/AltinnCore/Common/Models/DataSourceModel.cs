@@ -1,33 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Models
 {
-    /// <summary>
-    /// The JSON container class
-    /// </summary>
-    public class RootObject
-    {
-        /// <summary>
-        /// Gets or sets the Root object for the JSON model
-        /// </summary>
-        [JsonProperty("urlresources")]
-        public UrlResources UrlResources { get; set; }
-    }
-
-    /// <summary>
-    /// Dictionary of the data source model
-    /// </summary>
-    public class UrlResources
-    {
-        /// <summary>
-        /// Gets or sets the model into a dictionary
-        /// </summary>
-        [JsonProperty("datasourceurls")]
-        public Dictionary<string, DataSourceModel> DataSourceUrls { get; set; }
-    }
-
     /// <summary>
     /// Container class for the DataSource
     /// </summary>
@@ -56,5 +32,29 @@ namespace AltinnCore.Common.Models
         /// </summary>
         [JsonProperty("opprettet")]
         public DateTime Opprettet { get; set; }
+    }
+
+    /// <summary>
+    /// The JSON container class
+    /// </summary>
+    public class RootObject
+    {
+        /// <summary>
+        /// Gets or sets the Root object for the JSON model
+        /// </summary>
+        [JsonProperty("urlresources")]
+        public UrlResources UrlResources { get; set; }
+    }
+
+    /// <summary>
+    /// Dictionary of the data source model
+    /// </summary>
+    public class UrlResources
+    {
+        /// <summary>
+        /// Gets or sets the model into a dictionary
+        /// </summary>
+        [JsonProperty("datasourceurls")]
+        public Dictionary<string, DataSourceModel> DataSourceUrls { get; set; }
     }
 }

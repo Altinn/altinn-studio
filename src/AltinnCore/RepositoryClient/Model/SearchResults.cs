@@ -1,15 +1,15 @@
-﻿using System;
-using System.Linq;
-using System.IO;
-using System.Text;
-using System.Text.RegularExpressions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
+using System.IO;
+using System.Linq;
 using System.Runtime.Serialization;
+using System.Text;
+using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using System.ComponentModel.DataAnnotations;
 
 namespace AltinnCore.RepositoryClient.Model
 {
@@ -83,19 +83,19 @@ namespace AltinnCore.RepositoryClient.Model
         public bool Equals(SearchResults input)
         {
             if (input == null)
+            {
                 return false;
+            }
 
             return
                 (
                     this.Data == input.Data ||
-                    this.Data != null &&
-                    this.Data.SequenceEqual(input.Data)
-                ) &&
+                    (this.Data != null &&
+                    this.Data.SequenceEqual(input.Data))) &&
                 (
                     this.Ok == input.Ok ||
                     (this.Ok != null &&
-                    this.Ok.Equals(input.Ok))
-                );
+                    this.Ok.Equals(input.Ok)));
         }
 
         /// <summary>
@@ -104,13 +104,20 @@ namespace AltinnCore.RepositoryClient.Model
         /// <returns>Hash code</returns>
         public override int GetHashCode()
         {
-            unchecked // Overflow is fine, just wrap
+            // Overflow is fine, just wrap
+            unchecked
             {
                 int hashCode = 41;
                 if (this.Data != null)
-                    hashCode = hashCode * 59 + this.Data.GetHashCode();
+                {
+                    hashCode = (hashCode * 59) + this.Data.GetHashCode();
+                }
+
                 if (this.Ok != null)
-                    hashCode = hashCode * 59 + this.Ok.GetHashCode();
+                {
+                    hashCode = (hashCode * 59) + this.Ok.GetHashCode();
+                }
+
                 return hashCode;
             }
         }

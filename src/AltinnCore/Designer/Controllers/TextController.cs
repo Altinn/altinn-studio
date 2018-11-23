@@ -1,14 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller for resources 
+    /// Controller for resources
     /// </summary>
     public class TextController : Controller
     {
@@ -31,7 +31,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The view with JSON editor</returns>
         public IActionResult Index(string org, string service)
         {
@@ -51,12 +50,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>List of languages as JSON</returns>
         public IActionResult GetLanguages(string org, string service)
         {
             List<string> languages = _repository.GetLanguages(org, service);
-            return Json(languages);   
+            return Json(languages);
         }
 
         /// <summary>
@@ -66,7 +64,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code> )</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>A View with update status</returns>
         [HttpPost]
         public IActionResult SaveResource([FromBody]dynamic jsonData, string id, string org, string service)
@@ -74,7 +71,7 @@ namespace AltinnCore.Designer.Controllers
             JObject json = jsonData;
 
             // Sort resource texts by id
-            JArray resources = json["resources"] as JArray; 
+            JArray resources = json["resources"] as JArray;
             JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
             json["resources"].Replace(sorted);
 
@@ -82,7 +79,7 @@ namespace AltinnCore.Designer.Controllers
             return Json(new
             {
                 Success = true,
-                Message = "Språk lagret"
+                Message = "Språk lagret",
             });
         }
 
@@ -91,7 +88,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>Deletes a language resource</returns>
         [HttpDelete]
@@ -117,7 +113,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="id">The resource language id (for example <code>nb-NO, en</code>)</param>
         /// <returns>The JSON config</returns>
         [HttpGet]

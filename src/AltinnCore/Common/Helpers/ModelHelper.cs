@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -33,7 +33,7 @@ namespace AltinnCore.Common.Helpers
                 {
                     forName = forName.Remove(startIndex, (stopIndex - startIndex) + 1);
 
-                    //In case of group in group
+                    // In case of group in group
                     if (!forName.Contains("["))
                     {
                         hasIndex = false;
@@ -49,6 +49,12 @@ namespace AltinnCore.Common.Helpers
             return forName;
         }
 
+        /// <summary>
+        /// Map the state of the model to api result object
+        /// </summary>
+        /// <param name="modelState">the model state</param>
+        /// <param name="apiResult">the api result object</param>
+        /// <param name="serviceContext">the service context</param>
         public static void MapModelStateToApiResult(ModelStateDictionary modelState, ApiResult apiResult, ServiceContext serviceContext)
         {
             apiResult.ModelStateEntries = new List<ApiModelStateEntry>();
@@ -63,7 +69,7 @@ namespace AltinnCore.Common.Helpers
                     {
                         Key = modelKey,
                         ValidationState = (ApiModelValidationState)(int)entry.ValidationState,
-                        Errors = new List<ApiModelError>()
+                        Errors = new List<ApiModelError>(),
                     };
                     foreach (ModelError error in entry.Errors)
                     {

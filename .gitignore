@@ -301,13 +301,20 @@ src/AltinnRepositories/gitea-data/gitea/*
 
 
 ######### React apps ###########
-src/react-apps/ux-editor/node_modules
-src/react-apps/ux-editor/compiled
-src/react-apps/ux-editor/dist
+src/react-apps/node_modules
+src/react-apps/applications/ux-editor/node_modules
+src/react-apps/applications/ux-editor/compiled
+src/react-apps/applications/ux-editor/dist
+src/react-apps/applications/service-development/node_modules
+src/react-apps/applications/service-development/compiled
+src/react-apps/applications/service-development/dist
+src/react-apps/applications/dashboard/node_modules
+src/react-apps/applications/dashboard/compiled
+src/react-apps/applications/dashboard/dist
 
 ######### Built react apps ###########
-src/AltinnCore/Designer/wwwroot/designer/css/react-app.css
-src/AltinnCore/Designer/wwwroot/designer/js/formbuilder/react-app.js
+src/AltinnCore/Designer/wwwroot/designer/css/react
+src/AltinnCore/Designer/wwwroot/designer/js/react
 src/AltinnCore/Designer/wwwroot/designer/js/lib
 src/AltinnCore/Designer/wwwroot/designer/css/lib
 src/AltinnCore/Designer/wwwroot/designer/css/font-awesome

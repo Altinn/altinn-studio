@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
     /// <summary>
     /// Enumeration for all text categories
@@ -33,6 +33,6 @@
         /// <summary>
         /// Information category
         /// </summary>
-        Info
+        Info,
     }
 }

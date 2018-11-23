@@ -12,7 +12,7 @@ namespace AltinnCore.Common.Models
         /// Gets or sets the Id
         /// </summary>
         public string Id { get; set; }
-      
+
         /// <summary>
         /// Gets or sets the date for when created
         /// </summary>

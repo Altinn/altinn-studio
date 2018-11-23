@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.IO;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
 /// <summary>
-/// 
+///
 /// </summary>
 namespace AltinnCore.Runtime.Controllers
 {
@@ -32,7 +32,6 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="id">The name of the resource</param>
         /// <returns>File content with content type set</returns>
         public IActionResult Index(string org, string service, string id)
@@ -47,11 +46,11 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Method to retrieve textresources 
+        /// Method to retrieve textresources
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="service"></param>
-        /// <returns></returns>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <returns>The text resource file content or 404</returns>
         public IActionResult TextResources(string org, string service)
         {
             string defaultLang = "nb-NO";
@@ -73,6 +72,15 @@ namespace AltinnCore.Runtime.Controllers
             return StatusCode(404);
         }
 
+        /// <summary>
+        /// Get the service meta data
+        /// </summary>
+        /// <param name="org">the organisation</param>
+        /// <param name="service">the service</param>
+        /// <param name="texts">whether text is set</param>
+        /// <param name="restrictions">whether  restrictions are set</param>
+        /// <param name="attributes">whether attributes are set</param>
+        /// <returns>The service metadata</returns>
         [HttpGet]
         public ActionResult ServiceMetaData(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
         {
