@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+using System.Xml.Linq;
 
 namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
@@ -165,6 +165,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         #endregion
 
         #region - XMLSchmeNS Emelemts -
+
         /// <summary>
         /// XName for the group element
         /// </summary>

@@ -21,7 +21,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Common", "src\Al
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Runtime.Db", "src\AltinnCore\RuntimeDb\AltinnCore.Runtime.Db.csproj", "{A79098B5-197B-4688-B444-A67FCE7A3A1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AltinnCore.UnitTest", "src\AltinnCore\UnitTest\AltinnCore.UnitTest.csproj", "{18975209-493B-40BE-A5DD-A05399B91708}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.UnitTest", "src\AltinnCore\UnitTest\AltinnCore.UnitTest.csproj", "{18975209-493B-40BE-A5DD-A05399B91708}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0CE60568-1CC9-4F7A-BE1C-43969F984B7A}"
+	ProjectSection(SolutionItems) = preProject
+		Altinn3.ruleset = Altinn3.ruleset
+		stylecop.json = stylecop.json
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

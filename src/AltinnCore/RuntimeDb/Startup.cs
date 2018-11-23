@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,16 +16,29 @@ using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Runtime.Db
 {
+    /// <summary>
+    /// database startup
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class
+        /// </summary>
+        /// <param name="configuration">the configuration for the database</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
+        /// <summary>
+        /// Gets database project configuration
+        /// </summary>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// configure database setttings for the service
+        /// </summary>
+        /// <param name="services">the service configuration</param>        
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
@@ -34,7 +47,11 @@ namespace AltinnCore.Runtime.Db
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// default configuration
+        /// </summary>
+        /// <param name="app">the application builder</param>
+        /// <param name="env">the hosting environment</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())

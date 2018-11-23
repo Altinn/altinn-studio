@@ -21,6 +21,8 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="RuntimeAPIController"/> class.
         /// </summary>
         /// <param name="repositorySettings">The repository settings</param>
+        /// <param name="executionSI">The executionSI</param>
+        /// <param name="testdataSIDesigner">The testdataSI for the designer</param>
         public RuntimeAPIController(IOptions<ServiceRepositorySettings> repositorySettings, IExecution executionSI, ITestdata testdataSIDesigner)
         {
             _settings = repositorySettings.Value;
@@ -29,8 +31,12 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that fetches the users repo, zips it and sends it to runtime.
+        /// Method that fetches the users repo, zips it and sends the zip file to runtime
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <returns>The zipped file</returns>
         [HttpGet]
         public FileResult ZipAndSendRepo(string org, string service, string developer)
         {
@@ -40,6 +46,12 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that fetches the form model file from disk and sends it to runtime.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="formID">The form id</param>
+        /// <returns>The form model</returns>
         [HttpGet]
         public FileResult GetFormModel(string org, string service, string developer, int partyId, int formID)
         {
@@ -50,6 +62,12 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that fetches the prefill file from disk and sends it to runtime.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="prefillkey">The key to the prefills</param>
+        /// <returns>The prefill files</returns>
         [HttpGet]
         public FileResult GetPrefill(string org, string service, string developer, int partyId, string prefillkey)
         {
@@ -60,6 +78,12 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that fetches the archived service model from disk and sends it to runtime.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The id of the instance</param>
+        /// <returns>The archived service model</returns>
         [HttpGet]
         public FileResult GetArchivedServiceModel(string org, string service, string developer, int partyId, int instanceId)
         {
@@ -70,6 +94,11 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that reads the testdata for party folder and returns a list of form instanses to runtime.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <returns>The list of service instances</returns>
         [HttpGet]
         public List<ServiceInstance> GetFormInstances(string org, string service, string developer, int partyId)
         {
@@ -79,6 +108,11 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that reads the testdata for party prefill folder and returns a list of instanses to runtime.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <returns>The list of service prefills</returns>
         [HttpGet]
         public List<ServicePrefill> GetServicePrefill(string org, string service, string developer, int partyId)
         {
@@ -88,6 +122,11 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that receives the form model from runtime and saves it to designer disk.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="formId"> the form id</param>
         [HttpPost]
         public void SaveFormModel(string org, string service, string developer, int partyId, int formId)
         {
@@ -98,6 +137,11 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that receives the archived service model from runtime and saves it to designer disk.
         /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
         [HttpPost]
         public void ArchiveServiceModel(string org, string service, string developer, int partyId, int instanceId)
         {

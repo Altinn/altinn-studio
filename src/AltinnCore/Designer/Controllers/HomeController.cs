@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Models;
@@ -13,11 +18,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -37,6 +37,10 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="logger">The logger</param>
+        /// <param name="repositorySettings">settings for the repository</param>
+        /// <param name="giteaWrapper">the gitea wrapper</param>
+        /// <param name="httpContextAccessor">the httpcontext accessor</param>
+        /// <param name="sourceControl">the source control</param>
         public HomeController(IRepository repositoryService, ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
         {
             _repository = repositoryService;
@@ -49,7 +53,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// the default page for altinn studio when the user is not logged inn
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The start page</returns>
         public ActionResult StartPage()
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
@@ -58,12 +62,14 @@ namespace AltinnCore.Designer.Controllers
             {
                 return View("StartPage");
             }
+
             return this.RedirectToAction("Index", "Home");
         }
 
         /// <summary>
         /// The default action presenting a list of available services when the user is logged in
         /// </summary>
+        /// <param name="repositorySearch">the search parameter object</param>
         /// <returns>The front page</returns>
         [Authorize]
         public ActionResult Index(RepositorySearch repositorySearch)
@@ -89,12 +95,10 @@ namespace AltinnCore.Designer.Controllers
             }
 
             model.RepositorySearch = repositorySearch;
-            //IList<OrgConfiguration> owners = _repository.GetOwners();
+
+            // IList<OrgConfiguration> owners = _repository.GetOwners();
             return View(model);
         }
-
-
-
 
         /// <summary>
         /// View for creating new org
@@ -121,7 +125,7 @@ namespace AltinnCore.Designer.Controllers
                 var config = new OrgConfiguration
                 {
                     Name = name,
-                    Code = code.ToUpper()
+                    Code = code.ToUpper(),
                 };
 
                 _repository.CreateOrg(config);
@@ -175,6 +179,10 @@ namespace AltinnCore.Designer.Controllers
             return View();
         }
 
+        /// <summary>
+        /// Login
+        /// </summary>
+        /// <returns>The login page</returns>
         public async Task<IActionResult> Login()
         {
             string userName = "TestUser";
@@ -193,6 +201,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
                         }
+
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 
@@ -213,34 +222,49 @@ namespace AltinnCore.Designer.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal,
-                            new AuthenticationProperties
-                            {
-                                ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
-                                IsPersistent = false,
-                                AllowRefresh = false
-                            });
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                principal,
+                new AuthenticationProperties
+                {
+                    ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
+                    IsPersistent = false,
+                    AllowRefresh = false,
+                });
 
             return LocalRedirect(goToUrl);
         }
+
+        /// <summary>
+        /// Logout 
+        /// </summary>
+        /// <returns>The logout page</returns>
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/user/logout");
         }
 
+        /// <summary>
+        /// Go to app token view
+        /// </summary>
+        /// <returns>The app token view</returns>
         [HttpGet]
         public IActionResult AppToken()
         {
             return View();
         }
 
+        /// <summary>
+        /// Store app token for user
+        /// </summary>
+        /// <param name="appKey">the app key</param>
+        /// <returns>redirects user</returns>
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)
         {
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
         }
-
     }
 }

@@ -76,7 +76,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>
-
         /// <param name="rule">The rule to be created</param>
         /// <returns>JSON representation of the created rule</returns>
         [HttpPost]
@@ -241,7 +240,7 @@ namespace AltinnCore.Designer.Controllers
             List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, service);
             CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, null, false);
 
-            // Check to see if any of the files has compiliation errors or warnings           
+            // Check to see if any of the files has compiliation errors or warnings
             foreach (AltinnCoreFile coreFile in altinnCoreFiles)
             {
                 if (compResult.CompilationInfo != null
@@ -301,7 +300,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Updates a given 
+        /// Updates a given
         /// </summary>
         /// <param name="org">The organization code for the requested service</param>
         /// <param name="service">The service short name for the requested service</param>

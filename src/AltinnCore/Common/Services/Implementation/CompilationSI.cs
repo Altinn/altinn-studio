@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -49,6 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="compilationService">The compilation service</param>
         /// <param name="repositoryService">The service repository service</param>
         /// <param name="logger">The logger</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public CompilationSI(
             IOptions<ServiceRepositorySettings> configuration,
             ApplicationPartManager partManager,
@@ -96,7 +97,7 @@ namespace AltinnCore.Common.Services.Implementation
                 AssemblyName = assemblyName,
                 Organization = org,
                 Service = service,
-                CreatedDateTime = DateTime.Now
+                CreatedDateTime = DateTime.Now,
             };
 
             string detailsAsJson = JsonConvert.SerializeObject(details);
@@ -187,7 +188,7 @@ namespace AltinnCore.Common.Services.Implementation
                             Severity = diag.Severity.ToString(),
                             Code = diag.Id,
                             WarningLevel = diag.WarningLevel,
-                            LineNumber = diag.Location.GetLineSpan().StartLinePosition.Line + 1
+                            LineNumber = diag.Location.GetLineSpan().StartLinePosition.Line + 1,
                         };
 
                         if (diag.Severity.Equals(DiagnosticSeverity.Warning))

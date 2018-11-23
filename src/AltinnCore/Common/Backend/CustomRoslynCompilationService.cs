@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Backend
     /// <summary>
     /// This is the custom Roslyn compilation Service created for supporting
     /// using dynamic models from database in RazorViews
-    /// <see href="https://github.com/aspnet/Mvc/issues/4938"/> 
+    /// <see href="https://github.com/aspnet/Mvc/issues/4938"/>
     /// </summary>
     public class CustomRoslynCompilationService : IViewCompiler
     {
@@ -46,8 +46,6 @@ namespace AltinnCore.Common.Backend
         private readonly CSharpCompiler _csharpCompiler;
         private readonly ILogger _logger;
         private readonly IList<CompiledViewDescriptor> _precompiledViews;*/
-
- 
         /*public CustomRoslynCompilationService(
             IFileProvider fileProvider,
             RazorTemplateEngine templateEngine,
@@ -77,12 +75,12 @@ namespace AltinnCore.Common.Backend
             }
         }
 
+        /// <inheritdoc/>
         public Task<CompiledViewDescriptor> CompileAsync(string relativePath)
         {
             throw new NotImplementedException();
         }
 
-        /// <inheritdoc />
         /*public CompilationResult Compile(RelativeFileInfo fileInfo, string compilationContent)
         {
             if (fileInfo == null)
@@ -94,7 +92,7 @@ namespace AltinnCore.Common.Backend
             {
                 throw new ArgumentNullException(nameof(compilationContent));
             }
-            
+
             var assemblyName = Path.GetRandomFileName();
 
             var sourceText = SourceText.From(compilationContent, Encoding.UTF8);

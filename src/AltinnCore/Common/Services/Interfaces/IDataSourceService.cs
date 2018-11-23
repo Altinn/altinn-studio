@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AltinnCore.Common.Models;
 
@@ -54,6 +54,11 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="model">The datasource model</param>
         void Update(string org, string service, DataSourceModel model);
 
+        /// <summary>
+        /// test the rest api with the url
+        /// </summary>
+        /// <param name="url">the api url to be tested</param>
+        /// <returns>The jason from the test api</returns>
         Task<string> TestRestApi(string url);
     }
 }

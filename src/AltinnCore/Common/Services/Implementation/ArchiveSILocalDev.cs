@@ -11,23 +11,32 @@ using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
+    /// <summary>
+    /// Implementation for archive service
+    /// </summary>
     public class ArchiveSILocalDev : IArchive
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string archiveServiceModelApiMethod = "ArchiveServiceModel";
-        private const string getArchivedServiceModelApiMethod = "GetArchivedServiceModel";
+        private const string ArchiveServiceModelApiMethod = "ArchiveServiceModel";
+        private const string GetArchivedServiceModelApiMethod = "GetArchivedServiceModel";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ArchiveSILocalDev"/> class
+        /// </summary>
+        /// <param name="repositorySettings">the repository settings</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <inheritdoc/>
         public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(archiveServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -45,10 +54,11 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
         public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(getArchivedServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetArchivedServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -72,7 +82,6 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     return Activator.CreateInstance(type);
                 }
-
             }
         }
     }
