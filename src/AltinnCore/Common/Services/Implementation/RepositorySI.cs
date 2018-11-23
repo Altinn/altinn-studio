@@ -1266,6 +1266,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                 coreFiles.Add(corefile);
             }
+
             string[] modelFiles = null;
 
             if (Directory.Exists(_settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))))
@@ -1277,7 +1278,7 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         FilePath = file,
                         FileName = Path.GetFileName(file),
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     };
 
                     coreFiles.Add(corefile);
@@ -1293,7 +1294,7 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         FilePath = file,
                         FileName = Path.GetFileName(file),
-                        LastChanged = File.GetLastWriteTime(file)
+                        LastChanged = File.GetLastWriteTime(file),
                     };
 
                     coreFiles.Add(corefile);
