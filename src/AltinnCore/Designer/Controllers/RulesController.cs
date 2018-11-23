@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -16,6 +20,8 @@ namespace AltinnCore.Designer.Controllers
         private readonly IRepository _repository;
         private readonly ICodeGeneration _codeGeneration;
         private readonly ICompilation _compilation;
+        private readonly ServiceRepositorySettings _settings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RulesController"/> class
@@ -23,14 +29,21 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repositoryService">The service repository service</param>
         /// <param name="codeGenerationService">The code generation service</param>
         /// <param name="compilationService">The service compilation service</param>
+        /// <param name="repositorySettings">The service repository settings</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
         public RulesController(
-            IRepository repositoryService, 
+            IRepository repositoryService,
             ICodeGeneration codeGenerationService,
-            ICompilation compilationService)
+            ICompilation compilationService,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IHttpContextAccessor httpContextAccessor)
         {
             _repository = repositoryService;
             _codeGeneration = codeGenerationService;
             _compilation = compilationService;
+            _settings = repositorySettings.Value;
+            _httpContextAccessor = httpContextAccessor;
+
         }
 
         /// <summary>
@@ -55,9 +68,9 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public IActionResult Create(string org, string service)
         {
-             return View();
+            return View();
         }
-        
+
         /// <summary>
         /// Action for creating a new rule
         /// </summary>
@@ -99,7 +112,7 @@ namespace AltinnCore.Designer.Controllers
             _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
 
             _repository.UpdateRules(org, service, existingRules);
-            
+
             return Json(rule);
         }
 
@@ -115,7 +128,7 @@ namespace AltinnCore.Designer.Controllers
         {
             List<RuleContainer> rules = _repository.GetRules(org, service);
             RuleContainer rule = rules.FirstOrDefault(r => r.Id == id);
-            
+
             return View(rule);
         }
 
@@ -145,7 +158,7 @@ namespace AltinnCore.Designer.Controllers
             _codeGeneration.CreateCalculationsAndValidationsClass(org, service, existingRules, serviceMetadata);
 
             _repository.UpdateRules(org, service, existingRules);
-            
+
             return Ok();
         }
 
@@ -234,19 +247,21 @@ namespace AltinnCore.Designer.Controllers
                 if (compResult.CompilationInfo != null
                     && compResult.CompilationInfo.Exists(c => c.FileName.ToLower().Equals(coreFile.FileName.ToLower()) && c.Severity.Equals("Error")))
                 {
-                    coreFile.FileStatus = AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Error;
+                    coreFile.FileStatus = ServiceLibrary.Enums.AltinnCoreFileStatusType.Error;
                 }
                 else if (compResult.CompilationInfo != null
                     && compResult.CompilationInfo.Exists(c => c.FileName.ToLower().Equals(coreFile.FileName.ToLower()) && c.Severity.Equals("Warning")))
                 {
-                    coreFile.FileStatus = AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Warning;
+                    coreFile.FileStatus = ServiceLibrary.Enums.AltinnCoreFileStatusType.Warning;
                 }
                 else
                 {
-                    coreFile.FileStatus = AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.OK;
+                    coreFile.FileStatus = ServiceLibrary.Enums.AltinnCoreFileStatusType.OK;
                 }
             }
 
+            string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelFileName;
+            ViewBag.HasDataModel = System.IO.File.Exists(filePath);
             ViewBag.CompilationResult = compResult;
             return View(altinnCoreFiles);
         }
@@ -260,7 +275,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The View</returns>
         public IActionResult File(string org, string service, string name)
         {
-            ViewBag.FileName = name; 
+            ViewBag.FileName = name;
             return View();
         }
 
@@ -273,16 +288,16 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The content of the file</returns>
         public IActionResult GetFile(string org, string service, string name)
         {
-          if (name == "RuleHandler.js")
-          {
-            string fileContent = _repository.GetResourceFile(org, service, name);
-            return Content(fileContent);
-          }
-          else
-          {
-            string fileContent = _repository.GetImplementationFile(org, service, name);
-            return Content(fileContent);
-          }
+            if (name == "RuleHandler.js")
+            {
+                string fileContent = _repository.GetResourceFile(org, service, name);
+                return Content(fileContent);
+            }
+            else
+            {
+                string fileContent = _repository.GetImplementationFile(org, service, name);
+                return Content(fileContent);
+            }
         }
 
         /// <summary>
@@ -296,15 +311,15 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public IActionResult SaveImplementationFile(string org, string service, string fileName, string fileContent)
         {
-          if (fileName == "RuleHandler.js")
-          {
-            _repository.SaveResourceFile(org, service, fileName, fileContent);
-          }
-          else
-          {
-            _repository.SaveImplementationFile(org, service, fileName, fileContent);
-          }
-          return StatusCode(200);
+            if (fileName == "RuleHandler.js")
+            {
+                _repository.SaveResourceFile(org, service, fileName, fileContent);
+            }
+            else
+            {
+                _repository.SaveImplementationFile(org, service, fileName, fileContent);
+            }
+            return StatusCode(200);
         }
 
         /// <summary>
