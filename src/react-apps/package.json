@@ -1,0 +1,12 @@
+{
+  "name": "root",
+  "private": true,
+  "scripts": {
+    "install-deps": "lerna bootstrap --hoist"
+  },
+  "devDependencies": {
+    "cross-env": "5.1.6",
+    "lerna": "^3.4.3",
+    "webpack-cli": "3.0.3"
+  }
+}

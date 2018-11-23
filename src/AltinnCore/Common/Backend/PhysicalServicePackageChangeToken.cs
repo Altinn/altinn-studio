@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Backend
 {
     /// <summary>
-    /// Watcher to verify if there as been created a package 
+    /// Watcher to verify if there as been created a package
     /// </summary>
     public class PhysicalServicePackageChangeToken : IChangeToken
     {
@@ -19,7 +19,7 @@ namespace AltinnCore.Common.Backend
         private DateTime _lastRequested;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PhysicalServicePackageChangeToken"/> class. 
+        /// Initializes a new instance of the <see cref="PhysicalServicePackageChangeToken"/> class.
         /// </summary>
         /// <param name="package">The full package path</param>
         /// <param name="view">The View name</param>
@@ -42,7 +42,7 @@ namespace AltinnCore.Common.Backend
         }
 
         /// <summary>
-        /// Gets a value indicating whether file has changed 
+        /// Gets a value indicating whether file has changed
         /// </summary>
         public bool HasChanged
         {
@@ -53,7 +53,7 @@ namespace AltinnCore.Common.Backend
         }
 
         /// <summary>
-        /// Empty method to set a Callback. Created to support interface 
+        /// Empty method to set a Callback. Created to support interface
         /// </summary>
         /// <param name="callback">The callback</param>
         /// <param name="state">The state</param>
@@ -73,7 +73,7 @@ namespace AltinnCore.Common.Backend
             foreach (string fileName in Directory.EnumerateFiles(packageFolder))
             {
                 ServicePackageDetails details = JsonConvert.DeserializeObject<ServicePackageDetails>(new StreamReader(ZipFile.OpenRead(fileName).Entries.First(e => e.Name == "ServicePackageDetails.json").Open()).ReadToEnd());
-                
+
                 if (details.CreatedDateTime > updated)
                 {
                     isUpdated = true;

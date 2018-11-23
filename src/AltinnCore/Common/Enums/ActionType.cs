@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.Common.Enums
+namespace AltinnCore.Common.Enums
 {
     /// <summary>
     /// This enum defines the Actions supported by the AltinnCore platform
@@ -18,6 +18,6 @@
         /// <summary>
         /// Sign Action
         /// </summary>
-        Sign = 2
+        Sign = 2,
     }
 }

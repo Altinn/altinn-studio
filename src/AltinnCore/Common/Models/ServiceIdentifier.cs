@@ -1,7 +1,7 @@
-﻿namespace AltinnCore.Common.Models
-{
-    using System;
+using System;
 
+namespace AltinnCore.Common.Models
+{
     /// <summary>
     /// The service identifier.
     /// </summary>

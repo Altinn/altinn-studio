@@ -11,6 +11,9 @@ using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.Controllers
 {
+    /// <summary>
+    /// Implementation for deploy actions
+    /// </summary>
     public class DeployController : Controller
     {
         private readonly ISourceControl _sourceControl;
@@ -43,7 +46,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 ViewBag.ServiceUnavailable = true;
             }
-            
+
             return View();
         }
 
@@ -63,11 +66,12 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = false,
-                    Message = "Deployment unavailable" 
+                    Message = "Deployment unavailable",
                 });
             }
+
             string credentials = _configuration["AccessTokenDevOps"];
-            
+
             string result = string.Empty;
             try
             {
@@ -75,11 +79,13 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    object buildContent = new {
-                        definition = new {
-                            id = 12
+                    object buildContent = new
+                    {
+                        definition = new
+                        {
+                            id = 12,
                         },
-                        parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\""
+                        parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -97,7 +103,7 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = true,
-                    Message = "Deployment failed " + ex
+                    Message = "Deployment failed " + ex,
                 });
             }
 
@@ -105,13 +111,14 @@ namespace AltinnCore.Designer.Controllers
             {
                 Success = true,
                 BuildId = result,
-                Message = "Deployment status: " + result
+                Message = "Deployment status: " + result,
             });
         }
 
         /// <summary>
         /// Gets deployment status
         /// </summary>
+        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="edition">The edition code for the current service</param>
@@ -128,7 +135,7 @@ namespace AltinnCore.Designer.Controllers
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
-                    using (HttpResponseMessage response = await client.GetAsync(String.Format("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds/{0}?api-version=5.0-preview.4", buildId)))
+                    using (HttpResponseMessage response = await client.GetAsync(string.Format("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds/{0}?api-version=5.0-preview.4", buildId)))
                     {
                         response.EnsureSuccessStatusCode();
                         buildModel = await response.Content.ReadAsAsync<BuildModel>();
@@ -141,7 +148,7 @@ namespace AltinnCore.Designer.Controllers
                 return Json(new
                 {
                     Success = true,
-                    Status = "Deployment failed " + ex
+                    Status = "Deployment failed " + ex,
                 });
             }
 
@@ -152,7 +159,7 @@ namespace AltinnCore.Designer.Controllers
                 buildModel.Result,
                 buildModel.Status,
                 buildModel.StartTime,
-                buildModel.FinishTime
+                buildModel.FinishTime,
             });
         }
     }

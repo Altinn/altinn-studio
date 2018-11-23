@@ -1,9 +1,3 @@
-using AltinnCore.Common.Configuration;
-using AltinnCore.Common.Helpers;
-using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.RepositoryClient.Model;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,28 +6,42 @@ using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.RepositoryClient.Model;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
+    /// <summary>
+    /// Implementation for gitea wrapper
+    /// </summary>
     public class GiteaAPIWrapper : IGitea
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="GiteaAPIWrapper"/> class
+        /// </summary>
+        /// <param name="repositorySettings">the repository settings</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public GiteaAPIWrapper(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
         }
 
-
-
+        /// <inheritdoc/>
         public async Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession)
         {
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri giteaUrl = null;
             Cookie cookie = null;
+
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
@@ -78,10 +86,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create repository
         /// </summary>
-        /// <param name="giteaSession"></param>
-        /// <param name="org"></param>
-        /// <param name="createRepoOption"></param>
-        /// <returns></returns>
+        /// <param name="giteaSession">the gitea session</param>
+        /// <param name="org">the organisation</param>
+        /// <param name="createRepoOption">the options for creating repository</param>
+        /// <returns>The newly created repository</returns>
         public async Task<Repository> CreateRepositoryForOrg(string giteaSession, string org, CreateRepoOption createRepoOption)
         {
             AltinnCore.RepositoryClient.Model.Repository repository = null;
@@ -95,6 +103,7 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/org/" + org + "/repos");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
+
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
@@ -124,7 +133,7 @@ namespace AltinnCore.Common.Services.Implementation
             return repository;
         }
 
-
+        /// <inheritdoc/>
         public async Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page)
         {
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
@@ -143,18 +152,17 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(_settings.ApiEndPoint + "/repos/search?");
             }
 
-
             giteaUrl = new Uri(giteaUrl.OriginalString + "limit=" + 50);
             giteaUrl = new Uri(giteaUrl.OriginalString + "&page=" + page);
             if (onlyAdmin)
             {
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&uid=" + user.Id);
             }
+
             if (!string.IsNullOrEmpty(keyWord))
             {
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&q=" + keyWord);
             }
-
 
             Cookie cookie = null;
             if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
@@ -165,6 +173,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
+
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
@@ -194,14 +203,12 @@ namespace AltinnCore.Common.Services.Implementation
             return repository;
         }
 
-
-
         /// <summary>
         /// Does not work because of GITEA BUG. Will create Issue for the one mentioned here
-        /// https://github.com/go-gitea/gitea/issues/3842 
+        /// https://github.com/go-gitea/gitea/issues/3842
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">app token name</param>
+        /// <returns>null</returns>
         public string CreateAppToken(string name)
         {
             string token = null;
@@ -216,6 +223,7 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/users/" + user.Login + "/tokens?name=" + name);
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
+
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };

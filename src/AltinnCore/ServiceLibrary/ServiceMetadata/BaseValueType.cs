@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary.ServiceMetadata
+namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
     /// <summary>
     /// Base value type
@@ -123,6 +123,6 @@
         /// <summary>
         /// Token type (derived from string)
         /// </summary>
-        Token
+        Token,
     }
 }
