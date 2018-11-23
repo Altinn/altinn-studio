@@ -76,7 +76,6 @@ function* addFormContainerSaga({
   container,
   positionAfterId,
   addToId,
-  activeContainerId,
   callback,
 }: FormDesignerActions.IAddFormContainerAction): SagaIterator {
   try {
@@ -87,29 +86,16 @@ function* addFormContainerSaga({
       && Object.keys(formDesignerState.layout.order).length > 0) {
       baseContainerId = Object.keys(formDesignerState.layout.order)[0];
     }
-    if (activeContainerId) {
-      yield call(
-        FormDesignerActionDispatchers.addFormContainerFulfilled,
-        container,
-        id,
-        positionAfterId,
-        activeContainerId,
-        addToId,
-      );
-    } else {
-      yield call(
-        FormDesignerActionDispatchers.addFormContainerFulfilled,
-        container,
-        id,
-        positionAfterId,
-        addToId,
-        baseContainerId,
-      );
-    }
-    if (callback) {
-      callback(container, id);
-    }
-    return id;
+
+    yield call(
+      FormDesignerActionDispatchers.addFormContainerFulfilled,
+      container,
+      id,
+      positionAfterId,
+      addToId,
+      baseContainerId,
+    );
+
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormContainerRejected, err);
   }
@@ -417,8 +403,9 @@ function* createRepeatingContainer(
     });
   });
 
+  console.log(baseContainerId);
   yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
-    container, newContainerId, positionAfter, addToId, null, baseContainerId);
+    container, newContainerId, positionAfter, addToId, baseContainerId);
 
   let createdElementId: string;
 
