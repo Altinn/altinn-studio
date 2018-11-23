@@ -29,9 +29,4 @@ COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/d
 RUN mv Templates ..
 RUN mv Testdata ..
 
-# DEBUG
-WORKDIR /app/wwwroot/designer/js/react/
-RUN ls
-WORKDIR /app
-
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]
