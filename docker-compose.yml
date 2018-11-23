@@ -3,8 +3,22 @@ version: '3.6'
 networks:
   altinncore_network:
     external: false
-  
+
 services:
+  altinn_dashboard:
+    container_name: studiodashboard
+    image: altinn-studio-dashboard:latest
+    build:
+      context: .
+      dockerfile: src/react-apps/applications/dashboard/Dockerfile
+
+  altinn_service_development:
+    container_name: studiodev
+    image: altinn-studio-service-development:latest
+    build:
+      context: .
+      dockerfile: src/react-apps/applications/service-development/Dockerfile
+
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
     image: loadbalancer:latest
@@ -21,7 +35,7 @@ services:
       - altinn_designer
     build:
       context: ./src/LoadBalancer
-  
+
   altinn_designer:
     container_name: altinn-designer
     image: altinncore:latest
@@ -46,10 +60,12 @@ services:
       - "5000:5000"
     depends_on:
       - altinn_repositories
+      - altinn_dashboard
+      - altinn_service_development
     build:
       context: .
       dockerfile: src/AltinnCore/Designer/Dockerfile
-  
+
   altinn_runtime:
     container_name: altinn-runtime
     image: altinncoreruntime:latest
@@ -74,7 +90,7 @@ services:
     build:
       context: .
       dockerfile: src/AltinnCore/Runtime/Dockerfile
-  
+
   altinn_repositories:
     container_name: altinn-repositories
     image: gitea/gitea:1.5.1
