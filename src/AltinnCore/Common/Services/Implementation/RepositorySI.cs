@@ -1252,29 +1252,33 @@ namespace AltinnCore.Common.Services.Implementation
 
                 coreFiles.Add(corefile);
             }
+            string[] modelFiles = null;
 
-            string[] modelFiles = Directory.GetFiles(_settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-            foreach (string file in modelFiles)
+            if (Directory.Exists(_settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext))))
             {
-                var corefile = new AltinnCoreFile
-                {
-                    FilePath = file,
-                    FileName = System.IO.Path.GetFileName(file),
-                    LastChanged = File.GetLastWriteTime(file)
-                };
-
-                coreFiles.Add(corefile);
-            }
-
-            string[] jsFiles = Directory.GetFiles(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-            foreach (string file in jsFiles)
-            {
-                if (System.IO.Path.GetFileName(file) == "RuleHandler.js")
+                modelFiles = Directory.GetFiles(_settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                foreach (string file in modelFiles)
                 {
                     var corefile = new AltinnCoreFile
                     {
                         FilePath = file,
-                        FileName = System.IO.Path.GetFileName(file),
+                        FileName = Path.GetFileName(file),
+                        LastChanged = File.GetLastWriteTime(file)
+                    };
+
+                    coreFiles.Add(corefile);
+                }
+            }
+ 
+            string[] jsFiles = Directory.GetFiles(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in jsFiles)
+            {
+                if (Path.GetFileName(file) == "RuleHandler.js")
+                {
+                    var corefile = new AltinnCoreFile
+                    {
+                        FilePath = file,
+                        FileName = Path.GetFileName(file),
                         LastChanged = File.GetLastWriteTime(file)
                     };
 
