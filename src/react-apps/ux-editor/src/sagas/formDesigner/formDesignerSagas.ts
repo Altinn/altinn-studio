@@ -6,7 +6,6 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { get, post } from '../../utils/networking';
-import { Component } from 'react';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
@@ -16,7 +15,10 @@ const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.la
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-    yield call(FormDesignerActionDispatchers.addActiveFormContainerFulfilled, containerId === formDesignerState.layout.activeContainer ? '' : containerId);
+    yield call(
+      FormDesignerActionDispatchers.addActiveFormContainerFulfilled,
+      containerId === formDesignerState.layout.activeContainer ? '' : containerId,
+    );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
   }
@@ -102,7 +104,7 @@ function* addFormContainerSaga({
         baseContainerId,
       );
     }
-    yield call(FormDesignerActionDispatchers.addActiveFormContainer, id);
+    // yield call(FormDesignerActionDispatchers.addActiveFormContainer, id);
     if (callback) {
       callback(container, id);
     }
@@ -371,12 +373,12 @@ export function* updateFormComponentOrderSaga({
   const ComponentOrder: any = yield select(selectFormDesignerOrder);
 
   const containerId: string = Object.keys(ComponentOrder)[0];
-  let order: string[] = ComponentOrder[containerId];
+  const newOrder: string[] = ComponentOrder[containerId];
 
-  order.splice(oldPosition, 1);
-  order.splice(newPosition, 0, id);
+  newOrder.splice(oldPosition, 1);
+  newOrder.splice(newPosition, 0, id);
   yield call(
-    FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled, order, containerId,
+    FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled, [...newOrder], containerId,
   );
 }
 

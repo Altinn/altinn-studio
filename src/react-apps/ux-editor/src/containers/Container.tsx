@@ -9,7 +9,7 @@ import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainerOrder, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 
 import { Draggable, Droppable } from 'react-beautiful-dnd';
@@ -53,8 +53,21 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(
+      id,
+      dataModelElement,
+      callbackValue,
+      this.props.repeating,
+      this.props.dataModelGroup,
+      this.props.index,
+    );
+    ApiActionDispatchers.checkIfApiShouldFetch(id,
+      dataModelElement,
+      callbackValue,
+      this.props.repeating,
+      this.props.dataModelGroup,
+      this.props.index,
+    );
   }
 
   public isRepeating = (): boolean => {
@@ -62,18 +75,18 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
 
   public render() {
+    const className: string = this.props.baseContainer ? 'col-12' :
+      this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' :
+        'col-12 a-btn-action cursorPointer';
     return (
       <div>
-
-        <Droppable droppableId='DEST'>
+        <Droppable droppableId='DEST' key={this.props.id}>
           {(provided, snapshot) => (
-
             <div
-              className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
+              className={className}
               onClick={this.changeActiveFormContainer}
               ref={provided.innerRef}
             >
-
               {
                 this.props.designMode && !this.props.baseContainer &&
                 <div className='row'>
@@ -90,9 +103,13 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               }
 
               {this.props.itemOrder.map((id: string, index: number) => (
-                this.props.components[id] ? this.renderFormComponent(id, index) :
-                  (this.props.containers[id] ? this.renderContainer(id) : null)
-              ))}
+                this.props.components[id] ?
+                  this.renderFormComponent(id, index) :
+                  this.props.containers[id] ?
+                    this.renderContainer(id)
+                    : null
+              ))
+              }
               {
                 !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
                 <button
@@ -169,33 +186,43 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       return null;
     }
 
+    if (this.props.designMode) {
+      return (
+        <Draggable
+          key={key}
+          draggableId={id}
+          index={key}
+        >
+          {(provided, snapshot) => (
+            <div
+              ref={
+                provided.innerRef
+              }
+              {...provided.draggableProps}
+              {...provided.dragHandleProps}
+            >
+
+              <FormComponentWrapper
+                key={key}
+                id={id}
+                handleDataUpdate={this.handleComponentDataUpdate}
+                formData={this.props.formData[this.props.components[id].dataModelBinding] ?
+                  this.props.formData[this.props.components[id].dataModelBinding] : ''}
+              />
+
+            </div>
+          )}
+        </Draggable>
+      );
+    }
     return (
-      <Draggable
+      <FormComponentWrapper
         key={key}
-        draggableId={id}
-        index={key}
-      >
-        {(provided, snapshot) => (
-          <div
-            ref={
-              provided.innerRef
-            }
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            isdragging={snapshot.isDragging.toString()}
-          >
-
-            <FormComponentWrapper
-              key={key}
-              id={id}
-              handleDataUpdate={this.handleComponentDataUpdate}
-              formData={this.props.formData[this.props.components[id].dataModelBinding] ?
-                this.props.formData[this.props.components[id].dataModelBinding] : ''}
-            />
-
-          </div>
-        )}
-      </Draggable>
+        id={id}
+        handleDataUpdate={this.handleComponentDataUpdate}
+        formData={this.props.formData[this.props.components[id].dataModelBinding] ?
+          this.props.formData[this.props.components[id].dataModelBinding] : ''}
+      />
     );
   }
 
@@ -221,17 +248,16 @@ const makeMapStateToProps = () => {
   const GetFormDataSelector = makeGetFormDataSelector();
   const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
   const GetActiveFormContainer = makeGetActiveFormContainer();
+  const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetLayoutContainersSelector(state);
     const container = containers[props.id];
-    const order = state.formDesigner.layout.order[props.id];
     return {
       id: props.id,
       index: container.index,
-      itemOrder: order,
+      itemOrder: GetLayoutContainerOrder(state, props.id),
       components: GetLayoutComponentsSelector(state),
       containers,
       designMode: GetDesignModeSelector(state),

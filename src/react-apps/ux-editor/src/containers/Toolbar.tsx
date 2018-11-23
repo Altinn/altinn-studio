@@ -9,7 +9,6 @@ import { ConditionalRenderingModalComponent } from '../components/toolbar/Condit
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 
-
 import '../styles/Toolbar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
@@ -47,9 +46,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           itemType: LayoutItemType.Component,
           title: c.name,
           ...JSON.parse(JSON.stringify(customProperties)),
-        }, null, (component: any, id: string) => {
-          this.handleNext(component, id);
         },
+          null,
         );
       },
     } as IToolbarElement;
@@ -76,54 +74,35 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     );
   }
 
-  public renderContainer() {
-    const onClickEvent = () => {
-      this.addContainerToLayout(this.props.activeContainer);
-    };
-    return (
-      <div className='row a-topTasks'>
-        <div className='col col-lg-12'>
-          <button
-            type='button'
-            className={'a-btn a-btn-icon'}
-            onClick={onClickEvent}
-          >
-            <span className='a-btn-icon-text'>Add container</span>
-          </button>
-        </div>
-      </div>
-    );
-  }
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     FormDesignerActionDispatchers.addFormComponent({
       component: THIRD_PARTY_COMPONENT,
       title: `${componentPackage}.${componentName}`,
-    });
+    },
+      null,
+    );
   }
 
-  public renderThirdPartyComponents = () => {
-    if (!this.props.thirdPartyComponents) {
-      return null;
-    }
+  public getThirdPartyComponents = (): IToolbarElement[] => {
     const { thirdPartyComponents } = this.props;
-    return (
-      <div className='row a-topTasks'>
-        {Object.keys(thirdPartyComponents).map((componentPackage) => {
-          const components = thirdPartyComponents[componentPackage];
-          return Object.keys(components).map((component, index) => (
-            <div className='col col-lg-12' key={index}>
-              <button
-                type='button'
-                className={'a-btn a-btn-icon'}
-                onClick={this.addThirdPartyComponentToLayout.bind(this, componentPackage, component)}
-              >
-                <span className='a-btn-icon-text'>{componentPackage} - {component}</span>
-              </button>
-            </div>
-          ));
-        })}
-      </div>
-    );
+    if (!thirdPartyComponents) {
+      return [];
+    }
+    const thirdPartyComponentArray: IToolbarElement[] = [];
+    for (const packageName of thirdPartyComponents) {
+      for (const componentName of thirdPartyComponents[packageName]) {
+        thirdPartyComponentArray.push({
+          label: `${packageName} - ${componentName}`,
+          actionMethod: FormDesignerActionDispatchers.addFormComponent({
+            component: THIRD_PARTY_COMPONENT,
+            title: `${packageName}.${componentName}`,
+          },
+            null,
+          ) as any,
+        });
+      }
+    }
+    return thirdPartyComponentArray;
   }
 
   public handleNext(component: any, id: string) {
@@ -173,41 +152,102 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                     draggableId={index.toString()}
                     index={index}
                   >
-                    {(provided, snapshot) => (
-                      <React.Fragment>
-                        <div
-                          className='col col-lg-12 a-item'
-                          id={index.toString()}
-                          key={index}
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
+                    {
+                      /*tslint:disable-next-line:no-shadowed-variable */
+                      (provided: any, snapshot: any) => (
+                        <React.Fragment>
+                          <div
+                            className='col col-lg-12 a-item'
+                            id={index.toString()}
+                            key={index}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
 
-                        >
-                          {component.label}
-                        </div>
-
-                        {snapshot.isDragging && (
-                          <div className='col col-lg-12 a-item'>
+                          >
                             {component.label}
                           </div>
-                        )}
 
-                      </React.Fragment>
-                    )}
+                          {snapshot.isDragging && (
+                            <div className='col col-lg-12 a-item'>
+                              {component.label}
+                            </div>
+                          )}
+
+                        </React.Fragment>
+                      )}
                   </Draggable>
 
                 );
               })}
 
-              {provided.placeholder}
-            </div>
-          )}
+              {this.getThirdPartyComponents().map((component, index) => (
+                <Draggable
+                  key={index}
+                  draggableId={component.label}
+                  index={'thirdPartyComponent' as any}
+                >
+                  {
+                    /*tslint:disable-next-line:no-shadowed-variable */
+                    (provided: any, snapshot: any) => (
+                      <>
+                        <div>
+                          <div
+                            className='col col-lg-12 a-item'
+                            id={index.toString()}
+                            key={index}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {component.label}
+                          </div>
 
+                          {snapshot.isDragging && (
+                            <div className='col col-lg-12 a-item'>
+                              {component.label}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                </Draggable>
+              ))}
+
+              <Draggable
+                key={'add container'}
+                draggableId={'container'}
+                index={'container' as any}
+              >
+                {
+                  /*tslint:disable-next-line:no-shadowed-variable */
+                  (provided: any, snapshot: any) => (
+                    <>
+                      <div
+                        className='col col-lg-12 a-item'
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        Add container
+                      </div>
+                      {snapshot.isDragging && (
+                        <div className='col col-lg-12 a-item'>
+                          Add container
+                        </div>
+                      )}
+                    </>
+                  )
+                }
+              </Draggable>
+              {provided.placeholder}
+
+            </div>
+
+          )}
         </Droppable>
 
-        {this.renderContainer()}
-        {this.renderThirdPartyComponents()}
+
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>

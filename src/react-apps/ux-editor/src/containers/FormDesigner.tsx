@@ -26,7 +26,9 @@ class FormDesigner extends React.Component<
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
 
-    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+    FormDesignerActionDispatchers.fetchFormLayout(
+      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`,
+    );
     AppDataActionDispatcher.setDesignMode(true);
   }
 
@@ -68,6 +70,10 @@ class FormDesigner extends React.Component<
       return;
     }
 
+    if (!source) {
+      return;
+    }
+
     switch (source.droppableId) {
       case destination.droppableId:
         activeId = result.draggableId;
@@ -75,24 +81,31 @@ class FormDesigner extends React.Component<
           activeId,
           destination.index,
           source.index,
-        )
+        );
         break;
 
       default:
-        const c = components[source.index].customProperties;
-        const customProperties = !c ? {} : c;
-        activeId = uuid();
-        FormDesignerActionDispatchers.addFormComponent({
-          component: components[source.index].name,
-          itemType: 'LayoutItemType.Component',
-          title: components[source.index].name,
-          ...JSON.parse(JSON.stringify(customProperties)),
+        if (source.index === 'container') {
+          FormDesignerActionDispatchers.addFormContainer({
+            repeating: false,
+            dataModelGroup: '',
+          });
+        } else if (source.index === 'thirdPartyComponent') {
+          // Handle third party components
+        } else {
+          const c = components[source.index].customProperties;
+          const customProperties = !c ? {} : c;
+          activeId = uuid();
+          FormDesignerActionDispatchers.addFormComponent({
+            component: components[source.index].name,
+            itemType: 'LayoutItemType.Component',
+            title: components[source.index].name,
+            ...JSON.parse(JSON.stringify(customProperties)),
+          }
+            , destination.index,
+          );
         }
-          , destination.index,
-          // , null, (component: any, id: string) => {
-          //   this.handleNext(components[source.index], activeId);
-          // },
-        );
+
         break;
     }
 
