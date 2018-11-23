@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -21,6 +21,7 @@ namespace AltinnCore.Designer.TagHelpers
         private const string ForAttributeName = "altinn-for";
 
         /// <summary>
+        /// Initializes a new instance of the <see cref="TextAreaTagHelper"/> class.
         /// Creates a new <see cref="TextAreaTagHelper"/>.
         /// </summary>
         /// <param name="generator">The <see cref="IHtmlGenerator"/>.</param>
@@ -38,8 +39,14 @@ namespace AltinnCore.Designer.TagHelpers
             }
         }
 
+        /// <summary>
+        /// Gets the html generator properties
+        /// </summary>
         protected IHtmlGenerator Generator { get; }
 
+        /// <summary>
+        /// Gets or sets the view context
+        /// </summary>
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
@@ -100,12 +107,12 @@ namespace AltinnCore.Designer.TagHelpers
         }
 
         /// <summary>
-        /// This method replaces the error text key in validation attribute comming from model 
+        /// This method replaces the error text key in validation attribute comming from model
         /// https://github.com/aspnet/Mvc/tree/a78f77afde003c4a3fcf5dd7b6dc13dd9c85f825/src/Microsoft.AspNetCore.Mvc.DataAnnotations/Internal
         /// and other attributes that uses altinn text key
         /// </summary>
-        /// <param name="tagHelperOutput"></param>
-        /// <param name="serviceContext"></param>
+        /// <param name="tagHelperOutput">the tag helper output</param>
+        /// <param name="serviceContext">the service context</param>
         private void ReplaceAttributeTextKeysWithText(TagHelperOutput tagHelperOutput, ServiceContext serviceContext)
         {
             for (int i = 0; i < tagHelperOutput.Attributes.Count; i++)
@@ -122,8 +129,9 @@ namespace AltinnCore.Designer.TagHelpers
                     attributeKey.Equals("data-val-length") ||
                     attributeKey.Equals("placeholder"))
                 {
-                    // Replaces the attribute 
-                    tagHelperOutput.Attributes[i] = new TagHelperAttribute(tagHelperOutput.Attributes[i].Name,
+                    // Replaces the attribute
+                    tagHelperOutput.Attributes[i] = new TagHelperAttribute(
+                        tagHelperOutput.Attributes[i].Name,
                         ServiceTextHelper.GetServiceText(tagHelperOutput.Attributes[i].Value.ToString(), serviceContext.ServiceText, null, serviceContext.CurrentCulture));
                 }
             }

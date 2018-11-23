@@ -17,7 +17,7 @@ namespace AltinnCore.Designer.TagHelpers
         private const string AltinnPopoverContentTextKeyAttributeName = "altinn-popover-content-text-key";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SpanPopoverTagHelper"/> class. 
+        /// Initializes a new instance of the <see cref="SpanPopoverTagHelper"/> class.
         /// </summary>
         /// <param name="generator">The current html generator</param>
         public SpanPopoverTagHelper(IHtmlGenerator generator)

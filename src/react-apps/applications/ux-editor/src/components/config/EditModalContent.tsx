@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 export interface IEditModalContentProps {
@@ -7,13 +8,14 @@ export interface IEditModalContentProps {
   textResources?: ITextResource[];
   saveEdit: (updatedComponent: FormComponentType) => void;
   cancelEdit: () => void;
+  language: any;
 }
 
 export interface IEditModalContentState {
   component: IFormComponent;
 }
 
-export class EditModalContent extends React.Component<IEditModalContentProps, IEditModalContentState> {
+class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
   constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
     super(_props, _state);
 
@@ -77,8 +79,8 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
   public handleAddOption = () => {
     const updatedComponent: IFormComponent = this.state.component;
     updatedComponent.options.push({
-      label: 'label',
-      value: 'value',
+      label: this.props.language.general.label,
+      value: this.props.language.general.value,
     });
     this.setState({
       component: updatedComponent,
@@ -118,7 +120,8 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
   }
 
   public getTextKeyFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((elem) => elem.DataBindingName === dataBindingName);
+    const element: IDataModelFieldElement = this.props.dataModel.find((elem) =>
+      elem.DataBindingName === dataBindingName);
     return element.Texts.Label;
   }
 
@@ -198,7 +201,8 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                 id={'InputIsDisabled'}
               />
               <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsDisabled'>
-                Disabled</label>
+                {this.props.language.general.disabled}
+              </label>
             </div>
             <div className='custom-control custom-control-stacked pl-0 custom-checkbox a-custom-checkbox'>
               <input
@@ -211,7 +215,8 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                 id={'InputIsRequired'}
               />
               <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsRequired'>
-                Required</label>
+                {this.props.language.general.required}
+              </label>
             </div>
           </div>
         );
@@ -220,28 +225,35 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         const component: IFormRadioButtonComponent = this.state.component as IFormRadioButtonComponent;
         return (
           <div className='form-group a-form-group mt-2'>
-            <h2 className='a-h4'>Options</h2>
+            <h2 className='a-h4'>
+              {this.props.language.ux_editor.modal_options}
+            </h2>
             <div className='row align-items-center'>
               <div className='col-5'>
-                <label className='a-form-label'>Label</label>
+                <label className='a-form-label'>
+                  {this.props.language.general.label}
+                </label>
               </div>
               <div className='col-5'>
-                <label className='a-form-label'>Value</label>
+                <label className='a-form-label'>
+                  {this.props.language.general.value}
+                </label>
               </div>
             </div>
             {component.options.map((option, index) => (
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
-                  <label htmlFor={'editModal_radiolabel-' + index} className='a-form-label sr-only'>Text</label>
+                  <label htmlFor={'editModal_radiolabel-' + index} className='a-form-label sr-only'>
+                    {this.props.language.ux_editor.modal_text}
+                  </label>
                   <select
                     id={'editModal_radiolabel-' + index}
                     className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
                   >}
-
                     <option key={'empty'} value={''}>
-                      Choose label
+                      {this.props.language.general.choose_label}
                     </option>
                     {this.renderTextResourceOptions()}
                   </select>
@@ -268,7 +280,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  Add new option
+                  {this.props.language.ux_editor.modal_new_option}
                 </button>
               </div>
               <div />
@@ -280,29 +292,36 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         const component: IFormDropdownComponent = this.state.component as IFormDropdownComponent;
         return (
           <div className='form-group a-form-group mt-2'>
-            <h2 className='a-h4'>Options</h2>
+            <h2 className='a-h4'>
+              {this.props.language.ux_editor.modal_options}
+            </h2>
             <div className='row align-items-center'>
               <div className='col-5'>
-                <label className='a-form-label'>Label</label>
+                <label className='a-form-label'>
+                  {this.props.language.general.label}
+                </label>
               </div>
               <div className='col-5'>
-                <label className='a-form-label'>Value</label>
+                <label className='a-form-label'>
+                  {this.props.language.general.value}
+                </label>
               </div>
             </div>
 
             {component.options.map((option, index) => (
               <div key={index} className='row align-items-center'>
                 <div className='col-5'>
-                  <label htmlFor={'editModal_dropdownlabel-' + index} className='a-form-label sr-only'>Text</label>
+                  <label htmlFor={'editModal_dropdownlabel-' + index} className='a-form-label sr-only'>
+                    {this.props.language.ux_editor.modal_text}
+                  </label>
                   <select
                     id={'editModal_dropdownlabel-' + index}
                     className='custom-select a-custom-select'
                     onChange={this.handleUpdateOptionLabel.bind(this, index)}
                     value={option.label}
                   >}
-
                     <option key={'empty'} value={''}>
-                      Choose label
+                      {this.props.language.general.choose_label}
                     </option>
                     {this.renderTextResourceOptions()}
                   </select>
@@ -332,7 +351,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
             <div className='row align-items-center mb-1'>
               <div className='col-4 col'>
                 <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  Add new option
+                  {this.props.language.ux_editor.modal_new_option}
                 </button>
               </div>
               <div />
@@ -344,7 +363,9 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
       case 'Submit': {
         return (
           <div className='form-group a-form-group'>
-            <label className='a-form-label'>Text Key</label>
+            <label className='a-form-label'>
+              {this.props.language.ux_editor.modal_text_key}
+            </label>
             <input
               type='text'
               disabled={true}
@@ -367,6 +388,7 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
         <SelectDataModelComponent
           onDataModelChange={this.handleDataModelChange}
           selectedElement={this.state.component.dataModelBinding}
+          language={this.props.language}
         />) : null);
   }
 
@@ -403,7 +425,9 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
               <i className='ai ai-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>Edit properties</span>
+              <span className='a-iconText-text-large'>
+                {this.props.language.ux_editor.modal_properties_header}
+              </span>
             </h1>
           </div>
         </div>
@@ -411,7 +435,9 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
           <div className='form-group a-form-group'>
             {this.props.component.component !== 'ThirdParty' ? (
               <div className='form-group a-form-group mt-1'>
-                <label className='a-form-label' htmlFor='nameField'>Text:</label>
+                <label className='a-form-label' htmlFor='nameField'>
+                  {this.props.language.ux_editor.modal_text}:
+                </label>
                 <div className='a-form-group-items input-group'>
                   <select
                     name={'editModal_text'}
@@ -421,7 +447,9 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
                     className='custom-select a-custom-select'
                     disabled={this.state.component.customType === 'Standard'}
                   >
-                    <option value={''}>{'Choose text:'}</option>
+                    <option value={''}>
+                      {this.props.language.ux_editor.modal_text_input}
+                    </option>
                     {this.renderTextResourceOptions()}
                   </select>
                 </div>
@@ -433,8 +461,12 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
           {this.renderSelectDataBinding(this.state.component.component)}
           <div className='row mt-3'>
             <div className='col'>
-              <button type='submit' className='a-btn a-btn-success mr-2' onClick={this.handleSaveChanged}>Save</button>
-              <a className='mr-2' onClick={this.props.cancelEdit}>Cancel</a>
+              <button type='submit' className='a-btn a-btn-success mr-2' onClick={this.handleSaveChanged}>
+                {this.props.language.general.save}
+              </button>
+              <a className='mr-2' onClick={this.props.cancelEdit}>
+                {this.props.language.general.cancel}
+              </a>
             </div>
           </div>
         </div>
@@ -459,3 +491,15 @@ export class EditModalContent extends React.Component<IEditModalContentProps, IE
     }
   }
 }
+
+const mapStateToProps = (
+  state: IAppState,
+  props: IEditModalContentProps,
+): IEditModalContentProps => {
+  return {
+    language: state.appData.language.language,
+    ...props,
+  };
+};
+
+export const EditModalContent = connect(mapStateToProps)(EditModalContentComponent);

@@ -70,35 +70,32 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         // Set design mode to true
         appDataActionDispatcher.setDesignMode(true);
       }
-
       // Fetch data model
       appDataActionDispatcher.fetchDataModel(
         `${altinnWindow.location.origin}/designer/${servicePath}/Model/GetJson`);
-
       // Fetch form layout
       formDesignerActionDispatchers.fetchFormLayout(
         `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
-
       // Load text resources
       const languageCode = 'nb-NO';
       appDataActionDispatcher.loadTextResources(
         `${altinnWindow.location.origin}/designer/${servicePath}/React/GetTextResources/${languageCode}`);
-
       // Fetch ServiceConfigurations
       manageServiceConfigurationActionDispatcher.fetchJsonFile(
         `${altinnWindow.location.origin}/designer/${
         servicePath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
-
       // Fetch rule connections
       appDataActionDispatcher.fetchRuleModel(
         `${altinnWindow.location.origin}/designer/${servicePath}/React/GetRuleHandler`);
-
       // Fetch the CodeLists
       appDataActionDispatcher.fetchCodeLists(
         `${altinnWindow.location.origin}/designer/${servicePath}/CodeList/CodeLists`);
-
+      // Fetch thirdParty Components
       ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
         `${altinnWindow.location.origin}/designer/${servicePath}/React/GetThirdPartyComponents`);
+      // Fetch language
+      appDataActionDispatcher.fetchLanguage(
+        `${altinnWindow.location.origin}/designer/${servicePath}/Language/GetLanguageAsJSON`, 'nb');
     }
   }
 

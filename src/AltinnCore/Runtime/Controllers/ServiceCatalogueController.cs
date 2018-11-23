@@ -1,4 +1,9 @@
-﻿using AltinnCore.Common.Configuration;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Api;
@@ -11,11 +16,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -34,6 +34,9 @@ namespace AltinnCore.Runtime.Controllers
         /// </summary>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="logger">The logger</param>
+        /// <param name="repositorySettings">the repository setting servie handler</param>
+        /// <param name="giteaWrapper">the gitea wrapper handler</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
         public ServiceCatalogueController(IRepository repositoryService, ILogger<ServiceCatalogueController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor)
         {
             _repository = repositoryService;
@@ -54,10 +57,10 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// 
+        /// Get list of available services
         /// </summary>
-        /// <param name="org"></param>
-        /// <returns></returns>
+        /// <param name="org">the organisation</param>
+        /// <returns>The view for the services</returns>
         [Authorize]
         public IActionResult Services(string org)
         {
@@ -109,6 +112,5 @@ namespace AltinnCore.Runtime.Controllers
         {
             return View();
         }
-     
      }
 }

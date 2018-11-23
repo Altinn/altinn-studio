@@ -1,14 +1,18 @@
 import {createStyles, Grid, Theme, withStyles} from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
+import { connect } from 'react-redux';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
-export interface IFormDesignerProps {
+export interface IFormDesignerProvidedProps {
   classes: any;
+}
+export interface IFormDesignerProps extends IFormDesignerProvidedProps {
+  language: any;
 }
 export interface IFormDesignerState { }
 
@@ -42,7 +46,8 @@ class FormDesigner extends React.Component<
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
 
-    FormDesignerActionDispatchers.fetchFormLayout(`${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+    FormDesignerActionDispatchers.fetchFormLayout(
+      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
   }
 
@@ -63,7 +68,7 @@ class FormDesigner extends React.Component<
 
     return (
       <button type='button' className='a-btn a-btn-success' onClick={handleSaveButton}>
-        Save
+        {this.props.language.general.save}
       </button>
     );
   }
@@ -99,4 +104,14 @@ class FormDesigner extends React.Component<
   }
 }
 
-export default withStyles(styles, {withTheme: true})(FormDesigner);
+const mapsStateToProps = (
+  state: IAppState,
+  props: IFormDesignerProvidedProps,
+): IFormDesignerProps => {
+  return {
+    classes: props.classes,
+    language: state.appData.language.language,
+  };
+};
+
+export default withStyles(styles, {withTheme: true})(connect(mapsStateToProps)(FormDesigner));

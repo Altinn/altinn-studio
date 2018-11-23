@@ -27,6 +27,7 @@ export interface IContainerProps extends IProvidedContainerProps {
   formData: any;
   index?: number;
   formContainerActive?: boolean;
+  language: any;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps> {
@@ -51,8 +52,10 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     );
 
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
-    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating, this.props.dataModelGroup, this.props.index);
+    RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, this.props.repeating,
+      this.props.dataModelGroup, this.props.index);
+    ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating,
+      this.props.dataModelGroup, this.props.index);
   }
 
   public isRepeating = (): boolean => {
@@ -63,7 +66,8 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (
       <div>
         <div
-          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
+          className={this.props.baseContainer ? 'col-12' : this.props.formContainerActive ?
+            'col-12 a-btn-action a-bgBlueLighter cursorPointer' : 'col-12 a-btn-action cursorPointer'}
           onClick={this.changeActiveFormContainer}
         >
           {
@@ -73,8 +77,10 @@ export class ContainerComponent extends React.Component<IContainerProps> {
                 {this.renderDeleteGroupButton()}
               </div>
               <div className='col-3 offset-8 row'>
-                <span className='col-6'>Repeating:</span>
-                <div className='col-5'>
+                <span className='col-7'>
+                  {this.props.language.ux_editor.repeating}
+                  :</span>
+                <div className='col-4'>
                   <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
                 </div>
               </div>
@@ -91,7 +97,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
               className={'a-btn a-btn-action offset-10'}
               onClick={this.handleContainerDelete}
             >
-              <span>Fjern gruppe</span>
+              <span>
+                {this.props.language.ux_editor.repeating_group_delete}
+              </span>
             </button>
           }
         </div>
@@ -147,7 +155,9 @@ export class ContainerComponent extends React.Component<IContainerProps> {
         onClick={this.handleAddNewGroup}
       >
         <i className={'ai ai-plus'} />
-        <span>Legg til gruppe</span>
+        <span>
+          {this.props.language.ux_editor.repeating_group_add}
+        </span>
       </button>
     );
   }
@@ -207,6 +217,7 @@ const makeMapStateToProps = () => {
       formData: GetFormDataSelector(state, props, container.index),
       dataModelGroup: container.dataModelGroup,
       formContainerActive: GetActiveFormContainer(state, props),
+      language: state.appData.language.language,
     };
   };
   return mapStateToProps;

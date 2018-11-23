@@ -6,6 +6,7 @@ import { RuleComponent } from '../config/RuleComponent';
 
 export interface IRuleModalProps {
   ruleConnection: any;
+  language: any;
 }
 
 export interface IRuleModalState {
@@ -74,7 +75,9 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
   public render(): JSX.Element {
     return (
       <>
-        <p className='a-fontSizeS mt-2 mb-1'>Rule Connections </p>
+        <p className='a-fontSizeS mt-2 mb-1'>
+          {this.props.language.ux_editor.rule_connection_header}
+        </p>
         <button
           type='button'
           className='a-btn a-btn-action a-fullWidthBtn a-btnBigger'
@@ -82,7 +85,9 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
           color='primary'
         >
           <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
-          <span className='a-fontSizeXS'>Add connection</span>
+          <span className='a-fontSizeXS'>
+            {this.props.language.general.add_connection}
+          </span>
         </button>
         <Modal
           isOpen={this.state.modalOpen}
@@ -114,6 +119,7 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
 
 const mapStateToProps: (state: IAppState) => IRuleModalProps = (state: IAppState) => ({
   ruleConnection: state.serviceConfigurations.ruleConnection,
+  language: state.appData.language.language,
 });
 
 export const RuleModalComponent = connect(mapStateToProps)(RuleModal);

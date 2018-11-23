@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
     /// This is the implementation of the Service Execution Service that uses local service packages (zip files) to retrieve the
-    /// content for a service. This to more simulate the production scenario where this information would be stored in a database. 
+    /// content for a service. This to more simulate the production scenario where this information would be stored in a database.
     /// </summary>
     public class ExecutionSIIntegrationTest : IExecution
     {
@@ -33,7 +33,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly CustomRoslynCompilationService _compilation;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIIntegrationTest"/> class 
+        /// Initializes a new instance of the <see cref="ExecutionSIIntegrationTest"/> class
         /// </summary>
         /// <param name="roslynCompilationService">The compilation service needed (set in startup.cs)</param>
         /// <param name="repositorySettings">The repository setting service needed (set in startup.cs)</param>
@@ -76,7 +76,7 @@ namespace AltinnCore.Common.Services.Implementation
             var activePackage = GetActivePackage(org, service);
             var context = new ServiceContext
                               {
-                                  CurrentCulture = CultureInfo.CurrentUICulture.Name
+                                  CurrentCulture = CultureInfo.CurrentUICulture.Name,
                               };
 
             using (var archive = _packageRepository.GetZipArchive(activePackage))
@@ -87,7 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
                 context.ServiceMetaData = GetServiceMetaData(archive);
                 context.WorkFlow = GetWorkflow(archive);
             }
-            
+
             if (context.ServiceMetaData?.Elements != null)
             {
                 context.RootName = context.ServiceMetaData.Elements.Values.First(e => e.ParentElement == null).Name;
@@ -101,7 +101,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <returns>The service Implementation</returns>
         public IServiceImplementation GetServiceImplementation(string org, string service)
         {
@@ -151,7 +150,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _compilation.ServiceReferences.Remove(assemblykey);
             }
-          
+
             memoryStream.Seek(0, SeekOrigin.Begin);
             MetadataReference newReference = MetadataReference.CreateFromStream(memoryStream);
             _compilation.ServiceReferences.Add(assemblykey, newReference);
@@ -186,35 +185,31 @@ namespace AltinnCore.Common.Services.Implementation
                 .DeserializeAllAs<ResourceCollection>();
         }
 
+        /// <inheritdoc/>
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             throw new NotImplementedException();
         }
 
+        /// <inheritdoc/>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
           throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Method that receives a stream and saves it to the given path
-        /// </summary>
+        /// <inheritdoc/>
         public void SaveToFile(string path, Stream streamToSave)
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Method that fetches the users repo, zips it and returns the zip file
-        /// </summary>
+        /// <inheritdoc/>
         public FileStream ZipAndReturnFile(string org, string service, string developer)
         {
             throw new NotImplementedException();
         }
 
-        /// <summary>
-        /// Method that fetches the file of the specified path
-        /// </summary>
+        /// <inheritdoc/>
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();

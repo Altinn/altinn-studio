@@ -17,34 +17,39 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
+using Microsoft.AspNetCore.Mvc.Razor.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
 
 namespace AltinnCore.Designer
 {
     /// <summary>
     /// This is the class that set up the application during startup
-    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/> 
+    /// <see href="https://docs.asp.net/en/latest/fundamentals/startup.html#the-startup-class"/>
     /// </summary>
     public class Startup
     {
+        /// <summary>
+        /// Gets the application configuration
+        /// </summary>
         public IConfiguration Configuration { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Startup"/> class
+        /// </summary>
+        /// <param name="configuration">the configuration for designer</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
-
         /// <summary>
         /// Configures the services available for the asp.net Core application
-        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/> 
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configureservices-method"/>
         /// </summary>
         /// <param name="services">The services available for asp.net Core</param>
         public void ConfigureServices(IServiceCollection services)
@@ -94,7 +99,6 @@ namespace AltinnCore.Designer
                 repoLocation = Configuration["ServiceRepositorySettings:RepositoryLocation"];
             }
 
-
             if (!Directory.Exists(repoLocation))
             {
                 Directory.CreateDirectory(repoLocation);
@@ -115,7 +119,7 @@ namespace AltinnCore.Designer
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized
+                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
                     };
                 });
 
@@ -134,11 +138,11 @@ namespace AltinnCore.Designer
                 {
                     var supportedCultures = new List<CultureInfo>
                         {
-                            // The current supported languages. Can easily be added more. 
+                            // The current supported languages. Can easily be added more.
                             new CultureInfo("en-US"),
                             new CultureInfo("nb-NO"),
-                            new CultureInfo("nn-NO")
-                              };
+                            new CultureInfo("nn-NO"),
+                        };
 
                     options.DefaultRequestCulture = new RequestCulture(culture: "nb-NO", uiCulture: "nb-NO");
                     options.SupportedCultures = supportedCultures;
@@ -148,7 +152,7 @@ namespace AltinnCore.Designer
 
         /// <summary>
         /// Configure the application.
-        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/> 
+        /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/startup#the-configure-method"/>
         /// </summary>
         /// <param name="app">The application builder</param>
         /// <param name="env">Hosting environment</param>
@@ -163,8 +167,8 @@ namespace AltinnCore.Designer
                 app.UseExceptionHandler("/Error");
             }
 
-            //app.UseHsts();
-            //app.UseHttpsRedirection();
+            // app.UseHsts();
+            // app.UseHttpsRedirection();
             app.UseAuthentication();
 
             app.UseResponseCompression();
@@ -177,9 +181,9 @@ namespace AltinnCore.Designer
                     headers.CacheControl = new CacheControlHeaderValue()
                     {
                         Public = true,
-                        MaxAge = TimeSpan.FromMinutes(60)
+                        MaxAge = TimeSpan.FromMinutes(60),
                     };
-                }
+                },
             });
 
             app.UseMvc(routes =>
@@ -191,7 +195,7 @@ namespace AltinnCore.Designer
                     defaults: new { controller = "Owner" },
                     constraints: new
                     {
-                        controller = "Codelist|Owner|Config"
+                        controller = "Codelist|Owner|Config",
                     });
                 routes.MapRoute(
                           name: "serviceRoute",
@@ -199,9 +203,10 @@ namespace AltinnCore.Designer
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|DataSource|Service|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|RuntimeAPI|Deploy)",
+                              controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy|Language)",
+
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                              id = "[a-zA-Z0-9_\\-]{1,30}"
+                              id = "[a-zA-Z0-9_\\-]{1,30}",
                           });
 
                 // -------------------------- DEFAULT ------------------------- //

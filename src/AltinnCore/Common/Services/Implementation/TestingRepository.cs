@@ -1,12 +1,12 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -21,13 +21,17 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RepositorySI"/> class 
+        /// Initializes a new instance of the <see cref="TestingRepository"/> class
         /// </summary>
         /// <param name="repositorySettings">The settings for the service repository</param>
         /// <param name="generalSettings">The current general settings</param>
         /// <param name="defaultFileFactory">The default factory</param>
-        public TestingRepository(IOptions<ServiceRepositorySettings> repositorySettings,
-            IOptions<GeneralSettings> generalSettings, IDefaultFileFactory defaultFileFactory, IHttpContextAccessor httpContextAccessor)
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        public TestingRepository(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<GeneralSettings> generalSettings,
+            IDefaultFileFactory defaultFileFactory,
+            IHttpContextAccessor httpContextAccessor)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -47,36 +51,36 @@ namespace AltinnCore.Common.Services.Implementation
             string dirName = _settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             bool updated = false;
 
-            if(!Directory.Exists(dirName))
+            if (!Directory.Exists(dirName))
             {
                 Directory.CreateDirectory(dirName);
             }
-           
-            if (string.IsNullOrEmpty(test.FileName)) {
+
+            if (string.IsNullOrEmpty(test.FileName))
+            {
                 // TODO: Use type
                 test.FileName = test.Name + ".cs";
             }
 
-            File.WriteAllText(dirName + test.FileName, test.Content ?? "");
+            File.WriteAllText(dirName + test.FileName, test.Content ?? string.Empty);
             updated = true;
-            
+
             return updated;
         }
-
 
         /// <summary>
         /// Get the view content for a given razor file on disk
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="name">The name of the test file</param>
         /// <returns>The content of the test</returns>
         public string GetTest(string org, string service, string name)
         {
             IList<TestMetadata> tests = GetTests(org, service, true, name);
             string test = null;
-            if (tests.Count == 1) {
+            if (tests.Count == 1)
+            {
                 test = tests.First().Content;
             }
 
@@ -88,7 +92,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-
         /// <param name="includeContent">Controls if the test content should be included. Default is false.</param>
         /// /// <param name="filterPattern">Pattern to filter the returned tests</param>
         /// <returns>All the tests</returns>
@@ -97,7 +100,7 @@ namespace AltinnCore.Common.Services.Implementation
             IList<TestMetadata> tests = new List<TestMetadata>();
 
             string dirName = _settings.GetTestPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if(!Directory.Exists(dirName))
+            if (!Directory.Exists(dirName))
             {
                 return tests;
             }
@@ -109,7 +112,7 @@ namespace AltinnCore.Common.Services.Implementation
                 var test = new TestMetadata
                 {
                     Name = Path.GetFileNameWithoutExtension(filename),
-                    FileName = filename
+                    FileName = filename,
                 };
                 if (includeContent)
                 {

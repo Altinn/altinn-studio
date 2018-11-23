@@ -1,8 +1,7 @@
-﻿
 namespace AltinnCore.Designer.ModelBinding
 {
     /// <summary>
-    /// This is an model special created to support both JSON and XML in the same endpoint. 
+    /// This is an model special created to support both JSON and XML in the same endpoint.
     /// It will be created by a custom Model binder created for this case
     /// </summary>
     public class AltinnCoreApiModel

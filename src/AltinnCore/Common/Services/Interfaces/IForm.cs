@@ -20,7 +20,7 @@ namespace AltinnCore.Common.Services.Interfaces
         void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId);
 
         /// <summary>
-        /// Returns the Form model for a given from. 
+        /// Returns the Form model for a given from.
         /// </summary>
         /// <param name="formId">The formId</param>
         /// <param name="type">The type</param>

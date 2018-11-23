@@ -18,6 +18,6 @@ namespace AltinnCore.ServiceLibrary.Enums
         /// <summary>
         /// WebDriver browser test
         /// </summary>
-        WebDriver = 3
+        WebDriver = 3,
     }
 }

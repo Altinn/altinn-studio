@@ -38,11 +38,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The user profile</returns>
         public UserProfile GetUserProfile(int userId)
         {
-            string path = _testdataRepositorySettings.RepositoryLocation + TESDATA_USER_DIRECTORY  + userId + @"/" + PROFILE_FILENAME;
+            string path = _testdataRepositorySettings.RepositoryLocation + TESDATA_USER_DIRECTORY + userId + @"/" + PROFILE_FILENAME;
             string textData = File.ReadAllText(path, Encoding.UTF8);
             UserProfile userProfile = JsonConvert.DeserializeObject<UserProfile>(textData);
 
-            userProfile.Party = _registerService.GetParty(userProfile.PartyId);            
+            userProfile.Party = _registerService.GetParty(userProfile.PartyId);
 
             return userProfile;
         }

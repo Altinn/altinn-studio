@@ -14,6 +14,7 @@ export interface IExternalApiComponentProps {
   removeMapping: (id: any) => void;
   handleClientParamsChange: (name: any, value: any) => void;
   handleMetaParamsChange: (e: any) => void;
+  language: any;
 }
 
 export interface IExternalApiComponentState {
@@ -189,6 +190,7 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
                     onDataModelChange={this.props.handleClientParamsChange.bind(null, clientParams[key].name)}
                     selectedElement={selectedDataModelElement}
                     hideRestrictions={true}
+                    language={this.props.language}
                   />
                 </div>
               </div>
@@ -369,6 +371,7 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
                                   onDataModelChange={this.props.handleMappingChange.bind(null, id, 'mappingObject')}
                                   selectedElement={this.props.componentApiResponseMappingsById[id].mappingObject}
                                   hideRestrictions={true}
+                                  language={this.props.language}
                                 />
                               </div>
                             </div>

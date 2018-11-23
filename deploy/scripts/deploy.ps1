@@ -33,32 +33,6 @@ az aks install-cli
 Write-Output "Connecting to the cluster"
 az aks get-credentials --resource-group $resourceGroupName --name $clusterName
 
-Write-Output "Creating the container registry"
-$containerRegistryName = Read-Host -Prompt "Container registry name"
-while (!($containerRegistryName -match '^[a-zA-Z0-9]*$')) {
-  Write-Output "Looks like the registry name is invalid, type a new name"
-  $containerRegistryName = Read-Host -Prompt "Container registry name"
-}
-$containerRegistrySku = Read-Host -Prompt "Container registry SKU"
-
-Write-Output "Setting up container registry..."
-az acr create --name $containerRegistryName --resource-group $resourceGroupName --sku $containerRegistrySku
-
-Write-Output "Creating service principal for container registry"
-$servicePrincipalName = Read-Host -Prompt "Service princpal name"
-$acrResources = (az acr list --resource-group $resourceGroupName --query "[0].{id:id,loginServer:loginServer}" --output tsv).split("`t")
-$servicePrincipalPassword = az ad sp create-for-rbac --name $servicePrincipalName --role Reader --scopes $acrResources[0] --query password --output tsv
-$servicePrincipalId = az ad sp show --id http://$servicePrincipalName --query appId --output tsv
-
-Write-Output "Creating kubernetes secret with service principal"
-$secretName = Read-Host -Prompt "Secret name"
-$dockerEmail = Read-Host -Prompt "Your email"
-while (!($secretName -match '^[a-zA-Z0-9,-,_]*$')) {
-  Write-Output "Looks like the secret name is invalid"
-  $secretName = Read-Host -Prompt "Secret name"
-}
-kubectl create secret docker-registry $secretName --docker-server $acrResources[1] --docker-username $servicePrincipalId --docker-password $servicePrincipalPassword --docker-email $dockerEmail
-
 Write-Output "Creating postgresql database server"
 $databaseServerName = Read-Host -Prompt "Database server name"
 $databaseAdminUser = Read-Host -Prompt "Database admin user name"
@@ -84,13 +58,12 @@ $databaseName = Read-Host -Prompt "Database name"
 az postgres db create -n $databaseName -g $resourceGroupName -s $databaseServerName
 
 Write-Output "Creating kubernetes secret with database login credentials"
-$databaseSecretName = Read-Host -Prompt "Kubernetes secret name"
 echo -n $databaseServerAdress > ./databaseAdress
 echo -n $databaseServerAdminLogin > ./databaseAdminUsername
 echo -n $databaseAdminPassword > ./databaseAdminPassword
 echo -n $databaseName > ./databaseName
 
-kubectl create secret generic $databaseSecretName --from-file=./databaseAdress --from-file=./databaseAdminUsername --from-file=./databaseAdminPassword --from-file=./databaseName
+kubectl create secret generic gitea-db-secret --from-file=./databaseAdress --from-file=./databaseAdminUsername --from-file=./databaseAdminPassword --from-file=./databaseName
 
 rm ./databaseAdress
 rm ./databaseAdminUsername
