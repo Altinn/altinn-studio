@@ -18,10 +18,10 @@ export default class SubApp extends React.Component<any, any> {
   public render() {
     return (
       <Provider store={store}>
-      <HashRouter>
-        <App />
-      </HashRouter>
-    </Provider>
+        <HashRouter>
+          <App />
+        </HashRouter>
+      </Provider>
     );
   }
 }
