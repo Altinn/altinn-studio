@@ -20,13 +20,16 @@ const styles = ((theme: Theme) => createStyles({
   container: {
     height: 'calc(100vh - 69px)',
     top: '69px',
+    overflow: 'scroll',
   },
   item: {
     padding: 0,
+    minWidth: '171px', /* Two columns at 1024px screen size */
   },
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
     borderRight: '1px solid #C9C9C9',
+    minWidth: '682px !important', /* Eight columns at 1024px screen size */
   },
 }));
 
@@ -72,9 +75,10 @@ class FormDesigner extends React.Component<
         <Grid
           container={true}
           spacing={0}
-          classes={{container: classNames(classes.container)}}
+          wrap={'nowrap'}
+          classes={{container: classNames(classes.container)} }
         >
-          <Grid item={true} xs={2}>
+          <Grid item={true} xs={2} classes={{item: classNames(classes.item)}}>
             <Toolbar />
           </Grid>
           <Grid item={true} xs={8} className={classes.mainContent} classes={{item: classNames(classes.item)}}>
@@ -86,7 +90,7 @@ class FormDesigner extends React.Component<
               </div>
             </div>
           </Grid>
-          <Grid item={true}>
+          <Grid item={true} classes={{item: classNames(classes.item)}}>
             <div/>
           </Grid>
         </Grid>

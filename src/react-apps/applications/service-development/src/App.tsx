@@ -10,10 +10,11 @@ export interface IAppProps {
 }
 
 const styles: any = {
-  drawerOpen: {
-    paddingLeft: '250px',
+  root: {
+    background: '#EFEFEF',
+    top: '69px',
   },
-  drawerClosed: {
+  mainContent: {
     paddingLeft: '72px',
   },
 };
@@ -26,9 +27,9 @@ class AppClass extends React.Component<IAppProps, any> {
 
   public render() {
     return (
-      <div style={{background: '#EFEFEF', top: '69px'}}>
+      <div style={styles.root}>
         <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.props.drawerOpen} />
-        <div style={this.props.drawerOpen ? styles.drawerOpen : styles.drawerClosed}>
+        <div style={styles.mainContent}>
           <SubApp />
         </div>
       </div>

@@ -7,7 +7,7 @@ export interface IServiceDevelopmentState {
 }
 
 const initialState: IServiceDevelopmentState = {
-  drawerOpen: true,
+  drawerOpen: false,
 };
 
 const serviceDevelopmentReducer: Reducer<IServiceDevelopmentState> = (
