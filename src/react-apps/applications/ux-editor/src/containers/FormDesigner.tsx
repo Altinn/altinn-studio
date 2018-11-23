@@ -15,11 +15,14 @@ export interface IFormDesignerState { }
 const styles = ((theme: Theme) => createStyles({
   root: {
     flexGrow: 1,
-    minHeight: 'calc(100vh - 70px - 1em)',
-    paddingTop: '1em',
+    minHeight: 'calc(100vh - 69px)',
   },
   container: {
-    height: 'calc(100vh - 70px - 1em)',
+    height: 'calc(100vh - 69px)',
+    top: '69px',
+  },
+  item: {
+    padding: 0,
   },
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
@@ -68,16 +71,19 @@ class FormDesigner extends React.Component<
       <div className={classes.root}>
         <Grid
           container={true}
-          spacing={24}
+          spacing={0}
           classes={{container: classNames(classes.container)}}
         >
           <Grid item={true} xs={2}>
             <Toolbar />
           </Grid>
-          <Grid item={true} xs={8} className={classes.mainContent}>
-          <Preview />
-            <div className='col-12 justify-content-center d-flex mt-3'>
-              {this.renderSaveButton()}
+          <Grid item={true} xs={8} className={classes.mainContent} classes={{item: classNames(classes.item)}}>
+          <div style={{width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px', marginLeft: '24px'}}/>
+          <div style={{width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF'}}>
+            <Preview />
+              <div className='col-12 justify-content-center d-flex mt-3'>
+                {this.renderSaveButton()}
+              </div>
             </div>
           </Grid>
           <Grid item={true}>

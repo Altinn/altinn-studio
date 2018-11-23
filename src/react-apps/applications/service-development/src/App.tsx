@@ -26,7 +26,7 @@ class AppClass extends React.Component<IAppProps, any> {
 
   public render() {
     return (
-      <div>
+      <div style={{background: '#EFEFEF', top: '69px'}}>
         <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.props.drawerOpen} />
         <div style={this.props.drawerOpen ? styles.drawerOpen : styles.drawerClosed}>
           <SubApp />
