@@ -17,7 +17,6 @@ export default class designerPage {
     this.addApiConnection = Selector(".d-block").withText("Api connections").child(0);
     this.addRuleConnection = Selector(".d-block").withText("Rule connections").child(0);
     this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
-    //this
 
     //preview tab
     this.previewSaveButton = Selector(".a-btn-success").withText("Save");
@@ -30,10 +29,10 @@ export default class designerPage {
 
 
   deleteDataModelTexts(numberToDelete) {
-    var deleteButtons = await Selector(".tbn").withText("Slett");
-    var count = deleteButtons().count;
+    let deleteButtons = await Selector(".tbn").withText("Slett");
+    let count = deleteButtons().count;
 
-    for (var i = 0; i < numberToDelete && i < count; i++) {
+    for (let i = 0; i < numberToDelete && i < count; i++) {
       await t.click(deleteButtons.nth(i));
     }
   }

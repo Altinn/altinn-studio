@@ -7,7 +7,7 @@ createTestCafe()
     const runner = testcafe.createRunner();
 
     return runner
-      .browsers(['chrome:headless'])
+      .browsers(['chrome'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: false })
@@ -19,7 +19,7 @@ createTestCafe()
         selectorTimeout: 2000,
         assertionTimeout: 1000,
         pageLoadTimeout: 1000,
-        speed: 1,//0.75,
+        speed: 1,
         debugOnFail: true,
         stopOnFirstFail: true
       })
