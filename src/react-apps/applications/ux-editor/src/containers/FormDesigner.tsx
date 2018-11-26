@@ -1,3 +1,5 @@
+import {createStyles, Grid, Theme, withStyles} from '@material-ui/core';
+import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { connect } from 'react-redux';
@@ -8,11 +10,34 @@ import components from '../components';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
-export interface IFormDesignerProps {
+export interface IFormDesignerProvidedProps {
+  classes: any;
+}
+export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
 }
 export interface IFormDesignerState { }
 
+const styles = ((theme: Theme) => createStyles({
+  root: {
+    flexGrow: 1,
+    minHeight: 'calc(100vh - 69px)',
+  },
+  container: {
+    height: 'calc(100vh - 69px)',
+    top: '69px',
+    overflow: 'auto',
+  },
+  item: {
+    padding: 0,
+    minWidth: '171px', /* Two columns at 1024px screen size */
+  },
+  mainContent: {
+    borderLeft: '1px solid #C9C9C9',
+    borderRight: '1px solid #C9C9C9',
+    minWidth: '682px !important', /* Eight columns at 1024px screen size */
+  },
+}));
 export enum LayoutItemType {
   Container = 'CONTAINER',
   Component = 'COMPONENT',
@@ -109,29 +134,33 @@ class FormDesigner extends React.Component<
   }
 
   public render() {
+    const {classes} = this.props;
     return (
-      <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
-        <div style={{ paddingLeft: 72 }}>
-          <div className='container mb-3'>
-            <div className='row mt-3'>
-              <h1>{this.props.language.ux_editor.form_designer}</h1>
-            </div>
-            <DragDropContext onDragEnd={this.onDragEnd}>
-              <div className='row bigger-container mt-3'>
-                <Toolbar />
-                <div className='col'>
-                  <Preview />
-                  <div className='col-12 justify-content-center d-flex mt-3'>
-                    {this.renderSaveButton()}
-                  </div>
-                </div>
+      <div className={classes.root}>
+      <DragDropContext onDragEnd={this.onDragEnd}>
+        <Grid
+          container={true}
+          spacing={0}
+          wrap={'nowrap'}
+          classes={{container: classNames(classes.container)} }
+        >
+          <Grid item={true} xs={2} classes={{item: classNames(classes.item)}}>
+            <Toolbar />
+          </Grid>
+          <Grid item={true} xs={8} className={classes.mainContent} classes={{item: classNames(classes.item)}}>
+          <div style={{width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px', marginLeft: '24px'}}/>
+          <div style={{width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF'}}>
+            <Preview />
+              <div className='col-12 justify-content-center d-flex mt-3'>
+                {this.renderSaveButton()}
               </div>
-            </DragDropContext>
-            <div className='row'>
-              <div className='col-3' />
             </div>
-          </div>
-        </div>
+          </Grid>
+          <Grid item={true} classes={{item: classNames(classes.item)}}>
+            <div/>
+          </Grid>
+        </Grid>
+        </DragDropContext>
       </div>
     );
   }
@@ -139,10 +168,12 @@ class FormDesigner extends React.Component<
 
 const mapsStateToProps = (
   state: IAppState,
+  props: IFormDesignerProvidedProps,
 ): IFormDesignerProps => {
   return {
+    classes: props.classes,
     language: state.appData.language.language,
   };
 };
 
-export default connect(mapsStateToProps)(FormDesigner);
+export default withStyles(styles, {withTheme: true})(connect(mapsStateToProps)(FormDesigner));

@@ -150,11 +150,11 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
   public render() {
     return (
-      <div className={'col-sm-3'}>
+      <div className={'col-sm-12'}>
 
         <Droppable droppableId='ITEMS' isDropDisabled={true}>
 
-          {(provided, snapshot) => (
+          {(provided: any, snapshot: any) => (
             <div className='row' ref={provided.innerRef}>
               {this.toolbarComponents.map((component, index) => {
                 return (

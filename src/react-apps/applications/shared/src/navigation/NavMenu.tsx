@@ -11,26 +11,22 @@ import * as React from 'react';
 import {leftNavMenuSettings} from './leftNavMenuSettings';
 import {styles} from './navMenuStyles';
 
-export interface INavMenuState {
-  open: boolean;
-  openSubMenus: number[];
+export interface INavMenuProps {
+  drawerOpen: boolean;
+  classes: any;
+  handleToggleDrawer: () => void;
 }
 
 export interface INavMenuProps extends WithStyles<typeof styles> {}
 
-class NavMenu extends React.Component<any, any> {
+class NavMenu extends React.Component<INavMenuProps, any> {
   public state = {
-    open: false,
     openSubMenus: [] as number[],
     selectedMenuItem: '',
   };
 
   public toggleNavMenu = () => {
-    this.setState((state: any) => {
-      return {
-        open: !state.open,
-      };
-    });
+    this.props.handleToggleDrawer();
   }
 
   public handleSubmenuClicked = (id: number) => {
@@ -68,16 +64,16 @@ class NavMenu extends React.Component<any, any> {
         <Drawer
           variant='permanent'
           className={classNames(classes.drawer, {
-            [classes.drawerOpen]: this.state.open,
-            [classes.drawerClose]: !this.state.open,
+            [classes.drawerOpen]: this.props.drawerOpen,
+            [classes.drawerClose]: !this.props.drawerOpen,
           })}
           classes={{
             paper: classNames(classes.paper, {
-              [classes.drawerOpen]: this.state.open,
-              [classes.drawerClose]: !this.state.open,
+              [classes.drawerOpen]: this.props.drawerOpen,
+              [classes.drawerClose]: !this.props.drawerOpen,
             }),
           }}
-          open={this.state.open}
+          open={this.props.drawerOpen}
         >
           <List>
             {leftNavMenuSettings.menuHierarchy.map((menuItem: any, index: number) => {
@@ -92,7 +88,7 @@ class NavMenu extends React.Component<any, any> {
                   <ListItemText
                     classes={{
                       primary: classNames(classes.menuItemText, {
-                        [classes.menuItemTextClosed]: !this.state.open,
+                        [classes.menuItemTextClosed]: !this.props.drawerOpen,
                         [classes.selectedMenuItemText]: this.state.selectedMenuItem === menuItem.displayText,
                       }),
                     }}
@@ -126,8 +122,8 @@ class NavMenu extends React.Component<any, any> {
           </List>
           <List
             classes={{root: classNames(classes.toggleMenu, classes.toggleButton, {
-              [classes.toggleButtonOpen]: this.state.open,
-              [classes.toggleButtonClosed]: !this.state.open,
+              [classes.toggleButtonOpen]: this.props.drawerOpen,
+              [classes.toggleButtonClosed]: !this.props.drawerOpen,
             })}}
           >
             <ListItem
@@ -135,11 +131,11 @@ class NavMenu extends React.Component<any, any> {
               onClick={this.toggleNavMenu}
             >
               <ListItemIcon classes={{root: classNames(classes.toggleMenuText)}}>
-                {this.state.open ? <i className='ai ai-back'/> : <i className='ai ai-expand'/>}
+                {this.props.drawerOpen ? <i className='ai ai-back'/> : <i className='ai ai-expand'/>}
               </ListItemIcon>
               <ListItemText
                 classes={{primary: classNames(classes.menuItemText, classes.toggleMenuText, {
-                  [classes.menuItemTextClosed]: !this.state.open,
+                  [classes.menuItemTextClosed]: !this.props.drawerOpen,
                 })}}
                 primary={'Skjul meny'}
               />
