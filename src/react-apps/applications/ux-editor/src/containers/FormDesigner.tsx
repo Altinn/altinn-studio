@@ -24,7 +24,7 @@ const styles = ((theme: Theme) => createStyles({
   container: {
     height: 'calc(100vh - 69px)',
     top: '69px',
-    overflow: 'scroll',
+    overflow: 'auto',
   },
   item: {
     padding: 0,
