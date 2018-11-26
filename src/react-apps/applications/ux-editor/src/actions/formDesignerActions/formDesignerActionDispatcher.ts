@@ -7,12 +7,14 @@ export interface IFormDesignerActionDispatchers
   extends ActionCreatorsMapObject {
   addFormComponent: (
     component: ICreateFormComponent,
+    position: number,
     containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentAction;
   addFormComponentFulfilled: (
     component: any,
     id: string,
+    position: number,
     containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentActionFulfilled;
@@ -134,6 +136,20 @@ export interface IFormDesignerActionDispatchers
   toggleFormContainerRepeat: (
     id: string,
   ) => FormDesignerActions.IToggleFormContainerRepeatAction;
+  updateFormComponentOrderAction: (
+    id: string,
+    newPosition: number,
+    oldPostion: number,
+    destionationContainerId: string,
+    sourceContainerId: string,
+  ) => FormDesignerActions.IUpdateFormComponentOrderAction;
+  updateFormComponentOrderActionFulfilled: (
+    updatedOrder: any,
+    containerId?: string,
+  ) => FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
+  updateFormComponentOrderActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateFormComponentOrderActionRejected;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -186,6 +202,9 @@ const actions: IFormDesignerActionDispatchers = {
   updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
   updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected,
   toggleFormContainerRepeat: FormDesignerActions.toggleFormContainerRepeatAction,
+  updateFormComponentOrderAction: FormDesignerActions.updateFormComponentOrderAction,
+  updateFormComponentOrderActionFulfilled: FormDesignerActions.updateFormComponentOrderActionFulfilled,
+  updateFormComponentOrderActionRejected: FormDesignerActions.updateFormComponentOrderActionRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

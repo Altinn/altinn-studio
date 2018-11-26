@@ -1,12 +1,15 @@
 import * as React from 'react';
+import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
-import FormActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+
+import '../styles/toolBar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
@@ -39,14 +42,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return {
       label: c.name,
       actionMethod: () => {
-        FormActionDispatcher.addFormComponent({
+        FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
           title: c.name,
           ...JSON.parse(JSON.stringify(customProperties)),
-        }, null, (component: any, id: string) => {
-          this.handleNext(component, id);
         },
+          null,
         );
       },
     } as IToolbarElement;
@@ -62,7 +64,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public addContainerToLayout(activeContainer: string) {
-    FormActionDispatcher.addFormContainer({
+    FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
       index: 0,
@@ -73,56 +75,35 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     );
   }
 
-  public renderContainer() {
-    const onClickEvent = () => {
-      this.addContainerToLayout(this.props.activeContainer);
-    };
-    return (
-      <div className='row a-topTasks'>
-        <div className='col col-lg-12'>
-          <button
-            type='button'
-            className={'a-btn a-btn-icon'}
-            onClick={onClickEvent}
-          >
-            <span className='a-btn-icon-text'>
-              {this.props.language.ux_editor.toolbar_add_container}
-            </span>
-          </button>
-        </div>
-      </div>
-    );
-  }
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
-    FormActionDispatcher.addFormComponent({
+    FormDesignerActionDispatchers.addFormComponent({
       component: THIRD_PARTY_COMPONENT,
       title: `${componentPackage}.${componentName}`,
-    });
+    },
+      null,
+    );
   }
 
-  public renderThirdPartyComponents = () => {
-    if (!this.props.thirdPartyComponents) {
-      return null;
-    }
+  public getThirdPartyComponents = (): IToolbarElement[] => {
     const { thirdPartyComponents } = this.props;
-    return (
-      <div className='row a-topTasks'>
-        {Object.keys(thirdPartyComponents).map((componentPackage) => {
-          const components = thirdPartyComponents[componentPackage];
-          return Object.keys(components).map((component, index) => (
-            <div className='col col-lg-12' key={index}>
-              <button
-                type='button'
-                className={'a-btn a-btn-icon'}
-                onClick={this.addThirdPartyComponentToLayout.bind(this, componentPackage, component)}
-              >
-                <span className='a-btn-icon-text'>{componentPackage} - {component}</span>
-              </button>
-            </div>
-          ));
-        })}
-      </div>
-    );
+    if (!thirdPartyComponents) {
+      return [];
+    }
+    const thirdPartyComponentArray: IToolbarElement[] = [];
+    for (const packageName of thirdPartyComponents) {
+      for (const componentName of thirdPartyComponents[packageName]) {
+        thirdPartyComponentArray.push({
+          label: `${packageName} - ${componentName}`,
+          actionMethod: FormDesignerActionDispatchers.addFormComponent({
+            component: THIRD_PARTY_COMPONENT,
+            title: `${packageName}.${componentName}`,
+          },
+            null,
+          ) as any,
+        });
+      }
+    }
+    return thirdPartyComponentArray;
   }
 
   public handleNext(component: any, id: string) {
@@ -139,7 +120,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public handleComponentUpdate = (updatedComponent: IFormComponent): void => {
-    FormActionDispatcher.updateFormComponent(
+    FormDesignerActionDispatchers.updateFormComponent(
       updatedComponent,
       this.state.selectedCompId,
       this.props.activeContainer,
@@ -150,6 +131,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     this.setState({
       modalOpen: false,
     });
+  }
+
+  public onDragEnd = () => {
+    // Do Nothing
   }
 
   public setToolbarLabel = (label: any) => {
@@ -166,25 +151,103 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-3'}>
-        <div className='row a-topTasks'>
-          {this.toolbarComponents.map((component, index) => {
-            return (
-              <div className='col col-lg-12' key={index}>
-                <button
-                  type='button'
-                  className={'a-btn a-btn-icon'}
-                  onClick={component.actionMethod}
+
+        <Droppable droppableId='ITEMS' isDropDisabled={true}>
+
+          {(provided, snapshot) => (
+            <div className='row' ref={provided.innerRef}>
+              {this.toolbarComponents.map((component, index) => {
+                return (
+                  <Draggable
+                    key={index}
+                    draggableId={index.toString()}
+                    index={index}
+                  >
+                    {
+                      /*tslint:disable-next-line:no-shadowed-variable */
+                      (provided: any, snapshot: any) => (
+                        <React.Fragment>
+                          <div
+                            className='col col-lg-12 a-item'
+                            id={index.toString()}
+                            key={index}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {component.label}
+                          </div>
+                        </React.Fragment>
+                      )}
+                  </Draggable>
+
+                );
+              })}
+
+              {this.getThirdPartyComponents().map((component, index) => (
+                <Draggable
+                  key={index}
+                  draggableId={component.label}
+                  index={5}
                 >
-                  <span className='a-btn-icon-text'>
-                    {this.setToolbarLabel(component.label)}
-                  </span>
-                </button>
-              </div>
-            );
-          })}
-        </div>
-        {this.renderContainer()}
-        {this.renderThirdPartyComponents()}
+                  {
+                    /*tslint:disable-next-line:no-shadowed-variable */
+                    (provided: any, snapshot: any) => (
+                      <>
+                        <div>
+                          <div
+                            className='col col-lg-12 a-item'
+                            id={index.toString()}
+                            key={index}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {component.label}
+                          </div>
+
+                          {snapshot.isDragging && (
+                            <div className='col col-lg-12 a-item'>
+                              {component.label}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                </Draggable>
+              ))}
+
+              <Draggable
+                key={'add container'}
+                draggableId={'container'}
+                index={6}
+              >
+                {
+                  /*tslint:disable-next-line:no-shadowed-variable */
+                  (provided: any, snapshot: any) => (
+                    <>
+                      <div
+                        className='col col-lg-12 a-item'
+                        ref={provided.innerRef}
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                      >
+                        Add container
+                      </div>
+                      {snapshot.isDragging && (
+                        <div className='col col-lg-12 a-item'>
+                          Add container
+                        </div>
+                      )}
+                    </>
+                  )
+                }
+              </Draggable>
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>
@@ -211,7 +274,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             language={this.props.language}
           />
         </Modal>
-      </div>
+      </div >
     );
   }
 
