@@ -66,7 +66,6 @@ class FormDesigner extends React.Component<
 
   public onDragEnd = (result: any) => {
     const { source, destination } = result;
-    let activeId;
 
     if (!destination) {
       return;
@@ -84,7 +83,6 @@ class FormDesigner extends React.Component<
         } else {
           const c = components[source.index].customProperties;
           const customProperties = !c ? {} : c;
-          activeId = uuid();
           FormDesignerActionDispatchers.addFormComponent({
             component: components[source.index].name,
             itemType: 'LayoutItemType.Component',
@@ -98,9 +96,8 @@ class FormDesigner extends React.Component<
         break;
 
       default:
-        activeId = result.draggableId;
         FormDesignerActionDispatchers.updateFormComponentOrderAction(
-          activeId,
+          result.draggableId,
           destination.index,
           source.index,
           destination.droppableId,
