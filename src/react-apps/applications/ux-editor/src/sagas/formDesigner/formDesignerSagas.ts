@@ -464,8 +464,8 @@ export function* watchCreateRepeatingGroupSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.CREATE_REPEATING_GROUP,
     createRepeatingGroupSaga,
-  )
-};
+  );
+}
 
 export function* updateFormComponentOrderSaga({
   id,
