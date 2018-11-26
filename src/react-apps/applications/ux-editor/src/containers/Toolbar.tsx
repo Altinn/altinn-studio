@@ -1,3 +1,7 @@
+import { createStyles, Theme, withStyles } from '@material-ui/core';
+import FormControl from '@material-ui/core/FormControl';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import TextField from '@material-ui/core/TextField';
 import * as React from 'react';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
@@ -9,6 +13,7 @@ import { ConditionalRenderingModalComponent } from '../components/toolbar/Condit
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 
+import classNames = require('classnames');
 import '../styles/toolBar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
@@ -23,7 +28,11 @@ export enum LayoutItemType {
   Component = 'COMPONENT',
 }
 
-export interface IToolbarProps {
+export interface IToolbarProvidedProps {
+  classes: any;
+}
+
+export interface IToolbarProps extends IToolbarProvidedProps {
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
   thirdPartyComponents: any;
@@ -35,6 +44,23 @@ export interface IToolbarState {
   selectedComp: any;
   selectedCompId: string;
 }
+
+const styles = (theme: Theme) => createStyles({
+  searchBox: {
+    border: '1px solid #0062BA',
+    marginTop: '10px',
+    marginBottom: '24px',
+    background: 'none',
+  },
+  searchBoxInput: {
+    fontSize: '1.4rem',
+    color: '#6A6A6A',
+    padding: '6px',
+  },
+  searchBoxIcon: {
+    color: '#000000',
+  },
+});
 
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public toolbarComponents: IToolbarElement[] = components.map((c: any) => {
@@ -151,7 +177,22 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-12'}>
-
+        <FormControl
+          classes={{root: classNames(this.props.classes.searchBox)}}
+          fullWidth={true}
+        >
+          <TextField
+            id={'component-search'}
+            placeholder={this.props.language.ux_editor.toolbar_component_search}
+            InputProps={{
+              endAdornment: <InputAdornment position={'end'} classes={{root: classNames(this.props.classes.searchBoxIcon)}}>
+                              <i className={'ai ai-search'}/>
+                            </InputAdornment>,
+              classes: {root: classNames(this.props.classes.searchBoxInput)},
+            }}
+          />
+        </FormControl>
+        
         <Droppable droppableId='ITEMS' isDropDisabled={true}>
 
           {(provided: any, snapshot: any) => (
@@ -282,8 +323,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
 const mapsStateToProps = (
   state: IAppState,
+  props: IToolbarProvidedProps,
 ): IToolbarProps => {
   return {
+    classes: props.classes,
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
@@ -292,4 +335,4 @@ const mapsStateToProps = (
   };
 };
 
-export const Toolbar = connect(mapsStateToProps)(ToolbarClass);
+export const Toolbar = withStyles(styles, {withTheme: true})(connect(mapsStateToProps)(ToolbarClass));
