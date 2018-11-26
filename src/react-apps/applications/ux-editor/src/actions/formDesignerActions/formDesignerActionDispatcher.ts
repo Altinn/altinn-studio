@@ -51,7 +51,7 @@ export interface IFormDesignerActionDispatchers
     id: string,
   ) => FormDesignerActions.ICreateRepeatingGroupAction;
   createRepeatingGroupFulfilled: (
-  ) => FormDesignerActions.ICreateRepeatingGroupFulfilled;
+  ) => Action;
   createRepeatingGroupRejected: (
     error: Error,
   ) => FormDesignerActions.ICreateRepeatingGroupRejected;

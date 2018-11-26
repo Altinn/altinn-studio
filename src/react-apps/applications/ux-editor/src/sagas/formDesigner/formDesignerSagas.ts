@@ -378,9 +378,7 @@ function* createRepeatingContainer(
 
   const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
   const serviceConfigurations: IServiceConfigurationState = yield select(selectServiceConfiguration);
-  const components = formDesignerState.layout.components;
-  const containers = formDesignerState.layout.containers;
-  const order = formDesignerState.layout.order;
+  const { layout: { components, containers, order } } = formDesignerState;
   const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
   let positionAfter = containerToCopyId;
 
@@ -403,7 +401,6 @@ function* createRepeatingContainer(
     });
   });
 
-  console.log(baseContainerId);
   yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
     container, newContainerId, positionAfter, addToId, baseContainerId);
 

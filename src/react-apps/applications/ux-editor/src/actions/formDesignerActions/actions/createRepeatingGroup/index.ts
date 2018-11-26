@@ -5,9 +5,6 @@ export interface ICreateRepeatingGroupAction extends Action {
   id: string;
 }
 
-export interface ICreateRepeatingGroupFulfilled extends Action {
-}
-
 export interface ICreateRepeatingGroupRejected extends Action {
   error: Error;
 }
@@ -19,7 +16,7 @@ export function createRepeatingGroupAction(id: string): ICreateRepeatingGroupAct
   };
 }
 
-export function createRepeatingGroupFulfilled(): ICreateRepeatingGroupFulfilled {
+export function createRepeatingGroupFulfilled(): Action {
   return {
     type: ActionTypes.CREATE_REPEATING_GORUP_FULFILLED,
   };
