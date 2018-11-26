@@ -134,7 +134,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public onDragEnd = () => {
-    console.log('Do Nothing');
+    // Do Nothing
   }
 
   public setToolbarLabel = (label: any) => {

@@ -68,8 +68,6 @@ class FormDesigner extends React.Component<
     const { source, destination } = result;
     let activeId;
 
-    console.log(result);
-
     if (!destination) {
       return;
     }
