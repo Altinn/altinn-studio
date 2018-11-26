@@ -1,10 +1,12 @@
 import {createStyles, Grid, Theme, withStyles} from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
+import { DragDropContext } from 'react-beautiful-dnd';
 import { connect } from 'react-redux';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
+import components from '../components';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
@@ -36,6 +38,10 @@ const styles = ((theme: Theme) => createStyles({
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
   },
 }));
+export enum LayoutItemType {
+  Container = 'CONTAINER',
+  Component = 'COMPONENT',
+}
 
 class FormDesigner extends React.Component<
   IFormDesignerProps,
@@ -47,7 +53,8 @@ class FormDesigner extends React.Component<
     const servicePath = `${org}/${service}`;
 
     FormDesignerActionDispatchers.fetchFormLayout(
-      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`,
+    );
     AppDataActionDispatcher.setDesignMode(true);
   }
 
@@ -73,10 +80,64 @@ class FormDesigner extends React.Component<
     );
   }
 
+  public handleNext(component: any, id: string) {
+    this.setState({
+      selectedComp: component,
+      selectedCompId: id,
+      modalOpen: true,
+    });
+  }
+
+  public onDragEnd = (result: any) => {
+    const { source, destination } = result;
+
+    if (!destination) {
+      return;
+    }
+
+    switch (source.droppableId) {
+      case 'ITEMS':
+        if (result.draggableId === 'container') {
+          FormDesignerActionDispatchers.addFormContainer({
+            repeating: false,
+            dataModelGroup: '',
+          });
+        } else if (source.index === 'thirdPartyComponent') {
+          // Handle third party components at some time
+        } else {
+          const c = components[source.index].customProperties;
+          const customProperties = !c ? {} : c;
+          FormDesignerActionDispatchers.addFormComponent({
+            component: components[source.index].name,
+            itemType: 'LayoutItemType.Component',
+            title: components[source.index].name,
+            ...JSON.parse(JSON.stringify(customProperties)),
+          },
+            destination.index,
+            destination.droppableId,
+          );
+        }
+        break;
+
+      default:
+        FormDesignerActionDispatchers.updateFormComponentOrderAction(
+          result.draggableId,
+          destination.index,
+          source.index,
+          destination.droppableId,
+          source.droppableId,
+        );
+        break;
+    }
+
+    return;
+  }
+
   public render() {
     const {classes} = this.props;
     return (
       <div className={classes.root}>
+      <DragDropContext onDragEnd={this.onDragEnd}>
         <Grid
           container={true}
           spacing={0}
@@ -99,6 +160,7 @@ class FormDesigner extends React.Component<
             <div/>
           </Grid>
         </Grid>
+        </DragDropContext>
       </div>
     );
   }
