@@ -68,32 +68,21 @@ class FormDesigner extends React.Component<
     const { source, destination } = result;
     let activeId;
 
+    console.log(result);
+
     if (!destination) {
       return;
     }
 
-    if (!source) {
-      return;
-    }
-
     switch (source.droppableId) {
-      case destination.droppableId:
-        activeId = result.draggableId;
-        FormDesignerActionDispatchers.updateFormComponentOrderAction(
-          activeId,
-          destination.index,
-          source.index,
-        );
-        break;
-
-      default:
-        if (source.index === 'container') {
+      case 'ITEMS':
+        if (result.draggableId === 'container') {
           FormDesignerActionDispatchers.addFormContainer({
             repeating: false,
             dataModelGroup: '',
           });
         } else if (source.index === 'thirdPartyComponent') {
-          // Handle third party components
+          // Handle third party components at some time
         } else {
           const c = components[source.index].customProperties;
           const customProperties = !c ? {} : c;
@@ -103,11 +92,22 @@ class FormDesigner extends React.Component<
             itemType: 'LayoutItemType.Component',
             title: components[source.index].name,
             ...JSON.parse(JSON.stringify(customProperties)),
-          }
-            , destination.index,
+          },
+            destination.index,
+            destination.droppableId,
           );
         }
+        break;
 
+      default:
+        activeId = result.draggableId;
+        FormDesignerActionDispatchers.updateFormComponentOrderAction(
+          activeId,
+          destination.index,
+          source.index,
+          destination.droppableId,
+          source.droppableId,
+        );
         break;
     }
 
@@ -115,7 +115,6 @@ class FormDesigner extends React.Component<
   }
 
   public render() {
-
     return (
       <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
         <div style={{ paddingLeft: 72 }}>

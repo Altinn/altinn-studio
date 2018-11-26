@@ -131,10 +131,12 @@ export interface IFormDesignerActionDispatchers
     id: string,
     newPosition: number,
     oldPostion: number,
+    destionationContainerId: string,
+    sourceContainerId: string,
   ) => FormDesignerActions.IUpdateFormComponentOrderAction;
   updateFormComponentOrderActionFulfilled: (
     updatedOrder: any,
-    containerId: string,
+    containerId?: string,
   ) => FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
   updateFormComponentOrderActionRejected: (
     error: Error,

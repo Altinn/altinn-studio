@@ -58,8 +58,8 @@ export const ADD_ACTIVE_FORM_CONTAINER_REJECTED: string = `${moduleName}.ADD_ACT
 
 // All generate repeating groups from form data actions
 export const GENERATE_REPEATING_GROUPS: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
-export const GENERATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
-export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
+export const GENERATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.GENERATE_REPEATING_GROUPS_FULFILLED`;
+export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERATE_REPEATING_GROUPS_REJECTED`;
 
 // Update form component order actions
 export const UPDATE_FORM_COMPONENT_ORDER: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER`;

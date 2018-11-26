@@ -82,7 +82,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
         'col-12 a-btn-action cursorPointer';
     return (
       <div>
-        <Droppable droppableId='DEST' key={this.props.id}>
+        <Droppable droppableId={this.props.id} key={this.props.id}>
           {(provided, snapshot) => (
             <div
               className={className}
@@ -130,6 +130,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
         {!this.props.designMode && this.renderNewGroupButton()}
       </div>
     );
+
   }
 
   public renderContainer = (id: string) => {
@@ -137,11 +138,34 @@ export class ContainerComponent extends React.Component<IContainerProps> {
       return null;
     }
     return (
-      <Container
-        id={id}
+      <Draggable
+        draggableId={id}
+        index={this.props.itemOrder.indexOf(id) - 1}
         key={id}
-        baseContainer={false}
-      />
+      >
+        {(provided, snapshot) => (
+          <div
+            ref={provided.innerRef}
+            {...provided.dragHandleProps}
+          >
+            <Droppable
+              droppableId={id}
+            >
+              {(provided, snapshot) => (
+                <div
+                  ref={provided.innerRef}
+                >
+                  <Container
+                    id={id}
+                    key={`${id}-${provided.innerRef}`}
+                    baseContainer={false}
+                  />
+                </div>
+              )}
+            </Droppable>
+          </div>
+        )}
+      </Draggable>
     );
   }
 

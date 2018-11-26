@@ -133,7 +133,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     });
   }
 
-
   public onDragEnd = () => {
     console.log('Do Nothing');
   }
@@ -198,7 +197,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                 <Draggable
                   key={index}
                   draggableId={component.label}
-                  index={'thirdPartyComponent' as any}
+                  index={5}
                 >
                   {
                     /*tslint:disable-next-line:no-shadowed-variable */
@@ -230,7 +229,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               <Draggable
                 key={'add container'}
                 draggableId={'container'}
-                index={'container' as any}
+                index={6}
               >
                 {
                   /*tslint:disable-next-line:no-shadowed-variable */
