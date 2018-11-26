@@ -4,14 +4,10 @@ import * as NavigationActions from './actions';
 
 export interface INavigationActionDispatchers extends ActionCreatorsMapObject {
   toggleDrawer: () => Action;
-  toggleDrawerFulfilled: () => Action;
-  toggleDrawerRejected: (error: Error) => NavigationActions.IToggleDrawerActionRejected;
 }
 
 const actions: INavigationActionDispatchers = {
   toggleDrawer: NavigationActions.toggleDrawerAction,
-  toggleDrawerFulfilled: NavigationActions.toggleDrawerAction,
-  toggleDrawerRejected: NavigationActions.toggleDrawerActionRejected,
 };
 
 const NavigationActionDispatchers: INavigationActionDispatchers = bindActionCreators<

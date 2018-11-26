@@ -14,7 +14,7 @@ import {styles} from './navMenuStyles';
 export interface INavMenuProps {
   drawerOpen: boolean;
   classes: any;
-  handleToggleDrawer?: () => void;
+  handleToggleDrawer: () => void;
 }
 
 export interface INavMenuProps extends WithStyles<typeof styles> {}
