@@ -40,10 +40,7 @@ const conditionalRenderingReducer: Reducer<any> = (
     case ManageJsonFileActionTypes.FETCH_JSON_FILE_FULFILLED: {
       const { data } = action as ManageJsonFileActions.IFetchJsonFileFulfilledAction;
       return update<any>(state, {
-        $apply: () => ({
-          ...state,
-          ...data.conditionalRendering,
-        }),
+        $set: data.conditionalRendering,
       });
     }
     default:
