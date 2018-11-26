@@ -10,7 +10,7 @@ export interface INavigationActionDispatchers extends ActionCreatorsMapObject {
 
 const actions: INavigationActionDispatchers = {
   toggleDrawer: NavigationActions.toggleDrawerAction,
-  toggleDrawerFulfilled: NavigationActions.toggleDrawerActionFulfilled,
+  toggleDrawerFulfilled: NavigationActions.toggleDrawerAction,
   toggleDrawerRejected: NavigationActions.toggleDrawerActionRejected,
 };
 

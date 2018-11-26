@@ -11,12 +11,6 @@ export function toggleDrawerAction(): Action {
   };
 }
 
-export function toggleDrawerActionFulfilled(): Action {
-  return {
-    type: ActionTypes.TOGGLE_DRAWER,
-  };
-}
-
 export function toggleDrawerActionRejected(
   error: Error,
 ): IToggleDrawerActionRejected {
