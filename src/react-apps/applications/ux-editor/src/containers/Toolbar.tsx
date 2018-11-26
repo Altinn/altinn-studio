@@ -9,7 +9,7 @@ import { ConditionalRenderingModalComponent } from '../components/toolbar/Condit
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 
-import '../styles/Toolbar.css';
+import '../styles/toolBar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
