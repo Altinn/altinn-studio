@@ -172,10 +172,17 @@ namespace AltinnCore.Common.Services.Implementation
                 if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
                 {
                     // Create service with already existing repo
-                    CreateService(org, new ServiceConfiguration { Code = service }, true);
-                    CreateServiceMetadata(new ServiceMetadata { Org = org, Service = service });
-                    filedata = File.ReadAllText(filename, Encoding.UTF8);
-                    return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+                    bool serviceCreated = CreateService(org, new ServiceConfiguration { Code = service }, true);
+                    if (serviceCreated)
+                    {
+                        CreateServiceMetadata(new ServiceMetadata { Org = org, Service = service });
+                        filedata = File.ReadAllText(filename, Encoding.UTF8);
+                        return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
+                    }
+                    else
+                    {
+                        throw new Exception("Unable to create service");
+                    }
                 }
 
                 throw;
@@ -827,11 +834,11 @@ namespace AltinnCore.Common.Services.Implementation
                 AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
             }
 
-            _sourceControl.CloneRemoteRepository(org, serviceConfig.Code);
-            bool created = false;
-
+            bool created = repoCreated;
             if (!File.Exists(filename))
             {
+                _sourceControl.CloneRemoteRepository(org, serviceConfig.Code);
+            
                 // Verify if directory exist. Should Exist if Cloning of new repository worked
                 if (!new FileInfo(filename).Directory.Exists)
                 {
@@ -845,11 +852,10 @@ namespace AltinnCore.Common.Services.Implementation
                 }
 
                 created = true;
+                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.Code, Message = "Service Created" };
+
+                _sourceControl.PushChangesForRepository(commitInfo);
             }
-
-            CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.Code, Message = "Service Created" };
-
-            _sourceControl.PushChangesForRepository(commitInfo);
 
             return created;
         }
