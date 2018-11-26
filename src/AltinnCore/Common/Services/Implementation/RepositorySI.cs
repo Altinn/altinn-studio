@@ -93,27 +93,27 @@ namespace AltinnCore.Common.Services.Implementation
                 Directory.CreateDirectory(servicePath);
             }
 
-            var metaDataDir = _settings.GetMetadataPath(
+            string metaDataDir = _settings.GetMetadataPath(
                 serviceMetadata.Org,
                 serviceMetadata.Service,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            var metaDirectoryInfo = new DirectoryInfo(metaDataDir);
+            DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
             {
                 metaDirectoryInfo.Create();
             }
 
-            var resourceDir = _settings.GetResourcePath(
+            string resourceDir = _settings.GetResourcePath(
                 serviceMetadata.Org,
                 serviceMetadata.Service,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            var resourceDirectoryInfo = new DirectoryInfo(resourceDir);
+            DirectoryInfo resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
             {
                 resourceDirectoryInfo.Create();
             }
 
-            var filePath = metaDataDir + _settings.ServiceMetadataFileName;
+            string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
             AddDefaultFiles(serviceMetadata.Org, serviceMetadata.Service);
@@ -345,7 +345,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                     if (!resourceTextsAsJson[localizedText.Key].ContainsKey(text.Key))
                     {
-                        var textObject = new JObject
+                        dynamic textObject = new JObject
                         {
                             new JProperty("id", text.Key),
                             new JProperty("value", localizedText.Value),
@@ -610,7 +610,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A value indicating if everything went ok</returns>
         public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, XDocument mainXsd)
         {
-            var modelGenerator = new JsonMetadataParser();
+            JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
             serviceMetadata.Org = org;
             serviceMetadata.Service = service;
@@ -656,7 +656,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            var resourceDirectory = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string resourceDirectory = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(resourceDirectory))
             {
                 throw new Exception("Resource directory missing.");
@@ -667,7 +667,7 @@ namespace AltinnCore.Common.Services.Implementation
                 ruleHandlerPath,
                 File.ReadAllText(ruleHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
-            var implementationDirectory = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string implementationDirectory = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(implementationDirectory))
             {
                 throw new Exception("Implementation directory missing.");
@@ -886,13 +886,13 @@ namespace AltinnCore.Common.Services.Implementation
                     directoryPath += "/" + org;
                 }
 
-                var directoryInfo = new DirectoryInfo(directoryPath);
-                foreach (var file in directoryInfo.GetFiles())
+                DirectoryInfo directoryInfo = new DirectoryInfo(directoryPath);
+                foreach (FileInfo file in directoryInfo.GetFiles())
                 {
                     file.Delete();
                 }
 
-                foreach (var directory in directoryInfo.GetDirectories())
+                foreach (DirectoryInfo directory in directoryInfo.GetDirectories())
                 {
                     directory.Delete(true);
                 }
@@ -926,7 +926,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     if (File.Exists(serviceRepo + "/config.json") && Path.GetFileName(serviceRepo) != org)
                     {
-                        var textData = File.ReadAllText(serviceRepo + "/config.json");
+                        string textData = File.ReadAllText(serviceRepo + "/config.json");
                         services.Add(JsonConvert.DeserializeObject<ServiceConfiguration>(textData));
                     }
                 }
@@ -944,7 +944,7 @@ namespace AltinnCore.Common.Services.Implementation
         public IList<ServicePackageDetails> GetServicePackages(string org, string service)
         {
             Guard.AssertOrgService(org, service);
-            var packageDetails = new List<ServicePackageDetails>();
+            List<ServicePackageDetails> packageDetails = new List<ServicePackageDetails>();
             string packageDirectory = _settings.GetServicePackagesPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
             if (!Directory.Exists(packageDirectory))
@@ -1046,7 +1046,7 @@ namespace AltinnCore.Common.Services.Implementation
                     localServiceRepoFolder = $"{_settings.RepositoryLocation}{AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)}/{org}/codelists";
                 }
 
-                using (var repo = new Repository(localServiceRepoFolder))
+                using (Repository repo = new Repository(localServiceRepoFolder))
                 {
                     // User has a local repo for codelist.
                     return;
@@ -1228,13 +1228,13 @@ namespace AltinnCore.Common.Services.Implementation
         public void DeleteTextResource(string org, string service, string name)
         {
             Guard.AssertArgumentNotNullOrWhiteSpace(name, nameof(name));
-            var resourceTextKey = ViewResourceKey(name);
+            string resourceTextKey = ViewResourceKey(name);
 
-            var resources = GetAllResources(org, service);
-            foreach (var resource in resources)
+            IEnumerable<ResourceWrapper> resources = GetAllResources(org, service);
+            foreach (ResourceWrapper resource in resources)
             {
-                var jsonFileContent = resource.Resources;
-                var itemsToDelete = jsonFileContent?.Resources.Where(v => resourceTextKey == v?.Id).ToList();
+                ResourceCollection jsonFileContent = resource.Resources;
+                List<Resource> itemsToDelete = jsonFileContent?.Resources.Where(v => resourceTextKey == v?.Id).ToList();
 
                 if (itemsToDelete != null && itemsToDelete.Any())
                 {
@@ -1257,7 +1257,7 @@ namespace AltinnCore.Common.Services.Implementation
             string[] files = Directory.GetFiles(_settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in files)
             {
-                var corefile = new AltinnCoreFile
+                AltinnCoreFile corefile = new AltinnCoreFile
                 {
                     FilePath = file,
                     FileName = Path.GetFileName(file),
@@ -1274,7 +1274,7 @@ namespace AltinnCore.Common.Services.Implementation
                 modelFiles = Directory.GetFiles(_settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
                 foreach (string file in modelFiles)
                 {
-                    var corefile = new AltinnCoreFile
+                    AltinnCoreFile corefile = new AltinnCoreFile
                     {
                         FilePath = file,
                         FileName = Path.GetFileName(file),
@@ -1290,7 +1290,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 if (Path.GetFileName(file) == "RuleHandler.js")
                 {
-                    var corefile = new AltinnCoreFile
+                    AltinnCoreFile corefile = new AltinnCoreFile
                     {
                         FilePath = file,
                         FileName = Path.GetFileName(file),
@@ -1397,13 +1397,13 @@ namespace AltinnCore.Common.Services.Implementation
             Guard.AssertArgumentNotNullOrWhiteSpace(currentName, nameof(currentName));
             Guard.AssertArgumentNotNullOrWhiteSpace(newName, nameof(newName));
 
-            var currentKey = ViewResourceKey(currentName);
-            var newKey = ViewResourceKey(newName);
+            string currentKey = ViewResourceKey(currentName);
+            string newKey = ViewResourceKey(newName);
 
-            var resources = GetAllResources(org, service);
-            foreach (var resource in resources)
+            IEnumerable<ResourceWrapper> resources = GetAllResources(org, service);
+            foreach (ResourceWrapper resource in resources)
             {
-                var itemsToUpdate = resource.FilterById(currentKey).ToList();
+                List<Resource> itemsToUpdate = resource.FilterById(currentKey).ToList();
                 if (itemsToUpdate.Any())
                 {
                     itemsToUpdate.ForEach(r => r.Id = newKey);
@@ -1462,7 +1462,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            var textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
@@ -1549,13 +1549,13 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialWorkflow(string org, DirectoryInfo targetDirectory)
         {
-            var destFileName = Path.Combine(targetDirectory.FullName, _settings.WorkFlowFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.WorkFlowFileName);
             if (File.Exists(destFileName))
             {
                 return;
             }
 
-            var sourceFile = _defaultFileFactory.GetJsonDefaultFile(_settings.WorkFlowFileName, org);
+            FileInfo sourceFile = _defaultFileFactory.GetJsonDefaultFile(_settings.WorkFlowFileName, org);
             if (sourceFile != null && sourceFile.Exists)
             {
                 sourceFile.CopyTo(destFileName);
@@ -1564,13 +1564,13 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialWebApp(string org, DirectoryInfo targetDirectory)
         {
-            var destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppFileName);
             if (File.Exists(destFileName))
             {
                 return;
             }
 
-            var sourceFile = _defaultFileFactory.GetWebAppDefaultFile(_settings.ReactAppFileName, org);
+            FileInfo sourceFile = _defaultFileFactory.GetWebAppDefaultFile(_settings.ReactAppFileName, org);
             if (sourceFile != null && sourceFile.Exists)
             {
                 sourceFile.CopyTo(destFileName);
@@ -1579,17 +1579,17 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialStyles(string org, DirectoryInfo targetDirectory)
         {
-            var destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppCssFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppCssFileName);
             if (!File.Exists(destFileName))
             {
-                var sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.ReactAppCssFileName, org);
+                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.ReactAppCssFileName, org);
                 if (sourceFile != null && sourceFile.Exists)
                 {
                     sourceFile.CopyTo(destFileName);
                 }
             }
 
-            var stylesConfig = new StylesConfig();
+            StylesConfig stylesConfig = new StylesConfig();
             stylesConfig.InternalStyles = new List<string>();
             stylesConfig.InternalStyles.Add(_settings.ReactAppCssFileName);
             stylesConfig.ExternalStyles = new List<string>();
@@ -1616,7 +1616,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             foreach (string resourceFile in directoryFiles)
             {
-                var jsonFileContent = JsonConvert.DeserializeObject<ResourceCollection>(File.ReadAllText(resourceFile));
+                dynamic jsonFileContent = JsonConvert.DeserializeObject<ResourceCollection>(File.ReadAllText(resourceFile));
                 yield return new ResourceWrapper { FileName = resourceFile, Resources = jsonFileContent };
             }
         }

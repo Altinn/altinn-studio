@@ -43,7 +43,6 @@ namespace AltinnCore.Designer.Controllers
             _compilation = compilationService;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
-
         }
 
         /// <summary>
@@ -318,6 +317,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 _repository.SaveImplementationFile(org, service, fileName, fileContent);
             }
+
             return StatusCode(200);
         }
 
