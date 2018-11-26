@@ -118,7 +118,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
                   className={'a-btn a-btn-action offset-10'}
                   onClick={this.handleContainerDelete}
                 >
-                  <span>Fjern gruppe</span>
+                  <span>{this.props.language.ux_editor.repeating_group_delete}</span>
                 </button>
               }
 
@@ -265,7 +265,6 @@ export class ContainerComponent extends React.Component<IContainerProps> {
   }
   public changeActiveFormContainer = (e: any) => {
     e.stopPropagation();
-    // FormDesignerActionDispatchers.addActiveFormContainer(this.props.id);
   }
   public toggleChange = () => {
     FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
@@ -299,4 +298,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-export const Container = connect(makeMapStateToProps())(ContainerComponent);
+export const Container = connect(makeMapStateToProps)(ContainerComponent);
