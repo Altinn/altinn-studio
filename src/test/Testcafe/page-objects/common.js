@@ -48,7 +48,7 @@ export default class CommonPage {
   }
 
   async returnToHomePage() {
-    repoProfileHomeButton = Selector("#navbar > div.item.brand > a > img"); //the home button, should the user be on the repository profile page
+    var repoProfileHomeButton = Selector("#navbar > div.item.brand > a > img"); //the home button, should the user be on the repository profile page
     var home = repoProfileHomeButton.exists ? repoProfileHomeButton : homeButton;
     await t
       .click(home);
