@@ -379,7 +379,7 @@ function* createRepeatingContainer(
   const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
   const serviceConfigurations: IServiceConfigurationState = yield select(selectServiceConfiguration);
   const { layout: { components, containers, order } } = formDesignerState;
-  const baseContainerId = Object.keys(formDesignerState.layout.order)[0];
+  const baseContainerId = Object.keys(order)[0];
   let positionAfter = containerToCopyId;
 
   if (!baseContainerId) {
@@ -394,12 +394,15 @@ function* createRepeatingContainer(
 
   const conditionalRenderingRules: any = [];
   // create a simple lookup-structure for our conditional rendering rules
-  Object.keys(serviceConfigurations.conditionalRendering).forEach((key: string) => {
-    Object.keys(serviceConfigurations.conditionalRendering[key].selectedFields).forEach((selectedFieldKey: string) => {
-      const selectedTarget = serviceConfigurations.conditionalRendering[key].selectedFields[selectedFieldKey];
-      conditionalRenderingRules[selectedTarget] = { conditionalRenderingId: key };
+  if (serviceConfigurations.conditionalRendering) {
+    Object.keys(serviceConfigurations.conditionalRendering).forEach((key: string) => {
+      Object.keys(serviceConfigurations.conditionalRendering[key].selectedFields).forEach(
+        (selectedFieldKey: string) => {
+          const selectedTarget = serviceConfigurations.conditionalRendering[key].selectedFields[selectedFieldKey];
+          conditionalRenderingRules[selectedTarget] = { conditionalRenderingId: key };
+        });
     });
-  });
+  }
 
   yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
     container, newContainerId, positionAfter, addToId, baseContainerId);
