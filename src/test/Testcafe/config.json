@@ -3,7 +3,7 @@
     "baseUrl": "http://altinn3.no"
   },
   "dev": {
-    "baseUrl": "base for dev"
+    "baseUrl": "https://dev.altinn.studio"
   },
   "uat": {
     "baseUrl": "base for uat"
