@@ -64,12 +64,23 @@ const styles = (theme: Theme) => createStyles({
   },
   listItemText: {
     fontSize: '14px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   listItem: {
     left: '0px',
   },
   paper: {
     marginBottom: '6px',
+  },
+  helpOutline: {
+    width: '20px',
+    heigh: '20px',
+  },
+  listItemSecondaryAction: {
+    right: '1.74px',
+    float: 'right',
   },
 });
 
@@ -192,9 +203,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           <ListItemText classes={{ primary: classNames(this.props.classes.listItemText) }}>
             {componentLabel}
           </ListItemText>
-          <ListItemSecondaryAction>
+          <ListItemSecondaryAction classes={{ root: classNames(this.props.classes.listItemSecondaryAction) }}>
             <ListItemIcon>
               <HelpOutline
+                classes={{ root: classNames(this.props.classes.helpOutline) }}
                 onClick={this.handleOnMoreInfoClick}
               />
             </ListItemIcon>
@@ -294,7 +306,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                       >
-                        {this.renderToolbarItem('Add Container')}
+                        {this.renderToolbarItem('Dette er et langt komponentnavn med enda lengre tekst da')}
                       </div>
                     )
                   }
