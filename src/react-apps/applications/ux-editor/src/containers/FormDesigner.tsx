@@ -56,6 +56,9 @@ class FormDesigner extends React.Component<
       `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`,
     );
     AppDataActionDispatcher.setDesignMode(true);
+    ManageServiceConfigurationDispatchers.fetchJsonFile(
+      `${altinnWindow.location.origin}/designer/${
+      servicePath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
 
   public renderSaveButton = (): JSX.Element => {
