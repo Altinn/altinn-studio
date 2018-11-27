@@ -16,6 +16,10 @@ const activeFormContainerSelector = (state: IAppState, props: any) => {
   return state.formDesigner.layout.activeContainer === props.id;
 };
 
+const layoutContainerOrderSelector = (state: IAppState, containerId: string) => {
+  return state.formDesigner.layout.order[containerId];
+};
+
 const getLayoutOrder = () => {
   return createSelector(
     [layoutOrderSelector],
@@ -52,7 +56,15 @@ const getActiveFormContainer = () => {
   );
 };
 
+const getLayoutContainerOrder = () => {
+  return createSelector(
+    [layoutContainerOrderSelector],
+    (order: any) => order,
+  );
+};
+
 export const makeGetLayoutOrderSelector = getLayoutOrder;
 export const makeGetLayoutContainersSelector = getLayoutContainers;
 export const makeGetLayoutComponentsSelector = getLayoutComponents;
 export const makeGetActiveFormContainer = getActiveFormContainer;
+export const makeGetLayoutContainerOrder = getLayoutContainerOrder;

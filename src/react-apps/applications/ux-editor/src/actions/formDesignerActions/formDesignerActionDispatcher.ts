@@ -7,12 +7,14 @@ export interface IFormDesignerActionDispatchers
   extends ActionCreatorsMapObject {
   addFormComponent: (
     component: ICreateFormComponent,
+    position: number,
     containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentAction;
   addFormComponentFulfilled: (
     component: any,
     id: string,
+    position: number,
     containerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormComponentActionFulfilled;
@@ -22,13 +24,14 @@ export interface IFormDesignerActionDispatchers
   addFormContainer: (
     container: ICreateFormContainer,
     positionAfterId?: string,
-    activeContainerId?: string,
+    addToId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerAction;
   addFormContainerFulfilled: (
     container: ICreateFormContainer,
     id: string,
     positionAfterId?: string,
+    addToId?: string,
     baseContainerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerActionFulfilled;
@@ -46,6 +49,14 @@ export interface IFormDesignerActionDispatchers
   addActiveFormContainerRejected: (
     error: Error,
   ) => FormDesignerActions.IAddActiveFormContainerRejected;
+  createRepeatingGroup: (
+    id: string,
+  ) => FormDesignerActions.ICreateRepeatingGroupAction;
+  createRepeatingGroupFulfilled: (
+  ) => Action;
+  createRepeatingGroupRejected: (
+    error: Error,
+  ) => FormDesignerActions.ICreateRepeatingGroupRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -125,6 +136,20 @@ export interface IFormDesignerActionDispatchers
   toggleFormContainerRepeat: (
     id: string,
   ) => FormDesignerActions.IToggleFormContainerRepeatAction;
+  updateFormComponentOrderAction: (
+    id: string,
+    newPosition: number,
+    oldPostion: number,
+    destionationContainerId: string,
+    sourceContainerId: string,
+  ) => FormDesignerActions.IUpdateFormComponentOrderAction;
+  updateFormComponentOrderActionFulfilled: (
+    updatedOrder: any,
+    containerId?: string,
+  ) => FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
+  updateFormComponentOrderActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateFormComponentOrderActionRejected;
 }
 
 const actions: IFormDesignerActionDispatchers = {
@@ -138,6 +163,9 @@ const actions: IFormDesignerActionDispatchers = {
   addActiveFormContainer: FormDesignerActions.addActiveFormContainerAction,
   addActiveFormContainerFulfilled: FormDesignerActions.addActiveFormContainerActionFulfilled,
   addActiveFormContainerRejected: FormDesignerActions.addActiveFormContainerRejected,
+  createRepeatingGroup: FormDesignerActions.createRepeatingGroupAction,
+  createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
+  createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
@@ -174,6 +202,9 @@ const actions: IFormDesignerActionDispatchers = {
   updateFormContainerFulfilled: FormDesignerActions.updateFormContainerActionFulfilled,
   updateFormContainerRejected: FormDesignerActions.updateFormContainerActionRejected,
   toggleFormContainerRepeat: FormDesignerActions.toggleFormContainerRepeatAction,
+  updateFormComponentOrderAction: FormDesignerActions.updateFormComponentOrderAction,
+  updateFormComponentOrderActionFulfilled: FormDesignerActions.updateFormComponentOrderActionFulfilled,
+  updateFormComponentOrderActionRejected: FormDesignerActions.updateFormComponentOrderActionRejected,
 };
 
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<

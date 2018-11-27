@@ -5,7 +5,7 @@ export interface ISwitchProps {
 }
 
 export class SwitchComponent
-  extends React.Component<ISwitchProps> {
+  extends React.Component<ISwitchProps, null> {
 
   public render() {
     return (
@@ -15,7 +15,7 @@ export class SwitchComponent
           checked={this.props.isChecked}
           onChange={this.props.toggleChange}
         />
-        <span className='slider round'></span>
+        <span className='slider round' />
       </label>
     );
   }

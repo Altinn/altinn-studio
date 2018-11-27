@@ -50,6 +50,7 @@ export const styles = (theme: Theme) => createStyles({
     top: 69,
     position: 'absolute',
     background: 'lightgrey',
+    height: 'calc(100% - 69px)',
   },
   root: {
     display: 'flex',
