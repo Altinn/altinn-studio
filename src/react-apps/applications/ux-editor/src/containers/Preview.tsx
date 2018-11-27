@@ -25,19 +25,18 @@ export class PreviewComponent extends React.Component<
     );
   }
 
-  public createBaseContainer = () => {
-    formDesignerActionDispatcher.addFormContainer({
-      repeating: false,
-      dataModelGroup: null,
-      index: 0,
-    });
+  public componentWillMount() {
+    if (!Object.keys(this.props.layoutOrder).length) {
+      // Create baseContainer if it doesn't exist
+      formDesignerActionDispatcher.addFormContainer({
+        repeating: false,
+        dataModelGroup: null,
+        index: 0,
+      });
+    }
   }
 
   public renderContainer = (): JSX.Element => {
-    if (!Object.keys(this.props.layoutOrder).length) {
-      // Create baseContaienr
-      this.createBaseContainer();
-    }
     const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
     if (!baseContainerId) {
       return null;
@@ -49,6 +48,8 @@ export class PreviewComponent extends React.Component<
       />
     );
   }
+
+}
 }
 
 const makeMapStateToProps = () => {
