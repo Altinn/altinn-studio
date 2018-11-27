@@ -47,8 +47,8 @@ export const DELETE_FORM_CONTAINER_REJECTED: string = `${moduleName}.DELETE_FORM
 
 // Update form component actions
 export const UPDATE_FORM_CONTAINER: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
-export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
-export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER`;
+export const UPDATE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.UPDATE_FORM_CONTAINER_FULFILLED`;
+export const UPDATE_FORM_CONTAINER_REJECTED: string = `${moduleName}.UPDATE_FORM_CONTAINER_REJECTED`;
 export const TOGGLE_FORM_CONTAINER_REPEAT: string = `${moduleName}.TOGGLE_FORM_CONTAINER_REPEAT`;
 
 // Add active container actions
@@ -56,7 +56,17 @@ export const ADD_ACTIVE_FORM_CONTAINER: string = `${moduleName}.ADD_ACTIVE_FORM_
 export const ADD_ACTIVE_FORM_CONTAINER_FULFILLED: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER_FULFILLED`;
 export const ADD_ACTIVE_FORM_CONTAINER_REJECTED: string = `${moduleName}.ADD_ACTIVE_FORM_CONTAINER_REJECTED`;
 
+// Create new repeating group
+export const CREATE_REPEATING_GROUP: string = `${moduleName}.CREATE_REPEATING_GROUP`;
+export const CREATE_REPEATING_GORUP_FULFILLED: string = `${moduleName}.CREATE_REPEATING_GROUP_FULFILLED`;
+export const CREATE_REPEATING_GORUP_REJECTED: string = `${moduleName}.CREATE_REPEATING_GROUP_REJECTED`;
+
 // All generate repeating groups from form data actions
 export const GENERATE_REPEATING_GROUPS: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
-export const GENERATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
-export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERATE_REPEATING_GROUPS`;
+export const GENERATE_REPEATING_GROUPS_FULFILLED: string = `${moduleName}.GENERATE_REPEATING_GROUPS_FULFILLED`;
+export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERATE_REPEATING_GROUPS_REJECTED`;
+
+// Update form component order actions
+export const UPDATE_FORM_COMPONENT_ORDER: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER`;
+export const UPDATE_FORM_COMPONENT_ORDER_FULFILLED: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER_FULFILLED`;
+export const UPDATE_FORM_COMPONENT_ORDER_REJECTED: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER_REJECTED`;

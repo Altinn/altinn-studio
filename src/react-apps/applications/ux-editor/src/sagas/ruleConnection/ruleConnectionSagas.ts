@@ -60,7 +60,7 @@ export function* watchDelRuleConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeating, dataModelGroup, index }:
+function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeatingContainerId }:
   RuleConnetionActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
     // get state
@@ -68,6 +68,17 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
     const ruleConnectionState: IRuleConnectionState = yield select(selectRuleConnection);
     const appDataState: IAppDataState = yield select(selectAppData);
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const order = formDesignerState.layout.order;
+    let repContainer;
+    let repeating;
+    let dataModelGroup: string;
+    let index;
+    if (repeatingContainerId) {
+      repContainer = formDesignerState.layout.containers[repeatingContainerId];
+      repeating = repContainer.repeating;
+      dataModelGroup = repContainer.dataModelGroup;
+      index = repContainer.index;
+    }
 
     const isPartOfRepeatingGroup: boolean = (repeating && dataModelGroup != null && index != null);
     const dataModelGroupWithIndex: string = dataModelGroup + `[${index}]`;
@@ -119,6 +130,11 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
           for (const component in formDesignerState.layout.components) {
             if (!component) {
               continue;
+            }
+            if (isPartOfRepeatingGroup) {
+              if (Object.keys(order[repeatingContainerId]).indexOf(component) !== -1) {
+                continue;
+              }
             }
             if (formDesignerState.layout.components[component].dataModelBinding === connectionDef.outParams.outParam0) {
               updatedComponent = component;

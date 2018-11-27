@@ -7,7 +7,6 @@ export default class RepoPage {
     this.title = Selector('#repo_name');
     this.submitButton = Selector('.ui.green.button');
     this.repoItem = Selector('.ui.repository.list .item .ui.header .name');
-    // this.settingsTab = Selector('.octicon.octicon-tools');
     this.settingsTab = Selector('.right.menu a.item[href$="/settings"]').nth(1);
     this.deleteThisRepoButton = Selector('.ui.basic.red.show-modal.button').withText('Delete This Repository');
     this.confirmDeleteThisRepoButton = Selector('.ui.small.modal.transition.visible.active .ui.red.button');

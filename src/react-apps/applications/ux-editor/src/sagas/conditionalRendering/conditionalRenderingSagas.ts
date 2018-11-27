@@ -79,10 +79,12 @@ export function* watchForFulfillmentBeforeRunningRuleMethodsSaga(): SagaIterator
     take(ServiceConfigurationActionTypes.FETCH_JSON_FILE_FULFILLED),
     take(AppDataActionTypes.FETCH_RULE_MODEL_FULFILLED),
   ]);
-  yield call(checkIfConditionalRulesShouldRun);
+  yield call(checkIfConditionalRulesShouldRun, {});
 }
 
-export function* checkIfConditionalRulesShouldRun(): SagaIterator {
+export function* checkIfConditionalRulesShouldRun(
+  { repeatingContainerId }: ConditionalRenderingActions.ICheckIfConditionalRulesShouldRun)
+  : SagaIterator {
   try {
     const appDataState: IAppDataState = yield select(selectAppData);
     // rules should not be applied when in design mode
@@ -92,16 +94,37 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
 
+    let repContainer: any;
+    let repeating: boolean;
+    let dataModelGroup: string;
+    let index: number;
+
+    if (repeatingContainerId) {
+      if (formDesignerState.layout.containers[repeatingContainerId]) {
+        repContainer = formDesignerState.layout.containers[repeatingContainerId];
+        repeating = repContainer.repeating;
+        dataModelGroup = repContainer.dataModelGroup;
+        index = repContainer.index;
+      }
+    }
+
+    const isPartOfRepeatingGroup = (repeating && dataModelGroup != null && index != null);
+
     // Iterate over all conditional rendering rule connections
     for (const connection in conditionalRuleConnectionState) {
       // tslint:disable-next-line:curly
       if (!connection) continue;
+
       const connectionDef = conditionalRuleConnectionState[connection];
       const functionToRun: string = connectionDef.selectedFunction;
       const objectToUpdate = (window as any).conditionalRuleHandlerHelper[functionToRun]();
       // Map input object structure to input object defined in the conditional rendering rule connection
       const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
-        acc[elem] = formFillerState.formData ? formFillerState.formData[connectionDef.inputParams[elem]] : null;
+        let selectedParam: string = connectionDef.inputParams[elem];
+        if (isPartOfRepeatingGroup) {
+          selectedParam = selectedParam.replace(dataModelGroup, `${dataModelGroup}[${index}]`);
+        }
+        acc[elem] = formFillerState.formData ? formFillerState.formData[selectedParam] : null;
         return acc;
       }, {});
       const result = (window as any).conditionalRuleHandlerObject[functionToRun](newObj);
@@ -111,8 +134,16 @@ export function* checkIfConditionalRulesShouldRun(): SagaIterator {
         // tslint:disable-next-line:curly
         if (!elementToPerformActionOn) continue;
 
-        // Either component or container
         const elementId = connectionDef.selectedFields[elementToPerformActionOn];
+
+        if (isPartOfRepeatingGroup) {
+          // If this target-element is not in the repeating group - the element is ignored
+          if (formDesignerState.layout.order[repeatingContainerId].indexOf(elementId) < 0) {
+            continue;
+          }
+        }
+
+        // Either component or container
         const elementIsComponent = formDesignerState.layout.components[elementId] ? true : false;
         const element = elementIsComponent ?
           formDesignerState.layout.components[elementId] :

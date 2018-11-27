@@ -46,7 +46,13 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
-      const { component, id, containerId, callback } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
+      const {
+        component,
+        id,
+        position,
+        containerId,
+        callback,
+      } = action as FormDesignerActions.IAddFormComponentActionFulfilled;
       if (callback) {
         callback(component, id);
       }
@@ -59,7 +65,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
         order: {
           [containerId]: {
-            $push: [id],
+            $splice: [[position, 0, id]],
           },
         },
       });
@@ -69,13 +75,13 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         container,
         id,
         positionAfterId,
+        addToId,
         baseContainerId,
         callback,
       } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
       if (callback) {
         callback(container, id);
       }
-
       if (!baseContainerId) {
         return update<IFormLayoutState>(state, {
           containers: {
@@ -90,7 +96,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
-      if (positionAfterId) {
+      if (addToId && positionAfterId) {
         return update<IFormLayoutState>(state, {
           containers: {
             [id]: {
@@ -99,7 +105,10 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
           order: {
             [id]: {
-              $set: state.order[positionAfterId],
+              $set: [],
+            },
+            [addToId]: {
+              $push: [id],
             },
             [baseContainerId]: {
               $splice: [[state.order[baseContainerId].indexOf(positionAfterId) + 1, 0, id]],
@@ -107,7 +116,23 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
           },
         });
       }
-
+      if (addToId) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            [id]: {
+              $set: container,
+            },
+          },
+          order: {
+            [id]: {
+              $set: [],
+            },
+            [addToId]: {
+              $push: [id],
+            },
+          },
+        });
+      }
       return update<IFormLayoutState>(state, {
         containers: {
           [id]: {
@@ -307,6 +332,23 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
         error: {
           $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ORDER_FULFILLED: {
+      const { updatedOrder, containerId } = action as FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
+      if (!containerId) {
+        return update<IFormLayoutState>(state, {
+          order: {
+            $set: updatedOrder,
+          },
+        });
+      }
+      return update<IFormLayoutState>(state, {
+        order: {
+          [containerId]: {
+            $set: updatedOrder,
+          },
         },
       });
     }

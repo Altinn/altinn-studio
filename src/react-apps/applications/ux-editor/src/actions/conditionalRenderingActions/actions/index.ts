@@ -68,11 +68,12 @@ export function delConditionalRenderingRejected(error: Error): IDelConditionalRe
 }
 
 export interface ICheckIfConditionalRulesShouldRun extends Action {
-
+  repeatingContainerId?: string;
 }
 
-export function checkIfConditionalRulesShouldRun(): ICheckIfConditionalRulesShouldRun {
+export function checkIfConditionalRulesShouldRun(repeatingContainerId?: string): ICheckIfConditionalRulesShouldRun {
   return {
     type: ActionTypes.CHECK_IF_CONDITIONAL_RULE_SHOULD_RUN,
+    repeatingContainerId,
   };
 }
