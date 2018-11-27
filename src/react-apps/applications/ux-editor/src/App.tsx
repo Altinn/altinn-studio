@@ -75,24 +75,24 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         `${altinnWindow.location.origin}/designer/${servicePath}/Model/GetJson`);
       // Fetch form layout
       formDesignerActionDispatchers.fetchFormLayout(
-        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
       // Load text resources
       const languageCode = 'nb-NO';
       appDataActionDispatcher.loadTextResources(
-        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetTextResources/${languageCode}`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetTextResources/${languageCode}`);
       // Fetch ServiceConfigurations
       manageServiceConfigurationActionDispatcher.fetchJsonFile(
         `${altinnWindow.location.origin}/designer/${
-        servicePath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
+        servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
       // Fetch rule connections
       appDataActionDispatcher.fetchRuleModel(
-        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetRuleHandler`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetRuleHandler`);
       // Fetch the CodeLists
       appDataActionDispatcher.fetchCodeLists(
         `${altinnWindow.location.origin}/designer/${servicePath}/CodeList/CodeLists`);
       // Fetch thirdParty Components
       ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-        `${altinnWindow.location.origin}/designer/${servicePath}/React/GetThirdPartyComponents`);
+        `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetThirdPartyComponents`);
       // Fetch language
       appDataActionDispatcher.fetchLanguage(
         `${altinnWindow.location.origin}/designer/${servicePath}/Language/GetLanguageAsJSON`, 'nb');
@@ -104,7 +104,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     formFillerActionDispatchers.resetFormData(
-      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`);
+      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
     return <FormDesigner />;
   }
 
