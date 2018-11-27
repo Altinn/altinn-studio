@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -319,6 +320,7 @@ namespace AltinnCore.Runtime.Controllers
             // If ValidateInstansiation event has not added any errors the new form is saved and user is redirercted to the correct
             if (ModelState.IsValid)
             {
+                Console.WriteLine("############# Model is valid");
                 if (serviceContext.WorkFlow.Any() && serviceContext.WorkFlow[0].StepType.Equals(StepType.Lookup))
                 {
                     return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
@@ -335,6 +337,7 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
 
+                Console.WriteLine("############# Model form id is: " + formID);
                 return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
             }
 
@@ -346,6 +349,7 @@ namespace AltinnCore.Runtime.Controllers
                }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
+            Console.WriteLine("############# Return startServiceModel: " + startServiceModel.ToString());
             return View(startServiceModel);
         }
 
