@@ -1,7 +1,11 @@
 import { createStyles, Theme, withStyles } from '@material-ui/core';
+import { ListItem, ListItemIcon, ListItemSecondaryAction, Paper } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
+import List from '@material-ui/core/List';
 import TextField from '@material-ui/core/TextField';
+import { HelpOutline } from '@material-ui/icons';
+import classNames = require('classnames');
 import * as React from 'react';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
@@ -12,8 +16,6 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
-
-import classNames = require('classnames');
 import '../styles/toolBar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
@@ -174,25 +176,44 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return label;
   }
 
+  public handleOnMoreInfoClick = (event: any) => {
+    console.log('WAS CLICKED');
+    console.log(event);
+  }
+
   public render() {
     return (
       <div className={'col-sm-12'}>
         <FormControl
-          classes={{root: classNames(this.props.classes.searchBox)}}
+          classes={{ root: classNames(this.props.classes.searchBox) }}
           fullWidth={true}
         >
           <TextField
             id={'component-search'}
             placeholder={this.props.language.ux_editor.toolbar_component_search}
             InputProps={{
-              endAdornment: <InputAdornment position={'end'} classes={{root: classNames(this.props.classes.searchBoxIcon)}}>
-                              <i className={'ai ai-search'}/>
-                            </InputAdornment>,
-              classes: {root: classNames(this.props.classes.searchBoxInput)},
+              endAdornment: <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
+                <i className={'ai ai-search'} />
+              </InputAdornment>,
+              classes: { root: classNames(this.props.classes.searchBoxInput) },
             }}
           />
         </FormControl>
-        
+
+
+        <List dense={false}>
+          <Paper>
+            <ListItem>
+              {'Component'}
+              <ListItemIcon>
+                <HelpOutline
+                  onClick={this.handleOnMoreInfoClick}
+                />
+              </ListItemIcon>
+            </ListItem>
+          </Paper>
+        </List>
+
         <Droppable droppableId='ITEMS' isDropDisabled={true}>
 
           {(provided: any, snapshot: any) => (
@@ -335,4 +356,4 @@ const mapsStateToProps = (
   };
 };
 
-export const Toolbar = withStyles(styles, {withTheme: true})(connect(mapsStateToProps)(ToolbarClass));
+export const Toolbar = withStyles(styles, { withTheme: true })(connect(mapsStateToProps)(ToolbarClass));
