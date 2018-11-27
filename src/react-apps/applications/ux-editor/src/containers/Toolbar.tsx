@@ -1,4 +1,4 @@
-import { createStyles, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Theme, withStyles, ListItemText } from '@material-ui/core';
 import { ListItem, ListItemIcon, ListItemSecondaryAction, Paper } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -55,12 +55,21 @@ const styles = (theme: Theme) => createStyles({
     background: 'none',
   },
   searchBoxInput: {
-    fontSize: '1.4rem',
+    fontSize: '14px',
     color: '#6A6A6A',
     padding: '6px',
   },
   searchBoxIcon: {
     color: '#000000',
+  },
+  listItemText: {
+    fontSize: '14px',
+  },
+  listItem: {
+    left: '0px',
+  },
+  paper: {
+    marginBottom: '6px',
   },
 });
 
@@ -176,9 +185,27 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return label;
   }
 
+  public renderToolbarItem = (componentLabel: string): JSX.Element => {
+    return (
+      <Paper square={true} classes={{ root: classNames(this.props.classes.paper) }}>
+        <ListItem classes={{ root: classNames(this.props.classes.listItem) }}>
+          <ListItemText classes={{ primary: classNames(this.props.classes.listItemText) }}>
+            {componentLabel}
+          </ListItemText>
+          <ListItemSecondaryAction>
+            <ListItemIcon>
+              <HelpOutline
+                onClick={this.handleOnMoreInfoClick}
+              />
+            </ListItemIcon>
+          </ListItemSecondaryAction>
+        </ListItem>
+      </Paper>
+    );
+  }
+
   public handleOnMoreInfoClick = (event: any) => {
-    console.log('WAS CLICKED');
-    console.log(event);
+    console.log('Information icon was clicked');
   }
 
   public render() {
@@ -200,115 +227,83 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           />
         </FormControl>
 
-
         <List dense={false}>
-          <Paper>
-            <ListItem>
-              {'Component'}
-              <ListItemIcon>
-                <HelpOutline
-                  onClick={this.handleOnMoreInfoClick}
-                />
-              </ListItemIcon>
-            </ListItem>
-          </Paper>
-        </List>
+          <Droppable droppableId='ITEMS' isDropDisabled={true}>
+            {(provided: any, snapshot: any) => (
+              <div ref={provided.innerRef}>
+                {this.toolbarComponents.map((component, index) => {
+                  return (
+                    <Draggable
+                      key={index}
+                      draggableId={index.toString()}
+                      index={index}
+                    >
+                      {
+                        /*tslint:disable-next-line:no-shadowed-variable */
+                        (provided: any, snapshot: any) => (
+                          <div
+                            style={''}
+                            id={index.toString()}
+                            key={index}
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                          >
+                            {this.renderToolbarItem(component.label)}
+                          </div>
 
-        <Droppable droppableId='ITEMS' isDropDisabled={true}>
+                        )}
+                    </Draggable>
+                  );
+                })}
 
-          {(provided: any, snapshot: any) => (
-            <div className='row' ref={provided.innerRef}>
-              {this.toolbarComponents.map((component, index) => {
-                return (
+                {this.getThirdPartyComponents().map((component, index) => (
                   <Draggable
                     key={index}
-                    draggableId={index.toString()}
-                    index={index}
+                    draggableId={component.label}
+                    index={5}
                   >
                     {
                       /*tslint:disable-next-line:no-shadowed-variable */
                       (provided: any, snapshot: any) => (
-                        <React.Fragment>
-                          <div
-                            className='col col-lg-12 a-item'
-                            id={index.toString()}
-                            key={index}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {component.label}
-                          </div>
-                        </React.Fragment>
+                        <div
+                          style={''}
+                          id={index.toString()}
+                          key={index}
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          {this.renderToolbarItem(component.label)}
+                        </div>
                       )}
                   </Draggable>
+                ))}
 
-                );
-              })}
-
-              {this.getThirdPartyComponents().map((component, index) => (
                 <Draggable
-                  key={index}
-                  draggableId={component.label}
-                  index={5}
+                  key={'add container'}
+                  draggableId={'container'}
+                  index={6}
                 >
                   {
                     /*tslint:disable-next-line:no-shadowed-variable */
                     (provided: any, snapshot: any) => (
-                      <>
-                        <div>
-                          <div
-                            className='col col-lg-12 a-item'
-                            id={index.toString()}
-                            key={index}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {component.label}
-                          </div>
-
-                          {snapshot.isDragging && (
-                            <div className='col col-lg-12 a-item'>
-                              {component.label}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                </Draggable>
-              ))}
-
-              <Draggable
-                key={'add container'}
-                draggableId={'container'}
-                index={6}
-              >
-                {
-                  /*tslint:disable-next-line:no-shadowed-variable */
-                  (provided: any, snapshot: any) => (
-                    <>
                       <div
-                        className='col col-lg-12 a-item'
+                        style={''}
                         ref={provided.innerRef}
                         {...provided.draggableProps}
                         {...provided.dragHandleProps}
                       >
-                        Add container
+                        {this.renderToolbarItem('Add Container')}
                       </div>
-                      {snapshot.isDragging && (
-                        <div className='col col-lg-12 a-item'>
-                          Add container
-                        </div>
-                      )}
-                    </>
-                  )
-                }
-              </Draggable>
-              {provided.placeholder}
-            </div>
-          )}
-        </Droppable>
+                    )
+                  }
+                </Draggable>
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </List>
 
         <div className='d-block'>
           <ExternalApiModalComponent />
