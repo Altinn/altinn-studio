@@ -48,8 +48,6 @@ export class PreviewComponent extends React.Component<
       />
     );
   }
-
-}
 }
 
 const makeMapStateToProps = () => {
