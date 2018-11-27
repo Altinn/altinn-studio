@@ -151,9 +151,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-12'}>
-
         <Droppable droppableId='ITEMS' isDropDisabled={true}>
-
           {(provided: any, snapshot: any) => (
             <div className='row' ref={provided.innerRef}>
               {this.toolbarComponents.map((component, index) => {
@@ -180,7 +178,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                         </React.Fragment>
                       )}
                   </Draggable>
-
                 );
               })}
 
@@ -205,12 +202,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                           >
                             {component.label}
                           </div>
-
-                          {snapshot.isDragging && (
-                            <div className='col col-lg-12 a-item'>
-                              {component.label}
-                            </div>
-                          )}
                         </div>
                       </>
                     )}
@@ -234,16 +225,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                       >
                         Add container
                       </div>
-                      {snapshot.isDragging && (
-                        <div className='col col-lg-12 a-item'>
-                          Add container
-                        </div>
-                      )}
                     </>
                   )
                 }
               </Draggable>
-              {provided.placeholder}
             </div>
           )}
         </Droppable>
