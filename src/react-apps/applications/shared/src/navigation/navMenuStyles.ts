@@ -49,6 +49,7 @@ export const styles = (theme: Theme) => createStyles({
   paper: {
     position: 'relative',
     background: 'lightgrey',
+    height: 'calc(100% - 69px)',
   },
   root: {
     display: 'flex',

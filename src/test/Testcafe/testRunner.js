@@ -19,9 +19,9 @@ createTestCafe()
         selectorTimeout: 2000,
         assertionTimeout: 1000,
         pageLoadTimeout: 1000,
-        speed: 0.9,
+        speed: 1,
         debugOnFail: true,
-        stopOnFirstFail: false
+        stopOnFirstFail: true
       })
   })
   .then(failedCount => {

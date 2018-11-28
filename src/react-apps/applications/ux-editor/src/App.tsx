@@ -114,7 +114,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
   public render() {
     return (
-      <div className='App flex-column d-flex media-body'>
+      <div>
         <ErrorMessageComponent />
         <Route
           exact={true}

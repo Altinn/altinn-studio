@@ -5,8 +5,10 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import AppBarComponent from '../../shared/src/navigation/main-header/app-bar';
+import { connect } from 'react-redux';
 import NavMenu from '../../shared/src/navigation/NavMenu';
 import SubApp from '../../ux-editor/src/SubApp';
+import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 
 import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
@@ -17,7 +19,16 @@ const DummySubApp = (name: any) => {
   );
 };
 
-class App extends React.Component<any, any> {
+export interface IAppProps {
+  drawerOpen: boolean;
+}
+
+class AppClass extends React.Component<IAppProps, any> {
+
+  public handleDrawerToggle = () => {
+    NavigationActionDispatcher.toggleDrawer();
+  }
+
   public render() {
 
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
@@ -93,7 +104,7 @@ class App extends React.Component<any, any> {
             </Grid>
             <Grid item={true} xs={12}>
               <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
-                <NavMenu />
+                <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.props.drawerOpen} />
                 <div style={{ paddingLeft: 10 }}>
                   {routes.map((route, index) => (
                     <Route
@@ -111,9 +122,17 @@ class App extends React.Component<any, any> {
           </Grid>
         </Router>
       </React.Fragment>
-
     );
   }
 }
 
+const mapsStateToProps = (
+  state: IServiceDevelopmentAppState,
+): IAppProps => {
+  return {
+    drawerOpen: state.serviceDevelopment.drawerOpen,
+  };
+};
+
+const App = connect(mapsStateToProps)(AppClass);
 export default App;

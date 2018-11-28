@@ -62,6 +62,8 @@ spec:
           value: http://altinn-repositories:3000/
         - name: ServiceRepositorySettings__EnableGiteaIntegration
           value: "true"
+        - name: GeneralSettings__LanguageFilesLocation
+          value: Languages/
       volumes:
       - name: altinn-repo-storage
         persistentVolumeClaim:
