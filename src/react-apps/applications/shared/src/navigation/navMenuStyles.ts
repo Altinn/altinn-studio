@@ -47,8 +47,7 @@ export const styles = (theme: Theme) => createStyles({
     fontSize: '20px',
   },
   paper: {
-    top: 69,
-    position: 'absolute',
+    position: 'relative',
     background: 'lightgrey',
   },
   root: {
