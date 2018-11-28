@@ -19,4 +19,13 @@
     <ProjectReference Include="..\Designer\AltinnCore.Designer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Common\edag.schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\schema.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
