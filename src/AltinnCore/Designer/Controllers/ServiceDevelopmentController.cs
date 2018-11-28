@@ -9,7 +9,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// The service builder API
     /// </summary>
-    public class ServiceBuilderController : Controller
+    public class ServiceDevelopmentController : Controller
     {
         /// <summary>
         /// Default action for the designer

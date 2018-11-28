@@ -38,7 +38,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>A view with the React form builder</returns>
         public IActionResult Index(string org, string service)
         {
-            return RedirectToAction("Index", "ServiceBuilder");
+            return RedirectToAction("Index", "ServiceDevelopment");
         }
 
         /// <summary>
