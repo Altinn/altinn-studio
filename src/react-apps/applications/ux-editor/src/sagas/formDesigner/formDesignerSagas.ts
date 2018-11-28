@@ -13,8 +13,7 @@ import { get, post } from '../../utils/networking';
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
-const selectServiceConfiguration = (state: IAppState): IServiceConfiguration => state.serviceConfigurations;
-const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.layout.order;
+const selectServiceConfiguration = (state: IAppState): IServiceConfiguration => state.serviceConfigurations; const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.layout.order;
 
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {
@@ -83,6 +82,7 @@ function* addFormContainerSaga({
   positionAfterId,
   addToId,
   callback,
+  destinationIndex,
 }: FormDesignerActions.IAddFormContainerAction): SagaIterator {
   try {
     const id = uuid();
@@ -100,6 +100,8 @@ function* addFormContainerSaga({
       positionAfterId,
       addToId,
       baseContainerId,
+      callback,
+      destinationIndex,
     );
 
   } catch (err) {
@@ -141,6 +143,7 @@ export function* watchDeleteFormComponentSaga(): SagaIterator {
 function* deleteFormContainerSaga({
   id,
   index,
+  parentContainerId,
 }: FormDesignerActions.IDeleteContainerAction): SagaIterator {
   try {
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
@@ -150,7 +153,7 @@ function* deleteFormContainerSaga({
         yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
       }
     }
-    yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id);
+    yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id, index, parentContainerId);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormContainerRejected, err);
   }
@@ -475,29 +478,74 @@ export function* updateFormComponentOrderSaga({
   sourceContainerId,
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
   const ComponentOrder: any = yield select(selectFormDesignerOrder);
+  const [type, uniqueId] = id.split(':');
 
-  if (destinationContainerId === sourceContainerId) {
-    const newOrder = ComponentOrder[destinationContainerId];
-    newOrder.splice(oldPosition, 1);
-    newOrder.splice(newPosition, 0, id);
-    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      [...newOrder],
-      destinationContainerId,
-    );
-  } else {
-    const newOrderSource = ComponentOrder[sourceContainerId];
-    const newOrderDestination = ComponentOrder[destinationContainerId];
-    newOrderSource.splice(oldPosition, 1);
-    newOrderDestination.splice(newPosition, 0, id);
+  switch (type) {
+    case 'container': {
+      if (destinationContainerId === sourceContainerId) {
+        const newOrder = ComponentOrder[destinationContainerId];
+        newOrder.splice(oldPosition, 1);
+        newOrder.splice(newPosition, 0, uniqueId);
+        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+          [...newOrder],
+          destinationContainerId,
+        );
+      } else {
+        const newOrderSource = ComponentOrder[sourceContainerId];
+        const newOrderDestination = ComponentOrder[destinationContainerId];
 
-    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      [...newOrderSource],
-      sourceContainerId,
-    );
-    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      [...newOrderDestination],
-      newOrderDestination,
-    );
+        newOrderSource.splice(oldPosition, 1);
+        !newOrderDestination.length ?
+          newOrderDestination.push(uniqueId) :
+          newOrderDestination.splice(newPosition, 0, uniqueId);
+
+        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+          [...newOrderSource],
+          sourceContainerId,
+        );
+        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+          [...newOrderDestination],
+          destinationContainerId,
+        );
+      }
+      break;
+    }
+    case 'component': {
+      if (destinationContainerId === sourceContainerId) {
+        const newOrder = ComponentOrder[destinationContainerId];
+        newOrder.splice(oldPosition, 1);
+        newOrder.splice(newPosition, 0, uniqueId);
+        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+          [...newOrder],
+          destinationContainerId,
+        );
+      } else {
+        const newSourceOrder = ComponentOrder[sourceContainerId];
+        const newDestinationOrder = ComponentOrder[destinationContainerId];
+
+        if (newSourceOrder.length === 1) {
+          newSourceOrder.pop();
+        } else {
+          newSourceOrder.splice(oldPosition, 1);
+        }
+
+        if (newDestinationOrder.length === 0) {
+          newDestinationOrder.push(uniqueId);
+        } else {
+          newDestinationOrder.splice(newPosition, 0, uniqueId);
+        }
+
+        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+          [...newSourceOrder],
+          sourceContainerId,
+        );
+        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+          [...newDestinationOrder],
+          destinationContainerId,
+        );
+      }
+      break;
+    }
   }
 }
 

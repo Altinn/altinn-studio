@@ -103,8 +103,12 @@ class FormDesigner extends React.Component<
         if (result.draggableId === 'container') {
           FormDesignerActionDispatchers.addFormContainer({
             repeating: false,
-            dataModelGroup: '',
-          });
+            dataModelGroup: null,
+          },
+            null,
+            null,
+            null,
+            destination.index);
         } else if (source.index === 'thirdPartyComponent') {
           // Handle third party components at some time
         } else {
