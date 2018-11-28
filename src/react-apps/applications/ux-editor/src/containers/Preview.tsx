@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
@@ -22,6 +23,17 @@ export class PreviewComponent extends React.Component<
         {this.renderContainer()}
       </div>
     );
+  }
+
+  public componentWillMount() {
+    if (!Object.keys(this.props.layoutOrder).length) {
+      // Create baseContainer if it doesn't exist
+      formDesignerActionDispatcher.addFormContainer({
+        repeating: false,
+        dataModelGroup: null,
+        index: 0,
+      });
+    }
   }
 
   public renderContainer = (): JSX.Element => {
