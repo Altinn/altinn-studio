@@ -193,7 +193,6 @@ namespace AltinnCore.Runtime.Controllers
                             return Redirect(Environment.GetEnvironmentVariable("GiteaEndpoint") + "/user/login");
                         }
 
-                        Console.WriteLine("############# redirecting to gitea" + _settings.GiteaLoginUrl);
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 
@@ -201,7 +200,6 @@ namespace AltinnCore.Runtime.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("############# error happend: " + ex.ToString());
                     return Content(ex.ToString());
                 }
             }
@@ -259,8 +257,6 @@ namespace AltinnCore.Runtime.Controllers
             {
                 HttpContext.Response.Cookies.Append("altinncorereportee", profile.PartyId.ToString());
             }
-
-            Console.WriteLine("############# redirecting to" + goToUrl);
 
             return LocalRedirect(goToUrl);
         }

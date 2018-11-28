@@ -88,13 +88,11 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            Console.WriteLine("####### Inside editSPA");
-
-            // List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            // if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
-            // {
-            //    return RedirectToAction("Receipt", new { org, service, instanceId });
-            // }
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
+            {
+                return RedirectToAction("Receipt", new { org, service, instanceId });
+            }
 
             // TODO Add info for REACT app.
             return View();
@@ -322,7 +320,6 @@ namespace AltinnCore.Runtime.Controllers
             // If ValidateInstansiation event has not added any errors the new form is saved and user is redirercted to the correct
             if (ModelState.IsValid)
             {
-                Console.WriteLine("############# Model is valid");
                 if (serviceContext.WorkFlow.Any() && serviceContext.WorkFlow[0].StepType.Equals(StepType.Lookup))
                 {
                     return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
@@ -339,7 +336,6 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
 
-                Console.WriteLine("############# Model form id is: " + formID);
                 return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
             }
 
@@ -351,7 +347,6 @@ namespace AltinnCore.Runtime.Controllers
                }).ToList();
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
-            Console.WriteLine("############# Return startServiceModel: " + startServiceModel.ToString());
             return View(startServiceModel);
         }
 
