@@ -50,6 +50,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The service instance list</returns>
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
+            Console.WriteLine("############ Inside GetFormInstances");
             string apiUrl = _settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, org, service, developer, partyId);
             List<ServiceInstance> returnList = new List<ServiceInstance>();
             using (HttpClient client = new HttpClient())
