@@ -4,9 +4,9 @@
 
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import AppBarComponent from '../../shared/src/navigation/main-header/app-bar';
 import { connect } from 'react-redux';
-import NavMenu from '../../shared/src/navigation/NavMenu';
+import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
+import AppBarComponent from '../../shared/src/navigation/main-header/app-bar';
 import SubApp from '../../ux-editor/src/SubApp';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
@@ -104,7 +104,7 @@ class AppClass extends React.Component<IAppProps, any> {
             </Grid>
             <Grid item={true} xs={12}>
               <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
-                <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.props.drawerOpen} />
+                <LeftDrawerMenu />
                 <div style={{ paddingLeft: 10 }}>
                   {routes.map((route, index) => (
                     <Route

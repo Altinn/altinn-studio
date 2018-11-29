@@ -107,7 +107,6 @@ class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
               </ListItem>
             ))}
           </List>
-          <Divider />
         </Drawer>
       </div>
     );
