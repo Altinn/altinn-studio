@@ -7,7 +7,14 @@ export interface IOrganizationOverviewComponentProps extends WithStyles<typeof s
 }
 export interface IOrganizationOverviewComponentState { }
 
-const styles = {}
+const styles = {
+  mar_top_100: {
+    marginTop: '100px',
+  },
+  mar_top_50: {
+    marginTop: '50px',
+  },
+};
 
 class OrganizationOverviewComponent extends React.Component<IOrganizationOverviewComponentProps, IOrganizationOverviewComponentState> {
   public state: IOrganizationOverviewComponentState = {
@@ -16,11 +23,13 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
 
   public render() {
     return (
-      <div>
+      <div className='TEST' style={styles.mar_top_100}>
         <Typography component='h3' variant='h3' gutterBottom={true}> Organisasjoner med redigeringstilgang</Typography>
-        <Typography component='h4' variant='h4' gutterBottom={true}> Her er en oversikt over organisasjoner du har rettigheter til:</Typography>
+        <Typography variant='h6' style={styles.mar_top_50} gutterBottom={true}>
+          Her er en oversikt over organisasjoner du har rettigheter til:
+        </Typography>
         <div>
-          <Typography component='h2' variant='h2'>Du har ikke fått tilganger til noen organisasjoner</Typography>
+          <Typography component='h4' variant='h4' style={styles.mar_top_100}>Du har ikke fått tilganger til noen organisasjoner</Typography>
         </div>
       </div>
     );
