@@ -17,15 +17,15 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all react-ions
     /// </summary>
-    public class ReactController : Controller
+    public class UIEditorController : Controller
     {
         private readonly IRepository _repository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ReactController"/> class.
+        /// Initializes a new instance of the <see cref="UIEditorController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service</param>
-        public ReactController(IRepository repositoryService)
+        public UIEditorController(IRepository repositoryService)
         {
             _repository = repositoryService;
         }
@@ -38,7 +38,7 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>A view with the React form builder</returns>
         public IActionResult Index(string org, string service)
         {
-            return View();
+            return RedirectToAction("Index", "ServiceDevelopment");
         }
 
         /// <summary>

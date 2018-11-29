@@ -197,17 +197,23 @@ namespace AltinnCore.Designer
                     {
                         controller = "Codelist|Owner|Config",
                     });
+
+                routes.MapRoute(
+                        name: "serviceDevelopmentRoute",
+                        template: "designer/{org}/{service}",
+                        defaults: new { controller = "ServiceDevelopment", action="index" });
+
                 routes.MapRoute(
                           name: "serviceRoute",
                           template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React|Deploy|Language)",
+                              controller = @"(Codelist|Config|DataSource|Service|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|UIEditor|ServiceDevelopment|Deploy|Language)",
 
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
-                          });
+                          });        
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
