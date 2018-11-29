@@ -1,15 +1,15 @@
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
-import IconButton from '@material-ui/core/IconButton';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { withStyles, WithStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
-import AccountCircle from '@material-ui/icons/AccountCircle';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import 'typeface-roboto';
+
+import ProfileMenu from '../../profile-menu';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   service?: string;
@@ -47,6 +47,8 @@ const styles = {
   },
   appBar: {
     backgroundColor: '#EFEFEF',
+    borderBottom: '1px solid',
+    borderBottomColor: '#C9C9C9',
   },
   subHeader: {
     'borderBottom': '2px solid',
@@ -77,7 +79,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
     return (
       <div className={classes.root}>
         <MuiThemeProvider theme={theme}>
-          <AppBar position='static' className={classes.appBar}>
+          <AppBar position='static' className={classes.appBar} elevation={0}>
             <Toolbar>
               <Grid container={true} direction='row' alignItems='center' justify='space-between'>
                 <Grid xs={true} item={true}>
@@ -95,9 +97,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                     </Typography>
                   </Grid>
                   <Grid item={true}>
-                    <IconButton>
-                      <AccountCircle />
-                    </IconButton>
+                    <ProfileMenu />
                   </Grid>
                 </Grid>
               </Grid>
