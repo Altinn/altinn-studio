@@ -48,10 +48,8 @@ export const styles = (theme: Theme) => createStyles({
     fontSize: '20px',
   },
   paper: {
-    top: 69,
-    position: 'absolute',
+    position: 'relative',
     background: altinnTheme.palette.secondary.main,
-    height: 'calc(100% - 69px)',
   },
   root: {
     display: 'flex',

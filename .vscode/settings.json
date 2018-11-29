@@ -17,5 +17,6 @@
     "**/obj": true,
     "**/publish/**": true,
     "**/Debug": true
-  }
+  },
+  "typescript.surveys.enabled": false
 }
