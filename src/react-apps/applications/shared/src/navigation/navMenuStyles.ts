@@ -1,4 +1,5 @@
 import { createStyles, Theme } from '@material-ui/core/styles';
+import altinnTheme from '../theme/altinnStudioTheme';
 
 const drawerWidth = 250;
 export const styles = (theme: Theme) => createStyles({
@@ -49,7 +50,7 @@ export const styles = (theme: Theme) => createStyles({
   paper: {
     top: 69,
     position: 'absolute',
-    background: 'lightgrey',
+    background: altinnTheme.palette.secondary.main,
     height: 'calc(100% - 69px)',
   },
   root: {
@@ -58,7 +59,7 @@ export const styles = (theme: Theme) => createStyles({
   selectedMenuItem: {
     color: 'white',
     textDecoration: 'underline',
-    background: 'grey',
+    background: altinnTheme.palette.secondary.main,
   },
   selectedMenuItemText: {
     color: 'white',
@@ -79,7 +80,7 @@ export const styles = (theme: Theme) => createStyles({
     width: drawerWidth,
   },
   toggleMenu: {
-    background: 'grey',
+    background: altinnTheme.palette.secondary.dark,
   },
   toggleMenuText: {
     color: 'white',
