@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import NavMenu from '../../shared/src/navigation/NavMenu';
+import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import SubApp from '../../ux-editor/src/SubApp';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
@@ -28,7 +28,7 @@ class AppClass extends React.Component<IAppProps, any> {
   public render() {
     return (
       <div style={styles.root}>
-        <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.props.drawerOpen} />
+        <LeftDrawerMenu />
         <div style={styles.mainContent}>
           <SubApp />
         </div>
