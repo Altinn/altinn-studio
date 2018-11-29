@@ -251,7 +251,8 @@ gulp.task('clean', gulp.series(
   deleteReactJs,
   cleanNodeModulePackages,
   run('npm run clean', {
-    cwd: '../../react-apps/applications/service-development',
+    //cwd: '../../react-apps/applications/service-development',
+    cwd: '../../react-apps/applications/dashboard',
   })
 ));
 
@@ -260,7 +261,8 @@ gulp.task('develop', gulp.parallel(
   setupWatchers,
   run('dotnet run'),
   run('npm run webpack-watch', {
-    cwd: '../../react-apps/applications/service-development',
+    //cwd: '../../react-apps/applications/service-development',
+    cwd: '../../react-apps/applications/dashboard',
   })
 ));
 
@@ -272,7 +274,8 @@ gulp.task('install-react-app-dependencies', gulp.series(
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../../react-apps/applications/service-development',
+    //cwd: '../../react-apps/applications/service-development',
+    cwd: '../../react-apps/applications/dashboard',
   }),
   'copy-files'
 ]));
