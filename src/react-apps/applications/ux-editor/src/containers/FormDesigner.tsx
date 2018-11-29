@@ -53,12 +53,11 @@ class FormDesigner extends React.Component<
     const servicePath = `${org}/${service}`;
 
     FormDesignerActionDispatchers.fetchFormLayout(
-      `${altinnWindow.location.origin}/designer/${servicePath}/React/GetFormLayout`,
-    );
+      `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetFormLayout`);
     AppDataActionDispatcher.setDesignMode(true);
     ManageServiceConfigurationDispatchers.fetchJsonFile(
       `${altinnWindow.location.origin}/designer/${
-      servicePath}/React/GetJsonFile?fileName=ServiceConfigurations.json`);
+      servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
 
   public renderSaveButton = (): JSX.Element => {
@@ -67,12 +66,12 @@ class FormDesigner extends React.Component<
     const handleSaveButton: any = (): any => {
       ManageServiceConfigurationDispatchers.saveJsonFile(
         `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${
-        altinnWindow.service}/React/SaveJsonFile?fileName=ServiceConfigurations.json`);
+        altinnWindow.service}/UIEditor/SaveJsonFile?fileName=ServiceConfigurations.json`);
 
       FormDesignerActionDispatchers.saveFormLayout(
         `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${
         altinnWindow.service
-        }/React/SaveFormLayout`,
+        }/UIEditor/SaveFormLayout`,
       );
     };
 
