@@ -10,42 +10,97 @@ const { org, service } = altinnWindow;
 const servicePath: string = `${org}/${service}`;
 
 export const leftDrawerMenuSettings: any = {
-  menuTitle: 'Tjenesteoversikt',
-  menuHierarchy: [
+  about: [
     {
-      displayText: 'Tjenesteoversikt',
-      navLink: '#',
-      iconName: 'ai ai-info',
+      displayText: 'Om tjenesten',
+      navLink: '/aboutservice',
+      iconName: 'information',
       items: [],
     },
     {
-      displayText: 'Tjenesteflyt',
-      navLink: '#',
-      iconName: 'ai ai-archive',
+      displayText: 'Roller og rettigheter',
+      navLink: '/rolesandrights',
+      iconName: 'settings',
       items: [],
     },
     {
-      displayText: 'Tjenestelogikk',
-      navLink: `${altinnWindow.location.origin}/designer/${servicePath}/Rules/Code`,
-      iconName: 'ai ai-archive',
+      displayText: 'Produksjon',
+      navLink: '/production',
+      iconName: 'information',
       items: [],
     },
+    {
+      displayText: 'Versjonshistorikk',
+      navLink: '/versionhistory',
+      iconName: 'information',
+      items: [],
+    },
+    {
+      displayText: 'Om sluttbrukeren',
+      navLink: '/aboutenduser',
+      iconName: 'information',
+      items: [],
+    },
+    {
+      displayText: 'Altinn.no',
+      navLink: '/altinn',
+      iconName: 'settings',
+      items: [],
+    },
+  ],
+  create: [
     {
       displayText: 'Datamodell',
-      navLink: `${altinnWindow.location.origin}/designer/${servicePath}/Model`,
-      iconName: 'ai ai-archive',
+      navLink: '/datamodel',
+      iconName: 'information',
       items: [],
     },
     {
-      displayText: 'Oversettelse',
-      navLink: `${altinnWindow.location.origin}/designer/${servicePath}/Text`,
-      iconName: 'ai ai-archive',
+      displayText: 'GUI',
+      navLink: '/uieditor',
+      iconName: 'settings',
       items: [],
     },
     {
-      displayText: 'Test',
-      navLink: `${altinnWindow.location.origin}/${servicePath}/runtime/ManualTesting`,
-      iconName: 'ai ai-archive',
+      displayText: 'API',
+      navLink: '/api',
+      iconName: 'information',
+      items: [],
+    },
+  ],
+  language: [
+    {
+      displayText: 'Tekst',
+      navLink: '/text',
+      iconName: 'information',
+      items: [],
+    },
+    {
+      displayText: 'Flere språk',
+      navLink: '/translate',
+      iconName: 'settings',
+      items: [],
+    },
+  ],
+  test: [
+    {
+      displayText: 'test',
+      navLink: '/test',
+      iconName: 'information',
+      items: [],
+    },
+  ],
+  publish: [
+    {
+      displayText: 'Produksjonsette',
+      navLink: '/productionsetting',
+      iconName: 'information',
+      items: [],
+    },
+    {
+      displayText: 'Status',
+      navLink: '/status',
+      iconName: 'settings',
       items: [],
     },
   ],

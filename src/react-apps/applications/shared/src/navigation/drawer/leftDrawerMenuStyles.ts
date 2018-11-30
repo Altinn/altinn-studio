@@ -1,10 +1,11 @@
 import { createStyles, Theme } from '@material-ui/core/styles';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 const drawerWidth = 240;
 
 export const styles = (theme: Theme) => createStyles({
   root: {
-    display: 'flex',
+    display: 'absolute',
   },
   menuButton: {
     marginLeft: 12,
@@ -17,6 +18,7 @@ export const styles = (theme: Theme) => createStyles({
     width: drawerWidth,
     flexShrink: 0,
     whiteSpace: 'nowrap',
+    top: 64,
   },
   drawerOpen: {
     width: drawerWidth,
@@ -46,5 +48,10 @@ export const styles = (theme: Theme) => createStyles({
   content: {
     flexGrow: 1,
     padding: theme.spacing.unit * 3,
+  },
+  paper: {
+    position: 'absolute',
+    background: altinnTheme.palette.secondary.main,
+    top: 146,
   },
 });
