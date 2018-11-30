@@ -125,6 +125,8 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
+            CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.Service);
+
             return true;
         }
 
@@ -1606,6 +1608,27 @@ namespace AltinnCore.Common.Services.Implementation
             if (!File.Exists(stylesConfigPath))
             {
                 File.WriteAllText(stylesConfigPath, output);
+            }
+        }
+
+        private void CreateInitialDeploymentFiles(string org, string service)
+        {
+            string sourcePath = _generalSettings.DeploymentLocation;
+            string targetPath = _settings.GetDeploymentPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+
+            // Create the service deployment folder
+            Directory.CreateDirectory(targetPath);
+
+            // Create all of the directories
+            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+            }
+
+            // Copy all the files & Replaces any files with the same name
+            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            {
+                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
             }
         }
 

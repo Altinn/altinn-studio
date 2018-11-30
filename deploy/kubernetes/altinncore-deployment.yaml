@@ -64,6 +64,8 @@ spec:
           value: "true"
         - name: GeneralSettings__LanguageFilesLocation
           value: Languages/
+        - name: GeneralSettings__DeploymentLocation
+          value: /Deployment
       volumes:
       - name: altinn-repo-storage
         persistentVolumeClaim:
