@@ -1,10 +1,10 @@
-import { createStyles, Theme, withStyles, ListItemText } from '@material-ui/core';
-import { ListItem, ListItemIcon, ListItemSecondaryAction, Paper } from '@material-ui/core';
+import { Collapse, createStyles, ListItemText, Theme, withStyles, Typography } from '@material-ui/core';
+import { ListItem, ListItemIcon, Paper } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import TextField from '@material-ui/core/TextField';
-import { HelpOutline } from '@material-ui/icons';
+import { ExpandLess, ExpandMore, HelpOutline } from '@material-ui/icons';
 import classNames = require('classnames');
 import * as React from 'react';
 import { Draggable, Droppable } from 'react-beautiful-dnd';
@@ -15,6 +15,7 @@ import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
+import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import '../styles/toolBar.css';
 
@@ -28,6 +29,11 @@ export interface IToolbarElement {
 export enum LayoutItemType {
   Container = 'CONTAINER',
   Component = 'COMPONENT',
+}
+
+export enum CollapsableMenus {
+  Components,
+  Texts,
 }
 
 export interface IToolbarProvidedProps {
@@ -45,45 +51,12 @@ export interface IToolbarState {
   modalOpen: boolean;
   selectedComp: any;
   selectedCompId: string;
+  componentInformationPanelOpen: boolean;
+  componentSelectedForInformationPanel: string;
+  anchorElement: any;
+  componentListOpen: boolean;
+  textListOpen: boolean;
 }
-
-const styles = (theme: Theme) => createStyles({
-  searchBox: {
-    border: '1px solid #0062BA',
-    marginTop: '10px',
-    marginBottom: '24px',
-    background: 'none',
-  },
-  searchBoxInput: {
-    fontSize: '14px',
-    color: '#6A6A6A',
-    padding: '6px',
-  },
-  searchBoxIcon: {
-    color: '#000000',
-  },
-  listItemText: {
-    fontSize: '14px',
-    whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-  listItem: {
-    left: '0px',
-  },
-  paper: {
-    marginBottom: '6px',
-  },
-  helpOutline: {
-    width: '20px',
-    heigh: '20px',
-  },
-  listItemSecondaryAction: {
-    right: '1.74px',
-    float: 'right',
-  },
-});
-
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public toolbarComponents: IToolbarElement[] = components.map((c: any) => {
     const customProperties = c.customProperties ? c.customProperties : {};
@@ -108,6 +81,11 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       modalOpen: false,
       selectedComp: {},
       selectedCompId: '',
+      componentInformationPanelOpen: false,
+      componentSelectedForInformationPanel: '',
+      anchorElement: null,
+      componentListOpen: true,
+      textListOpen: true,
     };
   }
 
@@ -203,21 +181,71 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           <ListItemText classes={{ primary: classNames(this.props.classes.listItemText) }}>
             {componentLabel}
           </ListItemText>
-          <ListItemSecondaryAction classes={{ root: classNames(this.props.classes.listItemSecondaryAction) }}>
-            <ListItemIcon>
-              <HelpOutline
-                classes={{ root: classNames(this.props.classes.helpOutline) }}
-                onClick={this.handleOnMoreInfoClick}
-              />
-            </ListItemIcon>
-          </ListItemSecondaryAction>
+          <ListItemIcon classes={{ root: classNames(this.props.classes.listItemIcon) }}>
+            <HelpOutline
+              classes={{ root: classNames(this.props.classes.helpOutline) }}
+              onClick={this.handleComponentInformationOpen.bind(this, componentLabel)}
+            />
+          </ListItemIcon>
         </ListItem>
       </Paper>
     );
   }
 
-  public handleOnMoreInfoClick = (event: any) => {
-    console.log('Information icon was clicked');
+  public renderCollapsableMenuItem = (menu: CollapsableMenus): JSX.Element => {
+    return (
+      <ListItem
+        classes={{ root: this.props.classes.collapsableButton }}
+        onClick={this.handleCollapsableListClicked.bind(this, menu)}
+      >
+        <ListItemIcon
+          classes={{ root: this.props.classes.listItemIcon }}
+        >
+          {
+            (menu === CollapsableMenus.Components) ?
+              (this.state.componentListOpen ? <ExpandLess /> : <ExpandMore />) :
+              (this.state.textListOpen ? <ExpandLess /> : <ExpandMore />)
+          }
+        </ListItemIcon>
+        <ListItemText
+          classes={{
+            root: classNames(this.props.classes.collapsableButtonTextRoot),
+            primary: classNames(this.props.classes.collapsableButtonText),
+          }}
+        >
+          {(menu === CollapsableMenus.Components) ? 'Skjemakomponenter' : 'Tekster'}
+        </ListItemText>
+      </ListItem>
+    );
+  }
+
+  public handleComponentInformationOpen = (componentName: string, event: any) => {
+    this.setState({
+      componentInformationPanelOpen: true,
+      componentSelectedForInformationPanel: componentName,
+      anchorElement: event.currentTarget,
+    });
+  }
+
+  public handleComponentInformationClose = () => {
+    this.setState({
+      componentInformationPanelOpen: false,
+      componentSelectedForInformationPanel: '',
+      anchorElement: null,
+    });
+  }
+
+  public handleCollapsableListClicked = (menu: CollapsableMenus) => {
+    console.log(menu);
+    if (menu === CollapsableMenus.Components) {
+      this.setState({
+        componentListOpen: !this.state.componentListOpen,
+      });
+    } else {
+      this.setState({
+        textListOpen: !this.state.textListOpen,
+      });
+    }
   }
 
   public render() {
@@ -231,90 +259,108 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             id={'component-search'}
             placeholder={this.props.language.ux_editor.toolbar_component_search}
             InputProps={{
-              endAdornment: <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
-                <i className={'ai ai-search'} />
-              </InputAdornment>,
+              disableUnderline: true,
+              endAdornment:
+                <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
+                  <i className={'ai ai-search'} />
+                </InputAdornment>,
               classes: { root: classNames(this.props.classes.searchBoxInput) },
             }}
           />
         </FormControl>
+        <FormControl>
+          <Typography classes={{ root: classNames(this.props.classes.componentListSelector) }}>ALLE</Typography>
+          <ExpandMore />
+        </FormControl>
 
-        <List dense={false}>
-          <Droppable droppableId='ITEMS' isDropDisabled={true}>
-            {(provided: any, snapshot: any) => (
-              <div ref={provided.innerRef}>
-                {this.toolbarComponents.map((component, index) => {
-                  return (
+        <List id='collapsable-items'>
+          {this.renderCollapsableMenuItem(CollapsableMenus.Components)}
+
+          <Collapse in={this.state.componentListOpen}>
+            <List dense={false} id='schema-components'>
+              <Droppable droppableId='ITEMS' isDropDisabled={true}>
+                {(provided: any, snapshot: any) => (
+                  <div ref={provided.innerRef}>
+                    {this.toolbarComponents.map((component, index) => {
+                      return (
+                        <Draggable
+                          key={index}
+                          draggableId={index.toString()}
+                          index={index}
+                        >
+                          {
+                            /*tslint:disable-next-line:no-shadowed-variable */
+                            (provided: any, snapshot: any) => (
+                              <div
+                                style={''}
+                                id={index.toString()}
+                                key={index}
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                {this.renderToolbarItem(component.label)}
+                              </div>
+
+                            )}
+                        </Draggable>
+                      );
+                    })}
+
+                    {this.getThirdPartyComponents().map((component, index) => (
+                      <Draggable
+                        key={index}
+                        draggableId={component.label}
+                        index={5}
+                      >
+                        {
+                          /*tslint:disable-next-line:no-shadowed-variable */
+                          (provided: any, snapshot: any) => (
+                            <div
+                              style={''}
+                              id={index.toString()}
+                              key={index}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              {this.renderToolbarItem(component.label)}
+                            </div>
+                          )}
+                      </Draggable>
+                    ))}
+
                     <Draggable
-                      key={index}
-                      draggableId={index.toString()}
-                      index={index}
+                      key={'add container'}
+                      draggableId={'container'}
+                      index={6}
                     >
                       {
                         /*tslint:disable-next-line:no-shadowed-variable */
                         (provided: any, snapshot: any) => (
                           <div
                             style={''}
-                            id={index.toString()}
-                            key={index}
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                           >
-                            {this.renderToolbarItem(component.label)}
+                            {this.renderToolbarItem(this.props.language.ux_editor.toolbar_add_container)}
                           </div>
-
-                        )}
+                        )
+                      }
                     </Draggable>
-                  );
-                })}
-
-                {this.getThirdPartyComponents().map((component, index) => (
-                  <Draggable
-                    key={index}
-                    draggableId={component.label}
-                    index={5}
-                  >
-                    {
-                      /*tslint:disable-next-line:no-shadowed-variable */
-                      (provided: any, snapshot: any) => (
-                        <div
-                          style={''}
-                          id={index.toString()}
-                          key={index}
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                        >
-                          {this.renderToolbarItem(component.label)}
-                        </div>
-                      )}
-                  </Draggable>
-                ))}
-
-                <Draggable
-                  key={'add container'}
-                  draggableId={'container'}
-                  index={6}
-                >
-                  {
-                    /*tslint:disable-next-line:no-shadowed-variable */
-                    (provided: any, snapshot: any) => (
-                      <div
-                        style={''}
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        {this.renderToolbarItem('Dette er et langt komponentnavn med enda lengre tekst da')}
-                      </div>
-                    )
-                  }
-                </Draggable>
-                {provided.placeholder}
-              </div>
-            )}
-          </Droppable>
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </List>
+          </Collapse>
+          {this.renderCollapsableMenuItem(CollapsableMenus.Texts)}
+          <Collapse in={this.state.textListOpen}>
+            <List dense={false} id={'schema-texts'}>
+              {this.renderToolbarItem('Header')}
+            </List>
+          </Collapse>
         </List>
 
         <div className='d-block'>
@@ -343,11 +389,73 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             language={this.props.language}
           />
         </Modal>
+        <InformationPanelComponent
+          anchorElement={this.state.anchorElement}
+          informationPanelOpen={this.state.componentInformationPanelOpen}
+          onClose={this.handleComponentInformationClose}
+          selectedComponent={this.state.componentSelectedForInformationPanel}
+        />
       </div >
     );
   }
 
 }
+
+const styles = (theme: Theme) => createStyles({
+  searchBox: {
+    border: '1px solid #0062BA',
+    marginTop: '10px',
+    marginBottom: '24px',
+    background: 'none',
+  },
+  searchBoxInput: {
+    fontSize: '14px',
+    color: '#6A6A6A',
+    padding: '6px',
+  },
+  searchBoxIcon: {
+    color: '#000000',
+  },
+  listItemText: {
+    fontSize: '14px',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  listItem: {
+    paddingLeft: '12px',
+    paddingRight: '8px',
+    paddingTop: '9px',
+    paddingBottom: '8px',
+  },
+  paper: {
+    marginBottom: '6px',
+  },
+  helpOutline: {
+    width: '24px', // 24px on wrapper makes the svg icon scale to 20*20pixels
+    height: '24px',
+  },
+  listItemIcon: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
+  collapsableButtonText: {
+    fontSize: '14px',
+    marginLeft: '6px',
+    padding: '0px',
+  },
+  collapsableButtonTextRoot: {
+    padding: '0px',
+  },
+  collapsableButton: {
+    padding: '0px',
+  },
+  componentListSelector: {
+    fontSize: '12px',
+    color: '#022F51',
+    fontWeight: 'bold',
+  },
+});
 
 const mapsStateToProps = (
   state: IAppState,
