@@ -198,6 +198,14 @@ namespace AltinnCore.Designer
                         controller = "Codelist|Owner|Config",
                     });
                 routes.MapRoute(
+                    name: "designerApiRoute",
+                    template: "designerapi/{controller}/{action=Index}/",
+                    defaults: new { controller = "Repository" },
+                    constraints: new
+                    {
+                        controller = "Repository",
+                    });
+                routes.MapRoute(
                           name: "serviceRoute",
                           template: "designer/{org}/{service}/{controller}/{action=Index}/{id?}",
                           defaults: new { controller = "Service" },
