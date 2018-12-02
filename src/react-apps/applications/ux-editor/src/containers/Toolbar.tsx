@@ -1,4 +1,4 @@
-import { Collapse, createStyles, ListItemText, Theme, withStyles, Typography } from '@material-ui/core';
+import { Collapse, createStyles, ListItemText, Theme, withStyles } from '@material-ui/core';
 import { ListItem, ListItemIcon, Paper } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
@@ -16,6 +16,7 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
+import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import '../styles/toolBar.css';
 
@@ -236,7 +237,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public handleCollapsableListClicked = (menu: CollapsableMenus) => {
-    console.log(menu);
     if (menu === CollapsableMenus.Components) {
       this.setState({
         componentListOpen: !this.state.componentListOpen,
@@ -268,10 +268,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           />
         </FormControl>
-        <FormControl>
-          <Typography classes={{ root: classNames(this.props.classes.componentListSelector) }}>ALLE</Typography>
-          <ExpandMore />
-        </FormControl>
+
+        <ListSelectorComponent onChange={{}} />
 
         <List id='collapsable-items'>
           {this.renderCollapsableMenuItem(CollapsableMenus.Components)}
@@ -449,11 +447,6 @@ const styles = (theme: Theme) => createStyles({
   },
   collapsableButton: {
     padding: '0px',
-  },
-  componentListSelector: {
-    fontSize: '12px',
-    color: '#022F51',
-    fontWeight: 'bold',
   },
 });
 
