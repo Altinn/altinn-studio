@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
+import { draggableWrapper } from './draggableWrapper';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -151,88 +151,33 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-12'}>
-        <Droppable droppableId='ITEMS' isDropDisabled={true}>
-          {(provided: any, snapshot: any) => (
-            <div className='row' ref={provided.innerRef}>
-              {this.toolbarComponents.map((component, index) => {
-                return (
-                  <Draggable
-                    key={index}
-                    draggableId={index.toString()}
-                    index={index}
-                  >
-                    {
-                      /*tslint:disable-next-line:no-shadowed-variable */
-                      (provided: any, snapshot: any) => (
-                        <React.Fragment>
-                          <div
-                            className='col col-lg-12 a-item'
-                            id={index.toString()}
-                            key={index}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {component.label}
-                          </div>
-                        </React.Fragment>
-                      )}
-                  </Draggable>
-                );
-              })}
+        {/*this.toolbarComponents.map((component, index) => draggableWrapper(
+          component.label,
+          <div key={index}>
+            {component.label}
+          </div>,
+        ))
+        */
+          draggableWrapper('TEST')
+        }
+        {
+          this.getThirdPartyComponents().map((component, index) => (
 
-              {this.getThirdPartyComponents().map((component, index) => (
-                <Draggable
-                  key={index}
-                  draggableId={component.label}
-                  index={5}
-                >
-                  {
-                    /*tslint:disable-next-line:no-shadowed-variable */
-                    (provided: any, snapshot: any) => (
-                      <>
-                        <div>
-                          <div
-                            className='col col-lg-12 a-item'
-                            id={index.toString()}
-                            key={index}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {component.label}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                </Draggable>
-              ))}
-
-              <Draggable
-                key={'add container'}
-                draggableId={'container'}
-                index={6}
+            <div>
+              <div
+                className='col col-lg-12 a-item'
+                id={index.toString()}
+                key={index}
               >
-                {
-                  /*tslint:disable-next-line:no-shadowed-variable */
-                  (provided: any, snapshot: any) => (
-                    <>
-                      <div
-                        className='col col-lg-12 a-item'
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        Add container
-                      </div>
-                    </>
-                  )
-                }
-              </Draggable>
+                {component.label}
+              </div>
             </div>
-          )}
-        </Droppable>
+          ))
+        }
 
+        <div className='col col-lg-12 a-item'>
+          Add container
+        </div>
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>
