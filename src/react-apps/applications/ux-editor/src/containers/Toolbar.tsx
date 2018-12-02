@@ -248,6 +248,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     }
   }
 
+  public handleComponentListChange = (value: any) => {
+    // Ignore for now, favourites will be implemented at a later stage
+  }
+
   public render() {
     return (
       <div className={'col-sm-12'}>
@@ -268,10 +272,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           />
         </FormControl>
-
-        <ListSelectorComponent onChange={{}} />
-
         <List id='collapsable-items'>
+
+          <ListSelectorComponent onChange={this.handleComponentListChange} />
+
           {this.renderCollapsableMenuItem(CollapsableMenus.Components)}
 
           <Collapse in={this.state.componentListOpen}>
@@ -430,7 +434,7 @@ const styles = (theme: Theme) => createStyles({
     marginBottom: '6px',
   },
   helpOutline: {
-    width: '24px', // 24px on wrapper makes the svg icon scale to 20*20pixels
+    width: '24px',
     height: '24px',
   },
   listItemIcon: {

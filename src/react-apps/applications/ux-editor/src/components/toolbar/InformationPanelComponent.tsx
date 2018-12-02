@@ -58,7 +58,13 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           )}
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
-          <i className={'ai ai-info-circle'} />
+          <i
+            style={{
+              color: '#17C96B', width: '26px', height: '20px',
+              position: 'relative', verticalAlign: 'sub', paddingRight: '6px',
+            }}
+            className={'ai ai-info-circle'}
+          />
           {this.props.language.ux_editor.component_information_altinn_library}
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>

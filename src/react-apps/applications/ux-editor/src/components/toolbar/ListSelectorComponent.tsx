@@ -1,10 +1,11 @@
-import { createStyles, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Theme, withStyles, Select } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { ExpandMore } from '@material-ui/icons';
 
 export enum SelectableLists {
-  All = 'ALL',
-  Favorites = 'FAVORITES',
+  All,
+  Favourites,
 }
 
 export interface IListSelectorProvidedProps {
@@ -21,9 +22,31 @@ export interface IListSelectorState {
 }
 
 class ListSelector extends React.Component<IListSelectorProps, IListSelectorState> {
+
+  constructor(props: IListSelectorProps, state: IListSelectorState) {
+    super(props, state);
+    this.state = {
+      selectedList: SelectableLists.All,
+    };
+  }
+
   public render(): JSX.Element {
     return (
-      <div>Hello</div>
+      <div style={{ display: 'inline-flex', verticalAlign: 'middle' }}>
+        <Select
+          classes={{
+            root: this.props.classes.componentListSelector,
+            select: this.props.classes.select,
+            icon: this.props.classes.icon
+          }}
+          value={SelectableLists.All}
+          disableUnderline={true}
+          IconComponent={ExpandMore}
+        >
+          <option value={SelectableLists.All}>{this.props.language.ux_editor.component_list_all}</option>
+          <option value={SelectableLists.Favourites}>{this.props.language.ux_editor.component_list_favourites}</option>
+        </Select>
+      </div >
     );
   }
 }
@@ -33,7 +56,17 @@ const styles = (theme: Theme) => createStyles({
     fontSize: '12px',
     color: '#022F51',
     fontWeight: 'bold',
+    display: 'inline-block',
   },
+  select: {
+    paddingTop: '7px',
+    paddingBottom: '7px',
+    paddingRight: '24px',
+  },
+  icon: {
+    position: 'absolute',
+    display: 'inline-block',
+  }
 });
 
 const mapStateToProps: (
