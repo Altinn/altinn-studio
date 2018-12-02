@@ -1,6 +1,7 @@
 export * from './addFormComponent';
 export * from './addFormContainer';
 export * from './addActiveFormContainer';
+export * from './createRepeatingGroup';
 export * from './deleteFormComponent';
 export * from './deleteFormContainer';
 export * from './fetchFormLayout';

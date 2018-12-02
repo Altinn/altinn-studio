@@ -1,55 +1,65 @@
-﻿@{ViewBag.Title = "Tjenestelogikk"; }
+@{ViewBag.Title = "Tjenestelogikk"; }
 @using System.IO;
 @using AltinnCore.ServiceLibrary;
 @model List<AltinnCoreFile>
-
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
+}
 @if (Model != null)
 {
-    <table class="table table-striped table-bordered">
-        <thead class="thead-inverse">
-            <tr>
-                <th>Status</th>
-                <th>Filnavn</th>
-                <th>Sist endret</th>
-             </tr>
-        </thead>
-        <tbody>
-            @foreach (AltinnCoreFile file in Model)
+  @if (ViewBag.HasDataModel == false)
+  {
+    <div class="alert alert-warning" role="alert">
+      Du mangler en data modell. Legg til data modell
+      <a href="/designer/@org/@service/Model">her</a>!
+    </div>
+  }
+  <table class="table table-striped table-bordered">
+    <thead class="thead-inverse">
+      <tr>
+        <th>Status</th>
+        <th>Filnavn</th>
+        <th>Sist endret</th>
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (AltinnCoreFile file in Model)
+      {
+        <tr>
+          <td>
+            @if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.OK))
             {
-                <tr>
-                    <td>
-                        @if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.OK))
-                        {
-                        <i class="fa fa-fw fa-check" aria-hidden="true"></i>
-                        }
-                        else if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Error))
-                        {
-                            <i class="fa fa-fw fa-remove" aria-hidden="true"></i>
-                        }
-                        else if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Warning))
-                        {
-                            <i class="fa fa-fw fa-exclamation" aria-hidden="true"></i>
-                        }
-                    </td>
-                    <td>
-                        <a asp-route="serviceRoute"
-                           asp-route-controller="Rules"
-                           asp-route-action="File"
-                           asp-route-name="@file.FileName">
-                            @file.FileName
-                        </a>
-                    </td>
-                    <td>
-                        @file.LastChanged
-                    </td>
-                </tr>
+              <i class="fa fa-fw fa-check" aria-hidden="true"></i>
             }
-        </tbody>
-    </table>
+            else if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Error))
+            {
+              <i class="fa fa-fw fa-remove" aria-hidden="true"></i>
+            }
+            else if (file.FileStatus.Equals(AltinnCore.ServiceLibrary.Enums.AltinnCoreFileStatusType.Warning))
+            {
+              <i class="fa fa-fw fa-exclamation" aria-hidden="true"></i>
+            }
+          </td>
+          <td>
+            <a asp-route="serviceRoute"
+               asp-route-controller="Rules"
+               asp-route-action="File"
+               asp-route-name="@file.FileName">
+              @file.FileName
+            </a>
+          </td>
+          <td>
+            @file.LastChanged
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
 
-    <h3>Kodestatus</h3>
+  <h3>Kodestatus</h3>
 
- @Html.Partial("CompilationResult")    
+  @Html.Partial("CompilationResult")
 
 }
 

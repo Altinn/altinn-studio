@@ -4,6 +4,7 @@ import {
   watchAddActiveFormContainerSaga,
   watchAddFormComponentSaga,
   watchAddFormContainerSaga,
+  watchCreateRepeatingGroupSaga,
   watchDeleteFormComponentSaga,
   watchDeleteFormContainerSaga,
   watchFetchFormLayoutSaga,
@@ -27,5 +28,6 @@ export default function* (): SagaIterator {
   yield fork(watchUpdateDataModelBindingSaga);
   yield fork(watchUpdateFormComponentSaga);
   yield fork(watchToggleFormContainerRepeatingSaga);
+  yield fork(watchCreateRepeatingGroupSaga);
   yield fork(watchUpdateFormComponentOrderSaga);
 }

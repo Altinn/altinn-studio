@@ -24,13 +24,14 @@ export interface IFormDesignerActionDispatchers
   addFormContainer: (
     container: ICreateFormContainer,
     positionAfterId?: string,
-    activeContainerId?: string,
+    addToId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerAction;
   addFormContainerFulfilled: (
     container: ICreateFormContainer,
     id: string,
     positionAfterId?: string,
+    addToId?: string,
     baseContainerId?: string,
     callback?: (...args: any[]) => any,
   ) => FormDesignerActions.IAddFormContainerActionFulfilled;
@@ -48,6 +49,14 @@ export interface IFormDesignerActionDispatchers
   addActiveFormContainerRejected: (
     error: Error,
   ) => FormDesignerActions.IAddActiveFormContainerRejected;
+  createRepeatingGroup: (
+    id: string,
+  ) => FormDesignerActions.ICreateRepeatingGroupAction;
+  createRepeatingGroupFulfilled: (
+  ) => Action;
+  createRepeatingGroupRejected: (
+    error: Error,
+  ) => FormDesignerActions.ICreateRepeatingGroupRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -154,6 +163,9 @@ const actions: IFormDesignerActionDispatchers = {
   addActiveFormContainer: FormDesignerActions.addActiveFormContainerAction,
   addActiveFormContainerFulfilled: FormDesignerActions.addActiveFormContainerActionFulfilled,
   addActiveFormContainerRejected: FormDesignerActions.addActiveFormContainerRejected,
+  createRepeatingGroup: FormDesignerActions.createRepeatingGroupAction,
+  createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
+  createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
