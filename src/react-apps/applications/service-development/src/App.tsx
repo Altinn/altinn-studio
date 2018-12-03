@@ -37,7 +37,7 @@ class AppClass extends React.Component<IAppProps, any> {
 
     const routes = [
       {
-        path: '/om',
+        path: '/about',
         exact: true,
         activeSubHeaderSelection: 'om',
         menu: 'about',
@@ -56,19 +56,19 @@ class AppClass extends React.Component<IAppProps, any> {
         subapp: SubApp,
       },
       {
-        path: '/sprak',
+        path: '/language',
         activeSubHeaderSelection: 'sprak',
         menu: 'language',
         subapp: DummySubApp,
       },
       {
-        path: '/teste',
+        path: '/test',
         activeSubHeaderSelection: 'teste',
         menu: 'test',
         subapp: DummySubApp,
       },
       {
-        path: '/publisere',
+        path: '/publish',
         activeSubHeaderSelection: 'publisere',
         menu: 'publish',
         subapp: DummySubApp,
@@ -123,13 +123,6 @@ class AppClass extends React.Component<IAppProps, any> {
         subapp: DummySubApp,
       },
       {
-        path: '/uieditor',
-        activeSubHeaderSelection: 'lage',
-        activeLeftMenuSelection: 'gui',
-        menu: 'create',
-        subapp: DummySubApp,
-      },
-      {
         path: '/api',
         activeSubHeaderSelection: 'lage',
         activeLeftMenuSelection: 'api',
@@ -148,13 +141,6 @@ class AppClass extends React.Component<IAppProps, any> {
         activeSubHeaderSelection: 'sprak',
         activeLeftMenuSelection: 'flere sprak',
         menu: 'language',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/test',
-        activeSubHeaderSelection: 'test',
-        activeLeftMenuSelection: 'test',
-        menu: 'test',
         subapp: DummySubApp,
       },
       {
@@ -182,7 +168,7 @@ class AppClass extends React.Component<IAppProps, any> {
                 exact={true}
                 path='/'
                 render={() => (
-                  <Redirect to='/om' />
+                  <Redirect to='/about' />
                 )}
               />
               {routes.map((route, index) => (
