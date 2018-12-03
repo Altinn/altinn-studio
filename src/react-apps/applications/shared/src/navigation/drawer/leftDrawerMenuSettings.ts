@@ -5,10 +5,6 @@ export interface IAltinnWindow extends Window {
   reportee: string;
 }
 
-const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-const { org, service } = altinnWindow;
-const servicePath: string = `${org}/${service}`;
-
 export const leftDrawerMenuSettings: any = {
   about: [
     {

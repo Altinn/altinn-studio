@@ -1,4 +1,3 @@
-import CssBaseline from '@material-ui/core/CssBaseline';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
 import List from '@material-ui/core/List';
@@ -8,10 +7,10 @@ import ListItemText from '@material-ui/core/ListItemText';
 import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import Icon from './Icon';
 import { leftDrawerMenuSettings } from './leftDrawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
-import { Link } from 'react-router-dom';
 
 export interface INavMenuProps {
   classes: any;
@@ -49,21 +48,8 @@ class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
     });
   }
 
-  /* public handleMenuItemClicked = (menuItem: any, id: number) => {
-     this.setState((state: any) => {
-       return {
-         selectedMenuItem: menuItem.displayText,
-       };
-     });
-     if (menuItem.items && menuItem.items.length > 0) {
-       this.handleSubmenuClicked(id);
-     }
-
-     window.location = menuItem.navLink;
-   }*/
-
   public render() {
-    const { classes, theme } = this.props;
+    const { classes } = this.props;
 
     return (
       <div>
