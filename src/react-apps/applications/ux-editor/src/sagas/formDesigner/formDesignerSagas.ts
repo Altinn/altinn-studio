@@ -49,7 +49,10 @@ function* addFormComponentSaga({
       // if not containerId set it to base-container
       containerId = Object.keys(formDesignerState.layout.order)[0];
     }
-
+    if (!position) {
+      // if position is undefined, put it on top
+      position = 0;
+    }
     yield call(
       FormDesignerActionDispatchers.addFormComponentFulfilled,
       component,
@@ -478,74 +481,32 @@ export function* updateFormComponentOrderSaga({
   sourceContainerId,
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
   const ComponentOrder: any = yield select(selectFormDesignerOrder);
-  const [type, uniqueId] = id.split(':');
 
-  switch (type) {
-    case 'container': {
-      if (destinationContainerId === sourceContainerId) {
-        const newOrder = ComponentOrder[destinationContainerId];
-        newOrder.splice(oldPosition, 1);
-        newOrder.splice(newPosition, 0, uniqueId);
-        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-          [...newOrder],
-          destinationContainerId,
-        );
-      } else {
-        const newOrderSource = ComponentOrder[sourceContainerId];
-        const newOrderDestination = ComponentOrder[destinationContainerId];
+  if (destinationContainerId === sourceContainerId) {
+    const newOrder = ComponentOrder[destinationContainerId];
+    newOrder.splice(oldPosition, 1);
+    newOrder.splice(newPosition, 0, id);
+    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+      [...newOrder],
+      destinationContainerId,
+    );
+  } else {
+    const newOrderSource = ComponentOrder[sourceContainerId];
+    const newOrderDestination = ComponentOrder[destinationContainerId];
 
-        newOrderSource.splice(oldPosition, 1);
-        !newOrderDestination.length ?
-          newOrderDestination.push(uniqueId) :
-          newOrderDestination.splice(newPosition, 0, uniqueId);
+    newOrderSource.splice(oldPosition, 1);
+    !newOrderDestination.length ?
+      newOrderDestination.push(id) :
+      newOrderDestination.splice(newPosition, 0, id);
 
-        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-          [...newOrderSource],
-          sourceContainerId,
-        );
-        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-          [...newOrderDestination],
-          destinationContainerId,
-        );
-      }
-      break;
-    }
-    case 'component': {
-      if (destinationContainerId === sourceContainerId) {
-        const newOrder = ComponentOrder[destinationContainerId];
-        newOrder.splice(oldPosition, 1);
-        newOrder.splice(newPosition, 0, uniqueId);
-        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-          [...newOrder],
-          destinationContainerId,
-        );
-      } else {
-        const newSourceOrder = ComponentOrder[sourceContainerId];
-        const newDestinationOrder = ComponentOrder[destinationContainerId];
-
-        if (newSourceOrder.length === 1) {
-          newSourceOrder.pop();
-        } else {
-          newSourceOrder.splice(oldPosition, 1);
-        }
-
-        if (newDestinationOrder.length === 0) {
-          newDestinationOrder.push(uniqueId);
-        } else {
-          newDestinationOrder.splice(newPosition, 0, uniqueId);
-        }
-
-        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-          [...newSourceOrder],
-          sourceContainerId,
-        );
-        yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-          [...newDestinationOrder],
-          destinationContainerId,
-        );
-      }
-      break;
-    }
+    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+      [...newOrderSource],
+      sourceContainerId,
+    );
+    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
+      [...newOrderDestination],
+      destinationContainerId,
+    );
   }
 }
 

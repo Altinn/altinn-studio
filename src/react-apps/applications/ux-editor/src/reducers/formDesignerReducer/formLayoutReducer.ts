@@ -56,7 +56,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       if (callback) {
         callback(component, id);
       }
-
+      console.log(component, id, position, containerId);
       return update<IFormLayoutState>(state, {
         components: {
           [id]: {

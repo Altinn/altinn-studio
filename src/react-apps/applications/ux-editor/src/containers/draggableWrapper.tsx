@@ -1,3 +1,4 @@
+/*tslint:disable:max-classes-per-file*/
 import * as React from 'react';
 import {
   DragSource,
@@ -9,10 +10,8 @@ import {
 
 const spec: DragSourceSpec<any, any> = {
   beginDrag: (props: any) => {
-    return {
-      ...props,
-    };
-  }
+    return { ...props };
+  },
 };
 
 const collect: DragSourceCollector<any> = (connect: DragSourceConnector, monitor: DragSourceMonitor): any => {
@@ -24,12 +23,12 @@ const collect: DragSourceCollector<any> = (connect: DragSourceConnector, monitor
 };
 
 class Draggable extends React.Component<any, any> {
-  render() {
+  public render() {
     const { connectDragSource } = this.props;
     return connectDragSource(
       <div>
         {this.props.children}
-      </div>
+      </div>,
     );
   }
 }
@@ -37,7 +36,7 @@ class Draggable extends React.Component<any, any> {
 const DraggableSource = DragSource('item', spec, collect)(Draggable);
 
 export class DraggableWrapper extends React.Component<any, any> {
-  render() {
+  public render() {
     return (
       <DraggableSource draggedData={this.props.data} index={this.props.index}>
         {this.props.children}

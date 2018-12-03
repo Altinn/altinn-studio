@@ -4,7 +4,6 @@ import formDesignerActionDispatcher from '../actions/formDesignerActions/formDes
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
-import { DroppableWrapper } from './droppableWrapper';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -44,14 +43,10 @@ export class PreviewComponent extends React.Component<
     }
     if (this.props.designMode) {
       return (
-        <DroppableWrapper
+        <Container
           id={baseContainerId}
-        >
-          <Container
-            id={baseContainerId}
-            baseContainer={true}
-          />
-        </DroppableWrapper>
+          baseContainer={true}
+        />
       )
     }
     return (

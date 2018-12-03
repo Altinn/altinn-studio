@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
-import { DraggableWrapper } from './draggableWrapper';
+import DraggableToolbarItem from './draggableToolbarItem';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -64,7 +64,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
-  public addContainerToLayout(activeContainer: string) {
+  public addContainerToLayout(destinationIndex: number) {
     FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
@@ -72,7 +72,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
     } as ICreateFormContainer,
       null,
-      activeContainer,
+      null,
+      null,
+      destinationIndex,
     );
   }
 
@@ -134,10 +136,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     });
   }
 
-  public onDragEnd = () => {
-    // Do Nothing
-  }
-
   public setToolbarLabel = (label: any) => {
     if (this.props.language) {
       if (label === 'Header') {
@@ -153,11 +151,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return (
       <div className={'col-sm-12'}>
         {this.toolbarComponents.map((component, index) => (
-          <DraggableWrapper data={component}>
+          <DraggableToolbarItem
+            onDropAction={component.actionMethod}
+          >
             <div key={index} className='col col-lg-12 a-item'>
               {component.label}
             </div>
-          </DraggableWrapper>
+          </DraggableToolbarItem>
         ))
         }
         {
@@ -173,11 +173,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             </div>
           ))
         }
-        <DraggableWrapper data={{ actionMethod: this.addContainerToLayout }}>
+        <DraggableToolbarItem
+          onDropAction={this.addContainerToLayout}
+        >
           <div className='col col-lg-12 a-item'>
             Add container
           </div>
-        </DraggableWrapper>
+        </DraggableToolbarItem>
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>

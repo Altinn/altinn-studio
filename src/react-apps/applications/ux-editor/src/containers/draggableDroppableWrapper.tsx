@@ -1,14 +1,15 @@
-import * as React from 'react'
-import { findDOMNode } from 'react-dom'
+/*tslint:disable:max-classes-per-file*/
+import { XYCoord } from 'dnd-core';
+import * as React from 'react';
 import {
   DragSource,
-  DropTarget,
-  DropTargetMonitor,
-  DropTargetConnector,
   DragSourceConnector,
   DragSourceMonitor,
+  DropTarget,
+  DropTargetConnector,
+  DropTargetMonitor,
 } from 'react-dnd';
-import { XYCoord } from 'dnd-core';
+import * as ReactDom from 'react-dom';
 
 const draggableDroppableSource = {
   beginDrag(props: any) {
@@ -32,9 +33,7 @@ const draggableDroppableTarget = {
       return;
     }
 
-    console.log('Hover');
-
-    const hoverBoundingRect = (findDOMNode(
+    const hoverBoundingRect = (ReactDom.findDOMNode(
       component,
     ) as Element).getBoundingClientRect();
 
@@ -49,27 +48,29 @@ const draggableDroppableTarget = {
     }
 
     if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-      return
+      return;
     }
-
 
     props.updateIndex(dragIndex, hoverIndex);
 
-    monitor.getItem().index = hoverIndex;
+    // monitor.getItem().index = hoverIndex;
   },
   drop(props: any, monitor: DropTargetMonitor) {
+    if (!monitor.didDrop()) {
+      return;
+    }
     props.onDrop(monitor.getItem());
   },
 }
 
 class DraggableDroppable extends React.Component<any, any> {
-  render() {
+  public render() {
     const { connectDragSource, connectDropTarget } = this.props;
     return connectDragSource(connectDropTarget(
       <div>
         {this.props.children}
-      </div>
-    ))
+      </div>,
+    ));
   }
 }
 
@@ -91,20 +92,18 @@ const DraggableDroppableTargetSource = DropTarget(
 );
 
 export class DraggableDroppableWrapper extends React.Component<any, any> {
-  updateIndex = (dragIndex: number, hoverIndex: number) => {
-    console.log(dragIndex, hoverIndex);
+  public updateIndex = (dragIndex: number, hoverIndex: number) => {
+    this.props.updateOrder(dragIndex, hoverIndex);
   }
 
-
-  onDrop = (props: any) => {
+  public onDrop = (props: any) => {
     if (!props.draggedData || !props.draggedData.actionMethod) {
-      console.log('lolol', props);
       return;
     }
     props.draggedData.actionMethod(0, this.props.id);
   }
 
-  render() {
+  public render() {
     return (
       <DraggableDroppableTargetSource onDrop={this.onDrop} updateIndex={this.updateIndex}>
         {this.props.children}
