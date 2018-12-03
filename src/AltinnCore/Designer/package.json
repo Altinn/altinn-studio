@@ -20,6 +20,7 @@
     "webpack-cli": "3.0.3"
   },
   "dependencies": {
+    "@types/react-truncate": "^2.3.3",
     "bootstrap": "4.1.1",
     "bootstrap-list-filter": "0.3.3",
     "jquery": "3.3.1",
@@ -30,6 +31,7 @@
     "json-editor": "0.7.28",
     "monaco-editor": "0.13.1",
     "popper.js": "1.14.3",
+    "react-truncate": "^2.4.0",
     "requirejs": "2.3.5",
     "requirejs-text": "2.0.15",
     "rivets": "0.9.6",

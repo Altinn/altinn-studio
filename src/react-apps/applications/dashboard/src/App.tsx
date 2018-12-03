@@ -1,6 +1,5 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import Dashboard from '../src/components/Dashboard';
 import OrganizationOverview from '../src/components/OrganizationOverview';
 import './App.css';
 
@@ -15,6 +14,10 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
     drawerOpen: false,
   };
 
+  public componentDidMount() {
+
+  }
+
   public handleDrawerToggle = () => {
     this.setState((state: IDashboardState) => {
       return {
@@ -24,16 +27,10 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
   }
 
   public render() {
-    let hasOneOrg = false;
-
     return (
-      <Grid container={true} justify='center' direction='row' >
+      <Grid container={true} justify='center' direction='row' className='block-with-text' >
         <Grid item={true} xs={10}>
-          {hasOneOrg ? (
-            <Dashboard />
-          ) : (
-              <OrganizationOverview />
-            )}
+          <OrganizationOverview />
         </Grid>
       </Grid>
     );
