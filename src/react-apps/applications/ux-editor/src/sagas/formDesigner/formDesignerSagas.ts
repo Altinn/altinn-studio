@@ -42,18 +42,12 @@ function* addFormComponentSaga({
 }: FormDesignerActions.IAddFormComponentAction): SagaIterator {
   try {
     const id: string = uuid();
-    const selectActiveContainer = (state: IAppState) => state.formDesigner.layout.activeContainer;
-    let activeContainer = yield select(selectActiveContainer);
+
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
 
-    if (containerId) {
-      if (formDesignerState.layout.containers && Object.keys(formDesignerState.layout.containers).length > 0) {
-        activeContainer = containerId;
-      } else {
-        activeContainer = uuid();
-        const container = { repeating: false, dataModelGroup: null } as ICreateFormContainer;
-        yield call(FormDesignerActionDispatchers.addFormContainerFulfilled, container, activeContainer);
-      }
+    if (!containerId) {
+      // if not containerId set it to base-container
+      containerId = Object.keys(formDesignerState.layout.order)[0];
     }
 
     yield call(
@@ -61,11 +55,12 @@ function* addFormComponentSaga({
       component,
       id,
       position,
-      activeContainer,
+      containerId,
       callback,
     );
     return id; // returns created id
   } catch (err) {
+    console.error(err);
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
   }
 }
@@ -391,76 +386,81 @@ function* createRepeatingContainer(
   containerToCopyId: string,
   container: ICreateFormContainer,
   addToId?: string): SagaIterator {
+  try {
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+    const serviceConfigurations: IServiceConfigurationState = yield select(selectServiceConfiguration);
+    const { layout: { components, containers, order } } = formDesignerState;
+    const baseContainerId = Object.keys(order)[0];
+    let positionAfter = containerToCopyId;
 
-  const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
-  const serviceConfigurations: IServiceConfigurationState = yield select(selectServiceConfiguration);
-  const { layout: { components, containers, order } } = formDesignerState;
-  const baseContainerId = Object.keys(order)[0];
-  let positionAfter = containerToCopyId;
-
-  if (!baseContainerId) {
-    return;
-  }
-  if (!addToId) {
-    addToId = getParentContainerId(containerToCopyId, formDesignerState);
-  }
-  if (addToId !== baseContainerId) {
-    positionAfter = null;
-  }
-
-  const conditionalRenderingRules: any = [];
-  // create a simple lookup-structure for our conditional rendering rules
-  if (serviceConfigurations.conditionalRendering) {
-    Object.keys(serviceConfigurations.conditionalRendering).forEach((key: string) => {
-      Object.keys(serviceConfigurations.conditionalRendering[key].selectedFields).forEach(
-        (selectedFieldKey: string) => {
-          const selectedTarget = serviceConfigurations.conditionalRendering[key].selectedFields[selectedFieldKey];
-          conditionalRenderingRules[selectedTarget] = { conditionalRenderingId: key };
-        });
-    });
-  }
-
-  yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
-    container, newContainerId, positionAfter, addToId, baseContainerId);
-
-  let createdElementId: string;
-
-  for (const elementId of order[containerToCopyId]) {
-    if (components[elementId]) {
-      const createdConmponentId = uuid();
-      const newComponent = { ...components[elementId] };
-      createdElementId = createdConmponentId;
-      yield call(FormDesignerActionDispatchers.addFormComponentFulfilled,
-        newComponent, null, createdConmponentId, newContainerId);
-    } else if (containers[elementId]) {
-      const newContainer: ICreateFormContainer = {
-        repeating: containers[elementId].repeating,
-        index: (containers[elementId].index != null) ? (containers[elementId].index + 1) : null,
-        hidden: containers[elementId].hidden,
-        dataModelGroup: containers[elementId].dataModelGroup,
-      };
-
-      // Recursive call, since containers can have sub-containers.
-      const createdContainerId = uuid();
-      createdElementId = createdContainerId;
-      yield call(createRepeatingContainer, createdContainerId, elementId, newContainer, newContainerId);
+    if (!baseContainerId) {
+      return;
     }
-    if (conditionalRenderingRules[elementId]) {
-      // We have a relevant condtional rendering rule that has to be copied for the newly created element
-      const condtionalRuleInfo = conditionalRenderingRules[elementId];
-      const newConditionalRuleId: string = uuid();
-      const newCondtitionalRule: any = {
-        ...serviceConfigurations.conditionalRendering[condtionalRuleInfo.conditionalRenderingId],
-      };
-      const selectedFieldsObject: any = {};
-      selectedFieldsObject[newConditionalRuleId] = createdElementId;
-      newCondtitionalRule.selectedFields = selectedFieldsObject;
-      const newConditionalRuleObject: any = {};
-      newConditionalRuleObject[newConditionalRuleId] = newCondtitionalRule;
-      yield call(
-        conditionalRenderingActionDispatcher.addConditionalRendering, newConditionalRuleObject);
+    if (!addToId) {
+      addToId = getParentContainerId(containerToCopyId, formDesignerState);
     }
+    if (addToId !== baseContainerId) {
+      positionAfter = null;
+    }
+
+    const conditionalRenderingRules: any = [];
+    // create a simple lookup-structure for our conditional rendering rules
+    if (serviceConfigurations.conditionalRendering) {
+      Object.keys(serviceConfigurations.conditionalRendering).forEach((key: string) => {
+        Object.keys(serviceConfigurations.conditionalRendering[key].selectedFields).forEach(
+          (selectedFieldKey: string) => {
+            const selectedTarget = serviceConfigurations.conditionalRendering[key].selectedFields[selectedFieldKey];
+            conditionalRenderingRules[selectedTarget] = { conditionalRenderingId: key };
+          });
+      });
+    }
+
+    yield call(FormDesignerActionDispatchers.addFormContainerFulfilled,
+      container, newContainerId, positionAfter, addToId, baseContainerId);
+
+    let createdElementId: string;
+
+    for (const elementId of order[containerToCopyId]) {
+      if (components[elementId]) {
+        const createdConmponentId = uuid();
+        const newComponent = { ...components[elementId] };
+        createdElementId = createdConmponentId;
+        yield call(FormDesignerActionDispatchers.addFormComponentFulfilled,
+          newComponent, null, createdConmponentId, newContainerId);
+      } else if (containers[elementId]) {
+        const newContainer: ICreateFormContainer = {
+          repeating: containers[elementId].repeating,
+          index: (containers[elementId].index != null) ? (containers[elementId].index + 1) : null,
+          hidden: containers[elementId].hidden,
+          dataModelGroup: containers[elementId].dataModelGroup,
+        };
+
+        // Recursive call, since containers can have sub-containers.
+        const createdContainerId = uuid();
+        createdElementId = createdContainerId;
+        yield call(createRepeatingContainer, createdContainerId, elementId, newContainer, newContainerId);
+      }
+      if (conditionalRenderingRules[elementId]) {
+        // We have a relevant condtional rendering rule that has to be copied for the newly created element
+        const condtionalRuleInfo = conditionalRenderingRules[elementId];
+        const newConditionalRuleId: string = uuid();
+        const newCondtitionalRule: any = {
+          ...serviceConfigurations.conditionalRendering[condtionalRuleInfo.conditionalRenderingId],
+        };
+        const selectedFieldsObject: any = {};
+        selectedFieldsObject[newConditionalRuleId] = createdElementId;
+        newCondtitionalRule.selectedFields = selectedFieldsObject;
+        const newConditionalRuleObject: any = {};
+        newConditionalRuleObject[newConditionalRuleId] = newCondtitionalRule;
+        yield call(
+          conditionalRenderingActionDispatcher.addConditionalRendering, newConditionalRuleObject);
+      }
+    }
+  } catch (err) {
+    console.error(err);
   }
+
+
 }
 
 export function* watchCreateRepeatingGroupSaga(): SagaIterator {

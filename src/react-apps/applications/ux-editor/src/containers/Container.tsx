@@ -11,6 +11,8 @@ import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainerOrder, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
+import { DraggableWrapper } from './draggableWrapper';
+import { DraggableDroppableWrapper } from './draggableDroppableWrapper';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -64,16 +66,15 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (this.props.index || this.props.index > -1) && this.props.dataModelGroup && this.props.repeating;
   }
 
-  public onDragEnd = () => {
-    // Do nothing
-  }
-
   public render() {
     const className: string = this.props.baseContainer ? 'col-12' :
       this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' :
         'col-12 a-btn-action cursorPointer';
     return (
-      <div>
+      <div style={{
+        minHeight: '40px',
+        border: '2px solid black',
+      }}>
         <div
           className={className}
           onClick={this.changeActiveFormContainer}
@@ -121,12 +122,14 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     }
     if (this.props.designMode) {
       return (
-        <Container
-          id={id}
-          baseContainer={false}
-          droppableId={'droppable-container:' + id}
-          parentContainerId={this.props.id}
-        />
+        <DraggableDroppableWrapper>
+          <Container
+            id={id}
+            baseContainer={false}
+            droppableId={'droppable-container:' + id}
+            parentContainerId={this.props.id}
+          />
+        </DraggableDroppableWrapper>
       );
     } else {
       return (
@@ -186,13 +189,17 @@ export class ContainerComponent extends React.Component<IContainerProps> {
 
     if (this.props.designMode) {
       return (
-        <FormComponentWrapper
-          key={key}
-          id={id}
-          handleDataUpdate={this.handleComponentDataUpdate}
-          formData={this.props.formData[this.props.components[id].dataModelBinding] ?
-            this.props.formData[this.props.components[id].dataModelBinding] : ''}
-        />
+        <DraggableWrapper
+          index={key}
+        >
+          <FormComponentWrapper
+            key={key}
+            id={id}
+            handleDataUpdate={this.handleComponentDataUpdate}
+            formData={this.props.formData[this.props.components[id].dataModelBinding] ?
+              this.props.formData[this.props.components[id].dataModelBinding] : ''}
+          />
+        </DraggableWrapper>
       );
     }
     return (

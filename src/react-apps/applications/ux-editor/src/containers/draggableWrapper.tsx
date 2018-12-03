@@ -1,6 +1,5 @@
 import * as React from 'react';
 import {
-  DndComponentClass,
   DragSource,
   DragSourceCollector,
   DragSourceConnector,
@@ -11,24 +10,38 @@ import {
 const spec: DragSourceSpec<any, any> = {
   beginDrag: (props: any) => {
     return {
-      type: props.type,
+      ...props,
     };
-  },
+  }
 };
 
-const collect: DragSourceCollector<any> = (connect: DragSourceConnector, monitor: DragSourceMonitor): any => ({
-  ...connect,
-  ...monitor,
-});
+const collect: DragSourceCollector<any> = (connect: DragSourceConnector, monitor: DragSourceMonitor): any => {
+  return {
+    connectDragSource: connect.dragSource(),
+    connectDragPreview: connect.dragPreview(),
+    isDragging: monitor.isDragging(),
+  }
+};
 
-export const draggableWrapper = (type: string): DndComponentClass<any> => DragSource(type, spec, collect)(
-  class DraggableComponent extends React.Component<any, any> {
-    public render() {
-      return (
-        <div>
-          Hello
-        </div>
-      );
-    }
-  },
-);
+class Draggable extends React.Component<any, any> {
+  render() {
+    const { connectDragSource } = this.props;
+    return connectDragSource(
+      <div>
+        {this.props.children}
+      </div>
+    );
+  }
+}
+
+const DraggableSource = DragSource('item', spec, collect)(Draggable);
+
+export class DraggableWrapper extends React.Component<any, any> {
+  render() {
+    return (
+      <DraggableSource draggedData={this.props.data} index={this.props.index}>
+        {this.props.children}
+      </DraggableSource>
+    )
+  }
+}

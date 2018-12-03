@@ -1,7 +1,7 @@
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
-import { draggableWrapper } from './draggableWrapper';
+import { DraggableWrapper } from './draggableWrapper';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -41,14 +41,15 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     const customProperties = c.customProperties ? c.customProperties : {};
     return {
       label: c.name,
-      actionMethod: () => {
+      actionMethod: (position: number, containerId?: string) => {
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
           title: c.name,
           ...JSON.parse(JSON.stringify(customProperties)),
         },
-          null,
+          position,
+          containerId,
         );
       },
     } as IToolbarElement;
@@ -151,18 +152,16 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-12'}>
-        {/*this.toolbarComponents.map((component, index) => draggableWrapper(
-          component.label,
-          <div key={index}>
-            {component.label}
-          </div>,
+        {this.toolbarComponents.map((component, index) => (
+          <DraggableWrapper data={component}>
+            <div key={index} className='col col-lg-12 a-item'>
+              {component.label}
+            </div>
+          </DraggableWrapper>
         ))
-        */
-          draggableWrapper('TEST')
         }
         {
           this.getThirdPartyComponents().map((component, index) => (
-
             <div>
               <div
                 className='col col-lg-12 a-item'
@@ -174,10 +173,11 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             </div>
           ))
         }
-
-        <div className='col col-lg-12 a-item'>
-          Add container
-        </div>
+        <DraggableWrapper data={{ actionMethod: this.addContainerToLayout }}>
+          <div className='col col-lg-12 a-item'>
+            Add container
+          </div>
+        </DraggableWrapper>
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>
