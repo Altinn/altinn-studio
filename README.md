@@ -1,4 +1,4 @@
-Altinn Studio: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-designer-image)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=2)
+Altinn Studio: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-designer-image-v2-master)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
 
 Runtime: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-runtime-image)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=6)
 

@@ -11,6 +11,11 @@ namespace AltinnCore.Common.Configuration
         public string TemplateLocation { get; set; }
 
         /// <summary>
+        /// Gets or sets the location for the deployment
+        /// </summary>
+        public string DeploymentLocation { get; set; }
+
+        /// <summary>
         /// Gets or sets the location to search for language files
         /// </summary>
         public string LanguageFilesLocation { get; set; }

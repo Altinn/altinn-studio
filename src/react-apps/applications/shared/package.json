@@ -5,9 +5,11 @@
   "author": "Altinn",
   "license": "3-Clause BSD",
   "dependencies": {
-    "@material-ui/core": "^3.4.0",
+    "@material-ui/core": "3.6.0",
+    "@material-ui/icons": "3.0.1",
     "classnames": "^2.2.6",
-    "react": "16.6.1"
+    "react": "16.6.1",
+    "typeface-roboto": "0.0.54"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.6",

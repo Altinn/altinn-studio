@@ -28,5 +28,6 @@ COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/rea
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
 RUN mv Templates ..
 RUN mv Testdata ..
+RUN mv Deployment ..
 
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]

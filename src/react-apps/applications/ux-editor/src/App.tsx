@@ -118,12 +118,12 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         <ErrorMessageComponent />
         <Route
           exact={true}
-          path='/'
+          path='/uieditor'
           render={this.resetFormData}
         />
         <Route
           exact={true}
-          path='/Preview'
+          path='/preview'
           render={this.renderFormFiller}
         />
       </div>
