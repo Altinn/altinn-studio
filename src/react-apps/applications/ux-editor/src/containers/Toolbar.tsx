@@ -322,7 +322,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             </List>
           </Collapse>
           <CollapsableMenuComponent
-            menuIsOpen={this.state.componentListOpen}
+            menuIsOpen={this.state.textListOpen}
             onClick={this.handleCollapsableListClicked}
             menuType={CollapsableMenus.Texts}
           />

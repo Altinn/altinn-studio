@@ -54,6 +54,10 @@ const styles = (theme: Theme) => createStyles({
   collapsableButton: {
     padding: '0px',
   },
+  listItemIcon: {
+    marginLeft: 'auto',
+    marginRight: 'auto',
+  },
 });
 
 const mapStateToProps: (
