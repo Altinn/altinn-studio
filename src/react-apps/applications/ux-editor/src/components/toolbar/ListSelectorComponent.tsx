@@ -37,10 +37,11 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
           classes={{
             root: this.props.classes.componentListSelector,
             select: this.props.classes.select,
-            icon: this.props.classes.icon
+            icon: this.props.classes.icon,
           }}
-          value={SelectableLists.All}
+          value={this.state.selectedList}
           disableUnderline={true}
+          onChange={this.props.onChange}
           IconComponent={ExpandMore}
         >
           <option value={SelectableLists.All}>{this.props.language.ux_editor.list_all}</option>
@@ -66,7 +67,7 @@ const styles = (theme: Theme) => createStyles({
   icon: {
     position: 'absolute',
     display: 'inline-block',
-  }
+  },
 });
 
 const mapStateToProps: (

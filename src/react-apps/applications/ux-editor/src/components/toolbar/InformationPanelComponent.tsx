@@ -3,7 +3,7 @@ import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { ComponentTypes } from '..';
-import { getComponentHelperTextByComponentType } from '../../utils/language';
+import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
 
 export interface IInformationPanelProvidedProps {
   classes: any;
@@ -50,7 +50,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
         </FormControl>
         <Divider classes={{ root: classNames(this.props.classes.informationPanelDivider) }} />
         <Typography classes={{ root: classNames(this.props.classes.informationPanelHeader) }}>
-          {this.props.informationPanelOpen}
+          {getComponentTitleByComponentType(this.props.selectedComponent, this.props.language)}
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
           {getComponentHelperTextByComponentType(
