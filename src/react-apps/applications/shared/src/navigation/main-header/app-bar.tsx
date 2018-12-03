@@ -112,7 +112,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                       [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'om',
                     })}
                   >
-                    <Link to='/om' style={{ borderBottom: 0 }}>Om</Link>
+                    <Link to='/about' style={{ borderBottom: 0 }}>Om</Link>
                   </Grid>
                   <Grid
                     item={true}
@@ -128,7 +128,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                       [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'sprak',
                     })}
                   >
-                    <Link to='/sprak' style={{ borderBottom: 0 }}>Språk</Link>
+                    <Link to='/language' style={{ borderBottom: 0 }}>Språk</Link>
                   </Grid>
                   <Grid
                     item={true}
@@ -136,7 +136,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                       [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'teste',
                     })}
                   >
-                    <Link to='/teste' style={{ borderBottom: 0 }}>Teste</Link>
+                    <Link to='/test' style={{ borderBottom: 0 }}>Teste</Link>
                   </Grid>
                   <Grid
                     item={true}
@@ -144,7 +144,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                       [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'publisere',
                     })}
                   >
-                    <Link to='/publisere' style={{ borderBottom: 0 }}>Publisere</Link>
+                    <Link to='/publish' style={{ borderBottom: 0 }}>Publisere</Link>
                   </Grid>
                 </Grid>
               </Toolbar>
