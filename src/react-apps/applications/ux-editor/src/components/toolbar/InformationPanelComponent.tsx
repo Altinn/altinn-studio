@@ -2,12 +2,13 @@ import { createStyles, Divider, FormControl, InputAdornment, Popover, TextField,
 import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { getComponentHelperTextByComponentLabel } from '../../utils/language';
+import { ComponentTypes } from '..';
+import { getComponentHelperTextByComponentType } from '../../utils/language';
 
 export interface IInformationPanelProvidedProps {
   classes: any;
   anchorElement: any;
-  selectedComponent: string;
+  selectedComponent: ComponentTypes;
   informationPanelOpen: boolean;
   onClose: any;
 }
@@ -52,7 +53,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           {this.props.informationPanelOpen}
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
-          {getComponentHelperTextByComponentLabel(
+          {getComponentHelperTextByComponentType(
             this.props.selectedComponent,
             this.props.language,
           )}
@@ -60,15 +61,16 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
           <i
             style={{
-              color: '#17C96B', width: '26px', height: '20px',
-              position: 'relative', verticalAlign: 'sub', paddingRight: '6px',
+              color: '#17C96B', width: '26px', height: '20px', display: 'inline-block',
+              position: 'relative', verticalAlign: 'middle', paddingRight: '6px', lineHeight: 'inherit',
+
             }}
             className={'ai ai-info-circle'}
           />
-          {this.props.language.ux_editor.component_information_altinn_library}
+          {this.props.language.ux_editor.information_altinn_library}
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
-          <a href={'#'}>{this.props.language.ux_editor.component_information_more_info_link}</a>
+          <a href={'#'}>{this.props.language.ux_editor.information_more_info_link}</a>
         </Typography>
       </Popover>
     );

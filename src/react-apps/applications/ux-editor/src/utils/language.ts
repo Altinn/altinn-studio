@@ -1,19 +1,57 @@
-export function getComponentHelperTextByComponentLabel(componentLabel: string, language: any): string {
-  switch (componentLabel) {
-    case 'Header': {
+import { ComponentTypes } from '../components';
+
+export function getComponentHelperTextByComponentType(componentType: ComponentTypes, language: any): string {
+  switch (componentType) {
+    case ComponentTypes.Header: {
       return language.ux_editor.helper_text_for_header;
     }
-    case 'Input': {
+    case ComponentTypes.Input: {
       return language.ux_editor.helper_text_for_input;
     }
-    case 'Checkboxes': {
+    case ComponentTypes.CheckBox: {
       return language.ux_editor.helper_text_for_check_box;
     }
-    case 'RadioButtons': {
+    case ComponentTypes.RadioButton: {
       return language.ux_editor.helper_text_for_radio_button;
     }
     default: {
+      // Several components does not yet have a helper text, a default is shown.
       return language.ux_editor.helper_text_default;
+    }
+  }
+}
+
+export function getComponentTitleByComponentType(componentType: ComponentTypes, language: any): string {
+  switch (componentType) {
+    case ComponentTypes.CheckBox: {
+      return language.ux_editor.component_checkbox;
+    }
+    case ComponentTypes.Container: {
+      return language.ux_editor.component_container;
+    }
+    case ComponentTypes.DropDown: {
+      return language.ux_editor.component_dropdown;
+    }
+    case ComponentTypes.FileUpload: {
+      return language.ux_editor.component_file_upload;
+    }
+    case ComponentTypes.Header: {
+      return language.ux_editor.component_header;
+    }
+    case ComponentTypes.Input: {
+      return language.ux_editor.component_input;
+    }
+    case ComponentTypes.Submit: {
+      return language.ux_editor.component_submit;
+    }
+    case ComponentTypes.TextArea: {
+      return language.ux_editor.component_text_area;
+    }
+    case ComponentTypes.RadioButton: {
+      return language.ux_editor.component_radio_button;
+    }
+    default: {
+      return '';
     }
   }
 }

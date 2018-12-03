@@ -11,7 +11,7 @@ import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import components from '../components';
+import { ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
@@ -19,12 +19,14 @@ import { InformationPanelComponent } from '../components/toolbar/InformationPane
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import '../styles/toolBar.css';
+import { getComponentTitleByComponentType } from '../utils/language';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
   actionMethod: () => void;
+  componentType?: ComponentTypes;
 }
 
 export enum LayoutItemType {
@@ -53,15 +55,35 @@ export interface IToolbarState {
   selectedComp: any;
   selectedCompId: string;
   componentInformationPanelOpen: boolean;
-  componentSelectedForInformationPanel: string;
+  componentSelectedForInformationPanel: ComponentTypes;
   anchorElement: any;
   componentListOpen: boolean;
   textListOpen: boolean;
 }
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
-  public toolbarComponents: IToolbarElement[] = components.map((c: any) => {
+  public components: IToolbarElement[];
+  public textComponents: IToolbarElement[];
+
+  constructor(props: IToolbarProps, state: IToolbarState) {
+    super(props, state);
+    this.state = {
+      modalOpen: false,
+      selectedComp: {},
+      selectedCompId: '',
+      componentInformationPanelOpen: false,
+      componentSelectedForInformationPanel: -1,
+      anchorElement: null,
+      componentListOpen: true,
+      textListOpen: true,
+    };
+    this.components = schemaComponents.map(this.mapComponentToToolbarElement);
+    this.textComponents = textComponents.map(this.mapComponentToToolbarElement);
+  }
+
+  public mapComponentToToolbarElement = (c: IComponent): IToolbarElement => {
     const customProperties = c.customProperties ? c.customProperties : {};
     return {
+      componentType: c.Type,
       label: c.name,
       actionMethod: () => {
         FormDesignerActionDispatchers.addFormComponent({
@@ -74,20 +96,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
         );
       },
     } as IToolbarElement;
-  });
-
-  constructor(props: IToolbarProps, state: IToolbarState) {
-    super(props, state);
-    this.state = {
-      modalOpen: false,
-      selectedComp: {},
-      selectedCompId: '',
-      componentInformationPanelOpen: false,
-      componentSelectedForInformationPanel: '',
-      anchorElement: null,
-      componentListOpen: true,
-      textListOpen: true,
-    };
   }
 
   public addContainerToLayout(activeContainer: string) {
@@ -175,17 +183,20 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return label;
   }
 
-  public renderToolbarItem = (componentLabel: string): JSX.Element => {
+  public renderToolbarItem = (componentType: ComponentTypes, thirdPartyLabel?: string): JSX.Element => {
     return (
       <Paper square={true} classes={{ root: classNames(this.props.classes.paper) }}>
         <ListItem classes={{ root: classNames(this.props.classes.listItem) }}>
           <ListItemText classes={{ primary: classNames(this.props.classes.listItemText) }}>
-            {componentLabel}
+            {(thirdPartyLabel == null) ?
+              getComponentTitleByComponentType(componentType, this.props.language) :
+              thirdPartyLabel
+            }
           </ListItemText>
           <ListItemIcon classes={{ root: classNames(this.props.classes.listItemIcon) }}>
             <HelpOutline
               classes={{ root: classNames(this.props.classes.helpOutline) }}
-              onClick={this.handleComponentInformationOpen.bind(this, componentLabel)}
+              onClick={this.handleComponentInformationOpen.bind(this, componentType)}
             />
           </ListItemIcon>
         </ListItem>
@@ -220,10 +231,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     );
   }
 
-  public handleComponentInformationOpen = (componentName: string, event: any) => {
+  public handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     this.setState({
       componentInformationPanelOpen: true,
-      componentSelectedForInformationPanel: componentName,
+      componentSelectedForInformationPanel: component,
       anchorElement: event.currentTarget,
     });
   }
@@ -231,7 +242,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public handleComponentInformationClose = () => {
     this.setState({
       componentInformationPanelOpen: false,
-      componentSelectedForInformationPanel: '',
+      componentSelectedForInformationPanel: -1,
       anchorElement: null,
     });
   }
@@ -283,25 +294,25 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any, snapshot: any) => (
                   <div ref={provided.innerRef}>
-                    {this.toolbarComponents.map((component, index) => {
+                    {this.components.map((component, index) => {
                       return (
                         <Draggable
-                          key={index}
-                          draggableId={index.toString()}
-                          index={index}
+                          key={component.componentType}
+                          draggableId={component.componentType.toString()}
+                          index={component.componentType}
                         >
                           {
                             /*tslint:disable-next-line:no-shadowed-variable */
                             (provided: any, snapshot: any) => (
                               <div
                                 style={''}
-                                id={index.toString()}
-                                key={index}
+                                id={component.componentType}
+                                key={component.componentType.toString()}
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
                                 {...provided.dragHandleProps}
                               >
-                                {this.renderToolbarItem(component.label)}
+                                {this.renderToolbarItem(component.componentType)}
                               </div>
 
                             )}
@@ -326,7 +337,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
                             >
-                              {this.renderToolbarItem(component.label)}
+                              {this.renderToolbarItem(null, component.label)}
                             </div>
                           )}
                       </Draggable>
@@ -335,7 +346,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                     <Draggable
                       key={'add container'}
                       draggableId={'container'}
-                      index={6}
+                      index={7}
                     >
                       {
                         /*tslint:disable-next-line:no-shadowed-variable */
@@ -346,7 +357,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
                           >
-                            {this.renderToolbarItem(this.props.language.ux_editor.toolbar_add_container)}
+                            {this.renderToolbarItem(ComponentTypes.Container)}
                           </div>
                         )
                       }
@@ -360,7 +371,34 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           {this.renderCollapsableMenuItem(CollapsableMenus.Texts)}
           <Collapse in={this.state.textListOpen}>
             <List dense={false} id={'schema-texts'}>
-              {this.renderToolbarItem('Header')}
+              <Droppable droppableId='ITEMS' isDropDisabled={true}>
+                {(provided: any, snapshot: any) => (
+                  <div ref={provided.innerRef}>
+                    {this.textComponents.map((component, index) => (
+                      <Draggable
+                        key={component.componentType}
+                        draggableId={component.componentType.toString()}
+                        index={component.componentType}
+                      >
+                        {
+                          /*tslint:disable-next-line:no-shadowed-variable */
+                          (provided: any, snapshot: any) => (
+                            <div
+                              style={''}
+                              id={component.componentType}
+                              key={component.componentType}
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                            >
+                              {this.renderToolbarItem(component.componentType)}
+                            </div>
+                          )}
+                      </Draggable>
+                    ))}
+                  </div>
+                )}
+              </Droppable>
             </List>
           </Collapse>
         </List>

@@ -1,7 +1,7 @@
-import { createStyles, Theme, withStyles, Select } from '@material-ui/core';
+import { createStyles, Select, Theme, withStyles } from '@material-ui/core';
+import { ExpandMore } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { ExpandMore } from '@material-ui/icons';
 
 export enum SelectableLists {
   All,
@@ -43,8 +43,8 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
           disableUnderline={true}
           IconComponent={ExpandMore}
         >
-          <option value={SelectableLists.All}>{this.props.language.ux_editor.component_list_all}</option>
-          <option value={SelectableLists.Favourites}>{this.props.language.ux_editor.component_list_favourites}</option>
+          <option value={SelectableLists.All}>{this.props.language.ux_editor.list_all}</option>
+          <option value={SelectableLists.Favourites}>{this.props.language.ux_editor.list_favourites}</option>
         </Select>
       </div >
     );
