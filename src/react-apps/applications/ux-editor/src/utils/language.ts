@@ -1,4 +1,5 @@
 import { ComponentTypes } from '../components';
+import { CollapsableMenus } from '../containers/Toolbar';
 
 export function getComponentHelperTextByComponentType(componentType: ComponentTypes, language: any): string {
   switch (componentType) {
@@ -52,6 +53,17 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     }
     default: {
       return '';
+    }
+  }
+}
+
+export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: any): string {
+  switch (menu) {
+    case CollapsableMenus.Components: {
+      return language.ux_editor.collapsable_schema_components;
+    }
+    case CollapsableMenus.Texts: {
+      return language.ux_editor.collapsable_text_components;
     }
   }
 }
