@@ -1,17 +1,17 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 
-export interface IWorkflowStepModalProvidedProps {
+export interface IWorkflowStepProvidedProps {
   header: string;
 }
 
-export interface IWorkflowStepModalProps extends IWorkflowStepModalProvidedProps {
+export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
   language: any;
 }
 
-export interface IWorkflowStepModalState {}
+export interface IWorkflowStepState {}
 
-class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps, any> {
+class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
 
   public renderTop = () => {
     return (
@@ -24,10 +24,10 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
                 className='a-logo a-modal-top-logo '
               />
               <div className='a-modal-top-user'>
-                <div className='a-personSwitcher ' title={this.props.language.ux_editor.form_filler_placeholder_user}>
+                <div className='a-personSwitcher ' title={this.props.language.ux_editor.formfiller_placeholder_user}>
                   <span className='a-personSwitcher-name'>
                     <span className='d-block' style={{color: '#022F51'}}>
-                      {this.props.language.ux_editor.form_filler_placeholder_user}
+                      {this.props.language.ux_editor.formfiller_placeholder_user}
                     </span>
                     <span className='d-block'/>
                   </span>
@@ -104,11 +104,11 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
   }
 }
 
-const mapStateToProps = (state: IAppState, props: IWorkflowStepModalProvidedProps): IWorkflowStepModalProps => {
+const mapStateToProps = (state: IAppState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
     header: props.header,
     language: state.appData.language.language,
   };
 };
 
-export const WorkflowStepModal = connect(mapStateToProps)(WorkflowStepModalComponent);
+export const WorkflowStep = connect(mapStateToProps)(WorkflowStepComponent);

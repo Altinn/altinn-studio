@@ -8,7 +8,7 @@ import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selector
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { Preview } from './Preview';
-import { WorkflowStepModal } from './WorkflowStepModal';
+import { WorkflowStep } from './WorkflowStep';
 
 export interface IFormFillerProps {
   validationErrors: any[];
@@ -88,7 +88,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     const altinnWindow = window as IAltinnWindow;
     const { service } = altinnWindow;
     return (
-      <WorkflowStepModal header={service}>
+      <WorkflowStep header={service}>
         <div className='row'>
           <div className='col-8'>
             <Preview />
@@ -100,7 +100,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
             {this.renderSubmitButton()}
           </div>
         </div>
-      </WorkflowStepModal>
+      </WorkflowStep>
       );
   }
 }
