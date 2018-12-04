@@ -1,4 +1,4 @@
-import * as React from 'react';
+import * as React from '../../../../dashboard/node_modules/@types/react';
 import InformationIcon from '@material-ui/icons/Info';
 import SettingsIcon from '@material-ui/icons/Settings';
 

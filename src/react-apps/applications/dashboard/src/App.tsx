@@ -1,6 +1,6 @@
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import OrganizationOverview from '../src/components/OrganizationOverview';
+import OrganizationOverview from './components/OrganizationOverview';
 import './App.css';
 import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
 

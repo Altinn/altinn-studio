@@ -1,16 +1,22 @@
-import Button from '@material-ui/core/Button';
 import Chip from '@material-ui/core/Chip';
-import { withStyles, WithStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import 'typeface-roboto';
+import { Grid } from '@material-ui/core';
+import { FormControl, InputAdornment, TextField } from '@material-ui/core';
 import Category from './Category';
-import { TextField, InputAdornment, FormControl } from '../../node_modules/@material-ui/core';
-import { Grid } from '../../../../node_modules/@material-ui/core';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 
-export interface IOrganizationOverviewComponentProps extends WithStyles<typeof styles> {
+export interface IOrganizationOverviewComponentProvidedProps {
+  classes: any;
 }
+export interface IOrganizationOverviewComponentProps extends IOrganizationOverviewComponentProvidedProps {
+  language: any;
+}
+
 export interface IOrganizationOverviewComponentState {
   availableRepos: any;
   filteredOwners: string[];
@@ -212,18 +218,18 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
       }
       return {
         filteredOwners: state.filteredOwners,
-      }
-    }
+      };
+    });
   }
 
   public render() {
     let { classes } = this.props;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
-        <Typography component='h3' variant='h3' gutterBottom={true}> Tjenesteoversikt</Typography>
+        <Typography component='h3' variant='h3' gutterBottom={true}> {getLanguageFromKey('dashboard.main_header', this.props.language)}</Typography>
         <Typography variant='h6' className={classes.mar_top_50} gutterBottom={true}>
-          Her er en oversikt over tjenestene du har rettigheter til å endre og tjenestene du har mulighet til å utforske:
-      </Typography>
+          {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
+        </Typography>
         <Grid container={true} direction='row' justify='center' alignItems='center' className={classes.mar_top_50}>
           <FormControl
             classes={{ root: classNames(this.props.classes.searchBox) }}
@@ -231,7 +237,7 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
           >
             <TextField
               id={'service-search'}
-              placeholder='Søk etter tjeneste'
+              placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
               InputProps={{
                 disableUnderline: true,
                 startAdornment:
@@ -259,11 +265,20 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
             />);
           })}
         </Grid>
-        <Category header='Du har rettigheter til å endre disse tjenestene' className={classNames(classes.mar_top_50)} categoryRepos={this.filterCategory('write')} />
-        <Category header='Andre tjenester' className={classNames(classes.mar_top_100)} categoryRepos={this.filterCategory('read')} />
+        <Category header={getLanguageFromKey('dashboard.category_service_write', this.props.language)} className={classNames(classes.mar_top_50)} categoryRepos={this.filterCategory('write')} />
+        <Category header={getLanguageFromKey('dashboard.category_service_read', this.props.language)} className={classNames(classes.mar_top_100)} categoryRepos={this.filterCategory('read')} />
       </div>
     );
   }
 }
 
-export default withStyles(styles)(OrganizationOverviewComponent);
+const mapStateToProps = (
+  state: IDashboardAppState,
+  props: IOrganizationOverviewComponentProvidedProps,
+): IOrganizationOverviewComponentProps => {
+  return {
+    classes: props.classes,
+    language: state.language.language,
+  };
+};
+export default withStyles(styles)(connect(mapStateToProps)(OrganizationOverviewComponent));

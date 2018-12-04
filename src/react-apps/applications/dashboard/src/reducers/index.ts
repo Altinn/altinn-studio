@@ -1,14 +1,14 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import dashboardReducer, {IDashboardState} from '../reducers/dashboardReducer';
+import fetchLanguageReducer, { ILanguageState } from '../fetchLanguage/fetchLanguageReducer';
 
 export interface IDashboardReducers
   extends IDashboardNameSpace<
-  Reducer<IDashboardState>
+  Reducer<ILanguageState>
   >,
   ReducersMapObject { }
 
 const reducers: IDashboardReducers = {
-  dashboard: dashboardReducer,
+  language: fetchLanguageReducer,
 };
 
 export default combineReducers(reducers);

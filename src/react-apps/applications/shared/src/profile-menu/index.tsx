@@ -1,7 +1,7 @@
 import Button from '@material-ui/core/Button';
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
-import * as React from 'react';
+import * as React from '../../../dashboard/node_modules/@types/react';
 
 export interface IProfileMenuComponentProps {
   service?: string;
