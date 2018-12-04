@@ -233,7 +233,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             menuType={CollapsableMenus.Components}
           />
 
-          <Collapse in={this.state.componentListOpen}>
+          <Collapse in={this.state.componentListOpen} timeout={50}>
             <List dense={false} id='schema-components'>
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (
@@ -326,7 +326,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             onClick={this.handleCollapsableListClicked}
             menuType={CollapsableMenus.Texts}
           />
-          <Collapse in={this.state.textListOpen}>
+          <Collapse in={this.state.textListOpen} timeout={50}>
             <List dense={false} id={'schema-texts'}>
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (

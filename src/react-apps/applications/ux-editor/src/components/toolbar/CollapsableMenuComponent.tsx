@@ -1,5 +1,4 @@
 import { createStyles, ListItem, ListItemIcon, ListItemText, Theme, withStyles } from '@material-ui/core';
-import { ExpandLess, ExpandMore } from '@material-ui/icons';
 import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -27,7 +26,9 @@ class ToolbarItem extends React.Component<ICollapsableMenuProps> {
         <ListItemIcon
           classes={{ root: this.props.classes.listItemIcon }}
         >
-          {(this.props.menuIsOpen) ? <ExpandLess /> : <ExpandMore />}
+          <svg width='14' height='9' viewBox='0 0 14 9' fill='none' xmlns='http://www.w3.org/2000/svg'>
+            <path d='M6.57895 9L0.0153904 -2.51244e-08L13.1425 8.834e-07L6.57895 9Z' fill='#C9C9C9' />
+          </svg>
         </ListItemIcon>
         <ListItemText
           classes={{

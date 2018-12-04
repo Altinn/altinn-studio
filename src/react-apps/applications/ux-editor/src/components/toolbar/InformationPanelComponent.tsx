@@ -11,6 +11,7 @@ export interface IInformationPanelProvidedProps {
   selectedComponent: ComponentTypes;
   informationPanelOpen: boolean;
   onClose: any;
+  thirdPartyLibrary?: boolean;
 }
 
 export interface IInformationPanelProps extends IInformationPanelProvidedProps {
@@ -59,15 +60,21 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           )}
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
-          <i
-            style={{
-              color: '#17C96B', width: '26px', height: '20px', display: 'inline-block',
-              position: 'relative', verticalAlign: 'middle', paddingRight: '6px', lineHeight: 'inherit',
-
-            }}
-            className={'ai ai-info-circle'}
-          />
-          {this.props.language.ux_editor.information_altinn_library}
+          <svg
+            style={{ verticalAlign: 'middle', lineHeight: 'inherit', position: 'relative', paddingRight: '6px' }}
+            width='26px'
+            height='20px'
+            viewBox='0 0 20 20'
+            fill='none'
+            xmlns='http://www.w3.org/2000/svg'
+          >
+            // tslint:disable-next-line:max-line-length
+            <path d='M10 0C4.5 0 0 4.5 0 10C0 15.5 4.5 20 10 20C15.5 20 20 15.5 20 10C20 4.5 15.5 0 10 0ZM9.58333 2.91667C10.25 2.91667 10.8333 3.5 10.8333 4.16667C10.8333 4.83333 10.25 5.41667 9.58333 5.41667C8.91667 5.41667 8.33333 4.83333 8.33333 4.16667C8.33333 3.5 8.91667 2.91667 9.58333 2.91667ZM13.3333 15.4167H7.5V13.75H9.58333V8.75H7.91667V7.08333H11.25V13.75H13.3333V15.4167Z' fill='#17C96B' />
+          </svg>
+          {(!this.props.thirdPartyLibrary) ?
+            this.props.language.ux_editor.information_altinn_library :
+            this.props.language.ux_editor.information_third_party_library
+          }
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
           <a href={'#'}>{this.props.language.ux_editor.information_more_info_link}</a>

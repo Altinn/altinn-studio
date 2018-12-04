@@ -1,4 +1,4 @@
-import { createStyles, Select, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Select, SvgIcon, Theme, withStyles } from '@material-ui/core';
 import { ExpandMore } from '@material-ui/icons';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -32,7 +32,7 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
 
   public render(): JSX.Element {
     return (
-      <div style={{ display: 'inline-flex', verticalAlign: 'middle' }}>
+      <div style={{ display: 'inline-block', verticalAlign: 'middle', minWidth: '100%' }}>
         <Select
           classes={{
             root: this.props.classes.componentListSelector,
@@ -41,13 +41,31 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
           }}
           value={this.state.selectedList}
           disableUnderline={true}
+          disabled={true}
           onChange={this.props.onChange}
           IconComponent={ExpandMore}
         >
           <option value={SelectableLists.All}>{this.props.language.ux_editor.list_all}</option>
           <option value={SelectableLists.Favourites}>{this.props.language.ux_editor.list_favourites}</option>
         </Select>
-      </div >
+
+        <SvgIcon
+          style={{ float: 'right', display: 'inline', verticalAlign: 'middle', width: '14px', height: 'inherit' }}
+          viewBox={'0 0 14 14'}
+        >
+          <svg
+            width='14'
+            height='14'
+            viewBox='0 0 14 14'
+            fill='none'
+            xmlns='http://www.w3.org/2000/svg'>
+            <rect x='0.5' y='0.5' width='5' height='5' rx='0.5' stroke='#022F51' />
+            <rect x='8.5' y='0.5' width='5' height='5' rx='0.5' stroke='#022F51' />
+            <rect x='0.5' y='8.5' width='5' height='5' rx='0.5' stroke='#022F51' />
+            <rect x='8.5' y='8.5' width='5' height='5' rx='0.5' stroke='#022F51' />
+          </svg>
+        </SvgIcon>
+      </div>
     );
   }
 }
