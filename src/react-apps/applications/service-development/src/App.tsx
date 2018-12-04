@@ -3,6 +3,8 @@
 // Disabled for React Router rendering
 
 import Grid from '@material-ui/core/Grid';
+import Hidden from '@material-ui/core/Hidden';
+import { MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
@@ -12,6 +14,7 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 
 import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
+import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 
 const DummySubApp = (name: any) => {
   return (
@@ -19,9 +22,17 @@ const DummySubApp = (name: any) => {
   );
 };
 
-export interface IAppProps {
-  drawerOpen: boolean;
-}
+export interface IAppProps { }
+
+export interface IAppProps extends WithStyles<typeof styles> { }
+
+const styles = ({
+  subApp: {
+    [altinnTheme.breakpoints.up('md')]: {
+      paddingLeft: 100,
+    },
+  },
+});
 
 class AppClass extends React.Component<IAppProps, any> {
 
@@ -30,10 +41,17 @@ class AppClass extends React.Component<IAppProps, any> {
   }
 
   public render() {
-
+    const { classes } = this.props;
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     // const { org, service, instanceId, reportee } = altinnWindow;
+
+    const redirects = [
+      {
+        from: '/',
+        to: '/about',
+      },
+    ];
 
     const routes = [
       {
@@ -161,73 +179,74 @@ class AppClass extends React.Component<IAppProps, any> {
 
     return (
       <React.Fragment>
-        <Router>
-          <Grid container={true} direction='column'>
-            <Grid item={true} xs={12}>
-              <Route
-                exact={true}
-                path='/'
-                render={() => (
-                  <Redirect to='/about' />
-                )}
-              />
-              {routes.map((route, index) => (
-                <Route
-                  key={index}
-                  path={route.path}
-                  exact={route.exact}
-                  render={(props) => <AppBarComponent
-                    {...props}
-                    org={org}
-                    service={service}
-                    showSubHeader={true}
-                    activeSubHeaderSelection={route.activeSubHeaderSelection}
-                  />}
-                />
-              ))}
-            </Grid>
-            <Grid item={true} xs={12}>
-              <div style={{ top: 50 }}>
+        <MuiThemeProvider theme={altinnTheme}>
+          <Router>
+            <Grid container={true} direction='column'>
+              <Grid item={true} xs={12}>
+                {redirects.map((route, index) => (
+                  <Route
+                    exact={true}
+                    path={route.from}
+                    render={() => (
+                      <Redirect to={route.to} />
+                    )}
+                  />
+                ))}
                 {routes.map((route, index) => (
                   <Route
                     key={index}
                     path={route.path}
                     exact={route.exact}
-                    render={(props) => <LeftDrawerMenu
+                    render={(props) => <AppBarComponent
                       {...props}
-                      menuType={route.menu}
+                      org={org}
+                      service={service}
+                      showSubHeader={true}
+                      activeSubHeaderSelection={route.activeSubHeaderSelection}
+                      activeLeftMenuSelection={route.activeLeftMenuSelection}
                     />}
                   />
                 ))}
-              </div>
-              <div style={{ paddingLeft: 100 }}>
-                {routes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    render={(props) => <route.subapp
-                      {...props}
-                      name={route.path}
-                    />}
-                  />
-                ))}
-              </div>
+              </Grid>
+              <Grid item={true} xs={12}>
+                <Hidden smDown>
+                  <div style={{ top: 50 }}>
+                    {routes.map((route, index) => (
+                      <Route
+                        key={index}
+                        path={route.path}
+                        exact={route.exact}
+                        render={(props) => <LeftDrawerMenu
+                          {...props}
+                          menuType={route.menu}
+                        />}
+                      />
+                    ))}
+                  </div>
+                </Hidden>
+                <div className={classes.subApp}>
+                  {routes.map((route, index) => (
+                    <Route
+                      key={index}
+                      path={route.path}
+                      render={(props) => <route.subapp
+                        {...props}
+                        name={route.path}
+                      />}
+                    />
+                  ))}
+                </div>
 
+              </Grid>
             </Grid>
-          </Grid>
-        </Router>
+          </Router>
+        </MuiThemeProvider>
       </React.Fragment>
     );
   }
 }
 
-const mapsStateToProps = (
-  state: IServiceDevelopmentAppState,
-): IAppProps => {
-  return {
-    drawerOpen: state.serviceDevelopment.drawerOpen,
-  };
-};
+const mapsStateToProps = (state: IServiceDevelopmentAppState): any => ({});
 
 const App = connect(mapsStateToProps)(AppClass);
-export default App;
+export default withStyles(styles, { withTheme: true })(App);

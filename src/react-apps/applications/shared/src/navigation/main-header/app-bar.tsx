@@ -1,13 +1,19 @@
+/* tslint:disable:jsx-boolean-value */
+// Extensive used in Material-UI's Grid
+
 import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { MuiThemeProvider } from '@material-ui/core/styles';
 import { withStyles, WithStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
-import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import 'typeface-roboto';
+// import 'typeface-roboto';
+
+import Hidden from '@material-ui/core/Hidden';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 // Altinn-Studio components
 import ProfileMenu from './profileMenu';
@@ -18,38 +24,40 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   classes: any;
   showSubHeader?: boolean;
   activeSubHeaderSelection: string;
+  activeLeftMenuSelection: string;
 }
 export interface IAppBarComponentState {
   anchorEl: any;
 }
 
-const theme = createMuiTheme({
-  overrides: {
-    MuiToolbar: {
-      regular: {
-        '@media (min-width: 600px)': {
-          minHeight: 55,
-        },
-      },
-    },
-  },
-  typography: {
-    fontSize: 16,
-    useNextVariants: true,
-  },
-});
-
 const styles = {
   root: {
     flexGrow: 1,
     zIndex: 1,
-    height: 110,
     color: 'black',
   },
   appBar: {
     backgroundColor: '#EFEFEF',
     borderBottom: '1px solid',
     borderBottomColor: '#C9C9C9',
+  },
+  breadCrumb: {
+    paddingLeft: 30,
+    fontSize: 20,
+  },
+  breadCrumbSubApp: {
+    color: '#0062BA',
+  },
+  button: {
+    border: '2px solid #0062BA',
+    borderRadius: 0,
+    width: 60,
+    height: 36,
+    fontSize: altinnTheme.typography.fontSize,
+    textTransform: 'lowercase',
+  },
+  paper: {
+    textAlign: 'center',
   },
   subHeader: {
     'borderBottom': '2px solid',
@@ -75,80 +83,103 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
   };
 
   public render() {
-    const { classes, org, service } = this.props;
+    const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
+    console.log('activeLeftMenuSelection', activeLeftMenuSelection);
+    console.log('activeSubHeaderSelection', activeSubHeaderSelection);
 
     return (
       <div className={classes.root}>
-        <MuiThemeProvider theme={theme}>
+        <MuiThemeProvider theme={altinnTheme}>
           <AppBar position='static' className={classes.appBar} elevation={0}>
             <Toolbar>
               <Grid container={true} direction='row' alignItems='center' justify='space-between'>
-                <Grid xs={true} item={true}>
-                  <img src='/designer/img/altinn_logo_header.png' />
+                <Grid xs={true} item={true} container={true}>
+                  <Grid item={true}>
+                    <img src='/designer/img/altinn_logo_header.png' />
+                  </Grid>
+                  <Hidden mdUp>
+                    <Grid item={true} className={classes.breadCrumb}>
+                      / {activeSubHeaderSelection} /
+                      <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
+                    </Grid>
+                  </Hidden>
                 </Grid>
-                <Grid xs={true} item={true}>
-                  <Typography align='center' variant='h6'>
+                <Hidden smDown>
+                  <Grid xs={true} item={true} className={classes.paper}>
                     {service != null ? service : 'WARNING: NO SERVICE NAME'}
-                  </Typography>
-                </Grid>
+                  </Grid>
+                </Hidden>
                 <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
-                  <Grid item={true}>
-                    <Typography align='center' variant='h6'>
+                  <Grid item={true} className={classes.paper}>
+                    <Hidden smDown>
                       {org != null ? org : 'WARNING: NO ORG'}
-                    </Typography>
+                    </Hidden>
+                    <Hidden mdUp>
+                      {service !== null ? service : 'WARNING: NO SERVICE NAME'}
+                    </Hidden>
                   </Grid>
-                  <Grid item={true}>
-                    <ProfileMenu showlogout={true} />
-                  </Grid>
+                  <Hidden smDown>
+                    <Grid item={true}>
+                      <ProfileMenu showlogout={true} />
+                    </Grid>
+                  </Hidden>
+                  <Hidden mdUp>
+                    <Grid item={true}>
+                      <Button variant='outlined' className={classes.button}>MENU</Button>
+                    </Grid>
+                  </Hidden>
+
                 </Grid>
               </Grid>
             </Toolbar>
-            {this.props.showSubHeader && (
-              <Toolbar>
-                <Grid container={true} direction='row' justify='center' alignItems='center'>
-                  <Grid
-                    item={true}
-                    className={classNames(classes.subHeader, {
-                      [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'om',
-                    })}
-                  >
-                    <Link to='/about' style={{ borderBottom: 0 }}>Om</Link>
+            <Hidden smDown>
+              {this.props.showSubHeader && (
+                <Toolbar>
+                  <Grid container={true} direction='row' justify='center' alignItems='center'>
+                    <Grid
+                      item={true}
+                      className={classNames(classes.subHeader, {
+                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'om',
+                      })}
+                    >
+                      <Link to='/about' style={{ borderBottom: 0 }}>Om</Link>
+                    </Grid>
+                    <Grid
+                      item={true}
+                      className={classNames(classes.subHeader, {
+                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'lage',
+                      })}
+                    >
+                      <Link to='/uieditor' style={{ borderBottom: 0 }}>Lage</Link>
+                    </Grid>
+                    <Grid
+                      item={true}
+                      className={classNames(classes.subHeader, {
+                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'sprak',
+                      })}
+                    >
+                      <Link to='/language' style={{ borderBottom: 0 }}>Språk</Link>
+                    </Grid>
+                    <Grid
+                      item={true}
+                      className={classNames(classes.subHeader, {
+                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'teste',
+                      })}
+                    >
+                      <Link to='/test' style={{ borderBottom: 0 }}>Teste</Link>
+                    </Grid>
+                    <Grid
+                      item={true}
+                      className={classNames(classes.subHeader, {
+                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'publisere',
+                      })}
+                    >
+                      <Link to='/publish' style={{ borderBottom: 0 }}>Publisere</Link>
+                    </Grid>
                   </Grid>
-                  <Grid
-                    item={true}
-                    className={classNames(classes.subHeader, {
-                      [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'lage',
-                    })}
-                  >
-                    <Link to='/uieditor' style={{ borderBottom: 0 }}>Lage</Link>
-                  </Grid>
-                  <Grid
-                    item={true}
-                    className={classNames(classes.subHeader, {
-                      [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'sprak',
-                    })}
-                  >
-                    <Link to='/language' style={{ borderBottom: 0 }}>Språk</Link>
-                  </Grid>
-                  <Grid
-                    item={true}
-                    className={classNames(classes.subHeader, {
-                      [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'teste',
-                    })}
-                  >
-                    <Link to='/test' style={{ borderBottom: 0 }}>Teste</Link>
-                  </Grid>
-                  <Grid
-                    item={true}
-                    className={classNames(classes.subHeader, {
-                      [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'publisere',
-                    })}
-                  >
-                    <Link to='/publish' style={{ borderBottom: 0 }}>Publisere</Link>
-                  </Grid>
-                </Grid>
-              </Toolbar>
-            )}
+                </Toolbar>
+              )}
+            </Hidden>
           </AppBar>
         </MuiThemeProvider>
       </div>

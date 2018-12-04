@@ -4,7 +4,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
-import 'typeface-roboto';
+// import 'typeface-roboto';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -17,9 +17,12 @@ export interface IProfileMenuComponentState {
 }
 
 const styles = ({
-  paperMenu: {
+  paperStyle: {
     borderRadius: 1,
     minWidth: 150,
+    padding: 0,
+    top: 80,
+    right: 25,
   },
   menuItem: {
     fontSize: 16,
@@ -74,15 +77,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           onClose={this.handleClose}
           anchorReference='none'
           elevation={1}
-          PaperProps={{
-            style: {
-              borderRadius: 1,
-              minWidth: 150,
-              padding: 0,
-              top: 75,
-              right: 25,
-            },
-          }}
+          classes={{ paper: classes.paperStyle }}
         >
           {showlogout && (
             <MenuItem onClick={this.handleLogout} className={classes.menuItem}>Logout</MenuItem>
