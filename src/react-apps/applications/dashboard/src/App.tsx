@@ -2,6 +2,7 @@ import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import OrganizationOverview from '../src/components/OrganizationOverview';
 import './App.css';
+import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
 
 export interface IDashboardState {
   drawerOpen: boolean;
@@ -15,7 +16,9 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
   };
 
   public componentDidMount() {
-
+    const altinnWindow: Window = window;
+    fetchLanguageDispatcher.fetchLanguage(
+      `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
   }
 
   public handleDrawerToggle = () => {
