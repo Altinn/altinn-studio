@@ -71,7 +71,7 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
         <button type='button' className='a-modal-close a-js-tabable-popover' aria-label='Lukk'>
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true'/>
-            <i className='ai-stack-1x ai ai-exit  a-modal-close-icon ' aria-hidden='true'/>
+            <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true'/>
           </span>
         </button>
       </div>
