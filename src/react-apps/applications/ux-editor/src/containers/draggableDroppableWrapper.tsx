@@ -16,9 +16,15 @@ const draggableDroppableSource = {
     return {
       id: props.id,
       index: props.index,
+    };
+  },
+  canDrag(props: any) {
+    if (props.baseContainer) {
+      return false;
     }
-  }
-}
+    return true;
+  },
+};
 
 const draggableDroppableTarget = {
   hover(props: any, monitor: DropTargetMonitor, component: any | null) {
@@ -61,28 +67,28 @@ const draggableDroppableTarget = {
     }
     props.onDrop(monitor.getItem());
   },
-}
+};
 
 class DraggableDroppable extends React.Component<any, any> {
   public render() {
-    const { connectDragSource, connectDropTarget } = this.props;
+    const { index, connectDragSource, connectDropTarget } = this.props;
     return connectDragSource(connectDropTarget(
-      <div>
+      <div key={index}>
         {this.props.children}
       </div>,
     ));
   }
 }
 
-const DraggableDroppableTargetSource = DropTarget(
-  'item',
+export const DraggableDroppableTargetSource = (dropTargetType: string, dragTargetType: string) => DropTarget(
+  dropTargetType,
   draggableDroppableTarget,
   (connect: DropTargetConnector) => ({
     connectDropTarget: connect.dropTarget(),
   }),
 )(
   DragSource(
-    'item',
+    dragTargetType,
     draggableDroppableSource,
     (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
       connectDragSource: connect.dragSource(),
@@ -90,24 +96,3 @@ const DraggableDroppableTargetSource = DropTarget(
     }),
   )(DraggableDroppable),
 );
-
-export class DraggableDroppableWrapper extends React.Component<any, any> {
-  public updateIndex = (dragIndex: number, hoverIndex: number) => {
-    this.props.updateOrder(dragIndex, hoverIndex);
-  }
-
-  public onDrop = (props: any) => {
-    if (!props.draggedData || !props.draggedData.actionMethod) {
-      return;
-    }
-    props.draggedData.actionMethod(0, this.props.id);
-  }
-
-  public render() {
-    return (
-      <DraggableDroppableTargetSource onDrop={this.onDrop} updateIndex={this.updateIndex}>
-        {this.props.children}
-      </DraggableDroppableTargetSource>
-    )
-  }
-}

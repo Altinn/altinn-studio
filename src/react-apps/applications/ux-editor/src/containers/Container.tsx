@@ -89,6 +89,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           onHoverNewItem={this.addTemporaryItem}
           onMoveItem={this.updateTempOrder}
           onMoveItemDone={this.updateOrderDone}
+          baseContainer={this.props.baseContainer}
         >
           <div
             style={{
@@ -215,7 +216,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           <Container
             id={id}
             baseContainer={false}
-            droppableId={'droppable-container:' + id}
             parentContainerId={this.props.id}
           />
         </DroppableWrapper>
@@ -334,7 +334,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         <DroppableWrapper
           id={id}
           index={index}
-          onDropNewItem={(hoverIndex: number, containerId: string) => console.log(hoverIndex, containerId)}
           onHoverNewItem={this.addTemporaryItem}
           onMoveItem={this.updateTempOrder}
           onMoveItemDone={this.updateOrderDone}

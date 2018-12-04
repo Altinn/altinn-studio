@@ -1,13 +1,14 @@
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
-import DraggableToolbarItem from './draggableToolbarItem';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import components from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+
+import { ToolbarItem } from './ToolbarItem';
 
 import '../styles/toolBar.css';
 
@@ -151,35 +152,27 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return (
       <div className={'col-sm-12'}>
         {this.toolbarComponents.map((component, index) => (
-          <DraggableToolbarItem
+          <ToolbarItem
+            text={component.label}
             onDropAction={component.actionMethod}
-          >
-            <div key={index} className='col col-lg-12 a-item'>
-              {component.label}
-            </div>
-          </DraggableToolbarItem>
+          />
         ))
         }
         {
           this.getThirdPartyComponents().map((component, index) => (
-            <div>
-              <div
-                className='col col-lg-12 a-item'
-                id={index.toString()}
-                key={index}
-              >
-                {component.label}
-              </div>
+            <div
+              className='col col-lg-12 a-item'
+              id={index.toString()}
+              key={index}
+            >
+              {component.label}
             </div>
           ))
         }
-        <DraggableToolbarItem
-          onDropAction={this.addContainerToLayout}
-        >
-          <div className='col col-lg-12 a-item'>
-            Add container
-          </div>
-        </DraggableToolbarItem>
+        <ToolbarItem
+          text={'add label'}
+          onDropAction={() => console.log('drop')}
+        />
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>

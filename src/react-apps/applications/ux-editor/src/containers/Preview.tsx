@@ -4,6 +4,7 @@ import formDesignerActionDispatcher from '../actions/formDesignerActions/formDes
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
+import { DraggableDroppableTargetSource } from './draggableDroppableWrapper';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -40,14 +41,6 @@ export class PreviewComponent extends React.Component<
     const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
     if (!baseContainerId) {
       return null;
-    }
-    if (this.props.designMode) {
-      return (
-        <Container
-          id={baseContainerId}
-          baseContainer={true}
-        />
-      )
     }
     return (
       <Container

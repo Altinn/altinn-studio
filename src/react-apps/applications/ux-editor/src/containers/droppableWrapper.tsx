@@ -19,6 +19,12 @@ const itemSource = {
       index: props.index,
     };
   },
+  canDrag(props: ItemProps) {
+    if (props.baseContainer) {
+      return false;
+    }
+    return true;
+  }
 };
 
 let lastHoveredIndex: number;
@@ -31,29 +37,39 @@ const itemTarget = {
           return null;
         }
 
+        console.log(lastHoveredIndex);
+
         const dragIndex = monitor.getItem().index;
         const hoverIndex = props.index;
 
         if (dragIndex === hoverIndex) {
+          lastHoveredIndex = component.props.index;
           return;
         }
 
-        const hoverBoundingRect = (findDOMNode(
+        const otherElement = (findDOMNode(
           component,
-        ) as Element).getBoundingClientRect();
+        ) as Element);
 
-        const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+        const otherElementBoundingRect = otherElement.getBoundingClientRect();
+
+        const otherElementHeight = otherElementBoundingRect.bottom - otherElementBoundingRect.top;
+
         const clientOffset = monitor.getClientOffset();
-        const hoverClientY = (clientOffset as XYCoord).y - hoverBoundingRect.top;
-        if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+        const hoverClientY = (clientOffset as XYCoord).y - otherElementBoundingRect.top;
+
+        if (hoverClientY > (otherElementHeight / 2)) {
+          // Insert under
+          lastHoveredIndex = component.props.index + 1;
+          return;
+        }
+        if (hoverClientY < (otherElementHeight / 2)) {
+          // Insert over (or at the same index and push the other component down)
+          lastHoveredIndex = component.props.index;
           return;
         }
 
-        if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-          return;
-        }
-
-        props.onMoveItem(dragIndex, hoverIndex);
+        props.onMoveItem(dragIndex, lastHoveredIndex);
         lastHoveredIndex = hoverIndex;
         break;
       }
@@ -95,14 +111,8 @@ const itemTarget = {
     }
     const itemType = monitor.getItemType();
     if (itemType === 'item-toolbar') {
-      if (lastHoveredIndex === undefined) {
-        lastHoveredIndex = 0;
-      }
       monitor.getItem().onDropAction(lastHoveredIndex, props.id);
     } else if (itemType === 'item') {
-      if (lastHoveredIndex === undefined) {
-        lastHoveredIndex = 0;
-      }
       props.onMoveItemDone(monitor.getItem().id, lastHoveredIndex);
     }
   },
@@ -114,6 +124,7 @@ export interface ItemProps {
   onMoveItem: (dragIndex: number, hoverIndex: number) => void;
   onMoveItemDone: (id: string, index: number) => void;
   onHoverNewItem: (hoverIndex: number) => void;
+  baseContainer?: boolean;
 }
 
 interface ItemSourceCollectedProps {
@@ -130,12 +141,13 @@ class Item extends React.Component<
   > {
   public render() {
     const {
+      index,
       connectDragSource,
       connectDropTarget,
     } = this.props;
 
     return connectDragSource(
-      connectDropTarget(<div>{this.props.children}</div>),
+      connectDropTarget(<div key={index}>{this.props.children}</div>),
     );
   }
 }
