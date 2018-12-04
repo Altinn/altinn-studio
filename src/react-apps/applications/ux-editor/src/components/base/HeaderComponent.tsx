@@ -17,7 +17,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
       }
 
       case ('M'): {
-        return <h3 className='a-h3 a-sectionSubTitle' id={this.props.component.id}>{this.props.text}</h3>;
+        return <h3 className='a-sectionSubTitle' id={this.props.component.id}>{this.props.text}</h3>;
       }
 
       default: {
