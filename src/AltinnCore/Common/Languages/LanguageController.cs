@@ -30,12 +30,10 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Reads ini files, converts it to json
         /// </summary>
-        /// <param name="org">The current service owner</param>
-        /// <param name="service">The current service</param>
         /// <param name="languageCode">The current language code</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public IActionResult GetLanguageAsJSON(string org, string service, string languageCode)
+        public IActionResult GetLanguageAsJSON(string languageCode)
         {
             FileIniDataParser parser = new FileIniDataParser();
             Dictionary<string, Dictionary<string, string>> outerDict = new Dictionary<string, Dictionary<string, string>>();
