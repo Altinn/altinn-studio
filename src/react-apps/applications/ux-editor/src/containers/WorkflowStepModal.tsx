@@ -32,7 +32,7 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
                     <span className='d-block'/>
                   </span>
                   <i
-                    className='ai ai-private-circle-big  a-personSwitcher-icon '
+                    className='ai ai-private-circle-big  a-personSwitcher-icon'
                     aria-hidden='true'
                     style={{color: '#022F51'}}
                   />
@@ -48,8 +48,8 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
     return (
       <div className='modal-header a-modal-header'>
         <div className='a-iconText a-iconText-background a-iconText-large'>
-          <div className='a-iconText-icon '>
-            <i className='ai ai-corp a-icon ' aria-hidden='true'/>
+          <div className='a-iconText-icon'>
+            <i className='ai ai-corp a-icon' aria-hidden='true'/>
           </div>
           <h1 className='a-iconText-text mb-0'>
             <span className='a-iconText-text-large'>{this.props.header}</span>
@@ -65,13 +65,13 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
         <button type='button' className='a-modal-back a-js-tabable-popover'aria-label='Tilbake'>
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true'/>
-            <i className='ai-stack-1x ai ai-back   ' aria-hidden='true'/>
+            <i className='ai-stack-1x ai ai-back' aria-hidden='true'/>
           </span>
         </button>
         <button type='button' className='a-modal-close a-js-tabable-popover' aria-label='Lukk'>
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true'/>
-            <i className='ai-stack-1x ai ai-exit  a-modal-close-icon ' aria-hidden='true'/>
+            <i className='ai-stack-1x ai ai-exit  a-modal-close-icon' aria-hidden='true'/>
           </span>
         </button>
       </div>
