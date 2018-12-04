@@ -186,7 +186,6 @@ declare global {
     service: string;
     instanceId: string;
     reportee: string;
-    __MUI_USE_NEXT_TYPOGRAPHY_VARIANTS__: boolean;
   }
 
   export interface IRuleModelFieldElement {

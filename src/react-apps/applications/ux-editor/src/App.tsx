@@ -29,7 +29,6 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    altinnWindow.__MUI_USE_NEXT_TYPOGRAPHY_VARIANTS__ = true; // quickfix until we get themeing
 
     if (altinnWindow.location.pathname.split('/')[1].toLowerCase() === RUNTIME) {
       // RUNTIME
