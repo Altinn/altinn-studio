@@ -80,7 +80,7 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
 
   public render() {
     return(
-      <div className={'container'}>
+      <div className='container'>
         {this.renderTop()}
         <div className='row'>
           <div className='col-xl-10 offset-xl-1 a-p-static'>
