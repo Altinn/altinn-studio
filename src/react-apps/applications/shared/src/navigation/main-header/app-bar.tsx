@@ -7,7 +7,6 @@ import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import 'typeface-roboto';
 
 import ProfileMenu from '../../profile-menu';
 
