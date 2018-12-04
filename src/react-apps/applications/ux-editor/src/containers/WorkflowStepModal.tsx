@@ -49,7 +49,7 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
       <div className='modal-header a-modal-header'>
         <div className='a-iconText a-iconText-background a-iconText-large'>
           <div className='a-iconText-icon'>
-            <i className='ai ai-corp a-icon ' aria-hidden='true'/>
+            <i className='ai ai-corp a-icon' aria-hidden='true'/>
           </div>
           <h1 className='a-iconText-text mb-0'>
             <span className='a-iconText-text-large'>{this.props.header}</span>
