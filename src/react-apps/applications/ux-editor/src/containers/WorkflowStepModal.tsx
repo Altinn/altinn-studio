@@ -32,7 +32,7 @@ class WorkflowStepModalComponent extends React.Component<IWorkflowStepModalProps
                     <span className='d-block'/>
                   </span>
                   <i
-                    className='ai ai-private-circle-big  a-personSwitcher-icon '
+                    className='ai ai-private-circle-big  a-personSwitcher-icon'
                     aria-hidden='true'
                     style={{color: '#022F51'}}
                   />
