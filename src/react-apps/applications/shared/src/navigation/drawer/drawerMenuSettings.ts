@@ -5,6 +5,37 @@ export interface IAltinnWindow extends Window {
   reportee: string;
 }
 
+export const mainMenuSettings: any = {
+  menuType: 'Header',
+  menuItems: [
+    {
+      displayText: 'Om',
+      navLink: '/about',
+      menuType: 'about',
+    },
+    {
+      displayText: 'Lage',
+      navLink: '/uieditor',
+      menuType: 'create',
+    },
+    {
+      displayText: 'Språk',
+      navLink: '/language',
+      menuType: 'language',
+    },
+    {
+      displayText: 'Test',
+      navLink: '/test',
+      menuType: 'test',
+    },
+    {
+      displayText: 'Publisere',
+      navLink: '/publish',
+      menuType: 'publish',
+    },
+  ],
+};
+
 export const leftDrawerMenuSettings: any = {
   about: [
     {
