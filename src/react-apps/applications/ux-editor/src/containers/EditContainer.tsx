@@ -1,5 +1,5 @@
 import {
-  createStyles, FormControl, Grid, IconButton, InputLabel, List, ListItem, MenuItem, MuiThemeProvider, Select,
+  createStyles, FormControl, Grid, IconButton, List, ListItem, MenuItem, MuiThemeProvider, Select,
   Theme, withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
@@ -93,26 +93,40 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       },
     });
   }
+  public handleSizeChange = (event: any) => {
+    this.props.component.size = event.target.value;
+  }
+
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.component) {
       case 'Header': {
-        const component: IFormHeaderComponent = this.state.component as IFormHeaderComponent;
         return (
-          <FormControl>
-            <Select
-              value={this.props.component.id}
-              onChange={this.handleTitleChange}
-              disableUnderline={true}
-              inputProps={{
-                id: 'size-select',
-                name: 'header size',
-              }}
-            >
-              <MenuItem value='null' disabled={true}>
-                {this.props.language.ux_editor.modal_text_input}
-              </MenuItem>
-            </Select>
-          </FormControl>
+          <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
+            <span className='a-iconText-text-large'>
+              {this.props.language.ux_editor.modal_header_type_helper}
+            </span>
+            <FormControl>
+              <Select
+                value={this.props.component.size ? this.props.component.size : 'S'}
+                onChange={this.handleSizeChange}
+                disableUnderline={true}
+                inputProps={{
+                  id: 'size-select',
+                  name: 'header size',
+                }}
+              >
+                <MenuItem key={0} value={'S'}>
+                  {this.props.language.ux_editor.modal_header_type_h3}
+                </MenuItem>
+                <MenuItem key={1} value={'M'}>
+                  {this.props.language.ux_editor.modal_header_type_h2}
+                </MenuItem>
+                <MenuItem key={2} value={'L'}>
+                  {this.props.language.ux_editor.modal_header_type_h1}
+                </MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
         );
       }
       case 'Input': {
@@ -124,21 +138,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         return null;
       }
     }
-  }
-  public renderHeaderSizeOption = (): JSX.Element[] => {
-    if (!this.props.textResources) {
-      return null;
-    }
-
-    return (
-      this.props.textResources.map((resource, index) => {
-        const option = this.truncate(resource.value);
-        return (
-          <MenuItem key={index} value={resource.id} name={resource.value}>
-            {option}
-          </MenuItem>
-        );
-      }));
   }
 
   public renderTextResourceOptions = (): JSX.Element[] => {
@@ -195,30 +194,32 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     onClick={this.handleOpenModal}
                   >
                     {this.state.isItemActive ?
-                      <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
-                        <span className='a-iconText-text-large'>
-                          {this.props.language.ux_editor.modal_properties_data_model_helper}
-                        </span>
-                        <FormControl>
-                          <Select
-                            value={this.state.component.customType === 'Standard' ?
-                              this.state.component.textResourceId : this.state.component.title}
-                            onChange={this.handleTitleChange}
-                            disabled={this.state.component.customType === 'Standard'}
-                            disableUnderline={true}
-                            inputProps={{
-                              id: 'text-select',
-                              name: 'text',
-                            }}
-                          >
-                            <MenuItem value='null' disabled={true}>
-                              {this.props.language.ux_editor.modal_text_input}
-                            </MenuItem>
-                            {this.renderTextResourceOptions()}
-                          </Select>
-                        </FormControl>
+                      <div>
+                        <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
+                          <span className='a-iconText-text-large'>
+                            {this.props.language.ux_editor.modal_properties_data_model_helper}
+                          </span>
+                          <FormControl>
+                            <Select
+                              value={this.state.component.customType === 'Standard' ?
+                                this.state.component.textResourceId : this.state.component.title}
+                              onChange={this.handleTitleChange}
+                              disabled={this.state.component.customType === 'Standard'}
+                              disableUnderline={true}
+                              inputProps={{
+                                id: 'text-select',
+                                name: 'text',
+                              }}
+                            >
+                              <MenuItem value='null' disabled={true}>
+                                {this.props.language.ux_editor.modal_text_input}
+                              </MenuItem>
+                              {this.renderTextResourceOptions()}
+                            </Select>
+                          </FormControl>
+                        </Grid>
                         {this.renderComponentSpecificContent()}
-                      </Grid>
+                      </div>
                       :
                       <div className='subtitle2'>
                         {this.props.children}
