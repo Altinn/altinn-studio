@@ -436,7 +436,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             {this.props.component.component !== 'ThirdParty' ? (
               <div className='form-group a-form-group mt-1'>
                 <label className='a-form-label' htmlFor='nameField'>
-                  {this.props.language.ux_editor.modal_text}:
+                  {this.props.language.ux_editor.modal_properties_data_model_helper}:
                 </label>
                 <div className='a-form-group-items input-group'>
                   <select

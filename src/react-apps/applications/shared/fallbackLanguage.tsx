@@ -47,6 +47,7 @@ const fallbackLanguage = {
     modal_data_model_input: 'Select field',
     modal_new_option: 'Add new option',
     modal_options: 'Options',
+    modal_properties_data_model_helper: 'Write a title or search',
     modal_properties_header: 'Edit properties',
     modal_restrictions: 'Restrictions from data model',
     modal_restrictions_empty: 'No restrictions to show',

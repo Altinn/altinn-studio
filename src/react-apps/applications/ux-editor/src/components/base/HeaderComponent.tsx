@@ -1,3 +1,4 @@
+import { Typography } from '@material-ui/core';
 import * as React from 'react';
 
 export interface IHeaderProps {
@@ -28,7 +29,9 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
   public render() {
     return (
-      this.renderHeader()
+      <Typography variant='subtitle1' >
+        {this.props.text}
+      </Typography>
     );
   }
 }
