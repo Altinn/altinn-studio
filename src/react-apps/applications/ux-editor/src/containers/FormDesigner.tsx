@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import shemaComponents from '../components';
+import components from '../components';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
 
@@ -107,12 +107,12 @@ class FormDesigner extends React.Component<
         } else if (source.index === 'thirdPartyComponent') {
           // Handle third party components at some time
         } else {
-          const c = shemaComponents[source.index].customProperties;
+          const c = components[source.index].customProperties;
           const customProperties = !c ? {} : c;
           FormDesignerActionDispatchers.addFormComponent({
-            component: shemaComponents[source.index].name,
+            component: components[source.index].name,
             itemType: 'LayoutItemType.Component',
-            title: shemaComponents[source.index].name,
+            title: components[source.index].name,
             ...JSON.parse(JSON.stringify(customProperties)),
           },
             destination.index,
