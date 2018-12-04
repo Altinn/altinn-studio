@@ -4,9 +4,9 @@
 
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/app-bar';
+import { connect } from 'react-redux';
+import NavMenu from '../../shared/src/navigation/NavMenu';
 import SubApp from '../../ux-editor/src/SubApp';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
@@ -37,124 +37,40 @@ class AppClass extends React.Component<IAppProps, any> {
 
     const routes = [
       {
-        path: '/about',
+        path: '/om',
         exact: true,
         activeSubHeaderSelection: 'om',
-        menu: 'about',
+        menu: 'om',
         subapp: DummySubApp,
       },
       {
         path: '/uieditor',
         activeSubHeaderSelection: 'lage',
-        menu: 'create',
+        menu: 'lage',
         subapp: SubApp,
       },
       {
         path: '/preview',
         activeSubHeaderSelection: 'lage',
-        menu: 'create',
+        menu: 'lage',
         subapp: SubApp,
       },
       {
-        path: '/language',
+        path: '/sprak',
         activeSubHeaderSelection: 'sprak',
-        menu: 'language',
+        menu: 'sprak',
         subapp: DummySubApp,
       },
       {
-        path: '/test',
+        path: '/teste',
         activeSubHeaderSelection: 'teste',
-        menu: 'test',
+        menu: 'teste',
         subapp: DummySubApp,
       },
       {
-        path: '/publish',
+        path: '/publisere',
         activeSubHeaderSelection: 'publisere',
-        menu: 'publish',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/aboutservice',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'omtjenesten',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/rolesandrights',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'roller',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/production',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'produksjon',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/versionhistory',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'versjonshistorikk',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/aboutenduser',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'omsluttbrukeren',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/altinn',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'altinn',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/datamodel',
-        activeSubHeaderSelection: 'lage',
-        activeLeftMenuSelection: 'datamodel',
-        menu: 'create',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/api',
-        activeSubHeaderSelection: 'lage',
-        activeLeftMenuSelection: 'api',
-        menu: 'create',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/text',
-        activeSubHeaderSelection: 'sprak',
-        activeLeftMenuSelection: 'text',
-        menu: 'language',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/translate',
-        activeSubHeaderSelection: 'sprak',
-        activeLeftMenuSelection: 'flere sprak',
-        menu: 'language',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/productionsetting',
-        activeSubHeaderSelection: 'publisere',
-        activeLeftMenuSelection: 'text',
-        menu: 'publish',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/status',
-        activeSubHeaderSelection: 'publisere',
-        activeLeftMenuSelection: 'status',
-        menu: 'publish',
+        menu: 'publisere',
         subapp: DummySubApp,
       },
     ];
@@ -162,13 +78,13 @@ class AppClass extends React.Component<IAppProps, any> {
     return (
       <React.Fragment>
         <Router>
-          <Grid container={true} direction='column'>
+          <Grid container={true} direction='row'>
             <Grid item={true} xs={12}>
               <Route
                 exact={true}
                 path='/'
                 render={() => (
-                  <Redirect to='/about' />
+                  <Redirect to='/om' />
                 )}
               />
               {routes.map((route, index) => (
@@ -187,32 +103,21 @@ class AppClass extends React.Component<IAppProps, any> {
               ))}
             </Grid>
             <Grid item={true} xs={12}>
-              <div style={{ top: 50 }}>
-                {routes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    exact={route.exact}
-                    render={(props) => <LeftDrawerMenu
-                      {...props}
-                      menuType={route.menu}
-                    />}
-                  />
-                ))}
+              <div style={{ display: 'flex', width: '100%', alignItems: 'stretch' }}>
+                <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.props.drawerOpen} />
+                <div style={{ paddingLeft: 10 }}>
+                  {routes.map((route, index) => (
+                    <Route
+                      key={index}
+                      path={route.path}
+                      render={(props) => <route.subapp
+                        {...props}
+                        name={route.activeSubHeaderSelection}
+                      />}
+                    />
+                  ))}
+                </div>
               </div>
-              <div style={{ paddingLeft: 100 }}>
-                {routes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    render={(props) => <route.subapp
-                      {...props}
-                      name={route.path}
-                    />}
-                  />
-                ))}
-              </div>
-
             </Grid>
           </Grid>
         </Router>
