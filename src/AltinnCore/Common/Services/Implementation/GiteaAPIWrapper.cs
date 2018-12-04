@@ -245,5 +245,58 @@ namespace AltinnCore.Common.Services.Implementation
                 return null;
             }
         }
+
+        /// <summary>
+        /// Gets a list over the organizations that the current user has access to.
+        /// </summary>
+        /// <param name="giteaSession">The sessionId</param>
+        /// <returns>A list over all</returns>
+        public async Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations(string giteaSession)
+        {
+            List<AltinnCore.RepositoryClient.Model.Organization> organizations = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<AltinnCore.RepositoryClient.Model.Organization>));
+            Uri giteaUrl = null;
+            Cookie cookie = null;
+
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            {
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/user/orgs");
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            }
+            else
+            {
+                giteaUrl = new Uri(_settings.ApiEndPoint + "/user/orgs");
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
+            }
+
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            using (HttpClient client = new HttpClient(handler))
+            {
+                var response = client.GetAsync(giteaUrl);
+                if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    organizations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
+                }
+                else if (response.Result.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.Result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    // User is not logged in.
+                    return null;
+                }
+                else
+                {
+                    // Will cause an exception Temporary workaround
+                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    organizations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
+                }
+            }
+
+            return organizations;
+        }
     }
 }

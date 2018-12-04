@@ -42,5 +42,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="name">app token name</param>
         /// <returns>null</returns>
         string CreateAppToken(string name);
+
+        /// <summary>
+        /// Returns organization that user has access to
+        /// </summary>
+        /// <param name="giteaSession">the gitea session</param>
+        /// <returns>A list over organizations</returns>
+        Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations(string giteaSession);
   }
 }
