@@ -122,6 +122,7 @@ export class ContainerComponent extends React.Component<IContainerProps> {
         </div>
       );
     }
+
     return (
       <div>
         {this.renderContent()}
