@@ -41,7 +41,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="name">app token name</param>
         /// <returns>null</returns>
-        string CreateAppToken(string name);
+        Task<string> CreateAppToken(string name);
 
         /// <summary>
         /// Returns organization that user has access to
