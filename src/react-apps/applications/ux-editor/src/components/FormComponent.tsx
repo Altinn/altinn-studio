@@ -92,8 +92,6 @@ class FormComponent extends React.Component<
    * Render label
    */
   public renderLabel = (): JSX.Element => {
-    const label: string =
-      this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
     if (this.props.component.component === 'Header' ||
       this.props.component.component === 'Checkboxes' ||
       this.props.component.component === 'Submit' ||
@@ -101,17 +99,29 @@ class FormComponent extends React.Component<
       return null;
     }
 
-    return (
-      <label className='a-form-label title-label' htmlFor={this.props.id}>
-        {label}
-      </label>
-    );
+    if (this.props.component.title) {
+      const label: string =
+      this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
+      return (
+        <label className='a-form-label title-label' htmlFor={this.props.id}>
+          {label}
+          {this.props.component.required ? null :
+            // TODO: Get text key from common texts for all services.
+            <span className='label-optional'>{this.getTextResource('(Valgfri)')}</span>
+          }
+        </label>
+      );
+    }
+
+    return null;
   }
 
   public renderDescription = (): JSX.Element => {
     if (this.props.component.description) {
+      const description: string = 
+      this.props.designMode ? this.props.component.description : this.getTextResource(this.props.component.description)
       return (
-        <span className='a-form-label description-label'>{this.props.component.description}</span>
+        <span className='a-form-label description-label'>{description}</span>
       );
     }
 
@@ -135,7 +145,7 @@ class FormComponent extends React.Component<
       return (
         <div className='row mt-2'>
           <div className='col'>
-            <div className='form-group a-form-group'>
+            <div className='a-form-group'>
               {this.renderLabel()}
               {this.renderDescription()}
               {this.renderComponent()}
@@ -151,7 +161,7 @@ class FormComponent extends React.Component<
           component={this.props.component}
           id={this.props.id}
         >
-          <div className='form-group a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
+          <div className='a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
             {this.renderLabel()}
             {this.renderComponent()}
           </div>

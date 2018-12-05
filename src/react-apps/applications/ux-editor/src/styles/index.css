@@ -30,6 +30,13 @@ option {
   margin-bottom: 1.1rem;
 }
 
+.a-form-label.title-label .label-optional {
+  font-size: 1.4rem;
+  font-weight: 400;
+  color: #6A6A6A;
+  padding-left: 0.6rem;
+}
+
 .cursorPointer {
   cursor: pointer;
 }
