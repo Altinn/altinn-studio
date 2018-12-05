@@ -5,7 +5,7 @@ import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import { MuiThemeProvider } from '@material-ui/core/styles';
-import { withStyles, WithStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -18,19 +18,22 @@ import altinnTheme from '../../theme/altinnStudioTheme';
 // Altinn-Studio components
 import ProfileMenu from './profileMenu';
 
+import { menu } from './appBarConfig';
+
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
-  service?: string;
-  org?: string;
-  classes: any;
-  showSubHeader?: boolean;
   activeSubHeaderSelection: string;
   activeLeftMenuSelection: string;
+  backgroundColor?: any;
+  classes: any;
+  org?: string;
+  service?: string;
+  showSubHeader?: boolean;
 }
 export interface IAppBarComponentState {
   anchorEl: any;
 }
 
-const styles = {
+const styles = createStyles({
   root: {
     flexGrow: 1,
     zIndex: 1,
@@ -78,7 +81,7 @@ const styles = {
   topRightService: {
     paddingRight: 22,
   },
-};
+});
 
 class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComponentState> {
   public state: IAppBarComponentState = {
@@ -139,46 +142,17 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               {this.props.showSubHeader && (
                 <Toolbar>
                   <Grid container={true} direction='row' justify='center' alignItems='center'>
-                    <Grid
-                      item={true}
-                      className={classNames(classes.subHeader, {
-                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'om',
-                      })}
-                    >
-                      <Link to='/about' style={{ borderBottom: 0 }}>Om</Link>
-                    </Grid>
-                    <Grid
-                      item={true}
-                      className={classNames(classes.subHeader, {
-                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'lage',
-                      })}
-                    >
-                      <Link to='/uieditor' style={{ borderBottom: 0 }}>Lage</Link>
-                    </Grid>
-                    <Grid
-                      item={true}
-                      className={classNames(classes.subHeader, {
-                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'sprak',
-                      })}
-                    >
-                      <Link to='/language' style={{ borderBottom: 0 }}>Språk</Link>
-                    </Grid>
-                    <Grid
-                      item={true}
-                      className={classNames(classes.subHeader, {
-                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'teste',
-                      })}
-                    >
-                      <Link to='/test' style={{ borderBottom: 0 }}>Teste</Link>
-                    </Grid>
-                    <Grid
-                      item={true}
-                      className={classNames(classes.subHeader, {
-                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection === 'publisere',
-                      })}
-                    >
-                      <Link to='/publish' style={{ borderBottom: 0 }}>Publisere</Link>
-                    </Grid>
+                    {menu.map((item, index) => (
+                      <Grid
+                        item={true}
+                        className={classNames(classes.subHeader, {
+                          [classes.subHeaderActive]: this.props.activeSubHeaderSelection ===
+                            item.activeSubHeaderSelection,
+                        })}
+                      >
+                        <Link to={item.link} style={{ borderBottom: 0 }}>{item.key}</Link>
+                      </Grid>
+                    ))}
                   </Grid>
                 </Toolbar>
               )}
