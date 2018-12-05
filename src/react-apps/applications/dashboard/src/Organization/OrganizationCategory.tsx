@@ -1,16 +1,22 @@
 import { Card, Grid } from '@material-ui/core';
 import { CardContent } from '@material-ui/core';
-import { withStyles, WithStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import Truncate from 'react-truncate';
 import 'typeface-roboto';
 
-export interface ICategoryComponentProps extends WithStyles<typeof styles> {
+export interface ICategoryComponentProvidedProps {
+  classes: any;
   header: string;
   categoryRepos: any;
   className: string;
+}
+
+export interface ICategoryComponentProps extends ICategoryComponentProvidedProps {
+  organizations: string[];
 }
 export interface ICategoryComponentState {
 }
@@ -46,6 +52,16 @@ const styles = {
   },
 }
 
+const filterOnOrgName = (organizations: any) => {
+  const allOrgNames: string[] = [];
+  organizations.map((key: any) => {
+    if (allOrgNames.indexOf(key.username) === -1) {
+      allOrgNames.push(key.username);
+    }
+  });
+  return allOrgNames;
+};
+
 class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
   public state: ICategoryComponentState = {
   }
@@ -69,7 +85,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
           </Typography>
         </Grid>
         <Grid container={true} spacing={24} >
-          {Object.keys(this.props.categoryRepos).map((key, index) => (
+          {this.props.categoryRepos.map((key: any, index: number) => (
             <Grid item={true} key={index} xl={3} lg={4} md={6} sm={6} xs={12} style={styles.width100}>
               <Card elevation={0} style={styles.card}>
                 <CardContent>
@@ -80,18 +96,19 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
                         className={classNames(classes.displayInlineBlock, classes.width100)}
                         noWrap={true}
                       >
-                        {key}
+                        {key.name}
                       </Typography>
                     </Grid>
                     <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                      {this.props.categoryRepos[key].orgRepo === 'true' ?
+                      {/* TODO: fix this */}
+                      {this.props.organizations.indexOf(key.owner.login) !== -1 ?
                         <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-corp')} aria-hidden='true' />
                         :
                         <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-private')} aria-hidden='true' />
                       }
                     </Grid>
                     <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                      {this.props.categoryRepos[key].rights === 'read' ?
+                      {key.permissions.push === false ?
                         <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-read')} aria-hidden='true' />
                         :
                         <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-write')} aria-hidden='true' />
@@ -100,7 +117,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
                     <Grid item={true} className={classNames(classes.displayInlineBlock, classes.width100, classes.height)}>
                       <Typography variant='body1' gutterBottom={true}>
                         <Truncate lines={3} ellipsis={<span>...</span>}>
-                          {this.props.categoryRepos[key].description}
+                          {key.description}
                         </Truncate>
                       </Typography>
                     </Grid>
@@ -108,12 +125,12 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
                   <Grid container={true} spacing={0} direction='row'>
                     <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                       <Typography variant='subtitle2' className={classNames(classes.displayInlineBlock, classes.width100)} noWrap={true}>
-                        {this.props.categoryRepos[key].owner}
+                        {key.owner.login}
                       </Typography>
                     </Grid>
                     <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                       <Typography variant='subtitle2' className={classNames(classes.displayInlineBlock, classes.width100, classes.textToRight)} noWrap={true}>
-                        Endret: {this.props.categoryRepos[key].last_Changed}
+                        Endret: {key.updated_at}
                       </Typography>
                     </Grid>
                   </Grid>
@@ -127,4 +144,17 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
   }
 }
 
-export default withStyles(styles)(CategoryComponent);
+const mapStateToProps = (
+  state: IDashboardAppState,
+  props: ICategoryComponentProvidedProps,
+): ICategoryComponentProps => {
+  return {
+    classes: props.classes,
+    header: props.header,
+    categoryRepos: props.categoryRepos,
+    className: props.className,
+    organizations: filterOnOrgName(state.dashboard.organizations),
+  };
+};
+
+export default withStyles(styles)(connect(mapStateToProps)(CategoryComponent));
