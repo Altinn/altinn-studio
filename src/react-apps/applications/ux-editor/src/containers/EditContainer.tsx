@@ -1,6 +1,6 @@
 import {
   createStyles, FormControl, Grid, IconButton, List, ListItem, MenuItem, MuiThemeProvider, Select,
-  Theme, withStyles,
+  TextField, Theme, Typography, withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -11,19 +11,31 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import '../styles/index.css';
 
 const styles = ((theme: Theme) => createStyles({
+  active: {
+    backgroundColor: '#fff',
+    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
+  },
   formComponent: {
     backgroundColor: altinnTheme.palette.secondary.light,
     border: '1.5px dotted ' + altinnTheme.palette.secondary.dark,
     color: altinnTheme.palette.primary.dark + '!mportant',
   },
-  active: {
-    backgroundColor: '#fff',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
-  },
   formComponentsBtn: {
-    fontSize: '1em',
+    fontSize: '0.8em',
     fill: altinnTheme.palette.primary.dark,
     paddingLeft: 0,
+    marginTop: '0.1em',
+    outline: 'none !important',
+    '&:hover': {
+      background: 'none',
+    },
+  },
+  gridForBtn: {
+    paddingTop: '8px',
+    paddingBottom: '8px',
+  },
+  inputHelper: {
+    marginTop: '1em',
   },
 }));
 export interface IEditContainerProvidedProps {
@@ -44,6 +56,7 @@ export interface IEditContainerState {
   component: IFormComponent;
   isEditModalOpen: boolean;
   isItemActive: boolean;
+  isEditMode: boolean;
 }
 
 class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
@@ -52,6 +65,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state = {
       isEditModalOpen: false,
       isItemActive: false,
+      isEditMode: false,
       component: _props.component,
     };
   }
@@ -68,15 +82,24 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     e.stopPropagation();
   }
 
-  public handleOpenModal = (): void => {
+  public handleOpenEdit = (): void => {
     this.setState({
-      isItemActive: true,
+      isEditMode: true,
     });
+  }
+
+  public handleOpenModal = (): void => {
+    if (!this.state.isEditMode) {
+      this.setState({
+        isItemActive: !this.state.isItemActive,
+      });
+    }
   }
 
   public handleCloseModal = (): void => {
     this.setState({
       isItemActive: false,
+      isEditMode: false,
     });
   }
 
@@ -86,15 +109,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleTitleChange = (e: any): void => {
-    this.setState({
-      component: {
-        ...this.state.component,
-        title: e.target.value,
-      },
-    });
+    this.props.component.title = e.target.value;
   }
-  public handleSizeChange = (event: any) => {
-    this.props.component.size = event.target.value;
+  public handleSizeChange = (e: any) => {
+    this.props.component.size = e.target.value;
   }
 
   public renderComponentSpecificContent(): JSX.Element {
@@ -102,9 +120,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       case 'Header': {
         return (
           <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
-            <span className='a-iconText-text-large'>
+            <Typography variant='h5' gutterBottom={true} className={this.props.classes.inputHelper}>
               {this.props.language.ux_editor.modal_header_type_helper}
-            </span>
+            </Typography>
             <FormControl>
               <Select
                 value={this.props.component.size ? this.props.component.size : 'S'}
@@ -138,6 +156,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         return null;
       }
     }
+  }
+
+  public searchForText = (e: any): void => {
+    this.state.component.title = e.target.value;
   }
 
   public renderTextResourceOptions = (): JSX.Element[] => {
@@ -193,12 +215,18 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     className={this.state.isItemActive ? this.props.classes.active : this.props.classes.formComponent}
                     onClick={this.handleOpenModal}
                   >
-                    {this.state.isItemActive ?
+                    {this.state.isEditMode ?
                       <div>
                         <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
-                          <span className='a-iconText-text-large'>
+                          <Typography variant='h5' gutterBottom={true} className={this.props.classes.inputHelper}>
                             {this.props.language.ux_editor.modal_properties_data_model_helper}
-                          </span>
+                          </Typography>
+                          <Select
+                            children={this.props.textResources}
+                            value={this.state.component.customType === 'Standard' ?
+                              this.state.component.textResourceId : this.state.component.title}
+                            onChange={this.searchForText}
+                          />
                           <FormControl>
                             <Select
                               value={this.state.component.customType === 'Standard' ?
@@ -228,21 +256,50 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   </ListItem>
                 </List>
               </Grid>
-              {this.state.isItemActive &&
-                <Grid item={true} xs={true} container={true} direction={'column'}>
+              {this.state.isItemActive && !this.state.isEditMode &&
+                <Grid
+                  item={true}
+                  xs={true}
+                  container={true}
+                  direction={'column'}
+                  className={this.props.classes.gridForBtn}
+                >
+                  <IconButton
+                    type='button'
+                    className={this.props.classes.formComponentsBtn}
+                    onClick={this.handleComponentDelete}
+                  >
+                    <i className='reg reg-trash' />
+                  </IconButton>
+                  <IconButton
+                    type='button'
+                    className={this.props.classes.formComponentsBtn}
+                    onClick={this.handleOpenEdit}
+                  >
+                    <i className='reg reg-edit' />
+                  </IconButton>
+                </Grid>}
+              {this.state.isEditMode &&
+                <Grid
+                  item={true}
+                  xs={true}
+                  container={true}
+                  direction={'column'}
+                  className={this.props.classes.gridForBtn}
+                >
                   <IconButton
                     type='button'
                     className={this.props.classes.formComponentsBtn}
                     onClick={this.handleCloseModal}
                   >
-                    <i className='ai ai-exit-test' />
+                    <i className='reg reg-trash' />
                   </IconButton>
                   <IconButton
                     type='button'
                     className={this.props.classes.formComponentsBtn}
                     onClick={this.handleCloseModal}
                   >
-                    <i className='ai ai-check-circle' />
+                    <i className='reg reg-check' />
                   </IconButton>
                 </Grid>}
             </Grid>
