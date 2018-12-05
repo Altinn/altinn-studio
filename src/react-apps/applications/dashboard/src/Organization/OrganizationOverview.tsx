@@ -1,4 +1,4 @@
-import { FormControl, InputAdornment, TextField, Button } from '@material-ui/core';
+import { FormControl, InputAdornment, TextField, Button, Hidden } from '@material-ui/core';
 import { Grid } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
 import { withStyles } from '@material-ui/core/styles';
@@ -9,19 +9,24 @@ import { connect } from 'react-redux';
 import 'typeface-roboto';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import OrganizationCategory from './OrganizationCategory';
+import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 
 export interface IOrganizationOverviewComponentProvidedProps {
   classes: any;
+  width: any;
 }
 export interface IOrganizationOverviewComponentProps extends IOrganizationOverviewComponentProvidedProps {
   language: any;
   services: any;
   allAvailabeOwners: string[];
   filteredOwners: string[];
+  searchableServices: any;
 }
 
 export interface IOrganizationOverviewComponentState {
   filteredOwners: string[];
+  searchableServices: any;
+  searchString: string;
 }
 
 const styles = {
@@ -42,6 +47,9 @@ const styles = {
   },
   textToRight: {
     textAlign: 'right' as 'right',
+  },
+  alignToCenter: {
+    textAlign: 'center' as 'center',
   },
   elementToRigth: {
     float: 'right' as 'right',
@@ -142,15 +150,27 @@ const createFilterService = (state: any) => {
   return allServiceOwners;
 };
 
+const createInit = (state: any) => {
+  const allServiceOwners: string[] = [];
+  state.dashboard.services.map((service: any) => {
+    allServiceOwners.push(service);
+  });
+  return allServiceOwners;
+};
+
 class OrganizationOverviewComponent extends React.Component<IOrganizationOverviewComponentProps, IOrganizationOverviewComponentState> {
   public static getDerivedStateFromProps(_props: IOrganizationOverviewComponentProps, _state: IOrganizationOverviewComponentState) {
+    console.log('getDerivedStateFromProps' + _props.filteredOwners.length + ' ' + _state.filteredOwners.length);
     return {
       filteredOwners: _props.filteredOwners,
+      searchableServices: _props.searchableServices,
     };
   }
 
   public state: IOrganizationOverviewComponentState = {
-    filteredOwners: []
+    filteredOwners: [],
+    searchableServices: {},
+    searchString: '',
   };
 
   public filterCategory(filter: any) {
@@ -159,11 +179,16 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
     } else {
       filter = true;
     }
-    const newObj = this.props.services
+    const newObj = this.state.searchableServices
       .filter((key: any) =>
         key.permissions.push === filter && this.state.filteredOwners.indexOf(key.owner.login) !== -1,
       );
-    return newObj;
+    if (!this.state.searchString) return newObj;
+    const newerObj = newObj.filter((key: any) =>
+      key.name.toLowerCase().includes(this.state.searchString.toLowerCase()) || key.description.toLowerCase().includes(this.state.searchString.toLowerCase()),
+    );
+
+    return newerObj;
   }
 
   public updateFilter(key: string) {
@@ -180,76 +205,107 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
     });
   }
 
+  public componentDidUpdate() {
+    console.log('componentDidUpdate');
+  }
+
+  public searchForRepo = (event: any) => {
+    this.setState({
+      searchString: event.target.value
+    })
+    //searchString = event.target.value;
+  }
+
+  public renderFilters() {
+    return (
+      <Grid item={true} xl={10} lg={10} md={12}>
+        {this.props.allAvailabeOwners.map((key: string, index: number) => {
+          //TODO: add so that username equals Dine tjenester
+          return (<Chip
+            key={index}
+            label={key}
+            clickable={true}
+            color='primary'
+            variant='outlined'
+            onClick={this.updateFilter.bind(this, key)}
+            className={classNames(this.props.classes.chip, this.props.classes.mar_right_20, this.props.classes.mar_top_20, {
+              [this.props.classes.chipActive]: this.state.filteredOwners.indexOf(key) === -1 ? false : true,
+            })}
+          />);
+        })}
+      </Grid>
+    );
+  }
+
+  public renderSort() {
+    return (
+      <Grid item={true} xl={2} lg={2} md={2} sm={2} xs={2}>
+        <Chip
+          label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
+          clickable={false}
+          color='primary'
+          variant='outlined'
+          deleteIcon={<i className={classNames(this.props.classes.down)} />}
+          onDelete={() => { return false }}
+          className={classNames(this.props.classes.chip, this.props.classes.elementToRigth, this.props.classes.mar_top_20)}
+        />
+      </Grid>
+    );
+  }
+
   public render() {
     const { classes, services } = this.props;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
-          <Grid item={true} xl={8} lg={8} md={8} sm={8} xs={8}>
+          <Grid item={true} xl={8} lg={8} md={8} sm={8} xs={12}>
             <Typography component='h3' variant='h3' gutterBottom={true}>
               {getLanguageFromKey('dashboard.main_header', this.props.language)}
             </Typography>
           </Grid>
-          <Grid item={true} xl={4} lg={4} md={4} sm={4} xs={4} className={classes.textToRight}>
-            <Button variant='contained' className={classes.dottedBtn}>
+          <Grid item={true} xl={4} lg={4} md={4} sm={4} xs={12} className={classes.textToRight}>
+            <Button variant='contained' className={classes.dottedBtn} >
               <i className={classNames('ai ai-circle-plus', classes.dottedBtnIcon)} />
               {getLanguageFromKey('dashboard.new_service', this.props.language)}
             </Button>
           </Grid>
         </Grid>
-
         <Typography variant='h6' className={classes.mar_top_50} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
-        <Grid container={true} direction='row' justify='center' alignItems='center' className={classes.mar_top_50}>
-          <FormControl
-            classes={{ root: classNames(this.props.classes.searchBox) }}
-            fullWidth={true}
-          >
-            <TextField
-              id={'service-search'}
-              placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
-              InputProps={{
-                disableUnderline: true,
-                startAdornment:
-                  <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
-                    <i className={'ai ai-search'} />
-                  </InputAdornment>,
-                classes: { root: classNames(this.props.classes.searchBoxInput) },
-              }}
-            />
-          </FormControl>
-        </Grid>
         {services &&
           <>
             <Grid container={true} direction='row' className={classes.mar_top_50}>
-              <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
-                {this.props.allAvailabeOwners.map((key: string, index: number) => {
-                  //TODO: add so that username equals Dine tjenester
-                  return (<Chip
-                    key={index}
-                    label={key}
-                    clickable={true}
-                    color='primary'
-                    variant='outlined'
-                    onClick={this.updateFilter.bind(this, key)}
-                    className={classNames(classes.chip, classes.mar_right_20, classes.mar_top_20, {
-                      [classes.chipActive]: this.state.filteredOwners.indexOf(key) === -1 ? false : true,
-                    })}
-                  />);
-                })}
+              <Grid item={true} xl={12} lg={12} md={10} sm={10} xs={12} className={classNames({
+                [classes.alignToCenter]: isWidthUp('lg', this.props.width)
+              })}>
+                <FormControl
+                  classes={{ root: classNames(this.props.classes.searchBox) }}
+                  fullWidth={true}
+                >
+                  <TextField
+                    id={'service-search'}
+                    placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
+                    onChange={this.searchForRepo}
+                    InputProps={{
+                      disableUnderline: true,
+                      startAdornment:
+                        <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
+                          <i className={'ai ai-search'} />
+                        </InputAdornment>,
+                      classes: { root: classNames(this.props.classes.searchBoxInput) },
+                    }}
+                  />
+                </FormControl>
               </Grid>
-              <Grid item={true} xl={2} lg={2} md={2} sm={2} xs={2}>
-                <Chip
-                  label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
-                  clickable={false}
-                  color='primary'
-                  variant='outlined'
-                  deleteIcon={<i className={classNames(classes.down)} />}
-                  onDelete={() => { return false }}
-                  className={classNames(classes.chip, classes.elementToRigth, classes.mar_top_20)}
-                />
-              </Grid>
+              <Hidden lgUp={true}>
+                {this.renderSort()}
+                {this.renderFilters()}
+              </Hidden>
+              <Hidden mdDown={true}>
+                {this.renderFilters()}
+                {this.renderSort()}
+              </Hidden>
             </Grid>
             <OrganizationCategory
               header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}
@@ -274,10 +330,13 @@ const mapStateToProps = (
 ): IOrganizationOverviewComponentProps => {
   return {
     classes: props.classes,
+    width: props.width,
     language: state.language.language,
     services: state.dashboard.services,
     allAvailabeOwners: createFilterService(state),
     filteredOwners: createFilterService(state),
+    searchableServices: createInit(state),
   };
 };
-export default withStyles(styles)(connect(mapStateToProps)(OrganizationOverviewComponent));
+
+export default withWidth()(withStyles(styles)(connect(mapStateToProps)(OrganizationOverviewComponent)));

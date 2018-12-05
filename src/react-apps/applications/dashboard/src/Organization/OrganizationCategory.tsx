@@ -129,7 +129,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
                   <Grid container={true} spacing={0} direction='row'>
                     <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                       <Typography variant='subtitle2' className={classNames(classes.displayInlineBlock, classes.width100)} noWrap={true}>
-                        {key.owner.login}
+                        {key.owner.full_name || key.owner.login}
                       </Typography>
                     </Grid>
                     <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
