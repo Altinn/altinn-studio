@@ -4,6 +4,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
+import zIndex from '@material-ui/core/styles/zIndex';
 
 export interface IInformationPanelProvidedProps {
   classes: any;
@@ -22,9 +23,11 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
   public render(): JSX.Element {
     return (
       <Popover
+        className={classNames(this.props.classes.informationPanel)}
         anchorEl={this.props.anchorElement}
         open={this.props.informationPanelOpen}
         onClose={this.props.onClose}
+        PaperProps={{ square: true }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         classes={{ paper: classNames(this.props.classes.informationPanel) }}
@@ -76,7 +79,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
             this.props.language.ux_editor.information_third_party_library
           }
         </Typography>
-        <Typography classes={{ root: classNames(this.props.classes.informationPanelText) }}>
+        <Typography classes={{ root: classNames(this.props.classes.informationPanelLink) }}>
           <a href={'#'}>{this.props.language.ux_editor.information_more_info_link}</a>
         </Typography>
       </Popover>
@@ -87,8 +90,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
 const styles = (theme: Theme) => createStyles({
   searchBox: {
     border: '1px solid #0062BA',
-    marginTop: '10px',
-    marginBottom: '24px',
+    marginBottom: '12px',
     background: 'none',
   },
   searchBoxInput: {
@@ -111,7 +113,7 @@ const styles = (theme: Theme) => createStyles({
   informationPanelDivider: {
     marginLeft: '-24px',
     marginRight: '-24px',
-    marginBottom: '24px',
+    marginBottom: '12px',
   },
   informationPanelHeader: {
     fontSize: '14px',
@@ -123,6 +125,9 @@ const styles = (theme: Theme) => createStyles({
     fontSize: '14px',
     marginBottom: '12px',
   },
+  informationPanelLink: {
+    fontSize: '14px',
+  }
 });
 
 const mapStateToProps: (

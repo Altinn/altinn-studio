@@ -200,7 +200,7 @@ class AppClass extends React.Component<IAppProps, any> {
                   />
                 ))}
               </div>
-              <div style={{ paddingLeft: 100 }}>
+              <div style={{ paddingLeft: 73 }}>
                 {routes.map((route, index) => (
                   <Route
                     key={index}

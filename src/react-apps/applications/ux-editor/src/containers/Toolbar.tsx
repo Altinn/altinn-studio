@@ -205,7 +205,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
   public render() {
     return (
-      <div className={'col-sm-12'}>
+      <div className={'col-sm-12'} style={{ padding: '24px' }}>
         <FormControl
           classes={{ root: classNames(this.props.classes.searchBox) }}
           fullWidth={true}
@@ -233,7 +233,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             menuType={CollapsableMenus.Components}
           />
 
-          <Collapse in={this.state.componentListOpen} timeout={50}>
+          <Collapse in={this.state.componentListOpen}>
             <List dense={false} id='schema-components'>
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (
@@ -326,7 +326,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             onClick={this.handleCollapsableListClicked}
             menuType={CollapsableMenus.Texts}
           />
-          <Collapse in={this.state.textListOpen} timeout={50}>
+          <Collapse in={this.state.textListOpen}>
             <List dense={false} id={'schema-texts'}>
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (

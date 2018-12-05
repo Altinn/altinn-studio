@@ -32,7 +32,12 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
 
   public render(): JSX.Element {
     return (
-      <div style={{ display: 'inline-block', verticalAlign: 'middle', minWidth: '100%' }}>
+      <div
+        style={{
+          display: 'flex', verticalAlign: 'middle', minWidth: '100%', alignItems: 'center',
+          paddingBottom: '6px', paddingTop: '6px', justifyContent: 'space-between',
+        }}
+      >
         <Select
           classes={{
             root: this.props.classes.componentListSelector,
@@ -75,12 +80,13 @@ const styles = (theme: Theme) => createStyles({
     fontSize: '12px',
     color: '#022F51',
     fontWeight: 'bold',
-    display: 'inline-block',
+    display: 'inherit',
   },
   select: {
-    paddingTop: '7px',
-    paddingBottom: '7px',
     paddingRight: '24px',
+    paddingBottom: '0px',
+    paddingTop: '0px',
+    minHeight: '0',
   },
   icon: {
     position: 'absolute',

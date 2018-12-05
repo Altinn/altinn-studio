@@ -48,6 +48,10 @@ const styles = (theme: Theme) => createStyles({
     fontSize: '14px',
     marginLeft: '6px',
     padding: '0px',
+    color: '#022F51',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   collapsableButtonTextRoot: {
     padding: '0px',
