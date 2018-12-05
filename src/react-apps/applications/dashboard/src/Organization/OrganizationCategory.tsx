@@ -63,7 +63,7 @@ const filterOnOrgName = (organizations: any) => {
 };
 
 class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
-  formatDate(date: any): any {
+  public formatDate(date: any): any {
     let test = new Date(date)
     //moment.formatDate();
     return test.getDate() + '.' + test.getMonth() + '.' + test.getFullYear();

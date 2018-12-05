@@ -95,16 +95,6 @@ const createFilterService = (state: any) => {
   return allServiceOwners;
 };
 
-const filterOnOrgName = (organizations: any) => {
-  const allOrgNames: string[] = [];
-  organizations.map((key: any) => {
-    if (allOrgNames.indexOf(key.username) === -1) {
-      allOrgNames.push(key.username);
-    }
-  });
-  return allOrgNames;
-};
-
 class OrganizationOverviewComponent extends React.Component<IOrganizationOverviewComponentProps, IOrganizationOverviewComponentState> {
   public static getDerivedStateFromProps(_props: IOrganizationOverviewComponentProps, _state: IOrganizationOverviewComponentState) {
     return {
@@ -125,7 +115,7 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
     const newObj = this.props.services
       .filter((key: any) =>
         key.permissions.push === filter && this.state.filteredOwners.indexOf(key.owner.login) !== -1,
-    );
+      );
     return newObj;
   }
 
