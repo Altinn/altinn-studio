@@ -102,10 +102,20 @@ class FormComponent extends React.Component<
     }
 
     return (
-      <label className='a-form-label' htmlFor={this.props.id}>
+      <label className='a-form-label title-label' htmlFor={this.props.id}>
         {label}
       </label>
     );
+  }
+
+  public renderDescription = (): JSX.Element => {
+    if (this.props.component.description) {
+      return (
+        <span className='a-form-label description-label'>{this.props.component.description}</span>
+      );
+    }
+
+    return null;
   }
 
   /**
@@ -127,6 +137,7 @@ class FormComponent extends React.Component<
           <div className='col'>
             <div className='form-group a-form-group'>
               {this.renderLabel()}
+              {this.renderDescription()}
               {this.renderComponent()}
               {this.errorMessage()}
             </div>
