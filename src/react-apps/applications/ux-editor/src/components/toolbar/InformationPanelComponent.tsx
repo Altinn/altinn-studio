@@ -23,12 +23,11 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
   public render(): JSX.Element {
     return (
       <Popover
-        className={classNames(this.props.classes.informationPanel)}
         anchorEl={this.props.anchorElement}
         open={this.props.informationPanelOpen}
         onClose={this.props.onClose}
         PaperProps={{ square: true }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         classes={{ paper: classNames(this.props.classes.informationPanel) }}
       >
