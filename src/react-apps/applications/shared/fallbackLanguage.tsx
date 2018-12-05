@@ -15,6 +15,7 @@ const fallbackLanguage = {
     label: 'Label',
     required: 'Required',
     save: 'Save',
+    search: 'Search',
     select_field: 'Select field',
     submit: 'Submit',
     value: 'Value',

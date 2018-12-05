@@ -1,16 +1,18 @@
 import {
-  createStyles, FormControl, Grid, IconButton, List, ListItem, MenuItem, MuiThemeProvider, Select,
-  TextField, Theme, Typography, withStyles,
+  createStyles, Grid, IconButton, List, ListItem,
+  Typography, withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
+import CreatableSelect from 'react-select/lib/Creatable';
+import Select from 'react-select';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
 import '../styles/index.css';
 
-const styles = ((theme: Theme) => createStyles({
+const styles = createStyles({
   active: {
     backgroundColor: '#fff',
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
@@ -21,14 +23,17 @@ const styles = ((theme: Theme) => createStyles({
     color: altinnTheme.palette.primary.dark + '!mportant',
   },
   formComponentsBtn: {
-    fontSize: '0.8em',
+    fontSize: '0.85em',
     fill: altinnTheme.palette.primary.dark,
-    paddingLeft: 0,
+    paddingLeft: '0',
     marginTop: '0.1em',
     outline: 'none !important',
     '&:hover': {
       background: 'none',
     },
+  },
+  specialBtn: {
+    fontSize: '0.6em !important',
   },
   gridForBtn: {
     paddingTop: '8px',
@@ -37,7 +42,20 @@ const styles = ((theme: Theme) => createStyles({
   inputHelper: {
     marginTop: '1em',
   },
-}));
+  caption: {
+    position: 'absolute',
+    right: '12px',
+    top: '6px',
+    fontSize: '1.2rem',
+  },
+  textPrimaryDark: {
+    color: altinnTheme.palette.primary.dark + '!important',
+  },
+  textSecondaryDark: {
+    color: altinnTheme.palette.secondary.dark + '!important',
+  },
+});
+
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
   id: string;
@@ -45,7 +63,6 @@ export interface IEditContainerProvidedProps {
 }
 
 export interface IEditContainerProps extends IEditContainerProvidedProps {
-  component: IFormComponent;
   id: string;
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
@@ -96,7 +113,14 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     }
   }
 
-  public handleCloseModal = (): void => {
+  public handleSave = (): void => {
+    this.setState({
+      isItemActive: false,
+      isEditMode: false,
+    });
+    this.handleSaveChange(this.state.component);
+  }
+  public handleDiscard = (): void => {
     this.setState({
       isItemActive: false,
       isEditMode: false,
@@ -105,51 +129,34 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
     this.handleComponentUpdate(callbackComponent);
-    this.handleCloseModal();
   }
 
   public handleTitleChange = (e: any): void => {
-    this.props.component.title = e.target.value;
+    this.state.component.title = e.value;
   }
-  public handleSizeChange = (e: any) => {
-    this.props.component.size = e.target.value;
+  public handleSizeChange = (e: any): void => {
+    this.state.component.size = e.value;
   }
 
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.component) {
       case 'Header': {
+        const sizes = [
+          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h3 },
+          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h2 },
+          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 }
+        ];
         return (
           <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
             <Typography variant='h5' gutterBottom={true} className={this.props.classes.inputHelper}>
               {this.props.language.ux_editor.modal_header_type_helper}
             </Typography>
-            <FormControl>
-              <Select
-                value={this.props.component.size ? this.props.component.size : 'S'}
-                onChange={this.handleSizeChange}
-                disableUnderline={true}
-                inputProps={{
-                  id: 'size-select',
-                  name: 'header size',
-                }}
-              >
-                <MenuItem key={0} value={'S'}>
-                  {this.props.language.ux_editor.modal_header_type_h3}
-                </MenuItem>
-                <MenuItem key={1} value={'M'}>
-                  {this.props.language.ux_editor.modal_header_type_h2}
-                </MenuItem>
-                <MenuItem key={2} value={'L'}>
-                  {this.props.language.ux_editor.modal_header_type_h1}
-                </MenuItem>
-              </Select>
-            </FormControl>
+            <Select
+              defaultValue={sizes[0]}
+              onChange={this.handleSizeChange}
+              options={sizes}
+            />
           </Grid>
-        );
-      }
-      case 'Input': {
-        return (
-          <span>helo from input?</span>
         );
       }
       default: {
@@ -162,21 +169,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.component.title = e.target.value;
   }
 
-  public renderTextResourceOptions = (): JSX.Element[] => {
-    if (!this.props.textResources) {
-      return null;
-    }
-
-    return (
-      this.props.textResources.map((resource, index) => {
-        const option = this.truncate(resource.value);
-        return (
-          <MenuItem key={index} value={resource.id} name={resource.value}>
-            {option}
-          </MenuItem>
-        );
-      }));
-  }
 
   public truncate = (s: string) => {
     if (s.length > 60) {
@@ -187,124 +179,96 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public render(): JSX.Element {
+    const textRecources: any = [];
+    this.props.textResources.map((resource, index) => {
+      const option = this.truncate(resource.value);
+
+      textRecources.push({ value: resource.id, label: option })
+    });
+
     return (
       <>
-        <MuiThemeProvider theme={altinnTheme}>
-          <Modal
-            isOpen={this.state.isEditModalOpen}
-            onRequestClose={this.handleCloseModal}
-            ariaHideApp={false}
-            contentLabel={'Input edit'}
-            className='react-modal a-modal-content-target a-page a-current-page modalPage'
-            overlayClassName='react-modal-overlay '
-          >
-            <EditModalContent
-              component={this.props.component}
-              saveEdit={this.handleSaveChange}
-              cancelEdit={this.handleCloseModal}
-              dataModel={this.props.dataModel}
-              textResources={this.props.textResources}
-              language={this.props.language}
-            />
-          </Modal>
-          <Grid item={true} xs={12} sm={true} container={true}>
-            <Grid item={true} xs={true} container={true} direction={'row'} spacing={0}>
-              <Grid item={true} xs={11}>
-                <List>
-                  <ListItem
-                    className={this.state.isItemActive ? this.props.classes.active : this.props.classes.formComponent}
-                    onClick={this.handleOpenModal}
-                  >
-                    {this.state.isEditMode ?
-                      <div>
-                        <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}>
-                          <Typography variant='h5' gutterBottom={true} className={this.props.classes.inputHelper}>
-                            {this.props.language.ux_editor.modal_properties_data_model_helper}
-                          </Typography>
-                          <Select
-                            children={this.props.textResources}
-                            value={this.state.component.customType === 'Standard' ?
-                              this.state.component.textResourceId : this.state.component.title}
-                            onChange={this.searchForText}
-                          />
-                          <FormControl>
-                            <Select
-                              value={this.state.component.customType === 'Standard' ?
-                                this.state.component.textResourceId : this.state.component.title}
-                              onChange={this.handleTitleChange}
-                              disabled={this.state.component.customType === 'Standard'}
-                              disableUnderline={true}
-                              inputProps={{
-                                id: 'text-select',
-                                name: 'text',
-                              }}
-                            >
-                              <MenuItem value='null' disabled={true}>
-                                {this.props.language.ux_editor.modal_text_input}
-                              </MenuItem>
-                              {this.renderTextResourceOptions()}
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        {this.renderComponentSpecificContent()}
-                      </div>
-                      :
-                      <div className='subtitle2'>
-                        {this.props.children}
-                      </div>
-                    }
-                  </ListItem>
-                </List>
-              </Grid>
-              {this.state.isItemActive && !this.state.isEditMode &&
-                <Grid
-                  item={true}
-                  xs={true}
-                  container={true}
-                  direction={'column'}
-                  className={this.props.classes.gridForBtn}
+        <Grid item={true} xs={12} sm={true} container={true}>
+          <Grid item={true} xs={true} container={true} direction={'row'} spacing={0}>
+            <Grid item={true} xs={11}>
+              <List>
+                <ListItem
+                  className={this.state.isItemActive ? this.props.classes.active : this.props.classes.formComponent}
+                  onClick={this.handleOpenModal}
                 >
-                  <IconButton
-                    type='button'
-                    className={this.props.classes.formComponentsBtn}
-                    onClick={this.handleComponentDelete}
-                  >
-                    <i className='reg reg-trash' />
-                  </IconButton>
-                  <IconButton
-                    type='button'
-                    className={this.props.classes.formComponentsBtn}
-                    onClick={this.handleOpenEdit}
-                  >
-                    <i className='reg reg-edit' />
-                  </IconButton>
-                </Grid>}
-              {this.state.isEditMode &&
-                <Grid
-                  item={true}
-                  xs={true}
-                  container={true}
-                  direction={'column'}
-                  className={this.props.classes.gridForBtn}
-                >
-                  <IconButton
-                    type='button'
-                    className={this.props.classes.formComponentsBtn}
-                    onClick={this.handleCloseModal}
-                  >
-                    <i className='reg reg-trash' />
-                  </IconButton>
-                  <IconButton
-                    type='button'
-                    className={this.props.classes.formComponentsBtn}
-                    onClick={this.handleCloseModal}
-                  >
-                    <i className='reg reg-check' />
-                  </IconButton>
-                </Grid>}
+                  {this.state.isEditMode ?
+                    <Grid item={true} xs={11}>
+                      <p className={'a-fontSizeS ' + this.props.classes.inputHelper}>
+                        {this.props.language.ux_editor.modal_properties_data_model_helper}
+                      </p>
+                      <CreatableSelect
+                        options={textRecources}
+                        defaultValue={''}
+                        onChange={this.handleTitleChange}
+                        isClearable
+                        placeholder={this.state.component.title ? this.state.component.title : this.props.language.general.search}
+                      />
+                      {this.renderComponentSpecificContent()}
+                    </Grid>
+                    :
+                    <div className={this.props.classes.textPrimaryDark}>
+                      {this.props.children}
+                      <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
+                        {this.props.component.component}
+                      </span>
+                    </div>
+                  }
+                </ListItem>
+              </List>
             </Grid>
+            {this.state.isItemActive && !this.state.isEditMode &&
+              <Grid
+                item={true}
+                xs={true}
+                container={true}
+                direction={'column'}
+                className={this.props.classes.gridForBtn}
+              >
+                <IconButton
+                  type='button'
+                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                  onClick={this.handleComponentDelete}
+                >
+                  <i className='ai ai-circletrash' />
+                </IconButton>
+                <IconButton
+                  type='button'
+                  className={this.props.classes.formComponentsBtn}
+                  onClick={this.handleOpenEdit}
+                >
+                  <i className='reg reg-edit' />
+                </IconButton>
+              </Grid>}
+            {this.state.isEditMode &&
+              <Grid
+                item={true}
+                xs={true}
+                container={true}
+                direction={'column'}
+                className={this.props.classes.gridForBtn}
+              >
+                <IconButton
+                  type='button'
+                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                  onClick={this.handleDiscard}
+                >
+                  <i className='ai ai-circlecancel' />
+                </IconButton>
+                <IconButton
+                  type='button'
+                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                  onClick={this.handleSave}
+                >
+                  <i className='ai ai-circlecheck' />
+                </IconButton>
+              </Grid>}
           </Grid>
-        </MuiThemeProvider>
+        </Grid>
       </>
     );
   }
