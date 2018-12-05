@@ -8,8 +8,8 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import Icon from './Icon';
 import { leftDrawerMenuSettings } from './drawerMenuSettings';
+import Icon from './Icon';
 import { styles } from './leftDrawerMenuStyles';
 
 export interface INavMenuProps {
