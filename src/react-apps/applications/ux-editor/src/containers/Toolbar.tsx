@@ -1,4 +1,4 @@
-import { Collapse, createStyles, Theme, withStyles } from '@material-ui/core';
+import { Collapse, createStyles, Theme, withStyles, ClickAwayListener } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
@@ -57,7 +57,9 @@ export interface IToolbarState {
   componentSelectedForInformationPanel: ComponentTypes;
   anchorElement: any;
   componentListOpen: boolean;
+  componentListCloseAnimationDone: boolean;
   textListOpen: boolean;
+  textListCloseAnimationDone: boolean;
 }
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public components: IToolbarElement[];
@@ -73,7 +75,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       componentSelectedForInformationPanel: -1,
       anchorElement: null,
       componentListOpen: true,
+      componentListCloseAnimationDone: false,
       textListOpen: true,
+      textListCloseAnimationDone: false,
     };
     this.components = schemaComponents.map(this.mapComponentToToolbarElement);
     this.textComponents = textComponents.map(this.mapComponentToToolbarElement);
@@ -203,6 +207,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     // Ignore for now, favourites will be implemented at a later stage
   }
 
+  public handleCollapsableAnimationDone = (list: string) => {
+    if (list === 'schema') {
+      this.setState({
+        componentListCloseAnimationDone: !this.state.componentListCloseAnimationDone,
+      });
+    } else if (list === 'text') {
+      this.setState({
+        textListCloseAnimationDone: !this.state.textListCloseAnimationDone,
+      });
+    }
+  }
+
   public render() {
     return (
       <div className={'col-sm-12'} style={{ padding: '24px' }}>
@@ -223,7 +239,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           />
         </FormControl>
-        <List id='collapsable-items'>
+        <List id='collapsable-items' tabIndex={-1}>
 
           <ListSelectorComponent onChange={this.handleComponentListChange} />
 
@@ -233,8 +249,16 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             menuType={CollapsableMenus.Components}
           />
 
-          <Collapse in={this.state.componentListOpen}>
-            <List dense={false} id='schema-components'>
+          <Collapse
+            in={this.state.componentListOpen}
+            onExited={this.handleCollapsableAnimationDone.bind(this, 'schema')}
+            onEnter={this.handleCollapsableAnimationDone.bind(this, 'schema')}
+          >
+            <List
+              dense={false}
+              id='schema-components'
+              style={this.state.componentListCloseAnimationDone ? { display: 'none' } : {}}
+            >
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (
                   <div ref={provided.innerRef}>
@@ -326,7 +350,11 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             onClick={this.handleCollapsableListClicked}
             menuType={CollapsableMenus.Texts}
           />
-          <Collapse in={this.state.textListOpen}>
+          <Collapse
+            in={this.state.textListOpen}
+            onExited={this.handleCollapsableAnimationDone.bind(this, 'text')}
+            onEnter={this.handleCollapsableAnimationDone.bind(this, 'text')}
+          >
             <List dense={false} id={'schema-texts'}>
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (
@@ -415,6 +443,9 @@ const styles = (theme: Theme) => createStyles({
   },
   searchBoxIcon: {
     color: '#000000',
+  },
+  collapsableEntered: {
+    pointerEvents: 'none',
   },
 });
 

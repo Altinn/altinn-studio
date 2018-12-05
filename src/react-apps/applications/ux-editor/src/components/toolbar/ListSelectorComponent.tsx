@@ -33,6 +33,7 @@ class ListSelector extends React.Component<IListSelectorProps, IListSelectorStat
   public render(): JSX.Element {
     return (
       <div
+        tabIndex={0}
         style={{
           display: 'flex', verticalAlign: 'middle', minWidth: '100%', alignItems: 'center',
           paddingBottom: '6px', paddingTop: '6px', justifyContent: 'space-between',
