@@ -63,6 +63,11 @@ const filterOnOrgName = (organizations: any) => {
 };
 
 class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
+  formatDate(date: any): any {
+    let test = new Date(date)
+    //moment.formatDate();
+    return test.getDate() + '.' + test.getMonth() + '.' + test.getFullYear();
+  }
   public state: ICategoryComponentState = {
   }
 
@@ -130,7 +135,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
                     </Grid>
                     <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                       <Typography variant='subtitle2' className={classNames(classes.displayInlineBlock, classes.width100, classes.textToRight)} noWrap={true}>
-                        Endret: {key.updated_at}
+                        Endret: {this.formatDate(key.updated_at)}
                       </Typography>
                     </Grid>
                   </Grid>
