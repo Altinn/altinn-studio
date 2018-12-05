@@ -2,6 +2,7 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using System.Xml;
 using System.Xml.Schema;
@@ -15,7 +16,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             XmlSchema xsdSchema = new XmlSchema();
             string rootComplexTypeName = GetterExtensions.Title(jSchema);
             XmlSchemaElement rootElement = new XmlSchemaElement();
-            XmlSchemaComplexType rootComplexType = extractComplexType(rootComplexTypeName, jSchema);        
+            XmlSchemaComplexType rootComplexType = ExtractComplexType(rootComplexTypeName, jSchema);        
             rootElement.Name = "melding";
            
             rootElement.SchemaTypeName = new XmlQualifiedName(rootComplexTypeName);
@@ -26,13 +27,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if (def.Value.Properties() != null || def.Value.AllOf() != null)
                 {
-                    XmlSchemaComplexType complexType = extractComplexType(def.Key, def.Value);
+                    XmlSchemaComplexType complexType = ExtractComplexType(def.Key, def.Value);
                     xsdSchema.Items.Add(complexType);
                 } else
                 {
-                    XmlSchemaSimpleType simpleType = extractSimpleType(def.Key, def.Value);
-                    xsdSchema.Items.Add(simpleType);
-
+                    XmlSchemaSimpleType simpleType = ExtractSimpleType(def.Key, def.Value);
+                    xsdSchema.Items.Add(simpleType);                
                 }
             
             }
@@ -40,11 +40,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return xsdSchema;
         }
 
-        private XmlSchemaComplexType extractComplexType(string name, JsonSchema def)
+        private XmlSchemaComplexType ExtractComplexType(string name, JsonSchema def)
         {
             XmlSchemaComplexType complexType = new XmlSchemaComplexType();
  
             complexType.Name = name;
+
+            string abstractType = def.OtherData.TryGetString("@xsdTag");
+            if (abstractType != null && abstractType.Equals("abstract"))
+            {
+                complexType.IsAbstract = true;
+            }
+
 
             List<JsonSchema> allOf = GetterExtensions.AllOf(def);
 
@@ -57,7 +64,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     string reference = GetterExtensions.Ref(schema);
                     if (reference != null)
                     {                        
-                        extension.BaseTypeName = new XmlQualifiedName(extractDefinition(reference));
+                        extension.BaseTypeName = new XmlQualifiedName(ExtractDefinition(reference));
                         XmlSchemaComplexContent content = new XmlSchemaComplexContent();
                         content.Content = extension;                     
 
@@ -65,16 +72,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                     else if (schema.Properties() != null)
                     {
-                        extension.Particle = extractAttrsAndElems(schema, complexType);
+                        extension.Particle = ExtractAttrsAndElems(schema, complexType);
                     }                    
 
                 }
                 
             } else
             {
-                XmlSchemaSequence sequence = extractAttrsAndElems(def, complexType);
+                XmlSchemaSequence sequence = ExtractAttrsAndElems(def, complexType);
                 
-                if (sequence.Items.Count > 0)
+                if (sequence != null && sequence.Items.Count > 0)
                 {
                     complexType.Particle = sequence;                    
                 }
@@ -84,32 +91,44 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
 
-        private XmlSchemaSequence extractAttrsAndElems(JsonSchema def, XmlSchemaComplexType complexType)
+        private XmlSchemaSequence ExtractAttrsAndElems(JsonSchema def, XmlSchemaComplexType complexType)
         {
             XmlSchemaSequence sequence = new XmlSchemaSequence();
-            foreach (KeyValuePair<string, JsonSchema> o in def.Properties())
+            foreach (KeyValuePair<string, JsonSchema> property in def.Properties())
             {
+                string propertyName = property.Key;
+                JsonSchema propertyType = property.Value;
 
-                string xsdType = o.Value.OtherData.TryGetString("@xsdType");
+                string xsdType = propertyType.OtherData.TryGetString("@xsdType");
                 if (xsdType != null && xsdType.Equals("XmlAttribute"))
                 {
-                    XmlSchemaSimpleType simpleType = extractSimpleType("example", o.Value);
+                    XmlSchemaSimpleType simpleType = ExtractSimpleType("example", propertyType);
               
                     XmlSchemaAttribute attribute = new XmlSchemaAttribute();
-                    attribute.Name = o.Key;
+                    attribute.Name = propertyName;
                     attribute.SchemaTypeName = ((XmlSchemaSimpleTypeRestriction) simpleType.Content).BaseTypeName;
                     complexType.Attributes.Add(attribute);
+
+                    JsonValue constant = propertyType.Const();
+                    if (constant != null)
+                    {
+                        if (constant.String != null)
+                        {
+                            attribute.FixedValue = constant.String;
+                        } 
+                    }
+
                 }
                 else
                 {
-                    sequence.Items.Add(extractElementSequence(o.Key, o.Value));
+                    sequence.Items.Add(ExtractElementSequence(propertyName, propertyType, def));
                 }
             }
             return sequence;
         }
         
 
-        private XmlSchemaSimpleType extractSimpleType(string name, JsonSchema jschema)
+        private XmlSchemaSimpleType ExtractSimpleType(string name, JsonSchema jschema)
         {
             XmlSchemaSimpleType simpleType = new XmlSchemaSimpleType();
 
@@ -119,10 +138,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (type.Value == JsonSchemaType.String)
             {
-                
-                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction();
 
-                content.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
+                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
+                {
+                    BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema")
+                };
 
                 EnumKeyword enumKeyword = jschema.Get<EnumKeyword>();
                 if (enumKeyword != null)
@@ -130,13 +150,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                     foreach (JsonValue enumValue in GetterExtensions.Enum(jschema))
                     {
-                        XmlSchemaEnumerationFacet enumFacet = new XmlSchemaEnumerationFacet();
-                        enumFacet.Value = enumValue.String;
+                        XmlSchemaEnumerationFacet enumFacet = new XmlSchemaEnumerationFacet
+                        {
+                            Value = enumValue.String
+                        };
                         content.Facets.Add(enumFacet);
                     }
                 }
                 
-
                 MinLengthKeyword minLength = jschema.Get<MinLengthKeyword>();
                 if (minLength != null)
                 {
@@ -153,33 +174,135 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     content.Facets.Add(maxInclusive);
                 }
 
+                PatternKeyword pattern = jschema.Get<PatternKeyword>();
+                if (pattern != null)
+                {
+                    XmlSchemaPatternFacet patternFacet = new XmlSchemaPatternFacet();
+                    patternFacet.Value = pattern.Value.ToString();
+
+                    content.Facets.Add(patternFacet);
+                }
+
+                FormatKeyword format = jschema.Get<FormatKeyword>();
+                if (format != null && format.Value != null && format.Value.Key != null && !format.Value.Key.Equals(""))
+                {
+                    ExtractFormat(content, format);
+                }
+
                 simpleType.Content = content;
 
             }
-            else if (type.Value == JsonSchemaType.Number)
-            {
-                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction();
-                content.BaseTypeName = new XmlQualifiedName("decimal", "http://www.w3.org/2001/XMLSchema");
-                simpleType.Content = content;
-            }
-            else if (type.Value == JsonSchemaType.Integer)
-            {
-                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction();
-                content.BaseTypeName = new XmlQualifiedName("integer", "http://www.w3.org/2001/XMLSchema");            
-                simpleType.Content = content;
+            else if (type.Value == JsonSchemaType.Number || type.Value == JsonSchemaType.Integer)
+            {                
+                simpleType.Content = HandleNumberAndInteger(jschema, type);
             }
             else if (type.Value == JsonSchemaType.Boolean)
             {
                 XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction();
                 content.BaseTypeName = new XmlQualifiedName("boolean", "http://www.w3.org/2001/XMLSchema");
                 simpleType.Content = content;
-
-            }
+            }           
 
             return simpleType;
         }
 
-        private XmlSchemaElement extractElementSequence(string propertyName, JsonSchema propertyType)
+        private static XmlSchemaSimpleTypeRestriction HandleNumberAndInteger(JsonSchema jschema, TypeKeyword type)
+        {
+            XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction();
+
+            if (type.Value == JsonSchemaType.Number)
+            {
+                content.BaseTypeName = new XmlQualifiedName("decimal", "http://www.w3.org/2001/XMLSchema");
+            }
+            else if (type.Value == JsonSchemaType.Integer)
+            {
+                content.BaseTypeName = new XmlQualifiedName("integer", "http://www.w3.org/2001/XMLSchema");
+            }
+
+            double? minValue = GetterExtensions.Minimum(jschema);
+            double? minExclusiveValue = GetterExtensions.ExclusiveMinimum(jschema);
+
+            if (minValue != null || minExclusiveValue != null)
+            {
+                if (minValue != null)
+                {
+                    double value = (double)minValue;
+                    XmlSchemaMinInclusiveFacet facet = new XmlSchemaMinInclusiveFacet
+                    {
+                        Value = value.ToString("G", CultureInfo.InvariantCulture)
+                    };
+                    content.Facets.Add(facet);
+                }
+                else
+                {
+                    double value = (double)minExclusiveValue;
+                    XmlSchemaMinExclusiveFacet facet = new XmlSchemaMinExclusiveFacet
+                    {
+                        Value = value.ToString("G", CultureInfo.InvariantCulture)
+                    };
+                    content.Facets.Add(facet);
+                }
+
+            }
+
+            double? maxValue = GetterExtensions.Maximum(jschema);
+            double? maxExclusiveValue = GetterExtensions.ExclusiveMaximum(jschema);
+
+            if (maxValue != null || maxExclusiveValue != null)
+            {
+                if (maxValue != null)
+                {
+                    double value = (double)maxValue;
+                    XmlSchemaMaxInclusiveFacet maxInclusiveFacet = new XmlSchemaMaxInclusiveFacet
+                    {
+                        Value = value.ToString("G", CultureInfo.InvariantCulture)
+                    };
+                    content.Facets.Add(maxInclusiveFacet);
+                }
+                else
+                {
+                    double value = (double)maxExclusiveValue;
+                    XmlSchemaMaxExclusiveFacet maxExclusiveFacet = new XmlSchemaMaxExclusiveFacet
+                    {
+                        Value = value.ToString("G", CultureInfo.InvariantCulture)
+                    };
+                    content.Facets.Add(maxExclusiveFacet);
+                }
+
+            }
+
+            return content;
+        }
+
+        private static void ExtractFormat(XmlSchemaSimpleTypeRestriction content, FormatKeyword format)
+        {
+            switch (format.Value.Key)
+            {
+                case "date-time":
+                    content.BaseTypeName = new XmlQualifiedName("dateTime", "http://www.w3.org/2001/XMLSchema");
+                    break;
+                case "date":
+                    content.BaseTypeName = new XmlQualifiedName("date", "http://www.w3.org/2001/XMLSchema");
+                    break;
+                case "time":
+                    content.BaseTypeName = new XmlQualifiedName("time", "http://www.w3.org/2001/XMLSchema");
+                    break;
+                case "year-month":
+                    content.BaseTypeName = new XmlQualifiedName("gYearMonth", "http://www.w3.org/2001/XMLSchema");
+                    break;
+                case "year":
+                    content.BaseTypeName = new XmlQualifiedName("gYear", "http://www.w3.org/2001/XMLSchema");
+                    break;
+                case "email":
+                    content.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
+                    break;
+                case "uri":
+                    content.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
+                    break;
+            }
+        }
+
+        private XmlSchemaElement ExtractElementSequence(string propertyName, JsonSchema propertyType, JsonSchema parentType)
         {                                                
             XmlSchemaElement element = new XmlSchemaElement();
 
@@ -208,12 +331,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 foreach (JsonSchema schema in items)
                 {
                     string typeRef = GetterExtensions.Ref(schema);
-                    element.SchemaTypeName = new XmlQualifiedName(extractDefinition(typeRef));
+                    element.SchemaTypeName = new XmlQualifiedName(ExtractDefinition(typeRef));
                 }
 
             }
 
-            List<string> requiredFields = GetterExtensions.Required(propertyType);
+            List<string> requiredFields = GetterExtensions.Required(parentType);
             if (requiredFields != null && requiredFields.Contains(propertyName))
             {
                 //element.MinOccurs = 1;
@@ -225,14 +348,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string reference = GetterExtensions.Ref(propertyType);
             if (reference != null)
             {
-                element.SchemaTypeName = new XmlQualifiedName(extractDefinition(reference));
+                element.SchemaTypeName = new XmlQualifiedName(ExtractDefinition(reference));
             }
 
             return element;            
 
         }
 
-        private string extractDefinition(string refDefinition)
+        private string ExtractDefinition(string refDefinition)
         {
             return refDefinition.Replace("#/definitions/", "");
         }

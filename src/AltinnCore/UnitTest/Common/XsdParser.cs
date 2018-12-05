@@ -18,22 +18,6 @@ namespace AltinnCore.UnitTest.Common
 {
     public class SeresXsdParserTest
     {
-        [Fact]
-        public void XSDRootElementSequenceIsOK()
-        {
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
-            var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/schema.xsd");
-          
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
-
-            ElementMetadata elementMetadata;
-
-            serviceMetadata.Elements.TryGetValue("melding.Leveranse", out elementMetadata);
-
-            Assert.Equal(999, elementMetadata.MaxOccurs);
-
-        }
 
         [Fact]
         public void ConvertJsonSchemaToXsd()
@@ -54,31 +38,7 @@ namespace AltinnCore.UnitTest.Common
             xmlSchema.Write(xwriter);
         }
 
-        [Fact]
-        public void JsonSchemaIsOK()
-        {
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
-            var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/schema.xsd");
-
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
-
-            var jsonSchemaParser = new JsonMetadataToJsonSchema();
-
-            string classes = jsonSchemaParser.CreateModelFromMetadata(serviceMetadata);
-
-            // Create the .cs file for the model
-            try
-            {
-                  File.WriteAllText("output.schema.json", classes, Encoding.UTF8);
-            }
-            catch
-            {
-                ;
-            }
-
-        }
-
+ 
 
     }
 }
