@@ -7,7 +7,7 @@
 
 import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
-import { createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
@@ -23,9 +23,11 @@ import { routes } from './config/routes';
 
 export interface IAppProps extends WithStyles<typeof styles> { }
 
-const styles = createStyles({
+const theme = createMuiTheme(altinnTheme);
+
+const styles = () => createStyles({
   subApp: {
-    [altinnTheme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('md')]: {
       paddingLeft: 100,
     },
   },
@@ -44,7 +46,7 @@ class AppClass extends React.Component<IAppProps, any> {
 
     return (
       <React.Fragment>
-        <MuiThemeProvider theme={altinnTheme}>
+        <MuiThemeProvider theme={theme}>
           <Router>
             <Grid container={true} direction='column'>
               <Grid item={true} xs={12}>
@@ -115,4 +117,4 @@ class AppClass extends React.Component<IAppProps, any> {
 const mapsStateToProps = (state: IServiceDevelopmentAppState): any => ({});
 
 const App = connect(mapsStateToProps)(AppClass);
-export default withStyles(styles, { withTheme: true })(App);
+export default withStyles(styles)(App);
