@@ -51,9 +51,9 @@ const styles = {
   button: {
     border: '2px solid #0062BA',
     borderRadius: 0,
-    width: 60,
-    height: 36,
-    fontSize: altinnTheme.typography.fontSize,
+    color: '#0062BA',
+    fontSize: 18,
+    padding: '2px 8px 4px',
     textTransform: 'lowercase',
   },
   paper: {
@@ -75,6 +75,9 @@ const styles = {
     color: '#0062BA',
     borderBottomColor: '#0062BA',
   },
+  topRightService: {
+    paddingRight: 22,
+  },
 };
 
 class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComponentState> {
@@ -84,8 +87,6 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
 
   public render() {
     const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
-    console.log('activeLeftMenuSelection', activeLeftMenuSelection);
-    console.log('activeSubHeaderSelection', activeSubHeaderSelection);
 
     return (
       <div className={classes.root}>
@@ -110,12 +111,14 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                   </Grid>
                 </Hidden>
                 <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
-                  <Grid item={true} className={classes.paper}>
+                  <Grid item={true}>
                     <Hidden smDown>
                       {org != null ? org : 'WARNING: NO ORG'}
                     </Hidden>
                     <Hidden mdUp>
-                      {service !== null ? service : 'WARNING: NO SERVICE NAME'}
+                      <div className={classes.topRightService}>
+                        {service !== null ? service : 'WARNING: NO SERVICE NAME'}
+                      </div>
                     </Hidden>
                   </Grid>
                   <Hidden smDown>
@@ -125,7 +128,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                   </Hidden>
                   <Hidden mdUp>
                     <Grid item={true}>
-                      <Button variant='outlined' className={classes.button}>MENU</Button>
+                      <Button size='small' variant='outlined' className={classes.button}>meny</Button>
                     </Grid>
                   </Hidden>
 

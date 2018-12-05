@@ -29,7 +29,7 @@ const theme = createMuiTheme({
     },
   },
   typography: {
-    fontSize: 20,
+    fontSize: 16,
     useNextVariants: true,
   },
 });
