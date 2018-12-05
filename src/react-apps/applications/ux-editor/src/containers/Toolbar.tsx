@@ -16,7 +16,7 @@ const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
-  actionMethod: () => void;
+  actionMethod: (containerId: string, index: number) => void;
 }
 
 export enum LayoutItemType {
@@ -42,7 +42,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     const customProperties = c.customProperties ? c.customProperties : {};
     return {
       label: c.name,
-      actionMethod: (position: number, containerId?: string) => {
+      actionMethod: (containerId: string, position: number) => {
+        console.log(`adding ${c.name} to containerId ${containerId} at index ${position}`);
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
@@ -66,6 +67,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public addContainerToLayout(destinationIndex: number) {
+    console.log(destinationIndex);
     FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
@@ -170,8 +172,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           ))
         }
         <ToolbarItem
-          text={'add label'}
-          onDropAction={() => console.log('drop')}
+          text={'Add container'}
+          onDropAction={this.addContainerToLayout}
         />
         <div className='d-block'>
           <ExternalApiModalComponent />

@@ -25,23 +25,6 @@ const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
     }
     return true;
   },
-  endDrag: (props: IDraggableProps, monitor: DragSourceMonitor) => {
-    if (!monitor.didDrop()) {
-      return;
-    }
-    const droppedType: Identifier = monitor.getItemType();
-    switch (droppedType) {
-      case 'container': {
-        // TODO: add to container
-        const element: Element = monitor.getItem();
-        props.onDrop(element.id);
-        return;
-      }
-      default: {
-        return;
-      }
-    }
-  },
 };
 
 export const DraggableToolbarType: string = 'toolbar-item';
@@ -53,6 +36,9 @@ export class ToolbarItem extends React.Component<IToolbarItemProps, null> {
     const { notDraggable, onDropAction, text } = this.props;
     return (
       <DraggableToolbarItem
+        id={null}
+        index={null}
+        containerId={null}
         notDraggable={notDraggable}
         onDrop={onDropAction}
       >

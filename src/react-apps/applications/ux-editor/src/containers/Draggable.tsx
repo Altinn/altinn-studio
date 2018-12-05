@@ -1,3 +1,4 @@
+import { Identifier } from 'dnd-core';
 import * as React from 'react';
 import {
   ConnectDragSource,
@@ -8,7 +9,9 @@ import {
 } from 'react-dnd';
 
 export interface IDraggableProps {
-  id?: string;
+  id: string;
+  index?: number;
+  containerId: string;
   notDraggable?: boolean;
   onDrop?: (...args: any) => void;
 }
@@ -33,7 +36,7 @@ class Draggable extends React.Component<
   }
 }
 
-export default (type: string, draggableSpec: DragSourceSpec<IDraggableProps, any>) =>
+export default (type: Identifier, draggableSpec: DragSourceSpec<IDraggableProps, any>) =>
   DragSource(
     type,
     draggableSpec,

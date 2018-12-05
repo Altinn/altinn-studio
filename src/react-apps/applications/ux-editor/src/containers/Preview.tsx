@@ -1,10 +1,15 @@
 import * as React from 'react';
+import {
+  DropTargetMonitor,
+  DropTargetSpec,
+} from 'react-dnd';
 import { connect } from 'react-redux';
 import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
-import { DraggableDroppableTargetSource } from './draggableDroppableWrapper';
+import createDroppable, { IDroppableProps } from './Droppable';
+import { DraggableToolbarType } from './ToolbarItem';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -18,6 +23,41 @@ export class PreviewComponent extends React.Component<
   IPreviewProps,
   IPreviewState
   > {
+
+  public droppableSpec: DropTargetSpec<IDroppableProps> = {
+    hover(props: IDroppableProps) {
+      return;
+    },
+    drop(props: IDroppableProps, monitor: DropTargetMonitor) {
+      switch (monitor.getItemType()) {
+        case DraggableToolbarType: {
+          const toolbarItem = monitor.getItem();
+          if (!toolbarItem.onDrop) {
+            console.warn('Draggable Item doesn\'t have an onDrop-event');
+            break;;
+          }
+          console.log('calling toolbarItem.onDrop with', props);
+          toolbarItem.onDrop(props.id);
+          break;
+        }
+        case 'items': {
+          console.log('droppable dropped on item', props.id);
+          break;
+        }
+        case 'container': {
+          console.log('droppable dropped container', props.id);
+          break;
+        }
+        default: {
+          break;
+        }
+      }
+    },
+    canDrop(props: IDroppableProps, monitor: DropTargetMonitor) {
+      return false;
+    }
+  };
+
   public render() {
     return (
       <div className='col-12'>
@@ -42,11 +82,16 @@ export class PreviewComponent extends React.Component<
     if (!baseContainerId) {
       return null;
     }
+    const DroppableWrapper = createDroppable([DraggableToolbarType, 'items', 'container'], this.droppableSpec);
     return (
-      <Container
+      <DroppableWrapper
         id={baseContainerId}
-        baseContainer={true}
-      />
+      >
+        <Container
+          id={baseContainerId}
+          baseContainer={true}
+        />
+      </DroppableWrapper>
     );
   }
 }

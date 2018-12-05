@@ -1,3 +1,4 @@
+import { TargetType } from 'dnd-core';
 import * as React from 'react';
 import {
   ConnectDropTarget,
@@ -8,6 +9,7 @@ import {
 
 export interface IDroppableProps {
   id?: string;
+  index?: number;
   notDroppable?: boolean;
 }
 
@@ -29,7 +31,7 @@ class Droppable extends React.Component<
   }
 }
 
-export default (type: string, droppableSpec: DropTargetSpec<IDroppableProps>) =>
+export default (type: TargetType, droppableSpec: DropTargetSpec<IDroppableProps>) =>
   DropTarget(
     type,
     droppableSpec,

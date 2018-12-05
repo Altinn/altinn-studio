@@ -1,5 +1,11 @@
 import update from 'immutability-helper';
 import * as React from 'react';
+import {
+  DragSourceMonitor,
+  DragSourceSpec,
+  DropTargetMonitor,
+  DropTargetSpec,
+} from 'react-dnd';
 import { connect } from 'react-redux';
 import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
@@ -12,7 +18,9 @@ import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
 import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainerOrder, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
-import DroppableWrapper from './droppableWrapper';
+import createDraggable, { IDraggableProps } from './Draggable';
+import createDroppable, { IDroppableProps } from './Droppable';
+import { DraggableToolbarType } from './ToolbarItem';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -39,6 +47,60 @@ export interface IContainerState {
 }
 
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
+  public droppableSpec: DropTargetSpec<IDroppableProps> = {
+    hover(props: IDroppableProps) {
+      return;
+    },
+    drop(props: IDroppableProps, monitor: DropTargetMonitor) {
+      console.log(monitor.getItemType());
+      switch (monitor.getItemType()) {
+        case DraggableToolbarType: {
+          const toolbarItem = monitor.getItem();
+          if (!toolbarItem.onDrop) {
+            console.warn('Draggable Item doesn\'t have an onDrop-event');
+            return;
+          }
+          console.log('calling toolbarItem.onDrop with', props);
+          toolbarItem.onDropAction(props.id);
+          return;
+        }
+        case 'items': {
+          console.log('droppable dropped on item', props.id);
+          return;
+        }
+        case 'container': {
+          console.log('droppable dropped container', props.id);
+          return;
+        }
+        default: {
+          return;
+        }
+      }
+    },
+    canDrop(props: IDroppableProps, monitor: DropTargetMonitor) {
+      if (props.notDroppable) {
+        return false;
+      }
+      return monitor.isOver({
+        shallow: true,
+      });
+    },
+  };
+
+  public draggableSpec: DragSourceSpec<IDraggableProps, any> = {
+    beginDrag(props: IDraggableProps, monitor: DragSourceMonitor) {
+      return {
+        ...props,
+      };
+    },
+    canDrag(props: IDraggableProps, monitor: DragSourceMonitor) {
+      if (props.notDraggable) {
+        return false;
+      }
+      return true;
+    },
+  };
+
   public componentDidUpdate(prevProps: IContainerProps) {
     if (!this.state && !prevProps.itemOrder.length) {
       this.setState(() => ({
@@ -81,63 +143,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     const className: string = this.props.baseContainer ? 'col-12' :
       this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' :
         'col-12 a-btn-action cursorPointer';
-    if (this.props.baseContainer) {
-      return (
-        <DroppableWrapper
-          id={this.props.id}
-          index={0}
-          onHoverNewItem={this.addTemporaryItem}
-          onMoveItem={this.updateTempOrder}
-          onMoveItemDone={this.updateOrderDone}
-          baseContainer={this.props.baseContainer}
-        >
-          <div
-            style={{
-              minHeight: '40px',
-              border: '2px solid black',
-            }}
-          >
-            <div
-              className={className}
-              onClick={this.changeActiveFormContainer}
-            >
-              {
-                this.props.designMode && !this.props.baseContainer &&
-                <div className='row'>
-                  <div className='col-1'>
-                    {this.renderDeleteGroupButton()}
-                  </div>
-                  <div className='col-3 offset-8 row'>
-                    <span className='col-6'>Repeating:</span>
-                    <div className='col-5'>
-                      <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
-                    </div>
-                  </div>
-                </div>
-              }
-              {this.props.itemOrder.map((id: string, index: number) => (
-                this.props.components[id] ?
-                  this.renderFormComponent(id, index) :
-                  this.props.containers[id] ?
-                    this.renderContainer(id, index)
-                    : null
-              ))
-              }
-              {
-                !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-                <button
-                  className={'a-btn a-btn-action offset-10'}
-                  onClick={this.handleContainerDelete}
-                >
-                  <span>{this.props.language.ux_editor.repeating_group_delete}</span>
-                </button>
-              }
-              {!this.props.designMode && this.renderNewGroupButton()}
-            </div>
-          </div>
-        </DroppableWrapper>
-      );
-    }
     return (
       <div
         style={{
@@ -163,15 +168,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               </div>
             </div>
           }
-          {this.state ? this.state.order.map((id: string, index: number) => (
+          {this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ?
               this.renderFormComponent(id, index) :
               this.props.containers[id] ?
-                this.renderContainer(id, index) :
-                this.state.order[id] ?
-                  this.renderFormComponent(id, index) :
-                  null
-          )) : null
+                this.renderContainer(id, index)
+                : null
+          ))
           }
           {
             !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
@@ -188,37 +191,36 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
-  public onMoveItemInContainer = (containerId: string) => {
-
-  }
-
-  public onMoveItemDoneInContainer = (containerId: string) => {
-
-  }
-
-  public onHoverNewItemInContainer = (containerId: string) => {
-
-  }
-
   public renderContainer = (id: string, index: number) => {
     if (this.props.containers[id].hidden && !this.props.designMode) {
       return null;
     }
     if (this.props.designMode) {
+      const Draggable = createDraggable(
+        'container',
+        this.draggableSpec,
+      );
+      const Droppable = createDroppable(
+        'container',
+        this.droppableSpec,
+      )
+      const draggable: boolean = Object.keys(this.props.itemOrder).indexOf(id) === 0;
       return (
-        <DroppableWrapper
+        <Draggable
           id={id}
-          index={index}
-          onMoveItem={this.onMoveItemInContainer.bind(id)}
-          onMoveItemDone={this.onMoveItemDoneInContainer.bind(id)}
-          onHoverNewItem={this.onHoverNewItemInContainer.bind(id)}
+          containerId={this.props.id}
+          notDraggable={draggable}
         >
-          <Container
+          <Droppable
             id={id}
-            baseContainer={false}
-            parentContainerId={this.props.id}
-          />
-        </DroppableWrapper>
+          >
+            <Container
+              id={id}
+              baseContainer={false}
+              parentContainerId={this.props.id}
+            />
+          </Droppable>
+        </Draggable>
       );
     } else {
       return (
@@ -330,13 +332,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           </div>
         );
       }
+      const Draggable = createDraggable('items', this.draggableSpec);
       return (
-        <DroppableWrapper
+        <Draggable
           id={id}
           index={index}
-          onHoverNewItem={this.addTemporaryItem}
-          onMoveItem={this.updateTempOrder}
-          onMoveItemDone={this.updateOrderDone}
+          containerId={this.props.id}
         >
           <FormComponentWrapper
             key={index}
@@ -345,7 +346,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             formData={this.props.formData[this.props.components[id].dataModelBinding] ?
               this.props.formData[this.props.components[id].dataModelBinding] : ''}
           />
-        </DroppableWrapper>
+        </Draggable>
       );
     }
     return (
