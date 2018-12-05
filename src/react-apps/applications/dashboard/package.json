@@ -20,6 +20,7 @@
     "@material-ui/core": "3.6.0",
     "@material-ui/icons": "3.0.1",
     "babel-core": "6.26.3",
+    "moment": "^2.22.2",
     "react": "16.6.1",
     "react-dom": "16.6.1",
     "react-grid-layout": "0.16.6",

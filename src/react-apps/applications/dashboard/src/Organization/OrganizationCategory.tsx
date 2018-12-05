@@ -3,6 +3,7 @@ import { CardContent } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
+import * as moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Truncate from 'react-truncate';
@@ -64,9 +65,7 @@ const filterOnOrgName = (organizations: any) => {
 
 class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
   public formatDate(date: any): any {
-    let test = new Date(date)
-    //moment.formatDate();
-    return test.getDate() + '.' + test.getMonth() + '.' + test.getFullYear();
+    return moment(new Date(date)).format('DD.MM.YYYY');
   }
   public state: ICategoryComponentState = {
   }

@@ -1,4 +1,4 @@
-import { FormControl, InputAdornment, TextField } from '@material-ui/core';
+import { FormControl, InputAdornment, TextField, Button } from '@material-ui/core';
 import { Grid } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
 import { withStyles } from '@material-ui/core/styles';
@@ -36,6 +36,15 @@ const styles = {
   },
   mar_right_20: {
     marginRight: '20px',
+  },
+  mar_top_20: {
+    marginTop: '20px',
+  },
+  textToRight: {
+    textAlign: 'right' as 'right',
+  },
+  elementToRigth: {
+    float: 'right' as 'right',
   },
   chip: {
     color: '#000000',
@@ -83,7 +92,45 @@ const styles = {
     marginRight: '10px',
     marginBottom: '5px',
   },
-
+  arrow: {
+    border: 'solid black',
+    borderWidth: '0 3px 3px 0',
+    display: 'inline-block',
+    padding: '3px',
+  },
+  down: {
+    borderTop: '10px solid black',
+    borderLeft: '8px solid transparent',
+    borderRight: '8px solid transparent',
+    margin: '4px 8px 2px 0px',
+  },
+  dottedBtn: {
+    minHeight: '60px',
+    fontWeight: 700,
+    width: '100%',
+    color: '#000',
+    textAlign: 'left' as 'left',
+    verticalAlign: 'middle',
+    backgroundColor: 'transparent',
+    border: '2px dotted #1eaef7',
+    boxShadow: 'none',
+    borderRadius: '0px',
+    textTransform: 'none' as 'none',
+    maxWidth: '187px',
+    justifyContent: 'right',
+    fontSize: '16px',
+    '&:hover': {
+      backgroundColor: 'transparent !Important',
+    },
+    '&:focus': {
+      backgroundColor: 'transparent !Important',
+    },
+  },
+  dottedBtnIcon: {
+    color: '#1EADF7',
+    fontSize: '54px',
+    paddingRight: '6px',
+  },
 };
 const createFilterService = (state: any) => {
   const allServiceOwners: string[] = [];
@@ -137,9 +184,20 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
     const { classes, services } = this.props;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
-        <Typography component='h3' variant='h3' gutterBottom={true}>
-          {getLanguageFromKey('dashboard.main_header', this.props.language)}
-        </Typography>
+        <Grid container={true} direction='row'>
+          <Grid item={true} xl={8} lg={8} md={8} sm={8} xs={8}>
+            <Typography component='h3' variant='h3' gutterBottom={true}>
+              {getLanguageFromKey('dashboard.main_header', this.props.language)}
+            </Typography>
+          </Grid>
+          <Grid item={true} xl={4} lg={4} md={4} sm={4} xs={4} className={classes.textToRight}>
+            <Button variant='contained' className={classes.dottedBtn}>
+              <i className={classNames('ai ai-circle-plus', classes.dottedBtnIcon)} />
+              {getLanguageFromKey('dashboard.new_service', this.props.language)}
+            </Button>
+          </Grid>
+        </Grid>
+
         <Typography variant='h6' className={classes.mar_top_50} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
@@ -165,20 +223,33 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
         {services &&
           <>
             <Grid container={true} direction='row' className={classes.mar_top_50}>
-              {this.props.allAvailabeOwners.map((key: string, index: number) => {
-                //TODO: add so that username equals Dine tjenester
-                return (<Chip
-                  key={index}
-                  label={key}
-                  clickable={true}
+              <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
+                {this.props.allAvailabeOwners.map((key: string, index: number) => {
+                  //TODO: add so that username equals Dine tjenester
+                  return (<Chip
+                    key={index}
+                    label={key}
+                    clickable={true}
+                    color='primary'
+                    variant='outlined'
+                    onClick={this.updateFilter.bind(this, key)}
+                    className={classNames(classes.chip, classes.mar_right_20, classes.mar_top_20, {
+                      [classes.chipActive]: this.state.filteredOwners.indexOf(key) === -1 ? false : true,
+                    })}
+                  />);
+                })}
+              </Grid>
+              <Grid item={true} xl={2} lg={2} md={2} sm={2} xs={2}>
+                <Chip
+                  label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
+                  clickable={false}
                   color='primary'
                   variant='outlined'
-                  onClick={this.updateFilter.bind(this, key)}
-                  className={classNames(classes.chip, classes.mar_right_20, {
-                    [classes.chipActive]: this.state.filteredOwners.indexOf(key) === -1 ? false : true,
-                  })}
-                />);
-              })}
+                  deleteIcon={<i className={classNames(classes.down)} />}
+                  onDelete={() => { return false }}
+                  className={classNames(classes.chip, classes.elementToRigth, classes.mar_top_20)}
+                />
+              </Grid>
             </Grid>
             <OrganizationCategory
               header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}
