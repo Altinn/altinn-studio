@@ -28,6 +28,11 @@ namespace AltinnCore.Common.Configuration
         public const string TEST_FOLDER_NAME = "Test/";
 
         /// <summary>
+        /// Constant for the location of service deployment charts
+        /// </summary>
+        public const string DEPLOYMENT_FOLDER_NAME = "Deployment/";
+
+        /// <summary>
         /// Constant for the service binaries
         /// </summary>
         public const string BINARY_FOLDER_NAME = "bin/";
@@ -367,6 +372,18 @@ namespace AltinnCore.Common.Configuration
         public string GetTestPath(string org, string service, string developer)
         {
             return GetServicePath(org, service, developer) + TEST_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to deployment directory
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetDeploymentPath(string org, string service, string developer)
+        {
+            return GetServicePath(org, service, developer) + DEPLOYMENT_FOLDER_NAME;
         }
 
         /// <summary>

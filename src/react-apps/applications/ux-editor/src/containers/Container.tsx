@@ -64,58 +64,69 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     return (this.props.index || this.props.index > -1) && this.props.dataModelGroup && this.props.repeating;
   }
 
-  public render() {
+  public renderContent = (ref?: any): JSX.Element => {
     const className: string = this.props.baseContainer ? 'col-12' :
       this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' :
         'col-12 a-btn-action cursorPointer';
     return (
-      <div>
-        <Droppable droppableId={this.props.id} key={this.props.id}>
-          {(provided, snapshot) => (
-            <div
-              className={className}
-              onClick={this.changeActiveFormContainer}
-              ref={provided.innerRef}
-            >
-              {
-                this.props.designMode && !this.props.baseContainer &&
-                <div className='row'>
-                  <div className='col-1'>
-                    {this.renderDeleteGroupButton()}
-                  </div>
-                  <div className='col-3 offset-8 row'>
-                    <span className='col-6'>Repeating:</span>
-                    <div className='col-5'>
-                      <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
-                    </div>
-                  </div>
-                </div>
-              }
-
-              {this.props.itemOrder.map((id: string, index: number) => (
-                this.props.components[id] ?
-                  this.renderFormComponent(id, index) :
-                  this.props.containers[id] ?
-                    this.renderContainer(id)
-                    : null
-              ))
-              }
-              {
-                !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-                <button
-                  className={'a-btn a-btn-action offset-10'}
-                  onClick={this.handleContainerDelete}
-                >
-                  <span>{this.props.language.ux_editor.repeating_group_delete}</span>
-                </button>
-              }
-
+      <div
+        className={className}
+        onClick={this.changeActiveFormContainer}
+        ref={ref}
+      >
+        {
+          this.props.designMode && !this.props.baseContainer &&
+          <div className='row'>
+            <div className='col-1'>
+              {this.renderDeleteGroupButton()}
             </div>
+            <div className='col-3 offset-8 row'>
+              <span className='col-6'>Repeating:</span>
+              <div className='col-5'>
+                <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
+              </div>
+            </div>
+          </div>
+        }
 
-          )}
-        </Droppable>
+        {this.props.itemOrder.map((id: string, index: number) => (
+          this.props.components[id] ?
+            this.renderFormComponent(id, index) :
+            this.props.containers[id] ?
+              this.renderContainer(id)
+              : null
+        ))
+        }
+        {
+          !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
+          <button
+            className={'a-btn a-btn-action offset-10'}
+            onClick={this.handleContainerDelete}
+          >
+            <span>{this.props.language.ux_editor.repeating_group_delete}</span>
+          </button>
+        }
+      </div>
+    );
+  }
 
-        {!this.props.designMode && this.renderNewGroupButton()}
+  public render() {
+    if (this.props.designMode) {
+      return (
+        <div>
+          <Droppable droppableId={this.props.id} key={this.props.id}>
+            {(provided, snapshot) => (
+              this.renderContent(provided.innerRef)
+            )}
+          </Droppable>
+        </div>
+      );
+    }
+
+    return (
+      <div>
+        {this.renderContent()}
+        {this.renderNewGroupButton()}
       </div>
     );
 
@@ -125,35 +136,44 @@ export class ContainerComponent extends React.Component<IContainerProps> {
     if (this.props.containers[id].hidden && !this.props.designMode) {
       return null;
     }
-    return (
-      <Draggable
-        draggableId={id}
-        index={this.props.itemOrder.indexOf(id) - 1}
-        key={id}
-      >
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.dragHandleProps}
-          >
-            <Droppable
-              droppableId={id}
+    if (this.props.designMode) {
+      return (
+        <Draggable
+          draggableId={id}
+          index={this.props.itemOrder.indexOf(id) - 1}
+          key={id}
+        >
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.dragHandleProps}
             >
-              {(provided, snapshot) => (
-                <div
-                  ref={provided.innerRef}
-                >
-                  <Container
-                    id={id}
-                    key={`${id}-${provided.innerRef}`}
-                    baseContainer={false}
-                  />
-                </div>
-              )}
-            </Droppable>
-          </div>
-        )}
-      </Draggable>
+              <Droppable
+                droppableId={id}
+              >
+                {(provided, snapshot) => (
+                  <div
+                    ref={provided.innerRef}
+                  >
+                    <Container
+                      id={id}
+                      key={`${id}-${provided.innerRef}`}
+                      baseContainer={false}
+                    />
+                  </div>
+                )}
+              </Droppable>
+            </div>
+          )}
+        </Draggable>
+      );
+    }
+    return (
+            <Container
+              id={id}
+              key={`${id}`}
+              baseContainer={false}
+            />
     );
   }
 
