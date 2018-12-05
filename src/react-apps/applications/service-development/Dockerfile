@@ -17,18 +17,21 @@ COPY ./src/react-apps/applications/ux-editor/package-lock.json /applications/ux-
 
 RUN npm run install-deps
 
-# Copy and build Shared + Service-Development
+# Copy and build Shared + Service-Development, + ux-editor standalone
 WORKDIR /applications
 COPY ./src/react-apps/applications/shared/ ./shared/
 COPY ./src/react-apps/applications/service-development/ ./service-development/
 COPY ./src/react-apps/applications/ux-editor/ ./ux-editor/
 WORKDIR /
 RUN npm run build --prefix /applications/service-development
+RUN npm run build --prefix /applications/ux-editor
 
-# Create Dashboard base image
+# Create Service-Development base image
 FROM alpine
 WORKDIR /dist
 COPY --from=generate-service-development /applications/service-development/dist/service-development.js .
 COPY --from=generate-service-development /applications/service-development/dist/service-development.css .
+COPY --from=generate-service-development /applications/ux-editor/dist/react-app.js .
+COPY --from=generate-service-development /applications/ux-editor/dist/react-app.css .
 
 CMD ["echo", "done"]
