@@ -61,7 +61,7 @@ namespace AltinnCore.Common.Configuration
             }
 
             // Hosting environment er systemkomponent, så den følger ikke konvensjoner ellers i ServiceRepositorySettings fila, med "/" som path separator.
-            var globalDefaultPath = new FileInfo(Path.Combine(_hostingEnvironment.WebRootPath, "designer", "js", "formbuilder", fileName));
+            var globalDefaultPath = new FileInfo(Path.Combine(_hostingEnvironment.WebRootPath, "designer", "js", "react", fileName));
 
             return globalDefaultPath;
         }
@@ -80,7 +80,7 @@ namespace AltinnCore.Common.Configuration
             }
 
             // Hosting environment er systemkomponent, så den følger ikke konvensjoner ellers i ServiceRepositorySettings fila, med "/" som path separator.
-            var globalDefaultPath = new FileInfo(Path.Combine(_hostingEnvironment.WebRootPath, "designer", "css", fileName));
+            var globalDefaultPath = new FileInfo(Path.Combine(_hostingEnvironment.WebRootPath, "designer", "css", "react", fileName));
 
             return globalDefaultPath;
         }

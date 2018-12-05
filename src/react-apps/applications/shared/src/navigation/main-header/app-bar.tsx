@@ -7,9 +7,9 @@ import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import 'typeface-roboto';
 
-import ProfileMenu from '../../profile-menu';
+// Altinn-Studio components
+import ProfileMenu from './profileMenu';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   service?: string;
@@ -97,7 +97,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                     </Typography>
                   </Grid>
                   <Grid item={true}>
-                    <ProfileMenu />
+                    <ProfileMenu showlogout={true} />
                   </Grid>
                 </Grid>
               </Grid>
