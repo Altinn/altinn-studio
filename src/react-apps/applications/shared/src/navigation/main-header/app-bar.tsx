@@ -145,6 +145,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                     {menu.map((item, index) => (
                       <Grid
                         item={true}
+                        key={index}
                         className={classNames(classes.subHeader, {
                           [classes.subHeaderActive]: this.props.activeSubHeaderSelection ===
                             item.activeSubHeaderSelection,

@@ -50,6 +50,7 @@ class AppClass extends React.Component<IAppProps, any> {
               <Grid item={true} xs={12}>
                 {redirects.map((route, index) => (
                   <Route
+                    key={index}
                     exact={true}
                     path={route.from}
                     render={() => (
