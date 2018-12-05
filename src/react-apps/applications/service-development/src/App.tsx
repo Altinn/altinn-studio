@@ -2,33 +2,32 @@
 // https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
 // Disabled for React Router rendering
 
+/* tslint:disable:jsx-boolean-value */
+// Extensive used in Material-UI's Grid
+
 import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
-import { MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/app-bar';
-import SubApp from '../../ux-editor/src/SubApp';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
 
 import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 
-const DummySubApp = (name: any) => {
-  return (
-    <div>Dummy app for {name.name}</div>
-  );
-};
-
-export interface IAppProps { }
+import { redirects } from './config/redirects';
+import { routes } from './config/routes';
 
 export interface IAppProps extends WithStyles<typeof styles> { }
 
-const styles = ({
+const theme = createMuiTheme(altinnTheme);
+
+const styles = () => createStyles({
   subApp: {
-    [altinnTheme.breakpoints.up('md')]: {
+    [theme.breakpoints.up('md')]: {
       paddingLeft: 100,
     },
   },
@@ -44,147 +43,16 @@ class AppClass extends React.Component<IAppProps, any> {
     const { classes } = this.props;
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    // const { org, service, instanceId, reportee } = altinnWindow;
-
-    const redirects = [
-      {
-        from: '/',
-        to: '/about',
-      },
-    ];
-
-    const routes = [
-      {
-        path: '/about',
-        exact: true,
-        activeSubHeaderSelection: 'om',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/uieditor',
-        activeSubHeaderSelection: 'lage',
-        menu: 'create',
-        subapp: SubApp,
-      },
-      {
-        path: '/preview',
-        activeSubHeaderSelection: 'lage',
-        menu: 'create',
-        subapp: SubApp,
-      },
-      {
-        path: '/language',
-        activeSubHeaderSelection: 'sprak',
-        menu: 'language',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/test',
-        activeSubHeaderSelection: 'teste',
-        menu: 'test',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/publish',
-        activeSubHeaderSelection: 'publisere',
-        menu: 'publish',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/aboutservice',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'omtjenesten',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/rolesandrights',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'roller',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/production',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'produksjon',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/versionhistory',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'versjonshistorikk',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/aboutenduser',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'omsluttbrukeren',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/altinn',
-        activeSubHeaderSelection: 'om',
-        activeLeftMenuSelection: 'altinn',
-        menu: 'about',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/datamodel',
-        activeSubHeaderSelection: 'lage',
-        activeLeftMenuSelection: 'datamodel',
-        menu: 'create',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/api',
-        activeSubHeaderSelection: 'lage',
-        activeLeftMenuSelection: 'api',
-        menu: 'create',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/text',
-        activeSubHeaderSelection: 'sprak',
-        activeLeftMenuSelection: 'text',
-        menu: 'language',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/translate',
-        activeSubHeaderSelection: 'sprak',
-        activeLeftMenuSelection: 'flere sprak',
-        menu: 'language',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/productionsetting',
-        activeSubHeaderSelection: 'publisere',
-        activeLeftMenuSelection: 'text',
-        menu: 'publish',
-        subapp: DummySubApp,
-      },
-      {
-        path: '/status',
-        activeSubHeaderSelection: 'publisere',
-        activeLeftMenuSelection: 'status',
-        menu: 'publish',
-        subapp: DummySubApp,
-      },
-    ];
 
     return (
       <React.Fragment>
-        <MuiThemeProvider theme={altinnTheme}>
+        <MuiThemeProvider theme={theme}>
           <Router>
             <Grid container={true} direction='column'>
               <Grid item={true} xs={12}>
                 {redirects.map((route, index) => (
                   <Route
+                    key={index}
                     exact={true}
                     path={route.from}
                     render={() => (
@@ -249,4 +117,4 @@ class AppClass extends React.Component<IAppProps, any> {
 const mapsStateToProps = (state: IServiceDevelopmentAppState): any => ({});
 
 const App = connect(mapsStateToProps)(AppClass);
-export default withStyles(styles, { withTheme: true })(App);
+export default withStyles(styles)(App);

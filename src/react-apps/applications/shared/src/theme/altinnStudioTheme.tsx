@@ -1,6 +1,4 @@
-import { createMuiTheme } from '@material-ui/core/styles';
-
-const theme = createMuiTheme({
+const theme = {
   breakpoints: {
     values: {
       xs: 0,
@@ -32,6 +30,6 @@ const theme = createMuiTheme({
     fontSize: 16,
     useNextVariants: true,
   },
-});
+};
 
 export default theme;
