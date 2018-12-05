@@ -170,11 +170,28 @@ function copyUiEditorCss() {
   return;
 }
 
-function deleteReactJs() {
-  return del('wwwroot/designer/js/formbuilder/react/react-app.js');
+function deleteServDevJs() {
+  return del('wwwroot/designer/js/react/service-development.js');
 }
 
-function deleteReactCss() {
+function deleteDashboardJs() {
+  return del('wwwroot/designer/js/react/dashboard.js');
+}
+
+function deleteUiEditorJs() {
+  return del('wwwroot/designer/js/react/react-app.js');
+}
+
+
+function deleteServDevCss() {
+  return del('wwwroot/designer/css/react/service-development.css');
+}
+
+function deleteDashboardCss() {
+  return del('wwwroot/designer/css/react/dashboard.css');
+}
+
+function deleteUiEditorCss() {
   return del('wwwroot/designer/css/react/react-app.css');
 }
 
@@ -247,8 +264,12 @@ gulp.task('copy-files', gulp.series(
 ));
 
 gulp.task('clean', gulp.series(
-  deleteReactCss,
-  deleteReactJs,
+  deleteServDevCss,
+  deleteDashboardCss,
+  deleteUiEditorCss,
+  deleteServDevJs,
+  deleteDashboardJs,
+  deleteUiEditorJs,
   cleanNodeModulePackages,
   run('npm run clean', {
     cwd: '../../react-apps/applications/service-development',
@@ -273,6 +294,12 @@ gulp.task('install-react-app-dependencies', gulp.series(
 gulp.task('default', gulp.series([
   run('npm run build', {
     cwd: '../../react-apps/applications/service-development',
+  }),
+  run('npm run build', {
+    cwd: '../../react-apps/applications/dashboard',
+  }),
+  run('npm run build', {
+    cwd: '../../react-apps/applications/ux-editor',
   }),
   'copy-files'
 ]));

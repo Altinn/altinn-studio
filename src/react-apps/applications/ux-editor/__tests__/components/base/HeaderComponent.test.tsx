@@ -14,7 +14,7 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
     mockComponent = {
       id: 'test-id',
       title: 'test-headercomponent',
-      component: 'Checkboxes',
+      component: 'Header',
     };
     mockText = 'test';
     mockSize = 'S';
@@ -31,17 +31,17 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ should render <h1> if size is not \'S\' or \'M\'', () => {
+  it('+++ should render <h2> if size is not \'S\' or \'M\'', () => {
     const wrapper = mount(
       <HeaderComponent
         component={mockComponent}
         text={mockText}
       />,
     );
-    expect(wrapper.contains(<h1 className='a-fontBold a-pageTitle' id={'test-id'}>test</h1>)).toBe(true);
+    expect(wrapper.contains(<h2 className='a-sectionTitle' id={'test-id'}>test</h2>)).toBe(true);
   });
 
-  it('+++ should render <h2> if size is \'M\'', () => {
+  it('+++ should render <h3> if size is \'M\'', () => {
     const wrapper = mount(
       <HeaderComponent
         component={mockComponent}
@@ -49,7 +49,7 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         size={'M'}
       />,
     );
-    expect(wrapper.contains(<h2 className='a-fontBold a-pageTitle' id={'test-id'}>test</h2>)).toBe(true);
+    expect(wrapper.contains(<h3 className='a-sectionSubTitle' id={'test-id'}>test</h3>)).toBe(true);
   });
 
   it('+++ should render <h3> if size is \'S\'', () => {
@@ -60,6 +60,6 @@ describe('>>> components/base/HeaderComponent.tsx --- Snapshot', () => {
         size={'S'}
       />,
     );
-    expect(wrapper.contains(<h3 className='a-pageTitle' id={'test-id'}>test</h3>)).toBe(true);
+    expect(wrapper.contains(<h4 className='a-sectionSubTitle' id={'test-id'}>test</h4>)).toBe(true);
   });
 });

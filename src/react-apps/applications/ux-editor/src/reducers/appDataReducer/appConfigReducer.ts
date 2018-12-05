@@ -22,7 +22,7 @@ const appConfigReducer: Reducer<IAppConfigState> = (
   switch (action.type) {
     case AppDataActionTypes.SET_DESIGN_MODE: {
       const { designMode } = action as AppDataActions.ISetDesignModeAction;
-      let className = 'a-bgBlueLight flex-column d-flex';
+      let className = 'a-bgBlue flex-column d-flex';
       if (designMode) {
         className = 'a-bgWhite';
       }
