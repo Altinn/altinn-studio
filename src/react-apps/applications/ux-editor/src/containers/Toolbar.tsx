@@ -253,6 +253,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             in={this.state.componentListOpen}
             onExited={this.handleCollapsableAnimationDone.bind(this, 'schema')}
             onEnter={this.handleCollapsableAnimationDone.bind(this, 'schema')}
+            classes={{
+              container: this.props.classes.collapsableContainer,
+            }}
           >
             <List
               dense={false}
@@ -354,6 +357,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             in={this.state.textListOpen}
             onExited={this.handleCollapsableAnimationDone.bind(this, 'text')}
             onEnter={this.handleCollapsableAnimationDone.bind(this, 'text')}
+            classes={{
+              container: this.props.classes.collapsableContainer,
+            }}
           >
             <List dense={false} id={'schema-texts'}>
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
@@ -444,8 +450,9 @@ const styles = (theme: Theme) => createStyles({
   searchBoxIcon: {
     color: '#000000',
   },
-  collapsableEntered: {
-    pointerEvents: 'none',
+  collapsableContainer: {
+    paddingRight: '2px',
+    paddingLeft: '2px',
   },
 });
 
