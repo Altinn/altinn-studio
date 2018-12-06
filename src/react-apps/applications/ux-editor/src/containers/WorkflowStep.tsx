@@ -19,7 +19,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
           <div className='col-xl-12'>
             <div className='a-modal-top'>
               <img
-                src='/designer/img/Designsystem/v1/a-logo-blue.svg'
+                src='/designer/img/a-logo-blue.svg'
                 alt='Altinn logo'
                 className='a-logo a-modal-top-logo '
               />

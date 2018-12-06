@@ -4,7 +4,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import { withStyles } from '@material-ui/core/styles';
 import AccountCircle from '@material-ui/icons/AccountCircle';
 import * as React from 'react';
-import 'typeface-roboto';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;

@@ -3,6 +3,7 @@ import { DropdownComponent } from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
 import { HeaderComponent } from './base/HeaderComponent';
 import { InputComponent } from './base/InputComponent';
+import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { SubmitComponent } from './widget/SubmitComponent';
@@ -37,6 +38,10 @@ export const textComponents: IComponent[] = [
 ];
 
 export const schemaComponents: IComponent[] = [
+  {
+    name: 'Paragraph',
+    Tag: ParagraphComponent,
+  },
   {
     name: 'Input',
     Tag: InputComponent,

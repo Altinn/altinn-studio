@@ -23,6 +23,7 @@ const fallbackLanguage = {
     api_connection_header: 'Api connections',
     conditional_rendering_connection_header: 'Conditional Rendering Connections',
     form_designer: 'Form designer',
+    formfiller_placeholder_user: 'OLA PRIVATPERSON',
     modal_configure_api_code_list: 'Code list',
     modal_configure_api_extermnal_api: 'External API',
     modal_configure_api_header: 'Configure API connection',
