@@ -4,7 +4,6 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
-import zIndex from '@material-ui/core/styles/zIndex';
 
 export interface IInformationPanelProvidedProps {
   classes: any;

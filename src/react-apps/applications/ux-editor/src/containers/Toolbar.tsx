@@ -1,4 +1,4 @@
-import { Collapse, createStyles, Theme, withStyles, ClickAwayListener } from '@material-ui/core';
+import { Collapse, createStyles, Theme, withStyles } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
