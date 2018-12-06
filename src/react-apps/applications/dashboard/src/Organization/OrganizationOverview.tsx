@@ -18,14 +18,12 @@ export interface IOrganizationOverviewComponentProvidedProps {
 export interface IOrganizationOverviewComponentProps extends IOrganizationOverviewComponentProvidedProps {
   language: any;
   services: any;
-  allAvailabeOwners: string[];
-  filteredOwners: string[];
-  searchableServices: any;
+  allDistinctOwners: string[];
+  selectedOwners: string[];
 }
 
 export interface IOrganizationOverviewComponentState {
-  filteredOwners: string[];
-  searchableServices: any;
+  selectedOwners: string[];
   searchString: string;
 }
 
@@ -140,86 +138,68 @@ const styles = {
     paddingRight: '6px',
   },
 };
-const createFilterService = (state: any) => {
-  const allServiceOwners: string[] = [];
-  state.dashboard.services.map((key: any, index: number) => {
-    if (allServiceOwners.indexOf(key.owner.login) === -1) {
-      allServiceOwners.push(key.owner.login);
+const getListOfDistinctServiceOwners = (services: any) => {
+  const allDistinctServiceOwners: string[] = [];
+  services.map((key: any, index: number) => {
+    if (allDistinctServiceOwners.indexOf(key.owner.login) === -1) {
+      allDistinctServiceOwners.push(key.owner.login);
     }
   });
-  return allServiceOwners;
-};
-
-const createInit = (state: any) => {
-  const allServiceOwners: string[] = [];
-  state.dashboard.services.map((service: any) => {
-    allServiceOwners.push(service);
-  });
-  return allServiceOwners;
+  return allDistinctServiceOwners;
 };
 
 class OrganizationOverviewComponent extends React.Component<IOrganizationOverviewComponentProps, IOrganizationOverviewComponentState> {
   public static getDerivedStateFromProps(_props: IOrganizationOverviewComponentProps, _state: IOrganizationOverviewComponentState) {
-    console.log('getDerivedStateFromProps' + _props.filteredOwners.length + ' ' + _state.filteredOwners.length);
     return {
-      filteredOwners: _props.filteredOwners,
-      searchableServices: _props.searchableServices,
+      selectedOwners: _props.selectedOwners,
     };
   }
 
   public state: IOrganizationOverviewComponentState = {
-    filteredOwners: [],
-    searchableServices: {},
+    selectedOwners: [],
     searchString: '',
   };
 
-  public filterCategory(filter: any) {
-    if (filter === 'read') {
-      filter = false;
-    } else {
-      filter = true;
-    }
-    const newObj = this.state.searchableServices
+  public searchAndFilterServicesIntoCategoriesCategory(hasWriteRights: any) {
+    const filteredServices = this.props.services
       .filter((key: any) =>
-        key.permissions.push === filter && this.state.filteredOwners.indexOf(key.owner.login) !== -1,
+        key.permissions.push === hasWriteRights && this.state.selectedOwners.indexOf(key.owner.login) !== -1,
       );
-    if (!this.state.searchString) return newObj;
-    const newerObj = newObj.filter((key: any) =>
-      key.name.toLowerCase().includes(this.state.searchString.toLowerCase()) || key.description.toLowerCase().includes(this.state.searchString.toLowerCase()),
-    );
 
-    return newerObj;
+    if (!this.state.searchString) {
+      return filteredServices;
+    }
+
+    return filteredServices.filter((key: any) =>
+      key.name.toLowerCase().includes(this.state.searchString.toLowerCase()) ||
+      key.description.toLowerCase().includes(this.state.searchString.toLowerCase()),
+    );
   }
 
-  public updateFilter(key: string) {
-    const index = this.state.filteredOwners.indexOf(key);
+  public updateListOfSelectedFilters(key: string) {
+    const index = this.state.selectedOwners.indexOf(key);
     this.setState((state: any) => {
       if (index > -1) {
-        state.filteredOwners.splice(index, 1);
+        state.selectedOwners.splice(index, 1);
       } else {
-        state.filteredOwners.push(key);
+        state.selectedOwners.push(key);
       }
       return {
-        filteredOwners: state.filteredOwners,
+        selectedOwners: state.selectedOwners,
       };
     });
   }
 
-  public componentDidUpdate() {
-    console.log('componentDidUpdate');
-  }
-
-  public searchForRepo = (event: any) => {
+  public updateSearchSting = (event: any) => {
     this.setState({
-      searchString: event.target.value
-    })
-    //searchString = event.target.value;
+      searchString: event.target.value,
+    });
   }
 
   public renderFilters() {
     return (
       <Grid item={true} xl={10} lg={10} md={12}>
-        {this.props.allAvailabeOwners.map((key: string, index: number) => {
+        {this.props.allDistinctOwners.map((key: string, index: number) => {
           //TODO: add so that username equals Dine tjenester
           return (<Chip
             key={index}
@@ -227,9 +207,9 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
             clickable={true}
             color='primary'
             variant='outlined'
-            onClick={this.updateFilter.bind(this, key)}
+            onClick={this.updateListOfSelectedFilters.bind(this, key)}
             className={classNames(this.props.classes.chip, this.props.classes.mar_right_20, this.props.classes.mar_top_20, {
-              [this.props.classes.chipActive]: this.state.filteredOwners.indexOf(key) === -1 ? false : true,
+              [this.props.classes.chipActive]: this.state.selectedOwners.indexOf(key) === -1 ? false : true,
             })}
           />);
         })}
@@ -286,7 +266,7 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
                   <TextField
                     id={'service-search'}
                     placeholder={getLanguageFromKey('dashboard.search_service', this.props.language)}
-                    onChange={this.searchForRepo}
+                    onChange={this.updateSearchSting}
                     InputProps={{
                       disableUnderline: true,
                       startAdornment:
@@ -310,12 +290,12 @@ class OrganizationOverviewComponent extends React.Component<IOrganizationOvervie
             <OrganizationCategory
               header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}
               className={classNames(classes.mar_top_50)}
-              categoryRepos={this.filterCategory('write')}
+              categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(true)}
             />
             <OrganizationCategory
               header={getLanguageFromKey('dashboard.category_service_read', this.props.language)}
               className={classNames(classes.mar_top_100)}
-              categoryRepos={this.filterCategory('read')}
+              categoryRepos={this.searchAndFilterServicesIntoCategoriesCategory(false)}
             />
           </>
         }
@@ -333,9 +313,8 @@ const mapStateToProps = (
     width: props.width,
     language: state.language.language,
     services: state.dashboard.services,
-    allAvailabeOwners: createFilterService(state),
-    filteredOwners: createFilterService(state),
-    searchableServices: createInit(state),
+    allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services),
+    selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),
   };
 };
 
