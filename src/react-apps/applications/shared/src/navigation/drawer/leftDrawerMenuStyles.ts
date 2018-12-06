@@ -54,4 +54,7 @@ export const styles = (theme: Theme) => createStyles({
     background: altinnTheme.palette.secondary.main,
     top: 146,
   },
+  activeMenu: {
+    borderBottom: '2px solid #0062BA',
+  }
 });

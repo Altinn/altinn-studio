@@ -1,7 +1,7 @@
 export const redirects = ([
   {
     from: '/',
-    to: '/about',
+    to: '/aboutservice',
   },
   {
     from: '/create',

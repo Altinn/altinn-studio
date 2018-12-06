@@ -97,7 +97,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
 
   public render() {
     const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
-
+    console.log(this.props.activeSubHeaderSelection);
     return (
       <div className={classes.root}>
         <AppBar position='static' className={classes.appBar} elevation={0}>

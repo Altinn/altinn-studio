@@ -16,6 +16,7 @@ export interface INavMenuProps {
   classes: any;
   theme: any;
   menuType: any;
+  activeLeftMenuSelection: string;
 }
 
 export interface INavMenuProps extends WithStyles<typeof styles> { }
@@ -73,14 +74,23 @@ class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
 
           <List>
             {leftDrawerMenuSettings[this.props.menuType].map((menuItem: any, index: any) => (
-              <Link to={menuItem.navLink} style={{ borderBottom: 0 }}>
+              <Link
+                to={menuItem.navLink}
+                style={{ borderBottom: 0 }}
+              >
                 <ListItem
                   button={true} key={menuItem.displayText}
                 >
                   <ListItemIcon>
                     <Icon iconType={menuItem.iconName} />
                   </ListItemIcon>
-                  <ListItemText primary={menuItem.displayText} />
+                  <ListItemText
+                    primary={menuItem.displayText}
+                    className={classNames({
+                      [classes.activeMenu]: this.props.activeLeftMenuSelection ===
+                        menuItem.activeLeftMenuSelection,
+                    })}
+                  />
                 </ListItem>
               </Link>
             ))}

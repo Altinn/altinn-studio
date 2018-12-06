@@ -2,7 +2,7 @@ export const menu = ([
   {
     key: 'Om',
     activeSubHeaderSelection: 'about',
-    link: '/about',
+    link: '/aboutservice',
   },
   {
     key: 'Lage',
@@ -12,7 +12,7 @@ export const menu = ([
   {
     key: 'Språk',
     activeSubHeaderSelection: 'language',
-    link: '/language',
+    link: '/text',
   },
   {
     key: 'Teste',
@@ -22,6 +22,6 @@ export const menu = ([
   {
     key: 'Publisere',
     activeSubHeaderSelection: 'publish',
-    link: '/publish',
+    link: '/productionsetting',
   },
 ]);

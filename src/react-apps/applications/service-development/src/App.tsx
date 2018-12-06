@@ -87,6 +87,7 @@ class AppClass extends React.Component<IAppProps, any> {
                         render={(props) => <LeftDrawerMenu
                           {...props}
                           menuType={route.menu}
+                          activeLeftMenuSelection={route.activeLeftMenuSelection}
                         />}
                       />
                     ))}
@@ -104,7 +105,6 @@ class AppClass extends React.Component<IAppProps, any> {
                     />
                   ))}
                 </div>
-
               </Grid>
             </Grid>
           </Router>

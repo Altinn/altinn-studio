@@ -10,7 +10,7 @@ export const mainMenuSettings: any = {
   menuItems: [
     {
       displayText: 'Om',
-      navLink: '/about',
+      navLink: '/aboutservice',
       menuType: 'about',
     },
     {
@@ -20,7 +20,7 @@ export const mainMenuSettings: any = {
     },
     {
       displayText: 'Språk',
-      navLink: '/language',
+      navLink: '/text',
       menuType: 'language',
     },
     {
@@ -41,36 +41,42 @@ export const leftDrawerMenuSettings: any = {
     {
       displayText: 'Om tjenesten',
       navLink: '/aboutservice',
+      activeLeftMenuSelection: 'aboutservice',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'Roller og rettigheter',
       navLink: '/rolesandrights',
+      activeLeftMenuSelection: 'rolesandrights',
       iconName: 'settings',
       items: [],
     },
     {
       displayText: 'Produksjon',
       navLink: '/production',
+      activeLeftMenuSelection: 'production',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'Versjonshistorikk',
       navLink: '/versionhistory',
+      activeLeftMenuSelection: 'versionhistory',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'Om sluttbrukeren',
       navLink: '/aboutenduser',
+      activeLeftMenuSelection: 'aboutenduser',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'Altinn.no',
       navLink: '/altinn',
+      activeLeftMenuSelection: 'altinn',
       iconName: 'settings',
       items: [],
     },
@@ -79,18 +85,21 @@ export const leftDrawerMenuSettings: any = {
     {
       displayText: 'Datamodell',
       navLink: '/datamodel',
+      activeLeftMenuSelection: 'datamodel',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'GUI',
       navLink: '/uieditor',
+      activeLeftMenuSelection: 'gui',
       iconName: 'settings',
       items: [],
     },
     {
       displayText: 'API',
       navLink: '/api',
+      activeLeftMenuSelection: 'api',
       iconName: 'information',
       items: [],
     },
@@ -99,12 +108,14 @@ export const leftDrawerMenuSettings: any = {
     {
       displayText: 'Tekst',
       navLink: '/text',
+      activeLeftMenuSelection: 'text',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'Flere språk',
       navLink: '/translate',
+      activeLeftMenuSelection: 'translate',
       iconName: 'settings',
       items: [],
     },
@@ -113,6 +124,7 @@ export const leftDrawerMenuSettings: any = {
     {
       displayText: 'test',
       navLink: '/test',
+      activeLeftMenuSelection: 'test',
       iconName: 'information',
       items: [],
     },
@@ -121,12 +133,14 @@ export const leftDrawerMenuSettings: any = {
     {
       displayText: 'Produksjonsette',
       navLink: '/productionsetting',
+      activeLeftMenuSelection: 'productionsetting',
       iconName: 'information',
       items: [],
     },
     {
       displayText: 'Status',
       navLink: '/status',
+      activeLeftMenuSelection: 'status',
       iconName: 'settings',
       items: [],
     },
