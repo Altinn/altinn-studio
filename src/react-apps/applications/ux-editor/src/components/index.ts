@@ -19,6 +19,7 @@ export interface IComponent {
 // the exported 'components' list (drag and drop)
 export enum ComponentTypes {
   Header,
+  Paragraph,
   Input,
   DropDown,
   CheckBox,
@@ -35,13 +36,14 @@ export const textComponents: IComponent[] = [
     Tag: HeaderComponent,
     Type: ComponentTypes.Header,
   },
-];
-
-export const schemaComponents: IComponent[] = [
   {
     name: 'Paragraph',
     Tag: ParagraphComponent,
+    Type: ComponentTypes.Paragraph,
   },
+];
+
+export const schemaComponents: IComponent[] = [
   {
     name: 'Input',
     Tag: InputComponent,

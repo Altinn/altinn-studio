@@ -51,6 +51,9 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.RadioButton: {
       return language.ux_editor.component_radio_button;
     }
+    case ComponentTypes.Paragraph: {
+      return language.ux_editor.component_paragraph;
+    }
     default: {
       return '';
     }
