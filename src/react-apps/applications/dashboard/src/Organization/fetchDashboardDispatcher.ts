@@ -25,6 +25,15 @@ export interface IFetchDashboardDispatchers extends ActionCreatorsMapObject {
   fetchOrganizationsRejected: (
     error: Error,
   ) => FetchDashboardActions.IFetchOrganizationsRejected;
+  fetchCurrentUser: (
+    url: string,
+  ) => FetchDashboardActions.IFetchCurrentUserAction;
+  fetchCurrentUserFulfilled: (
+    user: any,
+  ) => FetchDashboardActions.IFetchCurrentUserFulfilled;
+  fetchCurrentUserRejected: (
+    error: Error,
+  ) => FetchDashboardActions.IFetchCurrentUserRejected;
 }
 
 /**
@@ -37,6 +46,9 @@ const actions: IFetchDashboardDispatchers = {
   fetchOrganizations: FetchDashboardActions.fetchOrganizationsAction,
   fetchOrganizationsFulfilled: FetchDashboardActions.fetchOrganizationsFulfilledAction,
   fetchOrganizationsRejected: FetchDashboardActions.fetchOrganizationsRejectedAction,
+  fetchCurrentUser: FetchDashboardActions.fetchCurrentUserAction,
+  fetchCurrentUserFulfilled: FetchDashboardActions.fetchCurrentUserFulfilledAction,
+  fetchCurrentUserRejected: FetchDashboardActions.fetchCurrentUserRejectedAction,
 };
 
 /**

@@ -72,3 +72,39 @@ export function fetchOrganizationsRejectedAction(
     error,
   };
 }
+
+/* Actions for fetching current user */
+export interface IFetchCurrentUserAction extends Action {
+  url: string;
+}
+export interface IFetchCurrentUserFulfilled extends Action {
+  user: any;
+}
+export interface IFetchCurrentUserRejected extends Action {
+  error: Error;
+}
+
+export function fetchCurrentUserAction(url: string): IFetchCurrentUserAction {
+  return {
+    type: ActionTypes.FETCH_CURRENT_USER,
+    url,
+  };
+}
+
+export function fetchCurrentUserFulfilledAction(
+  user: any,
+): IFetchCurrentUserFulfilled {
+  return {
+    type: ActionTypes.FETCH_CURRENT_USER_FULFILLED,
+    user,
+  };
+}
+
+export function fetchCurrentUserRejectedAction(
+  error: Error,
+): IFetchCurrentUserRejected {
+  return {
+    type: ActionTypes.FETCH_CURRENT_USER_REJECTED,
+    error,
+  };
+}

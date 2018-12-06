@@ -26,6 +26,8 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
 
     fetchServicesActionDispatchers.fetchOrganizations(
       `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);
+    fetchServicesActionDispatchers.fetchCurrentUser(
+      `${altinnWindow.location.origin}/designerapi/User/Current`);
   }
 
   public handleDrawerToggle = () => {

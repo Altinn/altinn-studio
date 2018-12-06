@@ -12,6 +12,7 @@ import 'typeface-roboto';
 export interface ICategoryComponentProvidedProps {
   classes: any;
   header: string;
+  noServicesMessage: string;
   categoryRepos: any;
   className: string;
 }
@@ -64,14 +65,104 @@ const filterOnOrgName = (organizations: any) => {
 };
 
 class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
-  public formatDate(date: any): any {
-    return moment(new Date(date)).format('DD.MM.YYYY');
-  }
   public state: ICategoryComponentState = {
-  }
+  };
 
   public constructor(props: ICategoryComponentProps) {
     super(props);
+  }
+
+  public formatDate(date: any): any {
+    return moment(new Date(date)).format('DD.MM.YYYY');
+  }
+
+  public renderServices() {
+    if (this.props.categoryRepos.length < 1) {
+      return (
+        <Grid container={true} direction='row'>
+          <Typography variant='h4' className={classNames(this.props.classes.width100, this.props.classes.mar_top_100)} align='center'>
+            {this.props.noServicesMessage}
+          </Typography>
+        </Grid>
+      );
+    } else {
+      return (
+        <Grid container={true} spacing={24} >
+          {this.props.categoryRepos.map((key: any, index: number) => (
+            <Grid item={true} key={index} xl={3} lg={4} md={6} sm={12} xs={12} style={styles.width100}>
+              <Card elevation={0} style={styles.card}>
+                <CardContent>
+                  <Grid container={true} spacing={8}>
+                    <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
+                      <Typography
+                        variant='h6'
+                        className={classNames(this.props.classes.displayInlineBlock, this.props.classes.width100)}
+                        noWrap={true}
+                      >
+                        {key.name}
+                      </Typography>
+                    </Grid>
+                    <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
+                      {/* TODO: fix this */}
+                      <i
+                        className={classNames(this.props.classes.iconStyling, this.props.classes.textToRight,
+                          { ['ai ai-corp']: this.props.organizations.indexOf(key.owner.login) !== -1 },
+                          { ['ai ai-private']: this.props.organizations.indexOf(key.owner.login) === -1 })}
+                        aria-hidden='true'
+                      />
+                    </Grid>
+                    <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
+                      <i
+                        className={classNames(this.props.classes.iconStyling, this.props.classes.textToRight,
+                          { ['ai ai-read']: key.permissions.push === false },
+                          { ['ai ai-write']: key.permissions.push === true })}
+                        aria-hidden='true'
+                      />
+                    </Grid>
+                    <Grid
+                      item={true}
+                      className={classNames(
+                        this.props.classes.displayInlineBlock,
+                        this.props.classes.width100,
+                        this.props.classes.height)}
+                    >
+                      <Typography variant='body1' gutterBottom={true}>
+                        <Truncate lines={3} ellipsis={<span>...</span>}>
+                          {key.description}
+                        </Truncate>
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                  <Grid container={true} spacing={0} direction='row'>
+                    <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
+                      <Typography
+                        variant='subtitle2'
+                        className={classNames(this.props.classes.displayInlineBlock, this.props.classes.width100)}
+                        noWrap={true}
+                      >
+                        {key.owner.full_name || key.owner.login}
+                      </Typography>
+                    </Grid>
+                    <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
+                      <Typography
+                        variant='subtitle2'
+                        className={classNames(
+                          this.props.classes.displayInlineBlock,
+                          this.props.classes.width100,
+                          this.props.classes.textToRight)}
+                        noWrap={true}
+                      >
+                        Endret: {this.formatDate(key.updated_at)}
+                      </Typography>
+                    </Grid>
+                  </Grid>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      );
+    }
   }
 
   public render() {
@@ -88,61 +179,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
             {this.props.header}
           </Typography>
         </Grid>
-        <Grid container={true} spacing={24} >
-          {this.props.categoryRepos.map((key: any, index: number) => (
-            <Grid item={true} key={index} xl={3} lg={4} md={6} sm={6} xs={12} style={styles.width100}>
-              <Card elevation={0} style={styles.card}>
-                <CardContent>
-                  <Grid container={true} spacing={8}>
-                    <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
-                      <Typography
-                        variant='h6'
-                        className={classNames(classes.displayInlineBlock, classes.width100)}
-                        noWrap={true}
-                      >
-                        {key.name}
-                      </Typography>
-                    </Grid>
-                    <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                      {/* TODO: fix this */}
-                      {this.props.organizations.indexOf(key.owner.login) !== -1 ?
-                        <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-corp')} aria-hidden='true' />
-                        :
-                        <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-private')} aria-hidden='true' />
-                      }
-                    </Grid>
-                    <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-                      {key.permissions.push === false ?
-                        <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-read')} aria-hidden='true' />
-                        :
-                        <i className={classNames(classes.iconStyling, classes.textToRight, 'ai ai-write')} aria-hidden='true' />
-                      }
-                    </Grid>
-                    <Grid item={true} className={classNames(classes.displayInlineBlock, classes.width100, classes.height)}>
-                      <Typography variant='body1' gutterBottom={true}>
-                        <Truncate lines={3} ellipsis={<span>...</span>}>
-                          {key.description}
-                        </Truncate>
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                  <Grid container={true} spacing={0} direction='row'>
-                    <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
-                      <Typography variant='subtitle2' className={classNames(classes.displayInlineBlock, classes.width100)} noWrap={true}>
-                        {key.owner.full_name || key.owner.login}
-                      </Typography>
-                    </Grid>
-                    <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
-                      <Typography variant='subtitle2' className={classNames(classes.displayInlineBlock, classes.width100, classes.textToRight)} noWrap={true}>
-                        Endret: {this.formatDate(key.updated_at)}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
+        {this.renderServices()}
       </div>
     );
   }
@@ -155,6 +192,7 @@ const mapStateToProps = (
   return {
     classes: props.classes,
     header: props.header,
+    noServicesMessage: props.noServicesMessage,
     categoryRepos: props.categoryRepos,
     className: props.className,
     organizations: filterOnOrgName(state.dashboard.organizations),

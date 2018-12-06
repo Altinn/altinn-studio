@@ -27,6 +27,17 @@ export function* fetchOrganizationsSaga({
   }
 }
 
+export function* fetchCurrentUserSaga({
+  url,
+}: FetchDashboardActions.IFetchCurrentUserAction): SagaIterator {
+  try {
+    const user = yield call(get, url);
+    yield call(FetchDashboardDispatchers.fetchCurrentUserFulfilled, user);
+  } catch (err) {
+    yield call(FetchDashboardDispatchers.fetchCurrentUserRejected, err);
+  }
+}
+
 export function* watchFetchServicesSaga(): SagaIterator {
   yield takeLatest(
     FetchDashboardActionTypes.FETCH_SERVICES,
@@ -41,7 +52,15 @@ export function* watchFetchOrganizationsSaga(): SagaIterator {
   );
 }
 
+export function* watchFetchCurrentUserSaga(): SagaIterator {
+  yield takeLatest(
+    FetchDashboardActionTypes.FETCH_CURRENT_USER,
+    fetchCurrentUserSaga,
+  );
+}
+
 export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
-  yield fork(watchFetchOrganizationsSaga)
+  yield fork(watchFetchOrganizationsSaga);
+  yield fork(watchFetchCurrentUserSaga);
 }
