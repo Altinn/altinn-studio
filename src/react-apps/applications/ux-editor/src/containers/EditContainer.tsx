@@ -54,7 +54,7 @@ const styles = createStyles({
   },
 });
 const customInput = {
-  control: (base) => ({
+  control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',
   })
