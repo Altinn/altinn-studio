@@ -1,0 +1,699 @@
+{
+	"title": "melding",
+	"type": "object",
+	"properties": {
+		"melding": {
+			"$ref": "#/definitions/EDAG_M"
+		}
+	},
+	"definitions": {
+		"EDAG_M": {
+			"properties": {
+				"dataFormatProvider": {
+					"type": "string",
+					"@xsdType": "XmlAttribute",
+					"const": "SERES"
+				},
+				"dataFormatId": {
+					"type": "string",
+					"@xsdType": "XmlAttribute",
+					"const": "3940"
+				},
+				"dataFormatVersion": {
+					"type": "string",
+					"@xsdType": "XmlAttribute",
+					"const": "20161021"
+				},
+				"Leveranse": {
+					"$ref": "#/definitions/Leveranse"
+				},
+				"Opplysningspliktig": {
+					"type": "array",
+					"minimum": 1,
+					"maximum": 3,
+					"items": {
+						"$ref": "#/definitions/Opplysningspliktig"
+					}
+				}
+			},
+			"required": ["dataFormatProvider", "dataFormatId", "dataFormatVersion", "Opplysningspliktig"]
+		},
+		"Leveranse": {
+			"properties": {
+				"leveringstidspunkt": {
+					"$ref": "#/definitions/DatoTid"
+				},
+				"kalendermaaned": {
+					"$ref": "#/definitions/AArOgMaaned"
+				},
+				"kildesystem": {
+					"$ref": "#/definitions/TekstMedRestriksjon"
+				},
+				"meldingsId": {
+					"$ref": "#/definitions/Identifikator"
+				},
+				"opplysningspliktig": {
+					"$ref": "#/definitions/Opplysningspliktig"
+				},
+				"oppgave": {
+					"$ref": "#/definitions/JuridiskEntitet"
+				},
+				"spraakForTilbakemelding": {
+					"$ref": "#/definitions/Spraak"
+				}
+			},
+			"required": ["leveringstidspunkt", "kalendermaaned", "kildesystem", "meldingsId", "opplysningspliktig", "oppgave"]
+		},
+		"Opplysningspliktig": {
+			"properties": {
+				"norskIdentifikator": {
+					"$ref": "#/definitions/NorskIdentifikator"
+				}
+			},
+			"required": ["norskIdentifikator"]
+		},
+		"JuridiskEntitet": {
+			"properties": {
+				"betalingsinformasjon": {
+					"$ref": "#/definitions/Betalingsinformasjon"
+				},
+				"annenBagatellmessigStoette": {
+					"$ref": "#/definitions/Beloep"
+				},
+				"virksomhet": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Virksomhet"
+					}
+				}
+			}
+		},
+		"Betalingsinformasjon": {
+			"properties": {
+				"sumForskuddstrekk": {
+					"$ref": "#/definitions/BeloepSomHeltall"
+				},
+				"sumArbeidsgiveravgift": {
+					"$ref": "#/definitions/BeloepSomHeltall"
+				},
+				"sumFinansskattLoenn": {
+					"$ref": "#/definitions/BeloepSomHeltall"
+				}
+			}
+		},
+		"Virksomhet": {
+			"properties": {
+				"norskIdentifikator": {
+					"$ref": "#/definitions/NorskIdentifikator"
+				},
+				"inntektsmottaker": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Inntektsmottaker"
+					}
+				},
+				"arbeidsgiveravgift": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Arbeidsgiveravgift"
+					}
+				}
+			},
+			"required": ["norskIdentifikator"]
+		},
+		"Inntektsmottaker": {
+			"properties": {
+				"norskIdentifikator": {
+					"$ref": "#/definitions/NorskIdentifikator"
+				},
+				"internasjonalIdentifikator": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/InternasjonalIdentifikator"
+					}
+				},
+				"identifiserendeInformasjon": {
+					"$ref": "#/definitions/IdentifiserendeInformasjon"
+				},
+				"arbeidsforhold": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Arbeidsforhold"
+					}
+				},
+				"fradrag": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Fradrag"
+					}
+				},
+				"forskuddstrekk": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Forskuddstrekk"
+					}
+				},
+				"inntekt": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Inntektsentitet"
+					}
+				},
+				"sjoefolksrelatertInformasjon": {
+					"$ref": "#/definitions/SjoefolksrelatertInformasjon"
+				},
+				"oppholdPaaSvalbardJanMayenOgBilandene": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/OppholdPaaSvalbardJanMayenOgBilandene"
+					}
+				}
+			}
+		},
+		"InternasjonalIdentifikator": {
+			"properties": {
+				"identifikator": {
+					"$ref": "#/definitions/TekstMedRestriksjon"
+				},
+				"identifikatortype": {
+					"$ref": "#/definitions/InternasjonalIdentifikatortype"
+				},
+				"land": {
+					"$ref": "#/definitions/Landkode"
+				}
+			},
+			"required": ["identifikator", "identifikatortype", "land"]
+		},
+		"InternasjonalIdentifikatortype": {
+			"type": "string"
+		},
+		"Landkode": {
+			"type": "string"
+		},
+		"IdentifiserendeInformasjon": {
+			"properties": {
+				"navn": {
+					"$ref": "#/definitions/TekstMedRestriksjon"
+				},
+				"foedselsdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"ansattnummer": {
+					"$ref": "#/definitions/TekstMedRestriksjon"
+				}
+			},
+			"required": ["navn"]
+		},
+		"Arbeidsforhold": {
+			"properties": {
+				"arbeidsforholdId": {
+					"$ref": "#/definitions/Identifikator"
+				},
+				"typeArbeidsforhold": {
+					"$ref": "#/definitions/Arbeidsforholdstype"
+				},
+				"startdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"sluttdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"antallTimerPerUkeSomEnFullStillingTilsvarer": {
+					"$ref": "#/definitions/Desimaltall"
+				},
+				"avloenningstype": {
+					"$ref": "#/definitions/Avloenningstype"
+				},
+				"yrke": {
+					"$ref": "#/definitions/Yrke"
+				},
+				"arbeidstidsordning": {
+					"$ref": "#/definitions/Arbeidstidsordning"
+				},
+				"stillingsprosent": {
+					"$ref": "#/definitions/Desimaltall"
+				},
+				"sisteLoennsendringsdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"loennsansiennitet": {
+					"$ref": "#/definitions/Dato"
+				},
+				"loennstrinn": {
+					"$ref": "#/definitions/TekstMedRestriksjon"
+				},
+				"fartoey": {
+					"$ref": "#/definitions/Fartoey"
+				},
+				"permisjon": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Permisjon"
+					}
+				},
+				"sisteDatoForStillingsprosentendring": {
+					"$ref": "#/definitions/Dato"
+				}
+			},
+			"required": ["typeArbeidsforhold"]
+		},
+		"Arbeidsforholdstype": {
+			"type": "string"
+		},
+		"Avloenningstype": {
+			"type": "string"
+		},
+		"Yrke": {
+			"type": "string"
+		},
+		"Arbeidstidsordning": {
+			"type": "string"
+		},
+		"Fartoey": {
+			"properties": {
+				"skipsregister": {
+					"$ref": "#/definitions/Skipsregister"
+				},
+				"skipstype": {
+					"$ref": "#/definitions/Skipstype"
+				},
+				"fartsomraade": {
+					"$ref": "#/definitions/Fartsomraade"
+				}
+			},
+			"required": ["skipsregister", "skipstype", "fartsomraade"]
+		},
+		"Skipsregister": {
+			"type": "string"
+		},
+		"Skipstype": {
+			"type": "string"
+		},
+		"Fartsomraade": {
+			"type": "string"
+		},
+		"PermisjonsOgPermitteringsBeskrivelse": {
+			"type": "string"
+		},
+		"Permisjon": {
+			"properties": {
+				"startdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"sluttdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"permisjonsprosent": {
+					"$ref": "#/definitions/Desimaltall"
+				},
+				"permisjonId": {
+					"$ref": "#/definitions/Identifikator"
+				},
+				"beskrivelse": {
+					"$ref": "#/definitions/PermisjonsOgPermitteringsBeskrivelse"
+				}
+			},
+			"required": ["permisjonId", "beskrivelse"]
+		},
+		"Fradrag": {
+			"properties": {
+				"beskrivelse": {
+					"$ref": "#/definitions/Fradragsbeskrivelse"
+				},
+				"beloep": {
+					"$ref": "#/definitions/Beloep"
+				}
+			},
+			"required": ["beskrivelse"]
+		},
+		"Fradragsbeskrivelse": {
+			"type": "string"
+		},
+		"Forskuddstrekk": {
+			"properties": {
+				"beskrivelse": {
+					"$ref": "#/definitions/Forskuddstrekksbeskrivelse"
+				},
+				"beloep": {
+					"$ref": "#/definitions/BeloepSomHeltall"
+				}
+			}
+		},
+		"Forskuddstrekksbeskrivelse": {
+			"type": "string"
+		},
+		"Inntekt": {
+			"properties": {
+				"skatteOgAvgiftsregel": {
+					"$ref": "#/definitions/SkatteOgAvgiftsregel"
+				},
+				"startdatoOpptjeningsperiode": {
+					"$ref": "#/definitions/Dato"
+				},
+				"sluttdatoOpptjeningsperiode": {
+					"$ref": "#/definitions/Dato"
+				},
+				"fordel": {
+					"$ref": "#/definitions/Fordel"
+				},
+				"utloeserArbeidsgiveravgift": {
+					"$ref": "#/definitions/Boolsk"
+				},
+				"inngaarIGrunnlagForTrekk": {
+					"$ref": "#/definitions/Boolsk"
+				},
+				"beloep": {
+					"$ref": "#/definitions/Beloep"
+				},
+				"arbeidsforholdId": {
+					"$ref": "#/definitions/Identifikator"
+				}
+			}
+		},
+		"SkatteOgAvgiftsregel": {
+			"type": "string"
+		},
+		"Fordel": {
+			"type": "string"
+		},
+		"Loennsbeskrivelse": {
+			"type": "string"
+		},
+		"Periode": {
+			"properties": {
+				"startdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"sluttdato": {
+					"$ref": "#/definitions/Dato"
+				}
+			}
+		},
+		"PersontypeForReiseKostLosji": {
+			"type": "string"
+		},
+		"SpesielleInntjeningsforhold": {
+			"type": "string"
+		},
+		"Spesifikasjon": {
+			"properties": {
+				"skattemessigBosattILand": {
+					"$ref": "#/definitions/Landkode"
+				},
+				"opptjeningsland": {
+					"$ref": "#/definitions/Landkode"
+				},
+				"erOpptjentPaaHjelpefartoey": {
+					"$ref": "#/definitions/Boolsk"
+				},
+				"erOpptjentPaaKontinentalsokkel": {
+					"$ref": "#/definitions/Boolsk"
+				}
+			}
+		},
+		"PensjonEllerTrygdebeskrivelse": {
+			"type": "string"
+		},
+		"Naeringsinntektsbeskrivelse": {
+			"type": "string"
+		},
+		"OppholdsbeskrivelseForSvalbardJanMayenOgBilandene": {
+			"type": "string"
+		},
+		"SjoefolksrelatertInformasjon": {
+			"properties": {
+				"antallDoegnOmbord": {
+					"$ref": "#/definitions/Heltall"
+				},
+				"antallDoegnOmbordUtenDekkedeSmaautgifter": {
+					"$ref": "#/definitions/Heltall"
+				}
+			}
+		},
+		"OppholdPaaSvalbardJanMayenOgBilandene": {
+			"properties": {
+				"oppholdsId": {
+					"$ref": "#/definitions/Identifikator"
+				},
+				"startdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"sluttdato": {
+					"$ref": "#/definitions/Dato"
+				},
+				"beskrivelse": {
+					"$ref": "#/definitions/OppholdsbeskrivelseForSvalbardJanMayenOgBilandene"
+				}
+			},
+			"required": ["oppholdsId", "beskrivelse"]
+		},
+		"Arbeidsgiveravgift": {
+			"properties": {
+				"loennOgGodtgjoerelse": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Arbeidsgiveravgiftsgrunnlag"
+					}
+				},
+				"tilskuddOgPremieTilPensjon": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/Arbeidsgiveravgiftsgrunnlag"
+					}
+				},
+				"utenlandskeMedSaerskiltProsentsats": {
+					"$ref": "#/definitions/UtenlandskeMedSaerskiltProsentsats"
+				},
+				"utenlandskeMedFastAvgiftsbeloep": {
+					"$ref": "#/definitions/UtenlandskeMedFastAvgiftsbeloep"
+				},
+				"fradragIGrunnlagetForSone": {
+					"type": "array",
+					"minimum": 0,
+					"items": {
+						"$ref": "#/definitions/FradragIGrunnlaget"
+					}
+				},
+				"fradragIGrunnlagetForUtenlandsk": {
+					"$ref": "#/definitions/FradragIGrunnlagetForUtenlandsk"
+				}
+			}
+		},
+		"Arbeidsgiveravgiftsgrunnlag": {
+			"properties": {
+				"beregningskodeForArbeidsgiveravgift": {
+					"$ref": "#/definitions/BeregningskodeForArbeidsgiveravgift"
+				},
+				"sone": {
+					"$ref": "#/definitions/Arbeidsgiveravgiftsone"
+				},
+				"avgiftsgrunnlagBeloep": {
+					"$ref": "#/definitions/Beloep"
+				},
+				"prosentsatsForAvgiftsberegning": {
+					"$ref": "#/definitions/Grunnlagsprosent"
+				}
+			},
+			"required": ["beregningskodeForArbeidsgiveravgift", "sone"]
+		},
+		"BeregningskodeForArbeidsgiveravgift": {
+			"type": "string"
+		},
+		"Arbeidsgiveravgiftsone": {
+			"type": "string"
+		},
+		"Grunnlagsprosent": {
+			"type": "number"
+		},
+		"GrunnlagsprosentForUtenlandske": {
+			"type": "number"
+		},
+		"GrunnlagsbeloepForUtenlandske": {
+			"type": "number"
+		},
+		"UtenlandskeMedSaerskiltProsentsats": {
+			"properties": {
+				"avgiftsgrunnlagBeloep": {
+					"$ref": "#/definitions/Beloep"
+				},
+				"prosentsatsForAvgiftsberegning": {
+					"$ref": "#/definitions/GrunnlagsprosentForUtenlandske"
+				}
+			}
+		},
+		"UtenlandskeMedFastAvgiftsbeloep": {
+			"properties": {
+				"antallAvgiftsgrunnlagPersoner": {
+					"$ref": "#/definitions/Heltall"
+				},
+				"beloepssatsForAvgiftsberegning": {
+					"$ref": "#/definitions/GrunnlagsbeloepForUtenlandske"
+				}
+			}
+		},
+		"FradragIGrunnlaget": {
+			"properties": {
+				"beregningskodeForArbeidsgiveravgift": {
+					"$ref": "#/definitions/BeregningskodeForArbeidsgiveravgift"
+				},
+				"sone": {
+					"$ref": "#/definitions/Arbeidsgiveravgiftsone"
+				},
+				"avgiftsfradragBeloep": {
+					"$ref": "#/definitions/Beloep"
+				},
+				"prosentsatsForAvgiftsberegning": {
+					"$ref": "#/definitions/Grunnlagsprosent"
+				}
+			},
+			"required": ["beregningskodeForArbeidsgiveravgift", "sone"]
+		},
+		"FradragIGrunnlagetForUtenlandsk": {
+			"properties": {
+				"avgiftsfradragBeloep": {
+					"$ref": "#/definitions/Beloep"
+				},
+				"prosentsatsForAvgiftsberegning": {
+					"$ref": "#/definitions/GrunnlagsprosentForUtenlandske"
+				}
+			}
+		},
+		"DatoTid": {
+			"type": "string",
+			"format": "date-time"
+		},
+		"AArOgMaaned": {
+			"type": "string",
+			"format": "year-month"
+		},
+		"Tekst": {
+			"type": "string"
+		},
+		"NorskIdentifikator": {
+			"type": "string"
+		},
+		"BeloepSomHeltall": {
+			"type": "integer"
+		},
+		"Beloep": {
+			"type": "number"
+		},
+		"Dato": {
+			"type": "string",
+			"format": "date"
+		},
+		"Desimaltall": {
+			"type": "number"
+		},
+		"Boolsk": {
+			"type": "boolean"
+		},
+		"Heltall": {
+			"type": "integer"
+		},
+		"AArstall": {
+			"type": "string",
+			"format": "year"
+		},
+		"Spraak": {
+			"type": "string"
+		},
+		"TekstMedRestriksjon": {
+			"$ref": "#/definitions/RestriksjonTekstfelt"
+		},
+		"RestriksjonTekstfelt": {
+			"type": "string"
+		},
+		"Identifikator": {
+			"$ref": "#/definitions/RestriksjonIdentifikator"
+		},
+		"RestriksjonIdentifikator": {
+			"type": "string"
+		},
+		"Inntektsentitet": {
+			"properties": {
+				"valgNivaa1": {
+					"type": "string",
+					"@xsdType": "XmlAttribute"
+				},
+				"valgNivaa2": {
+					"type": "string",
+					"@xsdType": "XmlAttribute"
+				},
+				"valgNivaa3": {
+					"type": "string",
+					"@xsdType": "XmlAttribute"
+				},
+				"valgNivaa4": {
+					"type": "string",
+					"@xsdType": "XmlAttribute"
+				},
+				"tilleggsinformasjon": {
+					"type": "string",
+					"@xsdType": "XmlAttribute"
+				},
+				"loennsinntekt": {
+					"$ref": "#/definitions/Loennsinntekt"
+				},
+				"bilOgBaat": {
+					"$ref": "#/definitions/BilOgBaat"
+				},
+				"inntektPaaNorskKontinentalsokkel": {
+					"$ref": "#/definitions/NorskKontinentalsokkel"
+				},
+				"inntjeningsforhold": {
+					"$ref": "#/definitions/Inntjeningsforhold"
+				},
+				"nettoloenn": {
+					"$ref": "#/definitions/Nettoloennsordning"
+				},
+				"reiseKostOgLosji": {
+					"$ref": "#/definitions/ReiseKostOgLosji"
+				},
+				"utenlandskArtist": {
+					"$ref": "#/definitions/UtenlandskArtist"
+				},
+				"bonusFraForsvaret": {
+					"$ref": "#/definitions/BonusFraForsvaret"
+				},
+				"pensjonEllerTrygd": {
+					"$ref": "#/definitions/PensjonEllerTrygd"
+				},
+				"livrente": {
+					"$ref": "#/definitions/Livrente"
+				},
+				"etterbetalingsperiode": {
+					"$ref": "#/definitions/Etterbetalingsperiode"
+				},
+				"pensjon": {
+					"$ref": "#/definitions/AldersUfoereEtterlatteAvtalefestetOgKrigspensjon"
+				},
+				"naeringsinntekt": {
+					"$ref": "#/definitions/Naeringsinntekt"
+				},
+				"lottOgPart": {
+					"$ref": "#/definitions/LottOgPartInnenFiske"
+				},
+				"dagmammaIEgenBolig": {
+					"$ref": "#/definitions/DagmammaIEgenBolig"
+				}
+			}
+		}
+	
+		
+	},
+	"$schema": "http://json-schema.org/schema#",
+	"$id": "asdf"
+}
