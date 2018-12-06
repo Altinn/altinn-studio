@@ -1,3 +1,4 @@
+import Button from '@material-ui/core/Button';
 import Collapse from '@material-ui/core/Collapse';
 import Divider from '@material-ui/core/Divider';
 import Drawer from '@material-ui/core/Drawer';
@@ -12,15 +13,16 @@ import { leftDrawerMenuSettings } from './drawerMenuSettings';
 import { mainMenuSettings } from './drawerMenuSettings';
 import { styles } from './tabletDrawerMenustyle';
 
-export interface IDrawerMenuProps {
+export interface ITabletDrawerMenuProps {
   classes: any;
   theme: any;
-  menuType: any;
+  tabletDrawerOpen: boolean;
+  handleTabletDrawerMenu: () => void;
 }
 
-export interface IDrawerMenuProps extends WithStyles<typeof styles> { }
+export interface ITabletDrawerMenuProps extends WithStyles<typeof styles> { }
 
-class TabletDrawerMenu extends React.Component<IDrawerMenuProps, any> {
+class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, any> {
   public state = {
     open: false,
     openSubMenus: [] as number[],
@@ -28,7 +30,7 @@ class TabletDrawerMenu extends React.Component<IDrawerMenuProps, any> {
   };
 
   public handleDrawerOpen = () => {
-    this.setState({ open: true });
+    this.props.handleTabletDrawerMenu();
   }
 
   public handleDrawerClose = () => {
@@ -63,39 +65,27 @@ class TabletDrawerMenu extends React.Component<IDrawerMenuProps, any> {
 
     return (
       <div>
-        {/*<AppBar
-          position='fixed'
-          className={classNames(classes.appBar, {
-            [classes.appBarShift]: open,
-          })}
+        <Button
+          size='small'
+          variant='outlined'
+          className={classes.button}
+          onClick={this.handleDrawerOpen}
         >
-          <Toolbar disableGutters={!open}>
-            <IconButton
-              color='inherit'
-              aria-label='Open drawer'
-              onClick={this.handleDrawerOpen}
-              className={classNames(classes.menuButton, open && classes.hide)}
-            >
-              <MenuIcon />
-            </IconButton>
-            <Typography variant='h6' color='inherit' noWrap={true}>
-              Persistent drawer
-            </Typography>
-          </Toolbar>
-        </AppBar>*/}
+          {this.props.tabletDrawerOpen ? 'lukk' : 'meny'}
+        </Button>
         <Drawer
           variant='persistent'
           className={classNames(classes.drawer, {
-            [classes.drawerOpen]: this.state.open,
-            [classes.drawerClose]: !this.state.open,
+            [classes.drawerOpen]: this.props.tabletDrawerOpen,
+            [classes.drawerClose]: !this.props.tabletDrawerOpen,
           })}
           classes={{
             paper: classNames(classes.paper, {
-              [classes.drawerOpen]: this.state.open,
-              [classes.drawerClose]: !this.state.open,
+              [classes.drawerOpen]: this.props.tabletDrawerOpen,
+              [classes.drawerClose]: !this.props.tabletDrawerOpen,
             }),
           }}
-          open={this.state.open}
+          open={this.props.tabletDrawerOpen}
           PaperProps={{ classes: { root: classes.drawerMenuPaper } }}
         >
           <div style={{ width: '50%' }}>

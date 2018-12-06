@@ -2,7 +2,6 @@
 // Extensive used in Material-UI's Grid
 
 import AppBar from '@material-ui/core/AppBar';
-import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -15,6 +14,7 @@ import Hidden from '@material-ui/core/Hidden';
 // Altinn-Studio components
 import ProfileMenu from './profileMenu';
 
+import TabletDrawerMenu from '../../navigation/drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
@@ -28,6 +28,7 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
 }
 export interface IAppBarComponentState {
   anchorEl: any;
+  tabletDrawerOpen: boolean;
 }
 
 const styles = createStyles({
@@ -83,7 +84,16 @@ const styles = createStyles({
 class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComponentState> {
   public state: IAppBarComponentState = {
     anchorEl: null,
+    tabletDrawerOpen: false,
   };
+
+  public handleTabletDrawerMenu = () => {
+    this.setState((state: IAppBarComponentState) => {
+      return {
+        tabletDrawerOpen: !state.tabletDrawerOpen,
+      };
+    });
+  }
 
   public render() {
     const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
@@ -127,7 +137,10 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                 </Hidden>
                 <Hidden mdUp>
                   <Grid item={true}>
-                    <Button size='small' variant='outlined' className={classes.button}>meny</Button>
+                    <TabletDrawerMenu
+                      handleTabletDrawerMenu={this.handleTabletDrawerMenu}
+                      tabletDrawerOpen={this.state.tabletDrawerOpen}
+                    />
                   </Grid>
                 </Hidden>
               </Grid>

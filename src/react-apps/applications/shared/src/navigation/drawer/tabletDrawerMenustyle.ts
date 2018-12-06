@@ -37,7 +37,15 @@ export const styles = (theme: Theme) => createStyles({
     borderRadius: 1,
     minWidth: 150,
     padding: 0,
-    top: 75,
+    top: 110,
     right: 0,
+  },
+  button: {
+    border: '2px solid #0062BA',
+    borderRadius: 0,
+    color: '#0062BA',
+    fontSize: 18,
+    padding: '2px 8px 4px',
+    textTransform: 'lowercase',
   },
 });
