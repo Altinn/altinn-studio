@@ -9,6 +9,8 @@ const fallbackLanguage = {
     choose_label: 'Choose label',
     choose_method: 'Choose method',
     control_submit: 'Control and submit',
+    create: 'Create',
+    create_new: 'Create new',
     delete: 'Delete',
     disabled: 'Disabled',
     enabled: 'Enabled',

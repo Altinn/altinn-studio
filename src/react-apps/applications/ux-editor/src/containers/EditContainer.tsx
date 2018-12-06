@@ -169,6 +169,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.component.title = e.target.value;
   }
 
+  public getTextResource = (resourceKey: string): string => {
+    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
+    return textResource ? textResource.value : resourceKey;
+  }
 
   public truncate = (s: string) => {
     if (s.length > 60) {
@@ -206,13 +210,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         defaultValue={''}
                         onChange={this.handleTitleChange}
                         isClearable
-                        placeholder={this.state.component.title ? this.state.component.title : this.props.language.general.search}
+                        placeholder={this.state.component.title ? this.getTextResource(this.state.component.title)
+                          : this.props.language.general.search}
+                        formatCreateLabel={() => this.props.language.general.create_new}
                       />
                       {this.renderComponentSpecificContent()}
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
-                      {this.props.children}
+                      {this.state.component.title ? this.getTextResource(this.props.component.title) : this.props.component.component}
                       <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
                         {this.props.component.component}
                       </span>
