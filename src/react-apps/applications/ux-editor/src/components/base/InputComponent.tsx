@@ -38,7 +38,7 @@ export class InputComponent
     return (
       <input
         id={this.props.id}
-        type={this.props.component.type as any}
+        type={this.props.component.type}
         onBlur={this.onDataChangeSubmit}
         onChange={this.onDataChanged}
         disabled={this.props.component.disabled}

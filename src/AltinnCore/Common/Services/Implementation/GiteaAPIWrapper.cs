@@ -60,14 +60,14 @@ namespace AltinnCore.Common.Services.Implementation
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
             using (HttpClient client = new HttpClient(handler))
             {
-                var response = client.GetAsync(giteaUrl);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     user = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.User;
                 }
-                else if (response.Result.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                response.Result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     // User is not logged in.
                     return null;
@@ -75,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     // Will cause an exception Temporary workaround
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     user = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.User;
                 }
             }
@@ -110,14 +110,14 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = new HttpClient(handler))
             {
-                var response = client.PostAsJsonAsync<CreateRepoOption>(giteaUrl, createRepoOption);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.Created)
+                HttpResponseMessage response = await client.PostAsJsonAsync<CreateRepoOption>(giteaUrl, createRepoOption);
+                if (response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     repository = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Repository;
                 }
-                else if (response.Result.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                response.Result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     // User is not logged in.
                     return null;
@@ -125,7 +125,7 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     // Will cause an exception Temporary workaround
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     repository = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Repository;
                 }
             }
@@ -180,14 +180,14 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = new HttpClient(handler))
             {
-                var response = client.GetAsync(giteaUrl);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     repository = serializer.ReadObject(stream) as SearchResults;
                 }
-                else if (response.Result.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                response.Result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     // User is not logged in.
                     return null;
@@ -195,7 +195,7 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     // Will cause an exception Temporary workaround
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     repository = serializer.ReadObject(stream) as SearchResults;
                 }
             }
@@ -209,7 +209,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="name">app token name</param>
         /// <returns>null</returns>
-        public string CreateAppToken(string name)
+        public async Task<string> CreateAppToken(string name)
         {
             string token = null;
 
@@ -230,13 +230,13 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = new HttpClient(handler))
             {
-                var response = client.PostAsync(giteaUrl, null);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.Created)
+                HttpResponseMessage response = await client.PostAsync(giteaUrl, null);
+                if (response.StatusCode == System.Net.HttpStatusCode.Created)
                 {
-                    token = response.Result.Headers.GetValues("sha1").FirstOrDefault();
+                    token = response.Headers.GetValues("sha1").FirstOrDefault();
                 }
-                else if (response.Result.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                response.Result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     // User is not logged in.
                     return null;
@@ -276,14 +276,14 @@ namespace AltinnCore.Common.Services.Implementation
             HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
             using (HttpClient client = new HttpClient(handler))
             {
-                var response = client.GetAsync(giteaUrl);
-                if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     organizations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
                 }
-                else if (response.Result.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                response.Result.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
                 {
                     // User is not logged in.
                     return null;
@@ -291,7 +291,7 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     // Will cause an exception Temporary workaround
-                    Stream stream = await response.Result.Content.ReadAsStreamAsync();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
                     organizations = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.Organization>;
                 }
             }

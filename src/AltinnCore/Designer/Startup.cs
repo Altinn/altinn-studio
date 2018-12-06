@@ -209,7 +209,7 @@ namespace AltinnCore.Designer
                     defaults: new { controller = "Repository" },
                     constraints: new
                     {
-                        controller = @"(Repository|Language)",
+                        controller = @"(Repository|Language|User)",
                     });
                 routes.MapRoute(
                           name: "serviceRoute",
