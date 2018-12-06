@@ -3,13 +3,11 @@ import {
   Typography, withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
-import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import CreatableSelect from 'react-select/lib/Creatable';
 import Select from 'react-select';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { EditModalContent } from '../components/config/EditModalContent';
 import '../styles/index.css';
 
 const styles = createStyles({
@@ -55,6 +53,12 @@ const styles = createStyles({
     color: altinnTheme.palette.secondary.dark + '!important',
   },
 });
+const customInput = {
+  control: (base) => ({
+    ...base,
+    borderRadius: '0 !important',
+  })
+};
 
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
@@ -152,6 +156,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               {this.props.language.ux_editor.modal_header_type_helper}
             </Typography>
             <Select
+              styles={customInput}
               defaultValue={sizes[0]}
               onChange={this.handleSizeChange}
               options={sizes}
@@ -206,6 +211,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         {this.props.language.ux_editor.modal_properties_data_model_helper}
                       </p>
                       <CreatableSelect
+                        styles={customInput}
                         options={textRecources}
                         defaultValue={''}
                         onChange={this.handleTitleChange}
