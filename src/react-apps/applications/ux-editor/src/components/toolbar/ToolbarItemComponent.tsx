@@ -72,6 +72,7 @@ const styles = (theme: Theme) => createStyles({
   },
   paper: {
     marginBottom: '6px',
+    backgroundColor: '#FFFFFF',
 
   },
   helpOutline: {

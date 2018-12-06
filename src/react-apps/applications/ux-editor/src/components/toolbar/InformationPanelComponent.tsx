@@ -107,6 +107,7 @@ const styles = (theme: Theme) => createStyles({
     padding: '24px',
     width: '445px',
     height: 'auto',
+    backgroundColor: '#FFFFFF',
   },
   informationPanelDivider: {
     marginLeft: '-24px',
