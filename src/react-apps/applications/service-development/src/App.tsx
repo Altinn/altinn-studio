@@ -10,14 +10,12 @@ import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
-import AppBarComponent from '../../shared/src/navigation/main-header/app-bar';
+import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
+import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import NavigationActionDispatcher from './actions/navigationActions/navigationActionDispatcher';
 import './App.css';
-
-import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
-import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
-
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
 
@@ -99,6 +97,7 @@ class AppClass extends React.Component<IAppProps, any> {
                     <Route
                       key={index}
                       path={route.path}
+                      exact={route.exact}
                       render={(props) => <route.subapp
                         {...props}
                         name={route.path}

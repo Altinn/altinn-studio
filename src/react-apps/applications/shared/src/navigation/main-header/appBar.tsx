@@ -3,19 +3,15 @@
 
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
+import Hidden from '@material-ui/core/Hidden';
 import { createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-
-import Hidden from '@material-ui/core/Hidden';
-
-// Altinn-Studio components
-import ProfileMenu from './profileMenu';
-
-import TabletDrawerMenu from '../../navigation/drawer/TabletDrawerMenu';
+import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
+import ProfileMenu from './profileMenu';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   activeSubHeaderSelection: string;

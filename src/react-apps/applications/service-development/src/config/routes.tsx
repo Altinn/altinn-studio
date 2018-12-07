@@ -10,6 +10,7 @@ const DummySubApp = (name: any) => {
 export const routes = ([
   {
     path: '/uieditor',
+    exact: true,
     activeSubHeaderSelection: 'create',
     activeLeftMenuSelection: 'gui',
     menu: 'create',
@@ -17,12 +18,14 @@ export const routes = ([
   },
   {
     path: '/preview',
+    exact: true,
     activeSubHeaderSelection: 'create',
     menu: 'create',
     subapp: uieditorApp,
   },
   {
     path: '/text',
+    exact: true,
     activeSubHeaderSelection: 'language',
     activeLeftMenuSelection: 'text',
     menu: 'language',
@@ -30,6 +33,7 @@ export const routes = ([
   },
   {
     path: '/test',
+    exact: true,
     activeSubHeaderSelection: 'test',
     activeLeftMenuSelection: 'test',
     menu: 'test',
@@ -37,6 +41,7 @@ export const routes = ([
   },
   {
     path: '/aboutservice',
+    exact: true,
     activeSubHeaderSelection: 'about',
     activeLeftMenuSelection: 'aboutservice',
     menu: 'about',
@@ -44,6 +49,7 @@ export const routes = ([
   },
   {
     path: '/rolesandrights',
+    exact: true,
     activeSubHeaderSelection: 'about',
     activeLeftMenuSelection: 'rolesandrights',
     menu: 'about',
@@ -51,6 +57,7 @@ export const routes = ([
   },
   {
     path: '/production',
+    exact: true,
     activeSubHeaderSelection: 'about',
     activeLeftMenuSelection: 'production',
     menu: 'about',
@@ -58,6 +65,7 @@ export const routes = ([
   },
   {
     path: '/versionhistory',
+    exact: true,
     activeSubHeaderSelection: 'about',
     activeLeftMenuSelection: 'versionhistory',
     menu: 'about',
@@ -65,6 +73,7 @@ export const routes = ([
   },
   {
     path: '/aboutenduser',
+    exact: true,
     activeSubHeaderSelection: 'about',
     activeLeftMenuSelection: 'aboutenduser',
     menu: 'about',
@@ -72,6 +81,7 @@ export const routes = ([
   },
   {
     path: '/altinn',
+    exact: true,
     activeSubHeaderSelection: 'about',
     activeLeftMenuSelection: 'altinn',
     menu: 'about',
@@ -79,6 +89,7 @@ export const routes = ([
   },
   {
     path: '/datamodel',
+    exact: true,
     activeSubHeaderSelection: 'create',
     activeLeftMenuSelection: 'datamodel',
     menu: 'create',
@@ -86,6 +97,7 @@ export const routes = ([
   },
   {
     path: '/api',
+    exact: true,
     activeSubHeaderSelection: 'create',
     activeLeftMenuSelection: 'api',
     menu: 'create',
@@ -93,6 +105,7 @@ export const routes = ([
   },
   {
     path: '/translate',
+    exact: true,
     activeSubHeaderSelection: 'language',
     activeLeftMenuSelection: 'translate',
     menu: 'language',
@@ -100,6 +113,7 @@ export const routes = ([
   },
   {
     path: '/productionsetting',
+    exact: true,
     activeSubHeaderSelection: 'publish',
     activeLeftMenuSelection: 'productionsetting',
     menu: 'publish',
@@ -107,6 +121,7 @@ export const routes = ([
   },
   {
     path: '/status',
+    exact: true,
     activeSubHeaderSelection: 'publish',
     activeLeftMenuSelection: 'status',
     menu: 'publish',

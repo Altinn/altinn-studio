@@ -22,7 +22,7 @@
     "react-grid-layout": "0.16.6",
     "react-hot-loader": "4.3.1",
     "react-modal": "3.4.5",
-    "react-redux": "^5.0.7",
+    "react-redux": "5.0.7",
     "react-router-dom": "4.3.1",
     "redux": "4.0.0",
     "redux-devtools-extension": "2.13.5",
