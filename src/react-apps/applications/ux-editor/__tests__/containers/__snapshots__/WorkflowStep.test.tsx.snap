@@ -16,7 +16,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot >>> Capture snapshot of Wo
         <img
           alt="Altinn logo"
           className="a-logo a-modal-top-logo "
-          src="/designer/img/Designsystem/v1/a-logo-blue.svg"
+          src="/designer/img/a-logo-blue.svg"
         />
         <div
           className="a-modal-top-user"
