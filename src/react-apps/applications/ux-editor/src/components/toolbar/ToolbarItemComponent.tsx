@@ -21,7 +21,12 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
     return (
       <Paper square={true} classes={{ root: classNames(this.props.classes.paper) }}>
         <ListItem classes={{ root: classNames(this.props.classes.listItem) }}>
-          <ListItemText classes={{ primary: classNames(this.props.classes.listItemText) }}>
+          <ListItemText
+            classes={{
+              primary: classNames(this.props.classes.listItemText),
+              root: classNames(this.props.classes.listItemTextRoot),
+            }}
+          >
             {(this.props.thirdPartyLabel == null) ?
               getComponentTitleByComponentType(this.props.componentType, this.props.language) :
               this.props.thirdPartyLabel
@@ -38,7 +43,7 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
             </svg>
           </ListItemIcon>
         </ListItem>
-      </Paper>
+      </Paper >
     );
   }
 }
@@ -63,6 +68,9 @@ const styles = (theme: Theme) => createStyles({
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
+  },
+  listItemTextRoot: {
+    paddingRight: '0px',
   },
   listItem: {
     paddingLeft: '12px',
