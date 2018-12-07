@@ -86,13 +86,6 @@ export interface IEditContainerProvidedProps {
   classes: any;
 }
 
-export interface IEditContainerProps extends IEditContainerProvidedProps {
-  id: string;
-  dataModel: IDataModelFieldElement[];
-  textResources: ITextResource[];
-  language: any;
-}
-
 export interface IEditContainerState {
   component: IFormComponent;
   isEditModalOpen: boolean;

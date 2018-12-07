@@ -28,9 +28,7 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
 
   public render() {
     return (
-      <span>
-        {this.props.text}
-      </span>
+      this.renderHeader()
     );
   }
 }
