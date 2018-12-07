@@ -54,5 +54,22 @@ namespace AltinnCore.Designer.Controllers
             List<Organization> orglist = _giteaApi.GetUserOrganizations(sessionId).Result;
             return orglist;
         }
+
+        /// <summary>
+        /// Returns a specic organization
+        /// </summary>
+        /// <param name="id">The organization name</param>
+        /// <returns>The organization</returns>
+        [HttpGet]
+        public ActionResult<Organization> Organization(string id)
+        {
+            Organization org = _giteaApi.GetOrganization(id).Result;
+            if (org != null)
+            {
+                return org;
+            }
+
+            return NotFound();
+        }
     }
 }

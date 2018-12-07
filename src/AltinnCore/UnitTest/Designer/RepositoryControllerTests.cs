@@ -25,7 +25,9 @@ namespace AltinnCore.UnitTest.Designer
         public void Search_SevenRepos()
         {
             // Arrange
-            Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGitea);
+
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
 
             AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object);
@@ -45,7 +47,9 @@ namespace AltinnCore.UnitTest.Designer
         public void Organizations_GetOrgs()
         {
             // Arrange
-            Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetOneOrganization();
+            Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddListWithOneOrganization(moqGitea);
+
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
 
             AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
@@ -55,7 +59,29 @@ namespace AltinnCore.UnitTest.Designer
             List<Organization> result = controller.Organizations();
 
             // Assert
-            Assert.Equal(1, result.Count);
+            Assert.Single(result);
+        }
+
+        /// <summary>
+        /// A unit test that verifies that a given organization is returned
+        /// </summary>
+        [Fact]
+        public void Organization_GetOrg_Valid()
+        {
+            // Arrange
+            Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddOneOrg(moqGitea);
+
+            Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
+
+            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
+            RepositorySearch repositorySearch = new RepositorySearch();
+
+            // Act
+            ActionResult<Organization> result = controller.Organization("MockOrg");
+
+            // Assert
+            Assert.NotNull(result.Value);
         }
     }
 }

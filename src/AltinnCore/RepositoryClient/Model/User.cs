@@ -78,6 +78,12 @@ namespace AltinnCore.RepositoryClient.Model
         public string Login { get; set; }
 
         /// <summary>
+        /// Sets 
+        /// </summary>
+        [DataMember(Name = "UserType", EmitDefaultValue = false)]
+        public UserType UserType { get; set; }
+
+        /// <summary>
         /// Returns the string presentation of the object
         /// </summary>
         /// <returns>String presentation of the object</returns>
