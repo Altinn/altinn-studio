@@ -150,20 +150,8 @@ class FormDesigner extends React.Component<
               <Toolbar />
             </Grid>
             <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
-<<<<<<< HEAD
-              <div
-                style={{
-                  width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px',
-                  marginLeft: '24px'
-                }}
-              />
-              <div
-                style={{ width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF' }}
-              >
-=======
               <div style={{ width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px', marginLeft: '24px' }} />
               <div style={{ width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF' }}>
->>>>>>> master
                 <Preview />
                 <div className='col-12 justify-content-center d-flex mt-3'>
                   {this.renderSaveButton()}

@@ -19,11 +19,8 @@
   "license": "MIT",
   "dependencies": {
     "@material-ui/core": "^3.4.0",
-<<<<<<< HEAD
     "@types/react-select": "^2.0.10",
-=======
     "@material-ui/icons": "^3.0.1",
->>>>>>> master
     "axios": "0.18.0",
     "babel-core": "6.26.3",
     "classnames": "^2.2.6",
