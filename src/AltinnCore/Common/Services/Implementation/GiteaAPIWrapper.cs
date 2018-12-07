@@ -319,7 +319,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns information about a organization in
+        /// Returns information about a organization based on name
         /// </summary>
         /// <param name="name">The name of the organization</param>
         /// <returns>The organization</returns>

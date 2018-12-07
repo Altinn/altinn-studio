@@ -34,7 +34,9 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrapper = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrapper);
+
             Moq.Mock<ISourceControl> moqSourceControl = this.GetMoqSourceControlForIndexTest();
 
             RepositorySearch repositorySearch = new RepositorySearch();
@@ -43,7 +45,7 @@ namespace AltinnCore.UnitTest.Designer
                 moqRepository.Object,
                 moqLogger.Object,
                 moqServiceRepositorySettings.Object,
-                moqGiteaWrappeer.Object,
+                moqGiteaWrapper.Object,
                 moqHttpContextAccessor.Object,
                 moqSourceControl.Object);
 
@@ -68,7 +70,9 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrappeer);
+
             Moq.Mock<ISourceControl> moqSourceControl = this.GetMoqSourceControlForIndexTest();
 
             RepositorySearch repositorySearch = new RepositorySearch();
@@ -103,7 +107,9 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
          
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrappeer);
+
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(moqRepository.Object, moqLogger.Object, moqServiceRepositorySettings.Object, moqGiteaWrappeer.Object, moqHttpContextAccessor.Object, moqSourceControl.Object)
@@ -129,7 +135,9 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
 
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrappeer);
+
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             User user = new User();
@@ -165,7 +173,9 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
 
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrappeer);
+
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             User user = new User();
@@ -201,18 +211,20 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
 
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrapper = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrapper);
+
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             User user = new User();
             user.Login = "Test";
-            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
                 moqRepository.Object,
                 moqLogger.Object,
                 moqServiceRepositorySettings.Object,
-                moqGiteaWrappeer.Object,
+                moqGiteaWrapper.Object,
                 moqHttpContextAccessor.Object,
                 moqSourceControl.Object)
             { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", true) };
@@ -237,18 +249,20 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
 
-            Moq.Mock<IGitea> moqGiteaWrappeer = IGiteaMockHelper.GetSevenReposForOrg1();
+            Moq.Mock<IGitea> moqGiteaWrapper = IGiteaMockHelper.GetMock();
+            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrapper);
+
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             User user = new User();
             user.Login = "Test";
-            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,
             moqLogger.Object,
             moqServiceRepositorySettings.Object,
-            moqGiteaWrappeer.Object,
+            moqGiteaWrapper.Object,
             moqHttpContextAccessor.Object,
             moqSourceControl.Object)
             { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556") };

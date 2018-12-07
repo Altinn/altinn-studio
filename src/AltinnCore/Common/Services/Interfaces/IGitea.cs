@@ -51,7 +51,7 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations(string giteaSession);
 
         /// <summary>
-        /// Returns information about a organization in
+        /// Returns information about a organization based on name
         /// </summary>
         /// <param name="name">The name of the organization</param>
         /// <returns>The organization</returns>
