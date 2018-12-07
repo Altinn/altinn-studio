@@ -51,10 +51,10 @@ export const styles = (theme: Theme) => createStyles({
   },
   paper: {
     position: 'absolute',
-    background: altinnTheme.palette.secondary.main,
+    background: altinnTheme.palette.primary.leftMenu,
     top: 146,
   },
   activeMenu: {
     borderBottom: '2px solid #0062BA',
-  }
+  },
 });

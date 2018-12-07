@@ -72,6 +72,7 @@ class AppClass extends React.Component<IAppProps, any> {
                       showSubHeader={true}
                       activeSubHeaderSelection={route.activeSubHeaderSelection}
                       activeLeftMenuSelection={route.activeLeftMenuSelection}
+                      backgroundColor='primary'
                     />}
                   />
                 ))}

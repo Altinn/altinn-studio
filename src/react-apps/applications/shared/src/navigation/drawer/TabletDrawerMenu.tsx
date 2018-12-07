@@ -128,7 +128,6 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, any> {
                                 <ListItem button={true} className={classes.nested} key={i}>
                                   <ListItemText
                                     inset={true}
-                                    classes={{ primary: classNames(classes.menuSubItemText) }}
                                     primary={item.displayText}
                                   />
                                 </ListItem>

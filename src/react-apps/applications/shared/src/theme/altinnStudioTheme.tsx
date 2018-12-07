@@ -16,13 +16,19 @@ const theme = {
         },
       },
     },
+    MuiTypography: {
+      subtitle1: {
+        fontSize: 16,
+      },
+    },
   },
   palette: {
     primary: {
-      main: '#1EAEF7',
+      main: '#EFEFEF',
+      leftMenu: ' #E5E5E5',
     },
     secondary: {
-      main: '#efefef',
+      main: '#FFFFFF',
       dark: '#d2d2d2',
     },
   },

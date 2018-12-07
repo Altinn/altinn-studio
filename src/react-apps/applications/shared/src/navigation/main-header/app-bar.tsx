@@ -38,7 +38,6 @@ const styles = createStyles({
     color: 'black',
   },
   appBar: {
-    backgroundColor: '#EFEFEF',
     borderBottom: '1px solid',
     borderBottomColor: '#C9C9C9',
   },
@@ -97,10 +96,14 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
 
   public render() {
     const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
-    console.log(this.props.activeSubHeaderSelection);
     return (
       <div className={classes.root}>
-        <AppBar position='static' className={classes.appBar} elevation={0}>
+        <AppBar
+          position='static'
+          color={this.props.backgroundColor}
+          className={classes.appBar}
+          elevation={0}
+        >
           <Toolbar>
             <Grid container={true} direction='row' alignItems='center' justify='space-between'>
               <Grid xs={true} item={true} container={true}>
