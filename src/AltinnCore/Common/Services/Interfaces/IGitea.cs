@@ -49,5 +49,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="giteaSession">the gitea session</param>
         /// <returns>A list over organizations</returns>
         Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations(string giteaSession);
+
+        /// <summary>
+        /// Returns information about a organization in
+        /// </summary>
+        /// <param name="name">The name of the organization</param>
+        /// <returns>The organization</returns>
+        Task<Organization> GetOrganization(string name);
   }
 }
