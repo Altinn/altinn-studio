@@ -136,7 +136,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
               label={this.props.currentUserName === key ?
                 getLanguageFromKey('dashboard.filter_your_services', this.props.language) : key}
               onclickFunction={this.updateListOfSelectedFilters.bind(this, key)}
-              active={this.state.selectedOwners.indexOf(key) === -1 ? false : true}
+              active={this.state.selectedOwners.indexOf(key) !== -1}
             />);
         })}
       </Grid>
