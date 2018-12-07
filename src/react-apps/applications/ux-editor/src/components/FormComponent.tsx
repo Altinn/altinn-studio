@@ -93,6 +93,7 @@ class FormComponent extends React.Component<
    */
   public renderLabel = (): JSX.Element => {
     if (this.props.component.component === 'Header' ||
+      this.props.component.component === 'Paragraph' ||
       this.props.component.component === 'Checkboxes' ||
       this.props.component.component === 'Submit' ||
       this.props.component.component === 'ThirdParty') {
