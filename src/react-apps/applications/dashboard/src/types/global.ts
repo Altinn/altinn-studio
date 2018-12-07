@@ -1,5 +1,5 @@
 import { ILanguageState } from '../fetchLanguage/fetchLanguageReducer';
-import { IDashboardStoreState } from '../Organization/fetchDashboardReducer';
+import { IDashboardStoreState } from '../services/fetchDashboardReducer';
 
 declare global {
   export interface IDashboardNameSpace<T1, T2> {
