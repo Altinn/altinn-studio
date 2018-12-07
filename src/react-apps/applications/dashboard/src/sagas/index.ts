@@ -3,7 +3,7 @@ import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
 import fetchLanguageSaga from '../fetchLanguage/fetchLanguageSagas';
-import fetchDashboardSaga from '../Services/fetchDashboardSagas';
+import fetchDashboardSaga from '../services/fetchDashboardSagas';
 
 function* root(): SagaIterator {
   yield fork(fetchLanguageSaga);

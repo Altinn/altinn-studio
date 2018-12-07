@@ -1,11 +1,11 @@
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
-import OrganizationOverview from './services/servicesOverview';
+import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
 import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
-import fetchServicesActionDispatchers from './Services/fetchDashboardDispatcher';
-import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
-import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import fetchServicesActionDispatchers from './services/fetchDashboardDispatcher';
+import ServicesOverview from './services/servicesOverview';
 
 export interface IDashboardState {
   drawerOpen: boolean;
@@ -47,7 +47,7 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
       <MuiThemeProvider theme={theme}>
         <Grid container={true} justify='center' direction='row' className='block-with-text' >
           <Grid item={true} xs={10}>
-            <OrganizationOverview />
+            <ServicesOverview />
           </Grid>
         </Grid>
       </MuiThemeProvider>
