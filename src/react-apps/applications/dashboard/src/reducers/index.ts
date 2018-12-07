@@ -1,6 +1,6 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
 import fetchLanguageReducer, { ILanguageState } from '../fetchLanguage/fetchLanguageReducer';
-import fetchDashboardReducer, { IDashboardStoreState } from '../Organization/fetchDashboardReducer';
+import fetchDashboardReducer, { IDashboardStoreState } from '../Services/fetchDashboardReducer';
 
 export interface IDashboardReducers
   extends IDashboardNameSpace<
