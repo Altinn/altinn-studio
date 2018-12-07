@@ -4,7 +4,6 @@ import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import 'typeface-roboto';
 import ServiceCard from './serviceCard';
 
 export interface ICategoryComponentProvidedProps {

@@ -4,7 +4,6 @@ import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
 import Truncate from 'react-truncate';
-import 'typeface-roboto';
 
 export interface IServiceCardCompontentProvidedProps {
   classes: any;

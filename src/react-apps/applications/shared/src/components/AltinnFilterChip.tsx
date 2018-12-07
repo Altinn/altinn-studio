@@ -3,7 +3,6 @@ import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
 import * as React from 'react';
-import 'typeface-roboto';
 
 export interface IAltinnFilterChipCompontentProvidedProps {
   classes: any;

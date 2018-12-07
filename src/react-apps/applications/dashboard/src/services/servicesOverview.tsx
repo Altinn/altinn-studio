@@ -6,7 +6,6 @@ import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import 'typeface-roboto';
 import AltinnFilterChip from '../../../shared/src/components/AltinnFilterChip';
 import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
 import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';

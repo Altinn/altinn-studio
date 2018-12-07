@@ -2,7 +2,6 @@ import { FormControl, InputAdornment, TextField, createMuiTheme } from '@materia
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
-import 'typeface-roboto';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSearchInputCompontentProvidedProps {

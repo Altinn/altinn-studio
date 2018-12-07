@@ -2,7 +2,6 @@ import { Button, createMuiTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
-import 'typeface-roboto';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnIconButtonCompontentProvidedProps {
