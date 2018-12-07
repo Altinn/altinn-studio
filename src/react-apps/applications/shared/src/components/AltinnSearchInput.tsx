@@ -42,9 +42,10 @@ const styles = {
 
 class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProps, IAltinnSearchInputComponentState> {
   public render() {
+    const { classes } = this.props;
     return (
       <FormControl
-        classes={{ root: classNames(this.props.classes.searchBox) }}
+        classes={{ root: classNames(classes.searchBox) }}
         fullWidth={true}
       >
         <TextField
@@ -56,11 +57,11 @@ class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProps
             startAdornment:
               <InputAdornment
                 position={'end'}
-                classes={{ root: classNames(this.props.classes.searchBoxIcon) }}
+                classes={{ root: classNames(classes.searchBoxIcon) }}
               >
                 <i className={'ai ai-search'} />
               </InputAdornment>,
-            classes: { root: classNames(this.props.classes.searchBoxInput) },
+            classes: { root: classNames(classes.searchBoxInput) },
           }}
         />
       </FormControl>

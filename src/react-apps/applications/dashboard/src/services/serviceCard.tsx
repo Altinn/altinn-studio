@@ -48,45 +48,46 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
   }
 
   public render() {
+    const { classes, service } = this.props;
     return (
-      <Card elevation={0} className={classNames(this.props.classes.card)}>
+      <Card elevation={0} className={classNames(classes.card)}>
         <CardContent>
           <Grid container={true} spacing={8}>
             <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
               <Typography
                 variant='h6'
-                className={classNames(this.props.classes.displayInlineBlock, this.props.classes.width100)}
+                className={classNames(classes.displayInlineBlock, classes.width100)}
                 noWrap={true}
               >
-                {this.props.service.name}
+                {service.name}
               </Typography>
             </Grid>
             <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
               <i
-                className={classNames(this.props.classes.iconStyling,
-                  { ['ai ai-corp']: this.props.service.owner.UserType === 2 },
-                  { ['ai ai-private']: this.props.service.owner.UserType !== 2 })}
+                className={classNames(classes.iconStyling,
+                  { ['ai ai-corp']: service.owner.UserType === 2 },
+                  { ['ai ai-private']: service.owner.UserType !== 2 })}
                 aria-hidden='true'
               />
             </Grid>
             <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
               <i
-                className={classNames(this.props.classes.iconStyling,
-                  { ['ai ai-read']: this.props.service.permissions.push === false },
-                  { ['ai ai-write']: this.props.service.permissions.push === true })}
+                className={classNames(classes.iconStyling,
+                  { ['ai ai-read']: service.permissions.push === false },
+                  { ['ai ai-write']: service.permissions.push === true })}
                 aria-hidden='true'
               />
             </Grid>
             <Grid
               item={true}
               className={classNames(
-                this.props.classes.displayInlineBlock,
-                this.props.classes.width100,
-                this.props.classes.height)}
+                classes.displayInlineBlock,
+                classes.width100,
+                classes.height)}
             >
               <Typography variant='body1' gutterBottom={true}>
                 <Truncate lines={3} ellipsis={<span>...</span>}>
-                  {this.props.service.description}
+                  {service.description}
                 </Truncate>
               </Typography>
             </Grid>
@@ -95,22 +96,22 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
             <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
               <Typography
                 variant='subtitle2'
-                className={classNames(this.props.classes.displayInlineBlock, this.props.classes.width100)}
+                className={classNames(classes.displayInlineBlock, classes.width100)}
                 noWrap={true}
               >
-                {this.props.service.owner.full_name || this.props.service.owner.login}
+                {service.owner.full_name || service.owner.login}
               </Typography>
             </Grid>
             <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
               <Typography
                 variant='subtitle2'
                 className={classNames(
-                  this.props.classes.displayInlineBlock,
-                  this.props.classes.width100,
-                  this.props.classes.textToRight)}
+                  classes.displayInlineBlock,
+                  classes.width100,
+                  classes.textToRight)}
                 noWrap={true}
               >
-                Endret: {this.formatDate(this.props.service.updated_at)}
+                Endret: {this.formatDate(service.updated_at)}
               </Typography>
             </Grid>
           </Grid>

@@ -7,7 +7,7 @@ import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import * as React from '../../../dashboard/node_modules/@types/react';
+import * as React from 'react';
 import { leftNavMenuSettings } from './leftNavMenuSettings';
 import { styles } from './navMenuStyles';
 

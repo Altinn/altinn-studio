@@ -123,6 +123,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
   }
 
   public renderFilters() {
+    const { classes } = this.props;
     return (
       <Grid item={true} xl={10} lg={10} md={12}>
         {this.props.allDistinctOwners.map((key: string, index: number) => {
@@ -130,9 +131,9 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             <AltinnFilterChip
               key={index}
               className={classNames(
-                this.props.classes.chip,
-                this.props.classes.mar_right_20,
-                this.props.classes.mar_top_20)}
+                classes.chip,
+                classes.mar_right_20,
+                classes.mar_top_20)}
               label={this.props.currentUserName === key ?
                 getLanguageFromKey('dashboard.filter_your_services', this.props.language) : key}
               onclickFunction={this.updateListOfSelectedFilters.bind(this, key)}
@@ -144,13 +145,14 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
   }
 
   public renderSort() {
+    const { classes } = this.props;
     return (
       <Grid item={true} xl={2} lg={2} md={2} sm={2} xs={12}>
         <AltinnFilterChip
           key={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
           className={classNames(
-            this.props.classes.mar_top_20,
-            { [this.props.classes.elementToRigth]: isWidthUp('sm', this.props.width) })}
+            classes.mar_top_20,
+            { [classes.elementToRigth]: isWidthUp('sm', this.props.width) })}
           label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
           onDeleteFunction={() => { return false }}
           sortIcon={true}

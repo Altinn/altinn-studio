@@ -42,10 +42,11 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
   }
 
   public renderServices() {
-    if (this.props.categoryRepos.length < 1) {
+    const { classes, categoryRepos } = this.props;
+    if (categoryRepos.length < 1) {
       return (
         <Grid container={true} direction='row'>
-          <Typography variant='h4' className={classNames(this.props.classes.width100, this.props.classes.mar_top_100)} align='center'>
+          <Typography variant='h4' className={classNames(classes.width100, classes.mar_top_100)} align='center'>
             {this.props.noServicesMessage}
           </Typography>
         </Grid>
@@ -53,8 +54,8 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
     } else {
       return (
         <Grid container={true} spacing={24} >
-          {this.props.categoryRepos.map((service: any, index: number) => (
-            <Grid item={true} key={index} xl={3} lg={4} md={6} sm={12} xs={12} style={styles.width100}>
+          {categoryRepos.map((service: any, index: number) => (
+            <Grid item={true} key={index} xl={3} lg={4} md={6} sm={12} xs={12} className={classNames(classes.width100)}>
               <ServiceCard
                 service={service}
               />

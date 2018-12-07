@@ -51,9 +51,10 @@ const styles = {
 
 class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProps, IAltinnIconButtonComponentState> {
   public render() {
+    const { classes } = this.props;
     return (
-      <Button variant='contained' className={this.props.classes.dottedBtn} >
-        <i className={classNames(this.props.iconClass, this.props.classes.dottedBtnIcon)} />
+      <Button variant='contained' className={classes.dottedBtn} >
+        <i className={classNames(this.props.iconClass, classes.dottedBtnIcon)} />
         {this.props.btnText}
       </Button>
     );

@@ -68,6 +68,7 @@ const styles = {
 
 class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProps, IAltinnFilterChipComponentState> {
   public render() {
+    const { classes } = this.props;
     return (
       <Chip
         key={this.props.key}
@@ -77,11 +78,11 @@ class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProps, 
         variant='outlined'
         onClick={this.props.onclickFunction}
         onDelete={this.props.onDeleteFunction}
-        deleteIcon={this.props.sortIcon ? <i className={classNames(this.props.classes.down)} /> : this.props.deleteIcon}
+        deleteIcon={this.props.sortIcon ? <i className={classNames(classes.down)} /> : this.props.deleteIcon}
         className={classNames(
           this.props.className,
-          this.props.classes.chip,
-          { [this.props.classes.chipActive]: this.props.active })}
+          classes.chip,
+          { [classes.chipActive]: this.props.active })}
       />
     );
   }
