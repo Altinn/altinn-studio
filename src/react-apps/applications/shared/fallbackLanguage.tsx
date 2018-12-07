@@ -15,6 +15,7 @@ const fallbackLanguage = {
     disabled: 'Disabled',
     enabled: 'Enabled',
     label: 'Label',
+    no_options: 'No options available',
     required: 'Required',
     save: 'Save',
     search: 'Search',
