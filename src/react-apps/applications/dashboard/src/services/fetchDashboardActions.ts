@@ -37,42 +37,6 @@ export function fetchServicesRejectedAction(
   };
 }
 
-/* Actions for fetching organizations */
-export interface IFetchOrganizationsAction extends Action {
-  url: string;
-}
-export interface IFetchOrganizationsFulfilled extends Action {
-  organizations: any;
-}
-export interface IFetchOrganizationsRejected extends Action {
-  error: Error;
-}
-
-export function fetchOrganizationsAction(url: string): IFetchOrganizationsAction {
-  return {
-    type: ActionTypes.FETCH_ORGANIZATIONS,
-    url,
-  };
-}
-
-export function fetchOrganizationsFulfilledAction(
-  organizations: any,
-): IFetchOrganizationsFulfilled {
-  return {
-    type: ActionTypes.FETCH_ORGANIZATIONS_FULFILLED,
-    organizations,
-  };
-}
-
-export function fetchOrganizationsRejectedAction(
-  error: Error,
-): IFetchOrganizationsRejected {
-  return {
-    type: ActionTypes.FETCH_ORGANIZATIONS_REJECTED,
-    error,
-  };
-}
-
 /* Actions for fetching current user */
 export interface IFetchCurrentUserAction extends Action {
   url: string;

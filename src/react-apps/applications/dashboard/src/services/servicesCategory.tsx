@@ -16,7 +16,6 @@ export interface ICategoryComponentProvidedProps {
 }
 
 export interface ICategoryComponentProps extends ICategoryComponentProvidedProps {
-  organizations: string[];
 }
 export interface ICategoryComponentState {
 }
@@ -32,16 +31,6 @@ const styles = {
   width100: {
     width: '100%',
   },
-};
-
-const filterOnOrgName = (organizations: any) => {
-  const allOrgNames: string[] = [];
-  organizations.map((key: any) => {
-    if (allOrgNames.indexOf(key.username) === -1) {
-      allOrgNames.push(key.username);
-    }
-  });
-  return allOrgNames;
 };
 
 class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
@@ -106,7 +95,6 @@ const mapStateToProps = (
     noServicesMessage: props.noServicesMessage,
     categoryRepos: props.categoryRepos,
     className: props.className,
-    organizations: filterOnOrgName(state.dashboard.organizations),
   };
 };
 

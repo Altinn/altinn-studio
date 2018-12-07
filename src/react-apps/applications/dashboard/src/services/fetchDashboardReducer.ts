@@ -5,14 +5,12 @@ import * as FetchDashboardActionTypes from './fetchDashboardActionTypes';
 
 export interface IDashboardStoreState {
   services: any;
-  organizations: any;
   user: any;
 
 }
 
 const initialState: IDashboardStoreState = {
   services: [],
-  organizations: [],
   user: {},
 };
 
@@ -30,15 +28,6 @@ const dashboardReducer: Reducer<IDashboardStoreState> = (
         $apply: () => ({
           ...state,
           services,
-        }),
-      });
-    }
-    case FetchDashboardActionTypes.FETCH_ORGANIZATIONS_FULFILLED: {
-      const { organizations } = action as FetchDashboardActions.IFetchOrganizationsFulfilled;
-      return update<IDashboardStoreState>(state, {
-        $apply: () => ({
-          ...state,
-          organizations,
         }),
       });
     }

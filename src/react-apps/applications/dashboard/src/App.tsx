@@ -28,8 +28,6 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
     fetchServicesActionDispatchers.fetchServices(
       `${altinnWindow.location.origin}/designerapi/Repository/Search`);
 
-    fetchServicesActionDispatchers.fetchOrganizations(
-      `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);
     fetchServicesActionDispatchers.fetchCurrentUser(
       `${altinnWindow.location.origin}/designerapi/User/Current`);
   }
@@ -45,6 +43,7 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
   public render() {
     return (
       <MuiThemeProvider theme={theme}>
+
         <Grid container={true} justify='center' direction='row' className='block-with-text' >
           <Grid item={true} xs={10}>
             <ServicesOverview />
