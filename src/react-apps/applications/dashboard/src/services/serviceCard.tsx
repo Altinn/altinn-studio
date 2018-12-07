@@ -62,14 +62,12 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
               </Typography>
             </Grid>
             <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
-              {/* TODO: fix this 
               <i
                 className={classNames(this.props.classes.iconStyling,
-                  { ['ai ai-corp']: this.props.organizations.indexOf(key.owner.login) !== -1 },
-                  { ['ai ai-private']: this.props.organizations.indexOf(key.owner.login) === -1 })}
+                  { ['ai ai-corp']: this.props.service.owner.UserType === 2 },
+                  { ['ai ai-private']: this.props.service.owner.UserType !== 2 })}
                 aria-hidden='true'
               />
-              */}
             </Grid>
             <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
               <i
