@@ -13,10 +13,20 @@ namespace AltinnCore.UnitTest.Helpers
     public static class IGiteaMockHelper
     {
         /// <summary>
-        /// Method that returns of 7 repos for Org1
+        /// Returns a Mock object without setup for IGitea
         /// </summary>
-        /// <returns>The list of repos</returns>
-        public static Moq.Mock<IGitea> GetSevenReposForOrg1()
+        /// <returns>Mock object</returns>
+        public static Moq.Mock<IGitea> GetMock()
+        {
+            Moq.Mock<IGitea> moqGiteaWrapper = new Mock<IGitea>();
+            return moqGiteaWrapper;
+        }
+
+        /// <summary>
+        /// Method that add Seven repos for Org 1 to the mock
+        /// </summary>
+        /// <param name="moqGiteaWrapper">The Mock</param>
+        public static void AddSevenReposForOrg1(Mock<IGitea> moqGiteaWrapper)
         {
             SearchResults search = new SearchResults();
             search.Data = new System.Collections.Generic.List<Repository>();
@@ -27,23 +37,39 @@ namespace AltinnCore.UnitTest.Helpers
             search.Data.Add(new Repository() { Name = "Org1RepoE", Owner = new User() { Login = "Org1" } });
             search.Data.Add(new Repository() { Name = "Org1RepoF", Owner = new User() { Login = "Org1" } });
             search.Data.Add(new Repository() { Name = "Org1RepoG", Owner = new User() { Login = "Org1" } });
-            Moq.Mock<IGitea> moqGiteaWrappeer = new Mock<IGitea>();
-            moqGiteaWrappeer.Setup(gitea => gitea.SearchRepository(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(search);
-            return moqGiteaWrappeer;
+            moqGiteaWrapper.Setup(gitea => gitea.SearchRepository(It.IsAny<bool>(), It.IsAny<string>(), It.IsAny<int>())).ReturnsAsync(search);
         }
 
         /// <summary>
-        /// Returns a Gitea Mock 
+        /// Adds a organization for the mock setup for method GetUserOrganization
         /// </summary>
-        /// <returns>A moq with 3 organizations</returns>
-        public static Moq.Mock<IGitea> GetOneOrganization()
+       /// <param name="moqGiteaWrapper">The mock object</param>
+        public static void AddListWithOneOrganization(Mock<IGitea> moqGiteaWrapper)
         {
             List<Organization> orgs = new List<Organization>();
             orgs.Add(new Organization() { FullName = "Org 1" });
   
-            Moq.Mock<IGitea> moqGiteaWrappeer = new Mock<IGitea>();
-            moqGiteaWrappeer.Setup(gitea => gitea.GetUserOrganizations(It.IsAny<string>())).ReturnsAsync(orgs);
-            return moqGiteaWrappeer;
+            moqGiteaWrapper.Setup(gitea => gitea.GetUserOrganizations(It.IsAny<string>())).ReturnsAsync(orgs);
+        }
+
+        /// <summary>
+        /// Build the Gitea mock with a configured user
+        /// </summary>
+        /// <param name="moqGiteaWrapper">The mock</param>
+        public static void GetCurrentUser_ReturnsOne(Mock<IGitea> moqGiteaWrapper)
+        {
+            User user = new User() { Login = "MockUser" };
+            moqGiteaWrapper.Setup(gitea => gitea.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+        }
+
+        /// <summary>
+        /// Add a Mock organization to the mock
+        /// </summary>
+        /// <param name="moqGiteaWrapper">The Gitea mock</param>
+        public static void AddOneOrg(Mock<IGitea> moqGiteaWrapper)
+        {
+            Organization organization = new Organization() { Username = "MockOrg" };
+            moqGiteaWrapper.Setup(gitea => gitea.GetOrganization(It.IsAny<string>())).ReturnsAsync(organization);
         }
     }
 }

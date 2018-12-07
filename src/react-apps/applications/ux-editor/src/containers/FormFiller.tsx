@@ -90,7 +90,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     return (
       <WorkflowStep header={service}>
         <div className='row'>
-          <div className='col-8'>
+          <div className='col-12'>
             <Preview />
           </div>
         </div>

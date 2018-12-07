@@ -1,9 +1,13 @@
-﻿
+
 @{
   ViewBag.Title = "Home Page";
   Layout = "~/Views/Shared/_LayoutClean.cshtml";
 }
 
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+<script src="https://use.fortawesome.com/ed31cded.js"></script>
+<script src="https://use.fortawesome.com/df832575.js"></script>
 <script>
   function loadScript() {
     var script = document.createElement('script');
@@ -17,48 +21,48 @@
     document.body.appendChild(script);
   }
 
-	function loadStyles() {
-		var service = window.location.pathname.split('/');
-		var resourcesUrl = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3];
+  function loadStyles() {
+    var service = window.location.pathname.split('/');
+    var resourcesUrl = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3];
     var stylesConfigUrl = resourcesUrl + '/Styles.json';
-		var xmlhttp = new XMLHttpRequest();
+    var xmlhttp = new XMLHttpRequest();
 
-		xmlhttp.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-						var stylesConfig = JSON.parse(this.responseText);;
-						loadServiceStyles(stylesConfig, resourcesUrl);
-				}
-		};
-		xmlhttp.open("GET", stylesConfigUrl, true);
-		xmlhttp.send();
+    xmlhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        var stylesConfig = JSON.parse(this.responseText);;
+        loadServiceStyles(stylesConfig, resourcesUrl);
+      }
+    };
+    xmlhttp.open("GET", stylesConfigUrl, true);
+    xmlhttp.send();
 
-		function loadServiceStyles(stylesConfig, resourcesUrl) {
-			if (stylesConfig.ExternalStyles) {
-				for(var i = 0; i < stylesConfig.ExternalStyles.length; i++) {
-					var link = document.createElement('link');
-					link.setAttribute('rel', 'stylesheet');
-					link.type = 'text/css';
-					link.href = stylesConfig.ExternalStyles[i];
-					document.body.appendChild(link);
-				}
-			}
+    function loadServiceStyles(stylesConfig, resourcesUrl) {
+      if (stylesConfig.ExternalStyles) {
+        for (var i = 0; i < stylesConfig.ExternalStyles.length; i++) {
+          var link = document.createElement('link');
+          link.setAttribute('rel', 'stylesheet');
+          link.type = 'text/css';
+          link.href = stylesConfig.ExternalStyles[i];
+          document.body.appendChild(link);
+        }
+      }
 
-			if (stylesConfig.InternalStyles) {
-				for(var i = 0; i < stylesConfig.InternalStyles.length; i++) {
-					var link = document.createElement('link');
-					link.setAttribute('rel', 'stylesheet');
-					link.type = 'text/css';
-					link.href = resourcesUrl + '/' + stylesConfig.InternalStyles[i];
-					document.body.appendChild(link);
-				}
-			}
-		}
-	}
+      if (stylesConfig.InternalStyles) {
+        for (var i = 0; i < stylesConfig.InternalStyles.length; i++) {
+          var link = document.createElement('link');
+          link.setAttribute('rel', 'stylesheet');
+          link.type = 'text/css';
+          link.href = resourcesUrl + '/' + stylesConfig.InternalStyles[i];
+          document.body.appendChild(link);
+        }
+      }
+    }
+  }
 
 </script>
 
 <div id="root" class="media-body flex-column d-flex"></div>
 <script>
-	loadScript();
-	loadStyles();
+  loadScript();
+  loadStyles();
 </script>
