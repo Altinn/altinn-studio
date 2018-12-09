@@ -1,13 +1,12 @@
 import {
-  createStyles, Grid, IconButton, List, ListItem,
-  Typography, withStyles,
+  createStyles, Grid, IconButton, List, ListItem, withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import CreatableSelect from 'react-select/lib/Creatable';
-import Select from 'react-select';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { EditModalContent } from '../components/config/EditModalContent';
 import '../styles/index.css';
 
 const styles = createStyles({
@@ -79,11 +78,11 @@ const customInput = {
   control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',
-  })
+  }),
   option: (provided: any) => ({
     ...provided,
     whiteSpace: 'pre-wrap',
-  });
+  }),
 };
 
 export interface IEditContainerProvidedProps {
@@ -165,37 +164,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public handleTitleChange = (e: any): void => {
     this.state.component.title = e.value;
   }
-  public handleSizeChange = (e: any): void => {
-    this.state.component.size = e.value;
-  }
-
-  public renderComponentSpecificContent(): JSX.Element {
-    switch (this.props.component.component) {
-      case 'Header': {
-        const sizes = [
-          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h3 },
-          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h2 },
-          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 }
-        ];
-        return (
-          <Grid item={true} xs={6} container={true} direction={'column'} spacing={0}>
-            <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
-              {this.props.language.ux_editor.modal_header_type_helper}
-            </Typography>
-            <Select
-              styles={customInput}
-              defaultValue={sizes[0]}
-              onChange={this.handleSizeChange}
-              options={sizes}
-            />
-          </Grid>
-        );
-      }
-      default: {
-        return null;
-      }
-    }
-  }
 
   public searchForText = (e: any): void => {
     this.state.component.title = e.target.value;
@@ -225,8 +193,14 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     return (
       <>
         <Grid item={true} xs={12} sm={true} container={true}>
-          <Grid item={true} xs={true} container={true} direction={'row'} spacing={0}
-            className={this.props.classes.wrapper}>
+          <Grid
+            item={true}
+            xs={true}
+            container={true}
+            direction={'row'}
+            spacing={0}
+            className={this.props.classes.wrapper}
+          >
             <Grid item={true} xs={11}>
               <List>
                 <ListItem
@@ -246,18 +220,22 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         options={textRecources}
                         defaultValue={''}
                         onChange={this.handleTitleChange}
-                        isClearable
+                        isClearable={true}
                         placeholder={this.state.component.title ?
                           this.truncate(this.getTextResource(this.state.component.title), 40)
                           : this.props.language.general.search}
                         formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
                         noOptionsMessage={() => this.props.language.general.no_options}
                       />
-                      {this.renderComponentSpecificContent()}
+                      <EditModalContent
+                        component={this.props.component}
+                        language={this.props.language}
+                      />
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
-                      {this.state.component.title ? this.getTextResource(this.props.component.title) : this.props.component.component}
+                      {this.state.component.title ? this.getTextResource(this.props.component.title)
+                        : this.props.component.component}
                       <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
                         {this.props.component.component}
                       </span>
@@ -272,7 +250,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 xs={true}
                 container={true}
                 direction={'column'}
-                className={this.state.isItemActive? this.props.classes.gridForBtnActive
+                className={this.state.isItemActive ? this.props.classes.gridForBtnActive
                   : this.props.classes.gridForBtn}
               >
                 <IconButton
