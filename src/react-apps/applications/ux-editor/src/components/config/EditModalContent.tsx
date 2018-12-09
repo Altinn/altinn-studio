@@ -26,6 +26,8 @@ export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
+  saveEdit?: (updatedComponent: FormComponentType) => void;
+  cancelEdit?: () => void;
   language: any;
   classes: any;
 }
