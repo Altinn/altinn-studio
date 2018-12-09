@@ -38,9 +38,17 @@ class DraggableDroppable extends React.Component<
   public render() {
     const { id, connectDragSource, connectDropTarget } = this.props;
     return connectDragSource(connectDropTarget(
-      <div key={id}>
-        {this.props.children}
-      </div>,
+      <div>
+        <div key={id}>
+          {this.props.children}
+        </div>
+        {connectDropTarget(
+          <div>
+            Drop
+          </div>
+        )}
+      </div>
+      ,
     ));
   }
 }

@@ -1,4 +1,3 @@
-import { Identifier } from 'dnd-core';
 import * as React from 'react';
 import {
   DragSourceMonitor,
@@ -16,7 +15,6 @@ interface IToolbarItemProps {
 
 const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
   beginDrag: (props: IDraggableProps, monitor: DragSourceMonitor, component: any) => {
-    console.log('props', props);
     return { ...props };
   },
   canDrag: (props: any) => {
@@ -27,7 +25,7 @@ const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
   },
 };
 
-export const DraggableToolbarType: string = 'toolbar-item';
+export const DraggableToolbarType: string = 'TOOLBAR_ITEM';
 
 const DraggableToolbarItem = createDraggable(DraggableToolbarType, DraggableToolbarItemSpec);
 

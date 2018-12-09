@@ -1,20 +1,25 @@
-import { TargetType } from 'dnd-core';
 import * as React from 'react';
 import {
   ConnectDropTarget,
   DropTarget,
   DropTargetConnector,
   DropTargetSpec,
+  DropTargetMonitor,
 } from 'react-dnd';
 
 export interface IDroppableProps {
-  id?: string;
+  id: string;
+  parent: string;
   index?: number;
   notDroppable?: boolean;
+  move: (...args: any) => any;
+  remove: (...args: any) => any;
 }
 
 export interface IDroppablePropsCollected {
   connectDropTarget: ConnectDropTarget;
+  isOver: boolean;
+  isOverCurrent: boolean;
 }
 
 class Droppable extends React.Component<
@@ -22,21 +27,26 @@ class Droppable extends React.Component<
   any
   > {
   public render() {
-    const { connectDropTarget } = this.props;
+    const { isOverCurrent, connectDropTarget } = this.props;
+    const styles = {
+      backgroundColor: isOverCurrent ? 'blue' : 'salmon',
+    }
     return connectDropTarget(
-      <div>
+      <div style={styles}>
         {this.props.children}
-      </div>,
+      </div>
     );
   }
 }
 
-export default (type: TargetType, droppableSpec: DropTargetSpec<IDroppableProps>) =>
+export default (type: string | string[], droppableSpec: DropTargetSpec<IDroppableProps>) =>
   DropTarget(
     type,
     droppableSpec,
-    (connect: DropTargetConnector) => ({
+    (connect: DropTargetConnector, monitor: DropTargetMonitor) => ({
       connectDropTarget: connect.dropTarget(),
+      isOver: monitor.isOver(),
+      isOverCurrent: monitor.isOver({ shallow: true }),
     }),
   )(
     Droppable,

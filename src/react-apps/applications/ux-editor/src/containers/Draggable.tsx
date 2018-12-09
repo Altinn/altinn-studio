@@ -36,9 +36,9 @@ class Draggable extends React.Component<
   }
 }
 
-export default (type: Identifier, draggableSpec: DragSourceSpec<IDraggableProps, any>) =>
+export default (type: string | string[], draggableSpec: DragSourceSpec<IDraggableProps, any>) =>
   DragSource(
-    type,
+    type as Identifier,
     draggableSpec,
     (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
       connectDragSource: connect.dragSource(),

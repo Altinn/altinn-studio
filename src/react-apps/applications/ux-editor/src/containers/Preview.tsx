@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
+// import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector/*, makeGetLayoutOrderSelector*/ } from '../selectors/getLayoutData';
 import { Container } from './Container';
-import Temporary from './Temporary';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -17,7 +16,12 @@ export class PreviewComponent extends React.Component<
   IPreviewProps,
   null
   > {
+
+  public componentDidMount() {
+  }
+
   public render() {
+
     return (
       <div className='col-12'>
         {this.renderContainer()}
@@ -25,36 +29,17 @@ export class PreviewComponent extends React.Component<
     );
   }
 
-  public componentWillReceiveProps(props: IPreviewProps) {
-    if (!Object.keys(this.props.layoutOrder).length) {
-      // Create baseContainer if it doesn't exist
-      formDesignerActionDispatcher.addFormContainer({
-        repeating: false,
-        dataModelGroup: null,
-        index: 0,
-      });
-    }
-  }
-
   public renderContainer = (): JSX.Element => {
     const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
     if (!baseContainerId) {
       return null;
     }
-    if (this.props.designMode) {
-      return (
-        <Temporary
-          tree={this.props.layoutOrder}
-        />
-      );
-    } else {
-      return (
-        <Container
-          id={baseContainerId}
-          baseContainer={true}
-        />
-      );
-    }
+    return (
+      <Container
+        id={baseContainerId}
+        baseContainer={true}
+      />
+    );
   }
 }
 
