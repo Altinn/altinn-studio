@@ -14,11 +14,16 @@ const styles = createStyles({
   active: {
     backgroundColor: '#fff',
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
+    padding: '10px 12px 14px 12px',
+  },
+  activeWrapper: {
+    padding: '10px 12px 20px 12px',
   },
   formComponent: {
     backgroundColor: altinnTheme.palette.secondary.light,
     border: '1.5px dotted ' + altinnTheme.palette.secondary.dark,
     color: altinnTheme.palette.primary.dark + '!mportant',
+    padding: '10px 12px 14px 12px',
     '&:hover': {
       backgroundColor: '#fff',
       boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
@@ -52,9 +57,6 @@ const styles = createStyles({
     fontSize: '1.6rem',
     lineHeight: '3.2rem',
   },
-  marginBottom: {
-    paddingBottom: '23px',
-  },
   caption: {
     position: 'absolute',
     right: '12px',
@@ -78,6 +80,10 @@ const customInput = {
     ...base,
     borderRadius: '0 !important',
   })
+  option: (provided: any) => ({
+    ...provided,
+    whiteSpace: 'pre-wrap',
+  });
 };
 
 export interface IEditContainerProvidedProps {
@@ -172,8 +178,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
           { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 }
         ];
         return (
-          <Grid item={true} xs={true} container={true} direction={'column'} spacing={0}
-            className={this.props.classes.marginBottom}>
+          <Grid item={true} xs={6} container={true} direction={'column'} spacing={0}>
             <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
               {this.props.language.ux_editor.modal_header_type_helper}
             </Typography>
@@ -212,9 +217,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public render(): JSX.Element {
     const textRecources: any = [];
     this.props.textResources.map((resource, index) => {
-      const option = this.truncate(resource.value, 60);
+      const option = this.truncate(resource.value, 80);
 
-      textRecources.push({ value: resource.id, label: option })
+      textRecources.push({ value: resource.id, label: option.concat('\n', resource.id) })
     });
 
     return (
@@ -229,7 +234,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   onClick={this.handleOpenModal}
                 >
                   {this.state.isEditMode ?
-                    <Grid item={true} xs={11}>
+                    <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
                       <span className={this.props.classes.inputHelper}>
                         {this.props.language.ux_editor.modal_properties_data_model_helper}
                       </span>
@@ -245,7 +250,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         placeholder={this.state.component.title ?
                           this.truncate(this.getTextResource(this.state.component.title), 40)
                           : this.props.language.general.search}
-                        formatCreateLabel={() => this.props.language.general.create_new}
+                        formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
                         noOptionsMessage={() => this.props.language.general.no_options}
                       />
                       {this.renderComponentSpecificContent()}
