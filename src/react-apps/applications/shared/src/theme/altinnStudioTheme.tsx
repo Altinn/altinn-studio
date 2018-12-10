@@ -4,14 +4,25 @@ const theme = createMuiTheme({
   palette: {
     primary: {
       main: '#1EAEF7',
+      dark: '#022F51',
     },
     secondary: {
-      main: '#efefef',
-      dark: '#d2d2d2',
+      light: '#efefef',
+      main: '#d2d2d2',
+      dark: '#6a6a6a',
     },
   },
   typography: {
     useNextVariants: true,
+  },
+  overrides: {
+    MuiFormControl: {
+      root: {
+        border: '1px solid #BCC7CC',
+        minWidth: 120,
+        paddingLeft: '1em',
+      },
+    },
   },
 });
 
