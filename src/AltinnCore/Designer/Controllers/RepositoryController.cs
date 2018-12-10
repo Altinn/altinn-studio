@@ -56,5 +56,17 @@ namespace AltinnCore.Designer.Controllers
             List<Organization> orglist = _giteaApi.GetUserOrganizations(sessionId).Result;
             return orglist;
         }
+
+        /// <summary>
+        /// This method returns the status of a given repository 
+        /// </summary>
+        /// <param name="org">The organization or user owning the repo</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>The repository status</returns>
+        [HttpGet]
+        public List<RepositoryContent> RepoStatus(string org, string repository)
+        {
+            return _sourceControl.Status(org, repository);
+        }
     }
 }
