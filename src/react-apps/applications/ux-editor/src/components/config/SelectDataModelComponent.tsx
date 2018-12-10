@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Select from 'react-select';
 import { connect } from 'react-redux';
 
 export interface ISelectDataModelProps extends IProvidedProps {
@@ -7,7 +8,7 @@ export interface ISelectDataModelProps extends IProvidedProps {
 
 export interface IProvidedProps {
   selectedElement: string;
-  onDataModelChange: (dataModelField: string) => void;
+  onDataModelChange: (dataModelField: any) => void;
   hideRestrictions?: boolean;
   language: any;
 }
@@ -15,6 +16,13 @@ export interface IProvidedProps {
 export interface ISelectDataModelState {
   selectedElement: string;
 }
+
+const customInput = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+  })
+};
 
 export class SelectDataModel extends React.Component<
   ISelectDataModelProps,
@@ -73,48 +81,19 @@ export class SelectDataModel extends React.Component<
   }
 
   public render() {
+    const dataModelElementNames = [];
+    for (const element of this.props.dataModelElements) {
+      if (element.DataBindingName) {
+        dataModelElementNames.push({value: element.DataBindingName, label: element.DataBindingName});
+      }
+    }
     return (
-      <div className='form-group a-form-group mt-1'>
-        <label className='a-form-label' htmlFor='nameField'>
-          {this.props.language.ux_editor.modal_data_model_helper}:
-        </label>
-        <div className='a-form-group-items input-group'>
-          <select
-            name={'selectDataModel'}
-            value={this.state.selectedElement}
-            onChange={this.onDataModelChange}
-            className='custom-select a-custom-select'
-          >
-            <option value={''}>{this.props.language.ux_editor.modal_data_model_input}</option>
-            {this.props.dataModelElements.map((element) => {
-              if (!element.DataBindingName || element.Type !== 'Field') {
-                return null;
-              }
-              return (
-                <option key={element.ID} value={element.DataBindingName}>
-                  {element.ID}
-                </option>
-              );
-            })}
-          </select>
-        </div>
-        {this.props.hideRestrictions === true ? null : (
-          <div className='a-list-container mt-2'>
-            <ul className='a-list'>
-              <li className='a-dotted' id='restrictions-firstRow'>
-                <div className='row'>
-                  <div className='col'>
-                    <span className='a-fontBold'>
-                      {this.props.language.ux_editor.modal_restrictions}
-                    </span>
-                  </div>
-                </div>
-              </li>
-              {this.getRestrictions(this.props.selectedElement)}
-            </ul>
-          </div>
-        )}
-      </div>
+        <Select
+          styles={customInput}
+          options={dataModelElementNames}
+          defaultValue={{value: this.props.selectedElement, label: this.props.selectedElement}}
+          onChange={this.props.onDataModelChange}
+        />
     );
   }
 }
