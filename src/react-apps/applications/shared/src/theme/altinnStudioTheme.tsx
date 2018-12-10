@@ -21,24 +21,6 @@ const theme = {
         fontSize: 16,
       },
     },
-  },
-  palette: {
-    primary: {
-      main: '#EFEFEF',
-      light: '#efefef',
-      leftMenu: ' #E5E5E5',
-    },
-    secondary: {
-      light: '#efefef'
-      main: '#FFFFFF',
-      dark: '#d2d2d2',
-    },
-  },
-  typography: {
-    fontSize: 16,
-    useNextVariants: true,
-  },
-  overrides: {
     MuiFormControl: {
       root: {
         border: '1px solid #BCC7CC',
@@ -47,6 +29,23 @@ const theme = {
       },
     },
   },
-});
+  palette: {
+    primary: {
+      main: '#EFEFEF',
+      dark: '#022F51',
+      light: '#efefef',
+      leftMenu: ' #E5E5E5',
+    },
+    secondary: {
+      light: '#efefef',
+      main: '#FFFFFF',
+      dark: '#d2d2d2',
+    },
+  },
+  typography: {
+    fontSize: 16,
+    useNextVariants: true,
+  },
+};
 
 export default theme;
