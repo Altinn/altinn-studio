@@ -7,6 +7,7 @@ import CreatableSelect from 'react-select/lib/Creatable';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
+import {getTextResource, truncate} from '../utils/language';
 import '../styles/index.css';
 
 const styles = createStyles({
@@ -169,27 +170,34 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.component.title = e.target.value;
   }
 
-  public getTextResource = (resourceKey: string): string => {
-    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
-    return textResource ? textResource.value : resourceKey;
-  }
-
-  public truncate = (s: string, size: number) => {
-    if (s.length > size) {
-      return (s.substring(0, size) + '...');
-    } else {
-      return s;
-    }
+  public renderSelectHeader = (): JSX.Element => {
+    const textRecources: any = [];
+    this.props.textResources.map((resource, index) => {
+      const option = truncate(resource.value, 80);
+      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
+    });
+    return (
+      <div>
+        <span className={this.props.classes.inputHelper}>
+          {this.props.language.ux_editor.modal_properties_data_model_helper}
+        </span>
+        <CreatableSelect
+          styles={customInput}
+          options={textRecources}
+          defaultValue={''}
+          onChange={this.handleTitleChange}
+          isClearable={true}
+          placeholder={this.state.component.title ?
+            truncate(getTextResource(this.state.component.title, this.props.textResources), 40)
+            : this.props.language.general.search}
+          formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
+          noOptionsMessage={() => this.props.language.general.no_options}
+        />
+      </div>
+    );
   }
 
   public render(): JSX.Element {
-    const textRecources: any = [];
-    this.props.textResources.map((resource, index) => {
-      const option = this.truncate(resource.value, 80);
-
-      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
-    });
-
     return (
       <>
         <Grid xs={12} sm={true} container={true}>
@@ -207,39 +215,23 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   onClick={this.handleOpenModal}
                 >
                   {this.state.isEditMode ?
-                    <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
-                      <span className={this.props.classes.inputHelper}>
-                        {this.props.language.ux_editor.modal_properties_data_model_helper}
-                      </span>
-                      <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                        {this.props.component.component}
-                      </span>
-                      <CreatableSelect
-                        styles={customInput}
-                        options={textRecources}
-                        defaultValue={''}
-                        onChange={this.handleTitleChange}
-                        isClearable={true}
-                        placeholder={this.state.component.title ?
-                          this.truncate(this.getTextResource(this.state.component.title), 40)
-                          : this.props.language.general.search}
-                        formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
-                        noOptionsMessage={() => this.props.language.general.no_options}
-                      />
-                      <EditModalContent
-                        component={this.props.component}
-                        language={this.props.language}
-                      />
-                    </Grid>
+                  <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
+                    {this.props.component.component === 'Paragraph' ? null : this.renderSelectHeader()}
+                    <EditModalContent
+                      component={this.props.component}
+                      language={this.props.language}
+                      handleUpdateTitle={this.handleTitleChange}
+                    />
+                  </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
-                      {this.state.component.title ? this.getTextResource(this.props.component.title)
+                      {this.state.component.title ? getTextResource(this.props.component.title, this.props.textResources)
                         : this.props.component.component}
-                      <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                        {this.props.component.component}
-                      </span>
                     </div>
                   }
+                  <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
+                    {this.props.component.component}
+                  </span>
                 </ListItem>
               </List>
             </Grid>
