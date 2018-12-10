@@ -16,13 +16,6 @@ const theme = {
         },
       },
     },
-    MuiFormControl: {
-      root: {
-        border: '1px solid #BCC7CC',
-        minWidth: 120,
-        paddingLeft: '1em',
-      },
-    },
     MuiTypography: {
       h4: {
         fontSize: 36,

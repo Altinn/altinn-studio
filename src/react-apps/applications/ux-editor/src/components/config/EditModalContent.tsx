@@ -2,6 +2,8 @@ import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/lib/Creatable';
+import {getTextResource, truncate} from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 
 const styles = createStyles({
@@ -28,6 +30,7 @@ export interface IEditModalContentProps {
   textResources?: ITextResource[];
   saveEdit?: (updatedComponent: FormComponentType) => void;
   cancelEdit?: () => void;
+  handleUpdateTitle?: (selectedText: any) => void;
   language: any;
   classes: any;
 }
@@ -67,7 +70,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.setState({
       component: {
         ...this.state.component,
-        title: e.target.value,
+        title: e.value,
       },
     });
   }
@@ -209,6 +212,31 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               </label>
             </div>
           </div>
+        );
+      }
+      case 'Paragraph': {
+        const textRecources: any = [];
+        this.props.textResources.map((resource, index) => {
+          const option = truncate(resource.value, 250);
+
+          textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
+        });
+        return (
+          <Grid item={true} xs={12}>
+            <span className={this.props.classes.inputHelper}>
+              {this.props.language.ux_editor.modal_properties_paragraph_helper}
+            </span>
+            <CreatableSelect
+              styles={customInput}
+              options={textRecources}
+              onChange={this.props.handleUpdateTitle}
+              placeholder={this.state.component.title ?
+                truncate(getTextResource(this.state.component.title, this.props.textResources), 40)
+                : this.props.language.general.search}
+              formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
+              noOptionsMessage={() => this.props.language.general.no_options}
+            />
+          </Grid>
         );
       }
       case 'RadioButtons': {
@@ -438,6 +466,7 @@ const mapStateToProps = (
 ): IEditModalContentProps => {
   return {
     language: state.appData.language.language,
+    textResources: state.appData.textResources.resources,
     classes: props.classes,
     ...props,
   };
