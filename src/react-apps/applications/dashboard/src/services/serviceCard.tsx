@@ -3,7 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
-import Truncate from 'react-truncate';
+import TruncateMarkup from 'react-truncate-markup';
 
 export interface IServiceCardCompontentProvidedProps {
   classes: any;
@@ -54,7 +54,7 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
           <Grid container={true} spacing={8}>
             <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
               <Typography
-                variant='h6'
+                variant='subtitle2'
                 className={classNames(classes.displayInlineBlock, classes.width100)}
                 noWrap={true}
               >
@@ -84,17 +84,19 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
                 classes.width100,
                 classes.height)}
             >
-              <Typography variant='body1' gutterBottom={true}>
-                <Truncate lines={3} ellipsis={<span>...</span>}>
-                  {service.description}
-                </Truncate>
+              <Typography variant='body1' gutterBottom={true} className={classes.width100}>
+                <TruncateMarkup lines={3}>
+                  <span>
+                    {service.description}
+                  </span>
+                </TruncateMarkup>
               </Typography>
             </Grid>
           </Grid>
           <Grid container={true} spacing={0} direction='row'>
             <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
               <Typography
-                variant='subtitle2'
+                variant='body2'
                 className={classNames(classes.displayInlineBlock, classes.width100)}
                 noWrap={true}
               >
@@ -103,7 +105,7 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
             </Grid>
             <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
               <Typography
-                variant='subtitle2'
+                variant='body2'
                 className={classNames(
                   classes.displayInlineBlock,
                   classes.width100,

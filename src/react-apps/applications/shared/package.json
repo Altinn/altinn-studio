@@ -10,6 +10,7 @@
     "axios": "0.18.0",
     "classnames": "^2.2.6",
     "react": "16.6.1",
+    "react-truncate-markup": "2.0.1",
     "typeface-roboto": "0.0.54"
   },
   "devDependencies": {

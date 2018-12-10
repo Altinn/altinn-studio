@@ -45,7 +45,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
     if (categoryRepos.length < 1) {
       return (
         <Grid container={true} direction='row'>
-          <Typography variant='h4' className={classNames(classes.width100, classes.mar_top_100)} align='center'>
+          <Typography variant='h5' className={classNames(classes.width100, classes.mar_top_100)} align='center'>
             {this.props.noServicesMessage}
           </Typography>
         </Grid>

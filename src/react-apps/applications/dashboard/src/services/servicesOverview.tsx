@@ -167,7 +167,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
           <Grid item={true} xl={8} lg={8} md={8} sm={12} xs={12}>
-            <Typography component='h3' variant='h3' gutterBottom={true}>
+            <Typography component='h4' variant='h4' gutterBottom={true}>
               {getLanguageFromKey('dashboard.main_header', this.props.language)}
             </Typography>
           </Grid>
