@@ -17,22 +17,16 @@ namespace AltinnCore.Designer.Controllers
     /// </summary>
     public class RepositoryController : ControllerBase
     {
-        private readonly IRepository _repository;
-        private readonly ISourceControl _sourceControl;
         private readonly IGitea _giteaApi;
         private readonly ServiceRepositorySettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
         /// </summary>
-        /// <param name="repositoryService">repositoryService the repository service</param>
-        /// <param name="sourceControl">the source control service handler</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="repositorySettings">Settings for repository</param>
-        public RepositoryController(IRepository repositoryService, ISourceControl sourceControl, IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings)
+        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings)
         {
-            _repository = repositoryService;
-            _sourceControl = sourceControl;
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
         }
@@ -59,6 +53,23 @@ namespace AltinnCore.Designer.Controllers
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
             List<Organization> orglist = _giteaApi.GetUserOrganizations(sessionId).Result;
             return orglist;
+        }
+
+        /// <summary>
+        /// Returns a specic organization
+        /// </summary>
+        /// <param name="id">The organization name</param>
+        /// <returns>The organization</returns>
+        [HttpGet]
+        public ActionResult<Organization> Organization(string id)
+        {
+            Organization org = _giteaApi.GetOrganization(id).Result;
+            if (org != null)
+            {
+                return org;
+            }
+
+            return NotFound();
         }
     }
 }

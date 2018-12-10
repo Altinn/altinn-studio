@@ -84,6 +84,7 @@ namespace AltinnCore.Designer
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+            services.AddMemoryCache();
             services.AddResponseCompression();
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
@@ -205,11 +206,11 @@ namespace AltinnCore.Designer
 
                 routes.MapRoute(
                     name: "designerApiRoute",
-                    template: "designerapi/{controller}/{action=Index}",
+                    template: "designerapi/{controller}/{action=Index}/{id?}",
                     defaults: new { controller = "Repository" },
                     constraints: new
                     {
-                        controller = @"(Repository|Language)",
+                        controller = @"(Repository|Language|User)",
                     });
                 routes.MapRoute(
                           name: "serviceRoute",
