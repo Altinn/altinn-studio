@@ -159,9 +159,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     switch (this.props.component.component) {
       case 'Header': {
         const sizes = [
-          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h3 },
-          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h2 },
-          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 },
+          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
+          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h3 },
+          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h2 },
         ];
         return (
           <Grid item={true} xs={6} container={true} direction={'column'} spacing={0}>
@@ -171,8 +171,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <Select
               styles={customInput}
               defaultValue={this.state.component.size ?
-                  sizes.find((size) => size.value === this.state.component.size ) :
-                  sizes[0]}
+                sizes.find((size) => size.value === this.state.component.size) :
+                sizes[0]}
               onChange={this.handleUpdateHeaderSize}
               options={sizes}
             />
@@ -437,7 +437,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public render(): JSX.Element {
     return (
       <>
-      {this.renderComponentSpecificContent()}
+        {this.renderComponentSpecificContent()}
       </>
     );
   }
