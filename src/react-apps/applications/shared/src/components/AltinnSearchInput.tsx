@@ -35,7 +35,6 @@ const styles = {
     color: '#000000',
     fontSize: '30px',
     marginRight: '10px',
-    marginBottom: '5px',
   },
 }
 

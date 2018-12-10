@@ -55,14 +55,18 @@ const styles = {
     float: 'right' as 'right',
   },
 };
-const getListOfDistinctServiceOwners = (services: any) => {
+const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
   services.map((service: any) => {
     const keyToLookFor = service.owner.full_name || service.owner.login;
     if (allDistinctServiceOwners.indexOf(keyToLookFor) === -1) {
+      if (currentUser && currentUser === keyToLookFor) {
+        return;
+      }
       allDistinctServiceOwners.push(keyToLookFor);
     }
   });
+  if (currentUser) allDistinctServiceOwners.unshift(currentUser)
   return allDistinctServiceOwners;
 };
 
@@ -133,8 +137,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
                 classes.chip,
                 classes.mar_right_20,
                 classes.mar_top_20)}
-              label={this.props.currentUserName === key ?
-                getLanguageFromKey('dashboard.filter_your_services', this.props.language) : key}
+              label={key}
               onclickFunction={this.updateListOfSelectedFilters.bind(this, key)}
               active={this.state.selectedOwners.indexOf(key) !== -1}
             />);
@@ -238,7 +241,7 @@ const mapStateToProps = (
     width: props.width,
     language: state.language.language,
     services: state.dashboard.services,
-    allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services),
+    allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),
     currentUserName: getCurrentUsersName(state.dashboard.user),
   };
