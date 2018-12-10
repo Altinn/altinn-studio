@@ -159,6 +159,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
+    this.state.component.size = this.props.component.size;
     this.handleComponentUpdate(callbackComponent);
   }
 
