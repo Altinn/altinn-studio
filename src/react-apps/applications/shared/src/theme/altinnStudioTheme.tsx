@@ -15,15 +15,6 @@ const theme = createMuiTheme({
   typography: {
     useNextVariants: true,
   },
-  overrides: {
-    MuiFormControl: {
-      root: {
-        border: '1px solid #BCC7CC',
-        minWidth: 120,
-        paddingLeft: '1em',
-      },
-    },
-  },
 });
 
 export default theme;
