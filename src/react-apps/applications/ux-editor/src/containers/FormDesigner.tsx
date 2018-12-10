@@ -1,4 +1,4 @@
-import {createStyles, Grid, Theme, withStyles} from '@material-ui/core';
+import { createStyles, Grid, Theme, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-beautiful-dnd';
@@ -136,32 +136,32 @@ class FormDesigner extends React.Component<
   }
 
   public render() {
-    const {classes} = this.props;
+    const { classes } = this.props;
     return (
       <div className={classes.root}>
-      <DragDropContext onDragEnd={this.onDragEnd}>
-        <Grid
-          container={true}
-          spacing={0}
-          wrap={'nowrap'}
-          classes={{container: classNames(classes.container)} }
-        >
-          <Grid item={true} xs={2} classes={{item: classNames(classes.item)}}>
-            <Toolbar />
-          </Grid>
-          <Grid item={true} xs={8} className={classes.mainContent} classes={{item: classNames(classes.item)}}>
-          <div style={{width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px', marginLeft: '24px'}}/>
-          <div style={{width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF'}}>
-            <Preview />
-              <div className='col-12 justify-content-center d-flex mt-3'>
-                {this.renderSaveButton()}
+        <DragDropContext onDragEnd={this.onDragEnd}>
+          <Grid
+            container={true}
+            spacing={0}
+            wrap={'nowrap'}
+            classes={{ container: classNames(classes.container) }}
+          >
+            <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
+              <Toolbar />
+            </Grid>
+            <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
+              <div style={{ width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px', marginLeft: '24px' }} />
+              <div style={{ width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF' }}>
+                <Preview />
+                <div className='col-12 justify-content-center d-flex mt-3'>
+                  {this.renderSaveButton()}
+                </div>
               </div>
-            </div>
+            </Grid>
+            <Grid item={true} classes={{ item: classNames(classes.item) }}>
+              <div />
+            </Grid>
           </Grid>
-          <Grid item={true} classes={{item: classNames(classes.item)}}>
-            <div/>
-          </Grid>
-        </Grid>
         </DragDropContext>
       </div>
     );
@@ -178,4 +178,4 @@ const mapsStateToProps = (
   };
 };
 
-export default withStyles(styles, {withTheme: true})(connect(mapsStateToProps)(FormDesigner));
+export default withStyles(styles, { withTheme: true })(connect(mapsStateToProps)(FormDesigner));

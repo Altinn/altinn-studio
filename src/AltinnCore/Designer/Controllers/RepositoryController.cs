@@ -58,6 +58,23 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns a specic organization
+        /// </summary>
+        /// <param name="id">The organization name</param>
+        /// <returns>The organization</returns>
+        [HttpGet]
+        public ActionResult<Organization> Organization(string id)
+        {
+            Organization org = _giteaApi.GetOrganization(id).Result;
+            if (org != null)
+            {
+                return org;
+            }
+
+            return NotFound();
+        }
+
+        /// <summary>
         /// This method returns the status of a given repository 
         /// </summary>
         /// <param name="org">The organization or user owning the repo</param>
