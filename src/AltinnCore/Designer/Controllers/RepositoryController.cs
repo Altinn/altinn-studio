@@ -19,16 +19,18 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly IGitea _giteaApi;
         private readonly ServiceRepositorySettings _settings;
+        private readonly ISourceControl _sourceControl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
         /// </summary>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="repositorySettings">Settings for repository</param>
-        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings)
+        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl)
         {
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
+            _sourceControl = sourceControl;
         }
 
         /// <summary>
