@@ -85,7 +85,7 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
                 classes.height)}
             >
               <Typography variant='body1' gutterBottom={true} className={classes.width100}>
-                <TruncateMarkup lines={3}>
+                <TruncateMarkup lines={2}>
                   <span>
                     {service.description}
                   </span>

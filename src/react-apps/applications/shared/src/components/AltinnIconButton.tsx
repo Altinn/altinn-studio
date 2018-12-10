@@ -27,7 +27,7 @@ const styles = {
     textAlign: 'left' as 'left',
     verticalAlign: 'middle',
     backgroundColor: 'transparent',
-    border: '1px dotted ' + theme.palette.primary.dark,
+    border: '1px dotted ' + theme.palette.primary.main,
     boxShadow: 'none',
     borderRadius: '0px',
     textTransform: 'none' as 'none',
@@ -42,7 +42,7 @@ const styles = {
     },
   },
   dottedBtnIcon: {
-    color: theme.palette.primary.dark,
+    color: theme.palette.primary.main,
     fontSize: '54px',
     paddingRight: '6px',
   },

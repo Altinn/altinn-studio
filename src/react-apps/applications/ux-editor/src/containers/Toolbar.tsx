@@ -207,14 +207,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     // Ignore for now, favourites will be implemented at a later stage
   }
 
-  public handleCollapsableAnimationDone = (list: string) => {
+  public setCollapsableListAnimationState = (list: string, done: boolean) => {
     if (list === 'schema') {
       this.setState({
-        componentListCloseAnimationDone: !this.state.componentListCloseAnimationDone,
+        componentListCloseAnimationDone: done,
       });
     } else if (list === 'text') {
       this.setState({
-        textListCloseAnimationDone: !this.state.textListCloseAnimationDone,
+        textListCloseAnimationDone: done,
       });
     }
   }
@@ -251,8 +251,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
           <Collapse
             in={this.state.componentListOpen}
-            onExited={this.handleCollapsableAnimationDone.bind(this, 'schema')}
-            onEnter={this.handleCollapsableAnimationDone.bind(this, 'schema')}
+            onExited={this.setCollapsableListAnimationState.bind(this, 'schema', true)}
+            onEnter={this.setCollapsableListAnimationState.bind(this, 'schema', false)}
+            style={this.state.componentListCloseAnimationDone ? { display: 'none' } : {}}
             classes={{
               container: this.props.classes.collapsableContainer,
             }}
@@ -260,7 +261,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             <List
               dense={false}
               id='schema-components'
-              style={this.state.componentListCloseAnimationDone ? { display: 'none' } : {}}
             >
               <Droppable droppableId='ITEMS' isDropDisabled={true}>
                 {(provided: any) => (
@@ -355,8 +355,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           />
           <Collapse
             in={this.state.textListOpen}
-            onExited={this.handleCollapsableAnimationDone.bind(this, 'text')}
-            onEnter={this.handleCollapsableAnimationDone.bind(this, 'text')}
+            onExited={this.setCollapsableListAnimationState.bind(this, 'text', true)}
+            onEnter={this.setCollapsableListAnimationState.bind(this, 'text', false)}
+            style={this.state.textListCloseAnimationDone ? { display: 'none' } : {}}
             classes={{
               container: this.props.classes.collapsableContainer,
             }}

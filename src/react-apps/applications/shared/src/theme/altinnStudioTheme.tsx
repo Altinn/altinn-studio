@@ -16,6 +16,13 @@ const theme = {
         },
       },
     },
+    MuiFormControl: {
+      root: {
+        border: '1px solid #BCC7CC',
+        minWidth: 120,
+        paddingLeft: '1em',
+      },
+    },
     MuiTypography: {
       h4: {
         fontSize: 36,
@@ -40,14 +47,14 @@ const theme = {
   },
   palette: {
     primary: {
-      main: '#022F51',
-      dark: '#0062BA',
-      //todo: should this be: light: '#1EAEF7',?
+      main: '#0062BA',
+      dark: '#022F51',
       light: '#CFF0FF',
     },
     secondary: {
-      main: '#efefef',
-      dark: '#d2d2d2',
+      light: '#efefef',
+      main: '#d2d2d2',
+      dark: '#6a6a6a',
     },
   },
   typography: {

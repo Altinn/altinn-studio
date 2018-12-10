@@ -26,7 +26,7 @@ const theme = createMuiTheme(altinnTheme);
 const styles = {
   chip: {
     color: '#000000',
-    borderColor: theme.palette.primary.main,
+    borderColor: theme.palette.primary.dark,
     borderWidth: '1px',
     borderStyle: 'dotted',
     backgroundColor: '#FFF',
@@ -38,14 +38,14 @@ const styles = {
     },
     '&:focus': {
       backgroundColor: 'transparent !Important',
-      borderColor: theme.palette.primary.dark,
+      borderColor: theme.palette.primary.main,
       borderWidth: '1px',
       borderStyle: 'solid',
     },
   },
   chipActive: {
     backgroundColor: theme.palette.primary.light + ' !Important',
-    border: '1px solid ' + theme.palette.primary.main,
+    border: '1px solid ' + theme.palette.primary.dark,
     borderRadius: '36px',
     minHeight: '36px',
     fontSize: '16px',
@@ -54,7 +54,7 @@ const styles = {
     },
     '&:focus': {
       backgroundColor: theme.palette.primary.light + ' !Important',
-      border: '1px solid ' + theme.palette.primary.dark,
+      border: '1px solid ' + theme.palette.primary.main,
     }
   },
   down: {
