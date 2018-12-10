@@ -12,7 +12,7 @@ export class ParagraphComponent extends React.Component<IParagraphProps, IParagr
   public render() {
     return (
       <div className='row'>
-        <span id={this.props.component.id}>{this.props.text}</span>
+        <span className={'a-form-text'} id={this.props.component.id}>{this.props.text}</span>
       </div>
     );
   }
