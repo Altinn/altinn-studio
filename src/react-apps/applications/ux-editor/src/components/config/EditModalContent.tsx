@@ -1,14 +1,35 @@
+import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import Select from 'react-select';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
+
+const styles = createStyles({
+  inputHelper: {
+    marginTop: '1em',
+    fontSize: '1.6rem',
+    lineHeight: '3.2rem',
+  },
+});
+const customInput = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+  }),
+  option: (provided: any) => ({
+    ...provided,
+    whiteSpace: 'pre-wrap',
+  }),
+};
 
 export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
-  saveEdit: (updatedComponent: FormComponentType) => void;
-  cancelEdit: () => void;
+  saveEdit?: (updatedComponent: FormComponentType) => void;
+  cancelEdit?: () => void;
   language: any;
+  classes: any;
 }
 
 export interface IEditModalContentState {
@@ -22,10 +43,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.state = {
       component: _props.component,
     };
-  }
-
-  public handleSaveChanged = (): void => {
-    this.props.saveEdit(this.state.component);
   }
 
   public handleDisabledChange = (e: any): void => {
@@ -111,9 +128,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
   }
 
-  public handleUpdateHeaderSize = (size: string, event: any) => {
+  public handleUpdateHeaderSize = (event: any) => {
     const updatedComponent: IFormHeaderComponent = this.state.component as IFormHeaderComponent;
-    updatedComponent.size = size;
+    updatedComponent.size = event.value;
     this.setState({
       component: updatedComponent,
     });
@@ -138,52 +155,25 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.component) {
       case 'Header': {
-        const component: IFormHeaderComponent = this.state.component as IFormHeaderComponent;
+        const sizes = [
+          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h3 },
+          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h2 },
+          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 },
+        ];
         return (
-          <fieldset className={'form-group'}>
-            <div
-              className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
-              onClick={this.handleUpdateHeaderSize.bind(this, 'S')}
-            >
-              <input
-                type='radio'
-                name={'radio-' + 'headerS-' + this.props.component.id}
-                className='custom-control-input'
-                checked={component.size === 'S'}
-              />
-              <label className='custom-control-label pl-3 a-radioButtons-title'>
-                <h3>{'S'}</h3>
-              </label>
-            </div>
-            <div
-              className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
-              onClick={this.handleUpdateHeaderSize.bind(this, 'M')}
-            >
-              <input
-                type='radio'
-                name={'radio-' + 'headerM-' + this.props.component.id}
-                className='custom-control-input'
-                checked={component.size === 'M'}
-              />
-              <label className='custom-control-label pl-3 a-radioButtons-title'>
-                <h2>{'M'}</h2>
-              </label>
-            </div>
-            <div
-              className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
-              onClick={this.handleUpdateHeaderSize.bind(this, 'L')}
-            >
-              <input
-                type='radio'
-                name={'radio-' + 'headerL-' + this.props.component.id}
-                className='custom-control-input'
-                checked={component.size === 'L'}
-              />
-              <label className='custom-control-label pl-3 a-radioButtons-title'>
-                <h1>{'L'}</h1>
-              </label>
-            </div>
-          </fieldset>
+          <Grid item={true} xs={6} container={true} direction={'column'} spacing={0}>
+            <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
+              {this.props.language.ux_editor.modal_header_type_helper}
+            </Typography>
+            <Select
+              styles={customInput}
+              defaultValue={this.state.component.size ?
+                  sizes.find((size) => size.value === this.state.component.size ) :
+                  sizes[0]}
+              onChange={this.handleUpdateHeaderSize}
+              options={sizes}
+            />
+          </Grid>
         );
       }
       case 'Input': {
@@ -418,59 +408,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public render(): JSX.Element {
     return (
-      <div className='modal-content'>
-        <div className='modal-header a-modal-header'>
-          <div className='a-iconText a-iconText-background a-iconText-large'>
-            <div className='a-iconText-icon'>
-              <i className='ai ai-corp a-icon' />
-            </div>
-            <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>
-                {this.props.language.ux_editor.modal_properties_header}
-              </span>
-            </h1>
-          </div>
-        </div>
-        <div className='modal-body a-modal-body'>
-          <div className='form-group a-form-group'>
-            {this.props.component.component !== 'ThirdParty' ? (
-              <div className='form-group a-form-group mt-1'>
-                <label className='a-form-label' htmlFor='nameField'>
-                  {this.props.language.ux_editor.modal_text}:
-                </label>
-                <div className='a-form-group-items input-group'>
-                  <select
-                    name={'editModal_text'}
-                    value={this.state.component.customType === 'Standard' ?
-                      this.state.component.textResourceId : this.state.component.title}
-                    onChange={this.handleTitleChange}
-                    className='custom-select a-custom-select'
-                    disabled={this.state.component.customType === 'Standard'}
-                  >
-                    <option value={''}>
-                      {this.props.language.ux_editor.modal_text_input}
-                    </option>
-                    {this.renderTextResourceOptions()}
-                  </select>
-                </div>
-
-              </div>
-            ) : null}
-          </div>
-          {this.renderComponentSpecificContent()}
-          {this.renderSelectDataBinding(this.state.component.component)}
-          <div className='row mt-3'>
-            <div className='col'>
-              <button type='submit' className='a-btn a-btn-success mr-2' onClick={this.handleSaveChanged}>
-                {this.props.language.general.save}
-              </button>
-              <a className='mr-2' onClick={this.props.cancelEdit}>
-                {this.props.language.general.cancel}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div >
+      <>
+      {this.renderComponentSpecificContent()}
+      </>
     );
   }
 
@@ -498,8 +438,10 @@ const mapStateToProps = (
 ): IEditModalContentProps => {
   return {
     language: state.appData.language.language,
+    classes: props.classes,
     ...props,
   };
 };
 
-export const EditModalContent = connect(mapStateToProps)(EditModalContentComponent);
+export const EditModalContent = withStyles(styles, { withTheme: true })
+  (connect(mapStateToProps)(EditModalContentComponent));
