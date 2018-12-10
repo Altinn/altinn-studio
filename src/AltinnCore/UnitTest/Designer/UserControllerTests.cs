@@ -22,7 +22,7 @@ namespace AltinnCore.UnitTest.Designer
         {
             // Arrange
             Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
-            IGiteaMockHelper.AddListWithOneOrganization(moqGitea);
+            IGiteaMockHelper.GetCurrentUser_ReturnsOne(moqGitea);
 
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
 

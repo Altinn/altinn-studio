@@ -164,7 +164,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.component.title = e.target.value;
   }
 
-
   public render(): JSX.Element {
     return (
       <>

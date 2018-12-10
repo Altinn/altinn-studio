@@ -182,9 +182,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     switch (this.props.component.component) {
       case 'Header': {
         const sizes = [
-          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h3 },
-          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h2 },
-          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 },
+          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
+          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h3 },
+          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h2 },
         ];
         return (
           <Grid container={true} xs={12} spacing={0} direction={'column'}>
@@ -403,7 +403,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public render(): JSX.Element {
     return (
       <>
-      {this.renderComponentSpecificContent()}
+        {this.renderComponentSpecificContent()}
       </>
     );
   }
