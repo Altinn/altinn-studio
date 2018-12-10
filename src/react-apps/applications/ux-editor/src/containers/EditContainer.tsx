@@ -187,16 +187,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.props.textResources.map((resource, index) => {
       const option = this.truncate(resource.value, 80);
 
-      textRecources.push({ value: resource.id, label: option.concat('\n', resource.id) })
+      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
     });
 
     return (
       <>
-        <Grid item={true} xs={12} sm={true} container={true}>
+        <Grid xs={12} sm={true} container={true}>
           <Grid
-            item={true}
-            xs={true}
             container={true}
+            xs={true}
             direction={'row'}
             spacing={0}
             className={this.props.classes.wrapper}
@@ -246,7 +245,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             </Grid>
             {!this.state.isEditMode &&
               <Grid
-                item={true}
                 xs={true}
                 container={true}
                 direction={'column'}
@@ -270,7 +268,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               </Grid>}
             {this.state.isEditMode &&
               <Grid
-                item={true}
                 xs={true}
                 container={true}
                 direction={'column'}
