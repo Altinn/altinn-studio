@@ -7,7 +7,7 @@ createTestCafe()
     const runner = testcafe.createRunner();
 
     return runner
-      .browsers(['chrome'])
+      .browsers(['chrome:headless'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: false })
