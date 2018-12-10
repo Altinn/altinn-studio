@@ -48,6 +48,14 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     };
   }
 
+  public componentDidUpdate() {
+    if (this.props.itemOrder !== this.state.itemOrder) {
+      this.setState({
+        itemOrder: this.props.itemOrder,
+      });
+    }
+  }
+
   public handleContainerDelete = (e: any) => {
     FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index, this.props.parentContainerId);
     e.stopPropagation();
@@ -107,7 +115,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                 </div>
               </div>
             }
-            {this.state ? this.state.itemOrder.map((id: string, index: number) => (
+            {this.state ? this.state.itemOrder[this.props.id].map((id: string, index: number) => (
               this.props.components[id] ?
                 this.renderFormComponent(id, index) :
                 this.props.containers[id] ?
@@ -167,24 +175,43 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
-  public moveItem = (id: string, containerId: string, hoverIndex: number) => {
-    console.log('Moving', id, 'to containerId', containerId, 'index', hoverIndex);
-    return;
+  public moveItem = (
+    id: string,
+    newPosition: number,
+    oldPosition: number,
+    destinationContainerId: string,
+    sourceContainerId: string,
+  ) => {
+    console.log('move from', oldPosition, 'to', newPosition)
+    if (destinationContainerId === sourceContainerId) {
+      // Moved within the container
+      return this.setState((state: IContainerState) => update(state, {
+        itemOrder: {
+          [destinationContainerId]: {
+            $splice: [
+              [oldPosition, 1],
+              [newPosition, 0, id],
+            ],
+          },
+        },
+      }));
+    }
   }
 
-  public removeItem = (deleteId: string, inContainerId: string, itemOrder: any = this.state.itemOrder) => {
-    for (const containerId of itemOrder) {
-      if (containerId === inContainerId) {
-        return this.setState(update(this.state, {
-          itemOrder: {
-            [containerId]: {
-              $splice: [[itemOrder.indexOf(deleteId), 1]],
-            },
-          },
-        }));
-      }
-      this.removeItem(deleteId, inContainerId, this.state.itemOrder[containerId]);
-    }
+  public dropItem = (
+    id: string,
+    newPosition: number,
+    oldPosition: number,
+    destinationContainerId: string,
+    sourceContainerId: string,
+  ) => {
+    FormDesignerActionDispatchers.updateFormComponentOrderAction(
+      id,
+      newPosition,
+      oldPosition,
+      destinationContainerId,
+      sourceContainerId,
+    );
   }
 
   public renderContainer = (id: string, index: number) => {
@@ -266,6 +293,8 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           id={id}
           index={index}
           containerId={this.props.id}
+          onDropItem={this.dropItem}
+          onMoveItem={this.moveItem}
         >
           <FormComponentWrapper
             key={index}
@@ -306,14 +335,14 @@ const makeMapStateToProps = () => {
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
   const GetActiveFormContainer = makeGetActiveFormContainer();
-  const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
+  // const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetLayoutContainersSelector(state);
     const container = containers[props.id];
     return {
       id: props.id,
       index: container.index,
-      itemOrder: GetLayoutContainerOrder(state, props.id),
+      itemOrder: state.formDesigner.layout.order,
       components: GetLayoutComponentsSelector(state),
       containers,
       designMode: GetDesignModeSelector(state),

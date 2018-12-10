@@ -17,8 +17,8 @@ export class PreviewComponent extends React.Component<
   null
   > {
 
-  public componentWillReceiveProps(props: IPreviewProps) {
-    if (!Object.keys(props.layoutOrder).length) {
+  public componentDidUpdate() {
+    if (!Object.keys(this.props.layoutOrder).length) {
       formDesignerActionDispatcher.addFormContainer({
         repeating: false,
         dataModelGroup: null,
