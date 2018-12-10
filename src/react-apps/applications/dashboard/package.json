@@ -17,6 +17,7 @@
   "author": "Altinn",
   "license": "3-Clause BSD",
   "dependencies": {
+    "@material-ui/core": "3.6.1",
     "babel-core": "6.26.3",
     "react": "16.6.1",
     "react-dom": "16.6.1",
