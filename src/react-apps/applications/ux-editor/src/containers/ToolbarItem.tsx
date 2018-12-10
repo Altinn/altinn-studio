@@ -5,7 +5,7 @@ import {
 } from 'react-dnd';
 import createDraggable, {
   IDraggableProps,
-} from './Draggable';
+} from './DraggableToolbarItem';
 
 interface IToolbarItemProps {
   text: string;

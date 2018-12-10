@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-// import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector/*, makeGetLayoutOrderSelector*/ } from '../selectors/getLayoutData';
 import { Container } from './Container';
@@ -17,11 +17,17 @@ export class PreviewComponent extends React.Component<
   null
   > {
 
-  public componentDidMount() {
+  public componentWillReceiveProps(props: IPreviewProps) {
+    if (!Object.keys(props.layoutOrder).length) {
+      formDesignerActionDispatcher.addFormContainer({
+        repeating: false,
+        dataModelGroup: null,
+        index: 0,
+      });
+    }
   }
 
   public render() {
-
     return (
       <div className='col-12'>
         {this.renderContainer()}

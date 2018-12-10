@@ -24,7 +24,7 @@ const itemSource = {
       return false;
     }
     return true;
-  }
+  },
 };
 
 let lastHoveredIndex: number;
