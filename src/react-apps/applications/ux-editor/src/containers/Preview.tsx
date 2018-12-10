@@ -19,9 +19,9 @@ export class PreviewComponent extends React.Component<
   > {
   public render() {
     return (
-      <div className='col-12'>
+      <>
         {this.renderContainer()}
-      </div>
+      </>
     );
   }
 
