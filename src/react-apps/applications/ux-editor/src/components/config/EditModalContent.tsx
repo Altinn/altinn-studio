@@ -78,17 +78,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public handleTextUpdate = (e: any): void => {
-    const updatedComponent = this.props.component;
-    updatedComponent.title = e.target.value;
-    this.setState((state) => {
-      return {
-        ...state,
-        component: updatedComponent,
-      };
-    });
-  }
-
   public handleParagraphChange = (e: any): void => {
     const textObject: any = e.target;
     this.handleTitleChange(textObject);
@@ -235,7 +224,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             direction={'column'}
           >
           {this.renderSelectTextFromResources('modal_properties_header_helper',
-            this.handleTitleChange, this.state.component.title)}
+            this.handleTitleChange, this.props.component.title)}
             <Grid item={true} xs={12}>
               {this.renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
               <Select
@@ -272,8 +261,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               style={{width: '100%'}}
               rows={4}
               className='form-control'
-              onChange={this.handleTextUpdate}
-              onBlur={this.handleParagraphChange}
+              onChange={this.handleParagraphChange}
             />
           </Grid>
         );
