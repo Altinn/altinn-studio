@@ -4,7 +4,7 @@ export interface IMenuItem {
   menuType?: string;
   activeLeftMenuSelection?: string;
   iconName?: string;
-  [index: string]: string;
+  [key: string]: string;
 }
 
 export interface IMainMenu {
@@ -18,7 +18,7 @@ export interface IDrawerMenu {
   language: IMenuItem[];
   test: IMenuItem[];
   publish: IMenuItem[];
-  [index: string]: IMenuItem[];
+  [key: string]: IMenuItem[];
 }
 
 export const mainMenuSettings: IMainMenu = {

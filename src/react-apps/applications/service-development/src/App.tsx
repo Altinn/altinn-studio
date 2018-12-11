@@ -18,8 +18,6 @@ import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
 
-export interface IAppProps { }
-
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
@@ -30,7 +28,7 @@ const styles = () => createStyles({
   },
 });
 
-class App extends React.Component<IAppProps & WithStyles<typeof Object>, any> {
+class App extends React.Component<WithStyles<typeof styles>, any> {
 
   public handleDrawerToggle = () => {
     NavigationActionDispatcher.toggleDrawer();

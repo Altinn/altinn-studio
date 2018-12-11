@@ -26,7 +26,7 @@ export interface ITabletDrawerMenuState {
   selectedMenuItem: string;
 }
 
-class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyles<typeof Object>,
+class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyles<typeof styles>,
   ITabletDrawerMenuState> {
 
   constructor(_props: ITabletDrawerMenuProps) {
