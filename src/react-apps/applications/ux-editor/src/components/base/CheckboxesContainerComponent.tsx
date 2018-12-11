@@ -24,7 +24,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     return (
       <div className={this.props.isValid ? 'form-group' : 'form-group validation-error'} id={this.props.id}>
         <div
-          className={'pl-0 custom-control custom-control-stacked custom-checkbox a-custom-checkbox'}
+          className={'pl-0 custom-control custom-control-inline custom-checkbox a-custom-checkbox'}
           onClick={this.onDataChanged}
         >
           <input

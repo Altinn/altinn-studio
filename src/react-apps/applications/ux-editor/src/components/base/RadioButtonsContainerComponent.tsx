@@ -36,7 +36,12 @@ export class RadioButtonContainerComponent
   public render() {
     const { options } = this.props.component;
     return (
-      <div className={this.props.isValid ? 'form-group' : 'form-group validation-error'} id={this.props.id}>
+      <div
+        className={
+          this.props.isValid ? ((options.length > 2) ? 'form-check' : 'form-check form-check-inline')
+            : 'form-check validation-error'}
+        id={this.props.id}
+      >
         {options.map((option, index) => (
           <div
             className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
