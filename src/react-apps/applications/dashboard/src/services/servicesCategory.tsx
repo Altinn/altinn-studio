@@ -3,7 +3,6 @@ import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import ServiceCard from './serviceCard';
 
 export interface ICategoryComponentProvidedProps {
@@ -76,17 +75,4 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
   }
 }
 
-const mapStateToProps = (
-  state: IDashboardAppState,
-  props: ICategoryComponentProvidedProps,
-): ICategoryComponentProvidedProps => {
-  return {
-    classes: props.classes,
-    header: props.header,
-    noServicesMessage: props.noServicesMessage,
-    categoryRepos: props.categoryRepos,
-    className: props.className,
-  };
-};
-
-export default withStyles(styles)(connect(mapStateToProps)(CategoryComponent));
+export default withStyles(styles)(CategoryComponent);
