@@ -16,8 +16,6 @@ export interface IAltinnFilterChipCompontentProvidedProps {
   sortIcon?: boolean;
 }
 
-export interface IAltinnFilterChipComponentProps extends IAltinnFilterChipCompontentProvidedProps {
-}
 export interface IAltinnFilterChipComponentState {
 }
 
@@ -65,7 +63,7 @@ const styles = {
   },
 }
 
-class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProps, IAltinnFilterChipComponentState> {
+class AltinnFilterChip extends React.Component<IAltinnFilterChipCompontentProvidedProps, IAltinnFilterChipComponentState> {
   public render() {
     const { classes } = this.props;
     return (

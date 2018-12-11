@@ -11,8 +11,6 @@ export interface IAltinnSearchInputCompontentProvidedProps {
   onChangeFunction: any;
 }
 
-export interface IAltinnSearchInputComponentProps extends IAltinnSearchInputCompontentProvidedProps {
-}
 export interface IAltinnSearchInputComponentState {
 }
 
@@ -38,7 +36,7 @@ const styles = {
   },
 }
 
-class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProps, IAltinnSearchInputComponentState> {
+class AltinnSearchInput extends React.Component<IAltinnSearchInputCompontentProvidedProps, IAltinnSearchInputComponentState> {
   public render() {
     const { classes } = this.props;
     return (
