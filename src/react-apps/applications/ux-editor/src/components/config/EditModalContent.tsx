@@ -134,7 +134,10 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public renderSelectDataModelBinding(): JSX.Element {
     return (
       <div>
-        <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
+        <Typography
+          gutterBottom={false}
+          className={this.props.classes.inputHelper}
+        >
           {this.props.language.ux_editor.modal_properties_data_model_helper}
         </Typography>
         <SelectDataModelComponent
@@ -151,6 +154,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     onChangeFunction: (e: any) => void,
     placeholder?: string,
     truncateLimit: number = 80,
+    createNewTextAllowed: boolean = true,
   ): JSX.Element => {
     const textRecources: any = [];
     this.props.textResources.map((resource, index) => {
@@ -162,18 +166,32 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
           {this.props.language.ux_editor[labelText]}
         </Typography>
-        <CreatableSelect
-          styles={customInput}
-          options={textRecources}
-          defaultValue={''}
-          onChange={onChangeFunction}
-          isClearable={true}
-          placeholder={placeholder ?
-            truncate(getTextResource(placeholder, this.props.textResources), 40)
-            : this.props.language.general.search}
-          formatCreateLabel={this.formatCreateTextLabel}
-          noOptionsMessage={this.props.language.general.no_options}
-        />
+        {createNewTextAllowed ?
+          <CreatableSelect
+            styles={customInput}
+            options={textRecources}
+            defaultValue={''}
+            onChange={onChangeFunction}
+            isClearable={true}
+            placeholder={placeholder ?
+              truncate(getTextResource(placeholder, this.props.textResources), 40)
+              : this.props.language.general.search}
+            formatCreateLabel={this.formatCreateTextLabel}
+            noOptionsMessage={() => this.props.language.general.no_options}
+          />
+        :
+          <Select
+            styles={customInput}
+            options={textRecources}
+            defaultValue={''}
+            onChange={onChangeFunction}
+            isClearable={true}
+            placeholder={placeholder ?
+              truncate(getTextResource(placeholder, this.props.textResources), 40)
+              : this.props.language.general.search}
+            noOptionsMessage={() => this.props.language.general.no_options}
+          />
+        }
       </div>
     );
   }
@@ -187,11 +205,19 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           { value: 'L', label: this.props.language.ux_editor.modal_header_type_h2 },
         ];
         return (
-          <Grid container={true} xs={12} spacing={0} direction={'column'}>
+          <Grid
+            container={true}
+            xs={12}
+            spacing={0}
+            direction={'column'}
+          >
           {this.renderSelectTextFromResources('modal_properties_header_helper',
             this.handleTitleChange, this.state.component.title)}
             <Grid item={true} xs={12}>
-              <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
+              <Typography
+                gutterBottom={false}
+                className={this.props.classes.inputHelper}
+              >
                 {this.props.language.ux_editor.modal_header_type_helper}
               </Typography>
               <Select
