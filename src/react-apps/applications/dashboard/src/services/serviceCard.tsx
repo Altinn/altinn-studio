@@ -4,10 +4,16 @@ import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
 import TruncateMarkup from 'react-truncate-markup';
+import { connect } from 'react-redux';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 
 export interface IServiceCardCompontentProvidedProps {
   classes: any;
   service: any;
+}
+
+export interface IServiceCardCompontentProps extends IServiceCardCompontentProvidedProps {
+  language: any;
 }
 
 export interface IServiceCardComponentState {
@@ -43,7 +49,7 @@ const styles = {
   },
 }
 
-class ServiceCard extends React.Component<IServiceCardCompontentProvidedProps, IServiceCardComponentState> {
+class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceCardComponentState> {
   public formatDate(date: any): any {
     return moment(new Date(date)).format('DD.MM.YYYY');
   }
@@ -119,7 +125,7 @@ class ServiceCard extends React.Component<IServiceCardCompontentProvidedProps, I
                     classes.textToRight)}
                   noWrap={true}
                 >
-                  Endret: {this.formatDate(service.updated_at)}
+                  {getLanguageFromKey('dashboard.last_changed_service', this.props.language)} {this.formatDate(service.updated_at)}
                 </Typography>
               </Grid>
             </Grid>
@@ -130,4 +136,15 @@ class ServiceCard extends React.Component<IServiceCardCompontentProvidedProps, I
   }
 }
 
-export default withStyles(styles)(ServiceCard);
+const mapStateToProps = (
+  state: IDashboardAppState,
+  props: IServiceCardCompontentProvidedProps,
+): IServiceCardCompontentProps => {
+  return {
+    classes: props.classes,
+    service: props.service,
+    language: state.language.language,
+  };
+};
+
+export default withStyles(styles)(connect(mapStateToProps)(ServiceCard));
