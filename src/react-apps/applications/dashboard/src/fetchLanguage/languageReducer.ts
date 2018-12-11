@@ -3,25 +3,25 @@ import { Action, Reducer } from 'redux';
 import * as FetchLanguageActions from './fetchLanguageActions';
 import * as FetchLanguageActionTypes from './fetchLanguageActionTypes';
 
-export interface ILanguageState {
+export interface IFetchedLanguageState {
   language: any;
 }
 
-const initialState: ILanguageState = {
+const initialState: IFetchedLanguageState = {
   language: {},
 };
 
-const languageReducer: Reducer<ILanguageState> = (
-  state: ILanguageState = initialState,
+const languageReducer: Reducer<IFetchedLanguageState> = (
+  state: IFetchedLanguageState = initialState,
   action?: Action,
-): ILanguageState => {
+): IFetchedLanguageState => {
   if (!action) {
     return state;
   }
   switch (action.type) {
     case FetchLanguageActionTypes.FETCH_LANGUAGE_FULFILLED: {
       const { language } = action as FetchLanguageActions.IFetchLanguageFulfilled;
-      return update<ILanguageState>(state, {
+      return update<IFetchedLanguageState>(state, {
         language: {
           $set: language,
         },

@@ -5,7 +5,7 @@ import * as FetchLanguageActions from './fetchLanguageActions';
 import * as FetchLanguageActionTypes from './fetchLanguageActionTypes';
 import FetchLanguageDispatchers from './fetchLanguageDispatcher';
 
-export function* fetchLanguageSaga({
+export function* languageSaga({
   url,
   languageCode,
 }: FetchLanguageActions.IFetchLanguageAction): SagaIterator {
@@ -17,13 +17,13 @@ export function* fetchLanguageSaga({
   }
 }
 
-export function* watchFetchLanguageSaga(): SagaIterator {
+export function* watchLanguageSaga(): SagaIterator {
   yield takeLatest(
     FetchLanguageActionTypes.FETCH_LANGUAGE,
-    fetchLanguageSaga,
+    languageSaga,
   );
 }
 
 export default function* (): SagaIterator {
-  yield fork(watchFetchLanguageSaga);
+  yield fork(watchLanguageSaga);
 }

@@ -4,7 +4,7 @@ import * as FetchLanguageActions from './fetchLanguageActions';
 
 /**
  * Define a interface describing the the different Actions available
- * for AppConfig and which datamodel those actions expect.
+ * for fetching language and which datamodel those actions expect.
  */
 export interface IFetchLanguageDispatchers extends ActionCreatorsMapObject {
   fetchLanguage: (
@@ -12,7 +12,7 @@ export interface IFetchLanguageDispatchers extends ActionCreatorsMapObject {
     languageCode: string,
   ) => FetchLanguageActions.IFetchLanguageAction;
   fetchLanguageFulfilled: (
-    languageCode: string,
+    language: any,
   ) => FetchLanguageActions.IFetchLanguageFulfilled;
   fetchLanguageRejected: (
     error: Error,

@@ -1,7 +1,7 @@
 const moduleName: string = 'APP_CONFIG';
 
 /**
- * This file defines all action that will be triggered and listened on by SAGAS and REDUCERS
+ * This file defines all action that will be triggered and listened on by SAGAS and REDUCERS used to fetch language
  */
 // All fetch language actions
 export const FETCH_LANGUAGE: string = `${moduleName}.FETCH_LANGUAGE`;

@@ -3,28 +3,28 @@ import { Action, Reducer } from 'redux';
 import * as FetchDashboardActions from './fetchDashboardActions';
 import * as FetchDashboardActionTypes from './fetchDashboardActionTypes';
 
-export interface IDashboardStoreState {
+export interface IDashboardState {
   services: any;
   user: any;
 
 }
 
-const initialState: IDashboardStoreState = {
+const initialState: IDashboardState = {
   services: [],
   user: {},
 };
 
-const dashboardReducer: Reducer<IDashboardStoreState> = (
-  state: IDashboardStoreState = initialState,
+const dashboardReducer: Reducer<IDashboardState> = (
+  state: IDashboardState = initialState,
   action?: Action,
-): IDashboardStoreState => {
+): IDashboardState => {
   if (!action) {
     return state;
   }
   switch (action.type) {
     case FetchDashboardActionTypes.FETCH_SERVICES_FULFILLED: {
       const { services } = action as FetchDashboardActions.IFetchServicesFulfilled;
-      return update<IDashboardStoreState>(state, {
+      return update<IDashboardState>(state, {
         $apply: () => ({
           ...state,
           services,
@@ -33,7 +33,7 @@ const dashboardReducer: Reducer<IDashboardStoreState> = (
     }
     case FetchDashboardActionTypes.FETCH_CURRENT_USER_FULFILLED: {
       const { user } = action as FetchDashboardActions.IFetchCurrentUserFulfilled;
-      return update<IDashboardStoreState>(state, {
+      return update<IDashboardState>(state, {
         $apply: () => ({
           ...state,
           user,

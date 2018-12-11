@@ -2,6 +2,7 @@ const moduleName: string = 'APP_CONFIG';
 
 /**
  * This file defines all action that will be triggered and listened on by SAGAS and REDUCERS
+ * related to the dashboard, like fetching services and current user
  */
 // All fetch services actions
 export const FETCH_SERVICES: string = `${moduleName}.FETCH_SERVICES`;
