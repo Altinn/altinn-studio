@@ -10,7 +10,7 @@
     "axios": "0.18.0",
     "classnames": "^2.2.6",
     "react": "16.6.3",
-    "react-truncate-markup": "2.0.1",
+    "react-truncate-markup": "2.0.1"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.6",
