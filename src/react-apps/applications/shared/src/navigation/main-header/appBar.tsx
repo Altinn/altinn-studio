@@ -115,17 +115,17 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
               </Grid>
               <Hidden smDown>
                 <Grid xs={true} item={true} className={classes.paper}>
-                  {service != null ? service : 'WARNING: NO SERVICE NAME'}
+                  {service ? service : 'WARNING: NO SERVICE NAME'}
                 </Grid>
               </Hidden>
               <Grid item={true} xs={true} container={true} direction='row' alignItems='center' justify='flex-end'>
                 <Grid item={true}>
                   <Hidden smDown>
-                    {org != null ? org : 'WARNING: NO ORG'}
+                    {org ? org : 'WARNING: NO ORG'}
                   </Hidden>
                   <Hidden mdUp>
                     <div className={classes.topRightService}>
-                      {service !== null ? service : 'WARNING: NO SERVICE NAME'}
+                      {service ? service : 'WARNING: NO SERVICE NAME'}
                     </div>
                   </Hidden>
                 </Grid>
