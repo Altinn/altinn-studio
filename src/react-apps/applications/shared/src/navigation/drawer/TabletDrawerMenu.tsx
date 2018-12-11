@@ -9,35 +9,43 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { leftDrawerMenuSettings } from './drawerMenuSettings';
+import { leftDrawerMenuSettings, IMenuItem } from './drawerMenuSettings';
 import { mainMenuSettings } from './drawerMenuSettings';
 import { styles } from './tabletDrawerMenustyle';
 
-export interface ITabletDrawerMenuProps {
+export interface ITabletDrawerMenuProps extends WithStyles<typeof styles> {
   classes: any;
   theme: any;
   tabletDrawerOpen: boolean;
   handleTabletDrawerMenu: () => void;
 }
 
-export interface ITabletDrawerMenuProps extends WithStyles<typeof styles> { }
+export interface ITabletDrawerMenuState {
+  open: boolean;
+  openSubMenus: number[];
+  selectedMenuItem: string;
+}
 
-class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, any> {
-  public state = {
-    open: false,
-    openSubMenus: [] as number[],
-    selectedMenuItem: '',
-  };
+class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, ITabletDrawerMenuState> {
+
+  constructor(_props: ITabletDrawerMenuProps) {
+    super(_props);
+    this.state = {
+      open: false,
+      openSubMenus: [],
+      selectedMenuItem: '',
+    };
+  }
 
   public handleDrawerOpen = () => {
     this.props.handleTabletDrawerMenu();
   }
 
   public handleDrawerClose = () => {
-    this.setState({ open: false });
+    this.setState({ open: !this.state.open });
   }
 
-  public handleMenuItemClicked = (menuItem: any, id: number) => {
+  public handleMenuItemClicked = (menuItem: IMenuItem, id: number) => {
     this.setState((state: any) => {
       return {
         selectedMenuItem: menuItem.displayText,
@@ -108,21 +116,23 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, any> {
             </List>
             <Divider classes={{ root: classNames(classes.divider) }} />
             <List>
-              {mainMenuSettings.menuItems.map((menuItem: any, index: any) => {
+              {mainMenuSettings.menuItems.map((menuItem: IMenuItem, index: number) => {
                 return (
                   <div key={index}>
                     <ListItem
-                      button={true} key={index}
+                      button={true}
+                      key={index}
                       onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
                     >
                       <ListItemText
                         classes={{ primary: classNames(classes.mainMenuItemText) }}
-                        primary={menuItem.displayText} />
+                        primary={menuItem.displayText}
+                      />
                     </ListItem>
                     {leftDrawerMenuSettings[menuItem.menuType].length > 0 ?
                       <Collapse in={this.state.openSubMenus.indexOf(index) > -1} timeout='auto' unmountOnExit={true}>
                         <List component='div' disablePadding={true}>
-                          {leftDrawerMenuSettings[menuItem.menuType].map((item: any, i: number) => {
+                          {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
                             return (
                               <Link to={item.navLink} style={{ borderBottom: 0 }} key={i}>
                                 <ListItem button={true} className={classes.nested} key={i}>

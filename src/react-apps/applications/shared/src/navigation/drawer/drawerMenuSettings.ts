@@ -1,11 +1,25 @@
-export interface IAltinnWindow extends Window {
-  org: string;
-  service: string;
-  instanceId: string;
-  reportee: string;
+export interface IMenuItem {
+  displayText: string;
+  navLink: string;
+  menuType?: string;
+  activeLeftMenuSelection?: string;
+  iconName?: string;
 }
 
-export const mainMenuSettings: any = {
+export interface IMainMenu {
+  menuType: string;
+  menuItems: IMenuItem[];
+}
+
+export interface ILeftDrawerMenu {
+  about: IMenuItem[];
+  create: IMenuItem[];
+  language: IMenuItem[];
+  test: IMenuItem[];
+  publish: IMenuItem[];
+}
+
+export const mainMenuSettings: IMainMenu = {
   menuType: 'Header',
   menuItems: [
     {
@@ -36,49 +50,43 @@ export const mainMenuSettings: any = {
   ],
 };
 
-export const leftDrawerMenuSettings: any = {
+export const leftDrawerMenuSettings: ILeftDrawerMenu = {
   about: [
     {
       displayText: 'Om tjenesten',
       navLink: '/aboutservice',
       activeLeftMenuSelection: 'aboutservice',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'Roller og rettigheter',
       navLink: '/rolesandrights',
       activeLeftMenuSelection: 'rolesandrights',
       iconName: 'settings',
-      items: [],
     },
     {
       displayText: 'Produksjon',
       navLink: '/production',
       activeLeftMenuSelection: 'production',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'Versjonshistorikk',
       navLink: '/versionhistory',
       activeLeftMenuSelection: 'versionhistory',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'Om sluttbrukeren',
       navLink: '/aboutenduser',
       activeLeftMenuSelection: 'aboutenduser',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'Altinn.no',
       navLink: '/altinn',
       activeLeftMenuSelection: 'altinn',
       iconName: 'settings',
-      items: [],
     },
   ],
   create: [
@@ -87,21 +95,18 @@ export const leftDrawerMenuSettings: any = {
       navLink: '/datamodel',
       activeLeftMenuSelection: 'datamodel',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'GUI',
       navLink: '/uieditor',
       activeLeftMenuSelection: 'gui',
       iconName: 'settings',
-      items: [],
     },
     {
       displayText: 'API',
       navLink: '/api',
       activeLeftMenuSelection: 'api',
       iconName: 'information',
-      items: [],
     },
   ],
   language: [
@@ -110,14 +115,12 @@ export const leftDrawerMenuSettings: any = {
       navLink: '/text',
       activeLeftMenuSelection: 'text',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'Flere språk',
       navLink: '/translate',
       activeLeftMenuSelection: 'translate',
       iconName: 'settings',
-      items: [],
     },
   ],
   test: [
@@ -126,7 +129,6 @@ export const leftDrawerMenuSettings: any = {
       navLink: '/test',
       activeLeftMenuSelection: 'test',
       iconName: 'information',
-      items: [],
     },
   ],
   publish: [
@@ -135,14 +137,12 @@ export const leftDrawerMenuSettings: any = {
       navLink: '/productionsetting',
       activeLeftMenuSelection: 'productionsetting',
       iconName: 'information',
-      items: [],
     },
     {
       displayText: 'Status',
       navLink: '/status',
       activeLeftMenuSelection: 'status',
       iconName: 'settings',
-      items: [],
     },
   ],
 };
