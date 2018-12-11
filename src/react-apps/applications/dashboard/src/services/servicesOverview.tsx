@@ -54,6 +54,10 @@ const styles = {
   elementToRigth: {
     float: 'right' as 'right',
   },
+  textSyle: {
+    fontSize: '18px',
+    fontWeight: 500,
+  }
 };
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
@@ -170,7 +174,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
           <Grid item={true} xl={8} lg={8} md={8} sm={12} xs={12}>
-            <Typography component='h4' variant='h4' gutterBottom={true}>
+            <Typography component='h1' variant='h1' gutterBottom={true}>
               {getLanguageFromKey('dashboard.main_header', this.props.language)}
             </Typography>
           </Grid>
@@ -185,7 +189,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             />
           </Grid>
         </Grid>
-        <Typography variant='h6' className={classes.mar_top_50} gutterBottom={true}>
+        <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
         {services &&

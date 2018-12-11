@@ -47,6 +47,15 @@ const styles = {
   height: {
     height: '70px',
   },
+  fontSize_16: {
+    fontSize: '16px',
+  },
+  fontWeight_500: {
+    fontWeight: 500,
+  },
+  fontSize_14: {
+    fontSize: '14px',
+  }
 }
 
 class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceCardComponentState> {
@@ -67,8 +76,8 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
             <Grid container={true} spacing={8}>
               <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
                 <Typography
-                  variant='subtitle2'
-                  className={classNames(classes.displayInlineBlock, classes.width100)}
+                  variant='h3'
+                  className={classNames(classes.displayInlineBlock, classes.width100, classes.fontSize_16, classes.fontWeight_500)}
                   noWrap={true}
                 >
                   {service.name}
@@ -97,7 +106,7 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
                   classes.width100,
                   classes.height)}
               >
-                <Typography variant='body1' gutterBottom={true} className={classes.width100}>
+                <Typography gutterBottom={true} className={classNames(classes.width100, classes.fontSize_14)}>
                   <TruncateMarkup lines={2}>
                     <span>
                       {service.description}
@@ -109,8 +118,7 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
             <Grid container={true} spacing={0} direction='row'>
               <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                 <Typography
-                  variant='body2'
-                  className={classNames(classes.displayInlineBlock, classes.width100)}
+                  className={classNames(classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500)}
                   noWrap={true}
                 >
                   {service.owner ? (service.owner.full_name || service.owner.login) : ''}
@@ -118,11 +126,12 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
               </Grid>
               <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                 <Typography
-                  variant='body2'
                   className={classNames(
                     classes.displayInlineBlock,
                     classes.width100,
-                    classes.textToRight)}
+                    classes.textToRight,
+                    classes.fontSize_14,
+                    classes.fontWeight_500)}
                   noWrap={true}
                 >
                   {getLanguageFromKey('dashboard.last_changed_service', this.props.language)} {this.formatDate(service.updated_at)}

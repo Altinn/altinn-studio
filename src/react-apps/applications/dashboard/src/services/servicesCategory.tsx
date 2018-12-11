@@ -23,10 +23,15 @@ const styles = {
   displayInlineBlock: {
     display: 'inline-block',
   },
-
   width100: {
     width: '100%',
   },
+  fontSize_24: {
+    fontSize: '24px',
+  },
+  fontSize_16: {
+    fontSize: '16px',
+  }
 };
 
 class CategoryComponent extends React.Component<ICategoryComponentProvidedProps, ICategoryComponentState> {
@@ -35,7 +40,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
     if (categoryRepos.length < 1) {
       return (
         <Grid container={true} direction='row'>
-          <Typography variant='h5' className={classNames(classes.width100, classes.mar_top_100)} align='center'>
+          <Typography className={classNames(classes.width100, classes.mar_top_100, classes.fontSize_24)} align='center'>
             {this.props.noServicesMessage}
           </Typography>
         </Grid>
@@ -61,8 +66,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
       <div className={classNames(this.props.className)}>
         <Grid container={true} direction='row'>
           <Typography
-            variant='subtitle1'
-            className={classNames(classes.displayInlineBlock, classes.width100)}
+            className={classNames(classes.displayInlineBlock, classes.width100, classes.fontSize_16)}
             noWrap={true}
             gutterBottom={true}
           >

@@ -17,24 +17,8 @@ const theme = {
       },
     },
     MuiTypography: {
-      h4: {
+      h1: {
         fontSize: 36,
-      },
-      h5: {
-        fontSize: 24,
-      },
-      h6: {
-        fontSize: 18,
-      },
-      subtitle2: {
-        fontSize: 16,
-      },
-      body1: {
-        fontSize: 14,
-      },
-      body2: {
-        fontSize: 14,
-        fontWeight: 500,
       }
     }
   },
