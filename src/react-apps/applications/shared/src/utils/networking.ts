@@ -1,9 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
-export interface IGetRequestResponse {
-  body: any;
-}
-
 export async function get(url: string, options?: any): Promise<any> {
   try {
     const response: AxiosResponse = await axios.get(
