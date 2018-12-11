@@ -1,6 +1,6 @@
 export function getLanguageFromKey(key: string, language: any) {
   const name = getNestedObject(language, key.split('.'));
-  if (name === undefined) {
+  if (!undefined) {
     return key;
   } else {
     return name;
