@@ -4,6 +4,7 @@ export interface IMenuItem {
   menuType?: string;
   activeLeftMenuSelection?: string;
   iconName?: string;
+  [index: string]: string;
 }
 
 export interface IMainMenu {
@@ -11,12 +12,13 @@ export interface IMainMenu {
   menuItems: IMenuItem[];
 }
 
-export interface ILeftDrawerMenu {
+export interface IDrawerMenu {
   about: IMenuItem[];
   create: IMenuItem[];
   language: IMenuItem[];
   test: IMenuItem[];
   publish: IMenuItem[];
+  [index: string]: IMenuItem[];
 }
 
 export const mainMenuSettings: IMainMenu = {
@@ -50,7 +52,7 @@ export const mainMenuSettings: IMainMenu = {
   ],
 };
 
-export const leftDrawerMenuSettings: ILeftDrawerMenu = {
+export const leftDrawerMenuSettings: IDrawerMenu = {
   about: [
     {
       displayText: 'Om tjenesten',

@@ -9,11 +9,11 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { leftDrawerMenuSettings, IMenuItem } from './drawerMenuSettings';
+import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import { mainMenuSettings } from './drawerMenuSettings';
 import { styles } from './tabletDrawerMenustyle';
 
-export interface ITabletDrawerMenuProps extends WithStyles<typeof styles> {
+export interface ITabletDrawerMenuProps {
   classes: any;
   theme: any;
   tabletDrawerOpen: boolean;
@@ -26,7 +26,8 @@ export interface ITabletDrawerMenuState {
   selectedMenuItem: string;
 }
 
-class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, ITabletDrawerMenuState> {
+class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyles<typeof Object>,
+  ITabletDrawerMenuState> {
 
   constructor(_props: ITabletDrawerMenuProps) {
     super(_props);
@@ -105,6 +106,9 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, ITabletDr
               <ListItem
                 button={true}
                 onClick={this.handleDrawerClose}
+                classes={{
+                  root: classNames(classes.menuItem),
+                }}
               >
                 <ListItemText
                   classes={{
@@ -135,10 +139,15 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps, ITabletDr
                           {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
                             return (
                               <Link to={item.navLink} style={{ borderBottom: 0 }} key={i}>
-                                <ListItem button={true} className={classes.nested} key={i}>
+                                <ListItem
+                                  button={true}
+                                  className={classes.nested}
+                                  key={i}
+                                >
                                   <ListItemText
                                     inset={true}
                                     primary={item.displayText}
+                                    classes={{ primary: classNames(classes.subMenuItem) }}
                                   />
                                 </ListItem>
                               </Link>

@@ -22,10 +22,21 @@ export const styles = (theme: Theme) => createStyles({
   },
   divider: {
     background: 'black',
+    marginLeft: 25,
+  },
+  nested: {
+    paddingLeft: 25,
+  },
+  subMenuItem: {
+    fontSize: 16,
+  },
+  menuItem: {
+    paddingRight: 0,
   },
   menuItemText: {
     textAlign: 'right',
     fontSize: 16,
+    paddingRight: 0,
   },
   mainMenuItemText: {
     fontSize: 20,

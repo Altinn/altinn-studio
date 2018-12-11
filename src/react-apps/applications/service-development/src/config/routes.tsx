@@ -7,7 +7,7 @@ const DummySubApp = (name: any) => {
   );
 };
 
-export const routes = ([
+export const routes = [
   {
     path: '/uieditor',
     exact: true,
@@ -127,4 +127,4 @@ export const routes = ([
     menu: 'publish',
     subapp: DummySubApp,
   },
-]);
+];

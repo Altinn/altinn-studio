@@ -9,7 +9,6 @@ import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
@@ -19,7 +18,7 @@ import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
 
-export interface IAppProps extends WithStyles<typeof styles> { }
+export interface IAppProps { }
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -31,7 +30,7 @@ const styles = () => createStyles({
   },
 });
 
-class AppClass extends React.Component<IAppProps, any> {
+class App extends React.Component<IAppProps & WithStyles<typeof Object>, any> {
 
   public handleDrawerToggle = () => {
     NavigationActionDispatcher.toggleDrawer();
@@ -114,7 +113,4 @@ class AppClass extends React.Component<IAppProps, any> {
   }
 }
 
-const mapsStateToProps = (state: IServiceDevelopmentAppState): any => ({});
-
-const App = connect(mapsStateToProps)(AppClass);
 export default withStyles(styles)(App);

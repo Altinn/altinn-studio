@@ -8,24 +8,30 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { leftDrawerMenuSettings } from './drawerMenuSettings';
+import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import Icon from './Icon';
 import { styles } from './leftDrawerMenuStyles';
 
-export interface INavMenuProps {
+export interface ILeftDrawerMenuProps {
   classes: any;
   theme: any;
-  menuType: any;
+  menuType: string;
   activeLeftMenuSelection: string;
 }
 
-export interface INavMenuProps extends WithStyles<typeof styles> { }
+export interface ILeftDrawerMenuState {
+  open: boolean;
+  openSubMenus: number[];
+}
 
-class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
-  public state = {
-    open: false,
-    openSubMenus: [] as number[],
-  };
+class LeftDrawerMenu extends React.Component<ILeftDrawerMenuProps & WithStyles<typeof Object>, ILeftDrawerMenuState> {
+  constructor(_props: ILeftDrawerMenuProps) {
+    super(_props);
+    this.state = {
+      open: false,
+      openSubMenus: [],
+    };
+  }
 
   public handleDrawerOpen = () => {
     this.setState({ open: true });
@@ -73,19 +79,21 @@ class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
           <Divider />
 
           <List>
-            {leftDrawerMenuSettings[this.props.menuType].map((menuItem: any, index: any) => (
+            {leftDrawerMenuSettings[this.props.menuType].map((menuItem: IMenuItem, index: number) => (
               <Link
                 to={menuItem.navLink}
                 style={{ borderBottom: 0 }}
+                key={index}
               >
                 <ListItem
-                  button={true} key={menuItem.displayText}
+                  button={true}
                 >
                   <ListItemIcon>
                     <Icon iconType={menuItem.iconName} />
                   </ListItemIcon>
                   <ListItemText
                     primary={menuItem.displayText}
+                    classes={{ primary: classNames(classes.menuItemText) }}
                     className={classNames({
                       [classes.activeMenu]: this.props.activeLeftMenuSelection ===
                         menuItem.activeLeftMenuSelection,
