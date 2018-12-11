@@ -16,18 +16,6 @@ const theme = {
         },
       },
     },
-    MuiTypography: {
-      subtitle1: {
-        fontSize: 16,
-      },
-    },
-    MuiFormControl: {
-      root: {
-        border: '1px solid #BCC7CC',
-        minWidth: 120,
-        paddingLeft: '1em',
-      },
-    },
   },
   palette: {
     primary: {
@@ -43,7 +31,6 @@ const theme = {
     },
   },
   typography: {
-    fontSize: 16,
     useNextVariants: true,
   },
 };
