@@ -1,6 +1,6 @@
 import * as React from 'react';
-import Select from 'react-select';
 import { connect } from 'react-redux';
+import Select from 'react-select';
 
 export interface ISelectDataModelProps extends IProvidedProps {
   dataModelElements: IDataModelFieldElement[];
@@ -8,7 +8,8 @@ export interface ISelectDataModelProps extends IProvidedProps {
 
 export interface IProvidedProps {
   selectedElement: string;
-  onDataModelChange: (dataModelField: any) => void;
+  onDataModelChange: (dataModelField: string) => void;
+  noOptionsMessage?: () => string;
   hideRestrictions?: boolean;
   language: any;
 }
@@ -39,8 +40,8 @@ export class SelectDataModel extends React.Component<
   }
 
   public onDataModelChange(e: any) {
-    this.setState({ selectedElement: e.target.value });
-    this.props.onDataModelChange(e);
+    this.setState({ selectedElement: e.value });
+    this.props.onDataModelChange(e.value);
   }
 
   public getRestrictions(selectedId: string): any {
@@ -92,7 +93,8 @@ export class SelectDataModel extends React.Component<
           styles={customInput}
           options={dataModelElementNames}
           defaultValue={{value: this.props.selectedElement, label: this.props.selectedElement}}
-          onChange={this.props.onDataModelChange}
+          onChange={this.onDataModelChange}
+          noOptionsMessage={this.props.noOptionsMessage}
         />
     );
   }
@@ -105,6 +107,7 @@ const mapStateToProps = (
   return {
     selectedElement: props.selectedElement,
     onDataModelChange: props.onDataModelChange,
+    noOptionsMessage: props.noOptionsMessage,
     dataModelElements: state.appData.dataModel.model,
     language: state.appData.language.language,
   };

@@ -115,7 +115,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleDataModelChange = (selectedDataModelElement: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.dataModelBinding = selectedDataModelElement.value;
+    updatedComponent.dataModelBinding = selectedDataModelElement;
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -144,6 +144,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           selectedElement={this.props.component.dataModelBinding}
           onDataModelChange={this.handleDataModelChange}
           language={this.props.language}
+          noOptionsMessage={this.noOptionsMessage}
         />
       </div>
     );
@@ -177,7 +178,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               truncate(getTextResource(placeholder, this.props.textResources), 40)
               : this.props.language.general.search}
             formatCreateLabel={this.formatCreateTextLabel}
-            noOptionsMessage={() => this.props.language.general.no_options}
+            noOptionsMessage={this.noOptionsMessage}
           />
         :
           <Select
@@ -189,7 +190,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             placeholder={placeholder ?
               truncate(getTextResource(placeholder, this.props.textResources), 40)
               : this.props.language.general.search}
-            noOptionsMessage={() => this.props.language.general.no_options}
+            noOptionsMessage={this.noOptionsMessage}
           />
         }
       </div>
@@ -207,7 +208,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <Grid
             container={true}
-            xs={12}
             spacing={0}
             direction={'column'}
           >
@@ -436,6 +436,10 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   private formatCreateTextLabel = (textToCreate: string): string => {
     return this.props.language.general.create.concat(' ', textToCreate);
+  }
+
+  private noOptionsMessage = (): string => {
+    return this.props.language.general.no_options;
   }
 }
 
