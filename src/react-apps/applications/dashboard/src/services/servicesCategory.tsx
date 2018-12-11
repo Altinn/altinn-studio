@@ -14,8 +14,6 @@ export interface ICategoryComponentProvidedProps {
   className: string;
 }
 
-export interface ICategoryComponentProps extends ICategoryComponentProvidedProps {
-}
 export interface ICategoryComponentState {
 }
 
@@ -32,14 +30,7 @@ const styles = {
   },
 };
 
-class CategoryComponent extends React.Component<ICategoryComponentProps, ICategoryComponentState> {
-  public state: ICategoryComponentState = {
-  };
-
-  public constructor(props: ICategoryComponentProps) {
-    super(props);
-  }
-
+class CategoryComponent extends React.Component<ICategoryComponentProvidedProps, ICategoryComponentState> {
   public renderServices() {
     const { classes, categoryRepos } = this.props;
     if (categoryRepos.length < 1) {
@@ -88,7 +79,7 @@ class CategoryComponent extends React.Component<ICategoryComponentProps, ICatego
 const mapStateToProps = (
   state: IDashboardAppState,
   props: ICategoryComponentProvidedProps,
-): ICategoryComponentProps => {
+): ICategoryComponentProvidedProps => {
   return {
     classes: props.classes,
     header: props.header,
