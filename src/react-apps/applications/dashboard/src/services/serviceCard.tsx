@@ -10,8 +10,6 @@ export interface IServiceCardCompontentProvidedProps {
   service: any;
 }
 
-export interface IServiceCardComponentProps extends IServiceCardCompontentProvidedProps {
-}
 export interface IServiceCardComponentState {
 }
 
@@ -45,7 +43,7 @@ const styles = {
   },
 }
 
-class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
+class ServiceCard extends React.Component<IServiceCardCompontentProvidedProps, IServiceCardComponentState> {
   public formatDate(date: any): any {
     return moment(new Date(date)).format('DD.MM.YYYY');
   }
@@ -109,7 +107,7 @@ class ServiceCard extends React.Component<IServiceCardComponentProps, IServiceCa
                   className={classNames(classes.displayInlineBlock, classes.width100)}
                   noWrap={true}
                 >
-                  {service.owner.full_name || service.owner.login}
+                  {service.owner ? (service.owner.full_name || service.owner.login) : ''}
                 </Typography>
               </Grid>
               <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
