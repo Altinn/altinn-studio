@@ -2,15 +2,13 @@ import { createStyles, Grid, Theme, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import components from '../components';
 import { Preview } from './Preview';
 import { Toolbar } from './Toolbar';
-
-import HTML5Backend from 'react-dnd-html5-backend';
 
 export interface IFormDesignerProvidedProps {
   classes: any;
@@ -93,55 +91,6 @@ class FormDesigner extends React.Component<
     });
   }
 
-  public onDragEnd = (result: any) => {
-    const { source, destination } = result;
-
-    if (!destination) {
-      return;
-    }
-
-    switch (source.droppableId) {
-      case 'ITEMS':
-        if (result.draggableId === 'container') {
-          FormDesignerActionDispatchers.addFormContainer({
-            repeating: false,
-            dataModelGroup: null,
-          },
-            null,
-            null,
-            null,
-            destination.index);
-        } else if (source.index === 'thirdPartyComponent') {
-          // Handle third party components at some time
-        } else {
-          const c = components[source.index].customProperties;
-          const customProperties = !c ? {} : c;
-          FormDesignerActionDispatchers.addFormComponent({
-            component: components[source.index].name,
-            itemType: 'LayoutItemType.Component',
-            title: components[source.index].name,
-            ...JSON.parse(JSON.stringify(customProperties)),
-          },
-            destination.index,
-            destination.droppableId,
-          );
-        }
-        break;
-
-      default:
-        FormDesignerActionDispatchers.updateFormComponentOrderAction(
-          result.draggableId,
-          destination.index,
-          source.index,
-          destination.droppableId,
-          source.droppableId,
-        );
-        break;
-    }
-
-    return;
-  }
-
   public render() {
     const { classes } = this.props;
     return (
@@ -156,19 +105,21 @@ class FormDesigner extends React.Component<
             <Toolbar />
           </Grid>
           <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
-            <div style={{
-              width: 'calc(100% - 48px)',
-              height: '71px', background: '#022F51',
-              marginTop: '48px',
-              marginLeft: '24px',
-            }}
+            <div
+              style={{
+                width: 'calc(100% - 48px)',
+                height: '71px', background: '#022F51',
+                marginTop: '48px',
+                marginLeft: '24px',
+              }}
             />
-            <div style={{
-              width: 'calc(100% - 48px)',
-              paddingTop: '24px',
-              marginLeft: '24px',
-              background: '#FFFFFF',
-            }}
+            <div
+              style={{
+                width: 'calc(100% - 48px)',
+                paddingTop: '24px',
+                marginLeft: '24px',
+                background: '#FFFFFF',
+              }}
             >
               <Preview />
               <div className='col-12 justify-content-center d-flex mt-3'>
@@ -195,4 +146,17 @@ const mapsStateToProps = (
   };
 };
 
-export default withStyles(styles, { withTheme: true })(connect(mapsStateToProps)(DragDropContext(HTML5Backend)(FormDesigner)));
+export default withStyles(
+  styles,
+  { withTheme: true },
+)(
+  connect(
+    mapsStateToProps,
+  )(
+    DragDropContext(
+      HTML5Backend,
+    )(
+      FormDesigner,
+    ),
+  ),
+);

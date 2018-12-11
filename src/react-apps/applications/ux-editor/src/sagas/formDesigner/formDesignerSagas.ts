@@ -169,10 +169,27 @@ function* fetchFormLayoutSaga({
 }: FormDesignerActions.IFetchFormLayoutAction): SagaIterator {
   try {
     const formLayout = yield call(get, url);
-    yield call(
-      FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
-      formLayout.data,
-    );
+    if (!formLayout || !formLayout.data) {
+      yield call(
+        FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
+        null,
+      );
+    } else {
+      yield call(
+        FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
+        formLayout.data,
+      );
+    }
+
+    if (!formLayout || !formLayout.data || !Object.keys(formLayout.data.order).length) {
+      yield call(FormDesignerActionDispatchers.addFormContainer,
+        {
+          repeating: false,
+          dataModelGroup: null,
+          index: 0,
+        },
+      );
+    }
   } catch (err) {
     yield call(FormDesignerActionDispatchers.fetchFormLayoutRejected, err);
   }

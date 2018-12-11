@@ -15,8 +15,6 @@ import {
 import * as ReactDOM from 'react-dom';
 import { IDroppableDraggableContainerProps } from './DroppableDraggableContainer';
 
-let lastHoveredIndex: number = 0;
-
 export interface IDroppableDraggableComponentProps {
   id: string;
   index: number;
@@ -28,12 +26,10 @@ export interface IDroppableDraggableComponentProps {
     destinationContainerId: string,
     sourceContainerId: string,
   ) => void;
-  onMoveItem: (
-    id: string,
+  onHoverOver: (
+    draggedId: string,
     newPosition: number,
-    oldPosition: number,
-    destinationContainerId: string,
-    sourceContainerId: string,
+    oldPostition: number,
   ) => void;
 }
 
@@ -52,15 +48,32 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
   drop(props: IDroppableDraggableComponentProps, monitor: DropTargetMonitor, component: any) {
+    if (!component) {
+      return;
+    }
     if (monitor.isOver({ shallow: true })) {
       switch (monitor.getItemType()) {
         case 'TOOLBAR_ITEM': {
           const toolbarItem = monitor.getItem();
+          let hoverOverIndex = props.index;
+
+          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
+          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const clientOffset = monitor.getClientOffset();
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+          if (props.id !== 'temporary' && hoverClientY > hoverMiddleY) {
+            hoverOverIndex += 1;
+          }
+
           if (!toolbarItem.onDrop) {
             console.warn('Draggable Item doesn\'t have an onDrop-event');
             break;
           }
-          toolbarItem.onDrop(props.containerId, props.index);
+          toolbarItem.onDrop(
+            props.containerId,
+            hoverOverIndex,
+          );
           break;
         }
         case 'ITEM': {
@@ -72,7 +85,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (hoverClientY > hoverMiddleY) {
+          if (props.id !== 'temporary' && hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
           }
 
@@ -87,7 +100,9 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
         }
         case 'CONTAINER': {
           const draggedContainer = monitor.getItem();
-          props.onDropItem(draggedContainer.id, props.index, draggedContainer.index, props.containerId, draggedContainer.id);
+          draggedContainer.onDrop(
+            props.id,
+          );
           break;
         }
         default: {
@@ -104,61 +119,95 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
   },
 
   hover(props: IDroppableDraggableComponentProps, monitor: DropTargetMonitor, component: any) {
+    if (!component) {
+      return;
+    }
     if (monitor.isOver({ shallow: true })) {
       switch (monitor.getItemType()) {
         case 'TOOLBAR_ITEM': {
-          break;
-        }
-        case 'ITEM': {
-          const draggedComponent = monitor.getItem();
-          let hoverOverIndex = props.index;
+          const draggedItem = monitor.getItem();
+          const hoverOverIndex = props.index;
 
           const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
           const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (lastHoveredIndex === draggedComponent.index) {
-            return;
+          if (props.id !== 'temporary') {
+            props.onHoverOver(
+              draggedItem.id,
+              props.index,
+              draggedItem.index,
+            );
           }
 
           if (hoverClientY > hoverMiddleY) {
-            if (lastHoveredIndex === hoverOverIndex + 1) {
-              return;
-            }
-            lastHoveredIndex = hoverOverIndex + 1;
+            props.onHoverOver(
+              draggedItem.id,
+              hoverOverIndex + 1,
+              draggedItem.index,
+            );
           } else {
-            lastHoveredIndex = hoverOverIndex;
+            props.onHoverOver(
+              draggedItem.id,
+              hoverOverIndex,
+              draggedItem.index,
+            );
+          }
+          break;
+        }
+        case 'ITEM': {
+          const draggedItem = monitor.getItem();
+          const hoverOverIndex = props.index;
+
+          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
+          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const clientOffset = monitor.getClientOffset();
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+          if (hoverClientY > hoverMiddleY) {
+            props.onHoverOver(
+              draggedItem.id,
+              hoverOverIndex + 1,
+              draggedItem.index,
+            );
+          } else {
+            props.onHoverOver(
+              draggedItem.id,
+              hoverOverIndex,
+              draggedItem.index,
+            );
           }
 
-          props.onMoveItem(
-            draggedComponent.id,
-            hoverOverIndex,
-            draggedComponent.index,
-            props.containerId,
-            draggedComponent.containerId,
-          );
-          draggedComponent.index = lastHoveredIndex;
           break;
         }
         case 'CONTAINER': {
-          const draggedComponent = monitor.getItem();
-          const hoverIndex = props.index;
+          const draggedContainer = monitor.getItem();
+          const hoverOverIndex = props.index;
 
-          if (!monitor.isOver({ shallow: true })) {
-            return;
+          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
+          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+          const clientOffset = monitor.getClientOffset();
+          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+          if (hoverClientY > hoverMiddleY) {
+            props.onHoverOver(
+              draggedContainer.id,
+              hoverOverIndex + 1,
+              draggedContainer.index,
+            );
+          } else {
+            props.onHoverOver(
+              draggedContainer.id,
+              hoverOverIndex,
+              draggedContainer.index,
+            );
           }
-
-          if (draggedComponent.index === hoverIndex) {
-            return;
-          }
-
-          // console.log('hovering container', draggedComponent.id, 'at index', props.index, 'in container', props.containerId);
           break;
         }
       }
     }
-  }
+  },
 };
 
 class DroppableDraggableComponent extends React.Component<IDroppableDraggableContainerProps &
@@ -167,6 +216,7 @@ class DroppableDraggableComponent extends React.Component<IDroppableDraggableCon
   connectDragSource: ConnectDragSource;
   connectDropTarget: ConnectDropTarget;
   isOver: boolean;
+  isDragging: boolean;
 },
   any> {
   public render() {

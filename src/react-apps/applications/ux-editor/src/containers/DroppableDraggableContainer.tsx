@@ -89,13 +89,11 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
       connectDropTarget,
       connectDragPreview,
       connectDragSource,
-      isOver,
     } = this.props;
 
     return connectDropTarget(connectDragPreview(connectDragSource(
       <div
         style={{
-          background: isOver ? 'blue' : 'white',
           border: '1px solid #ccc',
           padding: '1em',
           marginBottom: -1,

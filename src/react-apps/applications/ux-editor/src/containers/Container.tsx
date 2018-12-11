@@ -10,7 +10,7 @@ import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainerOrder, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
+import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import DroppableDraggableComponent from './DroppableDraggableComponent';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
@@ -37,23 +37,28 @@ export interface IContainerProps extends IProvidedContainerProps {
 
 export interface IContainerState {
   itemOrder: any;
+  currentlyDragging: boolean;
 }
 
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
-  constructor(_props: IContainerProps, _state: IContainerState) {
-    super(_props, _state);
-
-    this.state = {
-      itemOrder: _props.itemOrder,
+  public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
+    if (prevState.currentlyDragging) {
+      return {
+        ...prevState,
+      };
+    }
+    return {
+      ...nextProps,
     };
   }
 
-  public componentDidUpdate() {
-    if (this.props.itemOrder !== this.state.itemOrder) {
-      this.setState({
-        itemOrder: this.props.itemOrder,
-      });
-    }
+  constructor(_props: IContainerProps) {
+    super(_props);
+
+    this.state = {
+      itemOrder: _props.itemOrder,
+      currentlyDragging: false,
+    };
   }
 
   public handleContainerDelete = (e: any) => {
@@ -115,13 +120,15 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                 </div>
               </div>
             }
-            {this.state ? this.state.itemOrder[this.props.id].map((id: string, index: number) => (
-              this.props.components[id] ?
-                this.renderFormComponent(id, index) :
-                this.props.containers[id] ?
-                  this.renderContainer(id, index)
-                  : null
-            )) : null
+            {this.state.itemOrder[this.props.id].length > 0 ?
+              this.state.itemOrder[this.props.id]
+                .map((id: string, index: number) => (
+                  this.props.components[id] ?
+                    this.renderFormComponent(id, index) :
+                    this.props.containers[id] ?
+                      this.renderContainer(id, index)
+                      : id === 'temporary' ? 'Drop here' : null
+                )) : null
             }
             {
               !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
@@ -153,14 +160,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             </div>
           </div>
         }
-        {this.state ? this.state.itemOrder.map((id: string, index: number) => (
+        {this.state.itemOrder[this.props.id].map((id: string, index: number) => (
           this.props.components[id] ?
             this.renderFormComponent(id, index) :
             this.props.containers[id] ?
               this.renderContainer(id, index)
-              : null
-        )) : null
-        }
+              : id === 'temporary' ? 'Drop here' : null
+        ))}
         {
           !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
           <button
@@ -175,27 +181,61 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
-  public moveItem = (
-    id: string,
+  public hoverOver = (
+    draggedId: string,
     newPosition: number,
     oldPosition: number,
-    destinationContainerId: string,
-    sourceContainerId: string,
   ) => {
-    console.log('move from', oldPosition, 'to', newPosition)
-    if (destinationContainerId === sourceContainerId) {
-      // Moved within the container
+    const { itemOrder } = this.state;
+    const updatedOrder = itemOrder[this.props.id];
+
+    this.setState((state: IContainerState) => update(state, {
+      currentlyDragging: {
+        $set: !state.currentlyDragging,
+      },
+    }));
+
+    if (newPosition === oldPosition) {
+      return;
+    }
+
+    if (!draggedId) {
+      if (updatedOrder.indexOf('temporary') > -1) {
+        updatedOrder.splice(updatedOrder.indexOf('temporary'), 1);
+      }
+      updatedOrder.splice(newPosition, 0, 'temporary');
       return this.setState((state: IContainerState) => update(state, {
         itemOrder: {
-          [destinationContainerId]: {
-            $splice: [
-              [oldPosition, 1],
-              [newPosition, 0, id],
-            ],
+          [this.props.id]: {
+            $set: updatedOrder,
           },
-        },
+        }
       }));
     }
+
+    if (updatedOrder.indexOf(draggedId) < -1) {
+      // Moving from another container
+      return;
+    }
+    if (newPosition === updatedOrder.indexOf(draggedId)) {
+      return;
+    }
+
+    if (!draggedId) {
+      updatedOrder.splice(oldPosition, 1);
+
+    } else {
+      updatedOrder.splice(oldPosition, 1);
+      updatedOrder.splice(newPosition, 0, draggedId);
+    }
+
+    this.setState((state: IContainerState) => update(state, {
+      itemOrder: {
+        [this.props.id]: {
+          $set: updatedOrder,
+        },
+      },
+    }));
   }
 
   public dropItem = (
@@ -212,6 +252,23 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       destinationContainerId,
       sourceContainerId,
     );
+    const { itemOrder } = this.state;
+    const updatedOrder = itemOrder[this.props.id];
+
+    if (updatedOrder.indexOf('temporary') > -1) {
+      updatedOrder.splice(updatedOrder.indexOf('temporary'), 1);
+    }
+
+    return this.setState((state: IContainerState) => update(state, {
+      itemOrder: {
+        [this.props.id]: {
+          $set: updatedOrder,
+        },
+      },
+      currentlyDragging: {
+        $set: !state.currentlyDragging,
+      },
+    }));
   }
 
   public renderContainer = (id: string, index: number) => {
@@ -294,7 +351,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           index={index}
           containerId={this.props.id}
           onDropItem={this.dropItem}
-          onMoveItem={this.moveItem}
+          onHoverOver={this.hoverOver}
         >
           <FormComponentWrapper
             key={index}

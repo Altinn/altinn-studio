@@ -66,8 +66,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
-  public addContainerToLayout(destinationIndex: number) {
-    console.log(destinationIndex);
+  public addContainerToLayout(containerId: number) {
+    console.log('adding container to id', containerId);
     FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
@@ -77,7 +77,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       null,
       null,
       null,
-      destinationIndex,
+      0,
     );
   }
 
