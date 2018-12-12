@@ -17,13 +17,15 @@
   "author": "Altinn",
   "license": "3-Clause BSD",
   "dependencies": {
-    "react": "16.6.1",
-    "react-dom": "16.6.1",
+    "@material-ui/core": "3.6.1",
+    "react": "16.6.3",
+    "react-dom": "16.6.3",
     "react-grid-layout": "0.16.6",
     "react-hot-loader": "4.3.1",
     "react-modal": "3.4.5",
-    "react-redux": "^5.0.7",
+    "react-redux": "5.0.7",
     "react-router-dom": "4.3.1",
+    "react-truncate-markup": "2.0.1",
     "redux": "4.0.0",
     "redux-devtools-extension": "2.13.5",
     "redux-logger": "3.0.6",
@@ -58,6 +60,7 @@
     "jest": "23.1.0",
     "jest-environment-enzyme": "^7.0.0",
     "jest-enzyme": "^7.0.0",
+    "jest-junit": "^5.2.0",
     "mini-css-extract-plugin": "0.4.0",
     "node-sass": "^4.9.3",
     "prettier": "1.13.5",
@@ -83,11 +86,15 @@
     "transform": {
       ".(ts|tsx)": "ts-jest"
     },
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
     },
-    "testRegex": ".*.(__tests__).*.(.spec|test.).(ts|tsx|js)$",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
