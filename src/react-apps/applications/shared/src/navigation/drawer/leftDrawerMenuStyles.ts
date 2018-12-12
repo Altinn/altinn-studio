@@ -51,7 +51,15 @@ export const styles = (theme: Theme) => createStyles({
   },
   paper: {
     position: 'absolute',
-    background: altinnTheme.palette.secondary.main,
+    background: altinnTheme.palette.primary.main,
     top: 146,
+  },
+  activeMenu: {
+    borderBottom: '2px solid #0062BA',
+    fontSize: 16,
+  },
+  menuItemText: {
+    fontSize: 16,
+    paddingRight: 0,
   },
 });
