@@ -439,8 +439,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 const styles = (theme: Theme) => createStyles({
   searchBox: {
     border: '1px solid #0062BA',
-    marginTop: '10px',
-    marginBottom: '24px',
+    marginBottom: '10px',
     background: 'none',
   },
   searchBoxInput: {

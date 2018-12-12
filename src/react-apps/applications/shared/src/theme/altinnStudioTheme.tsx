@@ -16,26 +16,36 @@ const theme = {
         },
       },
     },
-    MuiTypography: {
-      h1: {
-        fontSize: 36,
-      }
-    }
   },
   palette: {
     primary: {
-      main: '#0062BA',
+      main: '#EFEFEF',
       dark: '#022F51',
-      light: '#CFF0FF',
+      leftMenu: '#022F51',
+      blueDarker: { main: '#022F51' },
+      blueDark: '#0062BA',
+      blue: '#1EAEF7',
+      blueLight: '#CFF0FF',
+      green: '#17C96B',
+      greenLight: '#D4F9E4',
+      red: '#E23B53',
+      redLight: '#F9CAD3',
+      purple: '#3F3161',
+      purpleLight: '#E0DAF7',
+      yellow: '#FFDA06',
+      yellowLight: '#FBF6BD',
+      black: '#000',
+      grey: '#6a6a6a',
+      greyMedium: '#BCC7CC',
+      greyLight: '#efefef',
     },
     secondary: {
       light: '#efefef',
-      main: '#d2d2d2',
-      dark: '#6a6a6a',
+      main: '#FFFFFF',
+      dark: '#d2d2d2',
     },
   },
   typography: {
-    htmlFontSize: 16,
     useNextVariants: true,
   },
 };

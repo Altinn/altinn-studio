@@ -3,7 +3,6 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import CreatableSelect from 'react-select/lib/Creatable';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -75,16 +74,6 @@ const styles = createStyles({
     },
   },
 });
-const customInput = {
-  control: (base: any) => ({
-    ...base,
-    borderRadius: '0 !important',
-  }),
-  option: (provided: any) => ({
-    ...provided,
-    whiteSpace: 'pre-wrap',
-  }),
-};
 
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
@@ -118,10 +107,12 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleComponentUpdate = (updatedComponent: IFormComponent): void => {
-    FormDesignerActionDispatchers.updateFormComponent(
-      updatedComponent,
-      this.props.id,
-    );
+    this.setState((state) => {
+      return {
+        ...state,
+        component: updatedComponent,
+      };
+    });
   }
 
   public handleComponentDelete = (e: any): void => {
@@ -159,8 +150,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
-    this.state.component.size = this.props.component.size;
-    this.handleComponentUpdate(callbackComponent);
+    FormDesignerActionDispatchers.updateFormComponent(
+      callbackComponent,
+      this.props.id,
+    );
   }
 
   public handleTitleChange = (e: any): void => {
@@ -169,33 +162,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public searchForText = (e: any): void => {
     this.state.component.title = e.target.value;
-  }
-
-  public renderSelectHeader = (): JSX.Element => {
-    const textRecources: any = [];
-    this.props.textResources.map((resource, index) => {
-      const option = truncate(resource.value, 80);
-      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
-    });
-    return (
-      <div>
-        <span className={this.props.classes.inputHelper}>
-          {this.props.language.ux_editor.modal_properties_data_model_helper}
-        </span>
-        <CreatableSelect
-          styles={customInput}
-          options={textRecources}
-          defaultValue={''}
-          onChange={this.handleTitleChange}
-          isClearable={true}
-          placeholder={this.state.component.title ?
-            truncate(getTextResource(this.state.component.title, this.props.textResources), 40)
-            : this.props.language.general.search}
-          formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
-          noOptionsMessage={() => this.props.language.general.no_options}
-        />
-      </div>
-    );
   }
 
   public render(): JSX.Element {
@@ -217,16 +183,16 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 >
                   {this.state.isEditMode ?
                   <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
-                    {this.props.component.component === 'Paragraph' ? null : this.renderSelectHeader()}
                     <EditModalContent
                       component={this.props.component}
                       language={this.props.language}
-                      handleUpdateTitle={this.handleTitleChange}
+                      handleComponentUpdate={this.handleComponentUpdate}
                     />
                   </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
-                      {this.state.component.title ? getTextResource(this.props.component.title, this.props.textResources)
+                      {this.state.component.title ?
+                        truncate(getTextResource(this.props.component.title, this.props.textResources), 80)
                         : this.props.component.component}
                     </div>
                   }
