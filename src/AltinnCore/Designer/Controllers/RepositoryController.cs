@@ -81,9 +81,10 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The repository</param>
         /// <returns>The repository status</returns>
         [HttpGet]
-        public List<RepositoryContent> RepoStatus(string org, string repository)
+        public RepoStatus RepoStatus(string org, string repository)
         {
-            return _sourceControl.Status(org, repository);
+            _sourceControl.FetchRemoteChanges(org, repository);
+            return _sourceControl.RepositoryStatus(org, repository);
         }
     }
 }
