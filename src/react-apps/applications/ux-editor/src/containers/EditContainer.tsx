@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
-import {getTextResource, truncate} from '../utils/language';
+import { getTextResource, truncate } from '../utils/language';
 import '../styles/index.css';
 
 const styles = createStyles({
@@ -19,9 +19,9 @@ const styles = createStyles({
     padding: '10px 12px 20px 12px',
   },
   formComponent: {
-    backgroundColor: altinnTheme.palette.secondary.light,
+    backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
     border: '1.5px dotted ' + altinnTheme.palette.secondary.dark,
-    color: altinnTheme.palette.primary.dark + '!mportant',
+    color: altinnTheme.altinnPalette.primary.blue + '!mportant',
     padding: '10px 12px 14px 12px',
     '&:hover': {
       backgroundColor: '#fff',
@@ -30,7 +30,7 @@ const styles = createStyles({
   },
   formComponentsBtn: {
     fontSize: '0.85em',
-    fill: altinnTheme.palette.primary.dark,
+    fill: altinnTheme.altinnPalette.primary.blue,
     paddingLeft: '0',
     marginTop: '0.1em',
     outline: 'none !important',
@@ -63,10 +63,10 @@ const styles = createStyles({
     fontSize: '1.2rem',
   },
   textPrimaryDark: {
-    color: altinnTheme.palette.primary.dark + '!important',
+    color: altinnTheme.altinnPalette.primary.blue + '!important',
   },
   textSecondaryDark: {
-    color: altinnTheme.palette.secondary.dark + '!important',
+    color: altinnTheme.altinnPalette.primary.grey + '!important',
   },
   wrapper: {
     '&:hover $gridForBtn': {
@@ -182,13 +182,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   onClick={this.handleOpenModal}
                 >
                   {this.state.isEditMode ?
-                  <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
-                    <EditModalContent
-                      component={this.props.component}
-                      language={this.props.language}
-                      handleComponentUpdate={this.handleComponentUpdate}
-                    />
-                  </Grid>
+                    <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
+                      <EditModalContent
+                        component={this.props.component}
+                        language={this.props.language}
+                        handleComponentUpdate={this.handleComponentUpdate}
+                      />
+                    </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
                       {this.state.component.title ?

@@ -49,7 +49,7 @@ export const styles = (theme: Theme) => createStyles({
   },
   paper: {
     position: 'relative',
-    background: altinnTheme.palette.secondary.light,
+    background: altinnTheme.altinnPalette.primary.greyLight,
   },
   root: {
     display: 'flex',
@@ -57,7 +57,7 @@ export const styles = (theme: Theme) => createStyles({
   selectedMenuItem: {
     color: 'white',
     textDecoration: 'underline',
-    background: altinnTheme.palette.secondary.light,
+    background: altinnTheme.altinnPalette.primary.greyLight,
   },
   selectedMenuItemText: {
     color: 'white',
@@ -78,7 +78,7 @@ export const styles = (theme: Theme) => createStyles({
     width: drawerWidth,
   },
   toggleMenu: {
-    background: altinnTheme.palette.secondary.main,
+    background: altinnTheme.altinnPalette.primary.white,
   },
   toggleMenuText: {
     color: 'white',

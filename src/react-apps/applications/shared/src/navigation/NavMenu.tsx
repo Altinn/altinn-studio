@@ -8,8 +8,8 @@ import ListItemText from '@material-ui/core/ListItemText';
 import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
-import {leftNavMenuSettings} from './leftNavMenuSettings';
-import {styles} from './navMenuStyles';
+import { leftNavMenuSettings } from './leftNavMenuSettings';
+import { styles } from './navMenuStyles';
 
 export interface INavMenuProps {
   drawerOpen: boolean;
@@ -17,7 +17,7 @@ export interface INavMenuProps {
   handleToggleDrawer: () => void;
 }
 
-export interface INavMenuProps extends WithStyles<typeof styles> {}
+export interface INavMenuProps extends WithStyles<typeof styles> { }
 
 class NavMenu extends React.Component<INavMenuProps, any> {
   public state = {
@@ -60,7 +60,7 @@ class NavMenu extends React.Component<INavMenuProps, any> {
     const { classes } = this.props;
 
     return (
-      <div style={{top: 64}}>
+      <div style={{ top: 64 }}>
         <Drawer
           variant='permanent'
           className={classNames(classes.drawer, {
@@ -78,65 +78,72 @@ class NavMenu extends React.Component<INavMenuProps, any> {
           <List>
             {leftNavMenuSettings.menuHierarchy.map((menuItem: any, index: number) => {
               return (
-              <div key={index}>
-                <ListItem
-                  button={true}
-                  onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
-                  classes={{root: classNames({
-                    [classes.selectedMenuItem]: this.state.selectedMenuItem === menuItem.displayText})}}
-                >
-                  <ListItemText
+                <div key={index}>
+                  <ListItem
+                    button={true}
+                    onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
                     classes={{
-                      primary: classNames(classes.menuItemText, {
-                        [classes.menuItemTextClosed]: !this.props.drawerOpen,
-                        [classes.selectedMenuItemText]: this.state.selectedMenuItem === menuItem.displayText,
-                      }),
+                      root: classNames({
+                        [classes.selectedMenuItem]: this.state.selectedMenuItem === menuItem.displayText
+                      })
                     }}
-                    primary={menuItem.displayText}
-                  />
-                </ListItem>
-                {menuItem.items && menuItem.items.length > 0 ?
-                  <Collapse
-                    in={this.state.openSubMenus.indexOf(index) > -1}
                   >
-                    <List component='div' disablePadding={true}>
-                      {menuItem.items.map((item: any, i: number) => {
-                      return (
-                        <ListItem button={true} className={classes.nested} key={i}>
-                        <ListItemText
-                          inset={true}
-                          classes={{primary: classNames(classes.menuSubItemText)}}
-                          primary={item.name}
-                        />
-                        </ListItem>
-                      );
-                      })}
-                    </List>
-                  </Collapse>
-                : null}
-                <Divider />
-              </div>
+                    <ListItemText
+                      classes={{
+                        primary: classNames(classes.menuItemText, {
+                          [classes.menuItemTextClosed]: !this.props.drawerOpen,
+                          [classes.selectedMenuItemText]: this.state.selectedMenuItem === menuItem.displayText,
+                        }),
+                      }}
+                      primary={menuItem.displayText}
+                    />
+                  </ListItem>
+                  {menuItem.items && menuItem.items.length > 0 ?
+                    <Collapse
+                      in={this.state.openSubMenus.indexOf(index) > -1}
+                    >
+                      <List component='div' disablePadding={true}>
+                        {menuItem.items.map((item: any, i: number) => {
+                          return (
+                            <ListItem button={true} className={classes.nested} key={i}>
+                              <ListItemText
+                                inset={true}
+                                classes={{ primary: classNames(classes.menuSubItemText) }}
+                                primary={item.name}
+                              />
+                            </ListItem>
+                          );
+                        })}
+                      </List>
+                    </Collapse>
+                    : null}
+                  <Divider />
+                </div>
               );
             },
             )}
           </List>
           <List
-            classes={{root: classNames(classes.toggleMenu, classes.toggleButton, {
-              [classes.toggleButtonOpen]: this.props.drawerOpen,
-              [classes.toggleButtonClosed]: !this.props.drawerOpen,
-            })}}
+            classes={{
+              root: classNames(classes.toggleMenu, classes.toggleButton, {
+                [classes.toggleButtonOpen]: this.props.drawerOpen,
+                [classes.toggleButtonClosed]: !this.props.drawerOpen,
+              })
+            }}
           >
             <ListItem
               button={true}
               onClick={this.toggleNavMenu}
             >
-              <ListItemIcon classes={{root: classNames(classes.toggleMenuText)}}>
-                {this.props.drawerOpen ? <i className='ai ai-back'/> : <i className='ai ai-expand'/>}
+              <ListItemIcon classes={{ root: classNames(classes.toggleMenuText) }}>
+                {this.props.drawerOpen ? <i className='ai ai-back' /> : <i className='ai ai-expand' />}
               </ListItemIcon>
               <ListItemText
-                classes={{primary: classNames(classes.menuItemText, classes.toggleMenuText, {
-                  [classes.menuItemTextClosed]: !this.props.drawerOpen,
-                })}}
+                classes={{
+                  primary: classNames(classes.menuItemText, classes.toggleMenuText, {
+                    [classes.menuItemTextClosed]: !this.props.drawerOpen,
+                  })
+                }}
                 primary={'Skjul meny'}
               />
             </ListItem>

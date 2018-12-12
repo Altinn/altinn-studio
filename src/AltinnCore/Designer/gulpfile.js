@@ -272,6 +272,9 @@ gulp.task('clean', gulp.series(
   deleteUiEditorJs,
   cleanNodeModulePackages,
   run('npm run clean', {
+    cwd: '../../react-apps/applications/dashboard',
+  }),
+  run('npm run clean', {
     cwd: '../../react-apps/applications/service-development',
   })
 ));
@@ -285,6 +288,15 @@ gulp.task('develop', gulp.parallel(
   })
 ));
 
+gulp.task('develop-dashboard', gulp.parallel(
+  copyNodeModulePackages,
+  setupWatchers,
+  run('dotnet run'),
+  run('npm run webpack-watch', {
+    cwd: '../../react-apps/applications/dashboard',
+  })
+));
+
 gulp.task('install-react-app-dependencies', gulp.series(
   run('lerna bootstrap --hoist', {
     cwd: '../../react-apps',
@@ -293,7 +305,7 @@ gulp.task('install-react-app-dependencies', gulp.series(
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../../react-apps/applications/service-development',
+    cwd: '../../react-apps/applications/dashboard',
   }),
   run('npm run build', {
     cwd: '../../react-apps/applications/dashboard',
