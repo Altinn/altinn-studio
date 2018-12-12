@@ -18,7 +18,7 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = {
   searchBox: {
-    border: '1px solid ' + theme.palette.primary.main,
+    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
     marginTop: '10px',
     marginBottom: '24px',
     background: 'none',

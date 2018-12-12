@@ -24,7 +24,7 @@ const theme = createMuiTheme(altinnTheme);
 const styles = {
   chip: {
     color: '#000000',
-    borderColor: theme.palette.primary.dark,
+    borderColor: theme.altinnPalette.primary.blueDarker,
     borderWidth: '1px',
     borderStyle: 'dotted',
     backgroundColor: '#FFF',
@@ -36,27 +36,27 @@ const styles = {
     },
     '&:focus': {
       backgroundColor: 'transparent !Important',
-      borderColor: theme.palette.primary.main,
+      borderColor: theme.altinnPalette.primary.blueDark,
       borderWidth: '1px',
       borderStyle: 'solid',
     },
   },
   chipActive: {
-    backgroundColor: theme.palette.primary.light + ' !Important',
-    border: '1px solid ' + theme.palette.primary.dark,
+    backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
+    border: '1px solid ' + theme.altinnPalette.primary.blueDarker,
     borderRadius: '36px',
     minHeight: '36px',
     fontSize: '16px',
     '&:hover': {
-      backgroundColor: theme.palette.primary.light + ' !Important',
+      backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
     },
     '&:focus': {
-      backgroundColor: theme.palette.primary.light + ' !Important',
-      border: '1px solid ' + theme.palette.primary.main,
+      backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
+      border: '1px solid ' + theme.altinnPalette.primary.blueDark,
     }
   },
   down: {
-    borderTop: '10px solid black',
+    borderTop: '10px solid' + theme.altinnPalette.primary.black,
     borderLeft: '8px solid transparent',
     borderRight: '8px solid transparent',
     margin: '4px 8px 2px 0px',

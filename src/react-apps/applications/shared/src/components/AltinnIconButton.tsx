@@ -25,7 +25,7 @@ const styles = {
     textAlign: 'left' as 'left',
     verticalAlign: 'middle',
     backgroundColor: 'transparent',
-    border: '1px dotted ' + theme.palette.primary.main,
+    border: '1px dotted ' + theme.altinnPalette.primary.blueDark,
     boxShadow: 'none',
     borderRadius: '0px',
     textTransform: 'none' as 'none',
@@ -40,7 +40,7 @@ const styles = {
     },
   },
   dottedBtnIcon: {
-    color: theme.palette.primary.main,
+    color: theme.altinnPalette.primary.blueDark,
     fontSize: '54px',
     paddingRight: '6px',
   },

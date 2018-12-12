@@ -1,3 +1,29 @@
+declare module '@material-ui/core/styles/createMuiTheme' {
+  interface Theme {
+    altinnPalette: {
+      primary: {
+        blueDarker: string,
+        blueDark: string,
+        blue: string,
+        blueLight: string,
+        green: string,
+        greenLight: string,
+        red: string,
+        redLight: string,
+        purple: string,
+        purpleLight: string,
+        yellow: string,
+        yellowLight: string,
+        black: string,
+        grey: string,
+        greyMedium: string,
+        greyLight: string,
+        white: string,
+      }
+    }
+  }
+}
+
 const theme = {
   breakpoints: {
     values: {
@@ -16,13 +42,16 @@ const theme = {
         },
       },
     },
+    MuiTypography: {
+      h1: {
+        fontSize: 36,
+      }
+    }
   },
-  palette: {
+  altinnPalette: {
+    //These are the primary colors used in altinn: https://altinn.github.io/designsystem-styleguide/retningslinjer-altinn/farger.html
     primary: {
-      main: '#EFEFEF',
-      dark: '#022F51',
-      leftMenu: '#022F51',
-      blueDarker: { main: '#022F51' },
+      blueDarker: '#022F51',
       blueDark: '#0062BA',
       blue: '#1EAEF7',
       blueLight: '#CFF0FF',
@@ -37,15 +66,22 @@ const theme = {
       black: '#000',
       grey: '#6a6a6a',
       greyMedium: '#BCC7CC',
-      greyLight: '#efefef',
+      greyLight: '#EFEFEF',
+      white: '#FFF',
+    }
+  },
+  palette: {
+    primary: {
+      main: '',
     },
+    // Colors that are not part of the altinn color palette but is still used
     secondary: {
-      light: '#efefef',
-      main: '#FFFFFF',
+      main: '',
       dark: '#d2d2d2',
     },
   },
   typography: {
+    htmlFontSize: 16,
     useNextVariants: true,
   },
 };
