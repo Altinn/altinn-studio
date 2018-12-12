@@ -18,7 +18,10 @@
   "license": "3-Clause BSD",
   "dependencies": {
     "@material-ui/core": "3.6.1",
+    "@material-ui/icons": "3.0.1",
     "babel-core": "6.26.3",
+    "immutability-helper": "2.7.0",
+    "moment": "^2.22.2",
     "react": "16.6.3",
     "react-dom": "16.6.3",
     "react-grid-layout": "0.16.6",
@@ -26,6 +29,7 @@
     "react-modal": "3.4.5",
     "react-redux": "5.0.7",
     "react-router-dom": "4.3.1",
+    "react-truncate-markup": "2.0.1",
     "redux": "4.0.0",
     "redux-devtools-extension": "2.13.5",
     "redux-logger": "3.0.6",

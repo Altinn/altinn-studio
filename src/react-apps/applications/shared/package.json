@@ -7,9 +7,10 @@
   "dependencies": {
     "@material-ui/core": "3.6.1",
     "@material-ui/icons": "3.0.1",
+    "axios": "0.18.0",
     "classnames": "^2.2.6",
     "react": "16.6.3",
-    "typeface-roboto": "0.0.54"
+    "react-truncate-markup": "2.0.1"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.6",
