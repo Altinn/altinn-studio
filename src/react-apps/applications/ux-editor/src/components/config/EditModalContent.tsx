@@ -68,8 +68,19 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleTitleChange = (e: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.title = e.value;
+    updatedComponent.title = e ? e.value : null;
+    this.setState((state) => {
+      return {
+        ...state,
+        component: updatedComponent,
+      };
+    });
     this.props.handleComponentUpdate(updatedComponent);
+  }
+
+  public handleParagraphChange = (e: any): void => {
+    const textObject: any = e.target;
+    this.handleTitleChange(textObject);
   }
 
   public handleAddOption = () => {
@@ -121,7 +132,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleDescriptionChange = (selectedText: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.description = selectedText.value;
+    updatedComponent.description = selectedText ? selectedText.value : null;
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -134,12 +145,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public renderSelectDataModelBinding(): JSX.Element {
     return (
       <div>
-        <Typography
-          gutterBottom={false}
-          className={this.props.classes.inputHelper}
-        >
-          {this.props.language.ux_editor.modal_properties_data_model_helper}
-        </Typography>
+        {this.renderPropertyLabel(this.props.language.ux_editor.modal_properties_data_model_helper)}
         <SelectDataModelComponent
           selectedElement={this.props.component.dataModelBinding}
           onDataModelChange={this.handleDataModelChange}
@@ -164,9 +170,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
     return (
       <div>
-        <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
-          {this.props.language.ux_editor[labelText]}
-        </Typography>
+        {this.renderPropertyLabel(this.props.language.ux_editor[labelText])}
         {createNewTextAllowed ?
           <CreatableSelect
             styles={customInput}
@@ -197,6 +201,14 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     );
   }
 
+  public renderPropertyLabel(textKey: string) {
+    return (
+      <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
+        {textKey}
+      </Typography>
+    );
+  }
+
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.component) {
       case 'Header': {
@@ -212,14 +224,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             direction={'column'}
           >
           {this.renderSelectTextFromResources('modal_properties_header_helper',
-            this.handleTitleChange, this.state.component.title)}
+            this.handleTitleChange, this.props.component.title)}
             <Grid item={true} xs={12}>
-              <Typography
-                gutterBottom={false}
-                className={this.props.classes.inputHelper}
-              >
-                {this.props.language.ux_editor.modal_header_type_helper}
-              </Typography>
+              {this.renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
               <Select
                 styles={customInput}
                 defaultValue={this.state.component.size ?
@@ -245,8 +252,18 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       }
       case 'Paragraph': {
         return (
-          this.renderSelectTextFromResources('modal_properties_paragraph_helper',
-            this.handleTitleChange, this.props.component.title)
+          <Grid>
+            {this.renderSelectTextFromResources('modal_properties_paragraph_helper',
+            this.handleTitleChange, this.props.component.title, 80, false)}
+            {this.renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
+            <textarea
+              value={getTextResource(this.state.component.title, this.props.textResources)}
+              style={{width: '100%'}}
+              rows={4}
+              className='form-control'
+              onChange={this.handleParagraphChange}
+            />
+          </Grid>
         );
       }
       case 'RadioButtons': {

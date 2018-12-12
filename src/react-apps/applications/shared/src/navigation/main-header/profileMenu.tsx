@@ -16,9 +16,12 @@ export interface IProfileMenuComponentState {
 }
 
 const styles = ({
-  paperMenu: {
+  paperStyle: {
     borderRadius: 1,
     minWidth: 150,
+    padding: 0,
+    top: 80,
+    right: 25,
   },
   menuItem: {
     fontSize: 16,
@@ -73,15 +76,7 @@ class ProfileMenuComponent extends React.Component<IProfileMenuComponentProps, I
           onClose={this.handleClose}
           anchorReference='none'
           elevation={1}
-          PaperProps={{
-            style: {
-              borderRadius: 1,
-              minWidth: 150,
-              padding: 0,
-              top: 75,
-              right: 25,
-            },
-          }}
+          classes={{ paper: classes.paperStyle }}
         >
           {showlogout && (
             <MenuItem onClick={this.handleLogout} className={classes.menuItem}>Logout</MenuItem>
