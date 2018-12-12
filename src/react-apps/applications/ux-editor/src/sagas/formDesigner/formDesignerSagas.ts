@@ -479,8 +479,6 @@ function* createRepeatingContainer(
   } catch (err) {
     console.error(err);
   }
-
-
 }
 
 export function* watchCreateRepeatingGroupSaga(): SagaIterator {
@@ -492,8 +490,7 @@ export function* watchCreateRepeatingGroupSaga(): SagaIterator {
 
 export function* updateFormComponentOrderSaga({
   id,
-  newPosition,
-  oldPosition,
+  newPositionIndex,
   destinationContainerId,
   sourceContainerId,
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
@@ -501,8 +498,8 @@ export function* updateFormComponentOrderSaga({
 
   if (destinationContainerId === sourceContainerId) {
     const newOrder = ComponentOrder[destinationContainerId];
-    newOrder.splice(oldPosition, 1);
-    newOrder.splice(newPosition, 0, id);
+    const [moved] = newOrder.splice(newOrder.indexOf(id), 1);
+    newOrder.splice(newPositionIndex, 0, moved);
     yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
       [...newOrder],
       destinationContainerId,
@@ -511,10 +508,8 @@ export function* updateFormComponentOrderSaga({
     const newOrderSource = ComponentOrder[sourceContainerId];
     const newOrderDestination = ComponentOrder[destinationContainerId];
 
-    newOrderSource.splice(oldPosition, 1);
-    !newOrderDestination.length ?
-      newOrderDestination.push(id) :
-      newOrderDestination.splice(newPosition, 0, id);
+    const [moved] = newOrderSource.splice(newOrderSource.indexOf(id), 1);
+    newOrderDestination.splice(newPositionIndex, 0, moved);
 
     yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
       [...newOrderSource],

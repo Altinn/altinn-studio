@@ -143,8 +143,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IToggleFormContainerRepeatAction;
   updateFormComponentOrderAction: (
     id: string,
-    newPosition: number,
-    oldPostion: number,
+    newPositionIndex: number,
     destionationContainerId: string,
     sourceContainerId: string,
   ) => FormDesignerActions.IUpdateFormComponentOrderAction;

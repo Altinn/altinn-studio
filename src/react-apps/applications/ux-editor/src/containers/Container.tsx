@@ -98,6 +98,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (this.props.baseContainer) {
       return (
         <DroppableDraggableContainer
+          index={0}
+          onDropItem={this.dropItem}
+          onHoverOver={this.hoverOver}
           id={this.props.id}
           notDroppable={false}
           canDrag={false}
@@ -181,92 +184,109 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
+  public hoverOverOtherContainer = () => {
+
+  }
+
   public hoverOver = (
     draggedId: string,
     newPosition: number,
     oldPosition: number,
+    sourceContainerId: string,
+    destinationContainerId: string,
   ) => {
-    const { itemOrder } = this.state;
-    const updatedOrder = itemOrder[this.props.id];
-
-    this.setState((state: IContainerState) => update(state, {
-      currentlyDragging: {
-        $set: !state.currentlyDragging,
-      },
-    }));
-
-    if (newPosition === oldPosition) {
+    if (!draggedId) {
+      // Dragging a toolbar-item
+      console.log('No draggedId');
       return;
     }
 
-    if (!draggedId) {
-      if (updatedOrder.indexOf('temporary') > -1) {
-        updatedOrder.splice(updatedOrder.indexOf('temporary'), 1);
-      }
-      updatedOrder.splice(newPosition, 0, 'temporary');
+    if (newPosition === oldPosition) {
+      // No need to handle if it is allready in place
+      return;
+    }
+
+    if (sourceContainerId !== this.props.id && destinationContainerId !== this.props.id) {
+      // Doesn't concern this container
+      return;
+    }
+
+    if (sourceContainerId === destinationContainerId && sourceContainerId === this.props.id) {
+      // Moving in the same container
+      const { itemOrder } = this.state;
+      const updatedOrder = itemOrder[this.props.id];
+      const [dragged] = updatedOrder.splice(updatedOrder.indexOf(draggedId), 1);
+      updatedOrder.splice(newPosition, 0, dragged);
       return this.setState((state: IContainerState) => update(state, {
         itemOrder: {
           [this.props.id]: {
             $set: updatedOrder,
           },
-        }
-      }));
-    }
-
-    if (updatedOrder.indexOf(draggedId) < -1) {
-      // Moving from another container
-      return;
-    }
-    if (newPosition === updatedOrder.indexOf(draggedId)) {
-      return;
-    }
-
-    if (!draggedId) {
-      updatedOrder.splice(oldPosition, 1);
-
-    } else {
-      updatedOrder.splice(oldPosition, 1);
-      updatedOrder.splice(newPosition, 0, draggedId);
-    }
-
-    this.setState((state: IContainerState) => update(state, {
-      itemOrder: {
-        [this.props.id]: {
-          $set: updatedOrder,
         },
-      },
-    }));
+      }));
+    } else {
+      if (destinationContainerId === this.props.id) {
+        const updatedOrder = this.state.itemOrder[this.props.id];
+        if (updatedOrder.indexOf(draggedId) > -1) {
+          // Don't add if it doesn't exists
+          if (!updatedOrder.length) {
+            // If the array is empty, push the item into the array at index 0
+            updatedOrder.push(draggedId);
+          } else {
+            // Else, splice into position
+            updatedOrder.splice(newPosition, 0, draggedId);
+          }
+
+          return this.setState((state: IContainerState) => update(state, {
+            itemOrder: {
+              [this.props.id]: {
+                $set: updatedOrder,
+              },
+            },
+          }));
+        } else {
+          return;
+        }
+
+      }
+      if (sourceContainerId === this.props.id) {
+        const updatedOrder = this.state.itemOrder[this.props.id];
+        if (updatedOrder.indexOf(draggedId) < 0) {
+          // Don't remove if it doesn't exists
+          updatedOrder.splice(updatedOrder.indexOf(draggedId), 1);
+          return this.setState((state: IContainerState) => update(state, {
+            itemOrder: {
+              [this.props.id]: {
+                $set: updatedOrder,
+              },
+              currentlyDragging: {
+                $set: true,
+              },
+            },
+          }));
+        } else {
+          return;
+        }
+      }
+    }
   }
 
   public dropItem = (
     id: string,
     newPosition: number,
-    oldPosition: number,
     destinationContainerId: string,
     sourceContainerId: string,
   ) => {
     FormDesignerActionDispatchers.updateFormComponentOrderAction(
       id,
       newPosition,
-      oldPosition,
       destinationContainerId,
       sourceContainerId,
     );
-    const { itemOrder } = this.state;
-    const updatedOrder = itemOrder[this.props.id];
-
-    if (updatedOrder.indexOf('temporary') > -1) {
-      updatedOrder.splice(updatedOrder.indexOf('temporary'), 1);
-    }
 
     return this.setState((state: IContainerState) => update(state, {
-      itemOrder: {
-        [this.props.id]: {
-          $set: updatedOrder,
-        },
-      },
       currentlyDragging: {
-        $set: !state.currentlyDragging,
+        $set: false,
       },
     }));
   }
@@ -278,6 +298,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (this.props.designMode) {
       return (
         <DroppableDraggableContainer
+          index={index}
+          onDropItem={this.dropItem}
+          onHoverOver={this.hoverOver}
           id={id}
           notDroppable={false}
           canDrag={true}
