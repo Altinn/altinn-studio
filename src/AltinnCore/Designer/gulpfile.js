@@ -26,77 +26,77 @@ let jsWatcher = null;
 let cssWatcher = null;
 
 const copyGlobs = [{
-    src: "node_modules/bootstrap/dist/css/bootstrap*.css",
-    dest: "wwwroot/designer/css/"
-  },
-  {
-    src: "node_modules/jquery-ui-dist/*.js",
-    dest: "wwwroot/designer/js/lib/jquery-ui/"
-  },
-  {
-    src: "node_modules/bootstrap/dist/js/bootstrap*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/json-editor/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/select2/dist/js/select2.full.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/select2/dist/css/select2.css",
-    dest: "wwwroot/designer/css/lib"
-  },
-  {
-    src: "node_modules/jquery/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/requirejs/require.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/underscore/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/requirejs-text/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/js-beautify/js/lib/beautify*.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/sightglass/*.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/rivets/dist/*.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/jquery-validation-unobtrusive/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/jquery-validation/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/popper.js/dist/umd/*.*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/monaco-editor/min/**/*.*",
-    dest: "wwwroot/designer/js/lib/monaco-editor"
-  },
-  {
-    src: "node_modules/bootstrap-list-filter/bootstrap-list-filter.min.js",
-    dest: "wwwroot/designer/js/lib"
-  }
+  src: "node_modules/bootstrap/dist/css/bootstrap*.css",
+  dest: "wwwroot/designer/css/"
+},
+{
+  src: "node_modules/jquery-ui-dist/*.js",
+  dest: "wwwroot/designer/js/lib/jquery-ui/"
+},
+{
+  src: "node_modules/bootstrap/dist/js/bootstrap*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/json-editor/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/select2/dist/js/select2.full.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/select2/dist/css/select2.css",
+  dest: "wwwroot/designer/css/lib"
+},
+{
+  src: "node_modules/jquery/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/requirejs/require.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/underscore/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/requirejs-text/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/js-beautify/js/lib/beautify*.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/sightglass/*.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/rivets/dist/*.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/jquery-validation-unobtrusive/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/jquery-validation/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/popper.js/dist/umd/*.*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/monaco-editor/min/**/*.*",
+  dest: "wwwroot/designer/js/lib/monaco-editor"
+},
+{
+  src: "node_modules/bootstrap-list-filter/bootstrap-list-filter.min.js",
+  dest: "wwwroot/designer/js/lib"
+}
 ];
 
 function copyNodeModulePackages(cb) {
@@ -108,17 +108,19 @@ function cleanNodeModulePackages() {
   return del(cleanGlobs);
 }
 
-function copyReactJs() {
+function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
   copyUiEditorJs();
+  cb();
   return;
 }
 
-function copyReactCss() {
+function copyReactCss(cb) {
   copyDashboardCss();
   copyServDevCss();
   copyUiEditorCss();
+  cb();
   return;
 }
 
@@ -126,7 +128,6 @@ function copyDashboardJs() {
   setTimeout(function () {
     gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -134,7 +135,6 @@ function copyServDevJs() {
   setTimeout(function () {
     gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -142,7 +142,6 @@ function copyUiEditorJs() {
   setTimeout(function () {
     gulp.src(jsUiEditorFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -150,7 +149,6 @@ function copyDashboardCss() {
   setTimeout(function () {
     gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -158,7 +156,6 @@ function copyServDevCss() {
   setTimeout(function () {
     gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -166,7 +163,6 @@ function copyUiEditorCss() {
   setTimeout(function () {
     gulp.src(cssUiEditorFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -305,7 +301,7 @@ gulp.task('install-react-app-dependencies', gulp.series(
 
 gulp.task('default', gulp.series([
   run('npm run build', {
-    cwd: '../../react-apps/applications/dashboard',
+    cwd: '../../react-apps/applications/service-development',
   }),
   run('npm run build', {
     cwd: '../../react-apps/applications/dashboard',
