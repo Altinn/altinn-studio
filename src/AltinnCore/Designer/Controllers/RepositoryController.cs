@@ -26,6 +26,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="repositorySettings">Settings for repository</param>
+        /// <param name="sourceControl">The source control service</param>
         public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl)
         {
             _giteaApi = giteaWrapper;
@@ -85,6 +86,27 @@ namespace AltinnCore.Designer.Controllers
         {
             _sourceControl.FetchRemoteChanges(org, repository);
             return _sourceControl.RepositoryStatus(org, repository);
+        }
+
+        /// <summary>
+        /// Pull remote changes for a given repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">Name of the repository</param>
+        [HttpGet]
+        public void PullRepo(string owner, string repository)
+        {
+            _sourceControl.PullRemoteChanges(owner, repository);
+        }
+
+        /// <summary>
+        /// Pushes changes for a given repo
+        /// </summary>
+        /// <param name="commitInfo">Info about the commit</param>
+        [HttpPost]
+        public void CommitAndPushRepo(CommitInfo commitInfo)
+        {
+            _sourceControl.PushChangesForRepository(commitInfo);
         }
     }
 }
