@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
@@ -18,12 +18,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
 		private readonly Dictionary<string, XDocument> secondaryXsdsByNamespace = new Dictionary<string, XDocument>();
 		private Dictionary<string, XDocument> secondaryXsds;
 		private XDocument xsd;
+        private ISet<string> _complexTypes;
 
-		/// <summary>
-		///     Initializes a new instance of the <see cref="SeresXsdParser" /> class
-		/// </summary>
-		/// <param name="repositoryService">The service repository service</param>
-		public SeresXsdParser(IRepository repositoryService)
+        /// <summary>
+        ///     Initializes a new instance of the <see cref="SeresXsdParser" /> class
+        /// </summary>
+        /// <param name="repositoryService">The service repository service</param>
+        public SeresXsdParser(IRepository repositoryService)
 		{
 			_repository = repositoryService;
 		}
@@ -112,6 +113,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
 			var allTexts = new CultureDictionary();
 
+            _complexTypes = new HashSet<string>();
+
 			//Build metadata recursively
 			BuildJsonRecursive(rootComplexType, serviceMetadata.Elements, "/" + rootName, allTexts);
 
@@ -155,6 +158,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
 		private void BuildJsonRecursive(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements,
 			string parentTrail, CultureDictionary allTexts)
 		{
+            var typeName = currentComplexType.AttributeValue("name");
+            if (_complexTypes.Contains(typeName))
+            {
+                return;
+            }
+            else
+            {
+                _complexTypes.Add(typeName);
+            }
+
 			// Process attributes
 			AddAttributeElements(currentComplexType, allElements, parentTrail);
 
@@ -163,10 +176,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
 			if (sequenceElements.Any())
 			{
-				var propertyNamesUsed = new List<string>();
 				foreach (var childElement in sequenceElements)
 				{
-					ProcessChildElement(currentComplexType, childElement, allElements, parentTrail, propertyNamesUsed,
+					ProcessChildElement(currentComplexType, childElement, allElements, parentTrail, 
 						allTexts);
 				}
 			}
@@ -176,7 +188,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 			XElement childElement,
 			Dictionary<string, ElementMetadata> allElements,
 			string parentTrail,
-			List<string> propertyNamesUsed,
 			CultureDictionary allTexts,
 			string parentName = null)
 		{
@@ -246,17 +257,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
 						{
 							var simpleContent = actualElement.Element(XDocName.SimpleContent);
 
-							if (propertyNamesUsed.Contains(typeName.Split('-')[0]))
-							{
-								ProcessSimpleContent(actualElement, simpleContent, allElements,
-									$"{parentTrail}/{typeName.Split('-')[0]}2", typeName.Split('.')[0]);
-							}
-							else
-							{
-								ProcessSimpleContent(actualElement, simpleContent, allElements,
-									$"{parentTrail}/{typeName.Split('-')[0]}", typeName.Split('.')[0]);
-							}
-
+							ProcessSimpleContent(actualElement, simpleContent, allElements,
+								$"{parentTrail}/{typeName.Split('-')[0]}", typeName.Split('.')[0]);
+							
 							AddAttributeElements(currentElement, allElements, $"{parentTrail}/{typeName.Split('-')[0]}");
 							currentIsComplex = true;
 							skipRecursive = true;
@@ -273,30 +276,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 			var classShortRefName = typeName.Split('-')[0];
 			string newTrail = $"{parentTrail}/{typeName}";
 
-			var nameIsUsed = false;
-			if (propertyNamesUsed.Contains(classShortRefName))
-			{
-				nameIsUsed = true;
-				classShortRefName += "2";
-				newTrail = $"{parentTrail}/{classShortRefName}";
-			}
 
 			var elementName = classShortRefName;
 			if (!string.IsNullOrEmpty(currentElement.AttributeValue("name")))
 			{
 				elementName = currentElement.AttributeValue("name").Split('-')[0];
-				elementMetadata.XName = currentElement.AttributeValue("name");
-				if (nameIsUsed)
-				{
-					elementName += "2";
-				}
+				elementMetadata.XName = currentElement.AttributeValue("name");				
 
 				newTrail = $"{parentTrail}/{elementName}";
-			}
+			}		
 
-			propertyNamesUsed.Add(classShortRefName);
-
-			elementMetadata.Name = elementName;
+			elementMetadata.Name = elementName;            
 			elementMetadata.TypeName = classShortRefName;
 			elementMetadata.XPath = newTrail;
 			elementMetadata.ID = newTrail.Replace("/", ".").Substring(1);
@@ -422,7 +412,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
 			if (string.IsNullOrEmpty(elementMetadata.TypeName))
 			{
-				elementMetadata.TypeName = elementMetadata.Name;
+                elementMetadata.TypeName = null; // elementMetadata.Name;
 			}
 
 			if (allElements.ContainsKey(elementMetadata.ID))
