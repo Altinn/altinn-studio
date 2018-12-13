@@ -14,8 +14,8 @@ import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
 
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
-  activeSubHeaderSelection: string;
-  activeLeftMenuSelection: string;
+  activeSubHeaderSelection?: string;
+  activeLeftMenuSelection?: string;
   backgroundColor?: any;
   classes: any;
   org?: string;

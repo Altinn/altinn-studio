@@ -68,15 +68,15 @@ const theme = {
       greyMedium: '#BCC7CC',
       greyLight: '#EFEFEF',
       white: '#FFF',
-    }
+    },
   },
   palette: {
     primary: {
-      main: '',
+      main: '#000',
     },
     // Colors that are not part of the altinn color palette but is still used
     secondary: {
-      main: '',
+      main: '#000',
       dark: '#d2d2d2',
     },
   },
