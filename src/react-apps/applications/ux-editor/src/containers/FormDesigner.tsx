@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import { Preview } from './Preview';
+import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
 export interface IFormDesignerProvidedProps {
@@ -121,7 +121,7 @@ class FormDesigner extends React.Component<
                 background: '#FFFFFF',
               }}
             >
-              <Preview />
+              <DesignView />
               <div className='col-12 justify-content-center d-flex mt-3'>
                 {this.renderSaveButton()}
               </div>

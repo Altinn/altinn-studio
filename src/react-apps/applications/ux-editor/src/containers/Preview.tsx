@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector/*, makeGetLayoutOrderSelector*/ } from '../selectors/getLayoutData';
 import { Container } from './Container';
+import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -15,16 +16,14 @@ export class PreviewComponent extends React.Component<
   IPreviewProps,
   null
   > {
-
-  public render() {
-    return (
-      <div className='col-12'>
-        {this.renderContainer()}
-      </div>
-    );
+  public render(): JSX.Element {
+    if (this.props.designMode) {
+      return this.renderDesignPreview();
+    }
+    return this.renderPreview();
   }
 
-  public renderContainer = (): JSX.Element => {
+  public renderPreview(): JSX.Element {
     const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
       Object.keys(this.props.layoutOrder)[0] :
       null;
@@ -36,6 +35,26 @@ export class PreviewComponent extends React.Component<
         id={baseContainerId}
         baseContainer={true}
       />
+    );
+  }
+
+  public renderDesignPreview(): JSX.Element {
+    const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
+      Object.keys(this.props.layoutOrder)[0] :
+      null;
+    if (!baseContainerId) {
+      return null;
+    }
+    return (
+      <DroppableDraggableContainer
+        baseContainer={true}
+        id={baseContainerId}
+      >
+        <Container
+          id={baseContainerId}
+          baseContainer={true}
+        />
+      </DroppableDraggableContainer>
     );
   }
 }

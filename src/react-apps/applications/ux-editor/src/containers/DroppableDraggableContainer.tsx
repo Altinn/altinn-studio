@@ -12,7 +12,6 @@ import {
   DropTargetMonitor,
   DropTargetSpec,
 } from 'react-dnd';
-import * as ReactDOM from 'react-dom';
 
 const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
   beginDrag(props: IDroppableDraggableContainerProps) {
@@ -49,125 +48,18 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
     }
   },
   canDrop(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor) {
-    if (props.notDroppable && !monitor.isOver({ shallow: true })) {
-      return false;
-    }
-    return true;
+    return false;
   },
-  hover(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor, component: any) {
-    if (!component) {
-      return;
-    }
-    if (monitor.isOver({ shallow: true })) {
-      switch (monitor.getItemType()) {
-        case 'TOOLBAR_ITEM': {
-          const draggedItem = monitor.getItem();
-          const hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (hoverClientY > hoverMiddleY) {
-            props.onHoverOver(
-              draggedItem.id,
-              hoverOverIndex + 1,
-              draggedItem.index,
-              draggedItem.containerId,
-              props.id,
-            );
-          } else {
-            props.onHoverOver(
-              draggedItem.id,
-              hoverOverIndex,
-              draggedItem.index,
-              props.id,
-              props.id,
-            );
-          }
-          break;
-        }
-        case 'ITEM': {
-          const draggedItem = monitor.getItem();
-          const hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (hoverClientY > hoverMiddleY) {
-            props.onHoverOver(
-              draggedItem.id,
-              hoverOverIndex + 1,
-              draggedItem.index,
-              draggedItem.containerId,
-              props.id,
-            );
-          } else {
-            props.onHoverOver(
-              draggedItem.id,
-              hoverOverIndex,
-              draggedItem.index,
-              draggedItem.containerId,
-              props.id,
-            );
-          }
-
-          break;
-        }
-        case 'CONTAINER': {
-          const draggedContainer = monitor.getItem();
-          const hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (hoverClientY > hoverMiddleY) {
-            props.onHoverOver(
-              draggedContainer.id,
-              hoverOverIndex + 1,
-              draggedContainer.index,
-              draggedContainer.containerId,
-              props.id,
-            );
-          } else {
-            props.onHoverOver(
-              draggedContainer.id,
-              hoverOverIndex,
-              draggedContainer.index,
-              draggedContainer.containerId,
-              props.id,
-            );
-          }
-          break;
-        }
-      }
-    }
-  }
 };
 
 export interface IDroppableDraggableContainerProps {
-  id: any;
-  notDroppable: boolean;
+  baseContainer: boolean;
   canDrag: boolean;
-  index: number;
-  onDropItem: (
-    id: string,
-    newPositionIndex: number,
-    destinationContainerId: string,
-    sourceContainerId: string,
-  ) => void;
-  onHoverOver: (
-    draggedId: string,
-    newPosition: number,
-    oldPostition: number,
-    sourceContainerId: string,
-    destinationContainerId: string,
-  ) => void;
+  id: string;
+  onMoveComponent?: (...args: any) => void;
+  onDropComponent?: (...args: any) => void;
+  onMoveContainer?: (...args: any) => void;
+  onDropContainer?: (...args: any) => void;
 }
 
 class DroppableDraggableContainer extends React.Component<IDroppableDraggableContainerProps &
