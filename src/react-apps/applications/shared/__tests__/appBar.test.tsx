@@ -35,13 +35,16 @@ describe('AppBarComponent - src/navigation/main-header/appBar - snapshot...', ()
   });
 
   it('should match snapshot with subHeader and Publish selection active', () => {
+    mockOrg = 'other-org';
+    mockService = 'other-service';
+    mockActiveSubHeaderSelection = 'publish';
     const rendered = renderer.create(
       <MemoryRouter>
         <AppBarComponent
-          org='other-org'
-          service='other-service'
+          org={mockOrg}
+          service={mockService}
           showSubHeader={mockShowSubheader}
-          activeSubHeaderSelection='publish'
+          activeSubHeaderSelection={mockActiveSubHeaderSelection}
         />
       </MemoryRouter>,
     );
