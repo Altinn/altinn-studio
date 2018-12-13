@@ -4,6 +4,9 @@
   "private": true,
   "author": "Altinn",
   "license": "3-Clause BSD",
+  "scripts": {
+    "test": "jest"
+  },
   "dependencies": {
     "@material-ui/core": "3.6.1",
     "@material-ui/icons": "3.0.1",
@@ -33,7 +36,7 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
     },
-    "testRegex": ".*.(__tests__).*.(.spec|test.).(ts|tsx|js)$",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx|tsx|ts|js)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
