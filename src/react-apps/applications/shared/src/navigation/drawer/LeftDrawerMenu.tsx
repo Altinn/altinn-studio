@@ -59,11 +59,8 @@ class LeftDrawerMenu extends
     const { classes } = this.props;
     const menuToRender = leftDrawerMenuSettings[this.props.menuType];
 
-    if (this.props.menuType === null || this.props.menuType === undefined) {
-      return (
-        <div />
-      );
-    } else if (menuToRender === null || menuToRender === undefined) {
+    if (this.props.menuType === null || this.props.menuType === undefined
+      || menuToRender === null || menuToRender === undefined) {
       return (
         <div />
       );
