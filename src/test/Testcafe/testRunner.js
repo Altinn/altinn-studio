@@ -1,17 +1,19 @@
 const createTestCafe = require('testcafe');
+const fs = require('fs');
 let testcafe = null;
 
 createTestCafe()
   .then(tc => {
     testcafe = tc;
     const runner = testcafe.createRunner();
+    const stream = fs.createWriteStream('testcafe.xml');
 
     return runner
       .browsers(['chrome:headless'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: false })
-      .reporter('spec')
+      .reporter('xUnit', stream)
       .src(['./repository_tests/login_create_new_repo.js'])
       .run({
         skipJsErrors: true,
@@ -20,11 +22,14 @@ createTestCafe()
         assertionTimeout: 1000,
         pageLoadTimeout: 1000,
         speed: 1,
-        debugOnFail: true,
+        debugOnFail: false,
         stopOnFirstFail: true
       })
+      .then(failedCount => {
+        console.log('Total tests failed ' + failedCount);
+        stream.end();
+      })
   })
-  .then(failedCount => {
-    console.log('Total tests failed: ' + failedCount);
+  .then(() => {
     testcafe.close();
   });
