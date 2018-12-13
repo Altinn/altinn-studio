@@ -21,6 +21,66 @@ describe('render left drawer menu', () => {
       );
     expect(rendered).toMatchSnapshot();
   });
+
+  beforeEach(() => {
+    mockMenuType = 'about';
+    mockactiveLeftMenuSelection = 'about';
+  });
+
+  it('renders left drawer menu for about option in header without crashing', () => {
+    const rendered =
+      renderer.create(
+        <MemoryRouter>
+          <LeftDrawerMenu menuType={mockMenuType} activeLeftMenuSelection={mockactiveLeftMenuSelection} />
+        </MemoryRouter>,
+      );
+    expect(rendered).toMatchSnapshot();
+  });
+
+  beforeEach(() => {
+    mockMenuType = 'language';
+    mockactiveLeftMenuSelection = 'language';
+  });
+
+  it('renders left drawer menu for language option in header without crashing', () => {
+    const rendered =
+      renderer.create(
+        <MemoryRouter>
+          <LeftDrawerMenu menuType={mockMenuType} activeLeftMenuSelection={mockactiveLeftMenuSelection} />
+        </MemoryRouter>,
+      );
+    expect(rendered).toMatchSnapshot();
+  });
+
+  beforeEach(() => {
+    mockMenuType = 'test';
+    mockactiveLeftMenuSelection = 'test';
+  });
+
+  it('renders left drawer menu for language option in header without crashing', () => {
+    const rendered =
+      renderer.create(
+        <MemoryRouter>
+          <LeftDrawerMenu menuType={mockMenuType} activeLeftMenuSelection={mockactiveLeftMenuSelection} />
+        </MemoryRouter>,
+      );
+    expect(rendered).toMatchSnapshot();
+  });
+
+  beforeEach(() => {
+    mockMenuType = 'publish';
+    mockactiveLeftMenuSelection = 'publish';
+  });
+
+  it('renders left drawer menu for language option in header without crashing', () => {
+    const rendered =
+      renderer.create(
+        <MemoryRouter>
+          <LeftDrawerMenu menuType={mockMenuType} activeLeftMenuSelection={mockactiveLeftMenuSelection} />
+        </MemoryRouter>,
+      );
+    expect(rendered).toMatchSnapshot();
+  });
 });
 
 describe('returns empty div without crashing', () => {
@@ -33,7 +93,7 @@ describe('returns empty div without crashing', () => {
     mockactiveLeftMenuSelection = undefined;
   });
 
-  it('returns empty div when the menutype is not valid', () => {
+  it('returns empty div when the menutype is not valid(null or undefined)', () => {
     const rendered =
       renderer.create(
         <MemoryRouter>
@@ -48,7 +108,7 @@ describe('returns empty div without crashing', () => {
     mockactiveLeftMenuSelection = null;
   });
 
-  it('returns empty div when the menutype is not valid', () => {
+  it('returns empty div when the menutype is not valid(null or undefined)', () => {
     const rendered =
       renderer.create(
         <MemoryRouter>
@@ -63,7 +123,22 @@ describe('returns empty div without crashing', () => {
     mockactiveLeftMenuSelection = '';
   });
 
-  it('returns empty div when the menutype is not valid', () => {
+  it('returns empty div when the menutype is not valid(empty string)', () => {
+    const rendered =
+      renderer.create(
+        <MemoryRouter>
+          <LeftDrawerMenu menuType={mockMenuType} activeLeftMenuSelection={mockactiveLeftMenuSelection} />
+        </MemoryRouter>,
+      );
+    expect(rendered).toMatchSnapshot();
+  });
+
+  beforeEach(() => {
+    mockMenuType = 'testmock';
+    mockactiveLeftMenuSelection = 'testmock';
+  });
+
+  it('returns empty div when the menutype is not valid(doesnt exist in the menu setting)', () => {
     const rendered =
       renderer.create(
         <MemoryRouter>
