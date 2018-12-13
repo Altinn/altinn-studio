@@ -33,6 +33,9 @@
     <None Update="Common\edag.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Common\schema-w-recursion.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\schema.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

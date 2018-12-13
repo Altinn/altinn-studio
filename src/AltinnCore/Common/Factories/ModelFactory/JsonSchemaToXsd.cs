@@ -15,31 +15,47 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         public XmlSchema CreateXsd(JsonSchema jSchema)
         {
-            XmlSchema xsdSchema = new XmlSchema();
-            string rootComplexTypeName = GetterExtensions.Title(jSchema);
-            XmlSchemaElement rootElement = new XmlSchemaElement();
-            XmlSchemaComplexType rootComplexType = ExtractComplexType(rootComplexTypeName, jSchema);        
-            rootElement.Name = "melding";
-           
-            rootElement.SchemaTypeName = new XmlQualifiedName(rootComplexTypeName);
-            xsdSchema.Items.Add(rootElement);
-            xsdSchema.Items.Add(rootComplexType);
+            XmlSchema xsdSchema = new XmlSchema
+            {
+                ElementFormDefault = XmlSchemaForm.Qualified,
+                AttributeFormDefault = XmlSchemaForm.Unqualified
+            };
 
+            string title = GetterExtensions.Title(jSchema);
+
+            XmlSchemaElement rootElement = new XmlSchemaElement
+            {
+                Name = title
+            };
+
+            rootElement.SchemaTypeName = new XmlQualifiedName(title);
+
+            xsdSchema.Items.Add(rootElement);
+
+            // handle properties of root object type
+            ExtractProperties(xsdSchema, title, jSchema);                                  
+
+            // Handle all definitions
             foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Definitions(jSchema))
             {
-                if (def.Value.Properties() != null || def.Value.AllOf() != null)
-                {
-                    XmlSchemaComplexType complexType = ExtractComplexType(def.Key, def.Value);
-                    xsdSchema.Items.Add(complexType);
-                } else
-                {
-                    XmlSchemaSimpleType simpleType = ExtractSimpleType(def.Key, def.Value);
-                    xsdSchema.Items.Add(simpleType);                
-                }
-            
+                ExtractProperties(xsdSchema, def.Key, def.Value);
             }
 
             return xsdSchema;
+        }
+
+        private void ExtractProperties(XmlSchema xsdSchema, string name, JsonSchema jSchema)
+        {
+            if (jSchema.Properties() != null || jSchema.AllOf() != null)
+            {
+                XmlSchemaComplexType complexType = ExtractComplexType(name, jSchema);
+                xsdSchema.Items.Add(complexType);
+            }
+            else
+            {
+                XmlSchemaSimpleType simpleType = ExtractSimpleType(name, jSchema);
+                xsdSchema.Items.Add(simpleType);
+            }
         }
 
         private XmlSchemaComplexType ExtractComplexType(string name, JsonSchema type)
@@ -407,7 +423,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string ExtractTypeFromDefinitionReference(string reference)
         {
-            return reference.Replace("#/definitions/", "");
+            if (reference != null)
+            {
+                return reference.Replace("#/definitions/", "");
+            }
+            return "Unknown";
         }
     }
 
