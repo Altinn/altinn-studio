@@ -1,29 +1,22 @@
-// import { shallow } from 'enzyme';
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
-// import { render } from 'enzyme';
-
 import * as React from 'react';
+import { MemoryRouter } from 'react-router-dom';
 import * as renderer from 'react-test-renderer';
-
-import { MemoryRouter } from 'react-router';
-
 import AppBarComponent from '../src/navigation/main-header/appBar';
+import altinnTheme from '../src/theme/altinnStudioTheme';
 
 describe('AppBarComponent - src/navigation/main-header/appBar - snapshot...', () => {
   let mockOrg: string;
   let mockService: string;
   let mockActiveSubHeaderSelection: string;
   let mockShowSubheader: boolean;
-  // let mockMemoryRouter: any;
-  // let mockHandleDataChange: () => void;
 
   beforeEach(() => {
     mockOrg = 'jest-test-org';
     mockService = 'jest-test-service';
     mockActiveSubHeaderSelection = 'create';
     mockShowSubheader = true;
-    // mockMemoryRouter = ['/users/2'];
-    // mockHandleDataChange = () => null;
 
   });
 
@@ -82,10 +75,12 @@ describe('AppBarComponent - src/navigation/main-header/appBar - snapshot...', ()
 
 describe('AppBarComponent - Responsive renders...', () => {
   let app: any;
-  const desktopWidth: number = 1920;
-  const desktopHeight: number = 1080;
-  const tabletWidth: number = 900;
-  const tabletHeight: number = 500;
+  const desktopWidth: number = 1025;
+  const desktopHeight: number = 800;
+  const tabletWidth: number = 1024;
+  const tabletHeight: number = 768;
+
+  const theme = createMuiTheme(altinnTheme);
 
   beforeEach(() => {
     window.resizeTo(desktopWidth, desktopHeight);
@@ -98,14 +93,15 @@ describe('AppBarComponent - Responsive renders...', () => {
     const mockActiveLeftMenuSelection = 'leftmenuselection';
 
     app = mount(
-
-      <AppBarComponent
-        org={mockOrg}
-        service={mockService}
-        showSubHeader={false}
-        activeSubHeaderSelection={mockActiveSubHeaderSelection}
-        activeLeftMenuSelection={mockActiveLeftMenuSelection}
-      />, { attachTo: document.getElementById('root') }
+      <MuiThemeProvider theme={theme}>
+        <AppBarComponent
+          org={mockOrg}
+          service={mockService}
+          showSubHeader={false}
+          activeSubHeaderSelection={mockActiveSubHeaderSelection}
+          activeLeftMenuSelection={mockActiveLeftMenuSelection}
+        />
+      </MuiThemeProvider>, { attachTo: document.getElementById('root') }
     );
     expect(app.text()).not.toMatch(`/ ${mockActiveSubHeaderSelection} / ${mockActiveLeftMenuSelection}`);
     expect(app.text()).toMatch(`${mockService}${mockOrg}`);
@@ -120,14 +116,15 @@ describe('AppBarComponent - Responsive renders...', () => {
 
     window.resizeTo(tabletWidth, tabletHeight);
     app = mount(
-
-      <AppBarComponent
-        org={mockOrg}
-        service={mockService}
-        showSubHeader={false}
-        activeSubHeaderSelection={mockActiveSubHeaderSelection}
-        activeLeftMenuSelection={mockActiveLeftMenuSelection}
-      />, { attachTo: document.getElementById('root') }
+      <MuiThemeProvider theme={theme}>
+        <AppBarComponent
+          org={mockOrg}
+          service={mockService}
+          showSubHeader={false}
+          activeSubHeaderSelection={mockActiveSubHeaderSelection}
+          activeLeftMenuSelection={mockActiveLeftMenuSelection}
+        />
+      </MuiThemeProvider>, { attachTo: document.getElementById('root') },
     );
     expect(app.text()).toMatch(`/ ${mockActiveSubHeaderSelection} / ${mockActiveLeftMenuSelection}`);
     expect(app.text()).not.toMatch(`${mockService}${mockOrg}`);
