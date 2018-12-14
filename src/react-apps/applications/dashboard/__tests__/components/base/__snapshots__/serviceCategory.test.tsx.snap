@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot of ServiceCard 1`] = `
+exports[`>>> components/base/serviceCategory.tsx --- Snapshot >>> Capture snapshot of ServiceCategory 1`] = `
 <div
   className="test"
 >

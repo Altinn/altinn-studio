@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot of ServiceCard when empty 1`] = `
+exports[`>>> components/base/serviceOverview.tsx --- Snapshot >>> Capture snapshot of ServiceOverview when empty 1`] = `
 <div
   className="Connect-ServicesOverviewComponent--mar_top_100-1 Connect-ServicesOverviewComponent--mar_bot_50-3"
 >
@@ -180,7 +180,7 @@ exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot o
 </div>
 `;
 
-exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot of ServiceCard when not empty 1`] = `
+exports[`>>> components/base/serviceOverview.tsx --- Snapshot >>> Capture snapshot of ServiceOverview when not empty 1`] = `
 <div
   className="Connect-ServicesOverviewComponent--mar_top_100-1 Connect-ServicesOverviewComponent--mar_bot_50-3"
 >
