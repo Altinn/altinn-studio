@@ -67,7 +67,7 @@ class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, 
     return moment(new Date(date)).format('DD.MM.YYYY');
   }
 
-  public openService = (e: any) => {
+  public openService = () => {
     window.location.href = `/designer/${this.props.service.full_name}`;
   }
 
@@ -75,7 +75,7 @@ class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, 
     const { classes, service } = this.props;
     return (
       <Card elevation={0} className={classNames(classes.card)}>
-        <CardActionArea onClick={this.openService} id={'openService'}>
+        <CardActionArea onClick={this.openService}>
           <CardContent>
             <Grid container={true} spacing={8}>
               <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>

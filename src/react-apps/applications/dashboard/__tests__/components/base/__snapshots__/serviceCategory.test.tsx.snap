@@ -24,7 +24,6 @@ exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot o
       >
         <button
           className="MuiButtonBase-root-178 MuiCardActionArea-root-175"
-          id="openService"
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -128,7 +127,6 @@ exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot o
       >
         <button
           className="MuiButtonBase-root-178 MuiCardActionArea-root-175"
-          id="openService"
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
