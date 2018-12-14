@@ -5,7 +5,7 @@ import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
 import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
 import fetchServicesActionDispatchers from './services/fetchDashboardDispatcher';
-import ServicesOverview from './services/servicesOverview';
+import { ServicesOverview } from './services/servicesOverview';
 
 export interface IMainDashboardState {
   drawerOpen: boolean;
@@ -16,7 +16,7 @@ export interface IDashboardProps { }
 const theme = createMuiTheme(altinnTheme);
 
 class App extends React.Component<IDashboardProps, IMainDashboardState> {
-  state: IMainDashboardState = {
+  public state: IMainDashboardState = {
     drawerOpen: false,
   };
 

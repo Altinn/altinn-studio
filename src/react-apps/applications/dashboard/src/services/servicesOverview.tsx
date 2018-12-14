@@ -10,7 +10,7 @@ import AltinnFilterChip from '../../../shared/src/components/AltinnFilterChip';
 import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
 import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import ServicesCategory from './servicesCategory';
+import { ServicesCategory } from './servicesCategory';
 
 export interface IServicesOverviewComponentProvidedProps {
   classes: any;
@@ -18,7 +18,7 @@ export interface IServicesOverviewComponentProvidedProps {
 }
 export interface IServicesOverviewComponentProps extends IServicesOverviewComponentProvidedProps {
   language: any;
-  services: any;
+  services: any[];
   allDistinctOwners: string[];
   selectedOwners: string[];
   currentUserName: string;
@@ -57,7 +57,7 @@ const styles = {
   textSyle: {
     fontSize: '18px',
     fontWeight: 500,
-  }
+  },
 };
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
@@ -70,7 +70,10 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
       allDistinctServiceOwners.push(keyToLookFor);
     }
   });
-  if (currentUser) allDistinctServiceOwners.unshift(currentUser)
+  if (currentUser) {
+    allDistinctServiceOwners.unshift(currentUser);
+  }
+
   return allDistinctServiceOwners;
 };
 
@@ -78,7 +81,9 @@ const getCurrentUsersName = (user: any) => {
   return user.full_name || user.login;
 };
 
+// tslint:disable-next-line:max-line-length
 class ServicesOverviewComponent extends React.Component<IServicesOverviewComponentProps, IServicesOverviewComponentState> {
+  // tslint:disable-next-line:max-line-length
   public static getDerivedStateFromProps(_props: IServicesOverviewComponentProps, _state: IServicesOverviewComponentState) {
     return {
       selectedOwners: _props.selectedOwners,
@@ -160,7 +165,10 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             classes.mar_top_20,
             { [classes.elementToRigth]: isWidthUp('sm', this.props.width) })}
           label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
-          onDeleteFunction={() => { return false }}
+          // tslint:disable-next-line:jsx-no-lambda
+          onDeleteFunction={() => {
+            return false;
+          }}
           sortIcon={true}
           active={false}
         />
@@ -180,7 +188,11 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
           </Grid>
           <Grid
             item={true}
-            xl={4} lg={4} md={4} sm={12} xs={12}
+            xl={4}
+            lg={4}
+            md={4}
+            sm={12}
+            xs={12}
             className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
           >
             <AltinnIconButton
@@ -197,7 +209,11 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             <Grid container={true} direction='row' className={classes.mar_top_50}>
               <Grid
                 item={true}
-                xl={12} lg={12} md={10} sm={10} xs={12}
+                xl={12}
+                lg={12}
+                md={10}
+                sm={10}
+                xs={12}
                 className={classNames({
                   [classes.alignToCenter]: isWidthUp('lg', this.props.width),
                 })}
@@ -245,10 +261,11 @@ const mapStateToProps = (
     width: props.width,
     language: state.language.language,
     services: state.dashboard.services,
+    // tslint:disable-next-line:max-line-length
     allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),
     currentUserName: getCurrentUsersName(state.dashboard.user),
   };
 };
 
-export default withWidth()(withStyles(styles)(connect(mapStateToProps)(ServicesOverviewComponent)));
+export const ServicesOverview = withWidth()(withStyles(styles)(connect(mapStateToProps)(ServicesOverviewComponent)));

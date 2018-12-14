@@ -3,8 +3,8 @@ import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
-import TruncateMarkup from 'react-truncate-markup';
 import { connect } from 'react-redux';
+import TruncateMarkup from 'react-truncate-markup';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 
 export interface IServiceCardCompontentProvidedProps {
@@ -27,15 +27,15 @@ const styles = {
     width: '100%',
   },
   card: {
-    background: '#EFEFEF',
-    borderRadius: '0px',
-    height: '154px',
-    maxHeight: '154px',
-    minHeight: '154px',
+    'background': '#EFEFEF',
+    'borderRadius': '0px',
+    'height': '154px',
+    'maxHeight': '154px',
+    'minHeight': '154px',
     '&:hover': {
       background: '#e5e5e5',
       cursor: 'pointer',
-    }
+    },
   },
   iconStyling: {
     fontSize: '35px',
@@ -55,15 +55,19 @@ const styles = {
   },
   fontSize_14: {
     fontSize: '14px',
-  }
-}
+  },
+};
 
-class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceCardComponentState> {
+class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, IServiceCardComponentState> {
+  constructor(_props: any) {
+    super(_props);
+  }
+
   public formatDate(date: any): any {
     return moment(new Date(date)).format('DD.MM.YYYY');
   }
 
-  public openService = () => {
+  public openService = (e: any) => {
     window.location.href = `/designer/${this.props.service.full_name}`;
   }
 
@@ -71,13 +75,18 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
     const { classes, service } = this.props;
     return (
       <Card elevation={0} className={classNames(classes.card)}>
-        <CardActionArea onClick={this.openService}>
+        <CardActionArea onClick={this.openService} id={'openService'}>
           <CardContent>
             <Grid container={true} spacing={8}>
               <Grid item={true} xl={10} lg={10} md={10} sm={10} xs={10}>
                 <Typography
                   variant='h3'
-                  className={classNames(classes.displayInlineBlock, classes.width100, classes.fontSize_16, classes.fontWeight_500)}
+                  className={
+                    classNames(
+                      classes.displayInlineBlock,
+                      classes.width100,
+                      classes.fontSize_16,
+                      classes.fontWeight_500)}
                   noWrap={true}
                 >
                   {service.name}
@@ -118,7 +127,9 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
             <Grid container={true} spacing={0} direction='row'>
               <Grid item={true} xl={6} lg={6} md={6} sm={6} xs={6}>
                 <Typography
-                  className={classNames(classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500)}
+                  className={
+                    classNames(
+                      classes.displayInlineBlock, classes.width100, classes.fontSize_14, classes.fontWeight_500)}
                   noWrap={true}
                 >
                   {service.owner ? (service.owner.full_name || service.owner.login) : ''}
@@ -134,7 +145,8 @@ class ServiceCard extends React.Component<IServiceCardCompontentProps, IServiceC
                     classes.fontWeight_500)}
                   noWrap={true}
                 >
-                  {getLanguageFromKey('dashboard.last_changed_service', this.props.language)} {this.formatDate(service.updated_at)}
+                  {getLanguageFromKey(
+                    'dashboard.last_changed_service', this.props.language)} {this.formatDate(service.updated_at)}
                 </Typography>
               </Grid>
             </Grid>
@@ -156,4 +168,4 @@ const mapStateToProps = (
   };
 };
 
-export default withStyles(styles)(connect(mapStateToProps)(ServiceCard));
+export const ServiceCard = withStyles(styles)(connect(mapStateToProps)(ServiceCardComponent));

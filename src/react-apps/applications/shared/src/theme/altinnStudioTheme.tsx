@@ -1,4 +1,5 @@
 declare module '@material-ui/core/styles/createMuiTheme' {
+  // tslint:disable-next-line:interface-name
   interface Theme {
     altinnPalette: {
       primary: {
@@ -19,8 +20,8 @@ declare module '@material-ui/core/styles/createMuiTheme' {
         greyMedium: string,
         greyLight: string,
         white: string,
-      }
-    }
+      },
+    };
   }
 }
 
@@ -45,11 +46,12 @@ const theme = {
     MuiTypography: {
       h1: {
         fontSize: 36,
-      }
-    }
+      },
+    },
   },
   altinnPalette: {
-    //These are the primary colors used in altinn: https://altinn.github.io/designsystem-styleguide/retningslinjer-altinn/farger.html
+    // tslint:disable-next-line:max-line-length
+    // These are the primary colors used in altinn: https://altinn.github.io/designsystem-styleguide/retningslinjer-altinn/farger.html
     primary: {
       blueDarker: '#022F51',
       blueDark: '#0062BA',
