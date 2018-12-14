@@ -2,7 +2,6 @@ import * as React from 'react';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
 import LeftDrawerMenu from '../src/navigation/drawer/LeftDrawerMenu';
-//import { createRender } from '@material-ui/core/test-utils';
 
 describe('render left drawer menu', () => {
   let mockMenuType: string;
