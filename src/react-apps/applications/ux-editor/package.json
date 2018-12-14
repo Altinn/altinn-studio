@@ -29,6 +29,7 @@
     "immutability-helper": "2.7.0",
     "lodash.isequal": "^4.5.0",
     "react": "16.6.1",
+    "react-addons-update": "^15.6.2",
     "react-beautiful-dnd": "^10.0.2",
     "react-dom": "16.6.1",
     "react-grid-layout": "0.16.6",

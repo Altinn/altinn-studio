@@ -99,6 +99,16 @@ export interface IFormDesignerActionDispatchers
   selectFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.ISelectLayoutElementActionRejected;
+  updateContainerList: (
+    listItem: any,
+    containerList: Array<any>,
+  ) => FormDesignerActions.IUpdateContainerListAction;
+  updateContainerListActionFulFilled: (
+    containerList: Array<any>,
+  ) => FormDesignerActions.IUpdateContainerListActionFulfilled;
+  updateContainerListActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateContainerListActionRejected;
   updateDataModelBinding: (
     id: string,
     modelBinding: string,
@@ -188,6 +198,9 @@ const actions: IFormDesignerActionDispatchers = {
     FormDesignerActions.selectLayoutElementActionFulfilled,
   selectFormComponentRejected:
     FormDesignerActions.selectLayoutElementActionRejected,
+  updateContainerList: FormDesignerActions.updateContainerListAction,
+  updateContainerListActionFulfilled: FormDesignerActions.updateContainerListActionFulfilled,
+  updateContainerListActionRejected: FormDesignerActions.updateContainerListActionRejected,
   updateDataModelBinding: FormDesignerActions.updateDataModelBindingAction,
   updateDataModelBindingFulfilled:
     FormDesignerActions.updateDataModelBindingActionFulfilled,

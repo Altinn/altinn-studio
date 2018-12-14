@@ -7,6 +7,7 @@ import CreatableSelect from 'react-select/lib/Creatable';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
+import { makeGetLayoutComponentsSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 
 const styles = createStyles({
@@ -88,6 +89,8 @@ const customInput = {
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
   id: string;
+  order: number;
+  activeListOrder: number;
   classes: any;
 }
 
@@ -96,6 +99,9 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
   language: any;
+  components: any;
+  order: any;
+  activeListOrder: number;
 }
 
 export interface IEditContainerState {
@@ -103,16 +109,29 @@ export interface IEditContainerState {
   isEditModalOpen: boolean;
   isItemActive: boolean;
   isEditMode: boolean;
+  hideActions: boolean;
+  hideEdit: boolean;
+  listItem: any;
+  activeList: Array<any>;
 }
+
+const activeList: Array<any> = [];
 
 class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   constructor(_props: IEditContainerProps, _state: IEditContainerState) {
-    super(_props, _state);
+    super(_props, _state );
     this.state = {
       isEditModalOpen: false,
       isItemActive: false,
       isEditMode: false,
+      hideActions: false,
+      hideEdit: false,
       component: _props.component,
+      listItem: {
+        id: _props.id,
+        order: _props.order,
+      },
+      activeList,
     };
   }
 
@@ -124,7 +143,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleComponentDelete = (e: any): void => {
-    FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
+    activeList.forEach((component) => {
+      FormDesignerActionDispatchers.deleteFormComponent(component);
+    });
     e.stopPropagation();
   }
 
@@ -135,11 +156,14 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     });
   }
 
-  public handleOpenModal = (): void => {
+  public handleSetActive = (): void => {
     if (!this.state.isEditMode) {
       this.setState({
         isItemActive: !this.state.isItemActive,
       });
+      FormDesignerActionDispatchers.updateContainerList(this.state.listItem, this.state.activeList);
+      console.log(this.state);
+      console.log(this.state.activeList);
     }
   }
 
@@ -193,10 +217,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
     return (
       <>
-        <Grid xs={12} sm={true} container={true}>
+        <Grid container={true}>
           <Grid
             container={true}
-            xs={true}
             direction={'row'}
             spacing={0}
             className={this.props.classes.wrapper}
@@ -205,7 +228,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               <List>
                 <ListItem
                   className={this.state.isItemActive ? this.props.classes.active : this.props.classes.formComponent}
-                  onClick={this.handleOpenModal}
+                  onClick={this.handleSetActive}
                 >
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
@@ -244,7 +267,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 </ListItem>
               </List>
             </Grid>
-            {!this.state.isEditMode &&
+            {!this.state.isEditMode && !this.state.hideActions &&
               <Grid
                 xs={true}
                 container={true}
@@ -259,13 +282,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 >
                   <i className='ai ai-circletrash' />
                 </IconButton>
-                <IconButton
-                  type='button'
-                  className={this.props.classes.formComponentsBtn}
-                  onClick={this.handleOpenEdit}
-                >
-                  <i className='reg reg-edit' />
-                </IconButton>
+                {!this.state.hideEdit &&
+                  <IconButton
+                    type='button'
+                    className={this.props.classes.formComponentsBtn}
+                    onClick={this.handleOpenEdit}
+                  >
+                    <i className='reg reg-edit' />
+                  </IconButton>
+                }
               </Grid>}
             {this.state.isEditMode &&
               <Grid
@@ -296,18 +321,25 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 }
 
-const mapsStateToProps = (
-  state: IAppState,
-  props: IEditContainerProvidedProps,
-): IEditContainerProps => {
-  return {
-    component: props.component,
-    id: props.id,
-    dataModel: state.appData.dataModel.model,
-    textResources: state.appData.textResources.resources,
-    language: state.appData.language.language,
-    classes: props.classes,
+const makeMapStateToProps = () => {
+  const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
+  const mapStateToProps = (
+    state: IAppState,
+    props: IEditContainerProvidedProps,
+  ): IEditContainerProps => {
+    return {
+      component: props.component,
+      components: GetLayoutComponentsSelector(state),
+      id: props.id,
+      order: this.props.order,
+      activeListOrder: this.props.activeListOrder,
+      dataModel: state.appData.dataModel.model,
+      textResources: state.appData.textResources.resources,
+      language: state.appData.language.language,
+      classes: props.classes,
+    };
   };
+  return mapStateToProps;
 };
 
-export const EditContainer = withStyles(styles, { withTheme: true })(connect(mapsStateToProps)(Edit));
+export const EditContainer = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(Edit));

@@ -10,6 +10,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   saving: boolean;
   unSavedChanges: boolean;
   activeContainer: string;
+  activeList: Array<any>;
 }
 
 const initialState: IFormLayoutState = {
@@ -22,7 +23,7 @@ const initialState: IFormLayoutState = {
   saving: false,
   unSavedChanges: false,
   activeContainer: '',
-
+  activeList: [],
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -42,6 +43,9 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       return update<IFormLayoutState>(state, {
         activeContainer: {
           $set: containerId,
+        },
+        activeList: {
+          $set: [],
         },
       });
     }

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { EditContainer } from '../containers/EditContainer';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import GenericComponent from './GenericComponent';
 
 /**
@@ -24,6 +25,7 @@ export interface IFormElementProps extends IProvidedProps {
   validationErrors: any[];
   textResources: any[];
   thirdPartyComponents: any;
+  order: Array<any>;
 }
 
 /**
@@ -119,7 +121,7 @@ class FormComponent extends React.Component<
 
   public renderDescription = (): JSX.Element => {
     if (this.props.component.description) {
-      const description: string = 
+      const description: string =
       this.props.designMode ? this.props.component.description : this.getTextResource(this.props.component.description)
       return (
         <span className='a-form-label description-label'>{description}</span>
@@ -161,6 +163,8 @@ class FormComponent extends React.Component<
         <EditContainer
           component={this.props.component}
           id={this.props.id}
+          order={this.props.order[Object.keys(this.props.order)[0]].indexOf(this.props.id)}
+          activeListOrder={0}
         >
           <div className='a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
             {this.renderLabel()}
@@ -194,11 +198,13 @@ class FormComponent extends React.Component<
  * @param props the input props give as input from formFiller component
  */
 const makeMapStateToProps = () => {
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
     id: props.id,
     formData: props.formData,
     handleDataUpdate: props.handleDataUpdate,
     component: state.formDesigner.layout.components[props.id],
+    order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),
