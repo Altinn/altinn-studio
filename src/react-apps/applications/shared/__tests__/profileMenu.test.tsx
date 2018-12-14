@@ -1,6 +1,5 @@
 import { shallow } from 'enzyme';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
 import ProfileMenuComponent from '../src/navigation/main-header/profileMenu';
 
 describe('ProfileMenu', () => {
@@ -15,10 +14,11 @@ describe('ProfileMenu', () => {
   });
 
   it('snapshot should match snapshot with default values', () => {
-    rendered = renderer.create(
+    rendered = shallow(
       <ProfileMenuComponent />,
     );
-    expect(rendered).toMatchSnapshot();
+    profileMenu = rendered.shallow();
+    expect(profileMenu).toMatchSnapshot();
   });
 
   it('snapshot should match snapshot with logout text', () => {
@@ -38,7 +38,6 @@ describe('ProfileMenu', () => {
       />,
     );
     profileMenu = wrapper.shallow();
-
     expect(profileMenu.find('WithStyles(MenuItem)').render().text()).toEqual('Logout');
 
   });
