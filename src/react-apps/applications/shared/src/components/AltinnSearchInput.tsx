@@ -1,4 +1,4 @@
-import { FormControl, InputAdornment, TextField, createMuiTheme } from '@material-ui/core';
+import { createMuiTheme, FormControl, InputAdornment, TextField } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -34,8 +34,9 @@ const styles = {
     fontSize: '30px',
     marginRight: '10px',
   },
-}
+};
 
+// tslint:disable-next-line:max-line-length
 class AltinnSearchInput extends React.Component<IAltinnSearchInputCompontentProvidedProps, IAltinnSearchInputComponentState> {
   public render() {
     const { classes } = this.props;
