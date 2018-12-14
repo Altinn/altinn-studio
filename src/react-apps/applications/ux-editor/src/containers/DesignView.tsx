@@ -1,8 +1,9 @@
 import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Container } from './TempContainer';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import DroppableDraggableContainer from './DroppableDraggableContainer';
+import { Container } from './TempContainer';
 
 interface IDesignerPreviewProps {
   layoutOrder: IFormLayoutOrder;
@@ -15,10 +16,12 @@ interface IDesignerPreviewState extends IDesignerPreviewProps {
 class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreviewState> {
   public static getDerivedStateFromProps(nextProps: IDesignerPreviewProps, prevState: IDesignerPreviewState) {
     if (prevState.isDragging) {
+      console.log('taking state');
       return {
         ...prevState,
       };
     }
+    console.log('taking props');
     return {
       ...nextProps,
     };
@@ -39,14 +42,13 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     sourceContainerId: string,
     destinationContainerId: string,
   ): void => {
-    const { layoutOrder } = this.state;
-
     if (!id) {
       // dragging a toolbaritem - they don't have ids
       return;
     }
     if (sourceContainerId === destinationContainerId) {
-      let updatedOrder: string[] = layoutOrder[sourceContainerId];
+      const { layoutOrder } = this.state;
+      const updatedOrder: string[] = layoutOrder[sourceContainerId];
       const [moveItem] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
@@ -60,6 +62,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         },
       }));
     } else {
+      const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
       if (updatedDestination.indexOf('placeholder') > -1) {
@@ -67,6 +70,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
       }
       const [moveItem] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
+      console.log(moveItem);
       updatedDestination.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
@@ -85,6 +89,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public dropComponent = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+    console.log('OMG OMG OMG OMG');
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
@@ -98,16 +103,73 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     );
   }
 
-  public moveContainer = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
-    console.log('dragging container');
+  public getStatefullIndexOfContainer = (
+    containerId: string,
+    parentContainerId: string = Object.keys(this.props.layoutOrder)[0],
+  ): number => {
+    return this.state.layoutOrder[parentContainerId].indexOf(containerId);
   }
 
-  public dropContainer = () => {
+  public moveContainer = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+    if (!id) {
+      // No id, no drag
+      return;
+    }
+
+    if (sourceContainerId === destinationContainerId) {
+      const { layoutOrder } = this.state;
+      const updatedOrder: string[] = layoutOrder[sourceContainerId];
+      const [movedContainer] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
+      updatedOrder.splice(index, 0, movedContainer);
+
+      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
+        layoutOrder: {
+          [sourceContainerId]: {
+            $set: [...updatedOrder],
+          },
+        },
+        isDragging: {
+          $set: true,
+        },
+      }));
+    } else {
+      const { layoutOrder } = this.state;
+      const updatedSource: string[] = layoutOrder[sourceContainerId];
+      const updatedDestination: string[] = layoutOrder[destinationContainerId];
+      if (updatedDestination.indexOf('placeholder') > -1) {
+        // remove the placeholder in the destination (if there is one)
+        updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
+      }
+      const [movedContainer] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
+      updatedDestination.splice(index, 0, movedContainer);
+      this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
+        layoutOrder: {
+          [sourceContainerId]: {
+            $set: [...updatedSource],
+          },
+          [destinationContainerId]: {
+            $set: [...updatedDestination],
+          },
+        },
+        isDragging: {
+          $set: true,
+        },
+      }));
+    }
+  }
+
+  public dropContainer = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
       },
     }));
+    FormDesignerActionDispatchers.updateFormComponentOrderAction(
+      id,
+      index,
+      destinationContainerId,
+      sourceContainerId,
+    );
   }
 
   public render(): JSX.Element {
@@ -118,15 +180,26 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       return null;
     }
     return (
-      <Container
-        baseContainer={true}
+      <DroppableDraggableContainer
         id={baseContainerId}
-        items={this.state.layoutOrder[baseContainerId]}
+        baseContainer={true}
+        canDrag={false}
         onDropComponent={this.dropComponent}
         onMoveComponent={this.moveComponent}
         onDropContainer={this.dropContainer}
         onMoveContainer={this.moveContainer}
-      />
+      >
+        <Container
+          baseContainer={true}
+          id={baseContainerId}
+          items={this.state.layoutOrder[baseContainerId]}
+          onDropComponent={this.dropComponent}
+          onMoveComponent={this.moveComponent}
+          onDropContainer={this.dropContainer}
+          onMoveContainer={this.moveContainer}
+        />
+      </DroppableDraggableContainer>
+
     );
   }
 }

@@ -12,6 +12,7 @@ import {
   DropTargetMonitor,
   DropTargetSpec,
 } from 'react-dnd';
+import * as ReactDOM from 'react-dom';
 
 const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
   beginDrag(props: IDroppableDraggableContainerProps) {
@@ -31,7 +32,7 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
-  drop(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor) {
+  drop(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor, Component: React.Component) {
     if (monitor.isOver({ shallow: true })) {
       switch (monitor.getItemType()) {
         case 'TOOLBAR_ITEM': {
@@ -40,15 +41,29 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             console.warn('Draggable Item doesn\'t have an onDrop-event');
             break;
           }
-          console.log('calling toolbarItem.onDrop with', props);
           toolbarItem.onDrop(props.id);
           break;
         }
+        case 'ITEM': {
+          const droppedItem = monitor.getItem();
+          props.onDropComponent(
+            droppedItem.id,
+            0,
+            droppedItem.containerId,
+            props.id,
+          );
+        }
+        case 'CONTAINER': {
+          const droppedItem = monitor.getItem();
+          props.onDropContainer(
+            droppedItem.id,
+            0,
+            droppedItem.containerId,
+            props.id,
+          );
+        }
       }
     }
-  },
-  canDrop(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor) {
-    return false;
   },
 };
 
@@ -76,6 +91,7 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
       connectDropTarget,
       connectDragPreview,
       connectDragSource,
+      isOver,
     } = this.props;
 
     return connectDropTarget(connectDragPreview(connectDragSource(
@@ -84,6 +100,7 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
           border: '1px solid #ccc',
           padding: '1em',
           marginBottom: -1,
+          backgroundColor: isOver ? 'lightgrey' : 'white',
         }}
       >
         {this.props.children}

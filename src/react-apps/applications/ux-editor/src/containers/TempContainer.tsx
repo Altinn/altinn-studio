@@ -69,58 +69,8 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
     const className: string = this.props.baseContainer ? 'col-12' :
       this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' :
         'col-12 a-btn-action cursorPointer';
-    if (this.props.baseContainer) {
-      return (
-        <DroppableDraggableContainer
-          id={this.props.id}
-          baseContainer={true}
-          onDropContainer={this.props.onDropContainer}
-          onMoveContainer={this.props.onMoveComponent}
-          canDrag={false}
-        >
-          <div
-            className={className}
-            onClick={this.changeActiveFormContainer}
-          >
-            {
-              this.props.designMode && !this.props.baseContainer &&
-              <div className='row'>
-                <div className='col-1'>
-                  {this.renderDeleteGroupButton()}
-                </div>
-                <div className='col-3 offset-8 row'>
-                  <span className='col-6'>Repeating:</span>
-                  <div className='col-5'>
-                    <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
-                  </div>
-                </div>
-              </div>
-            }
-            {this.props.items.length > 0 ?
-              this.props.items.map((id: string, index: number) => (
-                this.props.components[id] ?
-                  this.renderFormComponent(id, index) :
-                  this.props.containers[id] ?
-                    this.renderContainer(id, index)
-                    : null
-              )) : this.renderContainerPlaceholder()
-            }
-            {
-              !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-              <button
-                className={'a-btn a-btn-action offset-10'}
-                onClick={this.handleContainerDelete}
-              >
-                <span>{this.props.language.ux_editor.repeating_group_delete}</span>
-              </button>
-            }
-            {!this.props.designMode && this.renderNewGroupButton()}
-          </div>
-        </DroppableDraggableContainer>
-      );
-    }
     return (
-      <div>
+      <div className={className}>
         {
           this.props.designMode && !this.props.baseContainer &&
           <div className='row'>
@@ -135,14 +85,15 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
             </div>
           </div>
         }
-        {this.props.items.length ?
+        {!this.props.items.length ?
+          this.renderContainerPlaceholder() :
           this.props.items.map((id: string, index: number) => (
             this.props.components[id] ?
               this.renderFormComponent(id, index) :
               this.props.containers[id] ?
                 this.renderContainer(id, index)
                 : null
-          )) : this.renderContainerPlaceholder()
+          ))
         }
         {
           !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
@@ -163,8 +114,9 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
       <DroppableDraggableComponent
         onDropComponent={this.props.onDropComponent}
         onMoveComponent={this.props.onMoveComponent}
-        onDropContainer={this.props.onDropComponent}
+        onDropContainer={this.props.onDropContainer}
         onMoveContainer={this.props.onMoveContainer}
+        canDrag={false}
         id={'placeholder'}
         index={0}
         containerId={this.props.id}
@@ -193,7 +145,7 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
             id={id}
             index={index}
             items={this.props.itemOrder[id]}
-            baseContainer={true}
+            baseContainer={false}
             onDropComponent={this.props.onDropContainer}
             onMoveComponent={this.props.onMoveComponent}
             onDropContainer={this.props.onDropContainer}
@@ -260,6 +212,7 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
     if (this.props.designMode) {
       return (
         <DroppableDraggableComponent
+          canDrag={true}
           id={id}
           index={index}
           containerId={this.props.id}

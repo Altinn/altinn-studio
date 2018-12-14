@@ -18,6 +18,7 @@ export interface IDroppableDraggableComponentProps {
   id: string;
   index: number;
   containerId: string;
+  canDrag: boolean;
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -35,6 +36,9 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
   isDragging(props: IDroppableDraggableComponentProps, monitor: DragSourceMonitor) {
     return props.id === monitor.getItem().id;
   },
+  canDrag(props: IDroppableDraggableComponentProps) {
+    return props.canDrag;
+  }
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
@@ -61,7 +65,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             console.warn('Draggable Item doesn\'t have an onDrop-event');
             break;
           }
-          console.log('index', hoverOverIndex);
           toolbarItem.onDrop(
             props.containerId,
             hoverOverIndex,
@@ -76,14 +79,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (draggedComponent.id === props.id) {
-            return;
-          }
-
-          if (hoverOverIndex === draggedComponent.index) {
-            return;
-          }
-
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
           }
@@ -91,7 +86,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           props.onDropComponent(
             draggedComponent.id,
             hoverOverIndex,
-            draggedComponent.containerId,
+            props.containerId,
             component.props.containerId,
           );
 
@@ -119,16 +114,18 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             return;
           }
 
+          if (hoverClientY > (hoverMiddleY / 2)) {
+            props.onDropContainer(
+              draggedContainer.id,
+              hoverOverIndex,
+              props.id,
+              draggedContainer.containerId,
+            );
+          }
+
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
           }
-
-          props.onDropContainer(
-            draggedContainer.id,
-            hoverOverIndex,
-            props.id,
-            draggedContainer.containerId,
-          );
           break;
         }
         default: {
@@ -213,16 +210,15 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             return;
           }
 
-          if (hoverClientY > hoverMiddleY || props.id !== 'placeholder') {
+          if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
             hoverOverIndex += 1;
           }
 
           props.onMoveContainer(
             draggedContainer.id,
             hoverOverIndex,
-            draggedContainer.id,
-            draggedContainer.id,
-            props.id,
+            props.containerId,
+            component.props.containerId,
           );
 
           break;
@@ -252,12 +248,13 @@ class DroppableDraggableComponent extends React.Component<IDroppableDraggableCom
       connectDragSource,
       isDragging,
     } = this.props;
+    const style = isDragging ? {
+      opacity: 0,
+    } : null;
     return connectDropTarget(connectDragPreview(connectDragSource(
       <div
         key={id}
-        style={{
-          visibility: isDragging ? 'hidden' : 'visible',
-        }}
+        style={style}
       >
         {this.props.children}
       </div>,
