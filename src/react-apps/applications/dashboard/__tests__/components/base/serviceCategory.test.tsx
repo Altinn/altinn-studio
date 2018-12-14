@@ -5,8 +5,7 @@ import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { ServicesCategory } from '../../../src/services/servicesCategory';
 
-
-describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
+describe('>>> components/base/serviceCategory.tsx --- Snapshot', () => {
   let mockHeader: any;
   let mockNoServicesMessage: any;
   let mockClassName: any;
@@ -59,7 +58,7 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     mockStore = createStore(initialState);
   });
 
-  it('>>> Capture snapshot of ServiceCard', () => {
+  it('>>> Capture snapshot of ServiceCategory', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <ServicesCategory

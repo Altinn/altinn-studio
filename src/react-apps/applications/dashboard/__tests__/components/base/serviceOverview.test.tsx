@@ -4,9 +4,8 @@ import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
 import { ServicesOverview } from '../../../src/services/servicesOverview';
-import { shallow } from 'enzyme';
 
-describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
+describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
   let mockStore: any;
   let mockStoreFull: any;
   const initialStateWithServices = {
@@ -88,7 +87,7 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     mockStoreFull = createStore(initialStateWithServices);
   });
 
-  it('>>> Capture snapshot of ServiceCard when empty', () => {
+  it('>>> Capture snapshot of ServiceOverview when empty', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <ServicesOverview
@@ -98,7 +97,7 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('>>> Capture snapshot of ServiceCard when not empty', () => {
+  it('>>> Capture snapshot of ServiceOverview when not empty', () => {
     const rendered = renderer.create(
       <Provider store={mockStoreFull}>
         <ServicesOverview
@@ -107,15 +106,4 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     );
     expect(rendered).toMatchSnapshot();
   });
-
-  it('+++ testing that date is not the same as input prop date', () => {
-    const wrapper = shallow(
-      <Provider store={mockStore}>
-        <ServicesOverview />
-      </Provider>,
-    );
-    var component = wrapper.shallow();
-
-  });
-
 });
