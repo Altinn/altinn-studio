@@ -7,7 +7,7 @@ describe('render left drawer menu', () => {
   let mockMenuType: string;
   let mockactiveLeftMenuSelection: string;
 
-  it('renders left drawer menu for create option in header without crashing', () => {
+  it('should render left drawer menu for create option in header that matches the snapshot', () => {
     mockMenuType = 'create';
     mockactiveLeftMenuSelection = 'gui';
 
@@ -23,7 +23,7 @@ describe('render left drawer menu', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('renders left drawer menu for about option in header without crashing', () => {
+  it('should render left drawer menu for about option in header that matches the snapshot', () => {
     mockMenuType = 'about';
     mockactiveLeftMenuSelection = 'about';
 
@@ -39,7 +39,7 @@ describe('render left drawer menu', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('renders left drawer menu for language option in header without crashing', () => {
+  it('should render left drawer menu for language option in header that matches the snapshot', () => {
     mockMenuType = 'language';
     mockactiveLeftMenuSelection = 'language';
 
@@ -55,7 +55,7 @@ describe('render left drawer menu', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('renders left drawer menu for language option in header without crashing', () => {
+  it('should render left drawer menu for test option in header that matches the snapshot', () => {
     mockMenuType = 'test';
     mockactiveLeftMenuSelection = 'test';
 
@@ -71,7 +71,7 @@ describe('render left drawer menu', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('renders left drawer menu for language option in header without crashing', () => {
+  it('should render left drawer menu for publish option in header that matches the snapshot', () => {
     mockMenuType = 'publish';
     mockactiveLeftMenuSelection = 'publish';
 
@@ -88,11 +88,11 @@ describe('render left drawer menu', () => {
   });
 });
 
-describe('returns empty div without crashing', () => {
+describe('returns empty div for null,undefined or invalid  property values', () => {
   let mockMenuType: string;
   let mockactiveLeftMenuSelection: string;
 
-  it('returns empty div when the menutype is not valid(null or undefined)', () => {
+  it('should return an empty div when the menutype is undefined) that matches the snapshot', () => {
     mockMenuType = undefined;
     mockactiveLeftMenuSelection = undefined;
 
@@ -108,7 +108,7 @@ describe('returns empty div without crashing', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('returns empty div when the menutype is not valid(null or undefined)', () => {
+  it('should return an empty div when the menutype is null that matches the snapshot', () => {
     mockMenuType = null;
     mockactiveLeftMenuSelection = null;
 
@@ -124,7 +124,7 @@ describe('returns empty div without crashing', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('returns empty div when the menutype is not valid(empty string)', () => {
+  it('should return an empty div when the menutype is empty string that matches the snapshot', () => {
     mockMenuType = '';
     mockactiveLeftMenuSelection = '';
 
@@ -140,7 +140,7 @@ describe('returns empty div without crashing', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('returns empty div when the menutype is not valid(doesnt exist in the menu setting)', () => {
+  it('should return empty div when the menutype is not valid(doesnt exist in the menu setting)', () => {
     mockMenuType = 'testmock';
     mockactiveLeftMenuSelection = 'testmock';
 
