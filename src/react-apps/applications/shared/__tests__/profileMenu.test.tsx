@@ -5,12 +5,10 @@ import ProfileMenuComponent from '../src/navigation/main-header/profileMenu';
 describe('ProfileMenu', () => {
   let profileMenu: any;
   let rendered: any;
-  let wrapper: any;
 
   beforeEach(() => {
     profileMenu = null;
     rendered = null;
-    wrapper = null;
   });
 
   it('snapshot should match snapshot with default values', () => {
@@ -30,18 +28,6 @@ describe('ProfileMenu', () => {
     profileMenu = rendered.shallow();
     expect(profileMenu).toMatchSnapshot();
   });
-
-  it('should have Logout text', () => {
-    wrapper = shallow(
-      <ProfileMenuComponent
-        showlogout={true}
-      />,
-    );
-    profileMenu = wrapper.shallow();
-    expect(profileMenu.find('WithStyles(MenuItem)').render().text()).toEqual('Logout');
-
-  });
-
 });
 
 describe('ProfileMenu function', () => {
