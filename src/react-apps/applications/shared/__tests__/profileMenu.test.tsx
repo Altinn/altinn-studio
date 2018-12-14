@@ -67,8 +67,6 @@ describe('ProfileMenu function', () => {
     profileMenu.instance().handleToggle();
     expect(profileMenu.state().open).toEqual(false);
 
-    // TODO: Test chaning UI state
-
   });
 
   it('handleClose() should change state', () => {
@@ -86,8 +84,6 @@ describe('ProfileMenu function', () => {
 
     profileMenu.instance().handleClose();
     expect(profileMenu.state().anchorEl).toEqual(null);
-
-    // TODO: Test changing UI state
 
   });
 
