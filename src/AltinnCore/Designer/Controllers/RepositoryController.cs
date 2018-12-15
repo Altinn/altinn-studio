@@ -76,6 +76,40 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// This method returns the status of a given repository 
+        /// </summary>
+        /// <param name="org">The organization or user owning the repo</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>The repository status</returns>
+        [HttpGet]
+        public RepoStatus RepoStatus(string org, string repository)
+        {
+            _sourceControl.FetchRemoteChanges(org, repository);
+            return _sourceControl.RepositoryStatus(org, repository);
+        }
+
+        /// <summary>
+        /// Pull remote changes for a given repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">Name of the repository</param>
+        [HttpGet]
+        public void PullRepo(string owner, string repository)
+        {
+            _sourceControl.PullRemoteChanges(owner, repository);
+        }
+
+        /// <summary>
+        /// Pushes changes for a given repo
+        /// </summary>
+        /// <param name="commitInfo">Info about the commit</param>
+        [HttpPost]
+        public void CommitAndPushRepo(CommitInfo commitInfo)
+        {
+            _sourceControl.PushChangesForRepository(commitInfo);
+        }
+
+        /// <summary>
         /// API for creating a API Token in GITEA and store it to the user folder
         /// This is not a ideal way of doing it, and we risk that one of the method are
         /// deleted, but currently the firt method does not return the required params. (Sha1 header when
