@@ -39,9 +39,19 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Create app token
         /// </summary>
-        /// <param name="name">app token name</param>
+        /// <param name="tokenName">app token name</param>
+        /// <param name="userName">The userName of the user that need a token</param>
+        /// <param name="password">The password for the user that need a token</param>
         /// <returns>null</returns>
-        Task<string> CreateAppToken(string name);
+        Task<string> CreateAppToken(string tokenName, string userName, string password);
+
+        /// <summary>
+        /// List app tokens for a user. Warning there is talks about removing this.
+        /// </summary>
+        /// <param name="userName">The user name</param>
+        /// <param name="password">The password</param>
+        /// <returns>The sha1 value</returns>
+        Task<List<AltinnCore.RepositoryClient.Model.AccessToken>> ListAccessTokens(string userName, string password);
 
         /// <summary>
         /// Returns organization that user has access to
