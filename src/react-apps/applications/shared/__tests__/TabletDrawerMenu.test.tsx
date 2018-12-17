@@ -1,12 +1,13 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
+import { shallow } from 'enzyme';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 import TabletDrawerMenu from '../src/navigation/drawer/TabletDrawerMenu';
 import altinnTheme from '../src/theme/altinnStudioTheme';
 
 describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
-  describe('render tablet menu', () => {
+  describe('when the tabletDrawerOpen is true', () => {
     let mockTabletDrawerOpen: boolean;
     let mockHandleTabletDrawerMenu: () => void;
 
@@ -17,7 +18,7 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
       mockHandleTabletDrawerMenu = jest.fn();
     });
 
-    it('should render tablet menu when the tabletDrawerOpen property is set to true, ', () => {
+    it('should render tablet menu and the mock function should have been called, ', () => {
 
       const tabletDrawerMenu = mount(
         <MuiThemeProvider theme={theme}>
@@ -37,7 +38,7 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
     });
   });
 
-  describe('render tablet menu', () => {
+  describe('when the tabletDrawerOpen is true', () => {
     let mockTabletDrawerOpen: boolean;
     let mockHandleTabletDrawerMenu: () => void;
 
@@ -70,7 +71,7 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
     it(`should render menu button and the tablet menu must not be visible
         and menu items must match the snapshot`, () => {
 
-        const tabletDrawerMenu = renderer.create(
+        const tabletDrawerMenu = shallow(
           <TabletDrawerMenu
             tabletDrawerOpen={mockTabletDrawerOpen}
             handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
