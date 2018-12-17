@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest, fork } from 'redux-saga/effects';
+import { call, fork, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../shared/src/utils/networking';
 import * as FetchDashboardActions from './fetchDashboardActions';
 import * as FetchDashboardActionTypes from './fetchDashboardActionTypes';
@@ -41,6 +41,7 @@ export function* watchFetchCurrentUserSaga(): SagaIterator {
   );
 }
 
+// tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
   yield fork(watchFetchCurrentUserSaga);

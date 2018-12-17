@@ -1,0 +1,227 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match snapshot 1`] = `
+<div
+  className="test"
+>
+  <div
+    className="MuiGrid-container-6"
+  >
+    <p
+      className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 MuiTypography-gutterBottom-130 CategoryComponent-displayInlineBlock-2 CategoryComponent-width100-3 CategoryComponent-fontSize_16-5"
+    >
+      mock-header
+    </p>
+  </div>
+  <div
+    className="MuiGrid-container-6 MuiGrid-spacing-xs-24-30"
+  >
+    <div
+      className="MuiGrid-item-7 MuiGrid-grid-xs-12-46 MuiGrid-grid-sm-12-60 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-4-80 MuiGrid-grid-xl-3-93 CategoryComponent-width100-3"
+    >
+      <div
+        className="MuiPaper-root-148 MuiPaper-elevation0-150 MuiPaper-rounded-149 MuiCard-root-147 Connect-ServiceCardComponent--card-140"
+      >
+        <button
+          className="MuiButtonBase-root-178 MuiCardActionArea-root-175"
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <div
+            className="MuiCardContent-root-181"
+          >
+            <div
+              className="MuiGrid-container-6 MuiGrid-spacing-xs-8-28"
+            >
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-10-44 MuiGrid-grid-sm-10-58 MuiGrid-grid-md-10-72 MuiGrid-grid-lg-10-86 MuiGrid-grid-xl-10-100"
+              >
+                <h3
+                  className="MuiTypography-root-103 MuiTypography-h3-117 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_16-144 Connect-ServiceCardComponent--fontWeight_500-145"
+                >
+                  First
+                </h3>
+              </div>
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-1-35 MuiGrid-grid-sm-1-49 MuiGrid-grid-md-1-63 MuiGrid-grid-lg-1-77 MuiGrid-grid-xl-1-91"
+              >
+                <i
+                  aria-hidden="true"
+                  className="Connect-ServiceCardComponent--iconStyling-141 ai ai-corp"
+                />
+              </div>
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-1-35 MuiGrid-grid-sm-1-49 MuiGrid-grid-md-1-63 MuiGrid-grid-lg-1-77 MuiGrid-grid-xl-1-91"
+              >
+                <i
+                  aria-hidden="true"
+                  className="Connect-ServiceCardComponent--iconStyling-141"
+                />
+              </div>
+              <div
+                className="MuiGrid-item-7 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--height-143"
+              >
+                <p
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-gutterBottom-130 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146"
+                >
+                  <truncate-markup
+                    lines={2}
+                  >
+                    <span>
+                      Dette er en test, dette er en veldig veldig lang test, fordi vi prøver å se om det har noen betydning
+                    </span>
+                  </truncate-markup>
+                </p>
+              </div>
+            </div>
+            <div
+              className="MuiGrid-container-6"
+            >
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
+              >
+                <p
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                >
+                  This is the full name of this org
+                </p>
+              </div>
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
+              >
+                <p
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--textToRight-142 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                >
+                  dashboard.last_changed_service
+                   
+                  13.11.2018
+                </p>
+              </div>
+            </div>
+          </div>
+          <span
+            className="MuiCardActionArea-focusHighlight-177"
+          />
+          <span
+            className="MuiTouchRipple-root-182"
+          />
+        </button>
+      </div>
+    </div>
+    <div
+      className="MuiGrid-item-7 MuiGrid-grid-xs-12-46 MuiGrid-grid-sm-12-60 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-4-80 MuiGrid-grid-xl-3-93 CategoryComponent-width100-3"
+    >
+      <div
+        className="MuiPaper-root-148 MuiPaper-elevation0-150 MuiPaper-rounded-149 MuiCard-root-147 Connect-ServiceCardComponent--card-140"
+      >
+        <button
+          className="MuiButtonBase-root-178 MuiCardActionArea-root-175"
+          onBlur={[Function]}
+          onClick={[Function]}
+          onFocus={[Function]}
+          onKeyDown={[Function]}
+          onKeyUp={[Function]}
+          onMouseDown={[Function]}
+          onMouseLeave={[Function]}
+          onMouseUp={[Function]}
+          onTouchEnd={[Function]}
+          onTouchMove={[Function]}
+          onTouchStart={[Function]}
+          tabIndex="0"
+          type="button"
+        >
+          <div
+            className="MuiCardContent-root-181"
+          >
+            <div
+              className="MuiGrid-container-6 MuiGrid-spacing-xs-8-28"
+            >
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-10-44 MuiGrid-grid-sm-10-58 MuiGrid-grid-md-10-72 MuiGrid-grid-lg-10-86 MuiGrid-grid-xl-10-100"
+              >
+                <h3
+                  className="MuiTypography-root-103 MuiTypography-h3-117 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_16-144 Connect-ServiceCardComponent--fontWeight_500-145"
+                >
+                  Second
+                </h3>
+              </div>
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-1-35 MuiGrid-grid-sm-1-49 MuiGrid-grid-md-1-63 MuiGrid-grid-lg-1-77 MuiGrid-grid-xl-1-91"
+              >
+                <i
+                  aria-hidden="true"
+                  className="Connect-ServiceCardComponent--iconStyling-141 ai ai-corp"
+                />
+              </div>
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-1-35 MuiGrid-grid-sm-1-49 MuiGrid-grid-md-1-63 MuiGrid-grid-lg-1-77 MuiGrid-grid-xl-1-91"
+              >
+                <i
+                  aria-hidden="true"
+                  className="Connect-ServiceCardComponent--iconStyling-141"
+                />
+              </div>
+              <div
+                className="MuiGrid-item-7 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--height-143"
+              >
+                <p
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-gutterBottom-130 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146"
+                >
+                  <truncate-markup
+                    lines={2}
+                  >
+                    <span>
+                      Dette er en test, dette er en veldig veldig lang test, fordi vi prøver å se om det har noen betydning
+                    </span>
+                  </truncate-markup>
+                </p>
+              </div>
+            </div>
+            <div
+              className="MuiGrid-container-6"
+            >
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
+              >
+                <p
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                >
+                  This is the full name of this org
+                </p>
+              </div>
+              <div
+                className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
+              >
+                <p
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--textToRight-142 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                >
+                  dashboard.last_changed_service
+                   
+                  13.11.2018
+                </p>
+              </div>
+            </div>
+          </div>
+          <span
+            className="MuiCardActionArea-focusHighlight-177"
+          />
+          <span
+            className="MuiTouchRipple-root-182"
+          />
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+`;

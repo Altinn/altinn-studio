@@ -6,6 +6,8 @@ import * as renderer from 'react-test-renderer';
 import AppBarComponent from '../src/navigation/main-header/appBar';
 import altinnTheme from '../src/theme/altinnStudioTheme';
 
+import * as AppBarConfig from '../src/navigation/main-header/appBarConfig';
+
 describe('AppBarComponent - src/navigation/main-header/appBar - snapshot...', () => {
   let mockOrg: string;
   let mockService: string;
@@ -134,4 +136,34 @@ describe('AppBarComponent - Responsive renders...', () => {
     app.unmount();
   });
 
+});
+
+describe('AppBarComponent renders correctly from AppBarConfig', () => {
+  let app: any;
+  const mockOrg: string = 'mock-org';
+  const mockService: string = 'mock-service';
+  const mockShowSubheader: boolean = true;
+
+  const theme = createMuiTheme(altinnTheme);
+
+  const tabletWidth: number = 1024;
+  const tabletHeight: number = 768;
+
+  window.resizeTo(tabletWidth, tabletHeight);
+
+  AppBarConfig.menu.map((entry) => {
+    it(`renders ${entry.key}`, () => {
+      app = mount(
+        <MuiThemeProvider theme={theme}>
+          <AppBarComponent
+            org={mockOrg}
+            service={mockService}
+            showSubHeader={mockShowSubheader}
+            activeSubHeaderSelection={entry.activeSubHeaderSelection}
+          />
+        </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+      );
+      expect(app.text()).toMatch(`/ ${entry.activeSubHeaderSelection} / `);
+    });
+  });
 });
