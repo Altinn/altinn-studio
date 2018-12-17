@@ -1,6 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`render left drawer menu should render left drawer menu for about option in header that matches the snapshot 1`] = `
+exports[`LeftDrawerMenu.tsx render left drawer menu when mock value is invalid menutype should return empty div when the menutype is not valid(doesnt exist in the menu setting) 1`] = `<div />`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about should render left drawer menu for about option in header that matches the snapshot 1`] = `
 <div>
   <div
     className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
@@ -368,7 +370,7 @@ exports[`render left drawer menu should render left drawer menu for about option
 </div>
 `;
 
-exports[`render left drawer menu should render left drawer menu for create option in header that matches the snapshot 1`] = `
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create should render left drawer menu for create option in header that matches the snapshot 1`] = `
 <div>
   <div
     className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
@@ -563,7 +565,9 @@ exports[`render left drawer menu should render left drawer menu for create optio
 </div>
 `;
 
-exports[`render left drawer menu should render left drawer menu for language option in header that matches the snapshot 1`] = `
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is empty string should return an empty div when the menutype is empty string that matches the snapshot 1`] = `<div />`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is language should render left drawer menu for language option in header that matches the snapshot 1`] = `
 <div>
   <div
     className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
@@ -701,7 +705,9 @@ exports[`render left drawer menu should render left drawer menu for language opt
 </div>
 `;
 
-exports[`render left drawer menu should render left drawer menu for publish option in header that matches the snapshot 1`] = `
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is null should return an empty div when the menutype is null that matches the snapshot 1`] = `<div />`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish should render left drawer menu for publish option in header that matches the snapshot 1`] = `
 <div>
   <div
     className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
@@ -839,7 +845,7 @@ exports[`render left drawer menu should render left drawer menu for publish opti
 </div>
 `;
 
-exports[`render left drawer menu should render left drawer menu for test option in header that matches the snapshot 1`] = `
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test should render left drawer menu for test option in header that matches the snapshot 1`] = `
 <div>
   <div
     className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
@@ -918,10 +924,4 @@ exports[`render left drawer menu should render left drawer menu for test option 
 </div>
 `;
 
-exports[`returns empty div for null,undefined or invalid  property values should return an empty div when the menutype is empty string that matches the snapshot 1`] = `<div />`;
-
-exports[`returns empty div for null,undefined or invalid  property values should return an empty div when the menutype is null that matches the snapshot 1`] = `<div />`;
-
-exports[`returns empty div for null,undefined or invalid  property values should return an empty div when the menutype is undefined) that matches the snapshot 1`] = `<div />`;
-
-exports[`returns empty div for null,undefined or invalid  property values should return empty div when the menutype is not valid(doesnt exist in the menu setting) 1`] = `<div />`;
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is undefined should return an empty div when the menutype is undefined) that matches the snapshot 1`] = `<div />`;
