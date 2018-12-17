@@ -18,20 +18,20 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = {
   dottedBtn: {
-    minHeight: '60px',
-    fontWeight: 700,
-    width: '100%',
-    color: '#000',
-    textAlign: 'left' as 'left',
-    verticalAlign: 'middle',
-    backgroundColor: 'transparent',
-    border: '1px dotted ' + theme.altinnPalette.primary.blueDark,
-    boxShadow: 'none',
-    borderRadius: '0px',
-    textTransform: 'none' as 'none',
-    maxWidth: '170px',
-    justifyContent: 'right',
-    fontSize: '16px',
+    'minHeight': '60px',
+    'fontWeight': 700,
+    'width': '100%',
+    'color': '#000',
+    'textAlign': 'left' as 'left',
+    'verticalAlign': 'middle',
+    'backgroundColor': 'transparent',
+    'border': '1px dotted ' + theme.altinnPalette.primary.blueDark,
+    'boxShadow': 'none',
+    'borderRadius': '0px',
+    'textTransform': 'none' as 'none',
+    'maxWidth': '170px',
+    'justifyContent': 'right',
+    'fontSize': '16px',
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -44,8 +44,9 @@ const styles = {
     fontSize: '54px',
     paddingRight: '6px',
   },
-}
+};
 
+// tslint:disable-next-line:max-line-length
 class AltinnIconButton extends React.Component<IAltinnIconButtonCompontentProvidedProps, IAltinnIconButtonComponentState> {
   public render() {
     const { classes } = this.props;

@@ -1,8 +1,8 @@
 import { Chip, createMuiTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
-import altinnTheme from '../theme/altinnStudioTheme';
 import * as React from 'react';
+import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnFilterChipCompontentProvidedProps {
   classes: any;
@@ -23,14 +23,14 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = {
   chip: {
-    color: '#000000',
-    borderColor: theme.altinnPalette.primary.blueDarker,
-    borderWidth: '1px',
-    borderStyle: 'dotted',
-    backgroundColor: '#FFF',
-    borderRadius: '36px',
-    minHeight: '36px',
-    fontSize: '16px',
+    'color': '#000000',
+    'borderColor': theme.altinnPalette.primary.blueDarker,
+    'borderWidth': '1px',
+    'borderStyle': 'dotted',
+    'backgroundColor': '#FFF',
+    'borderRadius': '36px',
+    'minHeight': '36px',
+    'fontSize': '16px',
     '&:hover': {
       backgroundColor: 'transparent !Important',
     },
@@ -42,18 +42,18 @@ const styles = {
     },
   },
   chipActive: {
-    backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
-    border: '1px solid ' + theme.altinnPalette.primary.blueDarker,
-    borderRadius: '36px',
-    minHeight: '36px',
-    fontSize: '16px',
+    'backgroundColor': theme.altinnPalette.primary.blueLight + ' !Important',
+    'border': '1px solid ' + theme.altinnPalette.primary.blueDarker,
+    'borderRadius': '36px',
+    'minHeight': '36px',
+    'fontSize': '16px',
     '&:hover': {
       backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
     },
     '&:focus': {
       backgroundColor: theme.altinnPalette.primary.blueLight + ' !Important',
       border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-    }
+    },
   },
   down: {
     borderTop: '10px solid' + theme.altinnPalette.primary.black,
@@ -61,8 +61,9 @@ const styles = {
     borderRight: '8px solid transparent',
     margin: '4px 8px 2px 0px',
   },
-}
+};
 
+// tslint:disable-next-line:max-line-length
 class AltinnFilterChip extends React.Component<IAltinnFilterChipCompontentProvidedProps, IAltinnFilterChipComponentState> {
   public render() {
     const { classes } = this.props;

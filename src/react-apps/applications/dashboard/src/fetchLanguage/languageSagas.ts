@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest, fork } from 'redux-saga/effects';
+import { call, fork, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../shared/src/utils/networking';
 import * as FetchLanguageActions from './fetchLanguageActions';
 import * as FetchLanguageActionTypes from './fetchLanguageActionTypes';
@@ -24,6 +24,7 @@ export function* watchLanguageSaga(): SagaIterator {
   );
 }
 
+// tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
   yield fork(watchLanguageSaga);
 }
