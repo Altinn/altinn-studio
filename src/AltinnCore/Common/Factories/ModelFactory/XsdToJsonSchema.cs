@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         addAnnotation(xmlSchemaElement, mainJsonSchema);
 
                         JsonSchema objectRefSchema = new JsonSchema();
-                        addTypeToSchema(xmlSchemaElement.SchemaTypeName, objectRefSchema);
+                        addTypeToSchema(xmlSchemaElement.SchemaType, xmlSchemaElement.SchemaTypeName, objectRefSchema);
                         mainJsonSchema.Property(xmlSchemaElement.Name, objectRefSchema);
 
                         mainJsonSchema.Required(xmlSchemaElement.Name);
@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                     else
                     {
-                        addTypeToSchema(xmlSchemaElement.SchemaTypeName, mainJsonSchema);
+                        addTypeToSchema(xmlSchemaElement.SchemaType, xmlSchemaElement.SchemaTypeName, mainJsonSchema);
                     }
                 }
                 else if (xmlSchemaObject is XmlSchemaComplexType)
@@ -171,7 +171,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     if (contentExtension.BaseTypeName != null)
                     {
                         allOfSchema = new JsonSchema();
-                        addTypeToSchema(contentExtension.BaseTypeName, allOfSchema);
+                        addTypeToSchema(null, contentExtension.BaseTypeName, allOfSchema);
                         allOfSchemaList.Add(allOfSchema);
                     }
 
@@ -231,7 +231,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 addAnnotation(elementItem, propertySchema);
                 if (elementItem.SchemaTypeName != null && !elementItem.SchemaTypeName.IsEmpty)
                 {
-                    addTypeToProperty(item, propertySchema, elementItem.SchemaTypeName);
+                    addTypeToProperty(item, propertySchema, elementItem.SchemaType, elementItem.SchemaTypeName);
                 }
                 else if (elementItem.SchemaType != null)
                 {
@@ -256,7 +256,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             }
                         }
 
-                        addTypeToSchema(new XmlQualifiedName(anonymousName), propertySchema);
+                        addTypeToSchema(elementItem.SchemaType, new XmlQualifiedName(anonymousName), propertySchema);
                         addNamedComplexType(mainJsonSchema, complexType, anonymousName);
                         anonymousTypes.Add(anonymousName);
                     }
@@ -294,7 +294,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private bool addSimpleTypeToDefinition(XmlSchemaSimpleType simpleType, JsonSchema definitionSchema)
+        private void addSimpleTypeToDefinition(XmlSchemaSimpleType simpleType, JsonSchema definitionSchema)
         {
             XmlSchemaSimpleTypeContent simpleTypeContent = simpleType.Content;
             if (simpleTypeContent is XmlSchemaSimpleTypeRestriction)
@@ -330,14 +330,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         definitionSchema.Enum(enumList.ToArray());
                     }
                 }
-
-                string baseTypeName = simpleTypeRestriction.BaseTypeName.ToString();
-                return addTypeToSchema(simpleTypeRestriction.BaseTypeName, definitionSchema);
+                addTypeToSchema(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, definitionSchema);
             }
-            return false;
         }
 
-        private void addTypeToProperty(XmlSchemaParticle particle, JsonSchema propertySchema, XmlQualifiedName schemaTypeName)
+        private void addTypeToProperty(XmlSchemaParticle particle, JsonSchema propertySchema, XmlSchemaType schemaType, XmlQualifiedName schemaTypeName)
         {
             if (particle.MaxOccurs > 1)
             {
@@ -351,79 +348,85 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 JsonSchema[] itemsSchemas = new JsonSchema[1];
                 itemsSchemas[0] = new JsonSchema();
                 addAnnotation(particle, itemsSchemas[0]);
-                addTypeToSchema(schemaTypeName, itemsSchemas[0]);
+                addTypeToSchema(schemaType, schemaTypeName, itemsSchemas[0]);
                 propertySchema.Items(itemsSchemas);
             }
             else
             {
-                addTypeToSchema(schemaTypeName, propertySchema);
+                addTypeToSchema(schemaType, schemaTypeName, propertySchema);
             }
         }
 
-        private bool addTypeToSchema(XmlQualifiedName qName, JsonSchema schema)
+        private void addTypeToSchema(XmlSchemaType schemaType, XmlQualifiedName qName, JsonSchema schema)
         {
-            string type = (qName==null) ? null : qName.ToString();
-            string name = (qName==null) ? null : qName.Name;
-            if ((type==null || type.Length==0) && (name==null || name.Length==0))
+            if (schemaType != null)
             {
-                throw new ArgumentException();
-            }
-
-            if ("http://www.w3.org/2001/XMLSchema:string".Equals(type))
-            {
-                schema.Type(JsonSchemaType.String);
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:boolean".Equals(type))
-            {
-                schema.Type(JsonSchemaType.Boolean);
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:integer".Equals(type))
-            {
-                schema.Type(JsonSchemaType.Integer);
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
-            {
-                schema.Type(JsonSchemaType.Number);
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
-            {
-                schema.Type(JsonSchemaType.String);
-                schema.Format(new StringFormat("date", JsonSchemaVersion.All, null));
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
-            {
-                schema.Type(JsonSchemaType.String);
-                schema.Format(StringFormat.DateTime);
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
-            {
-                schema.Type(JsonSchemaType.String);
-                schema.Format(new StringFormat("year", JsonSchemaVersion.All, null));
-                return true;
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
-            {
-                schema.Type(JsonSchemaType.String);
-                schema.Format(new StringFormat("year-month", JsonSchemaVersion.All, null));
-                return true;
-            }
-            else
-            {
-                if (name == null)
+                if (schemaType is XmlSchemaComplexType)
                 {
-                    schema.Type(JsonSchemaType.Object);
+                    schema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + qName.Name));
+                    anonymousTypes.Add(qName.Name);
                 }
                 else
                 {
-                    schema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + name));
+                    throw new NotImplementedException();
                 }
-                return false;
+            }
+            else
+            {
+                string type = (qName == null) ? null : qName.ToString();
+                string name = (qName == null) ? null : qName.Name;
+                if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
+                {
+                    throw new ArgumentException();
+                }
+
+                if ("http://www.w3.org/2001/XMLSchema:string".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.String);
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:boolean".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.Boolean);
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:integer".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.Integer);
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.Number);
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.String);
+                    schema.Format(new StringFormat("date", JsonSchemaVersion.All, null));
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.String);
+                    schema.Format(StringFormat.DateTime);
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.String);
+                    schema.Format(new StringFormat("year", JsonSchemaVersion.All, null));
+                }
+                else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
+                {
+                    schema.Type(JsonSchemaType.String);
+                    schema.Format(new StringFormat("year-month", JsonSchemaVersion.All, null));
+                }
+                else
+                {
+                    if (name == null)
+                    {
+                        schema.Type(JsonSchemaType.Object);
+                    }
+                    else
+                    {
+                        schema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + name));
+                    }
+                }
             }
         }
 
