@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ProfileMenu snapshot should match snapshot with default values 1`] = `
+exports[`ProfileMenu should match snapshot 1`] = `
 ShallowWrapper {
   Symbol(enzyme.__root__): [Circular],
   Symbol(enzyme.__unrendered__): <ProfileMenuComponent
@@ -189,7 +189,7 @@ ShallowWrapper {
 }
 `;
 
-exports[`ProfileMenu snapshot should match snapshot with logout text 1`] = `
+exports[`ProfileMenu should match snapshot with logout text 1`] = `
 ShallowWrapper {
   Symbol(enzyme.__root__): [Circular],
   Symbol(enzyme.__unrendered__): <ProfileMenuComponent

@@ -1,4 +1,5 @@
 import { shallow } from 'enzyme';
+import 'jest';
 import * as React from 'react';
 import ProfileMenuComponent from '../src/navigation/main-header/profileMenu';
 
@@ -6,20 +7,18 @@ describe('ProfileMenu', () => {
   let profileMenu: any;
   let rendered: any;
 
-  beforeEach(() => {
+  afterEach(() => {
     profileMenu = null;
     rendered = null;
   });
 
-  it('snapshot should match snapshot with default values', () => {
-    rendered = shallow(
-      <ProfileMenuComponent />,
-    );
+  it('should match snapshot', () => {
+    rendered = shallow(<ProfileMenuComponent />);
     profileMenu = rendered.shallow();
     expect(profileMenu).toMatchSnapshot();
   });
 
-  it('snapshot should match snapshot with logout text', () => {
+  it('should match snapshot with logout text', () => {
     rendered = shallow(
       <ProfileMenuComponent
         showlogout={true}
@@ -34,7 +33,7 @@ describe('ProfileMenu function', () => {
   let profileMenu: any;
   let rendered: any;
 
-  beforeEach(() => {
+  afterEach(() => {
     profileMenu = null;
     rendered = null;
   });
