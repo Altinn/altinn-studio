@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
-import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector/*, makeGetLayoutOrderSelector*/ } from '../selectors/getLayoutData';
 import { Container } from './Container';
+import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -11,33 +11,37 @@ export interface IPreviewProps {
   components: any;
   containers: any;
 }
-export interface IPreviewState { }
 
 export class PreviewComponent extends React.Component<
   IPreviewProps,
-  IPreviewState
+  null
   > {
-  public render() {
+  public render(): JSX.Element {
+    if (this.props.designMode) {
+      return this.renderDesignPreview();
+    }
+    return this.renderPreview();
+  }
+
+  public renderPreview(): JSX.Element {
+    const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
+      Object.keys(this.props.layoutOrder)[0] :
+      null;
+    if (!baseContainerId) {
+      return null;
+    }
     return (
-      <div className='col-12'>
-        {this.renderContainer()}
-      </div>
+      <Container
+        id={baseContainerId}
+        baseContainer={true}
+      />
     );
   }
 
-  public componentWillMount() {
-    if (!Object.keys(this.props.layoutOrder).length) {
-      // Create baseContainer if it doesn't exist
-      formDesignerActionDispatcher.addFormContainer({
-        repeating: false,
-        dataModelGroup: null,
-        index: 0,
-      });
-    }
-  }
-
-  public renderContainer = (): JSX.Element => {
-    const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
+  public renderDesignPreview(): JSX.Element {
+    const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
+      Object.keys(this.props.layoutOrder)[0] :
+      null;
     if (!baseContainerId) {
       return null;
     }
@@ -53,11 +57,11 @@ export class PreviewComponent extends React.Component<
 const makeMapStateToProps = () => {
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
   const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  // const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
   const mapStateToProps = (state: IAppState, empty: any): IPreviewProps => {
     return {
-      layoutOrder: GetLayoutOrderSelector(state),
+      layoutOrder: state.formDesigner.layout.order,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       designMode: GetDesignModeSelector(state),

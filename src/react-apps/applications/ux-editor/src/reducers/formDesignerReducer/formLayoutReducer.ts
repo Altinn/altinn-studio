@@ -56,7 +56,6 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       if (callback) {
         callback(component, id);
       }
-
       return update<IFormLayoutState>(state, {
         components: {
           [id]: {
@@ -306,6 +305,19 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
 
     case FormDesignerActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
       const { formLayout } = action as FormDesignerActions.IFetchFormLayoutFulfilledAction;
+      if (!formLayout) {
+        return update<IFormLayoutState>(state, {
+          fetching: {
+            $set: false,
+          },
+          fetched: {
+            $set: true,
+          },
+          error: {
+            $set: null,
+          },
+        });
+      }
       return update<IFormLayoutState>(state, {
         components: {
           $set: formLayout.components,
