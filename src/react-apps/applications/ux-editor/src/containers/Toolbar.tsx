@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -9,13 +8,15 @@ import { ConditionalRenderingModalComponent } from '../components/toolbar/Condit
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 
+import { ToolbarItem } from './ToolbarItem';
+
 import '../styles/toolBar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
-  actionMethod: () => void;
+  actionMethod: (containerId: string, index: number) => void;
 }
 
 export enum LayoutItemType {
@@ -41,14 +42,15 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     const customProperties = c.customProperties ? c.customProperties : {};
     return {
       label: c.name,
-      actionMethod: () => {
+      actionMethod: (containerId: string, position: number) => {
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
           title: c.name,
           ...JSON.parse(JSON.stringify(customProperties)),
         },
-          null,
+          position,
+          containerId,
         );
       },
     } as IToolbarElement;
@@ -63,7 +65,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     };
   }
 
-  public addContainerToLayout(activeContainer: string) {
+  public addContainerToLayout(containerId: string, index: number) {
     FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
@@ -71,7 +73,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
     } as ICreateFormContainer,
       null,
-      activeContainer,
+      containerId,
+      null,
+      index,
     );
   }
 
@@ -133,10 +137,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     });
   }
 
-  public onDragEnd = () => {
-    // Do Nothing
-  }
-
   public setToolbarLabel = (label: any) => {
     if (this.props.language) {
       if (label === 'Header') {
@@ -151,88 +151,28 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public render() {
     return (
       <div className={'col-sm-12'}>
-        <Droppable droppableId='ITEMS' isDropDisabled={true}>
-          {(provided: any, snapshot: any) => (
-            <div className='row' ref={provided.innerRef}>
-              {this.toolbarComponents.map((component, index) => {
-                return (
-                  <Draggable
-                    key={index}
-                    draggableId={index.toString()}
-                    index={index}
-                  >
-                    {
-                      /*tslint:disable-next-line:no-shadowed-variable */
-                      (provided: any, snapshot: any) => (
-                        <React.Fragment>
-                          <div
-                            className='col col-lg-12 a-item'
-                            id={index.toString()}
-                            key={index}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {component.label}
-                          </div>
-                        </React.Fragment>
-                      )}
-                  </Draggable>
-                );
-              })}
-
-              {this.getThirdPartyComponents().map((component, index) => (
-                <Draggable
-                  key={index}
-                  draggableId={component.label}
-                  index={5}
-                >
-                  {
-                    /*tslint:disable-next-line:no-shadowed-variable */
-                    (provided: any, snapshot: any) => (
-                      <>
-                        <div>
-                          <div
-                            className='col col-lg-12 a-item'
-                            id={index.toString()}
-                            key={index}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            {component.label}
-                          </div>
-                        </div>
-                      </>
-                    )}
-                </Draggable>
-              ))}
-
-              <Draggable
-                key={'add container'}
-                draggableId={'container'}
-                index={6}
-              >
-                {
-                  /*tslint:disable-next-line:no-shadowed-variable */
-                  (provided: any, snapshot: any) => (
-                    <>
-                      <div
-                        className='col col-lg-12 a-item'
-                        ref={provided.innerRef}
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                      >
-                        Add container
-                      </div>
-                    </>
-                  )
-                }
-              </Draggable>
+        {this.toolbarComponents.map((component, index) => (
+          <ToolbarItem
+            text={component.label}
+            onDropAction={component.actionMethod}
+          />
+        ))
+        }
+        {
+          this.getThirdPartyComponents().map((component, index) => (
+            <div
+              className='col col-lg-12 a-item'
+              id={index.toString()}
+              key={index}
+            >
+              {component.label}
             </div>
-          )}
-        </Droppable>
-
+          ))
+        }
+        <ToolbarItem
+          text={'Add container'}
+          onDropAction={this.addContainerToLayout}
+        />
         <div className='d-block'>
           <ExternalApiModalComponent />
         </div>
