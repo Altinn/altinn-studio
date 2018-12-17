@@ -1,0 +1,428 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ProfileMenu should match snapshot 1`] = `
+ShallowWrapper {
+  Symbol(enzyme.__root__): [Circular],
+  Symbol(enzyme.__unrendered__): <ProfileMenuComponent
+    classes={
+      Object {
+        "menuItem": "ProfileMenuComponent-menuItem-2",
+        "paperStyle": "ProfileMenuComponent-paperStyle-1",
+      }
+    }
+  />,
+  Symbol(enzyme.__renderer__): Object {
+    "batchedUpdates": [Function],
+    "getNode": [Function],
+    "render": [Function],
+    "simulateError": [Function],
+    "simulateEvent": [Function],
+    "unmount": [Function],
+  },
+  Symbol(enzyme.__node__): Object {
+    "instance": null,
+    "key": undefined,
+    "nodeType": "host",
+    "props": Object {
+      "children": Array [
+        <WithStyles(IconButton)
+          aria-haspopup="true"
+          onClick={[Function]}
+        >
+          <pure(AccountCircleIcon) />
+        </WithStyles(IconButton)>,
+        <WithStyles(Menu)
+          anchorEl={null}
+          anchorReference="none"
+          classes={
+            Object {
+              "paper": "ProfileMenuComponent-paperStyle-1",
+            }
+          }
+          elevation={1}
+          id="simple-menu"
+          onClose={[Function]}
+          open={false}
+        />,
+      ],
+    },
+    "ref": null,
+    "rendered": Array [
+      Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "class",
+        "props": Object {
+          "aria-haspopup": "true",
+          "aria-owns": undefined,
+          "children": <pure(AccountCircleIcon) />,
+          "onClick": [Function],
+        },
+        "ref": null,
+        "rendered": Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {},
+          "ref": null,
+          "rendered": null,
+          "type": [Function],
+        },
+        "type": [Function],
+      },
+      Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "class",
+        "props": Object {
+          "anchorEl": null,
+          "anchorReference": "none",
+          "children": undefined,
+          "classes": Object {
+            "paper": "ProfileMenuComponent-paperStyle-1",
+          },
+          "elevation": 1,
+          "id": "simple-menu",
+          "onClose": [Function],
+          "open": false,
+        },
+        "ref": null,
+        "rendered": null,
+        "type": [Function],
+      },
+    ],
+    "type": "div",
+  },
+  Symbol(enzyme.__nodes__): Array [
+    Object {
+      "instance": null,
+      "key": undefined,
+      "nodeType": "host",
+      "props": Object {
+        "children": Array [
+          <WithStyles(IconButton)
+            aria-haspopup="true"
+            onClick={[Function]}
+          >
+            <pure(AccountCircleIcon) />
+          </WithStyles(IconButton)>,
+          <WithStyles(Menu)
+            anchorEl={null}
+            anchorReference="none"
+            classes={
+              Object {
+                "paper": "ProfileMenuComponent-paperStyle-1",
+              }
+            }
+            elevation={1}
+            id="simple-menu"
+            onClose={[Function]}
+            open={false}
+          />,
+        ],
+      },
+      "ref": null,
+      "rendered": Array [
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {
+            "aria-haspopup": "true",
+            "aria-owns": undefined,
+            "children": <pure(AccountCircleIcon) />,
+            "onClick": [Function],
+          },
+          "ref": null,
+          "rendered": Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "class",
+            "props": Object {},
+            "ref": null,
+            "rendered": null,
+            "type": [Function],
+          },
+          "type": [Function],
+        },
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {
+            "anchorEl": null,
+            "anchorReference": "none",
+            "children": undefined,
+            "classes": Object {
+              "paper": "ProfileMenuComponent-paperStyle-1",
+            },
+            "elevation": 1,
+            "id": "simple-menu",
+            "onClose": [Function],
+            "open": false,
+          },
+          "ref": null,
+          "rendered": null,
+          "type": [Function],
+        },
+      ],
+      "type": "div",
+    },
+  ],
+  Symbol(enzyme.__options__): Object {
+    "adapter": ReactSixteenAdapter {
+      "options": Object {
+        "enableComponentDidUpdateOnSetState": true,
+        "lifecycles": Object {
+          "componentDidUpdate": Object {
+            "onSetState": true,
+          },
+          "getDerivedStateFromProps": true,
+          "getSnapshotBeforeUpdate": true,
+          "setState": Object {
+            "skipsComponentDidUpdateOnNullish": true,
+          },
+        },
+      },
+    },
+  },
+}
+`;
+
+exports[`ProfileMenu should match snapshot with logout text 1`] = `
+ShallowWrapper {
+  Symbol(enzyme.__root__): [Circular],
+  Symbol(enzyme.__unrendered__): <ProfileMenuComponent
+    classes={
+      Object {
+        "menuItem": "ProfileMenuComponent-menuItem-2",
+        "paperStyle": "ProfileMenuComponent-paperStyle-1",
+      }
+    }
+    showlogout={true}
+  />,
+  Symbol(enzyme.__renderer__): Object {
+    "batchedUpdates": [Function],
+    "getNode": [Function],
+    "render": [Function],
+    "simulateError": [Function],
+    "simulateEvent": [Function],
+    "unmount": [Function],
+  },
+  Symbol(enzyme.__node__): Object {
+    "instance": null,
+    "key": undefined,
+    "nodeType": "host",
+    "props": Object {
+      "children": Array [
+        <WithStyles(IconButton)
+          aria-haspopup="true"
+          onClick={[Function]}
+        >
+          <pure(AccountCircleIcon) />
+        </WithStyles(IconButton)>,
+        <WithStyles(Menu)
+          anchorEl={null}
+          anchorReference="none"
+          classes={
+            Object {
+              "paper": "ProfileMenuComponent-paperStyle-1",
+            }
+          }
+          elevation={1}
+          id="simple-menu"
+          onClose={[Function]}
+          open={false}
+        >
+          <WithStyles(MenuItem)
+            className="ProfileMenuComponent-menuItem-2"
+            onClick={[Function]}
+          >
+            Logout
+          </WithStyles(MenuItem)>
+        </WithStyles(Menu)>,
+      ],
+    },
+    "ref": null,
+    "rendered": Array [
+      Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "class",
+        "props": Object {
+          "aria-haspopup": "true",
+          "aria-owns": undefined,
+          "children": <pure(AccountCircleIcon) />,
+          "onClick": [Function],
+        },
+        "ref": null,
+        "rendered": Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {},
+          "ref": null,
+          "rendered": null,
+          "type": [Function],
+        },
+        "type": [Function],
+      },
+      Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "class",
+        "props": Object {
+          "anchorEl": null,
+          "anchorReference": "none",
+          "children": <WithStyles(MenuItem)
+            className="ProfileMenuComponent-menuItem-2"
+            onClick={[Function]}
+          >
+            Logout
+          </WithStyles(MenuItem)>,
+          "classes": Object {
+            "paper": "ProfileMenuComponent-paperStyle-1",
+          },
+          "elevation": 1,
+          "id": "simple-menu",
+          "onClose": [Function],
+          "open": false,
+        },
+        "ref": null,
+        "rendered": Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {
+            "children": "Logout",
+            "className": "ProfileMenuComponent-menuItem-2",
+            "onClick": [Function],
+          },
+          "ref": null,
+          "rendered": "Logout",
+          "type": [Function],
+        },
+        "type": [Function],
+      },
+    ],
+    "type": "div",
+  },
+  Symbol(enzyme.__nodes__): Array [
+    Object {
+      "instance": null,
+      "key": undefined,
+      "nodeType": "host",
+      "props": Object {
+        "children": Array [
+          <WithStyles(IconButton)
+            aria-haspopup="true"
+            onClick={[Function]}
+          >
+            <pure(AccountCircleIcon) />
+          </WithStyles(IconButton)>,
+          <WithStyles(Menu)
+            anchorEl={null}
+            anchorReference="none"
+            classes={
+              Object {
+                "paper": "ProfileMenuComponent-paperStyle-1",
+              }
+            }
+            elevation={1}
+            id="simple-menu"
+            onClose={[Function]}
+            open={false}
+          >
+            <WithStyles(MenuItem)
+              className="ProfileMenuComponent-menuItem-2"
+              onClick={[Function]}
+            >
+              Logout
+            </WithStyles(MenuItem)>
+          </WithStyles(Menu)>,
+        ],
+      },
+      "ref": null,
+      "rendered": Array [
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {
+            "aria-haspopup": "true",
+            "aria-owns": undefined,
+            "children": <pure(AccountCircleIcon) />,
+            "onClick": [Function],
+          },
+          "ref": null,
+          "rendered": Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "class",
+            "props": Object {},
+            "ref": null,
+            "rendered": null,
+            "type": [Function],
+          },
+          "type": [Function],
+        },
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {
+            "anchorEl": null,
+            "anchorReference": "none",
+            "children": <WithStyles(MenuItem)
+              className="ProfileMenuComponent-menuItem-2"
+              onClick={[Function]}
+            >
+              Logout
+            </WithStyles(MenuItem)>,
+            "classes": Object {
+              "paper": "ProfileMenuComponent-paperStyle-1",
+            },
+            "elevation": 1,
+            "id": "simple-menu",
+            "onClose": [Function],
+            "open": false,
+          },
+          "ref": null,
+          "rendered": Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "class",
+            "props": Object {
+              "children": "Logout",
+              "className": "ProfileMenuComponent-menuItem-2",
+              "onClick": [Function],
+            },
+            "ref": null,
+            "rendered": "Logout",
+            "type": [Function],
+          },
+          "type": [Function],
+        },
+      ],
+      "type": "div",
+    },
+  ],
+  Symbol(enzyme.__options__): Object {
+    "adapter": ReactSixteenAdapter {
+      "options": Object {
+        "enableComponentDidUpdateOnSetState": true,
+        "lifecycles": Object {
+          "componentDidUpdate": Object {
+            "onSetState": true,
+          },
+          "getDerivedStateFromProps": true,
+          "getSnapshotBeforeUpdate": true,
+          "setState": Object {
+            "skipsComponentDidUpdateOnNullish": true,
+          },
+        },
+      },
+    },
+  },
+}
+`;

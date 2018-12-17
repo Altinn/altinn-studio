@@ -67,7 +67,7 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
                       showSubHeader={true}
                       activeSubHeaderSelection={route.activeSubHeaderSelection}
                       activeLeftMenuSelection={route.activeLeftMenuSelection}
-                      backgroundColor='primary'
+                      backgroundColor={theme.altinnPalette.primary.white}
                     />}
                   />
                 ))}

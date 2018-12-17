@@ -92,13 +92,17 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
 
   public render() {
     const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
+    const style = {
+      background: this.props.backgroundColor,
+      color: 'black',
+    };
     return (
       <div className={classes.root}>
         <AppBar
           position='static'
-          color={this.props.backgroundColor}
           className={classes.appBar}
           elevation={0}
+          style={style}
         >
           <Toolbar>
             <Grid container={true} direction='row' alignItems='center' justify='space-between'>
