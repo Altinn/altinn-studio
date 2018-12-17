@@ -7,6 +7,7 @@
   },
   "devDependencies": {
     "@types/jest": "^23.3.10",
+    "@types/jsdom": "^12.2.0",
     "babel-jest": "^23.6.0",
     "cross-env": "5.1.6",
     "enzyme": "^3.7.0",
@@ -14,11 +15,12 @@
     "jest": "^23.6.0",
     "jest-environment-enzyme": "^7.0.1",
     "jest-enzyme": "^7.0.1",
+    "jsdom": "^13.1.0",
     "lerna": "^3.4.3",
     "react": "16.6.3",
     "react-dom": "16.6.3",
     "ts-jest": "^23.10.5",
-    "typescript": "^3.2.1",
+    "typescript": "3.1.6",
     "webpack-cli": "3.0.3"
   },
   "jest": {
