@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         addAnnotation(xmlSchemaElement, mainJsonSchema);
 
                         JsonSchema objectRefSchema = new JsonSchema();
-                        addTypeToSchema(xmlSchemaElement.SchemaTypeName.ToString(), xmlSchemaElement.SchemaTypeName.Name, objectRefSchema);
+                        addTypeToSchema(xmlSchemaElement.SchemaTypeName, objectRefSchema);
                         mainJsonSchema.Property(xmlSchemaElement.Name, objectRefSchema);
 
                         mainJsonSchema.Required(xmlSchemaElement.Name);
@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                     else
                     {
-                        addTypeToSchema(xmlSchemaElement.SchemaTypeName.ToString(), xmlSchemaElement.SchemaTypeName.Name, mainJsonSchema);
+                        addTypeToSchema(xmlSchemaElement.SchemaTypeName, mainJsonSchema);
                     }
                 }
                 else if (xmlSchemaObject is XmlSchemaComplexType)
@@ -171,7 +171,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     if (contentExtension.BaseTypeName != null)
                     {
                         allOfSchema = new JsonSchema();
-                        addTypeToSchema(contentExtension.BaseTypeName.ToString(), contentExtension.BaseTypeName.Name, allOfSchema);
+                        addTypeToSchema(contentExtension.BaseTypeName, allOfSchema);
                         allOfSchemaList.Add(allOfSchema);
                     }
 
@@ -256,7 +256,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             }
                         }
 
-                        addTypeToSchema(null, anonymousName, propertySchema);
+                        addTypeToSchema(new XmlQualifiedName(anonymousName), propertySchema);
                         addNamedComplexType(mainJsonSchema, complexType, anonymousName);
                         anonymousTypes.Add(anonymousName);
                     }
@@ -332,7 +332,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
 
                 string baseTypeName = simpleTypeRestriction.BaseTypeName.ToString();
-                return addTypeToSchema(simpleTypeRestriction.BaseTypeName.ToString(), simpleTypeRestriction.BaseTypeName.Name, definitionSchema);
+                return addTypeToSchema(simpleTypeRestriction.BaseTypeName, definitionSchema);
             }
             return false;
         }
@@ -351,17 +351,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 JsonSchema[] itemsSchemas = new JsonSchema[1];
                 itemsSchemas[0] = new JsonSchema();
                 addAnnotation(particle, itemsSchemas[0]);
-                addTypeToSchema(schemaTypeName.ToString(), schemaTypeName.Name, itemsSchemas[0]);
+                addTypeToSchema(schemaTypeName, itemsSchemas[0]);
                 propertySchema.Items(itemsSchemas);
             }
             else
             {
-                addTypeToSchema(schemaTypeName.ToString(), schemaTypeName.Name, propertySchema);
+                addTypeToSchema(schemaTypeName, propertySchema);
             }
         }
 
-        private bool addTypeToSchema(string type, string name, JsonSchema schema)
+        private bool addTypeToSchema(XmlQualifiedName qName, JsonSchema schema)
         {
+            string type = (qName==null) ? null : qName.ToString();
+            string name = (qName==null) ? null : qName.Name;
             if ((type==null || type.Length==0) && (name==null || name.Length==0))
             {
                 throw new ArgumentException();
