@@ -46,15 +46,10 @@ export class PreviewComponent extends React.Component<
       return null;
     }
     return (
-      <DroppableDraggableContainer
-        baseContainer={true}
+      <Container
         id={baseContainerId}
-      >
-        <Container
-          id={baseContainerId}
-          baseContainer={true}
-        />
-      </DroppableDraggableContainer>
+        baseContainer={true}
+      />
     );
   }
 }

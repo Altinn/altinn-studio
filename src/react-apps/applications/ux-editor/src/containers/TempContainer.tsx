@@ -134,7 +134,9 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
       return (
         <DroppableDraggableContainer
           id={id}
+          index={index}
           baseContainer={false}
+          parentContainerId={this.props.id}
           canDrag={true}
           onDropComponent={this.props.onDropComponent}
           onMoveComponent={this.props.onMoveComponent}
@@ -208,7 +210,6 @@ export class ContainerComponent extends React.Component<IContainerProps, null> {
     if (this.props.components[id].hidden && !this.props.designMode) {
       return null;
     }
-
     if (this.props.designMode) {
       return (
         <DroppableDraggableComponent

@@ -28,8 +28,7 @@ export interface IDroppableDraggableComponentProps {
 const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
   beginDrag(props: any) {
     return {
-      id: props.id,
-      containerId: props.containerId,
+      ...props,
     };
   },
 
@@ -97,35 +96,24 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           const draggedContainer = monitor.getItem();
           let hoverOverIndex = props.index;
 
-          if (!draggedContainer.onDrop) {
-            return;
-          }
-
           const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
           const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
           const clientOffset = monitor.getClientOffset();
           const hoverClientY = clientOffset.y - hoverBoundingRect.top;
 
-          if (draggedContainer.id === props.id) {
-            return;
-          }
-
           if (hoverOverIndex === draggedContainer.index) {
             return;
-          }
-
-          if (hoverClientY > (hoverMiddleY / 2)) {
-            props.onDropContainer(
-              draggedContainer.id,
-              hoverOverIndex,
-              props.id,
-              draggedContainer.containerId,
-            );
           }
 
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
           }
+          props.onDropContainer(
+            draggedContainer.id,
+            hoverOverIndex,
+            props.containerId,
+            draggedContainer.parentContainerId,
+          );
           break;
         }
         default: {

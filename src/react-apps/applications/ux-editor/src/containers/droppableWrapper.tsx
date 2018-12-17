@@ -37,8 +37,6 @@ const itemTarget = {
           return null;
         }
 
-        console.log(lastHoveredIndex);
-
         const dragIndex = monitor.getItem().index;
         const hoverIndex = props.index;
 

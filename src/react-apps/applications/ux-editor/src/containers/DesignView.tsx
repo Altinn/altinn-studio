@@ -16,12 +16,10 @@ interface IDesignerPreviewState extends IDesignerPreviewProps {
 class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreviewState> {
   public static getDerivedStateFromProps(nextProps: IDesignerPreviewProps, prevState: IDesignerPreviewState) {
     if (prevState.isDragging) {
-      console.log('taking state');
       return {
         ...prevState,
       };
     }
-    console.log('taking props');
     return {
       ...nextProps,
     };
@@ -70,7 +68,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
       }
       const [moveItem] = updatedSource.splice(layoutOrder[sourceContainerId].indexOf(id), 1);
-      console.log(moveItem);
       updatedDestination.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
@@ -89,7 +86,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public dropComponent = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
-    console.log('OMG OMG OMG OMG');
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
@@ -121,7 +117,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       const updatedOrder: string[] = layoutOrder[sourceContainerId];
       const [movedContainer] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, movedContainer);
-
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
           [sourceContainerId]: {
@@ -144,9 +139,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       updatedDestination.splice(index, 0, movedContainer);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
-          [sourceContainerId]: {
+          /*[sourceContainerId]: {
             $set: [...updatedSource],
-          },
+          },*/
           [destinationContainerId]: {
             $set: [...updatedDestination],
           },
@@ -188,6 +183,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         onMoveComponent={this.moveComponent}
         onDropContainer={this.dropContainer}
         onMoveContainer={this.moveContainer}
+        getIndex={this.getStatefullIndexOfContainer}
       >
         <Container
           baseContainer={true}

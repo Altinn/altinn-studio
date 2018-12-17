@@ -43,7 +43,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return {
       label: c.name,
       actionMethod: (containerId: string, position: number) => {
-        console.log(`adding ${c.name} to containerId ${containerId} at index ${position}`);
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,

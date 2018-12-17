@@ -10,14 +10,12 @@ import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
+import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainerOrder, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
-import DroppableDraggableComponent from './DroppableDraggableComponent';
 
 export interface IProvidedContainerProps {
   id: string;
   baseContainer?: boolean;
-  items: string[];
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -64,7 +62,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public handleContainerDelete = (e: any) => {
-    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index, this.props.parentContainerId);
+    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
     e.stopPropagation();
   }
 
@@ -163,7 +161,8 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
               this.props.containers[id] ?
                 this.renderContainer(id, index)
                 : null
-          )) : this.renderEmptyContainer(this.props.id)}
+          )) : null
+        }
         {
           !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
           <button
@@ -175,20 +174,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         }
         {!this.props.designMode && this.renderNewGroupButton()}
       </div>
-    );
-  }
-
-  public renderEmptyContainer = (containerId: string) => {
-    return (
-      <Droppable
-        id={null}
-        index={0}
-        containerId={containerId}
-        dropItem={this.props.onDropContainer}
-        hoverItemOver={this.hoverItemOver}
-      >
-        Empty, drag something over here
-      </DroppableDraggableComponent>
     );
   }
 
@@ -213,7 +198,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   ) => {
     if (!draggedId) {
       // Dragging a toolbar-item
-      console.log('No draggedId');
       return;
     }
 
@@ -263,8 +247,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         <Container
           id={id}
           baseContainer={false}
-          onDropItem={this.props.onDropItem}
-          onMoveItem={this.props.onMoveItem}
         />
       );
     } else {
@@ -321,26 +303,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (this.props.components[id].hidden && !this.props.designMode) {
       return null;
     }
-
-    if (this.props.designMode) {
-      return (
-        <DroppableDraggableComponent
-          id={id}
-          index={index}
-          containerId={this.props.id}
-          onDropItem={this.props.onDropItem}
-          onHoverOver={this.props.onMoveItem}
-        >
-          <FormComponentWrapper
-            key={index}
-            id={id}
-            handleDataUpdate={this.handleComponentDataUpdate}
-            formData={this.props.formData[this.props.components[id].dataModelBinding] ?
-              this.props.formData[this.props.components[id].dataModelBinding] : ''}
-          />
-        </DroppableDraggableComponent>
-      );
-    }
     return (
       <FormComponentWrapper
         key={index}
@@ -370,8 +332,12 @@ const makeMapStateToProps = () => {
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
   const GetActiveFormContainer = makeGetActiveFormContainer();
-  // const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
+  const GetContainersSelector = makeGetLayoutContainersSelector();
+  const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
   const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
+    const containers = GetContainersSelector(state);
+    const container = containers[props.id];
+    const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
       id: props.id,
       components: GetLayoutComponentsSelector(state),
@@ -382,7 +348,7 @@ const makeMapStateToProps = () => {
       dataModelGroup: container.dataModelGroup,
       formContainerActive: GetActiveFormContainer(state, props),
       language: state.appData.language.language,
-      items: props.items,
+      itemOrder,
     };
   };
   return mapStateToProps;

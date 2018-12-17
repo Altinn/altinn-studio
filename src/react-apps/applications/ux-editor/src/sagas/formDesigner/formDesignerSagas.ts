@@ -495,7 +495,6 @@ export function* updateFormComponentOrderSaga({
   sourceContainerId,
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
   const ComponentOrder: any = yield select(selectFormDesignerOrder);
-
   if (destinationContainerId === sourceContainerId) {
     const newOrder = ComponentOrder[destinationContainerId];
     const [moved] = newOrder.splice(newOrder.indexOf(id), 1);
