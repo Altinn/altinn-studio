@@ -3,10 +3,10 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import CreatableSelect from 'react-select/lib/Creatable';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
+import { getTextResource, truncate } from '../utils/language';
 import '../styles/index.css';
 
 const styles = createStyles({
@@ -19,9 +19,9 @@ const styles = createStyles({
     padding: '10px 12px 20px 12px',
   },
   formComponent: {
-    backgroundColor: altinnTheme.palette.secondary.light,
+    backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
     border: '1.5px dotted ' + altinnTheme.palette.secondary.dark,
-    color: altinnTheme.palette.primary.dark + '!mportant',
+    color: altinnTheme.altinnPalette.primary.blue + '!mportant',
     padding: '10px 12px 14px 12px',
     '&:hover': {
       backgroundColor: '#fff',
@@ -30,7 +30,7 @@ const styles = createStyles({
   },
   formComponentsBtn: {
     fontSize: '0.85em',
-    fill: altinnTheme.palette.primary.dark,
+    fill: altinnTheme.altinnPalette.primary.blue,
     paddingLeft: '0',
     marginTop: '0.1em',
     outline: 'none !important',
@@ -63,10 +63,10 @@ const styles = createStyles({
     fontSize: '1.2rem',
   },
   textPrimaryDark: {
-    color: altinnTheme.palette.primary.dark + '!important',
+    color: altinnTheme.altinnPalette.primary.blue + '!important',
   },
   textSecondaryDark: {
-    color: altinnTheme.palette.secondary.dark + '!important',
+    color: altinnTheme.altinnPalette.primary.grey + '!important',
   },
   wrapper: {
     '&:hover $gridForBtn': {
@@ -74,16 +74,6 @@ const styles = createStyles({
     },
   },
 });
-const customInput = {
-  control: (base: any) => ({
-    ...base,
-    borderRadius: '0 !important',
-  }),
-  option: (provided: any) => ({
-    ...provided,
-    whiteSpace: 'pre-wrap',
-  }),
-};
 
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
@@ -117,10 +107,12 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleComponentUpdate = (updatedComponent: IFormComponent): void => {
-    FormDesignerActionDispatchers.updateFormComponent(
-      updatedComponent,
-      this.props.id,
-    );
+    this.setState((state) => {
+      return {
+        ...state,
+        component: updatedComponent,
+      };
+    });
   }
 
   public handleComponentDelete = (e: any): void => {
@@ -158,7 +150,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
-    this.handleComponentUpdate(callbackComponent);
+    FormDesignerActionDispatchers.updateFormComponent(
+      callbackComponent,
+      this.props.id,
+    );
   }
 
   public handleTitleChange = (e: any): void => {
@@ -169,27 +164,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.component.title = e.target.value;
   }
 
-  public getTextResource = (resourceKey: string): string => {
-    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
-    return textResource ? textResource.value : resourceKey;
-  }
-
-  public truncate = (s: string, size: number) => {
-    if (s.length > size) {
-      return (s.substring(0, size) + '...');
-    } else {
-      return s;
-    }
-  }
-
   public render(): JSX.Element {
-    const textRecources: any = [];
-    this.props.textResources.map((resource, index) => {
-      const option = this.truncate(resource.value, 80);
-
-      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
-    });
-
     return (
       <>
         <Grid xs={12} sm={true} container={true}>
@@ -208,38 +183,22 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 >
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
-                      <span className={this.props.classes.inputHelper}>
-                        {this.props.language.ux_editor.modal_properties_data_model_helper}
-                      </span>
-                      <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                        {this.props.component.component}
-                      </span>
-                      <CreatableSelect
-                        styles={customInput}
-                        options={textRecources}
-                        defaultValue={''}
-                        onChange={this.handleTitleChange}
-                        isClearable={true}
-                        placeholder={this.state.component.title ?
-                          this.truncate(this.getTextResource(this.state.component.title), 40)
-                          : this.props.language.general.search}
-                        formatCreateLabel={inputValue => this.props.language.general.create.concat(' ', inputValue)}
-                        noOptionsMessage={() => this.props.language.general.no_options}
-                      />
                       <EditModalContent
                         component={this.props.component}
                         language={this.props.language}
+                        handleComponentUpdate={this.handleComponentUpdate}
                       />
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
-                      {this.state.component.title ? this.getTextResource(this.props.component.title)
+                      {this.state.component.title ?
+                        truncate(getTextResource(this.props.component.title, this.props.textResources), 80)
                         : this.props.component.component}
-                      <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                        {this.props.component.component}
-                      </span>
                     </div>
                   }
+                  <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
+                    {this.props.component.component}
+                  </span>
                 </ListItem>
               </List>
             </Grid>

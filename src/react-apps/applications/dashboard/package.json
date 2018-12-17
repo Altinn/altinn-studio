@@ -17,14 +17,19 @@
   "author": "Altinn",
   "license": "3-Clause BSD",
   "dependencies": {
+    "@material-ui/core": "3.6.1",
+    "@material-ui/icons": "3.0.1",
     "babel-core": "6.26.3",
-    "react": "16.6.1",
-    "react-dom": "16.6.1",
+    "immutability-helper": "2.7.0",
+    "moment": "^2.22.2",
+    "react": "16.6.3",
+    "react-dom": "16.6.3",
     "react-grid-layout": "0.16.6",
     "react-hot-loader": "4.3.1",
     "react-modal": "3.4.5",
-    "react-redux": "^5.0.7",
+    "react-redux": "5.0.7",
     "react-router-dom": "4.3.1",
+    "react-truncate-markup": "2.0.1",
     "redux": "4.0.0",
     "redux-devtools-extension": "2.13.5",
     "redux-logger": "3.0.6",
@@ -40,7 +45,7 @@
     "@types/react-dom": "16.0.7",
     "@types/react-modal": "3.1.2",
     "@types/react-redux": "6.0.2",
-    "@types/react-router-dom": "4.2.7",
+    "@types/react-router-dom": "4.3.1",
     "@types/react-test-renderer": "^16.0.3",
     "@types/redux": "3.6.31",
     "@types/redux-mock-store": "^1.0.0",
@@ -59,6 +64,7 @@
     "jest": "23.1.0",
     "jest-environment-enzyme": "^7.0.0",
     "jest-enzyme": "^7.0.0",
+    "jest-junit": "^5.2.0",
     "mini-css-extract-plugin": "0.4.0",
     "node-sass": "^4.9.3",
     "prettier": "1.13.5",
@@ -84,11 +90,15 @@
     "transform": {
       ".(ts|tsx)": "ts-jest"
     },
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
     },
-    "testRegex": ".*.(__tests__).*.(.spec|test.).(ts|tsx|js)$",
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

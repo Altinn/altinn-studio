@@ -1,6 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
+using AltinnCore.Common.Enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AltinnCore.Common.Models
 {
@@ -13,5 +13,11 @@ namespace AltinnCore.Common.Models
         /// Gets or sets the path of the file 
         /// </summary>
         public string FilePath { get; set; }
+
+        /// <summary>
+        /// The files status for the given file
+        /// </summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public FileStatus FileStatus { get; set; }
     }
 }

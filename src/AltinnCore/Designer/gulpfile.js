@@ -108,17 +108,19 @@ function cleanNodeModulePackages() {
   return del(cleanGlobs);
 }
 
-function copyReactJs() {
+function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
   copyUiEditorJs();
+  cb();
   return;
 }
 
-function copyReactCss() {
+function copyReactCss(cb) {
   copyDashboardCss();
   copyServDevCss();
   copyUiEditorCss();
+  cb();
   return;
 }
 
@@ -126,7 +128,6 @@ function copyDashboardJs() {
   setTimeout(function () {
     gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -134,7 +135,6 @@ function copyServDevJs() {
   setTimeout(function () {
     gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -142,7 +142,6 @@ function copyUiEditorJs() {
   setTimeout(function () {
     gulp.src(jsUiEditorFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -150,7 +149,6 @@ function copyDashboardCss() {
   setTimeout(function () {
     gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -158,7 +156,6 @@ function copyServDevCss() {
   setTimeout(function () {
     gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -166,7 +163,6 @@ function copyUiEditorCss() {
   setTimeout(function () {
     gulp.src(cssUiEditorFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -272,6 +268,9 @@ gulp.task('clean', gulp.series(
   deleteUiEditorJs,
   cleanNodeModulePackages,
   run('npm run clean', {
+    cwd: '../../react-apps/applications/dashboard',
+  }),
+  run('npm run clean', {
     cwd: '../../react-apps/applications/service-development',
   })
 ));
@@ -282,6 +281,15 @@ gulp.task('develop', gulp.parallel(
   run('dotnet run'),
   run('npm run webpack-watch', {
     cwd: '../../react-apps/applications/service-development',
+  })
+));
+
+gulp.task('develop-dashboard', gulp.parallel(
+  copyNodeModulePackages,
+  setupWatchers,
+  run('dotnet run'),
+  run('npm run webpack-watch', {
+    cwd: '../../react-apps/applications/dashboard',
   })
 ));
 

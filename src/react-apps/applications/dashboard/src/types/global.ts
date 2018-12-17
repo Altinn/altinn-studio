@@ -1,11 +1,15 @@
-import {IDashboardState} from '../reducers/dashboardReducer';
+import { IFetchedLanguageState } from '../fetchLanguage/languageReducer';
+import { IDashboardState } from '../services/dashboardReducer';
 
 declare global {
-  export interface IDashboardNameSpace<T1> {
+  export interface IDashboardNameSpace<T1, T2> {
     dashboard: T1;
+    language: T2;
   }
 
-  export interface IServiceDevelopmentAppState
+  export interface IDashboardAppState
     extends IDashboardNameSpace
-    <IDashboardState> { }
+    <IDashboardState,
+    IFetchedLanguageState
+    > { }
 }
