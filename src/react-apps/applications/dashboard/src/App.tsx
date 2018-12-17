@@ -1,13 +1,13 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
+import { connect } from 'react-redux';
+import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
 import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
 import fetchServicesActionDispatchers from './services/fetchDashboardDispatcher';
 import { ServicesOverview } from './services/servicesOverview';
-import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
-import { connect } from 'react-redux';
 
 export interface IMainDashboardState {
   drawerOpen: boolean;
