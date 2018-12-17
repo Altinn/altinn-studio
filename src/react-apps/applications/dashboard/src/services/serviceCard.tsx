@@ -59,10 +59,6 @@ const styles = {
 };
 
 class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, IServiceCardComponentState> {
-  constructor(_props: any) {
-    super(_props);
-  }
-
   public formatDate(date: any): any {
     return moment(new Date(date)).format('DD.MM.YYYY');
   }

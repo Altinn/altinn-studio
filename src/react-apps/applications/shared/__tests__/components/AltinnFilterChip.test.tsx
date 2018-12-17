@@ -27,7 +27,7 @@ describe('>>> AltinnFilterChip--- Snapshot', () => {
     };
   });
 
-  it('>>> Capture snapshot of AltinnFilterChip with the lest amount of params', () => {
+  it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
       <AltinnFilterChip
         key={mockKey}
@@ -38,7 +38,7 @@ describe('>>> AltinnFilterChip--- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('>>> Capture snapshot of AltinnFilterChip with sort icon visible', () => {
+  it('+++ Should match snapshot with sort icon visible', () => {
     const rendered = renderer.create(
       <AltinnFilterChip
         key={mockKey}
@@ -53,7 +53,7 @@ describe('>>> AltinnFilterChip--- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('>>> Capture snapshot of AltinnFilterChip with delete icon visible', () => {
+  it('+++ Should match snapshot with delete icon visible', () => {
     const rendered = renderer.create(
       <AltinnFilterChip
         key={mockKey}

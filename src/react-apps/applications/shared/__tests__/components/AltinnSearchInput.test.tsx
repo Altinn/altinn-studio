@@ -15,7 +15,7 @@ describe('>>> AltinnSearchInput--- Snapshot', () => {
     };
   });
 
-  it('>>> Capture snapshot of AltinnSearchInput with the lest amount of params', () => {
+  it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
       <AltinnSearchInput
         id={mockId}

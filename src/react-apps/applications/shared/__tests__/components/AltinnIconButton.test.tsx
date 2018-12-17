@@ -17,7 +17,7 @@ describe('>>> AltinnIconButton--- Snapshot', () => {
     };
   });
 
-  it('>>> Capture snapshot of AltinnIconButton with the lest amount of params', () => {
+  it('+++ Should match snapshot with the least amount of params', () => {
     const rendered = renderer.create(
       <AltinnIconButton
         iconClass={mockIconClass}
@@ -27,7 +27,7 @@ describe('>>> AltinnIconButton--- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('>>> Capture snapshot of AltinnIconButton with all params specified', () => {
+  it('+++ Should match snapshot with all params specified', () => {
     const rendered = renderer.create(
       <AltinnIconButton
         iconClass={mockIconClass}

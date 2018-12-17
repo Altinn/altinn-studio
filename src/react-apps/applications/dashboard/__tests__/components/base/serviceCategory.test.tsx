@@ -58,7 +58,7 @@ describe('>>> components/base/serviceCategory.tsx --- Snapshot', () => {
     mockStore = createStore(initialState);
   });
 
-  it('>>> Capture snapshot of ServiceCategory', () => {
+  it('+++ Should match snapshot', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <ServicesCategory

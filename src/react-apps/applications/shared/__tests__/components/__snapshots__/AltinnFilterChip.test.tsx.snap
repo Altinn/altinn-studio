@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnFilterChip with delete icon visible 1`] = `
+exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with delete icon visible 1`] = `
 <div
   className="MuiChip-root-4 MuiChip-colorPrimary-5 MuiChip-clickable-7 MuiChip-clickableColorPrimary-8 MuiChip-deletable-10 MuiChip-deletableColorPrimary-11 MuiChip-outlined-13 MuiChip-outlinedPrimary-14 AltinnFilterChip-chip-1"
   onClick={[Function]}
@@ -21,7 +21,7 @@ exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnFilterCh
 </div>
 `;
 
-exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnFilterChip with sort icon visible 1`] = `
+exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with sort icon visible 1`] = `
 <div
   className="MuiChip-root-4 MuiChip-colorPrimary-5 MuiChip-clickable-7 MuiChip-clickableColorPrimary-8 MuiChip-deletable-10 MuiChip-deletableColorPrimary-11 MuiChip-outlined-13 MuiChip-outlinedPrimary-14 mock-class-name AltinnFilterChip-chip-1"
   onClick={[Function]}
@@ -42,7 +42,7 @@ exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnFilterCh
 </div>
 `;
 
-exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnFilterChip with the lest amount of params 1`] = `
+exports[`>>> AltinnFilterChip--- Snapshot +++ Should match snapshot with the least amount of params 1`] = `
 <div
   className="MuiChip-root-4 MuiChip-colorPrimary-5 MuiChip-clickable-7 MuiChip-clickableColorPrimary-8 MuiChip-outlined-13 MuiChip-outlinedPrimary-14 AltinnFilterChip-chip-1"
   onKeyDown={[Function]}

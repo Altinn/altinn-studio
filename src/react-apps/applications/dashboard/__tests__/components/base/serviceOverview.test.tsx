@@ -87,7 +87,7 @@ describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
     mockStoreFull = createStore(initialStateWithServices);
   });
 
-  it('>>> Capture snapshot of ServiceOverview when empty', () => {
+  it('+++ Should match snapshot when empty', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <ServicesOverview
@@ -97,7 +97,7 @@ describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('>>> Capture snapshot of ServiceOverview when not empty', () => {
+  it('+++ Should match snapshot', () => {
     const rendered = renderer.create(
       <Provider store={mockStoreFull}>
         <ServicesOverview

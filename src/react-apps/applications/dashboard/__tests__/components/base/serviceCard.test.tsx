@@ -38,7 +38,7 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     mockStore = createStore(initialState);
   });
 
-  it('>>> Capture snapshot of ServiceCard', () => {
+  it('+++ Should match snapshot', () => {
     const rendered = renderer.create(
       <Provider store={mockStore}>
         <ServiceCard
@@ -49,7 +49,7 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     expect(rendered).toMatchSnapshot();
   });
 
-  it('+++ testing that date is correct', () => {
+  it('+++ should show correct date', () => {
     const wrapper = mount(
       <Provider store={mockStore}>
         <ServiceCard
@@ -59,16 +59,6 @@ describe('>>> components/base/serviceCard.tsx --- Snapshot', () => {
     );
     // tslint:disable-next-line:max-line-length
     expect(wrapper.contains(<p className='MuiTypography-root-142 MuiTypography-body1-151 MuiTypography-noWrap-168 Connect-ServiceCardComponent--displayInlineBlock-1 Connect-ServiceCardComponent--width100-2 Connect-ServiceCardComponent--textToRight-5 Connect-ServiceCardComponent--fontSize_14-9 Connect-ServiceCardComponent--fontWeight_500-8'>dashboard.last_changed_service 13.11.2018</p>)).toBe(true);
-  });
-
-  it('+++ testing that date is not the same as input prop date', () => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <ServiceCard
-          service={mockService}
-        />
-      </Provider>,
-    );
     // tslint:disable-next-line:max-line-length
     expect(wrapper.contains(<p className='MuiTypography-root-142 MuiTypography-body1-151 MuiTypography-noWrap-168 Connect-ServiceCardComponent--displayInlineBlock-1 Connect-ServiceCardComponent--width100-2 Connect-ServiceCardComponent--textToRight-5 Connect-ServiceCardComponent--fontSize_14-9 Connect-ServiceCardComponent--fontWeight_500-8'>dashboard.last_changed_service {mockService.updated_at}</p>)).toBe(false);
   });

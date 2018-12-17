@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> AltinnSearchInput--- Snapshot >>> Capture snapshot of AltinnSearchInput with the lest amount of params 1`] = `
+exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the least amount of params 1`] = `
 <div
   className="MuiFormControl-root-4 AltinnSearchInput-searchBox-1 MuiFormControl-fullWidth-7"
 >

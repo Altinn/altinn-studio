@@ -6,6 +6,12 @@ exports[`AppBarComponent - src/navigation/main-header/appBar - snapshot... shoul
 >
   <header
     className="MuiPaper-root-19 MuiPaper-elevation0-21 MuiAppBar-root-10 MuiAppBar-positionStatic-14 MuiAppBar-colorPrimary-17 AppBarComponent-appBar-2"
+    style={
+      Object {
+        "background": undefined,
+        "color": "black",
+      }
+    }
   >
     <div
       className="MuiToolbar-root-46 MuiToolbar-regular-48 MuiToolbar-gutters-47"
@@ -97,6 +103,12 @@ exports[`AppBarComponent - src/navigation/main-header/appBar - snapshot... shoul
 >
   <header
     className="MuiPaper-root-19 MuiPaper-elevation0-21 MuiAppBar-root-10 MuiAppBar-positionStatic-14 MuiAppBar-colorPrimary-17 AppBarComponent-appBar-2"
+    style={
+      Object {
+        "background": undefined,
+        "color": "black",
+      }
+    }
   >
     <div
       className="MuiToolbar-root-46 MuiToolbar-regular-48 MuiToolbar-gutters-47"
@@ -271,6 +283,12 @@ exports[`AppBarComponent - src/navigation/main-header/appBar - snapshot... shoul
 >
   <header
     className="MuiPaper-root-19 MuiPaper-elevation0-21 MuiAppBar-root-10 MuiAppBar-positionStatic-14 MuiAppBar-colorPrimary-17 AppBarComponent-appBar-2"
+    style={
+      Object {
+        "background": undefined,
+        "color": "black",
+      }
+    }
   >
     <div
       className="MuiToolbar-root-46 MuiToolbar-regular-48 MuiToolbar-gutters-47"
@@ -362,6 +380,12 @@ exports[`AppBarComponent - src/navigation/main-header/appBar - snapshot... shoul
 >
   <header
     className="MuiPaper-root-19 MuiPaper-elevation0-21 MuiAppBar-root-10 MuiAppBar-positionStatic-14 MuiAppBar-colorPrimary-17 AppBarComponent-appBar-2"
+    style={
+      Object {
+        "background": undefined,
+        "color": "black",
+      }
+    }
   >
     <div
       className="MuiToolbar-root-46 MuiToolbar-regular-48 MuiToolbar-gutters-47"

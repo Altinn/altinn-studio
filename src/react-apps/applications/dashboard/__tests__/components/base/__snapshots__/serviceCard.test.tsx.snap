@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> components/base/serviceCard.tsx --- Snapshot >>> Capture snapshot of ServiceCard 1`] = `
+exports[`>>> components/base/serviceCard.tsx --- Snapshot +++ Should match snapshot 1`] = `
 <div
   className="MuiPaper-root-11 MuiPaper-elevation0-13 MuiPaper-rounded-12 MuiCard-root-10 Connect-ServiceCardComponent--card-3"
 >

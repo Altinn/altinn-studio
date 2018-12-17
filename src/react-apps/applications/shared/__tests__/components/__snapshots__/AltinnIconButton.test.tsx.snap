@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnIconButton with all params specified 1`] = `
+exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with all params specified 1`] = `
 <button
   className="MuiButtonBase-root-29 MuiButton-root-3 MuiButton-contained-14 MuiButton-raised-17 AltinnIconButton-dottedBtn-1"
   disabled={false}
@@ -31,7 +31,7 @@ exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnIconButt
 </button>
 `;
 
-exports[`>>> AltinnFilterChip--- Snapshot >>> Capture snapshot of AltinnIconButton with the lest amount of params 1`] = `
+exports[`>>> AltinnIconButton--- Snapshot +++ Should match snapshot with the least amount of params 1`] = `
 <button
   className="MuiButtonBase-root-29 MuiButton-root-3 MuiButton-contained-14 MuiButton-raised-17 AltinnIconButton-dottedBtn-1"
   disabled={false}

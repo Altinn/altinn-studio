@@ -94,6 +94,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
     const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
     const style = {
       background: this.props.backgroundColor,
+      color: 'black',
     };
     return (
       <div className={classes.root}>
