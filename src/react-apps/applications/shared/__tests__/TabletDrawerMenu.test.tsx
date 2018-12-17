@@ -1,57 +1,82 @@
-import * as React from 'react';
-import TabletDrawerMenu from '../src/navigation/drawer/TabletDrawerMenu';
-import { mount } from 'enzyme';
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
+import { mount } from 'enzyme';
+import * as React from 'react';
+import * as renderer from 'react-test-renderer';
+import TabletDrawerMenu from '../src/navigation/drawer/TabletDrawerMenu';
 import altinnTheme from '../src/theme/altinnStudioTheme';
 
-describe('render tablet menu', () => {
-  let tabletDrawerMenu: any;
-  let open: boolean;
-  const tabletWidth: number = 1024;
-  const tabletHeight: number = 768;
-  let mockHandleTabletDrawerMenu: () => void;
+describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
+  describe('render tablet menu', () => {
+    let mockTabletDrawerOpen: boolean;
+    let mockHandleTabletDrawerMenu: () => void;
 
-  const theme = createMuiTheme(altinnTheme);
+    const theme = createMuiTheme(altinnTheme);
 
-  beforeEach(() => {
-    open: false;
-    mockHandleTabletDrawerMenu = () => null;
-    window.resizeTo(tabletWidth, tabletHeight);
+    beforeEach(() => {
+      mockTabletDrawerOpen = true;
+      mockHandleTabletDrawerMenu = jest.fn();
+    });
+
+    it('should render tablet menu when the tabletDrawerOpen property is set to true, ', () => {
+
+      const tabletDrawerMenu = mount(
+        <MuiThemeProvider theme={theme}>
+          <TabletDrawerMenu
+            tabletDrawerOpen={mockTabletDrawerOpen}
+            handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
+          />
+        </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+      );
+
+      tabletDrawerMenu.update();
+      tabletDrawerMenu.find('button').simulate('click');
+      expect(mockHandleTabletDrawerMenu).toHaveBeenCalled();
+      expect(tabletDrawerMenu.find('button').text()).toEqual('lukk');
+      expect(tabletDrawerMenu.find('Drawer[variant="persistent"]').prop('open')).toEqual(true);
+      tabletDrawerMenu.unmount();
+    });
   });
 
-  it('should render tablet view for the appbar that matches the snapshot', () => {
+  describe('render tablet menu', () => {
+    let mockTabletDrawerOpen: boolean;
+    let mockHandleTabletDrawerMenu: () => void;
 
-    tabletDrawerMenu = mount(
-      <MuiThemeProvider theme={theme}>
+    beforeEach(() => {
+      mockTabletDrawerOpen = true;
+      mockHandleTabletDrawerMenu = jest.fn();
+    });
+
+    it('should render tablet menu and menu items must match the snapshot ', () => {
+
+      const tabletDrawerMenu = renderer.create(
         <TabletDrawerMenu
-          tabletDrawerOpen={open}
+          tabletDrawerOpen={mockTabletDrawerOpen}
           handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
-        />
-      </MuiThemeProvider>, { attachTo: document.getElementById('root') },
-    );
-    expect(tabletDrawerMenu).toMatchSnapshot();
-    tabletDrawerMenu.unmount();
+        />,
+      );
+      expect(tabletDrawerMenu).toMatchSnapshot();
+    });
   });
 
-  it('should render tablet menu when the menu button is clicked that matches the snapshot', () => {
+  describe('when the tabletDrawerOpen property is false', () => {
+    let mockTabletDrawerOpen: boolean;
+    let mockHandleTabletDrawerMenu: () => void;
 
-    tabletDrawerMenu = mount(
-      <MuiThemeProvider theme={theme}>
-        <TabletDrawerMenu
-          tabletDrawerOpen={open}
-          handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
-        />
-      </MuiThemeProvider>, { attachTo: document.getElementById('root') },
-    );
-    // const spy = jest.spyOn(tabletDrawerMenu.instance(), 'handleTabletDrawerMenu');
-    // console.log(tabletDrawerMenu.debug());
-    // const menuButton = tabletDrawerMenu.find('Button[variant="outlined"]');
-    // const menuButton = tabletDrawerMenu.find('button');
-    tabletDrawerMenu.find('button').prop('onClick')();
-    tabletDrawerMenu.update();
-    // expect(tabletDrawerMenu.find('button').text()).toEqual('lukk');
-    expect(tabletDrawerMenu.find('Drawer[variant="persistent"]').prop('open')).toEqual(true);
+    beforeEach(() => {
+      mockTabletDrawerOpen = false;
+      mockHandleTabletDrawerMenu = jest.fn();
+    });
 
-    tabletDrawerMenu.unmount();
+    it(`should render menu button and the tablet menu must not be visible
+        and menu items must match the snapshot`, () => {
+
+        const tabletDrawerMenu = renderer.create(
+          <TabletDrawerMenu
+            tabletDrawerOpen={mockTabletDrawerOpen}
+            handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
+          />,
+        );
+        expect(tabletDrawerMenu).toMatchSnapshot();
+      });
   });
 });

@@ -1,0 +1,520 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx render tablet menu should render tablet menu and menu items must match the snapshot  1`] = `
+<div>
+  <button
+    className="MuiButtonBase-root-196 MuiButton-root-170 MuiButton-outlined-178 MuiButton-sizeSmall-193 TabletDrawerMenu-button-169"
+    disabled={false}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex="0"
+    type="button"
+  >
+    <span
+      className="MuiButton-label-171"
+    >
+      lukk
+    </span>
+    <span
+      className="MuiTouchRipple-root-304"
+    />
+  </button>
+  <div
+    className="MuiDrawer-root-199 MuiDrawer-docked-200 TabletDrawerMenu-drawer-159"
+  >
+    <div
+      className="MuiPaper-root-211 TabletDrawerMenu-drawerMenuPaper-168 MuiPaper-elevation0-213 MuiDrawer-paper-201 MuiDrawer-paperAnchorLeft-202 MuiDrawer-paperAnchorDockedLeft-206"
+      direction="right"
+      style={Object {}}
+    >
+      <div
+        style={
+          Object {
+            "width": "50%",
+          }
+        }
+      >
+        <ul
+          className="MuiList-root-238 MuiList-padding-239"
+        >
+          <div
+            className="MuiButtonBase-root-196 MuiListItem-root-242 TabletDrawerMenu-menuItem-164 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            role="button"
+            tabIndex="0"
+          >
+            <div
+              className="MuiListItemText-root-254"
+            >
+              <span
+                className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-menuItemText-165"
+              >
+                Logg ut
+              </span>
+            </div>
+            <span
+              className="MuiTouchRipple-root-304"
+            />
+          </div>
+        </ul>
+        <hr
+          className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+        />
+        <ul
+          className="MuiList-root-238 MuiList-padding-239"
+        >
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Om
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Lage
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Språk
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Test
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Publisere
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDrawerOpen property is false should render menu button and the tablet menu must not be visible
+        and menu items must match the snapshot 1`] = `
+<div>
+  <button
+    className="MuiButtonBase-root-196 MuiButton-root-170 MuiButton-outlined-178 MuiButton-sizeSmall-193 TabletDrawerMenu-button-169"
+    disabled={false}
+    onBlur={[Function]}
+    onClick={[Function]}
+    onFocus={[Function]}
+    onKeyDown={[Function]}
+    onKeyUp={[Function]}
+    onMouseDown={[Function]}
+    onMouseLeave={[Function]}
+    onMouseUp={[Function]}
+    onTouchEnd={[Function]}
+    onTouchMove={[Function]}
+    onTouchStart={[Function]}
+    tabIndex="0"
+    type="button"
+  >
+    <span
+      className="MuiButton-label-171"
+    >
+      lukk
+    </span>
+    <span
+      className="MuiTouchRipple-root-304"
+    />
+  </button>
+  <div
+    className="MuiDrawer-root-199 MuiDrawer-docked-200 TabletDrawerMenu-drawer-159"
+  >
+    <div
+      className="MuiPaper-root-211 TabletDrawerMenu-drawerMenuPaper-168 MuiPaper-elevation0-213 MuiDrawer-paper-201 MuiDrawer-paperAnchorLeft-202 MuiDrawer-paperAnchorDockedLeft-206"
+      direction="right"
+      style={Object {}}
+    >
+      <div
+        style={
+          Object {
+            "width": "50%",
+          }
+        }
+      >
+        <ul
+          className="MuiList-root-238 MuiList-padding-239"
+        >
+          <div
+            className="MuiButtonBase-root-196 MuiListItem-root-242 TabletDrawerMenu-menuItem-164 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+            onBlur={[Function]}
+            onClick={[Function]}
+            onFocus={[Function]}
+            onKeyDown={[Function]}
+            onKeyUp={[Function]}
+            onMouseDown={[Function]}
+            onMouseLeave={[Function]}
+            onMouseUp={[Function]}
+            onTouchEnd={[Function]}
+            onTouchMove={[Function]}
+            onTouchStart={[Function]}
+            role="button"
+            tabIndex="0"
+          >
+            <div
+              className="MuiListItemText-root-254"
+            >
+              <span
+                className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-menuItemText-165"
+              >
+                Logg ut
+              </span>
+            </div>
+            <span
+              className="MuiTouchRipple-root-304"
+            />
+          </div>
+        </ul>
+        <hr
+          className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+        />
+        <ul
+          className="MuiList-root-238 MuiList-padding-239"
+        >
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Om
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Lage
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Språk
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Test
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+          <div>
+            <div
+              className="MuiButtonBase-root-196 MuiListItem-root-242 MuiListItem-default-245 MuiListItem-gutters-250 MuiListItem-button-251"
+              onBlur={[Function]}
+              onClick={[Function]}
+              onFocus={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onMouseLeave={[Function]}
+              onMouseUp={[Function]}
+              onTouchEnd={[Function]}
+              onTouchMove={[Function]}
+              onTouchStart={[Function]}
+              role="button"
+              tabIndex="0"
+            >
+              <div
+                className="MuiListItemText-root-254"
+              >
+                <span
+                  className="MuiTypography-root-260 MuiTypography-subheading-267 MuiListItemText-primary-257 TabletDrawerMenu-mainMenuItemText-166"
+                >
+                  Publisere
+                </span>
+              </div>
+              <span
+                className="MuiTouchRipple-root-304"
+              />
+            </div>
+            <hr
+              className="MuiDivider-root-295 TabletDrawerMenu-divider-161"
+            />
+          </div>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+`;
