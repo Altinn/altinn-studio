@@ -64,9 +64,9 @@ const styles = createStyles({
     'borderBottom': '1px solid',
     'borderBottomColor': 'transparent',  // To mitigate the 1 pixel adjustment
     '&:hover': {
-      'borderBottom': 1,
-      'color': altinnTheme.altinnPalette.primary.blueDark,
-      'fontWeight': 500,
+      borderBottom: 1,
+      color: altinnTheme.altinnPalette.primary.blueDark,
+      fontWeight: 500,
     },
   },
   subHeaderLinkActive: {
@@ -75,9 +75,9 @@ const styles = createStyles({
     'color': altinnTheme.altinnPalette.primary.blueDark,
     'fontWeight': 500,
     '&:hover': {
-      'borderBottom': '1px solid',
-      'borderBottomColor': altinnTheme.altinnPalette.primary.blueDark,
-      'color': altinnTheme.altinnPalette.primary.blueDark,
+      borderBottom: '1px solid',
+      borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
+      color: altinnTheme.altinnPalette.primary.blueDark,
     },
   },
   topRightService: {
@@ -108,7 +108,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       logoutButton,
       org,
       service,
-      showBreadcrumbOnTablet
+      showBreadcrumbOnTablet,
     } = this.props;
 
     return (
