@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="ini-parser" Version="2.5.2" />
+    <PackageReference Include="Manatee.Json" Version="10.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.0" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.8.2" />
     <PackageReference Include="LibGit2Sharp" Version="0.26.0-preview-0027" />
