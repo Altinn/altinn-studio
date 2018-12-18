@@ -26,8 +26,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Manatee.Json" Version="10.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="Moq" Version="4.10.0" />
+    <PackageReference Include="NJsonSchema" Version="9.13.3" />
+    <PackageReference Include="NJsonSchema.CodeGeneration.CSharp" Version="9.13.3" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
@@ -36,6 +39,24 @@
   <ItemGroup>
     <ProjectReference Include="..\Common\AltinnCore.Common.csproj" />
     <ProjectReference Include="..\Designer\AltinnCore.Designer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Common\edag.schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\Edag.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\example.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\example.schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\ServiceModel.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

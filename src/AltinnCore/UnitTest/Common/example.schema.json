@@ -1,0 +1,179 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "$id": "https://altinn-studio.no/schemas/edag.json",
+  "title": "EDAG",
+  "type": "object",
+  "properties": {
+    "dataFormatProvider": {
+      "type": "string",
+      "const": "SERES",
+      "@xsdType": "XmlAttribute"
+    },
+    "dataFormatId": {
+      "type": "string",
+      "const": "3940",
+      "@xsdType": "XmlAttribute"
+    },
+    "dataFormatIdVersion": {
+      "type": "string",
+      "const": "20161021",
+      "@xsdType": "XmlAttribute"
+    },
+    "Leveranse": {
+      "$ref": "#/definitions/Leveranse"
+    },
+    "Opplysningspliktig": {
+      "type": "array",
+      "description": "asdf",
+      "items": { "$ref": "#/definitions/Opplysningspliktig" },
+      "minItems": 1,
+      "maxItems": 3
+    }
+  },
+  "required": [ "dataFormatProvider", "dataFormatId", "dataFormatIdVersion" ],
+  "definitions": {
+    "Leveranse": {
+      "type": "object",
+      "properties": {
+        "leveringstidspunkt": { "$ref": "#/definitions/DatoTid" },
+        "kalendermaaned": { "$ref": "#/definitions/AarOgMaaned" },
+        "kildesystem": { "$ref": "#/definitions/TekstMedRestriksjon" },
+        "meldingsId": { "$ref": "#/definitions/RestriksjonsIdentifikator" },
+        "opplysningspliktig": { "$ref": "#/definitions/Opplysningspliktig" },
+        "oppgave": { "$ref": "#/definitions/JuridiskEntitet" },
+        "spraakForTilbakemelding": { "$ref": "#/definitions/Spraak" }
+      },
+      "required": [ "leveringstidspunkt", "kalendermaaned", "kildesystem", "meldingsId", "opplysningspliktig", "oppgave" ]
+    },
+    "DatoTid": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "AarOgMaaned": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}$"
+    },
+    "TekstMedRestriksjon": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "RestriksjonsIdentifikator": {
+      "type": "string",
+      "maxLength": 150
+    },
+    "Opplysningspliktig": {
+      "type": "object",
+      "properties": {
+        "norskIdentifikator": { "$ref": "#/definitions/NorskIdentifikator" }
+      }
+    },
+    "NorskIdentifikator": {
+      "type": "string"
+    },
+    "Spraak": {
+      "type": "string",
+      "enum": [ "bookmaal", "nynorsk", "engelsk" ]
+    },
+    "JuridiskEntitet": {
+      "type": "object",
+      "properties": {
+        "betalingsinformasjon": { "$ref": "#/definitions/Betalingsinformasjon" },
+        "annenBagatellmessigStoette": { "$ref": "#/definitions/Beloep" },
+        "virksomhet": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Virksomhet" }
+        }
+      }
+    },
+    "Betalingsinformasjon": {
+      "type": "object",
+      "properties": {
+        "sumForskuddstrekk": { "$ref": "#/definitions/BeloepSomHeltall" },
+        "sumArbeidsgiveravgift": { "$ref": "#/definitions/BeloepSomHeltall" },
+        "sumFinansskattLoenn": { "$ref": "#/definitions/BeloepSomHeltall" }
+      }
+    },
+    "Loennsinntekt": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/definitions/Inntekt" },
+        {
+          "properties": {
+            "beskrivelse": { "$ref": "#/definitions/Loennsbeskrivelse" },
+            "spesifikasjon": { "$ref": "#/definitions/Spesifikasjon" },
+            "antall": { "$ref": "#/definitions/DesimalTall" }
+          },
+          "required": [ "beskrivelse" ]
+        }
+      ]
+    },
+    "Spesifikasjon": {
+      "type": "object",
+      "properties": {
+        "skattemessigBosattILand": { "$ref": "#/definitions/Landkode" },
+        "opptjeningsland": { "$ref": "#/definitions/Landkode" },
+        "erOpptjentPaaHjelpefartoey": { "$ref": "#/definitions/Boolsk" },
+        "erOpptjentPaaKontinentalsokkel": { "$ref": "#/definitions/Boolsk" }
+      }
+    },
+    "Inntekt": {
+      "type": "object",
+      "properties": {
+        "beloep": { "$ref": "#/definitions/Beloep" }
+      }
+    },
+    "BeloepSomHeltall": {
+      "type": "integer"
+    },
+    "Beloep": {
+      "type": "number"
+    },
+    "DesimalTall": {
+      "type": "number"
+    },
+    "Virksomhet": {
+      "type": "object",
+      "properties": {
+        "norskIdentifikator": { "$ref": "#/definitions/NorskIdentifikator" },
+        "inntektsmottaker": { "$ref": "#/definitions/Inntektsmottaker" }
+      }
+    },
+    "Inntektsmottaker": {
+      "type": "object",
+      "properties": {
+        "norskIdentifikator": { "$ref": "#/definitions/NorskIdentifikator" },
+        "inntekt": { "$ref": "#/definitions/Inntektsentitet" }
+      }
+    },
+    "Inntektsentitet": {
+      "type": "object",
+      "properties": {
+        "loennsinntekt": { "$ref": "#/definitions/Loennsinntekt" },
+        "inntjeningsforhold": { "$ref": "#/definitions/Inntjeningsforhold" }
+      }
+    },
+    "Inntjeningsforhold": {
+      "type": "object",
+      "allOf": [
+        { "$ref": "#/definitions/Loennsinntekt" },
+        {
+          "properties": {
+            "inntjeningsforhold": { "$ref": "#/definitions/SpesielleInntjeningsforhold" }
+          }
+        }
+      ]
+    },
+    "SpesielleInntjeningsforhold": {
+      "type": "string"
+    },
+    "Loennsbeskrivelse": {
+      "type": "string"
+    },
+    "Landkode": {
+      "type": "string"
+    },
+    "Boolsk": {
+      "type": "boolean"
+    }
+  }
+}
