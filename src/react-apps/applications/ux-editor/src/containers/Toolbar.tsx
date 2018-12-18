@@ -25,6 +25,7 @@ const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
+  componentType: ComponentTypes;
   actionMethod: (containerId: string, index: number) => void;
 }
 
@@ -135,6 +136,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       for (const componentName of thirdPartyComponents[packageName]) {
         thirdPartyComponentArray.push({
           label: `${packageName} - ${componentName}`,
+          componentType: null,
           actionMethod: FormDesignerActionDispatchers.addFormComponent({
             component: THIRD_PARTY_COMPONENT,
             title: `${packageName}.${componentName}`,
@@ -270,28 +272,30 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               dense={false}
               id='schema-components'
             >
-              {this.toolbarComponents.map((component, index) => (
+              {this.components.map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={component.label}
+                  componentType={component.componentType}
                   onDropAction={component.actionMethod}
+                  onClick={this.handleComponentInformationOpen}
                 />
               ))
               }
 
-              {this.getThirdPartyComponents().map((component, index) => (
+              {this.getThirdPartyComponents().map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={component.label}
-                  thirdPartyLabel={component.label}
+                  componentType={component.componentType}
+                  onDropAction={this.addThirdPartyComponentToLayout.bind(null, component, component.label)}
                   onClick={this.handleComponentInformationOpen}
                 />
               ))}
-
-              {
-                <ToolbarItem
-                  componentType={ComponentTypes.Container}
-                  onClick={this.handleComponentInformationOpen}
-                />
-              }
+              <ToolbarItem
+                text={this.props.language.ux_editor.container}
+                onClick={this.handleComponentInformationOpen}
+                onDropAction={this.addContainerToLayout}
+                componentType={ComponentTypes.Container}
+              />
             </List>
           </Collapse>
           <CollapsableMenuComponent
@@ -309,10 +313,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           >
             <List dense={false} id={'schema-texts'}>
-              <ToolbarItemComponent
-                componentType={component.componentType}
-                onClick={this.handleComponentInformationOpen}
-              />
+              {this.textComponents.map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={component.label}
+                  componentType={component.componentType}
+                  onClick={this.handleComponentInformationOpen}
+                  onDropAction={component.actionMethod}
+                />
+              ))}
             </List>
           </Collapse>
         </List >

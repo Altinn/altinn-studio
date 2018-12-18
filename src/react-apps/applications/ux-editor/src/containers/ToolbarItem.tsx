@@ -3,6 +3,8 @@ import {
   DragSourceMonitor,
   DragSourceSpec,
 } from 'react-dnd';
+import { ComponentTypes } from '../components';
+import { ToolbarItemComponent } from '../components/toolbar/ToolbarItemComponent';
 import createDraggable, {
   IDraggableProps,
 } from './DraggableToolbarItem';
@@ -11,6 +13,8 @@ interface IToolbarItemProps {
   text: string;
   onDropAction: (...args: any) => void;
   notDraggable?: boolean;
+  onClick: (...args: any) => void;
+  componentType: ComponentTypes;
 }
 
 const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
@@ -31,17 +35,22 @@ const DraggableToolbarItem = createDraggable(DraggableToolbarType, DraggableTool
 
 export class ToolbarItem extends React.Component<IToolbarItemProps, null> {
   public render() {
-    const { notDraggable, onDropAction, text } = this.props;
+    const { notDraggable, onDropAction, componentType, onClick } = this.props;
     return (
-      <DraggableToolbarItem
-        id={null}
-        index={null}
-        containerId={null}
-        notDraggable={notDraggable}
-        onDrop={onDropAction}
-      >
-        {text}
-      </DraggableToolbarItem>
+      <div >
+        <DraggableToolbarItem
+          id={null}
+          index={null}
+          containerId={null}
+          notDraggable={notDraggable}
+          onDrop={onDropAction}
+        >
+          <ToolbarItemComponent
+            onClick={onClick}
+            componentType={componentType}
+          />
+        </DraggableToolbarItem>
+      </div>
     );
   }
 }

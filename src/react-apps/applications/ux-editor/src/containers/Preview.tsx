@@ -1,9 +1,8 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
-import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector/*, makeGetLayoutOrderSelector*/ } from '../selectors/getLayoutData';
+import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
-import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 export interface IPreviewProps {
   designMode: boolean;
@@ -57,11 +56,12 @@ export class PreviewComponent extends React.Component<
 const makeMapStateToProps = () => {
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
   const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
-  // const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
   const mapStateToProps = (state: IAppState, empty: any): IPreviewProps => {
+    const layoutOrder = GetLayoutOrderSelector(state);
     return {
-      layoutOrder: state.formDesigner.layout.order,
+      layoutOrder,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       designMode: GetDesignModeSelector(state),

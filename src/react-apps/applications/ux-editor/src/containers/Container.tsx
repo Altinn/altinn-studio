@@ -1,4 +1,3 @@
-import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
