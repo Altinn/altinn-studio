@@ -91,55 +91,16 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     return (this.props.index || this.props.index > -1) && this.props.dataModelGroup && this.props.repeating;
   }
 
-  public render() {
+  public renderContent = (ref?: any): JSX.Element => {
     const className: string = this.props.baseContainer ? 'col-12' :
       this.props.formContainerActive ? 'col-12 a-btn-action a-bgBlueLighter cursorPointer' :
         'col-12 a-btn-action cursorPointer';
-    if (this.props.baseContainer) {
-      return (
-        <div
-          className={className}
-          onClick={this.changeActiveFormContainer}
-        >
-          {
-            this.props.designMode && !this.props.baseContainer &&
-            <div className='row'>
-              <div className='col-1'>
-                {this.renderDeleteGroupButton()}
-              </div>
-              <div className='col-3 offset-8 row'>
-                <span className='col-6'>Repeating:</span>
-                <div className='col-5'>
-                  <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
-                </div>
-              </div>
-            </div>
-          }
-          {this.state.itemOrder[this.props.id].length > 0 ?
-            this.state.itemOrder[this.props.id]
-              .map((id: string, index: number) => (
-                this.props.components[id] ?
-                  this.renderFormComponent(id, index) :
-                  this.props.containers[id] ?
-                    this.renderContainer(id, index)
-                    : id === 'temporary' ? 'Drop here' : null
-              )) : null
-          }
-          {
-            !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-            <button
-              className={'a-btn a-btn-action offset-10'}
-              onClick={this.handleContainerDelete}
-            >
-              <span>{this.props.language.ux_editor.repeating_group_delete}</span>
-            </button>
-          }
-          {!this.props.designMode && this.renderNewGroupButton()}
-        </div>
-      );
-    }
     return (
-      <div>
+      <div
+        className={className}
+        onClick={this.changeActiveFormContainer}
+        ref={ref}
+      >
         {
           this.props.designMode && !this.props.baseContainer &&
           <div className='row'>
@@ -154,14 +115,14 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             </div>
           </div>
         }
-        {this.state.itemOrder[this.props.id].length ?
-          this.state.itemOrder[this.props.id].map((id: string, index: number) => (
-            this.props.components[id] ?
-              this.renderFormComponent(id, index) :
-              this.props.containers[id] ?
-                this.renderContainer(id, index)
-                : null
-          )) : null
+
+        {this.props.itemOrder.map((id: string, index: number) => (
+          this.props.components[id] ?
+            this.renderFormComponent(id, index) :
+            this.props.containers[id] ?
+              this.renderContainer(id, index)
+              : null
+        ))
         }
         {
           !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
@@ -172,70 +133,21 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             <span>{this.props.language.ux_editor.repeating_group_delete}</span>
           </button>
         }
-        {!this.props.designMode && this.renderNewGroupButton()}
       </div>
     );
   }
 
-  public removeItem = (componentId: string, containerId: string) => {
-    if (this.state.itemOrder[containerId].indexOf(componentId) > -1) {
-      this.setState((state: IContainerState) => update(state, {
-        itemOrder: {
-          [this.props.id]: {
-            $splice: [[state.itemOrder[this.props.id].indexOf(componentId), 1]],
-          },
-        },
-      }));
-    }
-  }
-
-  public hoverItemOver = (
-    draggedId: string,
-    newPosition: number,
-    oldPosition: number,
-    sourceContainerId: string,
-    destinationContainerId: string,
-  ) => {
-    if (!draggedId) {
-      // Dragging a toolbar-item
-      return;
+  public render() {
+    if (this.props.designMode) {
+      return this.renderContent();
     }
 
-    if (newPosition === oldPosition) {
-      return;
-    }
-
-    const { itemOrder } = this.state;
-    const updatedOrder = itemOrder[sourceContainerId];
-    const [dragged] = updatedOrder.splice(updatedOrder.indexOf(draggedId), 1);
-    updatedOrder.splice(newPosition, 0, dragged);
-    return this.setState((state: IContainerState) => update(state, {
-      itemOrder: {
-        [this.props.id]: {
-          $set: updatedOrder,
-        },
-      },
-    }));
-  }
-
-  public dropItem = (
-    id: string,
-    newPosition: number,
-    destinationContainerId: string,
-    sourceContainerId: string,
-  ) => {
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      id,
-      newPosition,
-      destinationContainerId,
-      sourceContainerId,
+    return (
+      <div>
+        {this.renderContent()}
+        {this.renderNewGroupButton()}
+      </div>
     );
-
-    return this.setState((state: IContainerState) => update(state, {
-      currentlyDragging: {
-        $set: false,
-      },
-    }));
   }
 
   public renderContainer = (id: string, index: number) => {
@@ -246,17 +158,18 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       return (
         <Container
           id={id}
+          key={index}
           baseContainer={false}
         />
       );
-    } else {
-      return (
-        <Container
-          id={id}
-          key={id}
-        />
-      );
     }
+    return (
+      <Container
+        id={id}
+        key={`${id}`}
+        baseContainer={false}
+      />
+    );
   }
 
   public renderDeleteGroupButton = (): JSX.Element => {

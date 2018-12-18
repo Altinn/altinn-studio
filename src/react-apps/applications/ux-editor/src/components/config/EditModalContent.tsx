@@ -1,14 +1,38 @@
+import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import Select from 'react-select';
+import CreatableSelect from 'react-select/lib/Creatable';
+import {getTextResource, truncate} from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
+
+const styles = createStyles({
+  inputHelper: {
+    marginTop: '1em',
+    fontSize: '1.6rem',
+    lineHeight: '3.2rem',
+  },
+});
+const customInput = {
+  control: (base: any) => ({
+    ...base,
+    borderRadius: '0 !important',
+  }),
+  option: (provided: any) => ({
+    ...provided,
+    whiteSpace: 'pre-wrap',
+  }),
+};
 
 export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
-  saveEdit: (updatedComponent: FormComponentType) => void;
-  cancelEdit: () => void;
+  saveEdit?: (updatedComponent: FormComponentType) => void;
+  cancelEdit?: () => void;
+  handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
   language: any;
+  classes: any;
 }
 
 export interface IEditModalContentState {
@@ -22,10 +46,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.state = {
       component: _props.component,
     };
-  }
-
-  public handleSaveChanged = (): void => {
-    this.props.saveEdit(this.state.component);
   }
 
   public handleDisabledChange = (e: any): void => {
@@ -47,33 +67,20 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public handleTitleChange = (e: any): void => {
-    this.setState({
-      component: {
-        ...this.state.component,
-        title: e.target.value,
-      },
+    const updatedComponent = this.props.component;
+    updatedComponent.title = e ? e.value : null;
+    this.setState((state) => {
+      return {
+        ...state,
+        component: updatedComponent,
+      };
     });
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public handleDataModelChange = (e: any) => {
-    const dataModelBinding = e.target.value;
-    const title = this.getTextKeyFromDataModel(dataModelBinding);
-    if (title) {
-      this.setState({
-        component: {
-          ...this.state.component,
-          dataModelBinding,
-          title,
-        },
-      });
-    } else {
-      this.setState({
-        component: {
-          ...this.state.component,
-          dataModelBinding,
-        },
-      });
-    }
+  public handleParagraphChange = (e: any): void => {
+    const textObject: any = e.target;
+    this.handleTitleChange(textObject);
   }
 
   public handleAddOption = () => {
@@ -111,12 +118,22 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
   }
 
-  public handleUpdateHeaderSize = (size: string, event: any) => {
-    const updatedComponent: IFormHeaderComponent = this.state.component as IFormHeaderComponent;
-    updatedComponent.size = size;
-    this.setState({
-      component: updatedComponent,
-    });
+  public handleUpdateHeaderSize = (event: any) => {
+    const updatedComponent: IFormHeaderComponent = this.props.component as IFormHeaderComponent;
+    updatedComponent.size = event.value;
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
+  public handleDataModelChange = (selectedDataModelElement: any): void => {
+    const updatedComponent = this.props.component;
+    updatedComponent.dataModelBinding = selectedDataModelElement;
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
+  public handleDescriptionChange = (selectedText: any): void => {
+    const updatedComponent = this.props.component;
+    updatedComponent.description = selectedText ? selectedText.value : null;
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
   public getTextKeyFromDataModel = (dataBindingName: string): string => {
@@ -125,100 +142,128 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     return element.Texts.Label;
   }
 
-  public getTextResourceKeys = (): any[] => {
-    if (!this.props.textResources) {
-      return [];
-    }
+  public renderSelectDataModelBinding(): JSX.Element {
+    return (
+      <div>
+        {this.renderPropertyLabel(this.props.language.ux_editor.modal_properties_data_model_helper)}
+        <SelectDataModelComponent
+          selectedElement={this.props.component.dataModelBinding}
+          onDataModelChange={this.handleDataModelChange}
+          language={this.props.language}
+          noOptionsMessage={this.noOptionsMessage}
+        />
+      </div>
+    );
+  }
 
-    return (this.props.textResources.map((resource) => {
-      return resource.id;
-    }));
+  public renderSelectTextFromResources = (
+    labelText: string,
+    onChangeFunction: (e: any) => void,
+    placeholder?: string,
+    truncateLimit: number = 80,
+    createNewTextAllowed: boolean = true,
+  ): JSX.Element => {
+    const textRecources: any = [];
+    this.props.textResources.map((resource, index) => {
+      const option = truncate(resource.value, truncateLimit);
+      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
+    });
+    return (
+      <div>
+        {this.renderPropertyLabel(this.props.language.ux_editor[labelText])}
+        {createNewTextAllowed ?
+          <CreatableSelect
+            styles={customInput}
+            options={textRecources}
+            defaultValue={''}
+            onChange={onChangeFunction}
+            isClearable={true}
+            placeholder={placeholder ?
+              truncate(getTextResource(placeholder, this.props.textResources), 40)
+              : this.props.language.general.search}
+            formatCreateLabel={this.formatCreateTextLabel}
+            noOptionsMessage={this.noOptionsMessage}
+          />
+        :
+          <Select
+            styles={customInput}
+            options={textRecources}
+            defaultValue={''}
+            onChange={onChangeFunction}
+            isClearable={true}
+            placeholder={placeholder ?
+              truncate(getTextResource(placeholder, this.props.textResources), 40)
+              : this.props.language.general.search}
+            noOptionsMessage={this.noOptionsMessage}
+          />
+        }
+      </div>
+    );
+  }
+
+  public renderPropertyLabel(textKey: string) {
+    return (
+      <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
+        {textKey}
+      </Typography>
+    );
   }
 
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.component) {
       case 'Header': {
-        const component: IFormHeaderComponent = this.state.component as IFormHeaderComponent;
+        const sizes = [
+          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
+          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h3 },
+          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h2 },
+        ];
         return (
-          <fieldset className={'form-group'}>
-            <div
-              className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
-              onClick={this.handleUpdateHeaderSize.bind(this, 'S')}
-            >
-              <input
-                type='radio'
-                name={'radio-' + 'headerS-' + this.props.component.id}
-                className='custom-control-input'
-                checked={component.size === 'S'}
+          <Grid
+            container={true}
+            spacing={0}
+            direction={'column'}
+          >
+          {this.renderSelectTextFromResources('modal_properties_header_helper',
+            this.handleTitleChange, this.props.component.title)}
+            <Grid item={true} xs={12}>
+              {this.renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
+              <Select
+                styles={customInput}
+                defaultValue={this.state.component.size ?
+                    sizes.find((size) => size.value === this.state.component.size ) :
+                    sizes[0]}
+                onChange={this.handleUpdateHeaderSize}
+                options={sizes}
               />
-              <label className='custom-control-label pl-3 a-radioButtons-title'>
-                <h3>{'S'}</h3>
-              </label>
-            </div>
-            <div
-              className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
-              onClick={this.handleUpdateHeaderSize.bind(this, 'M')}
-            >
-              <input
-                type='radio'
-                name={'radio-' + 'headerM-' + this.props.component.id}
-                className='custom-control-input'
-                checked={component.size === 'M'}
-              />
-              <label className='custom-control-label pl-3 a-radioButtons-title'>
-                <h2>{'M'}</h2>
-              </label>
-            </div>
-            <div
-              className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
-              onClick={this.handleUpdateHeaderSize.bind(this, 'L')}
-            >
-              <input
-                type='radio'
-                name={'radio-' + 'headerL-' + this.props.component.id}
-                className='custom-control-input'
-                checked={component.size === 'L'}
-              />
-              <label className='custom-control-label pl-3 a-radioButtons-title'>
-                <h1>{'L'}</h1>
-              </label>
-            </div>
-          </fieldset>
+            </Grid>
+          </Grid>
         );
       }
       case 'Input': {
-        const component: IFormInputComponent = this.state.component as IFormInputComponent;
         return (
-          <div className='form-group a-form-group mt-2'>
-            <div className='custom-control custom-control-stacked pl-0 custom-checkbox a-custom-checkbox'>
-              <input
-                type={'checkbox'}
-                value={component.disabled ? 'true' : 'false'}
-                onChange={this.handleDisabledChange}
-                className='custom-control-input'
-                checked={component.disabled ? true : false}
-                name={'InputIsDisabled'}
-                id={'InputIsDisabled'}
-              />
-              <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsDisabled'>
-                {this.props.language.general.disabled}
-              </label>
-            </div>
-            <div className='custom-control custom-control-stacked pl-0 custom-checkbox a-custom-checkbox'>
-              <input
-                type={'checkbox'}
-                value={component.required ? 'true' : 'false'}
-                onChange={this.handleRequiredChange}
-                className='custom-control-input'
-                checked={component.required ? true : false}
-                name={'InputIsRequired'}
-                id={'InputIsRequired'}
-              />
-              <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsRequired'>
-                {this.props.language.general.required}
-              </label>
-            </div>
-          </div>
+          <Grid item={true} xs={12}>
+            {this.renderSelectDataModelBinding()}
+            {this.renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange, this.props.component.title)}
+            {this.renderSelectTextFromResources('modal_properties_description_helper',
+              this.handleDescriptionChange, this.props.component.description)}
+          </Grid>
+        );
+      }
+      case 'Paragraph': {
+        return (
+          <Grid>
+            {this.renderSelectTextFromResources('modal_properties_paragraph_helper',
+            this.handleTitleChange, this.props.component.title, 80, false)}
+            {this.renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
+            <textarea
+              value={getTextResource(this.state.component.title, this.props.textResources)}
+              style={{width: '100%'}}
+              rows={4}
+              className='form-control'
+              onChange={this.handleParagraphChange}
+            />
+          </Grid>
         );
       }
       case 'RadioButtons': {
@@ -382,16 +427,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public renderSelectDataBinding = (componentType: string): JSX.Element => {
-    return (this.shouldComponentDataBind(componentType) ?
-      (
-        <SelectDataModelComponent
-          onDataModelChange={this.handleDataModelChange}
-          selectedElement={this.state.component.dataModelBinding}
-          language={this.props.language}
-        />) : null);
-  }
-
   public renderTextResourceOptions = (): JSX.Element[] => {
     if (!this.props.textResources) {
       return null;
@@ -399,7 +434,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
     return (
       this.props.textResources.map((resource, index) => {
-        const option = this.truncate(resource.value);
+        const option = truncate(resource.value, 60);
         return (
           <option key={index} value={resource.id} title={resource.value}>
             {option}
@@ -408,87 +443,20 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       }));
   }
 
-  public truncate = (s: string) => {
-    if (s.length > 60) {
-      return s.substring(0, 60);
-    } else {
-      return s;
-    }
-  }
-
   public render(): JSX.Element {
     return (
-      <div className='modal-content'>
-        <div className='modal-header a-modal-header'>
-          <div className='a-iconText a-iconText-background a-iconText-large'>
-            <div className='a-iconText-icon'>
-              <i className='ai ai-corp a-icon' />
-            </div>
-            <h1 className='a-iconText-text mb-0'>
-              <span className='a-iconText-text-large'>
-                {this.props.language.ux_editor.modal_properties_header}
-              </span>
-            </h1>
-          </div>
-        </div>
-        <div className='modal-body a-modal-body'>
-          <div className='form-group a-form-group'>
-            {this.props.component.component !== 'ThirdParty' ? (
-              <div className='form-group a-form-group mt-1'>
-                <label className='a-form-label' htmlFor='nameField'>
-                  {this.props.language.ux_editor.modal_text}:
-                </label>
-                <div className='a-form-group-items input-group'>
-                  <select
-                    name={'editModal_text'}
-                    value={this.state.component.customType === 'Standard' ?
-                      this.state.component.textResourceId : this.state.component.title}
-                    onChange={this.handleTitleChange}
-                    className='custom-select a-custom-select'
-                    disabled={this.state.component.customType === 'Standard'}
-                  >
-                    <option value={''}>
-                      {this.props.language.ux_editor.modal_text_input}
-                    </option>
-                    {this.renderTextResourceOptions()}
-                  </select>
-                </div>
-
-              </div>
-            ) : null}
-          </div>
-          {this.renderComponentSpecificContent()}
-          {this.renderSelectDataBinding(this.state.component.component)}
-          <div className='row mt-3'>
-            <div className='col'>
-              <button type='submit' className='a-btn a-btn-success mr-2' onClick={this.handleSaveChanged}>
-                {this.props.language.general.save}
-              </button>
-              <a className='mr-2' onClick={this.props.cancelEdit}>
-                {this.props.language.general.cancel}
-              </a>
-            </div>
-          </div>
-        </div>
-      </div >
+      <>
+        {this.renderComponentSpecificContent()}
+      </>
     );
   }
 
-  private shouldComponentDataBind = (componentType: string): boolean => {
-    switch (componentType) {
-      case ('Input'):
-      case ('Checkboxes'):
-      case ('TextArea'):
-      case ('RadioButtons'):
-      case ('ThirdParty'):
-      case ('Dropdown'): {
-        return true;
-      }
+  private formatCreateTextLabel = (textToCreate: string): string => {
+    return this.props.language.general.create.concat(' ', textToCreate);
+  }
 
-      default: {
-        return false;
-      }
-    }
+  private noOptionsMessage = (): string => {
+    return this.props.language.general.no_options;
   }
 }
 
@@ -498,8 +466,11 @@ const mapStateToProps = (
 ): IEditModalContentProps => {
   return {
     language: state.appData.language.language,
+    textResources: state.appData.textResources.resources,
+    classes: props.classes,
     ...props,
   };
 };
 
-export const EditModalContent = connect(mapStateToProps)(EditModalContentComponent);
+export const EditModalContent = withStyles(styles, { withTheme: true })
+  (connect(mapStateToProps)(EditModalContentComponent));

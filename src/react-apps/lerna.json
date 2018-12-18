@@ -1,4 +1,9 @@
 {
+  "command": {
+    "bootstrap": {
+      "hoist": true
+    }
+  },
   "packages": [
     "applications/*"
   ],

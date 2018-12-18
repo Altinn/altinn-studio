@@ -95,7 +95,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetThirdPartyComponents`);
       // Fetch language
       appDataActionDispatcher.fetchLanguage(
-        `${altinnWindow.location.origin}/designer/${servicePath}/Language/GetLanguageAsJSON`, 'nb');
+        `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
     }
   }
 
@@ -118,12 +118,12 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
         <ErrorMessageComponent />
         <Route
           exact={true}
-          path='/'
+          path='/uieditor'
           render={this.resetFormData}
         />
         <Route
           exact={true}
-          path='/Preview'
+          path='/preview'
           render={this.renderFormFiller}
         />
       </div>

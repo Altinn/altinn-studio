@@ -13,15 +13,19 @@ export class HeaderComponent extends React.Component<IHeaderProps, IHeaderState>
   public renderHeader(): JSX.Element {
     switch (this.props.size) {
       case ('S'): {
-        return <h3 className='a-pageTitle' id={this.props.component.id}>{this.props.text}</h3>;
+        return <h4 id={this.props.component.id}>{this.props.text}</h4>;
       }
 
       case ('M'): {
-        return <h2 className='a-fontBold a-pageTitle' id={this.props.component.id}>{this.props.text}</h2>;
+        return <h3 id={this.props.component.id}>{this.props.text}</h3>;
+      }
+
+      case ('L'): {
+        return <h2 id={this.props.component.id}>{this.props.text}</h2>;
       }
 
       default: {
-        return <h1 className='a-fontBold a-pageTitle' id={this.props.component.id}>{this.props.text}</h1>;
+        return <h4 id={this.props.component.id}>{this.props.text}</h4>;
       }
     }
   }

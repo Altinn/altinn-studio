@@ -108,17 +108,19 @@ function cleanNodeModulePackages() {
   return del(cleanGlobs);
 }
 
-function copyReactJs() {
+function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
   copyUiEditorJs();
+  cb();
   return;
 }
 
-function copyReactCss() {
+function copyReactCss(cb) {
   copyDashboardCss();
   copyServDevCss();
   copyUiEditorCss();
+  cb();
   return;
 }
 
@@ -126,7 +128,6 @@ function copyDashboardJs() {
   setTimeout(function () {
     gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -134,7 +135,6 @@ function copyServDevJs() {
   setTimeout(function () {
     gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -142,7 +142,6 @@ function copyUiEditorJs() {
   setTimeout(function () {
     gulp.src(jsUiEditorFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
-
   return;
 }
 
@@ -150,7 +149,6 @@ function copyDashboardCss() {
   setTimeout(function () {
     gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -158,7 +156,6 @@ function copyServDevCss() {
   setTimeout(function () {
     gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
@@ -166,15 +163,31 @@ function copyUiEditorCss() {
   setTimeout(function () {
     gulp.src(cssUiEditorFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
-
   return;
 }
 
-function deleteReactJs() {
-  return del('wwwroot/designer/js/formbuilder/react/react-app.js');
+function deleteServDevJs() {
+  return del('wwwroot/designer/js/react/service-development.js');
 }
 
-function deleteReactCss() {
+function deleteDashboardJs() {
+  return del('wwwroot/designer/js/react/dashboard.js');
+}
+
+function deleteUiEditorJs() {
+  return del('wwwroot/designer/js/react/react-app.js');
+}
+
+
+function deleteServDevCss() {
+  return del('wwwroot/designer/css/react/service-development.css');
+}
+
+function deleteDashboardCss() {
+  return del('wwwroot/designer/css/react/dashboard.css');
+}
+
+function deleteUiEditorCss() {
   return del('wwwroot/designer/css/react/react-app.css');
 }
 
@@ -247,9 +260,16 @@ gulp.task('copy-files', gulp.series(
 ));
 
 gulp.task('clean', gulp.series(
-  deleteReactCss,
-  deleteReactJs,
+  deleteServDevCss,
+  deleteDashboardCss,
+  deleteUiEditorCss,
+  deleteServDevJs,
+  deleteDashboardJs,
+  deleteUiEditorJs,
   cleanNodeModulePackages,
+  run('npm run clean', {
+    cwd: '../../react-apps/applications/dashboard',
+  }),
   run('npm run clean', {
     cwd: '../../react-apps/applications/service-development',
   })
@@ -264,6 +284,15 @@ gulp.task('develop', gulp.parallel(
   })
 ));
 
+gulp.task('develop-dashboard', gulp.parallel(
+  copyNodeModulePackages,
+  setupWatchers,
+  run('dotnet run'),
+  run('npm run webpack-watch', {
+    cwd: '../../react-apps/applications/dashboard',
+  })
+));
+
 gulp.task('install-react-app-dependencies', gulp.series(
   run('lerna bootstrap --hoist', {
     cwd: '../../react-apps',
@@ -273,6 +302,12 @@ gulp.task('install-react-app-dependencies', gulp.series(
 gulp.task('default', gulp.series([
   run('npm run build', {
     cwd: '../../react-apps/applications/service-development',
+  }),
+  run('npm run build', {
+    cwd: '../../react-apps/applications/dashboard',
+  }),
+  run('npm run build', {
+    cwd: '../../react-apps/applications/ux-editor',
   }),
   'copy-files'
 ]));

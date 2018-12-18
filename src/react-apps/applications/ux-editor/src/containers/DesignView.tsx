@@ -200,7 +200,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 }
 
-const makeMapStateToProps = (store: IAppState, _empty: null): IDesignerPreviewProps => ({
+const makeMapStateToProps = (store: IAppState, _empty: any): IDesignerPreviewProps => ({
   layoutOrder: store.formDesigner.layout.order,
 });
 
