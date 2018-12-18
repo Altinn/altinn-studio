@@ -272,7 +272,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-
         /// <summary>
         /// List app tokens for a user. Warning there is talks about removing this.
         /// </summary>
@@ -317,7 +316,6 @@ namespace AltinnCore.Common.Services.Implementation
                 return null;
             }
         }
-
 
         /// <summary>
         /// Gets a list over the organizations that the current user has access to.
