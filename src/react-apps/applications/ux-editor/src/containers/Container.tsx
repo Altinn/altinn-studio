@@ -124,9 +124,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           </div>
         }
 
-        {!this.props.items.length ?
+        {!this.props.itemOrder.length ?
           this.props.designMode ? this.renderContainerPlaceholder() : null :
-          this.props.items.map((id: string, index: number) => (
+          this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ?
               this.renderFormComponent(id, index) :
               this.props.containers[id] ?
@@ -172,7 +172,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         index={0}
         containerId={this.props.id}
       >
-        This is empty, drag something here
+        {this.props.language.ux_editor.container_empty}
       </DroppableDraggableComponent>
     );
   }

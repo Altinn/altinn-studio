@@ -63,8 +63,8 @@ function* addFormComponentSaga({
     );
     return id; // returns created id
   } catch (err) {
-    console.error(err);
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
+    console.error(err);
   }
 }
 
@@ -477,6 +477,7 @@ function* createRepeatingContainer(
       }
     }
   } catch (err) {
+    yield call(FormDesignerActionDispatchers.createRepeatingGroupRejected, err);
     console.error(err);
   }
 }
