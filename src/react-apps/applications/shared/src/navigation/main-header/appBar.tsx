@@ -20,6 +20,7 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   activeLeftMenuSelection?: string;
   backgroundColor?: any;
   classes: any;
+  logoutButton?: boolean;
   org?: string;
   service?: string;
   showBreadcrumbOnTablet?: boolean;
@@ -39,6 +40,8 @@ const styles = createStyles({
     color: altinnTheme.altinnPalette.primary.black,
   },
   appBar: {
+    borderBottom: '1px solid',
+    borderBottomColor: '#C9C9C9',
     color: altinnTheme.altinnPalette.primary.black,
   },
   breadCrumb: {
@@ -97,7 +100,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
   }
 
   public render() {
-    const { activeLeftMenuSelection, activeSubHeaderSelection, backgroundColor, classes, org, service, showBreadcrumbOnTablet } = this.props;
+    const { activeLeftMenuSelection, activeSubHeaderSelection, backgroundColor, classes, logoutButton, org, service, showBreadcrumbOnTablet } = this.props;
 
     return (
       <div className={classes.root}>
@@ -140,7 +143,9 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                 </Grid>
                 <Hidden smDown>
                   <Grid item={true}>
-                    <ProfileMenu showlogout={true} />
+                    <ProfileMenu
+                      showlogout={true}
+                    />
                   </Grid>
                 </Hidden>
                 <Hidden mdUp>
@@ -148,6 +153,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                     <TabletDrawerMenu
                       handleTabletDrawerMenu={this.handleTabletDrawerMenu}
                       tabletDrawerOpen={this.state.tabletDrawerOpen}
+                      logoutButton={!logoutButton ? false : logoutButton}
                     />
                   </Grid>
                 </Hidden>

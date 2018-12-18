@@ -1,5 +1,5 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import { mount } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { MemoryRouter } from 'react-router-dom';
@@ -79,6 +79,17 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       );
       expect(rendered).toMatchSnapshot();
     });
+
+    it('should match snapshot with backgroundColor prop', () => {
+      const wrapper = shallow(
+        <AppBarComponent
+          showSubHeader={false}
+          backgroundColor={'pink'}
+        />
+      )
+      const appBarRendered = wrapper.shallow();
+      expect(appBarRendered).toMatchSnapshot();
+    })
   });
 
   describe('Responsive design', () => {
@@ -168,6 +179,33 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
         app.unmount();
 
       })
+
+    it(`should render logout menu when logoutButton prop is true`, () => {
+      const mockOrg = 'myTabletOrg';
+      const mockService = 'myTabletService';
+      const mockActiveSubHeaderSelection = 'subHeaderSelection';
+      const mockActiveLeftMenuSelection = 'leftmenuselection';
+
+      window.resizeTo(tabletWidth, tabletHeight);
+
+      app = mount(
+        <MuiThemeProvider theme={theme}>
+          <AppBarComponent
+            logoutButton={true}
+            org={mockOrg}
+            service={mockService}
+            showBreadcrumbOnTablet={false}
+            showSubHeader={false}
+            activeSubHeaderSelection={mockActiveSubHeaderSelection}
+            activeLeftMenuSelection={mockActiveLeftMenuSelection}
+          />
+        </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+      );
+
+      expect(app.text()).toMatch(`logout`);
+      expect(app.text()).not.toMatch(`meny`);
+      app.unmount();
+    })
 
   });
 
