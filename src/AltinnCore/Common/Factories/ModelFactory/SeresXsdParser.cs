@@ -8,16 +8,17 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
-    /// <summary>
-    ///     Transforms OR XSD to metadata
-    /// </summary>
-    public class SeresXsdParser
-    {
-        private readonly Random _randomGen = new Random();
-        private readonly IRepository _repository;
-        private readonly Dictionary<string, XDocument> secondaryXsdsByNamespace = new Dictionary<string, XDocument>();
-        private Dictionary<string, XDocument> secondaryXsds;
-        private XDocument xsd;
+	/// <summary>
+	///     Transforms OR XSD to metadata
+	/// </summary>
+	public class SeresXsdParser
+	{
+		private readonly Random _randomGen = new Random();
+		private readonly IRepository _repository;
+		private readonly Dictionary<string, XDocument> secondaryXsdsByNamespace = new Dictionary<string, XDocument>();
+		private Dictionary<string, XDocument> secondaryXsds;
+		private XDocument xsd;
+        private ISet<string> _complexTypes;
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="SeresXsdParser" /> class
@@ -112,8 +113,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             var allTexts = new CultureDictionary();
 
-            // Build metadata recursively
-            BuildJsonRecursive(rootComplexType, serviceMetadata.Elements, "/" + rootName, allTexts);
+            _complexTypes = new HashSet<string>();
+
+			//Build metadata recursively
+			BuildJsonRecursive(rootComplexType, serviceMetadata.Elements, "/" + rootName, allTexts);
 
             foreach (var cultureString in allTexts)
             {
@@ -152,44 +155,43 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return newKey;
         }
 
-        private void BuildJsonRecursive(
-            XElement currentComplexType,
-            Dictionary<string, ElementMetadata> allElements,
-            string parentTrail,
-            CultureDictionary allTexts)
-        {
-            // Process attributes
-            AddAttributeElements(currentComplexType, allElements, parentTrail);
+		private void BuildJsonRecursive(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements,
+			string parentTrail, CultureDictionary allTexts)
+		{
+            var typeName = currentComplexType.AttributeValue("name");
+            if (_complexTypes.Contains(typeName))
+            {
+                return;
+            }
+            else
+            {
+                _complexTypes.Add(typeName);
+            }
+
+			// Process attributes
+			AddAttributeElements(currentComplexType, allElements, parentTrail);
 
             // Iterate over children
             var sequenceElements = GetSequenceElementsFromComplexType(currentComplexType);
 
-            if (sequenceElements.Any())
-            {
-                var propertyNamesUsed = new List<string>();
-                foreach (var childElement in sequenceElements)
-                {
-                    ProcessChildElement(
-                        currentComplexType,
-                        childElement,
-                        allElements,
-                        parentTrail,
-                        propertyNamesUsed,
-                        allTexts);
-                }
-            }
-        }
+			if (sequenceElements.Any())
+			{
+				foreach (var childElement in sequenceElements)
+				{
+					ProcessChildElement(currentComplexType, childElement, allElements, parentTrail, 
+						allTexts);
+				}
+			}
+		}
 
-        private void ProcessChildElement(
-            XElement currentComplexType,
-            XElement childElement,
-            Dictionary<string, ElementMetadata> allElements,
-            string parentTrail,
-            List<string> propertyNamesUsed,
-            CultureDictionary allTexts,
-            string parentName = null)
-        {
-            var elementMetadata = new ElementMetadata();
+		private void ProcessChildElement(XElement currentComplexType,
+			XElement childElement,
+			Dictionary<string, ElementMetadata> allElements,
+			string parentTrail,
+			CultureDictionary allTexts,
+			string parentName = null)
+		{
+			var elementMetadata = new ElementMetadata();
 
             var currentElement = childElement;
             var actualElement = currentElement;
@@ -255,60 +257,41 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         {
                             var simpleContent = actualElement.Element(XDocName.SimpleContent);
 
-                            if (propertyNamesUsed.Contains(typeName.Split('-')[0]))
-                            {
-                                ProcessSimpleContent(actualElement, simpleContent, allElements, $"{parentTrail}/{typeName.Split('-')[0]}2", typeName.Split('.')[0]);
-                            }
-                            else
-                            {
-                                ProcessSimpleContent(actualElement, simpleContent, allElements, $"{parentTrail}/{typeName.Split('-')[0]}", typeName.Split('.')[0]);
-                            }
-
-                            AddAttributeElements(currentElement, allElements, $"{parentTrail}/{typeName.Split('-')[0]}");
-                            currentIsComplex = true;
-                            skipRecursive = true;
-                        }
-                        else
-                        {
-                            currentIsComplex = true;
-                        }
-                    }
-                }
-            }
+							ProcessSimpleContent(actualElement, simpleContent, allElements,
+								$"{parentTrail}/{typeName.Split('-')[0]}", typeName.Split('.')[0]);
+							
+							AddAttributeElements(currentElement, allElements, $"{parentTrail}/{typeName.Split('-')[0]}");
+							currentIsComplex = true;
+							skipRecursive = true;
+						}
+						else
+						{
+							currentIsComplex = true;
+						}
+					}
+				}
+			}
 
             elementMetadata.XName = typeName;
             var classShortRefName = typeName.Split('-')[0];
             string newTrail = $"{parentTrail}/{typeName}";
 
-            var nameIsUsed = false;
-            if (propertyNamesUsed.Contains(classShortRefName))
-            {
-                nameIsUsed = true;
-                classShortRefName += "2";
-                newTrail = $"{parentTrail}/{classShortRefName}";
-            }
 
-            var elementName = classShortRefName;
-            if (!string.IsNullOrEmpty(currentElement.AttributeValue("name")))
-            {
-                elementName = currentElement.AttributeValue("name").Split('-')[0];
-                elementMetadata.XName = currentElement.AttributeValue("name");
-                if (nameIsUsed)
-                {
-                    elementName += "2";
-                }
+			var elementName = classShortRefName;
+			if (!string.IsNullOrEmpty(currentElement.AttributeValue("name")))
+			{
+				elementName = currentElement.AttributeValue("name").Split('-')[0];
+				elementMetadata.XName = currentElement.AttributeValue("name");				
 
-                newTrail = $"{parentTrail}/{elementName}";
-            }
+				newTrail = $"{parentTrail}/{elementName}";
+			}		
 
-            propertyNamesUsed.Add(classShortRefName);
-
-            elementMetadata.Name = elementName;
-            elementMetadata.TypeName = classShortRefName;
-            elementMetadata.XPath = newTrail;
-            elementMetadata.ID = newTrail.Replace("/", ".").Substring(1);
-            elementMetadata.ParentElement = parentTrail.Replace("/", ".").Substring(1);
-            elementMetadata.DataBindingName = GetDataBindingName(elementMetadata.ID);
+			elementMetadata.Name = elementName;            
+			elementMetadata.TypeName = classShortRefName;
+			elementMetadata.XPath = newTrail;
+			elementMetadata.ID = newTrail.Replace("/", ".").Substring(1);
+			elementMetadata.ParentElement = parentTrail.Replace("/", ".").Substring(1);
+			elementMetadata.DataBindingName = GetDataBindingName(elementMetadata.ID);
 
             var currentElementAnnotations = GetAnnotationsForElement(currentElement, elementMetadata.ID);
             var childElementAnnotations = GetAnnotationsForElement(childElement, elementMetadata.ID);
@@ -427,10 +410,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            if (string.IsNullOrEmpty(elementMetadata.TypeName))
-            {
-                elementMetadata.TypeName = elementMetadata.Name;
-            }
+			if (string.IsNullOrEmpty(elementMetadata.TypeName))
+			{
+                elementMetadata.TypeName = null; // elementMetadata.Name;
+			}
 
             if (allElements.ContainsKey(elementMetadata.ID))
             {
