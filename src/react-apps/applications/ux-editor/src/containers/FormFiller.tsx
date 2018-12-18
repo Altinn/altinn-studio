@@ -89,9 +89,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     const { service } = altinnWindow;
     return (
       <WorkflowStep header={service}>
-        <div className='row'>
           <Preview />
-        </div>
         <div className='row mt-3'>
           <div className='a-btn-group'>
             {this.renderSaveButton()}
