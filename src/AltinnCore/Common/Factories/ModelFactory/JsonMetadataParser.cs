@@ -38,7 +38,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </summary>
         /// <param name="serviceMetadata">ServiceMetadata object</param>
         /// <returns>The model code in C#</returns>
-        internal string CreateModelFromMetadata(ServiceMetadata serviceMetadata)
+        public string CreateModelFromMetadata(ServiceMetadata serviceMetadata)
         {
             _serviceMetadata = serviceMetadata;
 
@@ -69,7 +69,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 .AppendLine("namespace " + string.Format(CodeGeneration.ServiceNamespaceTemplate, serviceMetadata.Org, serviceMetadata.Service))
                 .AppendLine("{")
                 ////Append all classes
-                .Append(string.Concat(classes.Values.Reverse()))
+                .Append(string.Concat(classes.Values))
                 .AppendLine("}");
 
             return writer.ToString();
@@ -82,7 +82,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <param name="parentElement">The parent Element</param>
         private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement)
         {
-            StringBuilder classBuilder = new StringBuilder();
+            List<ElementMetadata> referredTypes = new List<ElementMetadata>();
+
+            if (classes.ContainsKey(parentElement.TypeName))
+            {
+                return;
+            }
+                StringBuilder classBuilder = new StringBuilder();
             classBuilder.AppendLine("public class " + parentElement.TypeName + "{");
 
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
@@ -126,7 +132,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         classBuilder.AppendLine("public " + element.Value.TypeName + " " + element.Value.Name + " { get; set; }");
                     }
 
-                    CreateModelFromMetadataRecursive(classes, element.Value);
+                    referredTypes.Add(element.Value);
+         
+                    
                 }
                 else if (element.Value.Type == ElementType.Attribute)
                 {
@@ -162,12 +170,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (string.IsNullOrEmpty(parentElement.TypeName))
             {
-                return;
+                //return;
             }
 
             if (!classes.ContainsKey(parentElement.TypeName))
             {
                 classes.Add(parentElement.TypeName, classBuilder.ToString());
+            }
+
+            foreach (ElementMetadata refType in referredTypes)
+            {
+                CreateModelFromMetadataRecursive(classes, refType);
             }
         }
 

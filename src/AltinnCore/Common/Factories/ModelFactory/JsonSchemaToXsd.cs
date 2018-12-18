@@ -3,7 +3,6 @@ using Manatee.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 
@@ -16,31 +15,47 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         public XmlSchema CreateXsd(JsonSchema jSchema)
         {
-            XmlSchema xsdSchema = new XmlSchema();
-            string rootComplexTypeName = GetterExtensions.Title(jSchema);
-            XmlSchemaElement rootElement = new XmlSchemaElement();
-            XmlSchemaComplexType rootComplexType = ExtractComplexType(rootComplexTypeName, jSchema);        
-            rootElement.Name = "melding";
-           
-            rootElement.SchemaTypeName = new XmlQualifiedName(rootComplexTypeName);
-            xsdSchema.Items.Add(rootElement);
-            xsdSchema.Items.Add(rootComplexType);
+            XmlSchema xsdSchema = new XmlSchema
+            {
+                ElementFormDefault = XmlSchemaForm.Qualified,
+                AttributeFormDefault = XmlSchemaForm.Unqualified
+            };
 
+            string title = GetterExtensions.Title(jSchema);
+
+            XmlSchemaElement rootElement = new XmlSchemaElement
+            {
+                Name = title
+            };
+
+            rootElement.SchemaTypeName = new XmlQualifiedName(title);
+
+            xsdSchema.Items.Add(rootElement);
+
+            // handle properties of root object type
+            ExtractProperties(xsdSchema, title, jSchema);                                  
+
+            // Handle all definitions
             foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Definitions(jSchema))
             {
-                if (def.Value.Properties() != null || def.Value.AllOf() != null)
-                {
-                    XmlSchemaComplexType complexType = ExtractComplexType(def.Key, def.Value);
-                    xsdSchema.Items.Add(complexType);
-                } else
-                {
-                    XmlSchemaSimpleType simpleType = ExtractSimpleType(def.Key, def.Value);
-                    xsdSchema.Items.Add(simpleType);                
-                }
-            
+                ExtractProperties(xsdSchema, def.Key, def.Value);
             }
 
             return xsdSchema;
+        }
+
+        private void ExtractProperties(XmlSchema xsdSchema, string name, JsonSchema jSchema)
+        {
+            if (jSchema.Properties() != null || jSchema.AllOf() != null)
+            {
+                XmlSchemaComplexType complexType = ExtractComplexType(name, jSchema);
+                xsdSchema.Items.Add(complexType);
+            }
+            else
+            {
+                XmlSchemaSimpleType simpleType = ExtractSimpleType(name, jSchema);
+                xsdSchema.Items.Add(simpleType);
+            }
         }
 
         private XmlSchemaComplexType ExtractComplexType(string name, JsonSchema type)
@@ -108,10 +123,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (xsdType != null && xsdType.Equals("XmlAttribute"))
                 {
                     XmlSchemaSimpleType simpleType = ExtractSimpleType("example", propertyType);
-              
-                    XmlSchemaAttribute attribute = new XmlSchemaAttribute();
-                    attribute.Name = propertyName;
-                    attribute.SchemaTypeName = ((XmlSchemaSimpleTypeRestriction) simpleType.Content).BaseTypeName;
+
+                    XmlSchemaAttribute attribute = new XmlSchemaAttribute
+                    {
+                        Name = propertyName,
+                        SchemaTypeName = ((XmlSchemaSimpleTypeRestriction)simpleType.Content).BaseTypeName
+                    };
                     complexType.Attributes.Add(attribute);
 
                     JsonValue constant = propertyType.Const();
@@ -139,69 +156,29 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 Name = name
             };
 
-            TypeKeyword type = jSchema.Get<TypeKeyword>();            
+            string reference = GetterExtensions.Ref(jSchema);
+            if (reference != null)
+            {
+                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
+                {
+                    BaseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference))
+                };
+                
+                simpleType.Content = content;
+
+                return simpleType;
+            }
+
+            TypeKeyword type = jSchema.Get<TypeKeyword>();
+
+            if (type == null)
+            {
+                throw new ApplicationException("Empty type definition for property named " + name + ". Unable to map it to XSD");
+            }
 
             if (type.Value == JsonSchemaType.String)
             {
-
-                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
-                {
-                    BaseTypeName = new XmlQualifiedName("string", XmlSchemaNamespace)
-                };
-
-                EnumKeyword enumKeyword = jSchema.Get<EnumKeyword>();
-                if (enumKeyword != null)
-                {
-
-                    foreach (JsonValue enumValue in GetterExtensions.Enum(jSchema))
-                    {
-                        XmlSchemaEnumerationFacet enumFacet = new XmlSchemaEnumerationFacet
-                        {
-                            Value = enumValue.String
-                        };
-                        content.Facets.Add(enumFacet);
-                    }
-                }
-                
-                MinLengthKeyword minLength = jSchema.Get<MinLengthKeyword>();
-                if (minLength != null)
-                {
-                    XmlSchemaMinLengthFacet minInclusive = new XmlSchemaMinLengthFacet
-                    {
-                        Value = minLength.Value.ToString()
-                    };
-                    content.Facets.Add(minInclusive);
-                }
-
-                MaxLengthKeyword maxLength = jSchema.Get<MaxLengthKeyword>();
-                if (maxLength != null)
-                {
-                    XmlSchemaMaxLengthFacet maxInclusive = new XmlSchemaMaxLengthFacet
-                    {
-                        Value = maxLength.Value.ToString()
-                    };
-                    content.Facets.Add(maxInclusive);
-                }
-
-                PatternKeyword pattern = jSchema.Get<PatternKeyword>();
-                if (pattern != null)
-                {
-                    XmlSchemaPatternFacet patternFacet = new XmlSchemaPatternFacet
-                    {
-                        Value = pattern.Value.ToString()
-                    };
-
-                    content.Facets.Add(patternFacet);
-                }
-
-                FormatKeyword format = jSchema.Get<FormatKeyword>();
-                if (format != null && format.Value != null && format.Value.Key != null && !format.Value.Key.Equals(""))
-                {
-                    content.BaseTypeName = ExtractBaseTypeNameFromFormat(format.Value.Key);
-                }
-
-                simpleType.Content = content;
-
+                simpleType.Content = ExtractStringFacets(jSchema);
             }
             else if (type.Value == JsonSchemaType.Number || type.Value == JsonSchemaType.Integer)
             {                
@@ -217,6 +194,67 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }           
 
             return simpleType;
+        }
+
+        private XmlSchemaSimpleTypeRestriction ExtractStringFacets(JsonSchema jSchema)
+        {
+            XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
+            {
+                BaseTypeName = new XmlQualifiedName("string", XmlSchemaNamespace)
+            };
+
+            EnumKeyword enumKeyword = jSchema.Get<EnumKeyword>();
+            if (enumKeyword != null)
+            {
+
+                foreach (JsonValue enumValue in GetterExtensions.Enum(jSchema))
+                {
+                    XmlSchemaEnumerationFacet enumFacet = new XmlSchemaEnumerationFacet
+                    {
+                        Value = enumValue.String
+                    };
+                    content.Facets.Add(enumFacet);
+                }
+            }
+
+            MinLengthKeyword minLength = jSchema.Get<MinLengthKeyword>();
+            if (minLength != null)
+            {
+                XmlSchemaMinLengthFacet minInclusive = new XmlSchemaMinLengthFacet
+                {
+                    Value = minLength.Value.ToString()
+                };
+                content.Facets.Add(minInclusive);
+            }
+
+            MaxLengthKeyword maxLength = jSchema.Get<MaxLengthKeyword>();
+            if (maxLength != null)
+            {
+                XmlSchemaMaxLengthFacet maxInclusive = new XmlSchemaMaxLengthFacet
+                {
+                    Value = maxLength.Value.ToString()
+                };
+                content.Facets.Add(maxInclusive);
+            }
+
+            PatternKeyword pattern = jSchema.Get<PatternKeyword>();
+            if (pattern != null)
+            {
+                XmlSchemaPatternFacet patternFacet = new XmlSchemaPatternFacet
+                {
+                    Value = pattern.Value.ToString()
+                };
+
+                content.Facets.Add(patternFacet);
+            }
+
+            FormatKeyword format = jSchema.Get<FormatKeyword>();
+            if (format != null && format.Value != null && !string.IsNullOrEmpty(format.Value.Key))
+            {
+                content.BaseTypeName = ExtractBaseTypeNameFromFormat(format.Value.Key);
+            }
+
+            return content;
         }
 
         private static XmlSchemaSimpleTypeRestriction ExtractNumberAndIntegerFacets(JsonSchema jSchema, TypeKeyword type)
@@ -291,27 +329,39 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private XmlQualifiedName ExtractBaseTypeNameFromFormat(string format)
         {
             switch (format)
-            {
-                case "date-time":
-                    return new XmlQualifiedName("dateTime", XmlSchemaNamespace);
-                    
+            {                    
                 case "date":
                     return new XmlQualifiedName("date", XmlSchemaNamespace);
-                    
-                case "time":
-                    return new XmlQualifiedName("time", XmlSchemaNamespace);
-                    
-                case "year-month":
-                    return new XmlQualifiedName("gYearMonth", XmlSchemaNamespace);
-                    
+
+                case "date-time":
+                    return new XmlQualifiedName("dateTime", XmlSchemaNamespace);
+
+                case "duration":
+                    return new XmlQualifiedName("duration", XmlSchemaNamespace);
+
+                case "day":
+                    return new XmlQualifiedName("gDay", XmlSchemaNamespace);
+
+                case "month":
+                    return new XmlQualifiedName("gMonth", XmlSchemaNamespace);
+
+                case "month-day":
+                    return new XmlQualifiedName("gMonthDay", XmlSchemaNamespace);
+
                 case "year":
                     return new XmlQualifiedName("gYear", XmlSchemaNamespace);
+
+                case "year-month":
+                    return new XmlQualifiedName("gYearMonth", XmlSchemaNamespace);
+
+                case "time":
+                    return new XmlQualifiedName("time", XmlSchemaNamespace);                                    
                     
                 case "email":
                     return new XmlQualifiedName("string", XmlSchemaNamespace);
                     
                 case "uri":
-                    return new XmlQualifiedName("string", XmlSchemaNamespace);                    
+                    return new XmlQualifiedName("anyUri", XmlSchemaNamespace);                    
             }
 
             return new XmlQualifiedName("string", XmlSchemaNamespace);
@@ -373,7 +423,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string ExtractTypeFromDefinitionReference(string reference)
         {
-            return reference.Replace("#/definitions/", "");
+            if (reference != null)
+            {
+                return reference.Replace("#/definitions/", "");
+            }
+            return "Unknown";
         }
     }
 
