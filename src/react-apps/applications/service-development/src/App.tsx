@@ -64,10 +64,10 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
                       {...props}
                       org={org}
                       service={service}
+                      showBreadcrumbOnTablet={true}
                       showSubHeader={true}
                       activeSubHeaderSelection={route.activeSubHeaderSelection}
                       activeLeftMenuSelection={route.activeLeftMenuSelection}
-                      backgroundColor={theme.altinnPalette.primary.white}
                     />}
                   />
                 ))}
