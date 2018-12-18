@@ -43,7 +43,7 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <Router>
-            <Grid container={true} direction='column'>
+            <Grid container={true} direction='row'>
               <Grid item={true} xs={12}>
                 {redirects.map((route, index) => (
                   <Route
