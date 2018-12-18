@@ -88,7 +88,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 return;
             }
-                StringBuilder classBuilder = new StringBuilder();
+
+            StringBuilder classBuilder = new StringBuilder();
             classBuilder.AppendLine("public class " + parentElement.TypeName + "{");
 
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
@@ -132,9 +133,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         classBuilder.AppendLine("public " + element.Value.TypeName + " " + element.Value.Name + " { get; set; }");
                     }
 
-                    referredTypes.Add(element.Value);
-         
-                    
+                    referredTypes.Add(element.Value);                             
                 }
                 else if (element.Value.Type == ElementType.Attribute)
                 {
@@ -170,7 +169,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (string.IsNullOrEmpty(parentElement.TypeName))
             {
-                //return;
+                // return;
             }
 
             if (!classes.ContainsKey(parentElement.TypeName))
