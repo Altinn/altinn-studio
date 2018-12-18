@@ -1,31 +1,39 @@
-using Manatee.Json;
-using Manatee.Json.Schema;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Xml;
 using System.Xml.Schema;
+using Manatee.Json;
+using Manatee.Json.Schema;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
+    /// <summary>
+    ///     Utility class for converting JSON Schema to Xsd
+    /// </summary>
     public class JsonSchemaToXsd
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
         private const int MagicNumberMaxOccurs = 999;
 
+        /// <summary>
+        ///       Creates a XML schema object from the JSON Schema
+        /// </summary>
+        /// <param name="jSchema">bla bla</param>
+        /// <returns>xmlschema</returns>
         public XmlSchema CreateXsd(JsonSchema jSchema)
         {
             XmlSchema xsdSchema = new XmlSchema
             {
                 ElementFormDefault = XmlSchemaForm.Qualified,
-                AttributeFormDefault = XmlSchemaForm.Unqualified
+                AttributeFormDefault = XmlSchemaForm.Unqualified,
             };
 
             string title = GetterExtensions.Title(jSchema);
 
             XmlSchemaElement rootElement = new XmlSchemaElement
             {
-                Name = title
+                Name = title,
             };
 
             rootElement.SchemaTypeName = new XmlQualifiedName(title);
@@ -62,7 +70,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             XmlSchemaComplexType complexType = new XmlSchemaComplexType
             {
-                Name = name
+                Name = name,
             };
 
             string abstractType = type.OtherData.TryGetString("@xsdTag");
@@ -85,7 +93,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         extension.BaseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference));
                         XmlSchemaComplexContent content = new XmlSchemaComplexContent
                         {
-                            Content = extension
+                            Content = extension,
                         };
 
                         complexType.ContentModel = content;
@@ -94,10 +102,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         extension.Particle = ExtractAttributesAndElements(schema, complexType);
                     }                    
-
                 }
-                
-            } else
+            }
+          else
             {
                 XmlSchemaSequence sequence = ExtractAttributesAndElements(type, complexType);
                 
@@ -109,7 +116,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             return complexType;
         }
-
 
         private XmlSchemaSequence ExtractAttributesAndElements(JsonSchema jSchema, XmlSchemaComplexType complexType)
         {
@@ -127,7 +133,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     XmlSchemaAttribute attribute = new XmlSchemaAttribute
                     {
                         Name = propertyName,
-                        SchemaTypeName = ((XmlSchemaSimpleTypeRestriction)simpleType.Content).BaseTypeName
+                        SchemaTypeName = ((XmlSchemaSimpleTypeRestriction)simpleType.Content).BaseTypeName,
                     };
                     complexType.Attributes.Add(attribute);
 
@@ -145,15 +151,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     sequence.Items.Add(ExtractElementSequence(propertyName, propertyType, jSchema));
                 }
             }
+
             return sequence;
-        }
-        
+        }        
 
         private XmlSchemaSimpleType ExtractSimpleType(string name, JsonSchema jSchema)
         {
             XmlSchemaSimpleType simpleType = new XmlSchemaSimpleType
             {
-                Name = name
+                Name = name,
             };
 
             string reference = GetterExtensions.Ref(jSchema);
@@ -161,7 +167,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
                 {
-                    BaseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference))
+                    BaseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference)),
                 };
                 
                 simpleType.Content = content;
@@ -188,7 +194,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
                 {
-                    BaseTypeName = new XmlQualifiedName("boolean", XmlSchemaNamespace)
+                    BaseTypeName = new XmlQualifiedName("boolean", XmlSchemaNamespace),
                 };
                 simpleType.Content = content;
             }           
@@ -200,18 +206,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
             {
-                BaseTypeName = new XmlQualifiedName("string", XmlSchemaNamespace)
+                BaseTypeName = new XmlQualifiedName("string", XmlSchemaNamespace),
             };
 
             EnumKeyword enumKeyword = jSchema.Get<EnumKeyword>();
             if (enumKeyword != null)
             {
-
                 foreach (JsonValue enumValue in GetterExtensions.Enum(jSchema))
                 {
                     XmlSchemaEnumerationFacet enumFacet = new XmlSchemaEnumerationFacet
                     {
-                        Value = enumValue.String
+                        Value = enumValue.String,
                     };
                     content.Facets.Add(enumFacet);
                 }
@@ -222,7 +227,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaMinLengthFacet minInclusive = new XmlSchemaMinLengthFacet
                 {
-                    Value = minLength.Value.ToString()
+                    Value = minLength.Value.ToString(),
                 };
                 content.Facets.Add(minInclusive);
             }
@@ -232,7 +237,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaMaxLengthFacet maxInclusive = new XmlSchemaMaxLengthFacet
                 {
-                    Value = maxLength.Value.ToString()
+                    Value = maxLength.Value.ToString(),
                 };
                 content.Facets.Add(maxInclusive);
             }
@@ -242,7 +247,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaPatternFacet patternFacet = new XmlSchemaPatternFacet
                 {
-                    Value = pattern.Value.ToString()
+                    Value = pattern.Value.ToString(),
                 };
 
                 content.Facets.Add(patternFacet);
@@ -279,7 +284,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     XmlSchemaMinInclusiveFacet facet = new XmlSchemaMinInclusiveFacet
                     {
-                        Value = FormatDouble((double) minValue)
+                        Value = FormatDouble((double)minValue),
                     };
                     content.Facets.Add(facet);
                 }
@@ -287,11 +292,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {                    
                     XmlSchemaMinExclusiveFacet facet = new XmlSchemaMinExclusiveFacet
                     {
-                        Value = FormatDouble((double)minExclusiveValue)
+                        Value = FormatDouble((double)minExclusiveValue),
                     };
                     content.Facets.Add(facet);
                 }
-
             }
 
             double? maxValue = GetterExtensions.Maximum(jSchema);
@@ -303,7 +307,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {                    
                     XmlSchemaMaxInclusiveFacet maxInclusiveFacet = new XmlSchemaMaxInclusiveFacet
                     {
-                        Value = FormatDouble((double)maxValue)
+                        Value = FormatDouble((double)maxValue),
                     };
                     content.Facets.Add(maxInclusiveFacet);
                 }
@@ -311,11 +315,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {                    
                     XmlSchemaMaxExclusiveFacet maxExclusiveFacet = new XmlSchemaMaxExclusiveFacet
                     {
-                        Value = FormatDouble((double)maxExclusiveValue)
+                        Value = FormatDouble((double)maxExclusiveValue),
                     };
                     content.Facets.Add(maxExclusiveFacet);
                 }
-
             }
 
             return content;
@@ -371,7 +374,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             XmlSchemaElement element = new XmlSchemaElement
             {
-                Name = propertyName
+                Name = propertyName,
             };
 
             List<JsonSchema> items = GetterExtensions.Items(propertyType);
@@ -399,18 +402,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     string typeRef = GetterExtensions.Ref(schema);
                     element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));
                 }
-
             }
 
             List<string> requiredFields = GetterExtensions.Required(parentSchema);
             if (requiredFields != null && requiredFields.Contains(propertyName))
             {
-                //element.MinOccurs = 1; - is default
-            } else
+                // element.MinOccurs = 1; - is default
+            }
+            else
             {
                 element.MinOccurs = 0;
                 element.IsNillable = true;
             }
+
             string reference = GetterExtensions.Ref(propertyType);
             if (reference != null)
             {
@@ -418,18 +422,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             return element;            
-
         }
 
         private string ExtractTypeFromDefinitionReference(string reference)
         {
             if (reference != null)
             {
-                return reference.Replace("#/definitions/", "");
+                return reference.Replace("#/definitions/", string.Empty);
             }
+
             return "Unknown";
         }
     }
-
-    
 }
