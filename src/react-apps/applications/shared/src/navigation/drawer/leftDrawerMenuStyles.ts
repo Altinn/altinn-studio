@@ -9,12 +9,12 @@ export const styles = (theme: Theme) => createStyles({
     color: altinnTheme.altinnPalette.primary.blueDarker,
     paddingRight: 0,
     '&:hover': {
-      color: altinnTheme.altinnPalette.primary.blueDark + '!important',
-      fontWeight: '500',
+      color: altinnTheme.altinnPalette.primary.blueDark,
+      fontWeight: 500,
     },
   },
   activeListItem: {
-    fontWeight: '500',
+    fontWeight: 500,
     color: altinnTheme.altinnPalette.primary.blueDark,
   },
   root: {

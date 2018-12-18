@@ -8,6 +8,7 @@ export interface IAltinnIconCompontentProvidedProps {
   classes: any;
   iconClass: string;
   isActive: boolean;
+  iconColor: any;
 }
 
 export interface IAltinnIconComponentState {
@@ -15,29 +16,20 @@ export interface IAltinnIconComponentState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = {
-  icon: {
-    'fontSize': 16,
-    '&:hover': {
-      color: altinnTheme.altinnPalette.primary.blueDark,
-      fontWeight: 500,
-    },
-  },
   activeIcon: {
-    fontSize: 16,
     color: theme.altinnPalette.primary.blueDark,
-    fontWeight: 500,
   },
 };
 
 class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAltinnIconComponentState> {
   public render() {
-    const { classes } = this.props;
     return (
       <i
         className={
           classNames(
             this.props.iconClass,
           )}
+        style={{ color: this.props.isActive ? styles.activeIcon.color : this.props.iconColor }}
       />
     );
   }

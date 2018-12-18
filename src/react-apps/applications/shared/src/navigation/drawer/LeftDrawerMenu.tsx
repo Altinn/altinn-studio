@@ -12,13 +12,15 @@ import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import AltinnIcon from './AltinnIcon';
 import { styles } from './leftDrawerMenuStyles';
 
-export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
+import altinnTheme from '../../theme/altinnStudioTheme';
 
+export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
   menuType: string;
   activeLeftMenuSelection: string;
 }
 
 export interface ILeftDrawerMenuState {
+  iconColor: any;
   open: boolean;
   openSubMenus: number[];
 }
@@ -28,6 +30,7 @@ class LeftDrawerMenu extends
   constructor(_props: ILeftDrawerMenuProps) {
     super(_props);
     this.state = {
+      iconColor: {},
       open: false,
       openSubMenus: [],
     };
@@ -53,6 +56,26 @@ class LeftDrawerMenu extends
         openSubMenus: state.openSubMenus,
       };
     });
+  }
+
+  public onMouseEnterListItem = (index: any) => (event: any) => {
+    event.stopPropagation();
+    this.setState({
+      iconColor: {
+        [index]: altinnTheme.altinnPalette.primary.blueDark,
+      }
+    })
+  }
+
+  public onMouseLeaveListItem = (index: any) => (event: any) => {
+    event.stopPropagation();
+    this.setState((state: any) => {
+      return {
+        iconColor: {
+          [index]: 'rgba(0, 0, 0, 0.54)',
+        }
+      }
+    })
   }
 
   public render() {
@@ -100,12 +123,15 @@ class LeftDrawerMenu extends
                         },
                       ),
                     }}
+                    onMouseEnter={this.onMouseEnterListItem(index)}
+                    onMouseLeave={this.onMouseLeaveListItem(index)}
                   >
                     <ListItemIcon>
                       <AltinnIcon
                         isActive={this.props.activeLeftMenuSelection ===
                           menuItem.activeLeftMenuSelection}
                         iconClass={menuItem.iconClass}
+                        iconColor={this.state.iconColor[index] === undefined ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}
                       />
                     </ListItemIcon>
                     <ListItemText
