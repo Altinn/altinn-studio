@@ -9,12 +9,21 @@ import { FormComponentWrapper } from '../components/FormComponent';
 import { SwitchComponent } from '../components/widget/SwitchComponent';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataSelector } from '../selectors/getFormData';
-import { makeGetActiveFormContainer, makeGetLayoutComponentsSelector, makeGetLayoutContainerOrder, makeGetLayoutContainersSelector } from '../selectors/getLayoutData';
+import {
+  makeGetActiveFormContainer,
+  makeGetLayoutComponentsSelector,
+  makeGetLayoutContainerOrder,
+  makeGetLayoutContainersSelector,
+} from '../selectors/getLayoutData';
 import '../styles/index.css';
+import DroppableDraggableComponent from './DroppableDraggableComponent';
+import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 export interface IProvidedContainerProps {
   id: string;
+  index?: number;
   baseContainer?: boolean;
+  items?: string[];
   onMoveComponent?: (...args: any) => void;
   onDropComponent?: (...args: any) => void;
   onMoveContainer?: (...args: any) => void;
@@ -115,13 +124,15 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           </div>
         }
 
-        {this.props.itemOrder.map((id: string, index: number) => (
-          this.props.components[id] ?
-            this.renderFormComponent(id, index) :
-            this.props.containers[id] ?
-              this.renderContainer(id, index)
-              : null
-        ))
+        {!this.props.items.length ?
+          this.props.designMode ? this.renderContainerPlaceholder() : null :
+          this.props.items.map((id: string, index: number) => (
+            this.props.components[id] ?
+              this.renderFormComponent(id, index) :
+              this.props.containers[id] ?
+                this.renderContainer(id, index)
+                : null
+          ))
         }
         {
           !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
@@ -149,17 +160,51 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
+  public renderContainerPlaceholder = () => {
+    return (
+      <DroppableDraggableComponent
+        onDropComponent={this.props.onDropComponent}
+        onMoveComponent={this.props.onMoveComponent}
+        onDropContainer={this.props.onDropContainer}
+        onMoveContainer={this.props.onMoveContainer}
+        canDrag={false}
+        id={'placeholder'}
+        index={0}
+        containerId={this.props.id}
+      >
+        This is empty, drag something here
+      </DroppableDraggableComponent>
+    );
+  }
+
   public renderContainer = (id: string, index: number) => {
     if (this.props.containers[id].hidden && !this.props.designMode) {
       return null;
     }
     if (this.props.designMode) {
       return (
-        <Container
+        <DroppableDraggableContainer
           id={id}
-          key={index}
+          index={index}
           baseContainer={false}
-        />
+          parentContainerId={this.props.id}
+          canDrag={true}
+          onDropComponent={this.props.onDropComponent}
+          onMoveComponent={this.props.onMoveComponent}
+          onDropContainer={this.props.onDropComponent}
+          onMoveContainer={this.props.onMoveContainer}
+        >
+          <Container
+            id={id}
+            index={index}
+            items={this.props.itemOrder[id]}
+            baseContainer={false}
+            onDropComponent={this.props.onDropContainer}
+            onMoveComponent={this.props.onMoveComponent}
+            onDropContainer={this.props.onDropContainer}
+            onMoveContainer={this.props.onMoveContainer}
+          />
+        </DroppableDraggableContainer>
       );
     }
     return (
@@ -215,6 +260,28 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (this.props.components[id].hidden && !this.props.designMode) {
       return null;
     }
+    if (this.props.designMode) {
+      return (
+        <DroppableDraggableComponent
+          canDrag={true}
+          id={id}
+          index={index}
+          containerId={this.props.id}
+          onDropComponent={this.props.onDropContainer}
+          onMoveComponent={this.props.onMoveComponent}
+          onDropContainer={this.props.onDropContainer}
+          onMoveContainer={this.props.onMoveContainer}
+        >
+          <FormComponentWrapper
+            key={index}
+            id={id}
+            handleDataUpdate={this.handleComponentDataUpdate}
+            formData={this.props.formData[this.props.components[id].dataModelBinding] ?
+              this.props.formData[this.props.components[id].dataModelBinding] : ''}
+          />
+        </DroppableDraggableComponent>
+      );
+    }
     return (
       <FormComponentWrapper
         key={index}
@@ -251,16 +318,22 @@ const makeMapStateToProps = () => {
     const container = containers[props.id];
     const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
-      id: props.id,
+      dataModelGroup: container.dataModelGroup,
+      repeating: container.repeating,
+      formContainerActive: GetActiveFormContainer(state, props),
+      designMode: GetDesignModeSelector(state),
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
-      designMode: GetDesignModeSelector(state),
-      repeating: container.repeating,
-      formData: GetFormDataSelector(state, props, container.index),
-      dataModelGroup: container.dataModelGroup,
-      formContainerActive: GetActiveFormContainer(state, props),
       language: state.appData.language.language,
-      itemOrder,
+      formData: GetFormDataSelector(state, props, container.index),
+      itemOrder: !props.items ? itemOrder : props.items,
+      id: props.id,
+      index: props.index,
+      baseContainer: props.baseContainer,
+      onMoveComponent: props.onMoveComponent,
+      onDropComponent: props.onDropComponent,
+      onMoveContainer: props.onMoveContainer,
+      onDropContainer: props.onDropContainer,
     };
   };
   return mapStateToProps;

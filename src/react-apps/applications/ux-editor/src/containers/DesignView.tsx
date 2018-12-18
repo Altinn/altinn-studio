@@ -2,8 +2,8 @@ import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
-import { Container } from './TempContainer';
 
 interface IDesignerPreviewProps {
   layoutOrder: IFormLayoutOrder;
