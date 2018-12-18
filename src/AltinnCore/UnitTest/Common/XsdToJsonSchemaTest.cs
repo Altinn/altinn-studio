@@ -19,14 +19,14 @@ namespace AltinnCore.UnitTest.Common
         public void edagConvertToJsonSchema()
         {
             XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/Edag.xsd"));
-            var schemaText = converter.asJsonSchema();
+            var schemaText = converter.AsJsonSchema();
         }
 
         [Fact]
         public void servicemodelConvertToJsonSchema()
         {
             XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/ServiceModel.xsd"));
-            var schemaText = converter.asJsonSchema();
+            var schemaText = converter.AsJsonSchema();
         }
     }
 }

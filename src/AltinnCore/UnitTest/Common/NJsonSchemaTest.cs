@@ -17,7 +17,7 @@ namespace AltinnCore.UnitTest.Common
         public async void generateCSharpFromSchemaTest()
         {
             XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/Edag.xsd"));
-            JsonValue jsonSchemaText = converter.asJsonSchema();
+            JsonValue jsonSchemaText = converter.AsJsonSchema();
 
             JsonSchema4 jsonSchema = await JsonSchema4.FromJsonAsync(jsonSchemaText.ToString());
 
