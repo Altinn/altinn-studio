@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         addAnnotation(xmlSchemaElement, mainJsonSchema);
 
                         JsonSchema objectRefSchema = new JsonSchema();
-                        addTypeToSchema(xmlSchemaElement.SchemaType, xmlSchemaElement.SchemaTypeName, objectRefSchema);
+                        addTypeToSchema(xmlSchemaElement.SchemaType, xmlSchemaElement.SchemaTypeName, xmlSchemaElement.Name, objectRefSchema);
                         mainJsonSchema.Property(xmlSchemaElement.Name, objectRefSchema);
 
                         mainJsonSchema.Required(xmlSchemaElement.Name);
@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                     else
                     {
-                        addTypeToSchema(xmlSchemaElement.SchemaType, xmlSchemaElement.SchemaTypeName, mainJsonSchema);
+                        addTypeToSchema(xmlSchemaElement.SchemaType, xmlSchemaElement.SchemaTypeName, xmlSchemaElement.Name, mainJsonSchema);
                     }
                 }
                 else if (xmlSchemaObject is XmlSchemaComplexType)
@@ -171,7 +171,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     if (contentExtension.BaseTypeName != null)
                     {
                         allOfSchema = new JsonSchema();
-                        addTypeToSchema(null, contentExtension.BaseTypeName, allOfSchema);
+                        addTypeToSchema(null, contentExtension.BaseTypeName, null, allOfSchema);
                         allOfSchemaList.Add(allOfSchema);
                     }
 
@@ -231,32 +231,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 addAnnotation(elementItem, propertySchema);
                 if (elementItem.SchemaTypeName != null && !elementItem.SchemaTypeName.IsEmpty)
                 {
-                    addTypeToProperty(item, propertySchema, elementItem.SchemaType, elementItem.SchemaTypeName);
+                    addTypeToProperty(item, propertySchema, elementItem.SchemaType, elementItem.SchemaTypeName, elementItem.Name);
                 }
                 else if (elementItem.SchemaType != null)
                 {
                     if (elementItem.SchemaType is XmlSchemaComplexType)
                     {
                         XmlSchemaComplexType complexType = (XmlSchemaComplexType)elementItem.SchemaType;
-                        string anonymousNamePart = elementItem.Name.Substring(0, 1).ToUpper() + elementItem.Name.Substring(1);
-                        string anonymousName;
-                        int i = 0;
-                        while (true)
-                        {
-                            i++;
-
-                            anonymousName = anonymousNamePart;
-                            if (i > 1)
-                            {
-                                anonymousName += i.ToString();
-                            }
-                            if (findObject(anonymousName) == null && !anonymousTypes.Contains(anonymousName)) //Is name unused?
-                            {
-                                break;
-                            }
-                        }
-
-                        addTypeToSchema(elementItem.SchemaType, new XmlQualifiedName(anonymousName), propertySchema);
+                        string anonymousName = elementNameOrAnonymous(elementItem);
+                        addTypeToSchema(elementItem.SchemaType, new XmlQualifiedName(anonymousName), elementItem.Name, propertySchema);
                         addNamedComplexType(mainJsonSchema, complexType, anonymousName);
                         anonymousTypes.Add(anonymousName);
                     }
@@ -330,11 +313,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         definitionSchema.Enum(enumList.ToArray());
                     }
                 }
-                addTypeToSchema(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, definitionSchema);
+                addTypeToSchema(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, null, definitionSchema);
             }
         }
 
-        private void addTypeToProperty(XmlSchemaParticle particle, JsonSchema propertySchema, XmlSchemaType schemaType, XmlQualifiedName schemaTypeName)
+        private void addTypeToProperty(XmlSchemaParticle particle, JsonSchema propertySchema, XmlSchemaType schemaType, XmlQualifiedName schemaTypeName, string parentName)
         {
             if (particle.MaxOccurs > 1)
             {
@@ -348,16 +331,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 JsonSchema[] itemsSchemas = new JsonSchema[1];
                 itemsSchemas[0] = new JsonSchema();
                 addAnnotation(particle, itemsSchemas[0]);
-                addTypeToSchema(schemaType, schemaTypeName, itemsSchemas[0]);
+                addTypeToSchema(schemaType, schemaTypeName, parentName, itemsSchemas[0]);
                 propertySchema.Items(itemsSchemas);
             }
             else
             {
-                addTypeToSchema(schemaType, schemaTypeName, propertySchema);
+                addTypeToSchema(schemaType, schemaTypeName, parentName, propertySchema);
             }
         }
 
-        private void addTypeToSchema(XmlSchemaType schemaType, XmlQualifiedName qName, JsonSchema schema)
+        private void addTypeToSchema(XmlSchemaType schemaType, XmlQualifiedName qName, string parentName, JsonSchema schema)
         {
             if (schemaType != null)
             {
@@ -428,6 +411,28 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                 }
             }
+        }
+
+        private string elementNameOrAnonymous(XmlSchemaElement elementItem)
+        {
+            string anonymousName;
+            string anonymousNamePart = elementItem.Name.Substring(0, 1).ToUpper() + elementItem.Name.Substring(1);
+            int i = 0;
+            while (true)
+            {
+                i++;
+
+                anonymousName = anonymousNamePart;
+                if (i > 1)
+                {
+                    anonymousName += i.ToString();
+                }
+                if (findObject(anonymousName) == null && !anonymousTypes.Contains(anonymousName)) //Is name unused?
+                {
+                    break;
+                }
+            }
+            return anonymousName;
         }
 
         private void addAnnotation(XmlSchemaAnnotated annotated, JsonSchema jsonSchema)
