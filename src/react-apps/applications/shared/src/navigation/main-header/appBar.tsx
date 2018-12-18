@@ -13,6 +13,8 @@ import TabletDrawerMenu from '../drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from './profileMenu';
 
+import theme from '../../theme/altinnStudioTheme';
+
 export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
@@ -20,6 +22,7 @@ export interface IAppBarComponentProps extends WithStyles<typeof styles> {
   classes: any;
   org?: string;
   service?: string;
+  showBreadcrumbOnTablet?: boolean;
   showSubHeader?: boolean;
 }
 export interface IAppBarComponentState {
@@ -27,15 +30,16 @@ export interface IAppBarComponentState {
   tabletDrawerOpen: boolean;
 }
 
+const altinnTheme = theme;
+
 const styles = createStyles({
   root: {
     flexGrow: 1,
     zIndex: 1,
-    color: 'black',
+    color: altinnTheme.altinnPalette.primary.black,
   },
   appBar: {
-    borderBottom: '1px solid',
-    borderBottomColor: '#C9C9C9',
+    color: altinnTheme.altinnPalette.primary.black,
   },
   breadCrumb: {
     paddingLeft: 30,
@@ -44,32 +48,34 @@ const styles = createStyles({
   breadCrumbSubApp: {
     color: '#0062BA',
   },
-  button: {
-    border: '2px solid #0062BA',
-    borderRadius: 0,
-    color: '#0062BA',
-    fontSize: 18,
-    padding: '2px 8px 4px',
-    textTransform: 'lowercase',
-  },
   paper: {
     textAlign: 'center',
   },
   subHeader: {
-    'borderBottom': '2px solid',
-    'paddingLeft': 18,
-    'paddingRight': 18,
-    'paddingBottom': 6,
-    'color': 'black',
+    'paddingLeft': 12,
+    'paddingRight': 12,
+    'paddingBottom': 0,
     'fontSize': 20,
-    'borderBottomColor': 'transparent',  // To mitigate the 1 pixel adjustment
+  },
+  subHeaderLink: {
+    borderBottom: '1px solid',
+    borderBottomColor: 'transparent',  // To mitigate the 1 pixel adjustment
     '&:hover': {
-      borderBottomColor: 'black',
+      borderBottom: 1,
+      color: altinnTheme.altinnPalette.primary.blueDark,
+      fontWeight: 500,
     },
   },
-  subHeaderActive: {
-    color: '#0062BA',
-    borderBottomColor: '#0062BA',
+  subHeaderLinkActive: {
+    borderBottom: '1px solid',
+    borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
+    color: altinnTheme.altinnPalette.primary.blueDark,
+    fontWeight: 500,
+    '&:hover': {
+      borderBottom: '1px solid',
+      borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
+      color: altinnTheme.altinnPalette.primary.blueDark,
+    },
   },
   topRightService: {
     paddingRight: 22,
@@ -91,18 +97,15 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
   }
 
   public render() {
-    const { activeLeftMenuSelection, activeSubHeaderSelection, classes, org, service } = this.props;
-    const style = {
-      background: this.props.backgroundColor,
-      color: 'black',
-    };
+    const { activeLeftMenuSelection, activeSubHeaderSelection, backgroundColor, classes, org, service, showBreadcrumbOnTablet } = this.props;
+
     return (
       <div className={classes.root}>
         <AppBar
           position='static'
           className={classes.appBar}
           elevation={0}
-          style={style}
+          style={{ backgroundColor: backgroundColor ? backgroundColor : altinnTheme.altinnPalette.primary.greyLight }}
         >
           <Toolbar>
             <Grid container={true} direction='row' alignItems='center' justify='space-between'>
@@ -111,10 +114,12 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                   <img src='/designer/img/altinn_logo_header.png' />
                 </Grid>
                 <Hidden mdUp>
-                  <Grid item={true} className={classes.breadCrumb}>
-                    / {activeSubHeaderSelection} /
+                  {!showBreadcrumbOnTablet ? null : (
+                    <Grid item={true} className={classes.breadCrumb}>
+                      / {activeSubHeaderSelection} /
                       <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
-                  </Grid>
+                    </Grid>
+                  )}
                 </Hidden>
               </Grid>
               <Hidden smDown>
@@ -157,12 +162,17 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                     <Grid
                       item={true}
                       key={index}
-                      className={classNames(classes.subHeader, {
-                        [classes.subHeaderActive]: this.props.activeSubHeaderSelection ===
-                          item.activeSubHeaderSelection,
-                      })}
+                      className={classNames(classes.subHeader)}
                     >
-                      <Link to={item.link} style={{ borderBottom: 0 }}>{item.key}</Link>
+                      <Link
+                        to={item.link}
+                        className={classNames(classes.subHeaderLink, {
+                          [classes.subHeaderLinkActive]: this.props.activeSubHeaderSelection ===
+                            item.activeSubHeaderSelection,
+                        })}
+                      >
+                        {item.key}
+                      </Link>
                     </Grid>
                   ))}
                 </Grid>
