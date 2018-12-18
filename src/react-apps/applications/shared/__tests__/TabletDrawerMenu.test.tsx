@@ -1,6 +1,7 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import { mount } from 'enzyme';
 import { shallow } from 'enzyme';
+import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 import TabletDrawerMenu from '../src/navigation/drawer/TabletDrawerMenu';
