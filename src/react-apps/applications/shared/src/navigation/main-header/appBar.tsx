@@ -55,29 +55,29 @@ const styles = createStyles({
     textAlign: 'center',
   },
   subHeader: {
-    'paddingLeft': 12,
-    'paddingRight': 12,
-    'paddingBottom': 0,
-    'fontSize': 20,
+    paddingLeft: 12,
+    paddingRight: 12,
+    paddingBottom: 0,
+    fontSize: 20,
   },
   subHeaderLink: {
-    borderBottom: '1px solid',
-    borderBottomColor: 'transparent',  // To mitigate the 1 pixel adjustment
+    'borderBottom': '1px solid',
+    'borderBottomColor': 'transparent',  // To mitigate the 1 pixel adjustment
     '&:hover': {
-      borderBottom: 1,
-      color: altinnTheme.altinnPalette.primary.blueDark,
-      fontWeight: 500,
+      'borderBottom': 1,
+      'color': altinnTheme.altinnPalette.primary.blueDark,
+      'fontWeight': 500,
     },
   },
   subHeaderLinkActive: {
-    borderBottom: '1px solid',
-    borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
-    color: altinnTheme.altinnPalette.primary.blueDark,
-    fontWeight: 500,
+    'borderBottom': '1px solid',
+    'borderBottomColor': altinnTheme.altinnPalette.primary.blueDark,
+    'color': altinnTheme.altinnPalette.primary.blueDark,
+    'fontWeight': 500,
     '&:hover': {
-      borderBottom: '1px solid',
-      borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
-      color: altinnTheme.altinnPalette.primary.blueDark,
+      'borderBottom': '1px solid',
+      'borderBottomColor': altinnTheme.altinnPalette.primary.blueDark,
+      'color': altinnTheme.altinnPalette.primary.blueDark,
     },
   },
   topRightService: {
@@ -100,7 +100,16 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
   }
 
   public render() {
-    const { activeLeftMenuSelection, activeSubHeaderSelection, backgroundColor, classes, logoutButton, org, service, showBreadcrumbOnTablet } = this.props;
+    const {
+      activeLeftMenuSelection,
+      activeSubHeaderSelection,
+      backgroundColor,
+      classes,
+      logoutButton,
+      org,
+      service,
+      showBreadcrumbOnTablet
+    } = this.props;
 
     return (
       <div className={classes.root}>

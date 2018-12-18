@@ -85,11 +85,11 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
         <AppBarComponent
           showSubHeader={false}
           backgroundColor={'pink'}
-        />
-      )
+        />,
+      );
       const appBarRendered = wrapper.shallow();
       expect(appBarRendered).toMatchSnapshot();
-    })
+    });
   });
 
   describe('Responsive design', () => {
@@ -178,7 +178,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
         expect(app.text()).toMatch(`${mockService}`);
         app.unmount();
 
-      })
+      });
 
     it(`should render logout menu when logoutButton prop is true`, () => {
       const mockOrg = 'myTabletOrg';
@@ -205,7 +205,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       expect(app.text()).toMatch(`logout`);
       expect(app.text()).not.toMatch(`meny`);
       app.unmount();
-    })
+    });
 
   });
 
