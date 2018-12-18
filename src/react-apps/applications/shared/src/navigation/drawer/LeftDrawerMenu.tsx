@@ -9,7 +9,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
-import Icon from './Icon';
+import AltinnIcon from './AltinnIcon';
 import { styles } from './leftDrawerMenuStyles';
 
 export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
@@ -92,18 +92,25 @@ class LeftDrawerMenu extends
                   key={index}
                 >
                   <ListItem
-                    button={true}
+                    classes={{
+                      root: classNames(classes.listItem,
+                        {
+                          [classes.activeListItem]: this.props.activeLeftMenuSelection ===
+                            menuItem.activeLeftMenuSelection,
+                        },
+                      ),
+                    }}
                   >
                     <ListItemIcon>
-                      <Icon iconType={menuItem.iconName} />
+                      <AltinnIcon
+                        isActive={this.props.activeLeftMenuSelection ===
+                          menuItem.activeLeftMenuSelection}
+                        iconClass={menuItem.iconClass}
+                      />
                     </ListItemIcon>
                     <ListItemText
+                      disableTypography={true}
                       primary={menuItem.displayText}
-                      classes={{ primary: classNames(classes.menuItemText) }}
-                      className={classNames({
-                        [classes.activeMenu]: this.props.activeLeftMenuSelection ===
-                          menuItem.activeLeftMenuSelection,
-                      })}
                     />
                   </ListItem>
                 </Link>
