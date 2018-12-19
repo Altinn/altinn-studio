@@ -1,6 +1,7 @@
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin
+const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -83,6 +84,7 @@ module.exports = {
       filename: "service-development.css",
     }),
     new CheckerPlugin(),
+    new MonacoPlugin(),
   ],
   devServer: {
     historyApiFallback: true,
