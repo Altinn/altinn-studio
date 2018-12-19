@@ -8,8 +8,8 @@ import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
 import { getParentContainerId } from '../../utils/formLayout';
-import { getSaveFormLayoutUrl } from '../../utils/urlHelper';
 import { get, post } from '../../utils/networking';
+import { getSaveFormLayoutUrl } from '../../utils/urlHelper';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
