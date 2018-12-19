@@ -16,28 +16,6 @@ export class PreviewComponent extends React.Component<
   null
   > {
   public render(): JSX.Element {
-    if (this.props.designMode) {
-      return this.renderDesignPreview();
-    }
-    return this.renderPreview();
-  }
-
-  public renderPreview(): JSX.Element {
-    const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
-      Object.keys(this.props.layoutOrder)[0] :
-      null;
-    if (!baseContainerId) {
-      return null;
-    }
-    return (
-      <Container
-        id={baseContainerId}
-        baseContainer={true}
-      />
-    );
-  }
-
-  public renderDesignPreview(): JSX.Element {
     const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
       Object.keys(this.props.layoutOrder)[0] :
       null;

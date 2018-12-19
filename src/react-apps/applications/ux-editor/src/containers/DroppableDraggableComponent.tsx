@@ -37,7 +37,7 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
   },
   canDrag(props: IDroppableDraggableComponentProps) {
     return props.canDrag;
-  }
+  },
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {

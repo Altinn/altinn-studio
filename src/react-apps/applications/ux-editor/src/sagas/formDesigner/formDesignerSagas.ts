@@ -13,7 +13,8 @@ import { get, post } from '../../utils/networking';
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
-const selectServiceConfiguration = (state: IAppState): IServiceConfiguration => state.serviceConfigurations; const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.layout.order;
+const selectServiceConfiguration = (state: IAppState): IServiceConfiguration => state.serviceConfigurations;
+const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.layout.order;
 
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {

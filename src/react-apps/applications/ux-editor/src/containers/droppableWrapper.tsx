@@ -1,4 +1,3 @@
-import { XYCoord } from 'dnd-core';
 import * as React from 'react';
 import {
   ConnectDragSource,
@@ -54,7 +53,7 @@ const itemTarget = {
         const otherElementHeight = otherElementBoundingRect.bottom - otherElementBoundingRect.top;
 
         const clientOffset = monitor.getClientOffset();
-        const hoverClientY = (clientOffset as XYCoord).y - otherElementBoundingRect.top;
+        const hoverClientY = clientOffset.y - otherElementBoundingRect.top;
 
         if (hoverClientY > (otherElementHeight / 2)) {
           // Insert under
@@ -85,7 +84,7 @@ const itemTarget = {
         const otherElementHeight = otherElementBoundingRect.bottom - otherElementBoundingRect.top;
 
         const clientOffset = monitor.getClientOffset();
-        const hoverClientY = (clientOffset as XYCoord).y - otherElementBoundingRect.top;
+        const hoverClientY = clientOffset.y - otherElementBoundingRect.top;
 
         if (hoverClientY > (otherElementHeight / 2)) {
           // Insert under

@@ -16,8 +16,8 @@ import {
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
 import '../styles/index.css';
-import DroppableDraggableComponent from './DroppableDraggableComponent';
-import DroppableDraggableContainer from './DroppableDraggableContainer';
+// import DroppableDraggableComponent from './DroppableDraggableComponent';
+// import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 export interface IProvidedContainerProps {
   id: string;
@@ -148,10 +148,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public render() {
-    if (this.props.designMode) {
-      return this.renderContent();
-    }
-
     return (
       <div>
         {this.renderContent()}
@@ -161,6 +157,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public renderContainerPlaceholder = () => {
+    const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
     return (
       <DroppableDraggableComponent
         onDropComponent={this.props.onDropComponent}
@@ -182,6 +179,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       return null;
     }
     if (this.props.designMode) {
+      const DroppableDraggableContainer = require('./DroppableDraggableContainer').default;
       return (
         <DroppableDraggableContainer
           id={id}
@@ -261,6 +259,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       return null;
     }
     if (this.props.designMode) {
+      const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
       return (
         <DroppableDraggableComponent
           canDrag={true}

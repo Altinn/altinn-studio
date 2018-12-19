@@ -76,7 +76,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
               0,
               props.id,
               draggedContainer.parentContainerId,
-            )
+            );
             break;
           } else {
             let hoverOverIndex: number;

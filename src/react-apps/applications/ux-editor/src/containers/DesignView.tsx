@@ -85,20 +85,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     }
   }
 
-  public dropComponent = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
-    this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
-      isDragging: {
-        $set: false,
-      },
-    }));
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      id,
-      index,
-      destinationContainerId,
-      sourceContainerId,
-    );
-  }
-
   public getStatefullIndexOfContainer = (
     containerId: string,
     parentContainerId: string = Object.keys(this.props.layoutOrder)[0],
@@ -139,9 +125,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       updatedDestination.splice(index, 0, movedContainer);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
-          /*[sourceContainerId]: {
-            $set: [...updatedSource],
-          },*/
           [destinationContainerId]: {
             $set: [...updatedDestination],
           },
@@ -153,7 +136,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     }
   }
 
-  public dropContainer = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+  public dropItem = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
@@ -179,9 +162,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         id={baseContainerId}
         baseContainer={true}
         canDrag={false}
-        onDropComponent={this.dropComponent}
+        onDropComponent={this.dropItem}
         onMoveComponent={this.moveComponent}
-        onDropContainer={this.dropContainer}
+        onDropContainer={this.dropItem}
         onMoveContainer={this.moveContainer}
         getIndex={this.getStatefullIndexOfContainer}
       >
@@ -189,9 +172,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
           baseContainer={true}
           id={baseContainerId}
           items={this.state.layoutOrder[baseContainerId]}
-          onDropComponent={this.dropComponent}
+          onDropComponent={this.dropItem}
           onMoveComponent={this.moveComponent}
-          onDropContainer={this.dropContainer}
+          onDropContainer={this.dropItem}
           onMoveContainer={this.moveContainer}
         />
       </DroppableDraggableContainer>
