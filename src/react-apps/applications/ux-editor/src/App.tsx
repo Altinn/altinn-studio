@@ -11,6 +11,7 @@ import { FormFiller } from './containers/FormFiller';
 
 // tslint:disable-next-line:no-implicit-dependencies
 import { Route } from 'react-router';
+import LogicEditor from './containers/LogicEditor';
 export interface IAppComponentProps { }
 
 export interface IAppCompoentState { }
@@ -112,6 +113,11 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     return <FormFiller />;
   }
 
+  public renderLogicEditor = (): JSX.Element => {
+    console.log('****RENDER LOGIC EDITOR****');
+    return <LogicEditor />;
+  }
+
   public render() {
     return (
       <div>
@@ -125,6 +131,11 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
           exact={true}
           path='/preview'
           render={this.renderFormFiller}
+        />
+        <Route
+          exact={true}
+          path='/logic'
+          render={this.renderLogicEditor}
         />
       </div>
     );

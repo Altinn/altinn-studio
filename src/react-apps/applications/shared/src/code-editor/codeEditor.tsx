@@ -1,7 +1,10 @@
 import * as React from 'react';
 import MonacoEditor from 'react-monaco-editor';
 
-export interface ICodeEditorProps { }
+export interface ICodeEditorProps { 
+  height?: string;
+  width?: string;
+}
 
 export interface ICodeEditorState {
   code: string;
@@ -15,8 +18,15 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
     };
   }
   public render() {
+    let {height, width} = this.props;
+    height = height ? height : '100%';
+    width = width ? width : 'calc(100% - 80px)';
     return (
-      <MonacoEditor />
+      <MonacoEditor
+        width={width}
+        height={height}
+        value={this.state.code}
+      />
     );
   }
 }
