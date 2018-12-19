@@ -1,14 +1,19 @@
 import * as React from 'react';
 import MonacoEditor from 'react-monaco-editor';
 
-export interface ICodeEditorProps { 
+export interface ICodeEditorProps {
   height?: string;
   width?: string;
+  language: string;
 }
 
 export interface ICodeEditorState {
   code: string;
  }
+
+export interface ICodeEditorWindow extends Window {
+  MonacoEnvironment: any;
+}
 
 class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
   constructor(props: ICodeEditorProps, state: ICodeEditorState) {
@@ -17,6 +22,11 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
       code: '// Type some code here...',
     };
   }
+
+  public editorDidMount(editor: any, monaco: any) {
+    console.log('editorDidMount', editor);
+  }
+  
   public render() {
     let {height, width} = this.props;
     height = height ? height : '100%';
@@ -26,6 +36,18 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
         width={width}
         height={height}
         value={this.state.code}
+        language={this.props.language}
+        options={
+          {
+            autoClosingBrackets: 'always',
+            autoIndent: true,
+            automaticLayout: true,
+            colorDecorators: true,
+            contextmenu: false,
+            cursorBlinking: 'smooth',
+          }
+        }
+        editorDidMount={this.editorDidMount}
       />
     );
   }
