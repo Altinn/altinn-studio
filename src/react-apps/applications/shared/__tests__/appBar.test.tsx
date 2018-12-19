@@ -20,7 +20,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     beforeEach(() => {
       mockOrg = 'jest-test-org';
       mockService = 'jest-test-service';
-      mockActiveSubHeaderSelection = 'create';
+      mockActiveSubHeaderSelection = 'Lage';
       mockShowSubheader = true;
 
     });
@@ -42,7 +42,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     it('should match snapshot with subHeader and Publish selection active', () => {
       mockOrg = 'other-org';
       mockService = 'other-service';
-      mockActiveSubHeaderSelection = 'publish';
+      mockActiveSubHeaderSelection = 'Publisere';
       const rendered = renderer.create(
         <MemoryRouter>
           <AppBarComponent
