@@ -5,9 +5,9 @@ const drawerWidth = 240;
 
 export const styles = (theme: Theme) => createStyles({
   listItem: {
-    fontSize: 16,
-    color: altinnTheme.altinnPalette.primary.blueDarker,
-    paddingRight: 0,
+    'fontSize': 16,
+    'color': altinnTheme.altinnPalette.primary.blueDarker,
+    'paddingRight': 0,
     '&:hover': {
       color: altinnTheme.altinnPalette.primary.blueDark,
       fontWeight: 500,

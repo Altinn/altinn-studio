@@ -8,8 +8,8 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import AltinnIcon from './AltinnIcon';
+import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -65,9 +65,9 @@ class LeftDrawerMenu extends
         iconColor: {
           ...state.iconColor,
           [index]: altinnTheme.altinnPalette.primary.blueDark,
-        }
-      }
-    })
+        },
+      };
+    });
   }
 
   public onMouseLeaveListItem = (index: any) => (event: any) => {
@@ -77,9 +77,9 @@ class LeftDrawerMenu extends
         iconColor: {
           ...state.iconColor,
           [index]: 'rgba(0, 0, 0, 0.54)',
-        }
-      }
-    })
+        },
+      };
+    });
   }
 
   public render() {
@@ -135,7 +135,8 @@ class LeftDrawerMenu extends
                         isActive={this.props.activeLeftMenuSelection ===
                           menuItem.activeLeftMenuSelection}
                         iconClass={menuItem.iconClass}
-                        iconColor={this.state.iconColor[index] === undefined ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}
+                        iconColor={this.state.iconColor[index] === undefined
+                          ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}
                       />
                     </ListItemIcon>
                     <ListItemText
