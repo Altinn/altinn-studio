@@ -1,11 +1,13 @@
-import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, WithStyles, withStyles, Button } from '@material-ui/core';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme'
 import FetchChangesComponent from '../version-control/fetchChanges';
 import PushChangesComponent from '../version-control/pushChanges';
+import LargePopoverComponent from './largePopover';
+import { getLanguageFromKey } from '../utils/language';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
-
+  language: any;
 }
 
 export interface IVersionControlHeaderState {
@@ -13,6 +15,8 @@ export interface IVersionControlHeaderState {
   changesInLocalRepo: boolean;
   moreThanAnHourSinceLastPush: boolean;
   hasPushRight: boolean;
+  anchorEl: any;
+  modalState: any;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -20,6 +24,14 @@ const theme = createMuiTheme(altinnTheme);
 const styles = createStyles({
 
 });
+const initialState = {
+  header: '',
+  descriptionText: '',
+  isLoading: '',
+  shouldShowDoneIcon: false,
+  btnText: '',
+  shouldShowCommitBox: false,
+}
 
 class VersionControlHeader extends React.Component<IVersionControlHeaderProps, IVersionControlHeaderState> {
   constructor(_props: IVersionControlHeaderProps) {
@@ -30,6 +42,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       moreThanAnHourSinceLastPush: false,
       // TODO: denne må fikses
       hasPushRight: true,
+      anchorEl: null,
+      modalState: initialState,
     };
   }
 
@@ -61,7 +75,20 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       );
   }
 
-  public fetchChanges() {
+  public handleClose = () => {
+    this.setState({
+      anchorEl: null,
+    });
+  }
+
+  public fetchChanges = (currentTarget: any) => {
+    this.setState({
+      anchorEl: currentTarget,
+      modalState: {
+        header: getLanguageFromKey('sync_header.fetching_latest_version', this.props.language),
+        isLoading: true,
+      },
+    });
     console.log('fetching changes');
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
@@ -71,12 +98,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         (result) => {
           console.log('inside then' + result.status + result.ok);
           if (result.ok) {
-            //TODO: update status?
+            this.setState({
+              modalState: {
+                header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
+                descriptionText:
+                  getLanguageFromKey('sync_header.service_updated_to_latest_submessage', this.props.language),
+                isLoading: false,
+                shouldShowDoneIcon: true,
+              },
+            });
           }
-          else {
-            //TODO: what?
-          }
-
         },
         (error) => {
           console.log('inside then' + error);
@@ -84,8 +115,43 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       );
   }
 
-  public pushChanges() {
+  public pushChanges = (currentTarget: any) => {
     console.log('push changes');
+    this.setState({
+      anchorEl: currentTarget,
+      modalState: {
+        header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
+        descriptionText: getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+        btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
+        shouldShowCommitBox: true,
+      },
+    });
+  }
+
+  public commitChanges = (commitMessage: string) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service } = altinnWindow;
+    const commitInfo = {
+      message: commitMessage,
+      org,
+      repository: service,
+    };
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/CommitAndPushRepo`;
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(commitInfo),
+    })
+      .then((response) => response.text())
+      .then((responseData) => {
+        console.log('inside second then ' + responseData);
+      })
+      .catch((err) => {
+        console.log('inside error ' + err);
+      });
   }
 
   public render() {
@@ -93,16 +159,39 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       <Grid container={true} direction='row'>
         <Grid item={true} xs={5}>
           <FetchChangesComponent
+            language={this.props.language}
             fetchChanges={this.fetchChanges}
             changesInMaster={this.state.changesInMaster}
+          />
+          <LargePopoverComponent
+            anchorEl={this.state.anchorEl}
+            header={this.state.modalState.header}
+            descriptionText={this.state.modalState.descriptionText}
+            isLoading={this.state.modalState.isLoading}
+            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+            btnText={this.state.modalState.btnText}
+            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+            handleClose={this.handleClose}
           />
         </Grid>
         <Grid item={true} xs={7}>
           <PushChangesComponent
+            language={this.props.language}
             pushChanges={this.pushChanges}
             changesInLocalRepo={this.state.changesInLocalRepo}
             moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
             hasPushRight={this.state.hasPushRight}
+          />
+          <LargePopoverComponent
+            anchorEl={this.state.anchorEl}
+            header={this.state.modalState.header}
+            descriptionText={this.state.modalState.descriptionText}
+            isLoading={this.state.modalState.isLoading}
+            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+            btnText={this.state.modalState.btnText}
+            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+            handleClose={this.handleClose}
+            btnClick={this.commitChanges}
           />
         </Grid>
       </Grid>

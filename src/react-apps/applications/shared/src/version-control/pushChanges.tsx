@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
+import { getLanguageFromKey } from '../utils/language';
 
 export interface IPushChangesCompoenentProvidedProps {
   classes: any;
@@ -8,6 +9,7 @@ export interface IPushChangesCompoenentProvidedProps {
   changesInLocalRepo: boolean;
   moreThanAnHourSinceLastPush: boolean;
   hasPushRight: boolean;
+  language: any;
 }
 
 export interface IPushChangesCompoenentProps extends IPushChangesCompoenentProvidedProps {
@@ -31,8 +33,8 @@ const styles = createStyles({
 });
 
 class PushChangesCompoenent extends React.Component<IPushChangesCompoenentProps, IPushChangesCompoenentState> {
-  public pushChangesHandler = () => {
-    this.props.pushChanges();
+  public pushChangesHandler = (event: any) => {
+    this.props.pushChanges(event.currentTarget);
   }
 
   public renderCorrectText() {
@@ -45,13 +47,15 @@ class PushChangesCompoenent extends React.Component<IPushChangesCompoenentProps,
           )}
         >
           {this.props.hasPushRight && <i className={classNames('ai ai-upload', classes.color)} />}
-          Del endringer
+          {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
         </p>);
     } else {
       return (
         <p>
-          <i className={classNames('ai ai-check', classes.color)} />Du har ingen endringer å dele
-      </p>);
+          <i
+            className={classNames('ai ai-check', classes.color)}
+          />{getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
+        </p>);
     }
   }
 

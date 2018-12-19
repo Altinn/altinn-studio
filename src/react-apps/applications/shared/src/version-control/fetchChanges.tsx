@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { WithStyles, createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
+import { getLanguageFromKey } from '../utils/language';
 
 export interface IFetchChangesCompoenentProvidedProps {
   classes: any;
   fetchChanges: any;
   changesInMaster: boolean;
+  language: any;
 }
 
 export interface IFetchChangesComponenetProps extends IFetchChangesCompoenentProvidedProps {
@@ -30,8 +32,8 @@ const styles = createStyles({
 
 class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProps, IFetchChangesComponenetState> {
 
-  public fetchChangesHandler = () => {
-    this.props.fetchChanges();
+  public fetchChangesHandler = (event: any) => {
+    this.props.fetchChanges(event.currentTarget);
   }
 
   public render() {
@@ -44,7 +46,9 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
             { [classes.bold]: this.props.changesInMaster },
           )}
         >
-          <i className={classNames('ai ai-download', classes.color)} /> Hent endringer
+          <i
+            className={classNames('ai ai-download', classes.color)}
+          /> {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
         </p>
       </div>
     );

@@ -151,7 +151,7 @@ class FormDesigner extends React.Component<
               <Toolbar />
             </Grid>
             <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
-              <VersionControlHeader />
+              <VersionControlHeader language={this.props.language} />
               <div style={{ width: 'calc(100% - 48px)', height: '71px', background: '#022F51', marginTop: '48px', marginLeft: '24px' }} />
               <div style={{ width: 'calc(100% - 48px)', paddingTop: '24px', marginLeft: '24px', background: '#FFFFFF' }}>
                 <Preview />
