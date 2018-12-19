@@ -108,5 +108,17 @@ namespace AltinnCore.Designer.Controllers
         {
             _sourceControl.PushChangesForRepository(commitInfo);
         }
+
+        /// <summary>
+        /// List all branches for a repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repo">The repository</param>
+        /// <returns>List of repos</returns>
+        [HttpGet]
+        public List<Branch> Branches(string owner, string repo)
+        {
+            return _giteaApi.GetBranches(owner, repo).Result;
+        }
     }
 }
