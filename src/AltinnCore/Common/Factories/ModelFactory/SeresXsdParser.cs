@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Extensions;
@@ -13,6 +14,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// </summary>
     public class SeresXsdParser
     {
+        private const int MaxOccursMagicNumber = 9999;
         private readonly Random _randomGen = new Random();
         private readonly IRepository _repository;
         private readonly Dictionary<string, XDocument> secondaryXsdsByNamespace = new Dictionary<string, XDocument>();
@@ -271,7 +273,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 allElements,
                                 $"{parentTrail}/{typeName.Split('-')[0]}",
                                 typeName.Split('.')[0]);
-                            
+
                             AddAttributeElements(currentElement, allElements, $"{parentTrail}/{typeName.Split('-')[0]}");
                             currentIsComplex = true;
                             skipRecursive = true;
@@ -292,12 +294,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (!string.IsNullOrEmpty(currentElement.AttributeValue("name")))
             {
                 elementName = currentElement.AttributeValue("name").Split('-')[0];
-                elementMetadata.XName = currentElement.AttributeValue("name");              
+                elementMetadata.XName = currentElement.AttributeValue("name");
 
                 newTrail = $"{parentTrail}/{elementName}";
-            }       
+            }
 
-            elementMetadata.Name = elementName;            
+            elementMetadata.Name = elementName;
             elementMetadata.TypeName = classShortRefName;
             elementMetadata.XPath = newTrail;
             elementMetadata.ID = newTrail.Replace("/", ".").Substring(1);
@@ -434,6 +436,67 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 allElements.Add(elementMetadata.ID, elementMetadata);
             }
+
+            AddSchemaReferenceInformation(currentComplexType, elementMetadata);
+        }
+
+        private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
+        {          
+            elementMetadata.XmlSchemaReference = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
+            elementMetadata.JsonSchemaReference = "/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
+            string cardinality = "[" + elementMetadata.MinOccurs + ".." + (elementMetadata.MaxOccurs < MaxOccursMagicNumber ? elementMetadata.MaxOccurs.AsString() : "*") + "]";
+            string typeName = elementMetadata.TypeName ?? elementMetadata.XsdValueType.AsString();
+            elementMetadata.DisplayString = elementMetadata.ID + " : " + cardinality + " " + typeName;
+        }
+
+        private static string GetSubXPathToProperty(ElementMetadata elementMetadata)
+        {
+            if (elementMetadata.Type.Equals("Attribute"))
+            {
+                return "//xsd:attribute[@name='" + elementMetadata.Name + "']";
+            }
+            else
+            {
+                return "//xsd:element[@name='" + elementMetadata.Name + "']";
+            }
+        }
+
+        private static string GetXPathToNode(XObject Node)
+        {
+            if (Node == null)
+            {
+                return string.Empty;
+            }
+
+            if (Node is XAttribute attribute)
+            {              
+                return string.Format(
+                    "{0}[@name=\"{1}\"]",
+                    GetXPathToNode(Node.Parent),
+                    attribute.Name.LocalName);
+            }
+
+            if (Node is XElement element)
+            {
+                string attributeQualifier = element.AttributeValue("name");
+                if (!string.IsNullOrEmpty(attributeQualifier))
+                {
+                    return string.Format(
+                    "{0}/xsd:{1}[@name='{2}']",
+                    GetXPathToNode(Node.Parent),
+                    element.Name.LocalName,
+                    element.AttributeValue("name"));
+                }
+                else
+                {
+                    return string.Format(
+                    "{0}/xsd:{1}",
+                    GetXPathToNode(Node.Parent),
+                    element.Name.LocalName);
+                }                
+            }
+
+            return "error";          
         }
 
         private string GetDataBindingName(string id)
@@ -634,6 +697,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     allElements.Add(attributeElementMetadata.ID, attributeElementMetadata);
                 }
+
+                AddSchemaReferenceInformation(currentComplexType, attributeElementMetadata);
             }
         }
 
@@ -657,7 +722,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if (maxOccurs == "unbounded")
                 {
-                    elementMetadata.MaxOccurs = 999; // TEMP
+                    elementMetadata.MaxOccurs = MaxOccursMagicNumber; // TEMP
                 }
                 else
                 {
