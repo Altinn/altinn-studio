@@ -15,9 +15,10 @@ import { styles } from './tabletDrawerMenustyle';
 
 export interface ITabletDrawerMenuProps {
   classes: any;
-  theme: any;
-  tabletDrawerOpen: boolean;
   handleTabletDrawerMenu: () => void;
+  logoutButton?: boolean;
+  tabletDrawerOpen: boolean;
+  theme: any;
 }
 
 export interface ITabletDrawerMenuState {
@@ -46,6 +47,13 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
     this.setState({ open: !this.state.open });
   }
 
+  public handleLogout = () => {
+    if (window) {
+      window.location.href = '/Home/Logout';
+    }
+    return true;
+  }
+
   public handleMenuItemClicked = (menuItem: IMenuItem, id: number) => {
     this.setState((state: any) => {
       return {
@@ -70,101 +78,114 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   }
 
   public render() {
-    const { classes } = this.props;
+    const { classes, logoutButton } = this.props;
 
     return (
-      <div>
+      !logoutButton ? (
+        <div>
+          <Button
+            size='small'
+            variant='outlined'
+            className={classes.button}
+            onClick={this.handleDrawerOpen}
+          >
+            {this.props.tabletDrawerOpen ? 'lukk' : 'meny'}
+          </Button>
+          <Drawer
+            variant='persistent'
+            className={classNames(classes.drawer, {
+              [classes.drawerOpen]: this.props.tabletDrawerOpen,
+              [classes.drawerClose]: !this.props.tabletDrawerOpen,
+            })}
+            classes={{
+              paper: classNames(classes.paper, {
+                [classes.drawerOpen]: this.props.tabletDrawerOpen,
+                [classes.drawerClose]: !this.props.tabletDrawerOpen,
+              }),
+            }}
+            open={this.props.tabletDrawerOpen}
+            PaperProps={{ classes: { root: classes.drawerMenuPaper } }}
+          >
+            <div style={{ width: '50%' }}>
+              <List
+                classes={{
+                  root: classNames(classes.toggleMenu, classes.toggleButton)
+                }}
+              >
+                <ListItem
+                  button={true}
+                  onClick={this.handleLogout}
+                  classes={{
+                    root: classNames(classes.menuItem),
+                  }}
+                >
+                  <ListItemText
+                    classes={{
+                      primary: classNames(classes.menuItemText),
+                    }}
+                    primary={'Logg ut'}
+                  />
+                </ListItem>
+              </List>
+              <Divider classes={{ root: classNames(classes.divider) }} />
+              <List>
+                {mainMenuSettings.menuItems.map((menuItem: IMenuItem, index: number) => {
+                  return (
+                    <div key={index}>
+                      <ListItem
+                        button={true}
+                        key={index}
+                        onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
+                      >
+                        <ListItemText
+                          classes={{ primary: classNames(classes.mainMenuItemText) }}
+                          primary={menuItem.displayText}
+                        />
+                      </ListItem>
+                      {leftDrawerMenuSettings[menuItem.menuType].length > 0 ?
+                        <Collapse in={this.state.openSubMenus.indexOf(index) > -1} timeout='auto' unmountOnExit={true}>
+                          <List component='div' disablePadding={true}>
+                            {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
+                              return (
+                                <Link to={item.navLink} style={{ borderBottom: 0 }} key={i}>
+                                  <ListItem
+                                    button={true}
+                                    className={classes.nested}
+                                    key={i}
+                                  >
+                                    <ListItemText
+                                      inset={true}
+                                      primary={item.displayText}
+                                      classes={{ primary: classNames(classes.subMenuItem) }}
+                                    />
+                                  </ListItem>
+                                </Link>
+                              );
+                            })}
+                          </List>
+                        </Collapse>
+                        : null}
+                      <Divider classes={{ root: classNames(classes.divider) }} />
+                    </div>
+                  );
+                },
+                )}
+              </List>
+            </div>
+          </Drawer>
+        </div>
+
+      ) : logoutButton && (
         <Button
           size='small'
           variant='outlined'
           className={classes.button}
-          onClick={this.handleDrawerOpen}
+          onClick={this.handleLogout}
         >
-          {this.props.tabletDrawerOpen ? 'lukk' : 'meny'}
+          logout
         </Button>
-        <Drawer
-          variant='persistent'
-          className={classNames(classes.drawer, {
-            [classes.drawerOpen]: this.props.tabletDrawerOpen,
-            [classes.drawerClose]: !this.props.tabletDrawerOpen,
-          })}
-          classes={{
-            paper: classNames(classes.paper, {
-              [classes.drawerOpen]: this.props.tabletDrawerOpen,
-              [classes.drawerClose]: !this.props.tabletDrawerOpen,
-            }),
-          }}
-          open={this.props.tabletDrawerOpen}
-          PaperProps={{ classes: { root: classes.drawerMenuPaper } }}
-        >
-          <div style={{ width: '50%' }}>
-            <List
-              classes={{
-                root: classNames(classes.toggleMenu, classes.toggleButton)
-              }}
-            >
-              <ListItem
-                button={true}
-                onClick={this.handleDrawerClose}
-                classes={{
-                  root: classNames(classes.menuItem),
-                }}
-              >
-                <ListItemText
-                  classes={{
-                    primary: classNames(classes.menuItemText),
-                  }}
-                  primary={'Logg ut'}
-                />
-              </ListItem>
-            </List>
-            <Divider classes={{ root: classNames(classes.divider) }} />
-            <List>
-              {mainMenuSettings.menuItems.map((menuItem: IMenuItem, index: number) => {
-                return (
-                  <div key={index}>
-                    <ListItem
-                      button={true}
-                      key={index}
-                      onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
-                    >
-                      <ListItemText
-                        classes={{ primary: classNames(classes.mainMenuItemText) }}
-                        primary={menuItem.displayText}
-                      />
-                    </ListItem>
-                    {leftDrawerMenuSettings[menuItem.menuType].length > 0 ?
-                      <Collapse in={this.state.openSubMenus.indexOf(index) > -1} timeout='auto' unmountOnExit={true}>
-                        <List component='div' disablePadding={true}>
-                          {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
-                            return (
-                              <Link to={item.navLink} style={{ borderBottom: 0 }} key={i}>
-                                <ListItem
-                                  button={true}
-                                  className={classes.nested}
-                                  key={i}
-                                >
-                                  <ListItemText
-                                    inset={true}
-                                    primary={item.displayText}
-                                    classes={{ primary: classNames(classes.subMenuItem) }}
-                                  />
-                                </ListItem>
-                              </Link>
-                            );
-                          })}
-                        </List>
-                      </Collapse>
-                      : null}
-                    <Divider classes={{ root: classNames(classes.divider) }} />
-                  </div>
-                );
-              },
-              )}
-            </List>
-          </div>
-        </Drawer>
-      </div>
+      )
+
     );
   }
 }
