@@ -28,7 +28,7 @@ const styles = createStyles({
     color: '#0062BA',
   },
   bold: {
-    fontWeigth: '500',
+    fontWeight: 500,
   },
 });
 

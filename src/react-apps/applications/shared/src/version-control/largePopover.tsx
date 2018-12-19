@@ -86,6 +86,9 @@ class LargePopoverComponent extends React.Component<ILargePopoverComponentProps,
   }
 
   public handleClose = () => {
+    this.setState({
+      commitMessage: '',
+    });
     this.props.handleClose();
   }
 

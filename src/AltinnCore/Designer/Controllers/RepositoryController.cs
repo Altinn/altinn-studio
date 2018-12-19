@@ -104,7 +104,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
-        public void CommitAndPushRepo(CommitInfo commitInfo)
+        public void CommitAndPushRepo([FromBody]CommitInfo commitInfo)
         {
             _sourceControl.PushChangesForRepository(commitInfo);
         }

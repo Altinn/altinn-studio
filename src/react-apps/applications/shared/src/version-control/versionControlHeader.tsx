@@ -96,7 +96,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     fetch(url)
       .then(
         (result) => {
-          console.log('inside then' + result.status + result.ok);
           if (result.ok) {
             this.setState({
               modalState: {
@@ -110,28 +109,40 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           }
         },
         (error) => {
-          console.log('inside then' + error);
+          console.log('Something went wrong: ' + error);
         },
       );
   }
 
   public pushChanges = (currentTarget: any) => {
-    console.log('push changes');
-    this.setState({
-      anchorEl: currentTarget,
-      modalState: {
-        header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
-        descriptionText: getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
-        btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
-        shouldShowCommitBox: true,
-      },
-    });
+    if (this.state.hasPushRight) {
+      this.setState({
+        anchorEl: currentTarget,
+        modalState: {
+          header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
+          descriptionText: getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+          btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
+          shouldShowCommitBox: true,
+        },
+      });
+    } else {
+      this.setState({
+        anchorEl: currentTarget,
+        modalState: {
+          header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
+          descriptionText: getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+          btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
+          shouldShowCommitBox: true,
+        },
+      });
+    }
+
   }
 
   public commitChanges = (commitMessage: string) => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    const commitInfo = {
+    const commitInfoObj = {
       message: commitMessage,
       org,
       repository: service,
@@ -143,7 +154,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(commitInfo),
+      body: JSON.stringify(commitInfoObj),
     })
       .then((response) => response.text())
       .then((responseData) => {

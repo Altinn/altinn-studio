@@ -26,7 +26,7 @@ const styles = createStyles({
     color: '#0062BA',
   },
   bold: {
-    fontWeigth: '500',
+    fontWeight: 500,
   },
 });
 
@@ -43,7 +43,7 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
         <p
           className={classNames(
             classes.color_p,
-            { [classes.bold]: this.props.changesInMaster },
+            { [classes.bold]: this.props.changesInMaster === true },
           )}
         >
           <i
