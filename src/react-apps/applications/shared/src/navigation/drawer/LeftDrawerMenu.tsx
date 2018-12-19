@@ -60,18 +60,22 @@ class LeftDrawerMenu extends
 
   public onMouseEnterListItem = (index: any) => (event: any) => {
     event.stopPropagation();
-    this.setState({
-      iconColor: {
-        [index]: altinnTheme.altinnPalette.primary.blueDark,
+    this.setState((state) => {
+      return {
+        iconColor: {
+          ...state.iconColor,
+          [index]: altinnTheme.altinnPalette.primary.blueDark,
+        }
       }
     })
   }
 
   public onMouseLeaveListItem = (index: any) => (event: any) => {
     event.stopPropagation();
-    this.setState((state: any) => {
+    this.setState((state) => {
       return {
         iconColor: {
+          ...state.iconColor,
           [index]: 'rgba(0, 0, 0, 0.54)',
         }
       }
