@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import formDesignerActionDispatcher from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetLayoutComponentsSelector, makeGetLayoutContainersSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
@@ -26,6 +25,9 @@ export class PreviewComponent extends React.Component<
   }
 
   public componentWillMount() {
+    /*
+    Commented out, have fix in react drag n drop branch, but because of the demo, i can't merge it
+
     if (!Object.keys(this.props.layoutOrder).length) {
       // Create baseContainer if it doesn't exist
       formDesignerActionDispatcher.addFormContainer({
@@ -33,7 +35,7 @@ export class PreviewComponent extends React.Component<
         dataModelGroup: null,
         index: 0,
       });
-    }
+    }*/
   }
 
   public renderContainer = (): JSX.Element => {
