@@ -5,6 +5,7 @@ import FetchChangesComponent from '../version-control/fetchChanges';
 import PushChangesComponent from '../version-control/pushChanges';
 import LargePopoverComponent from './largePopover';
 import { getLanguageFromKey } from '../utils/language';
+import { isRegExp } from 'util';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
@@ -40,15 +41,44 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       changesInMaster: false,
       changesInLocalRepo: false,
       moreThanAnHourSinceLastPush: false,
-      // TODO: denne må fikses
-      hasPushRight: true,
+      hasPushRight: false,
       anchorEl: null,
       modalState: initialState,
     };
   }
 
-  public componentWillMount() {
-    console.log('componentWillMount');
+  public checkLastPush() {
+    if (!this.state.moreThanAnHourSinceLastPush) {
+      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const { org, service } = altinnWindow;
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
+      fetch(url)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            return null;
+          }
+        })
+        .then(
+          (result) => {
+            if (result) {
+              this.setState({
+                changesInMaster: result.behindBy === 0 ? false : true,
+                changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
+              });
+            }
+          },
+          (error) => {
+            console.log('inside then' + error);
+          },
+        );
+    }
+  }
+
+  public getStatus() {
+    this.checkLastPush();
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
@@ -75,10 +105,92 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       );
   }
 
+  public updateStateOnIntervals() {
+    this.getStatus();
+    if (!this.state.moreThanAnHourSinceLastPush) {
+      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const { org, service } = altinnWindow;
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
+      fetch(url)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            return null;
+          }
+        })
+        .then(
+          (result) => {
+            if (result) {
+              this.setState({
+                changesInMaster: result.behindBy === 0 ? false : true,
+                changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
+              });
+            }
+          },
+          (error) => {
+            console.log('inside then' + error);
+          },
+        );
+    }
+  }
+
+  public componentWillMount() {
+    // check status every 5 min
+    setInterval(() => this.updateStateOnIntervals(), 300000);
+    this.getStatus();
+    this.getRepoRights();
+  }
+
+  public getRepoRights() {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
+    fetch(url)
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          return null;
+        }
+      })
+      .then(
+        (result) => {
+          if (result) {
+            const currentRepo = result.filter((e: any) => e.name === 'secondService');
+            this.setState({
+              hasPushRight: currentRepo.length > 0 ? currentRepo[0].permissions.push : false,
+            });
+          }
+        },
+        (error) => {
+          console.log('inside then' + error);
+        },
+      );
+  }
+
   public handleClose = () => {
     this.setState({
       anchorEl: null,
     });
+  }
+
+  public pullRepo = (modalState: any) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service } = altinnWindow;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/PullRepo?owner=${org}&repository=${service}`;
+    fetch(url)
+      .then(
+        (result) => {
+          if (result.ok) {
+            this.setState({
+              modalState,
+            });
+          }
+        },
+        (error) => {
+          console.log('Something went wrong: ' + error);
+        },
+      );
   }
 
   public fetchChanges = (currentTarget: any) => {
@@ -89,7 +201,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         isLoading: true,
       },
     });
-    console.log('fetching changes');
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/PullRepo?owner=${org}&repository=${service}`;
@@ -129,10 +240,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       this.setState({
         anchorEl: currentTarget,
         modalState: {
-          header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
-          descriptionText: getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
-          btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
-          shouldShowCommitBox: true,
+          header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
+          descriptionText: getLanguageFromKey('sync_header.sharing_changes_no_access_submessage', this.props.language),
         },
       });
     }
