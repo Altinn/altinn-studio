@@ -81,10 +81,6 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
     });
   }
 
-  public getItemIndexToCollapse() {
-
-  }
-
   public render() {
     const { classes, logoutButton } = this.props;
 

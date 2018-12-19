@@ -122,7 +122,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
               activeLeftMenuSelection={mockActiveLeftMenuSelection}
             />
           </MuiThemeProvider>
-        </MemoryRouter>, { attachTo: document.getElementById('root') }
+        </MemoryRouter>, { attachTo: document.getElementById('root') },
       );
       expect(app.text()).not.toMatch(`/ ${mockActiveSubHeaderSelection} / ${mockActiveLeftMenuSelection}`);
       expect(app.text()).toMatch(`${mockService}${mockOrg}`);
