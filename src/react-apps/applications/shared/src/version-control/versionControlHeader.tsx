@@ -4,7 +4,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
-import LargePopoverComponent from './largePopover';
+import SyncModalComponent from './syncModal';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
@@ -324,7 +324,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             fetchChanges={this.fetchChanges}
             changesInMaster={this.state.changesInMaster}
           />
-          <LargePopoverComponent
+          <SyncModalComponent
             anchorEl={this.state.anchorEl}
             header={this.state.modalState.header}
             descriptionText={this.state.modalState.descriptionText}
@@ -344,7 +344,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
             hasPushRight={this.state.hasPushRight}
           />
-          <LargePopoverComponent
+          <SyncModalComponent
             anchorEl={this.state.anchorEl}
             header={this.state.modalState.header}
             descriptionText={this.state.modalState.descriptionText}

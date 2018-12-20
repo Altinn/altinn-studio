@@ -37,7 +37,7 @@ const styles = createStyles({
     '&:hover': {
       cursor: 'pointer',
     },
-    'maxWidth': '150px',
+    'maxWidth': '260px',
     [theme.breakpoints.down('md')]: {
       float: 'right',
       marginRight: '10px',

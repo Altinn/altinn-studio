@@ -28,14 +28,22 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   button: {
-    fontSize: '14px',
-    color: theme.altinnPalette.primary.white,
-    background: theme.altinnPalette.primary.blueDark,
-    maxWidth: '150px',
-    textTransform: 'none',
-    fontWeight: 400,
-    marginTop: '20px',
-    borderRadius: '0',
+    'fontSize': '14px',
+    'color': theme.altinnPalette.primary.white,
+    'background': theme.altinnPalette.primary.blueDark,
+    'maxWidth': '150px',
+    'textTransform': 'none',
+    'fontWeight': 400,
+    'marginTop': '20px',
+    'borderRadius': '0',
+    '&:hover': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+    },
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+    },
   },
   popover: {
     width: '445px',
