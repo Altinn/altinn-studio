@@ -8,17 +8,19 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import AltinnIcon from './AltinnIcon';
 import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
-import Icon from './Icon';
 import { styles } from './leftDrawerMenuStyles';
 
-export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
+import altinnTheme from '../../theme/altinnStudioTheme';
 
+export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
   menuType: string;
   activeLeftMenuSelection: string;
 }
 
 export interface ILeftDrawerMenuState {
+  iconColor: any;
   open: boolean;
   openSubMenus: number[];
 }
@@ -28,6 +30,7 @@ class LeftDrawerMenu extends
   constructor(_props: ILeftDrawerMenuProps) {
     super(_props);
     this.state = {
+      iconColor: {},
       open: false,
       openSubMenus: [],
     };
@@ -51,6 +54,30 @@ class LeftDrawerMenu extends
       }
       return {
         openSubMenus: state.openSubMenus,
+      };
+    });
+  }
+
+  public onMouseEnterListItem = (index: any) => (event: any) => {
+    event.stopPropagation();
+    this.setState((state) => {
+      return {
+        iconColor: {
+          ...state.iconColor,
+          [index]: altinnTheme.altinnPalette.primary.blueDark,
+        },
+      };
+    });
+  }
+
+  public onMouseLeaveListItem = (index: any) => (event: any) => {
+    event.stopPropagation();
+    this.setState((state) => {
+      return {
+        iconColor: {
+          ...state.iconColor,
+          [index]: 'rgba(0, 0, 0, 0.54)',
+        },
       };
     });
   }
@@ -92,18 +119,29 @@ class LeftDrawerMenu extends
                   key={index}
                 >
                   <ListItem
-                    button={true}
+                    classes={{
+                      root: classNames(classes.listItem,
+                        {
+                          [classes.activeListItem]: this.props.activeLeftMenuSelection ===
+                            menuItem.activeLeftMenuSelection,
+                        },
+                      ),
+                    }}
+                    onMouseEnter={this.onMouseEnterListItem(index)}
+                    onMouseLeave={this.onMouseLeaveListItem(index)}
                   >
                     <ListItemIcon>
-                      <Icon iconType={menuItem.iconName} />
+                      <AltinnIcon
+                        isActive={this.props.activeLeftMenuSelection ===
+                          menuItem.activeLeftMenuSelection}
+                        iconClass={menuItem.iconClass}
+                        iconColor={this.state.iconColor[index] === undefined
+                          ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}
+                      />
                     </ListItemIcon>
                     <ListItemText
+                      disableTypography={true}
                       primary={menuItem.displayText}
-                      classes={{ primary: classNames(classes.menuItemText) }}
-                      className={classNames({
-                        [classes.activeMenu]: this.props.activeLeftMenuSelection ===
-                          menuItem.activeLeftMenuSelection,
-                      })}
                     />
                   </ListItem>
                 </Link>

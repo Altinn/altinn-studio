@@ -3,7 +3,7 @@ export interface IMenuItem {
   navLink: string;
   menuType?: string;
   activeLeftMenuSelection?: string;
-  iconName?: string;
+  iconClass?: string;
   [key: string]: string;
 }
 
@@ -62,94 +62,94 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
     {
       displayText: 'Om tjenesten',
       navLink: '/aboutservice',
-      activeLeftMenuSelection: 'Om tjenesten',
-      iconName: 'information',
+          activeLeftMenuSelection: 'Om tjenesten',
+      iconClass: 'ai ai-info-circle',
     },
     {
       displayText: 'Roller og rettigheter',
       navLink: '/rolesandrights',
-      activeLeftMenuSelection: 'Roller og rettigheter',
-      iconName: 'settings',
+        activeLeftMenuSelection: 'Roller og rettigheter',
+      iconClass: 'ai ai-others',
     },
     {
       displayText: 'Produksjon',
       navLink: '/production',
-      activeLeftMenuSelection: 'Produksjon',
-      iconName: 'information',
+        activeLeftMenuSelection: 'Produksjon',
+      iconClass: 'ai ai-settings',
     },
     {
       displayText: 'Versjonshistorikk',
       navLink: '/versionhistory',
-      activeLeftMenuSelection: 'Versjonshistorikk',
-      iconName: 'information',
+        activeLeftMenuSelection: 'Versjonshistorikk',
+      iconClass: 'ai ai-deadline',
     },
     {
       displayText: 'Om sluttbrukeren',
       navLink: '/aboutenduser',
-      activeLeftMenuSelection: 'Om sluttbrukeren',
-      iconName: 'information',
+        activeLeftMenuSelection: 'Om sluttbrukeren',
+      iconClass: 'ai ai-info-circle',
     },
     {
       displayText: 'Altinn.no',
       navLink: '/altinn',
       activeLeftMenuSelection: 'Altinn',
-      iconName: 'settings',
+      iconClass: 'ai ai-info-circle',
     },
   ],
   create: [
     {
       displayText: 'Datamodell',
       navLink: '/datamodel',
-      activeLeftMenuSelection: 'Datamodell',
-      iconName: 'information',
+          activeLeftMenuSelection: 'Datamodell',
+      iconClass: 'ai ai-info-circle',
     },
     {
       displayText: 'GUI',
       navLink: '/uieditor',
-      activeLeftMenuSelection: 'GUI',
-      iconName: 'settings',
+        activeLeftMenuSelection: 'GUI',
+      iconClass: 'ai ai-settings',
     },
     {
       displayText: 'API',
       navLink: '/api',
-      activeLeftMenuSelection: 'API',
-      iconName: 'information',
+        activeLeftMenuSelection: 'API',
+      iconClass: 'ai ai-info-circle',
     },
   ],
   language: [
     {
       displayText: 'Tekst',
       navLink: '/text',
-      activeLeftMenuSelection: 'Tekst',
-      iconName: 'information',
+          activeLeftMenuSelection: 'Tekst',
+      iconClass: 'ai ai-settings',
     },
     {
       displayText: 'Flere språk',
       navLink: '/translate',
-      activeLeftMenuSelection: 'Flere språk',
-      iconName: 'settings',
+        activeLeftMenuSelection: 'Flere språk',
+      iconClass: 'ai ai-settings',
     },
   ],
   test: [
     {
       displayText: 'Test',
       navLink: '/test',
-      activeLeftMenuSelection: 'Test',
-      iconName: 'information',
+          activeLeftMenuSelection: 'Test',
+      iconClass: 'ai ai-info-circle',
     },
   ],
   publish: [
     {
       displayText: 'Produksjonsette',
       navLink: '/productionsetting',
-      activeLeftMenuSelection: 'Produksjonsette',
-      iconName: 'information',
+          activeLeftMenuSelection: 'Produksjonsette',
+      iconClass: 'ai ai-settings',
     },
     {
       displayText: 'Status',
       navLink: '/status',
-      activeLeftMenuSelection: 'Status',
-      iconName: 'settings',
+        activeLeftMenuSelection: 'Status',
+      iconClass: 'ai ai-info-circle',
     },
   ],
 };
