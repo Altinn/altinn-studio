@@ -7,6 +7,7 @@ export interface IAddFormContainerAction extends Action {
   addToId?: string;
   activeContainerId?: string;
   callback?: (...args: any[]) => any;
+  destinationIndex?: number;
 }
 
 export interface IAddFormContainerActionFulfilled extends Action {
@@ -16,6 +17,7 @@ export interface IAddFormContainerActionFulfilled extends Action {
   addToId?: string;
   baseContainerId?: string;
   callback?: (...args: any[]) => any;
+  destinationIndex?: number;
 }
 
 export interface IAddFormContainerActionRejected extends Action {
@@ -27,6 +29,7 @@ export function addFormContainerAction(
   positionAfterId?: string,
   addToId?: string,
   callback?: (...args: any[]) => any,
+  destinationIndex?: number,
 ): IAddFormContainerAction {
   return {
     type: ActionTypes.ADD_FORM_CONTAINER,
@@ -34,6 +37,7 @@ export function addFormContainerAction(
     positionAfterId,
     addToId,
     callback,
+    destinationIndex,
   };
 }
 
@@ -44,6 +48,7 @@ export function addFormContainerActionFulfilled(
   addToId?: string,
   baseContainerId?: string,
   callback?: (...args: any[]) => any,
+  destinationIndex?: number,
 ): IAddFormContainerActionFulfilled {
   return {
     type: ActionTypes.ADD_FORM_CONTAINER_FULFILLED,
@@ -53,6 +58,7 @@ export function addFormContainerActionFulfilled(
     addToId,
     baseContainerId,
     callback,
+    destinationIndex,
   };
 }
 
