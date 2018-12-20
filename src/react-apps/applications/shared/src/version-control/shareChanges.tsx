@@ -3,20 +3,20 @@ import { createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import { getLanguageFromKey } from '../utils/language';
 
-export interface IPushChangesCompoenentProvidedProps {
+export interface IShareChangesCompoenentProvidedProps {
   classes: any;
-  pushChanges: any;
+  shareChanges: any;
   changesInLocalRepo: boolean;
   moreThanAnHourSinceLastPush: boolean;
   hasPushRight: boolean;
   language: any;
 }
 
-export interface IPushChangesCompoenentProps extends IPushChangesCompoenentProvidedProps {
+export interface IShareChangesCompoenentProps extends IShareChangesCompoenentProvidedProps {
 
 }
 
-export interface IPushChangesCompoenentState {
+export interface IShareChangesCompoenentState {
 
 }
 
@@ -32,9 +32,9 @@ const styles = createStyles({
   },
 });
 
-class PushChangesCompoenent extends React.Component<IPushChangesCompoenentProps, IPushChangesCompoenentState> {
-  public pushChangesHandler = (event: any) => {
-    this.props.pushChanges(event.currentTarget);
+class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProps, IPushChangesCompoenentState> {
+  public shareChangesHandler = (event: any) => {
+    this.props.shareChanges(event.currentTarget);
   }
 
   public renderCorrectText() {
@@ -62,11 +62,11 @@ class PushChangesCompoenent extends React.Component<IPushChangesCompoenentProps,
   public render() {
     const { classes } = this.props;
     return (
-      <div onClick={this.pushChangesHandler} className={classes.color_p}>
+      <div onClick={this.shareChangesHandler} className={classes.color_p}>
         {this.renderCorrectText()}
       </div>
     );
   }
 }
 
-export default withStyles(styles)(PushChangesCompoenent);
+export default withStyles(styles)(ShareChangesCompoenent);

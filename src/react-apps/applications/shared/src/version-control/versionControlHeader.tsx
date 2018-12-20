@@ -1,12 +1,10 @@
-import { createMuiTheme, createStyles, Grid, WithStyles, withStyles, Button } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import altinnTheme from '../theme/altinnStudioTheme'
+import altinnTheme from '../theme/altinnStudioTheme';
 import FetchChangesComponent from '../version-control/fetchChanges';
-import PushChangesComponent from '../version-control/pushChanges';
+import ShareChangesComponent from '../version-control/shareChanges';
 import LargePopoverComponent from './largePopover';
 import { getLanguageFromKey } from '../utils/language';
-import { isRegExp } from 'util';
-import { resultsAriaMessage } from 'react-select/lib/accessibility';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
@@ -19,6 +17,7 @@ export interface IVersionControlHeaderState {
   hasPushRight: boolean;
   anchorEl: any;
   modalState: any;
+  mergeConflict: boolean;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -46,18 +45,15 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       moreThanAnHourSinceLastPush: false,
       hasPushRight: false,
       anchorEl: null,
+      mergeConflict: false,
       modalState: initialState,
     };
   }
 
-  public performFetch(url: string, callbackFunc: any) {
-    fetch(url)
+  public performAPIFetch(url: string, callbackFunc: any, object?: any) {
+    fetch(url, object)
       .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          return null;
-        }
+        return response.json();
       })
       .then(
         (result) => {
@@ -69,29 +65,11 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       );
   }
 
-  public checkLastPush() {
-    if (!this.state.moreThanAnHourSinceLastPush) {
-      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-      const { org, service } = altinnWindow;
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
-      this.performFetch(url, (result: any) => {
-        if (result) {
-          this.setState({
-            changesInMaster: result.behindBy === 0 ? false : true,
-            changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
-          });
-        }
-      });
-    }
-  }
-
   public getStatus(callbackFunc?: any) {
-    this.checkLastPush();
-
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?org=${org}&repository=${service}`;
-    this.performFetch(url, (result: any) => {
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+    this.performAPIFetch(url, (result: any) => {
       if (callbackFunc) {
         callbackFunc(result);
       } else {
@@ -114,9 +92,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     if (!this.state.moreThanAnHourSinceLastPush) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service } = altinnWindow;
-      // TODO: correct url
+      // TODO: correct url when method done
       const url = `${altinnWindow.location.origin}/designerapi/Repository/Branches?owner=${org}&repo=${service}`;
-      this.performFetch(url, (result: any) => {
+      this.performAPIFetch(url, (result: any) => {
         if (result) {
           console.log(result);
           // TODO: set moreThanAnHourSinceLastPush
@@ -135,10 +113,11 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public getRepoRights() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
-    this.performFetch(url, (result: any) => {
+    this.performAPIFetch(url, (result: any) => {
       if (result) {
-        const currentRepo = result.filter((e: any) => e.name === 'secondService');
+        const currentRepo = result.filter((e: any) => e.name === service);
         this.setState({
           hasPushRight: currentRepo.length > 0 ? currentRepo[0].permissions.push : false,
         });
@@ -147,22 +126,11 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public handleClose = () => {
-    this.setState({
-      anchorEl: null,
-    });
-  }
-
-  public pullRepo = (modalState: any) => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/PullRepo?owner=${org}&repository=${service}`;
-    this.performFetch(url, (result: any) => {
-      if (result.ok) {
-        this.setState({
-          modalState,
-        });
-      }
-    });
+    if (!this.state.mergeConflict) {
+      this.setState({
+        anchorEl: null,
+      });
+    }
   }
 
   public fetchChanges = (currentTarget: any) => {
@@ -173,11 +141,14 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         isLoading: true,
       },
     });
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/PullRepo?owner=${org}&repository=${service}`;
-    this.performFetch(url, (result: any) => {
-      if (result.ok) {
+
+    this.performAPIFetch(url, (result: any) => {
+      if (result) {
+        // if pull was successfull, show service is updated message
         this.setState({
           modalState: {
             header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
@@ -188,6 +159,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           },
         });
       } else {
+        // if pull gives merge conflict, show user needs to commit message
         // TODO: overwritten by merge
         this.setState({
           modalState: {
@@ -196,13 +168,58 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
             btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
             shouldShowCommitBox: true,
+            btnClick: this.commitChanges,
           },
         });
       }
     });
   }
 
-  public shareChanges() {
+  public shareChanges = (currentTarget: any) => {
+    if (this.state.hasPushRight) {
+      this.getStatus((result: any) => {
+        if (result) {
+          // if user is ahead with no changes to commit, show share changes modal
+          if (result.aheadBy > 0 && result.contentStatus.length === 0) {
+            this.setState({
+              anchorEl: currentTarget,
+              modalState: {
+                header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
+                btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
+                shouldShowDoneIcon: true,
+                btnClick: this.pushChanges,
+              },
+            });
+          } else {
+            // if user has changes to share, show write commit message modal
+            this.setState({
+              anchorEl: currentTarget,
+              modalState: {
+                header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
+                descriptionText:
+                  getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+                btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
+                shouldShowCommitBox: true,
+                btnClick: this.commitChanges,
+              },
+            });
+          }
+
+        }
+      });
+    } else {
+      // if user don't have push rights, show modal stating no access to share changes
+      this.setState({
+        anchorEl: currentTarget,
+        modalState: {
+          header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
+          descriptionText: getLanguageFromKey('sync_header.sharing_changes_no_access_submessage', this.props.language),
+        },
+      });
+    }
+  }
+
+  public pushChanges = () => {
     this.setState({
       modalState: {
         header: getLanguageFromKey('sync_header.sharing_changes', this.props.language),
@@ -212,15 +229,15 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/PullRepo?owner=${org}&repository=${service}`;
-    this.performFetch(url, (result: any) => {
-      if (result.ok) {
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
+
+    this.performAPIFetch(url, (result: any) => {
+      if (result) {
         this.setState({
           modalState: {
             header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
             descriptionText:
               getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
-            btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
             shouldShowDoneIcon: true,
           },
         });
@@ -228,94 +245,66 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public pushChanges = (currentTarget: any) => {
-    if (this.state.hasPushRight) {
-      this.getStatus((result: any) => {
-        if (result) {
-          if (result.aheadBy > 0 && result.contentStatus.length === 0) {
-            this.setState({
-              anchorEl: currentTarget,
-              modalState: {
-                header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
-                btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
-                shouldShowDoneIcon: true,
-                btnClick: this.shareChanges,
-              },
-            });
-          } else {
-            this.setState({
-              anchorEl: currentTarget,
-              modalState: {
-                header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
-                descriptionText:
-                  getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
-                btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
-                shouldShowCommitBox: true,
-              },
-            });
-          }
-
-        }
-      })
-    } else {
-      this.setState({
-        anchorEl: currentTarget,
-        modalState: {
-          header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
-          descriptionText: getLanguageFromKey('sync_header.sharing_changes_no_access_submessage', this.props.language),
-        },
-      });
-    }
-
-  }
-
   public commitChanges = (commitMessage: string) => {
-    //TODO: perform commit and pull
+    this.setState({
+      modalState: {
+        header: getLanguageFromKey('sync_header.validating_changes', this.props.language),
+        descriptionText: '',
+        isLoading: true,
+      },
+    });
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    const commitInfoObj = {
-      message: commitMessage,
-      org,
-      repository: service,
-    };
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/CommitAndPushRepo`;
-    fetch(url, {
+    const commitObject = {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(commitInfoObj),
-    })
-      .then((response) => response.text())
-      .then((responseData) => {
+      body: JSON.stringify({
+        message: commitMessage,
+        org,
+        repository: service,
+      }),
+    };
+
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
+    const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
+    this.performAPIFetch(url, (commitResult: any) => {
+      this.performAPIFetch(pullUrl, (result: any) => {
+        // if pull was successfull, show service updated message
         // TODO: if everything is ok
-        if (responseData) {
+        if (result) {
           this.setState({
             modalState: {
               header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
               descriptionText: '',
               btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
               shouldShowDoneIcon: true,
+              btnMethod: this.pushChanges,
             },
           });
         } else {
+          // if pull resulted in a mergeconflict, show mergeconflict message
           // of merge conflikt
           this.setState({
+            mergeConflict: true,
             modalState: {
               header: getLanguageFromKey('sync_header.merge_conflict_occured', this.props.language),
               descriptionText: getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language),
               btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
               shouldShowDoneIcon: true,
+              btnMethod: this.redirectToMergeConflictPage,
             },
           });
-
         }
-        console.log('inside second then ' + responseData);
-      })
-      .catch((err) => {
-        console.log('inside error ' + err);
       });
+    }, commitObject);
+  }
+
+  public redirectToMergeConflictPage() {
+    //TODO: redirect to merge page
   }
 
   public render() {
@@ -340,9 +329,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           />
         </Grid>
         <Grid item={true} xs={7}>
-          <PushChangesComponent
+          <ShareChangesComponent
             language={this.props.language}
-            pushChanges={this.pushChanges}
+            shareChanges={this.shareChanges}
             changesInLocalRepo={this.state.changesInLocalRepo}
             moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
             hasPushRight={this.state.hasPushRight}
