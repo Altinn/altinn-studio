@@ -9,6 +9,7 @@ import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
 import { getParentContainerId } from '../../utils/formLayout';
 import { get, post } from '../../utils/networking';
+import { getSaveFormLayoutUrl } from '../../utils/urlHelper';
 // tslint:disable-next-line:no-var-requires
 const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
@@ -62,6 +63,11 @@ function* addFormComponentSaga({
       containerId,
       callback,
     );
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      saveFormLayoutUrl,
+    );
     return id; // returns created id
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormComponentRejected, err);
@@ -102,7 +108,11 @@ function* addFormContainerSaga({
       callback,
       destinationIndex,
     );
-
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      saveFormLayoutUrl,
+    );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.addFormContainerRejected, err);
   }
@@ -127,6 +137,11 @@ function* deleteFormComponentSaga({
       }
     });
     yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, id, containerId);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      saveFormLayoutUrl,
+    );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormComponentRejected, err);
   }
@@ -152,7 +167,12 @@ function* deleteFormContainerSaga({
         yield call(FormDesignerActionDispatchers.deleteFormComponentFulfilled, componentId, id);
       }
     }
-    yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id, index, parentContainerId);
+    yield call(FormDesignerActionDispatchers.deleteFormContainerFulfilled, id);
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      saveFormLayoutUrl,
+    );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.deleteFormContainerRejected, err);
   }
@@ -326,6 +346,11 @@ function* updateFormComponentSaga({
       FormDesignerActionDispatchers.updateFormComponentFulfilled,
       updatedComponent,
       id,
+    );
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      saveFormLayoutUrl,
     );
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateFormComponentRejected, err);
@@ -521,6 +546,11 @@ export function* updateFormComponentOrderSaga({
       destinationContainerId,
     );
   }
+  const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+  yield call(
+    FormDesignerActionDispatchers.saveFormLayout,
+    saveFormLayoutUrl,
+  );
 }
 
 export function* watchUpdateFormComponentOrderSaga(): SagaIterator {
