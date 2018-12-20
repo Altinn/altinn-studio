@@ -80,5 +80,18 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The name of the local repo</param>
         /// <returns>true if it exists</returns>
         bool IsLocalRepo(string org, string repository);
+
+        /// <summary>
+        /// Push commits to repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repository">The repository</param>
+        void Push(string owner, string repository);
+
+        /// <summary>
+        /// Commit changes for repository
+        /// </summary>
+        /// <param name="commitInfo">Information about the commit</param>
+        void Commit(CommitInfo commitInfo);
   }
 }

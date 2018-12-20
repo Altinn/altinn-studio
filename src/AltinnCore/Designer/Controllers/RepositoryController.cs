@@ -1,12 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -78,14 +74,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// This method returns the status of a given repository 
         /// </summary>
-        /// <param name="org">The organization or user owning the repo</param>
+        /// <param name="owner">The organization or user owning the repo</param>
         /// <param name="repository">The repository</param>
         /// <returns>The repository status</returns>
         [HttpGet]
-        public RepoStatus RepoStatus(string org, string repository)
+        public RepoStatus RepoStatus(string owner, string repository)
         {
-            _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            _sourceControl.FetchRemoteChanges(owner, repository);
+            return _sourceControl.RepositoryStatus(owner, repository);
         }
 
         /// <summary>
@@ -110,15 +106,36 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Commit changes
+        /// </summary>
+        /// <param name="commitInfo">Info about the commit</param>
+        [HttpPost]
+        public void Commit([FromBody]CommitInfo commitInfo)
+        {
+            _sourceControl.Commit(commitInfo);
+        }
+
+        /// <summary>
+        /// Push commits to repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repo">The repo name</param>
+        [HttpPost]
+        public void Push(string owner, string repo)
+        {
+            _sourceControl.Push(owner, repo);
+        }
+
+        /// <summary>
         /// List all branches for a repository
         /// </summary>
         /// <param name="owner">The owner of the repo</param>
-        /// <param name="repo">The repository</param>
+        /// <param name="repository">The repository</param>
         /// <returns>List of repos</returns>
         [HttpGet]
-        public List<Branch> Branches(string owner, string repo)
+        public List<Branch> Branches(string owner, string repository)
         {
-            return _giteaApi.GetBranches(owner, repo).Result;
+            return _giteaApi.GetBranches(owner, repository).Result;
         }
     }
 }

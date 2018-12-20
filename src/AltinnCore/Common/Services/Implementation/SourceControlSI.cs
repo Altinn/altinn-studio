@@ -190,6 +190,64 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Push commits to repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repository">The repository</param>
+        public void Push(string owner, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                string remoteUrl = FindRemoteRepoLocation(owner, repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
+                {
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                }
+
+                PushOptions options = new PushOptions();
+                options.CredentialsProvider = (_url, _user, _cred) =>
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+                repo.Network.Push(remote, @"refs/heads/master", options);
+            }
+        }
+
+        /// <summary>
+        /// Commit changes for repository
+        /// </summary>
+        /// <param name="commitInfo">Information about the commit</param>
+        public void Commit(CommitInfo commitInfo)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
+                {
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                }
+
+                Commands.Stage(repo, "*");
+
+                // Create the committer's signature and commit
+                Signature author = new Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                Signature committer = author;
+
+                // Commit to the repository
+                Commit commit = repo.Commit(commitInfo.Message, author, committer);
+            }
+        }
+
+        /// <summary>
         /// List the GIT status of a repositor
         /// </summary>
         /// <param name="org">The organization owning the repository</param>
