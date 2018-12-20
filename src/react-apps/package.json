@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "install-deps": "lerna bootstrap --hoist",
+    "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
     "test": "jest",
     "install-all": "lerna exec -- npm i"
   },
