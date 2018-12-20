@@ -10,19 +10,39 @@ export function* updateContainerListSaga({
   containerList,
 }: FormDesignerActions.IUpdateContainerListAction): SagaIterator {
   let returnedList = addToOrDeleteFromArray();
-  returnedList = returnedList(listItem, containerList);
+  returnedList = returnedList({ object: listItem, array: containerList });
   try {
-    if (returnedList !== null) {
-      yield call(FormDesignerActionDispatchers.updateContainerListFulfilled, returnedList);
+    if (returnedList.length > 0) {
+      yield call(FormDesignerActionDispatchers.updateContainerListActionFulfilled, returnedList);
     }
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateContainerListRejected, err);
   }
-})
+}
 
 export function* watchUpdateContainerListSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_CONTAINER_LIST,
+    updateContainerListSaga,
+  );
+}
+
+export function* updateOrderSaga({
+  listItem,
+  containerList,
+}: FormDesignerActions.IUpdateContainerListAction): SagaIterator {
+  const returnedList = containerList;
+  try {
+    if (returnedList.length > 0) {
+      yield call(FormDesignerActionDispatchers.updateContainerListActionFulfilled, returnedList);
+    }
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.updateContainerListRejected, err);
+  }
+}
+export function* watchupdateOrderSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.UPDATE_ACTIVE_LIST_ORDER,
     updateContainerListSaga,
   );
 }

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import GenericComponent from './GenericComponent';
@@ -26,6 +27,7 @@ export interface IFormElementProps extends IProvidedProps {
   textResources: any[];
   thirdPartyComponents: any;
   order: Array<any>;
+  activeList: Array<any>;
 }
 
 /**
@@ -33,6 +35,7 @@ export interface IFormElementProps extends IProvidedProps {
  */
 export interface IFormElementState {
   component: FormComponentType;
+  activeList: Array<any>;
 }
 
 /**
@@ -47,6 +50,7 @@ class FormComponent extends React.Component<
 
     this.state = {
       component: _props.component,
+      activeList: _props.activeList,
     };
   }
 
@@ -104,7 +108,7 @@ class FormComponent extends React.Component<
 
     if (this.props.component.title) {
       const label: string =
-      this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
+        this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
       return (
         <label className='a-form-label title-label' htmlFor={this.props.id}>
           {label}
@@ -122,7 +126,8 @@ class FormComponent extends React.Component<
   public renderDescription = (): JSX.Element => {
     if (this.props.component.description) {
       const description: string =
-      this.props.designMode ? this.props.component.description : this.getTextResource(this.props.component.description)
+        this.props.designMode ? this.props.component.description :
+          this.getTextResource(this.props.component.description);
       return (
         <span className='a-form-label description-label'>{description}</span>
       );
@@ -137,6 +142,13 @@ class FormComponent extends React.Component<
    */
   public disableEditOnClickForAddedComponent = (e: any) => {
     e.stopPropagation();
+  }
+
+  public handleActiveListChange = (obj: any, list: Array<any>) => {
+    FormDesignerActionDispatchers.updateContainerList(obj, list);
+    this.setState({
+      activeList: this.props.activeList,
+    });
   }
 
   /**
@@ -158,13 +170,18 @@ class FormComponent extends React.Component<
         </div>
       );
     }
+    const key: any = Object.keys(this.props.order)[0];
+    const order = this.props.order[key].indexOf(this.props.id);
+    const activeListIndex = this.props.activeList.findIndex((listItem) => listItem.id === this.props.id);
+
     return (
       <>
         <EditContainer
           component={this.props.component}
           id={this.props.id}
-          order={this.props.order[Object.keys(this.props.order)[0]].indexOf(this.props.id)}
-          activeListOrder={0}
+          order={order}
+          firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : false}
+          handler={this.handleActiveListChange}
         >
           <div className='a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
             {this.renderLabel()}
@@ -205,6 +222,7 @@ const makeMapStateToProps = () => {
     handleDataUpdate: props.handleDataUpdate,
     component: state.formDesigner.layout.components[props.id],
     order: GetLayoutOrderSelector(state),
+    activeList: state.formDesigner.layout.activeList,
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),

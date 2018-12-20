@@ -41,16 +41,19 @@ const styles = createStyles({
   },
   specialBtn: {
     fontSize: '0.6em !important',
+    paddingLeft: '4px',
   },
   gridForBtn: {
     visibility: 'hidden',
     paddingTop: '8px',
     paddingBottom: '8px',
+    marginLeft: '10px',
   },
   gridForBtnActive: {
     visibility: 'visible',
     paddingTop: '8px',
     paddingBottom: '8px',
+    marginLeft: '10px',
   },
   inputHelper: {
     marginTop: '1em',
@@ -90,7 +93,8 @@ export interface IEditContainerProvidedProps {
   component: IFormComponent;
   id: string;
   order: number;
-  activeListOrder: number;
+  firstInActiveList: boolean;
+  handler: any;
   classes: any;
 }
 
@@ -101,7 +105,8 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
   language: any;
   components: any;
   order: any;
-  activeListOrder: number;
+  firstInActiveList: boolean;
+  activeList: Array<any>;
 }
 
 export interface IEditContainerState {
@@ -115,11 +120,9 @@ export interface IEditContainerState {
   activeList: Array<any>;
 }
 
-const activeList: Array<any> = [];
-
 class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   constructor(_props: IEditContainerProps, _state: IEditContainerState) {
-    super(_props, _state );
+    super(_props, _state);
     this.state = {
       isEditModalOpen: false,
       isItemActive: false,
@@ -130,8 +133,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       listItem: {
         id: _props.id,
         order: _props.order,
+        firstInActiveList: _props.firstInActiveList,
       },
-      activeList,
+      activeList: _props.activeList,
     };
   }
 
@@ -143,8 +147,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleComponentDelete = (e: any): void => {
-    activeList.forEach((component) => {
-      FormDesignerActionDispatchers.deleteFormComponent(component);
+    this.state.activeList.forEach((component) => {
+      FormDesignerActionDispatchers.deleteFormComponent(component.id);
     });
     e.stopPropagation();
   }
@@ -158,16 +162,16 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public handleSetActive = (): void => {
     if (!this.state.isEditMode) {
+      this.props.handler(this.state.listItem, this.state.activeList);
       this.setState({
         isItemActive: !this.state.isItemActive,
+        listItem: this.state.listItem,
       });
-      FormDesignerActionDispatchers.updateContainerList(this.state.listItem, this.state.activeList);
-      console.log(this.state);
-      console.log(this.state.activeList);
     }
   }
 
   public handleSave = (): void => {
+    this.props.handler(this.state.listItem, this.state.activeList);
     this.setState({
       isItemActive: false,
       isEditMode: false,
@@ -214,7 +218,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
       textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
     });
-
     return (
       <>
         <Grid container={true}>
@@ -267,11 +270,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 </ListItem>
               </List>
             </Grid>
-            {!this.state.isEditMode && !this.state.hideActions &&
-              <Grid
+            {!this.state.isEditMode && this.state.listItem.firstInActiveList &&
+              < Grid
                 xs={true}
-                container={true}
-                direction={'column'}
+                item={true}
                 className={this.state.isItemActive ? this.props.classes.gridForBtnActive
                   : this.props.classes.gridForBtn}
               >
@@ -282,7 +284,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 >
                   <i className='ai ai-circletrash' />
                 </IconButton>
-                {!this.state.hideEdit &&
+                {!(this.state.activeList.length > 1) &&
                   <IconButton
                     type='button'
                     className={this.props.classes.formComponentsBtn}
@@ -295,8 +297,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             {this.state.isEditMode &&
               <Grid
                 xs={true}
-                container={true}
-                direction={'column'}
+                item={true}
                 className={this.props.classes.gridForBtn}
               >
                 <IconButton
@@ -331,8 +332,10 @@ const makeMapStateToProps = () => {
       component: props.component,
       components: GetLayoutComponentsSelector(state),
       id: props.id,
-      order: this.props.order,
-      activeListOrder: this.props.activeListOrder,
+      order: props.order,
+      handler: props.handler,
+      activeList: state.formDesigner.layout.activeList,
+      firstInActiveList: props.firstInActiveList,
       dataModel: state.appData.dataModel.model,
       textResources: state.appData.textResources.resources,
       language: state.appData.language.language,

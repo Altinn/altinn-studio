@@ -44,9 +44,6 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         activeContainer: {
           $set: containerId,
         },
-        activeList: {
-          $set: [],
-        },
       });
     }
     case FormDesignerActionTypes.ADD_FORM_COMPONENT_FULFILLED: {
@@ -208,6 +205,22 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     }
     case FormDesignerActionTypes.DELETE_FORM_CONTAINER_REJECTED: {
       const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_CONTAINER_LIST_FULFILLED: {
+      const { containerList } = action as FormDesignerActions.IUpdateContainerListActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        activeList: {
+          $set: containerList,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_CONTAINER_LIST_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateContainerListActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,

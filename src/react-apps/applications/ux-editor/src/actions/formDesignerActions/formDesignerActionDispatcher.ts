@@ -103,12 +103,22 @@ export interface IFormDesignerActionDispatchers
     listItem: any,
     containerList: Array<any>,
   ) => FormDesignerActions.IUpdateContainerListAction;
-  updateContainerListActionFulFilled: (
+  updateContainerListActionFulfilled: (
     containerList: Array<any>,
   ) => FormDesignerActions.IUpdateContainerListActionFulfilled;
   updateContainerListActionRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateContainerListActionRejected;
+  updateActiveListOrder: (
+    listItem: any,
+    containerList: Array<any>,
+  ) => FormDesignerActions.IUpdateActiveListOrderAction;
+  updateActiveListOrderActionFulfilled: (
+    containerList: Array<any>,
+  ) => FormDesignerActions.IUpdateActiveListOrderActionFulfilled;
+  updateActiveListOrderActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateActiveListOrderActionRejected;
   updateDataModelBinding: (
     id: string,
     modelBinding: string,
@@ -196,11 +206,13 @@ const actions: IFormDesignerActionDispatchers = {
   selectFormComponent: FormDesignerActions.selectLayoutElementAction,
   selectFormComponentFulfilled:
     FormDesignerActions.selectLayoutElementActionFulfilled,
-  selectFormComponentRejected:
-    FormDesignerActions.selectLayoutElementActionRejected,
+  selectFormComponentRejected: FormDesignerActions.selectLayoutElementActionRejected,
   updateContainerList: FormDesignerActions.updateContainerListAction,
   updateContainerListActionFulfilled: FormDesignerActions.updateContainerListActionFulfilled,
   updateContainerListActionRejected: FormDesignerActions.updateContainerListActionRejected,
+  updateActiveListOrder: FormDesignerActions.updateActiveListOrderAction,
+  updateActiveListOrderActionFulfilled: FormDesignerActions.updateActiveListOrderActionFulfilled,
+  updateActiveListOrderActionRejected: FormDesignerActions.updateActiveListOrderActionRejected,
   updateDataModelBinding: FormDesignerActions.updateDataModelBindingAction,
   updateDataModelBindingFulfilled:
     FormDesignerActions.updateDataModelBindingActionFulfilled,

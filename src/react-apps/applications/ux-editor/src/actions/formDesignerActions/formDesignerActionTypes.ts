@@ -75,3 +75,8 @@ export const UPDATE_FORM_COMPONENT_ORDER_REJECTED: string = `${moduleName}.UPDAT
 export const UPDATE_CONTAINER_LIST: string = `${moduleName}.UPDATE_CONTAINER_LIST`;
 export const UPDATE_CONTAINER_LIST_FULFILLED: string = `${moduleName}.UPDATE_CONTAINER_LIST_FULFILLED`;
 export const UPDATE_CONTAINER_LIST_REJECTED: string = `${moduleName}.UPDATE_CONTAINER_LIST_REJECTED`;
+
+// Update activeList order
+export const UPDATE_ACTIVE_LIST_ORDER: string = `${moduleName}.UPDATE_ACTIVE_LIST_ORDER`;
+export const UPDATE_ACTIVE_LIST_ORDER_FULFILLED: string = `${moduleName}.UPDATE_ACTIVE_LIST_ORDER_FULFILLED`;
+export const UPDATE_ACTIVE_LIST_ORDER_REJECTED: string = `${moduleName}.UPDATE_ACTIVE_LIST_ORDER_REJECTED`;
