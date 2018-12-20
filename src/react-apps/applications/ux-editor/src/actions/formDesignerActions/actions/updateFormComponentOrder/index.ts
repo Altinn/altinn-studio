@@ -7,8 +7,7 @@ export interface IUpdateFormComponentOrderActionRejected extends Action {
 
 export interface IUpdateFormComponentOrderAction extends Action {
   id: string;
-  oldPosition: number;
-  newPosition: number;
+  newPositionIndex: number;
   sourceContainerId: string;
   destinationContainerId: string;
 }
@@ -36,8 +35,7 @@ export function updateFormComponentOrderActionRejected(error: Error): IUpdateFor
 
 export function updateFormComponentOrderAction(
   id: string,
-  newPosition: number,
-  oldPosition: number,
+  newPositionIndex: number,
   destinationContainerId: string,
   sourceContainerId: string,
 ):
@@ -45,8 +43,7 @@ export function updateFormComponentOrderAction(
   return {
     type: ActionTypes.UPDATE_FORM_COMPONENT_ORDER,
     id,
-    newPosition,
-    oldPosition,
+    newPositionIndex,
     destinationContainerId,
     sourceContainerId,
   }

@@ -18,10 +18,12 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.2.6",
+    "@types/enzyme": "^3.1.15",
     "@types/jest": "^23.3.10",
     "@types/jsdom": "^12.2.0",
     "@types/react": "16.4.14",
     "@types/react-router-dom": "4.3.1",
+    "@types/react-test-renderer": "^16.0.3",
     "altinn-designsystem": "2.0.19",
     "babel-jest": "^23.6.0",
     "enzyme": "^3.7.0",
