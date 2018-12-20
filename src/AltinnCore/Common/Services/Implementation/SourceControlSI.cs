@@ -117,6 +117,11 @@ namespace AltinnCore.Common.Services.Implementation
                         repo,
                         new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
                         pullOptions);
+
+                    if (mergeResult.Status == MergeStatus.Conflicts)
+                    {
+                        status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                    }
                 }
                 catch (LibGit2Sharp.CheckoutConflictException)
                 {
