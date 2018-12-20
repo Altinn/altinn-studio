@@ -1,4 +1,5 @@
 import { createStyles, Theme } from '@material-ui/core/styles';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 const drawerWidth = '240';
 
@@ -25,7 +26,12 @@ export const styles = (theme: Theme) => createStyles({
     marginLeft: 25,
   },
   nested: {
-    paddingLeft: 25,
+    'paddingLeft': 25,
+    '&:hover': {
+      color: altinnTheme.altinnPalette.primary.blueDark,
+      fontWeight: 500,
+      backgroundColor: 'transparent',
+    },
   },
   subMenuItem: {
     fontSize: 16,
@@ -38,11 +44,13 @@ export const styles = (theme: Theme) => createStyles({
     fontSize: 16,
     paddingRight: 0,
   },
-  mainMenuItemText: {
-    fontSize: 20,
-  },
-  menuSubItemText: {
-    fontSize: 16,
+  mainMenuItem: {
+    'fontSize': 20,
+    '&:hover': {
+      color: altinnTheme.altinnPalette.primary.blueDark,
+      fontWeight: 500,
+      backgroundColor: 'transparent',
+    },
   },
   drawerMenuPaper: {
     borderRadius: 1,
@@ -52,11 +60,31 @@ export const styles = (theme: Theme) => createStyles({
     right: 0,
   },
   button: {
-    border: '2px solid #0062BA',
-    borderRadius: 0,
-    color: '#0062BA',
-    fontSize: 18,
-    padding: '2px 8px 4px',
-    textTransform: 'lowercase',
+    '&:hover': {
+      backgroundColor: 'transparent',
+    },
+    'border': '2px solid #0062BA',
+    'borderRadius': 0,
+    'color': altinnTheme.altinnPalette.primary.blueDark,
+    'fontSize': 18,
+    'padding': '2px 8px 4px',
+    'textTransform': 'lowercase',
+  },
+  closeButton: {
+    '&:hover': {
+      backgroundColor: altinnTheme.altinnPalette.primary.blueDark,
+    },
+    'border': '2px solid #0062BA',
+    'borderRadius': 0,
+    'backgroundColor': altinnTheme.altinnPalette.primary.blueDark,
+    'color': altinnTheme.altinnPalette.primary.white,
+    'fontSize': 18,
+    'fontWeight': 400,
+    'padding': '2px 8px 4px',
+    'textTransform': 'lowercase',
+  },
+  activeListItem: {
+    fontWeight: 500,
+    color: altinnTheme.altinnPalette.primary.blueDark,
   },
 });
