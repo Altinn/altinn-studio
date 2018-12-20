@@ -8,23 +8,30 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import Icon from './Icon';
-import { leftDrawerMenuSettings } from './leftDrawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
-export interface INavMenuProps {
-  classes: any;
-  theme: any;
-  menuType: any;
+export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
+
+  menuType: string;
+  activeLeftMenuSelection: string;
 }
 
-export interface INavMenuProps extends WithStyles<typeof styles> { }
+export interface ILeftDrawerMenuState {
+  open: boolean;
+  openSubMenus: number[];
+}
 
-class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
-  public state = {
-    open: false,
-    openSubMenus: [] as number[],
-  };
+class LeftDrawerMenu extends
+  React.Component<ILeftDrawerMenuProps, ILeftDrawerMenuState> {
+  constructor(_props: ILeftDrawerMenuProps) {
+    super(_props);
+    this.state = {
+      open: false,
+      openSubMenus: [],
+    };
+  }
 
   public handleDrawerOpen = () => {
     this.setState({ open: true });
@@ -50,44 +57,62 @@ class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
 
   public render() {
     const { classes } = this.props;
+    const menuToRender = leftDrawerMenuSettings[this.props.menuType];
 
-    return (
-      <div>
-        <Drawer
-          variant='permanent'
-          onMouseOver={this.handleDrawerOpen}
-          onMouseLeave={this.handleDrawerClose}
-          className={classNames(classes.drawer, {
-            [classes.drawerOpen]: this.state.open,
-            [classes.drawerClose]: !this.state.open,
-          })}
-          classes={{
-            paper: classNames(classes.paper, {
+    if (!this.props.menuType || !menuToRender) {
+      return (
+        <div />
+      );
+    } else {
+      return (
+        <div>
+          <Drawer
+            variant='permanent'
+            onMouseOver={this.handleDrawerOpen}
+            onMouseLeave={this.handleDrawerClose}
+            className={classNames(classes.drawer, {
               [classes.drawerOpen]: this.state.open,
               [classes.drawerClose]: !this.state.open,
-            }),
-          }}
-          open={this.state.open}
-        >
-          <Divider />
+            })}
+            classes={{
+              paper: classNames(classes.paper, {
+                [classes.drawerOpen]: this.state.open,
+                [classes.drawerClose]: !this.state.open,
+              }),
+            }}
+            open={this.state.open}
+          >
+            <Divider />
 
-          <List>
-            {leftDrawerMenuSettings[this.props.menuType].map((menuItem: any, index: any) => (
-              <Link to={menuItem.navLink} style={{ borderBottom: 0 }}>
-                <ListItem
-                  button={true} key={menuItem.displayText}
+            <List>
+              {leftDrawerMenuSettings[this.props.menuType].map((menuItem: IMenuItem, index: number) => (
+                <Link
+                  to={menuItem.navLink}
+                  style={{ borderBottom: 0 }}
+                  key={index}
                 >
-                  <ListItemIcon>
-                    <Icon iconType={menuItem.iconName} />
-                  </ListItemIcon>
-                  <ListItemText primary={menuItem.displayText} />
-                </ListItem>
-              </Link>
-            ))}
-          </List>
-        </Drawer>
-      </div>
-    );
+                  <ListItem
+                    button={true}
+                  >
+                    <ListItemIcon>
+                      <Icon iconType={menuItem.iconName} />
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={menuItem.displayText}
+                      classes={{ primary: classNames(classes.menuItemText) }}
+                      className={classNames({
+                        [classes.activeMenu]: this.props.activeLeftMenuSelection ===
+                          menuItem.activeLeftMenuSelection,
+                      })}
+                    />
+                  </ListItem>
+                </Link>
+              ))}
+            </List>
+          </Drawer>
+        </div>
+      );
+    }
   }
 }
 

@@ -1,163 +1,169 @@
 ﻿<!DOCTYPE html>
 <html lang="no">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
 
-    <link rel="manifest" href="~/designer/manifest.json">
-    <link rel="icon" href="~/designer/img/favicon.ico">
+  <link rel="manifest" href="~/designer/manifest.json">
+  <link rel="icon" href="~/designer/img/favicon.ico">
 
-    <!-- apple stuff -->
-    <link rel="apple-touch-icon" href="~/designer/img/icon64x64.png">
-    <link rel="apple-touch-icon" sizes="96x96" href="~/designer/img/icon96x96.png">
-    <link rel="apple-touch-icon" sizes="144x144" href="~/designer/img/icon144x144.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="~/designer/img/icon192x192.png">
+  <!-- apple stuff -->
+  <link rel="apple-touch-icon" href="~/designer/img/icon64x64.png">
+  <link rel="apple-touch-icon" sizes="96x96" href="~/designer/img/icon96x96.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="~/designer/img/icon144x144.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="~/designer/img/icon192x192.png">
 
-    <title>@ViewBag.Title</title>
+  <title>@ViewBag.Title</title>
 
-    <!-- Javascript -->
-    <script src="~/designer/js/lib/jquery.min.js" asp-append-version="true"></script>
-    <script src="~/designer/js/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
-    <script src="~/designer/js/lib/jquery.validate.min.js" asp-append-version="true"></script>
-    <script src="~/designer/js/lib/jquery.validate.unobtrusive.js" asp-append-version="true"></script>
-    @RenderSection("scripts", required: false)
+  <!-- Javascript -->
+  <script src="~/designer/js/lib/jquery.min.js" asp-append-version="true"></script>
+  <script src="~/designer/js/lib/bootstrap.bundle.min.js" asp-append-version="true"></script>
+  <script src="~/designer/js/lib/jquery.validate.min.js" asp-append-version="true"></script>
+  <script src="~/designer/js/lib/jquery.validate.unobtrusive.js" asp-append-version="true"></script>
+  @RenderSection("scripts", required: false)
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="~/designer/css/bootstrap.min.css" asp-append-version="true">
-    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+  <!-- CSS -->
+  <link rel="stylesheet" href="~/designer/css/bootstrap.min.css" asp-append-version="true">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500">
+  <script src="https://use.fortawesome.com/ed31cded.js"></script>
+  <script src="https://use.fortawesome.com/df832575.js"></script>
 
-    @RenderSection("styles", required: false)
-    <style>
-        @@font-face {
-            font-family: "AltinnRoboto";
-            font-weight: bold;
-            src: url("/designer/font/roboto/roboto-bold-altinn.woff") format('woff');
-        }
+  @RenderSection("styles", required: false)
+  <style>
+    @@font-face {
+      font-family: "AltinnRoboto";
+      font-weight: bold;
+      src: url("/designer/font/roboto/roboto-bold-altinn.woff") format('woff');
+    }
 
-        @@font-face {
-            font-family: "AltinnRoboto";
-            font-weight:100;
-            src: url("/designer/font/roboto/roboto-light-altinn.woff") format('woff');
-        }
+    @@font-face {
+      font-family: "AltinnRoboto";
+      font-weight: 100;
+      src: url("/designer/font/roboto/roboto-light-altinn.woff") format('woff');
+    }
 
-        @@font-face {
-            font-family: "AltinnRoboto";
-            src: url("/designer/font/roboto/roboto-regular-altinn.woff") format('woff');
-        }
+    @@font-face {
+      font-family: "AltinnRoboto";
+      src: url("/designer/font/roboto/roboto-regular-altinn.woff") format('woff');
+    }
 
-        body {
-            font-family: AltinnRoboto, "San Fransisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
-        }
+    body {
+      font-family: AltinnRoboto, "San Fransisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
 
-        h1, h2, h3 {
-            letter-spacing: 2px;
-        }
+    h1, h2, h3 {
+      letter-spacing: 2px;
+    }
 
-        .control-label {
-            margin-bottom: 0;
-        }
+    .control-label {
+      margin-bottom: 0;
+    }
 
-        .errormsg {
-            color: red;
-        }
+    .errormsg {
+      color: red;
+    }
 
-        .tooltip-inner {
-            background-color: rgba(9, 160, 236, 1);
-            color: #fff;
-        }
+    .tooltip-inner {
+      background-color: rgba(9, 160, 236, 1);
+      color: #fff;
+    }
 
-        .tooltip-arrow {
-            border-top-color: rgba(9, 160, 236, 1) !important;
-        }
+    .tooltip-arrow {
+      border-top-color: rgba(9, 160, 236, 1) !important;
+    }
 
-        .input-group-addon {
-            border: 0;
-            background-color: white;
-        }
+    .input-group-addon {
+      border: 0;
+      background-color: white;
+    }
 
-        .btn, .form-control, .input-group-addon, .list-group-item:last-child, .list-group-item:first-child, .card, .alert {
-            border-radius: 0;
-        }
+    .btn, .form-control, .input-group-addon, .list-group-item:last-child, .list-group-item:first-child, .card, .alert {
+      border-radius: 0;
+    }
 
-        #search ~ .fa-search {
-            float: right !important;
-            margin-right: 10px;
-            margin-top: -28px;
-            position: relative;
-            z-index: 2;
-        }
+    #search ~ .fa-search {
+      float: right !important;
+      margin-right: 10px;
+      margin-top: -28px;
+      position: relative;
+      z-index: 2;
+    }
 
-        /* START Backport of Bootstrap 3 styles for JSON Editor */
-        .btn-default {
-            color: #373a3c;
-            background-color: #fff;
-            border-color: #ccc;
-        }
+    /* START Backport of Bootstrap 3 styles for JSON Editor */
+    .btn-default {
+      color: #373a3c;
+      background-color: #fff;
+      border-color: #ccc;
+    }
 
-        .btn-default:hover {
-            color: #373a3c;
-            background-color: #e6e6e6;
-            border-color: #adadad;
-        }
+      .btn-default:hover {
+        color: #373a3c;
+        background-color: #e6e6e6;
+        border-color: #adadad;
+      }
 
-        .json-editor-btn-delete {
-            color: #fff;
-            background-color: #d9534f;
-            border-color: #d9534f;
-        }
+    .json-editor-btn-delete {
+      color: #fff;
+      background-color: #d9534f;
+      border-color: #d9534f;
+    }
 
-        .json-editor-btn-delete:hover {
-            color: #fff;
-            background-color: #c9302c;
-            border-color: #c12e2a;
-        }
+      .json-editor-btn-delete:hover {
+        color: #fff;
+        background-color: #c9302c;
+        border-color: #c12e2a;
+      }
 
-        #editor_holder + .btn-primary {
-            margin-top: 1rem;
-        }
-        /* END Backport */
+    #editor_holder + .btn-primary {
+      margin-top: 1rem;
+    }
+    /* END Backport */
 
-        .loading:after {
-            content: " ";
-            background-color: rgba(255,255,255,.5);
-            background-image: url(/img/a-loader.svg);
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-repeat: no-repeat;
-            background-position: center center;
-        }
+    .loading:after {
+      content: " ";
+      background-color: rgba(255,255,255,.5);
+      background-image: url(/img/a-loader.svg);
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-repeat: no-repeat;
+      background-position: center center;
+    }
 
-        .action-list-group > .list-group-item {
-            border-top-width: 0;
-        }
-        .list-group-item {
-            border-left: 0; border-right: 0;
-        }
-        .action-list-group:first-child {
-            border-top: 1px solid #ddd;
-        }
+    .action-list-group > .list-group-item {
+      border-top-width: 0;
+    }
 
-        .action-list-group .list-group-link {
-            display: block; 
-            color: #555;
-            text-decoration: none;
-        }
+    .list-group-item {
+      border-left: 0;
+      border-right: 0;
+    }
 
-        .container {
-            padding-top: 2rem;
-        }
-    </style>
+    .action-list-group:first-child {
+      border-top: 1px solid #ddd;
+    }
+
+    .action-list-group .list-group-link {
+      display: block;
+      color: #555;
+      text-decoration: none;
+    }
+
+    .container {
+      padding-top: 2rem;
+    }
+  </style>
 </head>
 
 <body>
-    @Html.Partial("_Navbar")
+    @*@Html.Partial("_Navbar")*@
 
-    <div class="container">
+    <div>
         @RenderBody()
     </div>
 
