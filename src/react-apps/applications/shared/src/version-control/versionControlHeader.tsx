@@ -317,7 +317,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public render() {
     return (
-      <Grid container={true} direction='row'>
+      <Grid container={true} direction='row' >
         <Grid item={true} xs={5}>
           <FetchChangesComponent
             language={this.props.language}

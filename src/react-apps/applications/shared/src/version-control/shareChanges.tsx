@@ -1,6 +1,7 @@
-import { createStyles, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
+import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
 export interface IShareChangesCompoenentProvidedProps {
@@ -20,15 +21,27 @@ export interface IShareChangesCompoenentState {
 
 }
 
+const theme = createMuiTheme(altinnTheme);
+
 const styles = createStyles({
-  color: {
-    color: '#022F51',
+  color_blueDarker: {
+    color: theme.altinnPalette.primary.blueDarker,
   },
-  color_p: {
-    color: '#0062BA',
+  color_blueDark: {
+    color: theme.altinnPalette.primary.blueDark,
   },
   bold: {
     fontWeight: 500,
+  },
+  clickable: {
+    '&:hover': {
+      cursor: 'pointer',
+    },
+    'maxWidth': '150px',
+    [theme.breakpoints.down('md')]: {
+      float: 'right',
+      marginRight: '10px',
+    },
   },
 });
 
@@ -48,14 +61,14 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProp
             { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
           )}
         >
-          {this.props.hasPushRight && <i className={classNames('ai ai-upload', classes.color)} />}
+          {this.props.hasPushRight && <i className={classNames('ai ai-upload', classes.color_blueDarker)} />}
           {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
         </p>);
     } else {
       return (
         <p>
           <i
-            className={classNames('ai ai-check', classes.color)}
+            className={classNames('ai ai-check', classes.color_blueDarker)}
           />{getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
         </p>);
     }
@@ -64,7 +77,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProp
   public render() {
     const { classes } = this.props;
     return (
-      <div onClick={this.shareChangesHandler} className={classes.color_p}>
+      <div onClick={this.shareChangesHandler} className={classNames(classes.color_blueDark, classes.clickable)}>
         {this.renderCorrectText()}
       </div>
     );
