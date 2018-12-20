@@ -1,5 +1,3357 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match shallow snapshot with subHeader and Publish selection active 1`] = `
+ShallowWrapper {
+  Symbol(enzyme.__root__): [Circular],
+  Symbol(enzyme.__unrendered__): <AppBarComponent
+    activeSubHeaderSelection="publish"
+    classes={
+      Object {
+        "appBar": "AppBarComponent-appBar-2",
+        "breadCrumb": "AppBarComponent-breadCrumb-3",
+        "breadCrumbSubApp": "AppBarComponent-breadCrumbSubApp-4",
+        "paper": "AppBarComponent-paper-5",
+        "root": "AppBarComponent-root-1",
+        "subHeader": "AppBarComponent-subHeader-6",
+        "subHeaderLink": "AppBarComponent-subHeaderLink-7",
+        "subHeaderLinkActive": "AppBarComponent-subHeaderLinkActive-8",
+        "topRightService": "AppBarComponent-topRightService-9",
+      }
+    }
+    org="other-org"
+    service="other-service"
+    showSubHeader={true}
+  />,
+  Symbol(enzyme.__renderer__): Object {
+    "batchedUpdates": [Function],
+    "getNode": [Function],
+    "render": [Function],
+    "simulateError": [Function],
+    "simulateEvent": [Function],
+    "unmount": [Function],
+  },
+  Symbol(enzyme.__node__): Object {
+    "instance": null,
+    "key": undefined,
+    "nodeType": "host",
+    "props": Object {
+      "children": <WithStyles(AppBar)
+        className="AppBarComponent-appBar-2"
+        elevation={0}
+        position="static"
+        style={
+          Object {
+            "backgroundColor": "#EFEFEF",
+          }
+        }
+      >
+        <WithStyles(Toolbar)>
+          <WithStyles(Grid)
+            alignItems="center"
+            container={true}
+            direction="row"
+            justify="space-between"
+          >
+            <WithStyles(Grid)
+              container={true}
+              item={true}
+              xs={true}
+            >
+              <WithStyles(Grid)
+                item={true}
+              >
+                <img
+                  src="/designer/img/altinn_logo_header.png"
+                />
+              </WithStyles(Grid)>
+              <Hidden
+                implementation="js"
+                lgDown={false}
+                lgUp={false}
+                mdDown={false}
+                mdUp={true}
+                smDown={false}
+                smUp={false}
+                xlDown={false}
+                xlUp={false}
+                xsDown={false}
+                xsUp={false}
+              />
+            </WithStyles(Grid)>
+            <Hidden
+              implementation="js"
+              lgDown={false}
+              lgUp={false}
+              mdDown={false}
+              mdUp={false}
+              smDown={true}
+              smUp={false}
+              xlDown={false}
+              xlUp={false}
+              xsDown={false}
+              xsUp={false}
+            >
+              <WithStyles(Grid)
+                className="AppBarComponent-paper-5"
+                item={true}
+                xs={true}
+              >
+                other-service
+              </WithStyles(Grid)>
+            </Hidden>
+            <WithStyles(Grid)
+              alignItems="center"
+              container={true}
+              direction="row"
+              item={true}
+              justify="flex-end"
+              xs={true}
+            >
+              <WithStyles(Grid)
+                item={true}
+              >
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  other-org
+                </Hidden>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <div
+                    className="AppBarComponent-topRightService-9"
+                  >
+                    other-service
+                  </div>
+                </Hidden>
+              </WithStyles(Grid)>
+              <Hidden
+                implementation="js"
+                lgDown={false}
+                lgUp={false}
+                mdDown={false}
+                mdUp={false}
+                smDown={true}
+                smUp={false}
+                xlDown={false}
+                xlUp={false}
+                xsDown={false}
+                xsUp={false}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <WithStyles(ProfileMenuComponent)
+                    showlogout={true}
+                  />
+                </WithStyles(Grid)>
+              </Hidden>
+              <Hidden
+                implementation="js"
+                lgDown={false}
+                lgUp={false}
+                mdDown={false}
+                mdUp={true}
+                smDown={false}
+                smUp={false}
+                xlDown={false}
+                xlUp={false}
+                xsDown={false}
+                xsUp={false}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <WithStyles(TabletDrawerMenu)
+                    handleTabletDrawerMenu={[Function]}
+                    logoutButton={false}
+                    tabletDrawerOpen={false}
+                  />
+                </WithStyles(Grid)>
+              </Hidden>
+            </WithStyles(Grid)>
+          </WithStyles(Grid)>
+        </WithStyles(Toolbar)>
+        <Hidden
+          implementation="js"
+          lgDown={false}
+          lgUp={false}
+          mdDown={false}
+          mdUp={false}
+          smDown={true}
+          smUp={false}
+          xlDown={false}
+          xlUp={false}
+          xsDown={false}
+          xsUp={false}
+        >
+          <WithStyles(Toolbar)>
+            <WithStyles(Grid)
+              alignItems="center"
+              container={true}
+              direction="row"
+              justify="center"
+            >
+              <WithStyles(Grid)
+                className="AppBarComponent-subHeader-6"
+                item={true}
+              >
+                <Link
+                  className="AppBarComponent-subHeaderLink-7"
+                  replace={false}
+                  to="/aboutservice"
+                >
+                  Om
+                </Link>
+              </WithStyles(Grid)>
+              <WithStyles(Grid)
+                className="AppBarComponent-subHeader-6"
+                item={true}
+              >
+                <Link
+                  className="AppBarComponent-subHeaderLink-7"
+                  replace={false}
+                  to="/create"
+                >
+                  Lage
+                </Link>
+              </WithStyles(Grid)>
+              <WithStyles(Grid)
+                className="AppBarComponent-subHeader-6"
+                item={true}
+              >
+                <Link
+                  className="AppBarComponent-subHeaderLink-7"
+                  replace={false}
+                  to="/text"
+                >
+                  Språk
+                </Link>
+              </WithStyles(Grid)>
+              <WithStyles(Grid)
+                className="AppBarComponent-subHeader-6"
+                item={true}
+              >
+                <Link
+                  className="AppBarComponent-subHeaderLink-7"
+                  replace={false}
+                  to="/test"
+                >
+                  Teste
+                </Link>
+              </WithStyles(Grid)>
+              <WithStyles(Grid)
+                className="AppBarComponent-subHeader-6"
+                item={true}
+              >
+                <Link
+                  className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                  replace={false}
+                  to="/productionsetting"
+                >
+                  Publisere
+                </Link>
+              </WithStyles(Grid)>
+            </WithStyles(Grid)>
+          </WithStyles(Toolbar)>
+        </Hidden>
+      </WithStyles(AppBar)>,
+      "className": "AppBarComponent-root-1",
+    },
+    "ref": null,
+    "rendered": Object {
+      "instance": null,
+      "key": undefined,
+      "nodeType": "class",
+      "props": Object {
+        "children": Array [
+          <WithStyles(Toolbar)>
+            <WithStyles(Grid)
+              alignItems="center"
+              container={true}
+              direction="row"
+              justify="space-between"
+            >
+              <WithStyles(Grid)
+                container={true}
+                item={true}
+                xs={true}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <img
+                    src="/designer/img/altinn_logo_header.png"
+                  />
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                />
+              </WithStyles(Grid)>
+              <Hidden
+                implementation="js"
+                lgDown={false}
+                lgUp={false}
+                mdDown={false}
+                mdUp={false}
+                smDown={true}
+                smUp={false}
+                xlDown={false}
+                xlUp={false}
+                xsDown={false}
+                xsUp={false}
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-paper-5"
+                  item={true}
+                  xs={true}
+                >
+                  other-service
+                </WithStyles(Grid)>
+              </Hidden>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                item={true}
+                justify="flex-end"
+                xs={true}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    other-org
+                  </Hidden>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <div
+                      className="AppBarComponent-topRightService-9"
+                    >
+                      other-service
+                    </div>
+                  </Hidden>
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <WithStyles(ProfileMenuComponent)
+                      showlogout={true}
+                    />
+                  </WithStyles(Grid)>
+                </Hidden>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <WithStyles(TabletDrawerMenu)
+                      handleTabletDrawerMenu={[Function]}
+                      logoutButton={false}
+                      tabletDrawerOpen={false}
+                    />
+                  </WithStyles(Grid)>
+                </Hidden>
+              </WithStyles(Grid)>
+            </WithStyles(Grid)>
+          </WithStyles(Toolbar)>,
+          <Hidden
+            implementation="js"
+            lgDown={false}
+            lgUp={false}
+            mdDown={false}
+            mdUp={false}
+            smDown={true}
+            smUp={false}
+            xlDown={false}
+            xlUp={false}
+            xsDown={false}
+            xsUp={false}
+          >
+            <WithStyles(Toolbar)>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                justify="center"
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/aboutservice"
+                  >
+                    Om
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/create"
+                  >
+                    Lage
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/text"
+                  >
+                    Språk
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/test"
+                  >
+                    Teste
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                    replace={false}
+                    to="/productionsetting"
+                  >
+                    Publisere
+                  </Link>
+                </WithStyles(Grid)>
+              </WithStyles(Grid)>
+            </WithStyles(Toolbar)>
+          </Hidden>,
+        ],
+        "className": "AppBarComponent-appBar-2",
+        "elevation": 0,
+        "position": "static",
+        "style": Object {
+          "backgroundColor": "#EFEFEF",
+        },
+      },
+      "ref": null,
+      "rendered": Array [
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "class",
+          "props": Object {
+            "children": <WithStyles(Grid)
+              alignItems="center"
+              container={true}
+              direction="row"
+              justify="space-between"
+            >
+              <WithStyles(Grid)
+                container={true}
+                item={true}
+                xs={true}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <img
+                    src="/designer/img/altinn_logo_header.png"
+                  />
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                />
+              </WithStyles(Grid)>
+              <Hidden
+                implementation="js"
+                lgDown={false}
+                lgUp={false}
+                mdDown={false}
+                mdUp={false}
+                smDown={true}
+                smUp={false}
+                xlDown={false}
+                xlUp={false}
+                xsDown={false}
+                xsUp={false}
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-paper-5"
+                  item={true}
+                  xs={true}
+                >
+                  other-service
+                </WithStyles(Grid)>
+              </Hidden>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                item={true}
+                justify="flex-end"
+                xs={true}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    other-org
+                  </Hidden>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <div
+                      className="AppBarComponent-topRightService-9"
+                    >
+                      other-service
+                    </div>
+                  </Hidden>
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <WithStyles(ProfileMenuComponent)
+                      showlogout={true}
+                    />
+                  </WithStyles(Grid)>
+                </Hidden>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <WithStyles(TabletDrawerMenu)
+                      handleTabletDrawerMenu={[Function]}
+                      logoutButton={false}
+                      tabletDrawerOpen={false}
+                    />
+                  </WithStyles(Grid)>
+                </Hidden>
+              </WithStyles(Grid)>
+            </WithStyles(Grid)>,
+          },
+          "ref": null,
+          "rendered": Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "class",
+            "props": Object {
+              "alignItems": "center",
+              "children": Array [
+                <WithStyles(Grid)
+                  container={true}
+                  item={true}
+                  xs={true}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <img
+                      src="/designer/img/altinn_logo_header.png"
+                    />
+                  </WithStyles(Grid)>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  />
+                </WithStyles(Grid)>,
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    className="AppBarComponent-paper-5"
+                    item={true}
+                    xs={true}
+                  >
+                    other-service
+                  </WithStyles(Grid)>
+                </Hidden>,
+                <WithStyles(Grid)
+                  alignItems="center"
+                  container={true}
+                  direction="row"
+                  item={true}
+                  justify="flex-end"
+                  xs={true}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={false}
+                      smDown={true}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      other-org
+                    </Hidden>
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <div
+                        className="AppBarComponent-topRightService-9"
+                      >
+                        other-service
+                      </div>
+                    </Hidden>
+                  </WithStyles(Grid)>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <WithStyles(ProfileMenuComponent)
+                        showlogout={true}
+                      />
+                    </WithStyles(Grid)>
+                  </Hidden>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <WithStyles(TabletDrawerMenu)
+                        handleTabletDrawerMenu={[Function]}
+                        logoutButton={false}
+                        tabletDrawerOpen={false}
+                      />
+                    </WithStyles(Grid)>
+                  </Hidden>
+                </WithStyles(Grid)>,
+              ],
+              "container": true,
+              "direction": "row",
+              "justify": "space-between",
+            },
+            "ref": null,
+            "rendered": Array [
+              Object {
+                "instance": null,
+                "key": undefined,
+                "nodeType": "class",
+                "props": Object {
+                  "children": Array [
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <img
+                        src="/designer/img/altinn_logo_header.png"
+                      />
+                    </WithStyles(Grid)>,
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    />,
+                  ],
+                  "container": true,
+                  "item": true,
+                  "xs": true,
+                },
+                "ref": null,
+                "rendered": Array [
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": <img
+                        src="/designer/img/altinn_logo_header.png"
+                      />,
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "host",
+                      "props": Object {
+                        "src": "/designer/img/altinn_logo_header.png",
+                      },
+                      "ref": null,
+                      "rendered": null,
+                      "type": "img",
+                    },
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "function",
+                    "props": Object {
+                      "children": null,
+                      "implementation": "js",
+                      "lgDown": false,
+                      "lgUp": false,
+                      "mdDown": false,
+                      "mdUp": true,
+                      "smDown": false,
+                      "smUp": false,
+                      "xlDown": false,
+                      "xlUp": false,
+                      "xsDown": false,
+                      "xsUp": false,
+                    },
+                    "ref": null,
+                    "rendered": null,
+                    "type": [Function],
+                  },
+                ],
+                "type": [Function],
+              },
+              Object {
+                "instance": null,
+                "key": undefined,
+                "nodeType": "function",
+                "props": Object {
+                  "children": <WithStyles(Grid)
+                    className="AppBarComponent-paper-5"
+                    item={true}
+                    xs={true}
+                  >
+                    other-service
+                  </WithStyles(Grid)>,
+                  "implementation": "js",
+                  "lgDown": false,
+                  "lgUp": false,
+                  "mdDown": false,
+                  "mdUp": false,
+                  "smDown": true,
+                  "smUp": false,
+                  "xlDown": false,
+                  "xlUp": false,
+                  "xsDown": false,
+                  "xsUp": false,
+                },
+                "ref": null,
+                "rendered": Object {
+                  "instance": null,
+                  "key": undefined,
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": "other-service",
+                    "className": "AppBarComponent-paper-5",
+                    "item": true,
+                    "xs": true,
+                  },
+                  "ref": null,
+                  "rendered": "other-service",
+                  "type": [Function],
+                },
+                "type": [Function],
+              },
+              Object {
+                "instance": null,
+                "key": undefined,
+                "nodeType": "class",
+                "props": Object {
+                  "alignItems": "center",
+                  "children": Array [
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={false}
+                        smDown={true}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      >
+                        other-org
+                      </Hidden>
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={true}
+                        smDown={false}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      >
+                        <div
+                          className="AppBarComponent-topRightService-9"
+                        >
+                          other-service
+                        </div>
+                      </Hidden>
+                    </WithStyles(Grid)>,
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={false}
+                      smDown={true}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <WithStyles(Grid)
+                        item={true}
+                      >
+                        <WithStyles(ProfileMenuComponent)
+                          showlogout={true}
+                        />
+                      </WithStyles(Grid)>
+                    </Hidden>,
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <WithStyles(Grid)
+                        item={true}
+                      >
+                        <WithStyles(TabletDrawerMenu)
+                          handleTabletDrawerMenu={[Function]}
+                          logoutButton={false}
+                          tabletDrawerOpen={false}
+                        />
+                      </WithStyles(Grid)>
+                    </Hidden>,
+                  ],
+                  "container": true,
+                  "direction": "row",
+                  "item": true,
+                  "justify": "flex-end",
+                  "xs": true,
+                },
+                "ref": null,
+                "rendered": Array [
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": Array [
+                        <Hidden
+                          implementation="js"
+                          lgDown={false}
+                          lgUp={false}
+                          mdDown={false}
+                          mdUp={false}
+                          smDown={true}
+                          smUp={false}
+                          xlDown={false}
+                          xlUp={false}
+                          xsDown={false}
+                          xsUp={false}
+                        >
+                          other-org
+                        </Hidden>,
+                        <Hidden
+                          implementation="js"
+                          lgDown={false}
+                          lgUp={false}
+                          mdDown={false}
+                          mdUp={true}
+                          smDown={false}
+                          smUp={false}
+                          xlDown={false}
+                          xlUp={false}
+                          xsDown={false}
+                          xsUp={false}
+                        >
+                          <div
+                            className="AppBarComponent-topRightService-9"
+                          >
+                            other-service
+                          </div>
+                        </Hidden>,
+                      ],
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Array [
+                      Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "function",
+                        "props": Object {
+                          "children": "other-org",
+                          "implementation": "js",
+                          "lgDown": false,
+                          "lgUp": false,
+                          "mdDown": false,
+                          "mdUp": false,
+                          "smDown": true,
+                          "smUp": false,
+                          "xlDown": false,
+                          "xlUp": false,
+                          "xsDown": false,
+                          "xsUp": false,
+                        },
+                        "ref": null,
+                        "rendered": "other-org",
+                        "type": [Function],
+                      },
+                      Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "function",
+                        "props": Object {
+                          "children": <div
+                            className="AppBarComponent-topRightService-9"
+                          >
+                            other-service
+                          </div>,
+                          "implementation": "js",
+                          "lgDown": false,
+                          "lgUp": false,
+                          "mdDown": false,
+                          "mdUp": true,
+                          "smDown": false,
+                          "smUp": false,
+                          "xlDown": false,
+                          "xlUp": false,
+                          "xsDown": false,
+                          "xsUp": false,
+                        },
+                        "ref": null,
+                        "rendered": Object {
+                          "instance": null,
+                          "key": undefined,
+                          "nodeType": "host",
+                          "props": Object {
+                            "children": "other-service",
+                            "className": "AppBarComponent-topRightService-9",
+                          },
+                          "ref": null,
+                          "rendered": "other-service",
+                          "type": "div",
+                        },
+                        "type": [Function],
+                      },
+                    ],
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "function",
+                    "props": Object {
+                      "children": <WithStyles(Grid)
+                        item={true}
+                      >
+                        <WithStyles(ProfileMenuComponent)
+                          showlogout={true}
+                        />
+                      </WithStyles(Grid)>,
+                      "implementation": "js",
+                      "lgDown": false,
+                      "lgUp": false,
+                      "mdDown": false,
+                      "mdUp": false,
+                      "smDown": true,
+                      "smUp": false,
+                      "xlDown": false,
+                      "xlUp": false,
+                      "xsDown": false,
+                      "xsUp": false,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": <WithStyles(ProfileMenuComponent)
+                          showlogout={true}
+                        />,
+                        "item": true,
+                      },
+                      "ref": null,
+                      "rendered": Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "class",
+                        "props": Object {
+                          "showlogout": true,
+                        },
+                        "ref": null,
+                        "rendered": null,
+                        "type": [Function],
+                      },
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "function",
+                    "props": Object {
+                      "children": <WithStyles(Grid)
+                        item={true}
+                      >
+                        <WithStyles(TabletDrawerMenu)
+                          handleTabletDrawerMenu={[Function]}
+                          logoutButton={false}
+                          tabletDrawerOpen={false}
+                        />
+                      </WithStyles(Grid)>,
+                      "implementation": "js",
+                      "lgDown": false,
+                      "lgUp": false,
+                      "mdDown": false,
+                      "mdUp": true,
+                      "smDown": false,
+                      "smUp": false,
+                      "xlDown": false,
+                      "xlUp": false,
+                      "xsDown": false,
+                      "xsUp": false,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": <WithStyles(TabletDrawerMenu)
+                          handleTabletDrawerMenu={[Function]}
+                          logoutButton={false}
+                          tabletDrawerOpen={false}
+                        />,
+                        "item": true,
+                      },
+                      "ref": null,
+                      "rendered": Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "class",
+                        "props": Object {
+                          "handleTabletDrawerMenu": [Function],
+                          "logoutButton": false,
+                          "tabletDrawerOpen": false,
+                        },
+                        "ref": null,
+                        "rendered": null,
+                        "type": [Function],
+                      },
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                ],
+                "type": [Function],
+              },
+            ],
+            "type": [Function],
+          },
+          "type": [Function],
+        },
+        Object {
+          "instance": null,
+          "key": undefined,
+          "nodeType": "function",
+          "props": Object {
+            "children": <WithStyles(Toolbar)>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                justify="center"
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/aboutservice"
+                  >
+                    Om
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/create"
+                  >
+                    Lage
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/text"
+                  >
+                    Språk
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/test"
+                  >
+                    Teste
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                    replace={false}
+                    to="/productionsetting"
+                  >
+                    Publisere
+                  </Link>
+                </WithStyles(Grid)>
+              </WithStyles(Grid)>
+            </WithStyles(Toolbar)>,
+            "implementation": "js",
+            "lgDown": false,
+            "lgUp": false,
+            "mdDown": false,
+            "mdUp": false,
+            "smDown": true,
+            "smUp": false,
+            "xlDown": false,
+            "xlUp": false,
+            "xsDown": false,
+            "xsUp": false,
+          },
+          "ref": null,
+          "rendered": Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "class",
+            "props": Object {
+              "children": <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                justify="center"
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/aboutservice"
+                  >
+                    Om
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/create"
+                  >
+                    Lage
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/text"
+                  >
+                    Språk
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/test"
+                  >
+                    Teste
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                    replace={false}
+                    to="/productionsetting"
+                  >
+                    Publisere
+                  </Link>
+                </WithStyles(Grid)>
+              </WithStyles(Grid)>,
+            },
+            "ref": null,
+            "rendered": Object {
+              "instance": null,
+              "key": undefined,
+              "nodeType": "class",
+              "props": Object {
+                "alignItems": "center",
+                "children": Array [
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/aboutservice"
+                    >
+                      Om
+                    </Link>
+                  </WithStyles(Grid)>,
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/create"
+                    >
+                      Lage
+                    </Link>
+                  </WithStyles(Grid)>,
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/text"
+                    >
+                      Språk
+                    </Link>
+                  </WithStyles(Grid)>,
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/test"
+                    >
+                      Teste
+                    </Link>
+                  </WithStyles(Grid)>,
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                      replace={false}
+                      to="/productionsetting"
+                    >
+                      Publisere
+                    </Link>
+                  </WithStyles(Grid)>,
+                ],
+                "container": true,
+                "direction": "row",
+                "justify": "center",
+              },
+              "ref": null,
+              "rendered": Array [
+                Object {
+                  "instance": null,
+                  "key": "0",
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/aboutservice"
+                    >
+                      Om
+                    </Link>,
+                    "className": "AppBarComponent-subHeader-6",
+                    "item": true,
+                  },
+                  "ref": null,
+                  "rendered": Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": "Om",
+                      "className": "AppBarComponent-subHeaderLink-7",
+                      "replace": false,
+                      "to": "/aboutservice",
+                    },
+                    "ref": null,
+                    "rendered": "Om",
+                    "type": [Function],
+                  },
+                  "type": [Function],
+                },
+                Object {
+                  "instance": null,
+                  "key": "1",
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/create"
+                    >
+                      Lage
+                    </Link>,
+                    "className": "AppBarComponent-subHeader-6",
+                    "item": true,
+                  },
+                  "ref": null,
+                  "rendered": Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": "Lage",
+                      "className": "AppBarComponent-subHeaderLink-7",
+                      "replace": false,
+                      "to": "/create",
+                    },
+                    "ref": null,
+                    "rendered": "Lage",
+                    "type": [Function],
+                  },
+                  "type": [Function],
+                },
+                Object {
+                  "instance": null,
+                  "key": "2",
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/text"
+                    >
+                      Språk
+                    </Link>,
+                    "className": "AppBarComponent-subHeader-6",
+                    "item": true,
+                  },
+                  "ref": null,
+                  "rendered": Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": "Språk",
+                      "className": "AppBarComponent-subHeaderLink-7",
+                      "replace": false,
+                      "to": "/text",
+                    },
+                    "ref": null,
+                    "rendered": "Språk",
+                    "type": [Function],
+                  },
+                  "type": [Function],
+                },
+                Object {
+                  "instance": null,
+                  "key": "3",
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/test"
+                    >
+                      Teste
+                    </Link>,
+                    "className": "AppBarComponent-subHeader-6",
+                    "item": true,
+                  },
+                  "ref": null,
+                  "rendered": Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": "Teste",
+                      "className": "AppBarComponent-subHeaderLink-7",
+                      "replace": false,
+                      "to": "/test",
+                    },
+                    "ref": null,
+                    "rendered": "Teste",
+                    "type": [Function],
+                  },
+                  "type": [Function],
+                },
+                Object {
+                  "instance": null,
+                  "key": "4",
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": <Link
+                      className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                      replace={false}
+                      to="/productionsetting"
+                    >
+                      Publisere
+                    </Link>,
+                    "className": "AppBarComponent-subHeader-6",
+                    "item": true,
+                  },
+                  "ref": null,
+                  "rendered": Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": "Publisere",
+                      "className": "AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8",
+                      "replace": false,
+                      "to": "/productionsetting",
+                    },
+                    "ref": null,
+                    "rendered": "Publisere",
+                    "type": [Function],
+                  },
+                  "type": [Function],
+                },
+              ],
+              "type": [Function],
+            },
+            "type": [Function],
+          },
+          "type": [Function],
+        },
+      ],
+      "type": [Function],
+    },
+    "type": "div",
+  },
+  Symbol(enzyme.__nodes__): Array [
+    Object {
+      "instance": null,
+      "key": undefined,
+      "nodeType": "host",
+      "props": Object {
+        "children": <WithStyles(AppBar)
+          className="AppBarComponent-appBar-2"
+          elevation={0}
+          position="static"
+          style={
+            Object {
+              "backgroundColor": "#EFEFEF",
+            }
+          }
+        >
+          <WithStyles(Toolbar)>
+            <WithStyles(Grid)
+              alignItems="center"
+              container={true}
+              direction="row"
+              justify="space-between"
+            >
+              <WithStyles(Grid)
+                container={true}
+                item={true}
+                xs={true}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <img
+                    src="/designer/img/altinn_logo_header.png"
+                  />
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                />
+              </WithStyles(Grid)>
+              <Hidden
+                implementation="js"
+                lgDown={false}
+                lgUp={false}
+                mdDown={false}
+                mdUp={false}
+                smDown={true}
+                smUp={false}
+                xlDown={false}
+                xlUp={false}
+                xsDown={false}
+                xsUp={false}
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-paper-5"
+                  item={true}
+                  xs={true}
+                >
+                  other-service
+                </WithStyles(Grid)>
+              </Hidden>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                item={true}
+                justify="flex-end"
+                xs={true}
+              >
+                <WithStyles(Grid)
+                  item={true}
+                >
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    other-org
+                  </Hidden>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <div
+                      className="AppBarComponent-topRightService-9"
+                    >
+                      other-service
+                    </div>
+                  </Hidden>
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <WithStyles(ProfileMenuComponent)
+                      showlogout={true}
+                    />
+                  </WithStyles(Grid)>
+                </Hidden>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={true}
+                  smDown={false}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <WithStyles(TabletDrawerMenu)
+                      handleTabletDrawerMenu={[Function]}
+                      logoutButton={false}
+                      tabletDrawerOpen={false}
+                    />
+                  </WithStyles(Grid)>
+                </Hidden>
+              </WithStyles(Grid)>
+            </WithStyles(Grid)>
+          </WithStyles(Toolbar)>
+          <Hidden
+            implementation="js"
+            lgDown={false}
+            lgUp={false}
+            mdDown={false}
+            mdUp={false}
+            smDown={true}
+            smUp={false}
+            xlDown={false}
+            xlUp={false}
+            xsDown={false}
+            xsUp={false}
+          >
+            <WithStyles(Toolbar)>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                justify="center"
+              >
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/aboutservice"
+                  >
+                    Om
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/create"
+                  >
+                    Lage
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/text"
+                  >
+                    Språk
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7"
+                    replace={false}
+                    to="/test"
+                  >
+                    Teste
+                  </Link>
+                </WithStyles(Grid)>
+                <WithStyles(Grid)
+                  className="AppBarComponent-subHeader-6"
+                  item={true}
+                >
+                  <Link
+                    className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                    replace={false}
+                    to="/productionsetting"
+                  >
+                    Publisere
+                  </Link>
+                </WithStyles(Grid)>
+              </WithStyles(Grid)>
+            </WithStyles(Toolbar)>
+          </Hidden>
+        </WithStyles(AppBar)>,
+        "className": "AppBarComponent-root-1",
+      },
+      "ref": null,
+      "rendered": Object {
+        "instance": null,
+        "key": undefined,
+        "nodeType": "class",
+        "props": Object {
+          "children": Array [
+            <WithStyles(Toolbar)>
+              <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                justify="space-between"
+              >
+                <WithStyles(Grid)
+                  container={true}
+                  item={true}
+                  xs={true}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <img
+                      src="/designer/img/altinn_logo_header.png"
+                    />
+                  </WithStyles(Grid)>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  />
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    className="AppBarComponent-paper-5"
+                    item={true}
+                    xs={true}
+                  >
+                    other-service
+                  </WithStyles(Grid)>
+                </Hidden>
+                <WithStyles(Grid)
+                  alignItems="center"
+                  container={true}
+                  direction="row"
+                  item={true}
+                  justify="flex-end"
+                  xs={true}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={false}
+                      smDown={true}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      other-org
+                    </Hidden>
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <div
+                        className="AppBarComponent-topRightService-9"
+                      >
+                        other-service
+                      </div>
+                    </Hidden>
+                  </WithStyles(Grid)>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <WithStyles(ProfileMenuComponent)
+                        showlogout={true}
+                      />
+                    </WithStyles(Grid)>
+                  </Hidden>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <WithStyles(TabletDrawerMenu)
+                        handleTabletDrawerMenu={[Function]}
+                        logoutButton={false}
+                        tabletDrawerOpen={false}
+                      />
+                    </WithStyles(Grid)>
+                  </Hidden>
+                </WithStyles(Grid)>
+              </WithStyles(Grid)>
+            </WithStyles(Toolbar)>,
+            <Hidden
+              implementation="js"
+              lgDown={false}
+              lgUp={false}
+              mdDown={false}
+              mdUp={false}
+              smDown={true}
+              smUp={false}
+              xlDown={false}
+              xlUp={false}
+              xsDown={false}
+              xsUp={false}
+            >
+              <WithStyles(Toolbar)>
+                <WithStyles(Grid)
+                  alignItems="center"
+                  container={true}
+                  direction="row"
+                  justify="center"
+                >
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/aboutservice"
+                    >
+                      Om
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/create"
+                    >
+                      Lage
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/text"
+                    >
+                      Språk
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/test"
+                    >
+                      Teste
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                      replace={false}
+                      to="/productionsetting"
+                    >
+                      Publisere
+                    </Link>
+                  </WithStyles(Grid)>
+                </WithStyles(Grid)>
+              </WithStyles(Toolbar)>
+            </Hidden>,
+          ],
+          "className": "AppBarComponent-appBar-2",
+          "elevation": 0,
+          "position": "static",
+          "style": Object {
+            "backgroundColor": "#EFEFEF",
+          },
+        },
+        "ref": null,
+        "rendered": Array [
+          Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "class",
+            "props": Object {
+              "children": <WithStyles(Grid)
+                alignItems="center"
+                container={true}
+                direction="row"
+                justify="space-between"
+              >
+                <WithStyles(Grid)
+                  container={true}
+                  item={true}
+                  xs={true}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <img
+                      src="/designer/img/altinn_logo_header.png"
+                    />
+                  </WithStyles(Grid)>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  />
+                </WithStyles(Grid)>
+                <Hidden
+                  implementation="js"
+                  lgDown={false}
+                  lgUp={false}
+                  mdDown={false}
+                  mdUp={false}
+                  smDown={true}
+                  smUp={false}
+                  xlDown={false}
+                  xlUp={false}
+                  xsDown={false}
+                  xsUp={false}
+                >
+                  <WithStyles(Grid)
+                    className="AppBarComponent-paper-5"
+                    item={true}
+                    xs={true}
+                  >
+                    other-service
+                  </WithStyles(Grid)>
+                </Hidden>
+                <WithStyles(Grid)
+                  alignItems="center"
+                  container={true}
+                  direction="row"
+                  item={true}
+                  justify="flex-end"
+                  xs={true}
+                >
+                  <WithStyles(Grid)
+                    item={true}
+                  >
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={false}
+                      smDown={true}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      other-org
+                    </Hidden>
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <div
+                        className="AppBarComponent-topRightService-9"
+                      >
+                        other-service
+                      </div>
+                    </Hidden>
+                  </WithStyles(Grid)>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <WithStyles(ProfileMenuComponent)
+                        showlogout={true}
+                      />
+                    </WithStyles(Grid)>
+                  </Hidden>
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={true}
+                    smDown={false}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <WithStyles(TabletDrawerMenu)
+                        handleTabletDrawerMenu={[Function]}
+                        logoutButton={false}
+                        tabletDrawerOpen={false}
+                      />
+                    </WithStyles(Grid)>
+                  </Hidden>
+                </WithStyles(Grid)>
+              </WithStyles(Grid)>,
+            },
+            "ref": null,
+            "rendered": Object {
+              "instance": null,
+              "key": undefined,
+              "nodeType": "class",
+              "props": Object {
+                "alignItems": "center",
+                "children": Array [
+                  <WithStyles(Grid)
+                    container={true}
+                    item={true}
+                    xs={true}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <img
+                        src="/designer/img/altinn_logo_header.png"
+                      />
+                    </WithStyles(Grid)>
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    />
+                  </WithStyles(Grid)>,
+                  <Hidden
+                    implementation="js"
+                    lgDown={false}
+                    lgUp={false}
+                    mdDown={false}
+                    mdUp={false}
+                    smDown={true}
+                    smUp={false}
+                    xlDown={false}
+                    xlUp={false}
+                    xsDown={false}
+                    xsUp={false}
+                  >
+                    <WithStyles(Grid)
+                      className="AppBarComponent-paper-5"
+                      item={true}
+                      xs={true}
+                    >
+                      other-service
+                    </WithStyles(Grid)>
+                  </Hidden>,
+                  <WithStyles(Grid)
+                    alignItems="center"
+                    container={true}
+                    direction="row"
+                    item={true}
+                    justify="flex-end"
+                    xs={true}
+                  >
+                    <WithStyles(Grid)
+                      item={true}
+                    >
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={false}
+                        smDown={true}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      >
+                        other-org
+                      </Hidden>
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={true}
+                        smDown={false}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      >
+                        <div
+                          className="AppBarComponent-topRightService-9"
+                        >
+                          other-service
+                        </div>
+                      </Hidden>
+                    </WithStyles(Grid)>
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={false}
+                      smDown={true}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <WithStyles(Grid)
+                        item={true}
+                      >
+                        <WithStyles(ProfileMenuComponent)
+                          showlogout={true}
+                        />
+                      </WithStyles(Grid)>
+                    </Hidden>
+                    <Hidden
+                      implementation="js"
+                      lgDown={false}
+                      lgUp={false}
+                      mdDown={false}
+                      mdUp={true}
+                      smDown={false}
+                      smUp={false}
+                      xlDown={false}
+                      xlUp={false}
+                      xsDown={false}
+                      xsUp={false}
+                    >
+                      <WithStyles(Grid)
+                        item={true}
+                      >
+                        <WithStyles(TabletDrawerMenu)
+                          handleTabletDrawerMenu={[Function]}
+                          logoutButton={false}
+                          tabletDrawerOpen={false}
+                        />
+                      </WithStyles(Grid)>
+                    </Hidden>
+                  </WithStyles(Grid)>,
+                ],
+                "container": true,
+                "direction": "row",
+                "justify": "space-between",
+              },
+              "ref": null,
+              "rendered": Array [
+                Object {
+                  "instance": null,
+                  "key": undefined,
+                  "nodeType": "class",
+                  "props": Object {
+                    "children": Array [
+                      <WithStyles(Grid)
+                        item={true}
+                      >
+                        <img
+                          src="/designer/img/altinn_logo_header.png"
+                        />
+                      </WithStyles(Grid)>,
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={true}
+                        smDown={false}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      />,
+                    ],
+                    "container": true,
+                    "item": true,
+                    "xs": true,
+                  },
+                  "ref": null,
+                  "rendered": Array [
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": <img
+                          src="/designer/img/altinn_logo_header.png"
+                        />,
+                        "item": true,
+                      },
+                      "ref": null,
+                      "rendered": Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "host",
+                        "props": Object {
+                          "src": "/designer/img/altinn_logo_header.png",
+                        },
+                        "ref": null,
+                        "rendered": null,
+                        "type": "img",
+                      },
+                      "type": [Function],
+                    },
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "function",
+                      "props": Object {
+                        "children": null,
+                        "implementation": "js",
+                        "lgDown": false,
+                        "lgUp": false,
+                        "mdDown": false,
+                        "mdUp": true,
+                        "smDown": false,
+                        "smUp": false,
+                        "xlDown": false,
+                        "xlUp": false,
+                        "xsDown": false,
+                        "xsUp": false,
+                      },
+                      "ref": null,
+                      "rendered": null,
+                      "type": [Function],
+                    },
+                  ],
+                  "type": [Function],
+                },
+                Object {
+                  "instance": null,
+                  "key": undefined,
+                  "nodeType": "function",
+                  "props": Object {
+                    "children": <WithStyles(Grid)
+                      className="AppBarComponent-paper-5"
+                      item={true}
+                      xs={true}
+                    >
+                      other-service
+                    </WithStyles(Grid)>,
+                    "implementation": "js",
+                    "lgDown": false,
+                    "lgUp": false,
+                    "mdDown": false,
+                    "mdUp": false,
+                    "smDown": true,
+                    "smUp": false,
+                    "xlDown": false,
+                    "xlUp": false,
+                    "xsDown": false,
+                    "xsUp": false,
+                  },
+                  "ref": null,
+                  "rendered": Object {
+                    "instance": null,
+                    "key": undefined,
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": "other-service",
+                      "className": "AppBarComponent-paper-5",
+                      "item": true,
+                      "xs": true,
+                    },
+                    "ref": null,
+                    "rendered": "other-service",
+                    "type": [Function],
+                  },
+                  "type": [Function],
+                },
+                Object {
+                  "instance": null,
+                  "key": undefined,
+                  "nodeType": "class",
+                  "props": Object {
+                    "alignItems": "center",
+                    "children": Array [
+                      <WithStyles(Grid)
+                        item={true}
+                      >
+                        <Hidden
+                          implementation="js"
+                          lgDown={false}
+                          lgUp={false}
+                          mdDown={false}
+                          mdUp={false}
+                          smDown={true}
+                          smUp={false}
+                          xlDown={false}
+                          xlUp={false}
+                          xsDown={false}
+                          xsUp={false}
+                        >
+                          other-org
+                        </Hidden>
+                        <Hidden
+                          implementation="js"
+                          lgDown={false}
+                          lgUp={false}
+                          mdDown={false}
+                          mdUp={true}
+                          smDown={false}
+                          smUp={false}
+                          xlDown={false}
+                          xlUp={false}
+                          xsDown={false}
+                          xsUp={false}
+                        >
+                          <div
+                            className="AppBarComponent-topRightService-9"
+                          >
+                            other-service
+                          </div>
+                        </Hidden>
+                      </WithStyles(Grid)>,
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={false}
+                        smDown={true}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      >
+                        <WithStyles(Grid)
+                          item={true}
+                        >
+                          <WithStyles(ProfileMenuComponent)
+                            showlogout={true}
+                          />
+                        </WithStyles(Grid)>
+                      </Hidden>,
+                      <Hidden
+                        implementation="js"
+                        lgDown={false}
+                        lgUp={false}
+                        mdDown={false}
+                        mdUp={true}
+                        smDown={false}
+                        smUp={false}
+                        xlDown={false}
+                        xlUp={false}
+                        xsDown={false}
+                        xsUp={false}
+                      >
+                        <WithStyles(Grid)
+                          item={true}
+                        >
+                          <WithStyles(TabletDrawerMenu)
+                            handleTabletDrawerMenu={[Function]}
+                            logoutButton={false}
+                            tabletDrawerOpen={false}
+                          />
+                        </WithStyles(Grid)>
+                      </Hidden>,
+                    ],
+                    "container": true,
+                    "direction": "row",
+                    "item": true,
+                    "justify": "flex-end",
+                    "xs": true,
+                  },
+                  "ref": null,
+                  "rendered": Array [
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": Array [
+                          <Hidden
+                            implementation="js"
+                            lgDown={false}
+                            lgUp={false}
+                            mdDown={false}
+                            mdUp={false}
+                            smDown={true}
+                            smUp={false}
+                            xlDown={false}
+                            xlUp={false}
+                            xsDown={false}
+                            xsUp={false}
+                          >
+                            other-org
+                          </Hidden>,
+                          <Hidden
+                            implementation="js"
+                            lgDown={false}
+                            lgUp={false}
+                            mdDown={false}
+                            mdUp={true}
+                            smDown={false}
+                            smUp={false}
+                            xlDown={false}
+                            xlUp={false}
+                            xsDown={false}
+                            xsUp={false}
+                          >
+                            <div
+                              className="AppBarComponent-topRightService-9"
+                            >
+                              other-service
+                            </div>
+                          </Hidden>,
+                        ],
+                        "item": true,
+                      },
+                      "ref": null,
+                      "rendered": Array [
+                        Object {
+                          "instance": null,
+                          "key": undefined,
+                          "nodeType": "function",
+                          "props": Object {
+                            "children": "other-org",
+                            "implementation": "js",
+                            "lgDown": false,
+                            "lgUp": false,
+                            "mdDown": false,
+                            "mdUp": false,
+                            "smDown": true,
+                            "smUp": false,
+                            "xlDown": false,
+                            "xlUp": false,
+                            "xsDown": false,
+                            "xsUp": false,
+                          },
+                          "ref": null,
+                          "rendered": "other-org",
+                          "type": [Function],
+                        },
+                        Object {
+                          "instance": null,
+                          "key": undefined,
+                          "nodeType": "function",
+                          "props": Object {
+                            "children": <div
+                              className="AppBarComponent-topRightService-9"
+                            >
+                              other-service
+                            </div>,
+                            "implementation": "js",
+                            "lgDown": false,
+                            "lgUp": false,
+                            "mdDown": false,
+                            "mdUp": true,
+                            "smDown": false,
+                            "smUp": false,
+                            "xlDown": false,
+                            "xlUp": false,
+                            "xsDown": false,
+                            "xsUp": false,
+                          },
+                          "ref": null,
+                          "rendered": Object {
+                            "instance": null,
+                            "key": undefined,
+                            "nodeType": "host",
+                            "props": Object {
+                              "children": "other-service",
+                              "className": "AppBarComponent-topRightService-9",
+                            },
+                            "ref": null,
+                            "rendered": "other-service",
+                            "type": "div",
+                          },
+                          "type": [Function],
+                        },
+                      ],
+                      "type": [Function],
+                    },
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "function",
+                      "props": Object {
+                        "children": <WithStyles(Grid)
+                          item={true}
+                        >
+                          <WithStyles(ProfileMenuComponent)
+                            showlogout={true}
+                          />
+                        </WithStyles(Grid)>,
+                        "implementation": "js",
+                        "lgDown": false,
+                        "lgUp": false,
+                        "mdDown": false,
+                        "mdUp": false,
+                        "smDown": true,
+                        "smUp": false,
+                        "xlDown": false,
+                        "xlUp": false,
+                        "xsDown": false,
+                        "xsUp": false,
+                      },
+                      "ref": null,
+                      "rendered": Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "class",
+                        "props": Object {
+                          "children": <WithStyles(ProfileMenuComponent)
+                            showlogout={true}
+                          />,
+                          "item": true,
+                        },
+                        "ref": null,
+                        "rendered": Object {
+                          "instance": null,
+                          "key": undefined,
+                          "nodeType": "class",
+                          "props": Object {
+                            "showlogout": true,
+                          },
+                          "ref": null,
+                          "rendered": null,
+                          "type": [Function],
+                        },
+                        "type": [Function],
+                      },
+                      "type": [Function],
+                    },
+                    Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "function",
+                      "props": Object {
+                        "children": <WithStyles(Grid)
+                          item={true}
+                        >
+                          <WithStyles(TabletDrawerMenu)
+                            handleTabletDrawerMenu={[Function]}
+                            logoutButton={false}
+                            tabletDrawerOpen={false}
+                          />
+                        </WithStyles(Grid)>,
+                        "implementation": "js",
+                        "lgDown": false,
+                        "lgUp": false,
+                        "mdDown": false,
+                        "mdUp": true,
+                        "smDown": false,
+                        "smUp": false,
+                        "xlDown": false,
+                        "xlUp": false,
+                        "xsDown": false,
+                        "xsUp": false,
+                      },
+                      "ref": null,
+                      "rendered": Object {
+                        "instance": null,
+                        "key": undefined,
+                        "nodeType": "class",
+                        "props": Object {
+                          "children": <WithStyles(TabletDrawerMenu)
+                            handleTabletDrawerMenu={[Function]}
+                            logoutButton={false}
+                            tabletDrawerOpen={false}
+                          />,
+                          "item": true,
+                        },
+                        "ref": null,
+                        "rendered": Object {
+                          "instance": null,
+                          "key": undefined,
+                          "nodeType": "class",
+                          "props": Object {
+                            "handleTabletDrawerMenu": [Function],
+                            "logoutButton": false,
+                            "tabletDrawerOpen": false,
+                          },
+                          "ref": null,
+                          "rendered": null,
+                          "type": [Function],
+                        },
+                        "type": [Function],
+                      },
+                      "type": [Function],
+                    },
+                  ],
+                  "type": [Function],
+                },
+              ],
+              "type": [Function],
+            },
+            "type": [Function],
+          },
+          Object {
+            "instance": null,
+            "key": undefined,
+            "nodeType": "function",
+            "props": Object {
+              "children": <WithStyles(Toolbar)>
+                <WithStyles(Grid)
+                  alignItems="center"
+                  container={true}
+                  direction="row"
+                  justify="center"
+                >
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/aboutservice"
+                    >
+                      Om
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/create"
+                    >
+                      Lage
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/text"
+                    >
+                      Språk
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/test"
+                    >
+                      Teste
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                      replace={false}
+                      to="/productionsetting"
+                    >
+                      Publisere
+                    </Link>
+                  </WithStyles(Grid)>
+                </WithStyles(Grid)>
+              </WithStyles(Toolbar)>,
+              "implementation": "js",
+              "lgDown": false,
+              "lgUp": false,
+              "mdDown": false,
+              "mdUp": false,
+              "smDown": true,
+              "smUp": false,
+              "xlDown": false,
+              "xlUp": false,
+              "xsDown": false,
+              "xsUp": false,
+            },
+            "ref": null,
+            "rendered": Object {
+              "instance": null,
+              "key": undefined,
+              "nodeType": "class",
+              "props": Object {
+                "children": <WithStyles(Grid)
+                  alignItems="center"
+                  container={true}
+                  direction="row"
+                  justify="center"
+                >
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/aboutservice"
+                    >
+                      Om
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/create"
+                    >
+                      Lage
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/text"
+                    >
+                      Språk
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7"
+                      replace={false}
+                      to="/test"
+                    >
+                      Teste
+                    </Link>
+                  </WithStyles(Grid)>
+                  <WithStyles(Grid)
+                    className="AppBarComponent-subHeader-6"
+                    item={true}
+                  >
+                    <Link
+                      className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                      replace={false}
+                      to="/productionsetting"
+                    >
+                      Publisere
+                    </Link>
+                  </WithStyles(Grid)>
+                </WithStyles(Grid)>,
+              },
+              "ref": null,
+              "rendered": Object {
+                "instance": null,
+                "key": undefined,
+                "nodeType": "class",
+                "props": Object {
+                  "alignItems": "center",
+                  "children": Array [
+                    <WithStyles(Grid)
+                      className="AppBarComponent-subHeader-6"
+                      item={true}
+                    >
+                      <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/aboutservice"
+                      >
+                        Om
+                      </Link>
+                    </WithStyles(Grid)>,
+                    <WithStyles(Grid)
+                      className="AppBarComponent-subHeader-6"
+                      item={true}
+                    >
+                      <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/create"
+                      >
+                        Lage
+                      </Link>
+                    </WithStyles(Grid)>,
+                    <WithStyles(Grid)
+                      className="AppBarComponent-subHeader-6"
+                      item={true}
+                    >
+                      <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/text"
+                      >
+                        Språk
+                      </Link>
+                    </WithStyles(Grid)>,
+                    <WithStyles(Grid)
+                      className="AppBarComponent-subHeader-6"
+                      item={true}
+                    >
+                      <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/test"
+                      >
+                        Teste
+                      </Link>
+                    </WithStyles(Grid)>,
+                    <WithStyles(Grid)
+                      className="AppBarComponent-subHeader-6"
+                      item={true}
+                    >
+                      <Link
+                        className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                        replace={false}
+                        to="/productionsetting"
+                      >
+                        Publisere
+                      </Link>
+                    </WithStyles(Grid)>,
+                  ],
+                  "container": true,
+                  "direction": "row",
+                  "justify": "center",
+                },
+                "ref": null,
+                "rendered": Array [
+                  Object {
+                    "instance": null,
+                    "key": "0",
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/aboutservice"
+                      >
+                        Om
+                      </Link>,
+                      "className": "AppBarComponent-subHeader-6",
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": "Om",
+                        "className": "AppBarComponent-subHeaderLink-7",
+                        "replace": false,
+                        "to": "/aboutservice",
+                      },
+                      "ref": null,
+                      "rendered": "Om",
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "1",
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/create"
+                      >
+                        Lage
+                      </Link>,
+                      "className": "AppBarComponent-subHeader-6",
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": "Lage",
+                        "className": "AppBarComponent-subHeaderLink-7",
+                        "replace": false,
+                        "to": "/create",
+                      },
+                      "ref": null,
+                      "rendered": "Lage",
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "2",
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/text"
+                      >
+                        Språk
+                      </Link>,
+                      "className": "AppBarComponent-subHeader-6",
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": "Språk",
+                        "className": "AppBarComponent-subHeaderLink-7",
+                        "replace": false,
+                        "to": "/text",
+                      },
+                      "ref": null,
+                      "rendered": "Språk",
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "3",
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": <Link
+                        className="AppBarComponent-subHeaderLink-7"
+                        replace={false}
+                        to="/test"
+                      >
+                        Teste
+                      </Link>,
+                      "className": "AppBarComponent-subHeader-6",
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": "Teste",
+                        "className": "AppBarComponent-subHeaderLink-7",
+                        "replace": false,
+                        "to": "/test",
+                      },
+                      "ref": null,
+                      "rendered": "Teste",
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                  Object {
+                    "instance": null,
+                    "key": "4",
+                    "nodeType": "class",
+                    "props": Object {
+                      "children": <Link
+                        className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
+                        replace={false}
+                        to="/productionsetting"
+                      >
+                        Publisere
+                      </Link>,
+                      "className": "AppBarComponent-subHeader-6",
+                      "item": true,
+                    },
+                    "ref": null,
+                    "rendered": Object {
+                      "instance": null,
+                      "key": undefined,
+                      "nodeType": "class",
+                      "props": Object {
+                        "children": "Publisere",
+                        "className": "AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8",
+                        "replace": false,
+                        "to": "/productionsetting",
+                      },
+                      "ref": null,
+                      "rendered": "Publisere",
+                      "type": [Function],
+                    },
+                    "type": [Function],
+                  },
+                ],
+                "type": [Function],
+              },
+              "type": [Function],
+            },
+            "type": [Function],
+          },
+        ],
+        "type": [Function],
+      },
+      "type": "div",
+    },
+  ],
+  Symbol(enzyme.__options__): Object {
+    "adapter": ReactSixteenAdapter {
+      "options": Object {
+        "enableComponentDidUpdateOnSetState": true,
+        "lifecycles": Object {
+          "componentDidUpdate": Object {
+            "onSetState": true,
+          },
+          "getDerivedStateFromProps": true,
+          "getSnapshotBeforeUpdate": true,
+          "setState": Object {
+            "skipsComponentDidUpdateOnNullish": true,
+          },
+        },
+      },
+    },
+  },
+}
+`;
+
 exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot 1`] = `
 <div
   className="AppBarComponent-root-1"
