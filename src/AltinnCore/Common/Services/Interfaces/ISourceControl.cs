@@ -40,7 +40,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">the organisation</param>
         /// <param name="repository">name of the repository</param>
-        void PullRemoteChanges(string org, string repository);
+        RepoStatus PullRemoteChanges(string org, string repository);
 
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote

@@ -89,10 +89,20 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">Name of the repository</param>
+        /// <returns>Repo status</returns>
         [HttpGet]
-        public void PullRepo(string owner, string repository)
+        public RepoStatus Pull(string owner, string repository)
         {
-            _sourceControl.PullRemoteChanges(owner, repository);
+            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(owner, repository);
+
+            RepoStatus status = _sourceControl.RepositoryStatus(owner, repository);
+
+            if (pullStatus.RepositoryStatus != Common.Enums.RepositoryStatus.Ok)
+            {
+                status.RepositoryStatus = pullStatus.RepositoryStatus;
+            }
+
+            return status;
         }
 
         /// <summary>
@@ -119,11 +129,11 @@ namespace AltinnCore.Designer.Controllers
         /// Push commits to repo
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
-        /// <param name="repo">The repo name</param>
+        /// <param name="repository">The repo name</param>
         [HttpPost]
-        public void Push(string owner, string repo)
+        public void Push(string owner, string repository)
         {
-            _sourceControl.Push(owner, repo);
+            _sourceControl.Push(owner, repository);
         }
 
         /// <summary>

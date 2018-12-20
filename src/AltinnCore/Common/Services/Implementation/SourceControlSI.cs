@@ -87,10 +87,17 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
-        /// <inheritdoc/>
-        public void PullRemoteChanges(string org, string repository)
+       /// <summary>
+       /// Pulls remote changes
+       /// </summary>
+       /// <param name="owner">Owner of the repository</param>
+       /// <param name="repository">The repository</param>
+       /// <returns>The repo status</returns>
+        public RepoStatus PullRemoteChanges(string owner, string repository)
         {
-            using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
+            RepoStatus status = new RepoStatus();
+
+            using (var repo = new Repository(FindLocalRepoLocation(owner, repository)))
             {
                 PullOptions pullOptions = new PullOptions()
                 {
@@ -104,11 +111,20 @@ namespace AltinnCore.Common.Services.Implementation
                 pullOptions.FetchOptions.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
-                MergeResult mergeResult = Commands.Pull(
-                    repo,
-                    new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
-                    pullOptions);
+                try
+                {
+                    MergeResult mergeResult = Commands.Pull(
+                        repo,
+                        new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
+                        pullOptions);
+                }
+                catch (LibGit2Sharp.CheckoutConflictException)
+                {
+                    status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                }
             }
+
+            return status;
         }
 
         /// <summary>
