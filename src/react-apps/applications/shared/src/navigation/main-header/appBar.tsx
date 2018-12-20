@@ -64,9 +64,9 @@ const styles = createStyles({
     'borderBottom': '1px solid',
     'borderBottomColor': 'transparent',  // To mitigate the 1 pixel adjustment
     '&:hover': {
-      borderBottom: 1,
+      borderBottom: '1px solid',
+      borderBottomColor: altinnTheme.altinnPalette.primary.blueDark,
       color: altinnTheme.altinnPalette.primary.blueDark,
-      fontWeight: 500,
     },
   },
   subHeaderLinkActive: {

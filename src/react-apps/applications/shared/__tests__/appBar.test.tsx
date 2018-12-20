@@ -39,7 +39,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       expect(rendered).toMatchSnapshot();
     });
 
-    it('should match snapshot with subHeader and Publish selection active', () => {
+    it('should match snapshot with subHeader and Publisere selection active', () => {
       mockOrg = 'other-org';
       mockService = 'other-service';
       mockActiveSubHeaderSelection = 'Publisere';
@@ -53,6 +53,22 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
           />
         </MemoryRouter>,
       );
+      expect(rendered).toMatchSnapshot();
+    });
+
+    it('should match shallow snapshot with subHeader and Publisere selection active', () => {
+      mockOrg = 'other-org';
+      mockService = 'other-service';
+      mockActiveSubHeaderSelection = 'Publisere';
+      const wrapper = shallow(
+        <AppBarComponent
+          org={mockOrg}
+          service={mockService}
+          showSubHeader={mockShowSubheader}
+          activeSubHeaderSelection={mockActiveSubHeaderSelection}
+        />,
+      );
+      const rendered = wrapper.shallow();
       expect(rendered).toMatchSnapshot();
     });
 
