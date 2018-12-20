@@ -34,7 +34,9 @@ const styles = createStyles({
 
 class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProps, IPushChangesCompoenentState> {
   public shareChangesHandler = (event: any) => {
-    this.props.shareChanges(event.currentTarget);
+    if (this.props.changesInLocalRepo) {
+      this.props.shareChanges(event.currentTarget);
+    }
   }
 
   public renderCorrectText() {

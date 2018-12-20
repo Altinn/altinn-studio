@@ -53,7 +53,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   public performAPIFetch(url: string, callbackFunc: any, object?: any) {
     fetch(url, object)
       .then((response) => {
-        return response.json();
+        return response.text().then((text: any) => {
+          return text ? JSON.parse(text) : {}
+        });
       })
       .then(
         (result) => {
@@ -144,12 +146,14 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/PullRepo?owner=${org}&repository=${service}`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
 
     this.performAPIFetch(url, (result: any) => {
       if (result) {
         // if pull was successfull, show service is updated message
         this.setState({
+          changesInMaster: result.behindBy === 0 ? false : true,
+          changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
           modalState: {
             header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
             descriptionText:
@@ -168,7 +172,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
             btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
             shouldShowCommitBox: true,
-            btnClick: this.commitChanges,
+            btnMethod: this.commitChanges,
           },
         });
       }
@@ -187,7 +191,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
                 header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
                 btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                 shouldShowDoneIcon: true,
-                btnClick: this.pushChanges,
+                btnMethod: this.pushChanges,
               },
             });
           } else {
@@ -200,7 +204,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
                   getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
                 btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
                 shouldShowCommitBox: true,
-                btnClick: this.commitChanges,
+                btnMethod: this.commitChanges,
               },
             });
           }
@@ -275,7 +279,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       this.performAPIFetch(pullUrl, (result: any) => {
         // if pull was successfull, show service updated message
         // TODO: if everything is ok
-        if (result) {
+        if (result.repositoryStatus === 'Ok') {
           this.setState({
             modalState: {
               header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
@@ -345,7 +349,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             btnText={this.state.modalState.btnText}
             shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
             handleClose={this.handleClose}
-            btnClick={this.commitChanges}
+            btnClick={this.state.modalState.btnMethod}
           />
         </Grid>
       </Grid>
