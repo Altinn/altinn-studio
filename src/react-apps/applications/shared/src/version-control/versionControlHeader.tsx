@@ -1,10 +1,10 @@
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../utils/language';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
 import LargePopoverComponent from './largePopover';
-import { getLanguageFromKey } from '../utils/language';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
@@ -54,7 +54,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     fetch(url, object)
       .then((response) => {
         return response.text().then((text: any) => {
-          return text ? JSON.parse(text) : {}
+          return text ? JSON.parse(text) : {};
         });
       })
       .then(
@@ -62,7 +62,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           callbackFunc(result);
         },
         (error) => {
-          console.log('inside then' + error);
+          console.error('Something went wrong: ' + error);
         },
       );
   }
@@ -149,7 +149,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
 
     this.performAPIFetch(url, (result: any) => {
-      if (result) {
+      if (result.repositoryStatus === 'Ok') {
         // if pull was successfull, show service is updated message
         this.setState({
           changesInMaster: result.behindBy === 0 ? false : true,
@@ -162,9 +162,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             shouldShowDoneIcon: true,
           },
         });
-      } else {
+      } else if (result.repositoryStatus === 'CheckoutConflict') {
         // if pull gives merge conflict, show user needs to commit message
-        // TODO: overwritten by merge
         this.setState({
           modalState: {
             header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
@@ -231,22 +230,30 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
+    const requestObj = {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    };
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
 
     this.performAPIFetch(url, (result: any) => {
-      if (result) {
-        this.setState({
-          modalState: {
-            header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
-            descriptionText:
-              getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
-            shouldShowDoneIcon: true,
-          },
-        });
-      }
-    });
+      this.setState({
+        changesInMaster: false,
+        changesInLocalRepo: false,
+        modalState: {
+          header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
+          descriptionText:
+            getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
+          shouldShowDoneIcon: true,
+        },
+      });
+    }, requestObj);
   }
 
   public commitChanges = (commitMessage: string) => {
@@ -278,7 +285,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     this.performAPIFetch(url, (commitResult: any) => {
       this.performAPIFetch(pullUrl, (result: any) => {
         // if pull was successfull, show service updated message
-        // TODO: if everything is ok
         if (result.repositoryStatus === 'Ok') {
           this.setState({
             modalState: {
@@ -289,16 +295,14 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               btnMethod: this.pushChanges,
             },
           });
-        } else {
+        } else if (result.repositoryStatus === 'MergeConflict') {
           // if pull resulted in a mergeconflict, show mergeconflict message
-          // of merge conflikt
           this.setState({
             mergeConflict: true,
             modalState: {
               header: getLanguageFromKey('sync_header.merge_conflict_occured', this.props.language),
               descriptionText: getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language),
               btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
-              shouldShowDoneIcon: true,
               btnMethod: this.redirectToMergeConflictPage,
             },
           });
@@ -308,7 +312,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public redirectToMergeConflictPage() {
-    //TODO: redirect to merge page
+    // TODO: redirect to merge page
   }
 
   public render() {

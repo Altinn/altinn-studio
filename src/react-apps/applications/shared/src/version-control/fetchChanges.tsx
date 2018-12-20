@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { WithStyles, createStyles, withStyles } from '@material-ui/core';
+import { createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
+import * as React from 'react';
 import { getLanguageFromKey } from '../utils/language';
 
 export interface IFetchChangesCompoenentProvidedProps {

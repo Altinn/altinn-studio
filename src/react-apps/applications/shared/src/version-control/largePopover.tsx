@@ -1,6 +1,6 @@
-import * as React from 'react';
-import { WithStyles, createStyles, withStyles, Popover, CircularProgress, Typography, TextField, Button, Grid } from '@material-ui/core';
+import { Button, CircularProgress, createStyles, Grid, Popover, TextField, Typography, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
+import * as React from 'react';
 
 export interface ILargePopoverComponentProvidedProps {
   classes: any;

@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
+import * as React from 'react';
 import { getLanguageFromKey } from '../utils/language';
 
 export interface IShareChangesCompoenentProvidedProps {
@@ -32,7 +32,7 @@ const styles = createStyles({
   },
 });
 
-class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProps, IPushChangesCompoenentState> {
+class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProps, IShareChangesCompoenentState> {
   public shareChangesHandler = (event: any) => {
     if (this.props.changesInLocalRepo) {
       this.props.shareChanges(event.currentTarget);
