@@ -10,36 +10,15 @@ export interface IPreviewProps {
   components: any;
   containers: any;
 }
-export interface IPreviewState { }
 
 export class PreviewComponent extends React.Component<
   IPreviewProps,
-  IPreviewState
+  null
   > {
-  public render() {
-    return (
-      <>
-        {this.renderContainer()}
-      </>
-    );
-  }
-
-  public componentWillMount() {
-    /*
-    Commented out, have fix in react drag n drop branch, but because of the demo, i can't merge it
-
-    if (!Object.keys(this.props.layoutOrder).length) {
-      // Create baseContainer if it doesn't exist
-      formDesignerActionDispatcher.addFormContainer({
-        repeating: false,
-        dataModelGroup: null,
-        index: 0,
-      });
-    }*/
-  }
-
-  public renderContainer = (): JSX.Element => {
-    const baseContainerId = Object.keys(this.props.layoutOrder) ? Object.keys(this.props.layoutOrder)[0] : null;
+  public render(): JSX.Element {
+    const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
+      Object.keys(this.props.layoutOrder)[0] :
+      null;
     if (!baseContainerId) {
       return null;
     }
@@ -58,8 +37,9 @@ const makeMapStateToProps = () => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const GetDesignModeSelector = makeGetDesignModeSelector();
   const mapStateToProps = (state: IAppState, empty: any): IPreviewProps => {
+    const layoutOrder = GetLayoutOrderSelector(state);
     return {
-      layoutOrder: GetLayoutOrderSelector(state),
+      layoutOrder,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       designMode: GetDesignModeSelector(state),
