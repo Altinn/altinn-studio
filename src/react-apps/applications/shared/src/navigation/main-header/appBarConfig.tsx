@@ -1,27 +1,27 @@
 export const menu = ([
   {
     key: 'Om',
-    activeSubHeaderSelection: 'about',
+    activeSubHeaderSelection: 'Om',
     link: '/aboutservice',
   },
   {
     key: 'Lage',
-    activeSubHeaderSelection: 'create',
+    activeSubHeaderSelection: 'Lage',
     link: '/create',
   },
   {
     key: 'Språk',
-    activeSubHeaderSelection: 'language',
+    activeSubHeaderSelection: 'Språk',
     link: '/text',
   },
   {
     key: 'Teste',
-    activeSubHeaderSelection: 'test',
+    activeSubHeaderSelection: 'Teste',
     link: '/test',
   },
   {
     key: 'Publisere',
-    activeSubHeaderSelection: 'publish',
+    activeSubHeaderSelection: 'Publisere',
     link: '/productionsetting',
   },
 ]);

@@ -1366,6 +1366,8 @@ ShallowWrapper {
                         "key": undefined,
                         "nodeType": "class",
                         "props": Object {
+                          "activeLeftMenuSelection": undefined,
+                          "activeSubHeaderSelection": undefined,
                           "handleTabletDrawerMenu": [Function],
                           "logoutButton": false,
                           "tabletDrawerOpen": false,
@@ -2497,6 +2499,8 @@ ShallowWrapper {
                           "key": undefined,
                           "nodeType": "class",
                           "props": Object {
+                            "activeLeftMenuSelection": undefined,
+                            "activeSubHeaderSelection": undefined,
                             "handleTabletDrawerMenu": [Function],
                             "logoutButton": false,
                             "tabletDrawerOpen": false,

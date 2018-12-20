@@ -163,6 +163,8 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                       handleTabletDrawerMenu={this.handleTabletDrawerMenu}
                       tabletDrawerOpen={this.state.tabletDrawerOpen}
                       logoutButton={!logoutButton ? false : logoutButton}
+                      activeSubHeaderSelection={activeSubHeaderSelection}
+                      activeLeftMenuSelection={activeLeftMenuSelection}
                     />
                   </Grid>
                 </Hidden>
