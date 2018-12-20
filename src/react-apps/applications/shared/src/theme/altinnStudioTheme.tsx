@@ -86,10 +86,6 @@ const theme = {
     htmlFontSize: 16,
     useNextVariants: true,
   },
-<<<<<<< HEAD
-});
-=======
 };
->>>>>>> master
 
 export default theme;

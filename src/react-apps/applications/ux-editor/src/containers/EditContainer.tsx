@@ -22,7 +22,7 @@ const styles = createStyles({
   formComponent: {
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
     border: '1.5px dotted ' + altinnTheme.palette.secondary.dark,
-    color: altinnTheme.altinnPalette.primary.blue + '!mportant',
+    color: altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
     padding: '10px 12px 14px 12px',
     '&:hover': {
       backgroundColor: '#fff',
@@ -67,7 +67,7 @@ const styles = createStyles({
     fontSize: '1.2rem',
   },
   textPrimaryDark: {
-    color: altinnTheme.altinnPalette.primary.blue + '!important',
+    color: altinnTheme.altinnPalette.primary.blueDarker + '!important',
   },
   textSecondaryDark: {
     color: altinnTheme.altinnPalette.primary.grey + '!important',
@@ -178,15 +178,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
-<<<<<<< HEAD
     this.state.component.size = this.props.component.size;
     this.handleComponentUpdate(callbackComponent);
-=======
-    FormDesignerActionDispatchers.updateFormComponent(
-      callbackComponent,
-      this.props.id,
-    );
->>>>>>> master
   }
 
   public handleTitleChange = (e: any): void => {
@@ -198,15 +191,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public render(): JSX.Element {
-<<<<<<< HEAD
-    const textRecources: any = [];
-    this.props.textResources.map((resource, index) => {
-      const option = this.truncate(resource.value, 80);
-
-      textRecources.push({ value: resource.id, label: option.concat('\n(', resource.id, ')') });
-    });
-=======
->>>>>>> master
     return (
       <>
         <Grid container={true}>
