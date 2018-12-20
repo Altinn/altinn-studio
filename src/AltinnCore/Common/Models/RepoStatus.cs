@@ -1,3 +1,6 @@
+using AltinnCore.Common.Enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -23,5 +26,11 @@ namespace AltinnCore.Common.Models
         /// List over files that has changed
         /// </summary>
         public List<RepositoryContent> ContentStatus { get; set; }
+
+        /// <summary>
+        /// Defines 
+        /// </summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public RepositoryStatus RepositoryStatus { get; set; }
     }
 }
