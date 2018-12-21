@@ -3,7 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import classNames from 'classnames';
 import * as React from 'react';
-import ServiceCard from './serviceCard';
+import { ServiceCard } from './serviceCard';
 
 export interface ICategoryComponentProvidedProps {
   classes: any;
@@ -31,7 +31,7 @@ const styles = {
   },
   fontSize_16: {
     fontSize: '16px',
-  }
+  },
 };
 
 class CategoryComponent extends React.Component<ICategoryComponentProvidedProps, ICategoryComponentState> {
@@ -79,4 +79,4 @@ class CategoryComponent extends React.Component<ICategoryComponentProvidedProps,
   }
 }
 
-export default withStyles(styles)(CategoryComponent);
+export const ServicesCategory = withStyles(styles)(CategoryComponent);

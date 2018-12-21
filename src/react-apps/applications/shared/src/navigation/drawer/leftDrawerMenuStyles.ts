@@ -4,6 +4,19 @@ import altinnTheme from '../../theme/altinnStudioTheme';
 const drawerWidth = 240;
 
 export const styles = (theme: Theme) => createStyles({
+  listItem: {
+    'fontSize': 16,
+    'color': altinnTheme.altinnPalette.primary.blueDarker,
+    'paddingRight': 0,
+    '&:hover': {
+      color: altinnTheme.altinnPalette.primary.blueDark,
+      fontWeight: 500,
+    },
+  },
+  activeListItem: {
+    fontWeight: 500,
+    color: altinnTheme.altinnPalette.primary.blueDark,
+  },
   root: {
     display: 'absolute',
   },
@@ -53,13 +66,5 @@ export const styles = (theme: Theme) => createStyles({
     position: 'absolute',
     background: altinnTheme.altinnPalette.primary.greyLight,
     top: 146,
-  },
-  activeMenu: {
-    borderBottom: '2px solid #0062BA',
-    fontSize: 16,
-  },
-  menuItemText: {
-    fontSize: 16,
-    paddingRight: 0,
   },
 });

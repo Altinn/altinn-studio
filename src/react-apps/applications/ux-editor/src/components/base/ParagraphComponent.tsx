@@ -11,9 +11,7 @@ export class ParagraphComponent extends React.Component<IParagraphProps, IParagr
 
   public render() {
     return (
-      <div className='row'>
-        <span className={'a-form-text'} id={this.props.component.id}>{this.props.text}</span>
-      </div>
+      <span id={this.props.component.id}>{this.props.text}</span>
     );
   }
 }
