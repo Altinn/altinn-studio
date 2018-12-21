@@ -68,5 +68,5 @@ export const styles = (theme: Theme) => createStyles({
   },
   listItemText: {
     paddingLeft: 0,
-  }
+  },
 });
