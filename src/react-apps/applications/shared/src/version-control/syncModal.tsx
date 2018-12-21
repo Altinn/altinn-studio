@@ -1,6 +1,7 @@
-import * as React from 'react';
-import { WithStyles, createStyles, withStyles, Popover, CircularProgress, Typography, TextField, Button, Grid } from '@material-ui/core';
+import { Button, CircularProgress, createStyles, Grid, Popover, TextField, Typography, withStyles, createMuiTheme } from '@material-ui/core';
 import classNames = require('classnames');
+import * as React from 'react';
+import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface ILargePopoverComponentProvidedProps {
   classes: any;
@@ -23,25 +24,26 @@ export interface ILargePopoverComponentState {
   commitMessage: string;
 }
 
+const theme = createMuiTheme(altinnTheme);
+
 const styles = createStyles({
-  color: {
-    color: '#022F51',
-  },
-  color_p: {
-    color: '#0062BA',
-  },
-  bold: {
-    fontWeigth: '500',
-  },
   button: {
-    fontSize: '14px',
-    color: '#FFFFFF',
-    background: '#0062BA',
-    maxWidth: '150px',
-    textTransform: 'none',
-    fontWeight: 400,
-    marginTop: '20px',
-    borderRadius: '0',
+    'fontSize': '14px',
+    'color': theme.altinnPalette.primary.white,
+    'background': theme.altinnPalette.primary.blueDark,
+    'maxWidth': '150px',
+    'textTransform': 'none',
+    'fontWeight': 400,
+    'marginTop': '20px',
+    'borderRadius': '0',
+    '&:hover': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+    },
+    '&:focus': {
+      background: theme.altinnPalette.primary.blueDarker,
+      color: theme.altinnPalette.primary.white,
+    },
   },
   popover: {
     width: '445px',
@@ -57,18 +59,18 @@ const styles = createStyles({
   },
   spinner: {
     marginTop: '20px',
-    color: '#0062BA',
+    color: theme.altinnPalette.primary.blueDark,
     marginRight: 'auto',
     marginLeft: 'auto',
   },
   doneLoadingIcon: {
     marginTop: '20px',
-    color: '#17C96B',
+    color: theme.altinnPalette.primary.green,
     marginRight: 'auto',
     marginLeft: 'auto',
   },
   commitMessageField: {
-    border: '1px solid #0062BA',
+    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
     boxSizing: 'border-box',
     marginTop: '10px',
     fontSize: '16px !Important',

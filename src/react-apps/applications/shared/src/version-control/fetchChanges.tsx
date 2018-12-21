@@ -1,6 +1,7 @@
-import * as React from 'react';
-import { WithStyles, createStyles, withStyles } from '@material-ui/core';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
+import * as React from 'react';
+import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
 export interface IFetchChangesCompoenentProvidedProps {
@@ -18,15 +19,23 @@ export interface IFetchChangesComponenetState {
 
 }
 
+const theme = createMuiTheme(altinnTheme);
+
 const styles = createStyles({
-  color: {
-    color: '#022F51',
+  color_blueDarker: {
+    color: theme.altinnPalette.primary.blueDarker,
   },
-  color_p: {
-    color: '#0062BA',
+  color_blueDark: {
+    color: theme.altinnPalette.primary.blueDark,
   },
   bold: {
     fontWeight: 500,
+  },
+  clickable: {
+    '&:hover': {
+      cursor: 'pointer',
+    },
+    'maxWidth': '150px',
   },
 });
 
@@ -39,15 +48,15 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
   public render() {
     const { classes } = this.props;
     return (
-      <div onClick={this.fetchChangesHandler}>
+      <div onClick={this.fetchChangesHandler} className={classNames(classes.clickable)}>
         <p
           className={classNames(
-            classes.color_p,
+            classes.color_blueDark,
             { [classes.bold]: this.props.changesInMaster === true },
           )}
         >
           <i
-            className={classNames('ai ai-download', classes.color)}
+            className={classNames('ai ai-download', classes.color_blueDark)}
           /> {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
         </p>
       </div>
