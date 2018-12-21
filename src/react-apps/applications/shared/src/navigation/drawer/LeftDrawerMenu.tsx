@@ -142,6 +142,7 @@ class LeftDrawerMenu extends
                     <ListItemText
                       disableTypography={true}
                       primary={menuItem.displayText}
+                      classes={{ root: classNames(classes.listItemText) }}
                     />
                   </ListItem>
                 </Link>

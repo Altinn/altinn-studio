@@ -7,7 +7,6 @@ export const styles = (theme: Theme) => createStyles({
   listItem: {
     'fontSize': 16,
     'color': altinnTheme.altinnPalette.primary.blueDarker,
-    'paddingRight': 0,
     '&:hover': {
       color: altinnTheme.altinnPalette.primary.blueDark,
       fontWeight: 500,
@@ -66,5 +65,8 @@ export const styles = (theme: Theme) => createStyles({
     position: 'absolute',
     background: altinnTheme.altinnPalette.primary.greyLight,
     top: 146,
+  },
+  listItemText: {
+    paddingLeft: 0,
   },
 });

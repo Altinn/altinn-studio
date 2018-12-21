@@ -56,7 +56,14 @@ export const styles = (theme: Theme) => createStyles({
     borderRadius: 1,
     minWidth: 150,
     padding: 0,
-    top: 110,
+    top: 92,
+    right: 0,
+  },
+  drawerMenu: {
+    borderRadius: 1,
+    minWidth: 150,
+    padding: 0,
+    top: 70,
     right: 0,
   },
   button: {
