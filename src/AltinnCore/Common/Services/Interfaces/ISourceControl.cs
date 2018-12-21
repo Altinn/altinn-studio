@@ -40,6 +40,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">the organisation</param>
         /// <param name="repository">name of the repository</param>
+        /// <returns>The repo status</returns>
         RepoStatus PullRemoteChanges(string org, string repository);
 
         /// <summary>
@@ -64,6 +65,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The name of the repository</param>
         /// <returns>List of repositories with status</returns>
         List<RepositoryContent> Status(string org, string repository);
+
+        /// <summary>
+        /// List commits
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>List of commits</returns>
+        List<Commit> Log(string owner, string repository);
 
         /// <summary>
         /// Gives the full repository status for 

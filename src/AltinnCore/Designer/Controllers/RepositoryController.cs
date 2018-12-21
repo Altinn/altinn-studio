@@ -3,6 +3,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -35,6 +36,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="repositorySearch">The search params</param>
         /// <returns>List of repostories that user has access to.</returns>
+        [Authorize]
         [HttpGet]
         public List<Repository> Search(RepositorySearch repositorySearch)
         {
@@ -46,6 +48,7 @@ namespace AltinnCore.Designer.Controllers
         /// List of all organizations a user has access to.
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
+        [Authorize]
         [HttpGet]
         public List<Organization> Organizations()
         {
@@ -59,6 +62,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="id">The organization name</param>
         /// <returns>The organization</returns>
+        [Authorize]
         [HttpGet]
         public ActionResult<Organization> Organization(string id)
         {
@@ -77,6 +81,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="owner">The organization or user owning the repo</param>
         /// <param name="repository">The repository</param>
         /// <returns>The repository status</returns>
+        [Authorize]
         [HttpGet]
         public RepoStatus RepoStatus(string owner, string repository)
         {
@@ -90,6 +95,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">Name of the repository</param>
         /// <returns>Repo status</returns>
+        [Authorize]
         [HttpGet]
         public RepoStatus Pull(string owner, string repository)
         {
@@ -130,10 +136,24 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The repo name</param>
+        [Authorize]
         [HttpPost]
         public void Push(string owner, string repository)
         {
             _sourceControl.Push(owner, repository);
+        }
+
+        /// <summary>
+        /// Push commits to repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        /// <returns>List of commits</returns>
+        [Authorize]
+        [HttpGet]
+        public List<Commit> Log(string owner, string repository)
+        {
+            return _sourceControl.Log(owner, repository);
         }
 
         /// <summary>
@@ -142,10 +162,25 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="owner">The owner of the repo</param>
         /// <param name="repository">The repository</param>
         /// <returns>List of repos</returns>
+        [Authorize]
         [HttpGet]
         public List<Branch> Branches(string owner, string repository)
         {
             return _giteaApi.GetBranches(owner, repository).Result;
+        }
+
+        /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        [Authorize]
+        [HttpGet]
+        public Branch Branch(string owner, string repository, string branch)
+        {
+            return _giteaApi.GetBranch(owner, repository, branch).Result;
         }
     }
 }
