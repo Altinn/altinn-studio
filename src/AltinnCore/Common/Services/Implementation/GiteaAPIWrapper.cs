@@ -261,13 +261,7 @@ namespace AltinnCore.Common.Services.Implementation
                     // TODO. The service should return header value, but does not. Will try it out on next version.
                     // token = response.Headers.GetValues("sha1").FirstOrDefault();
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
-                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-                {
-                    // User is not logged in.
-                    return null;
-                }
-
+               
                 return null;
             }
         }
