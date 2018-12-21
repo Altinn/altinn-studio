@@ -1,9 +1,16 @@
+import {
+  createStyles, withStyles,
+} from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import GenericComponent from './GenericComponent';
+
+const styles = createStyles({
+
+});
 
 /**
  * Properties defined for input for wrapper
@@ -12,6 +19,7 @@ export interface IProvidedProps {
   id: string;
   formData: any;
   handleDataUpdate: (id: string, dataModelElement: any, value: any) => void;
+  classes: any;
 }
 
 /**
@@ -175,20 +183,18 @@ class FormComponent extends React.Component<
     const activeListIndex = this.props.activeList.findIndex((listItem) => listItem.id === this.props.id);
 
     return (
-      <>
-        <EditContainer
-          component={this.props.component}
-          id={this.props.id}
-          order={order}
-          firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : false}
-          handler={this.handleActiveListChange}
-        >
-          <div className='a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
-            {this.renderLabel()}
-            {this.renderComponent()}
-          </div>
-        </EditContainer>
-      </>
+      <EditContainer
+        component={this.props.component}
+        id={this.props.id}
+        order={order}
+        firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
+        handler={this.handleActiveListChange}
+      >
+        <div className='a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
+          {this.renderLabel()}
+          {this.renderComponent()}
+        </div>
+      </EditContainer>
     );
   }
 
@@ -219,6 +225,7 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
     id: props.id,
     formData: props.formData,
+    classes: props.classes,
     handleDataUpdate: props.handleDataUpdate,
     component: state.formDesigner.layout.components[props.id],
     order: GetLayoutOrderSelector(state),
@@ -241,4 +248,5 @@ const makeMapStateToProps = () => {
 /**
  * Wrapper made available for other compoments
  */
-export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);
+export const FormComponentWrapper =
+  withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(FormComponent));

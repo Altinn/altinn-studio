@@ -138,7 +138,7 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
       connectDragSource,
       isOver,
     } = this.props;
-
+    console.log(this.props.children);
     return connectDropTarget(connectDragPreview(connectDragSource(
       <div
         style={{

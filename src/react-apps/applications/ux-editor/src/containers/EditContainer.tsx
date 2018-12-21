@@ -19,9 +19,15 @@ const styles = createStyles({
   activeWrapper: {
     padding: '10px 12px 20px 12px',
   },
+  caption: {
+    position: 'absolute',
+    right: '12px',
+    top: '6px',
+    fontSize: '1.2rem',
+  },
   formComponent: {
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
-    border: '1.5px dotted ' + altinnTheme.palette.secondary.dark,
+    border: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
     color: altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
     padding: '10px 12px 14px 12px',
     '&:hover': {
@@ -39,32 +45,44 @@ const styles = createStyles({
       background: 'none',
     },
   },
-  specialBtn: {
-    fontSize: '0.6em !important',
-    paddingLeft: '4px',
+  gridWrapper: {
+    marginBottom: '0rem',
   },
   gridForBtn: {
     visibility: 'hidden',
     paddingTop: '8px',
     paddingBottom: '8px',
-    marginLeft: '10px',
+    marginLeft: '2px',
   },
   gridForBtnActive: {
     visibility: 'visible',
     paddingTop: '8px',
     paddingBottom: '8px',
-    marginLeft: '10px',
+    marginLeft: '2px',
   },
   inputHelper: {
     marginTop: '1em',
     fontSize: '1.6rem',
     lineHeight: '3.2rem',
   },
-  caption: {
-    position: 'absolute',
-    right: '12px',
-    top: '6px',
-    fontSize: '1.2rem',
+  listBorder: {
+    paddingLeft: '1.2rem',
+    borderLeft: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+    borderRight: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+    '&#first': {
+      paddingTop: '1.2rem',
+      borderTop: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+      marginTop: '1.2rem',
+    },
+    '&#last': {
+      paddingBottom: '1.2rem',
+      borderBottom: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+      marginBottom: '1.2rem',
+    },
+  },
+  specialBtn: {
+    fontSize: '0.6em !important',
+    paddingLeft: '4px',
   },
   textPrimaryDark: {
     color: altinnTheme.altinnPalette.primary.blueDarker + '!important',
@@ -73,6 +91,9 @@ const styles = createStyles({
     color: altinnTheme.altinnPalette.primary.grey + '!important',
   },
   wrapper: {
+    '&:hover': {
+      cursor: 'pointer',
+    },
     '&:hover $gridForBtn': {
       visibility: 'visible',
     },
@@ -104,7 +125,7 @@ export interface IEditContainerState {
   isEditModalOpen: boolean;
   isItemActive: boolean;
   isEditMode: boolean;
-  hideActions: boolean;
+  hideDelete: boolean;
   hideEdit: boolean;
   listItem: any;
   activeList: Array<any>;
@@ -117,7 +138,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       isEditModalOpen: false,
       isItemActive: false,
       isEditMode: false,
-      hideActions: false,
+      hideDelete: false,
       hideEdit: false,
       component: _props.component,
       listItem: {
@@ -158,7 +179,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       this.setState({
         isItemActive: !this.state.isItemActive,
         listItem: this.state.listItem,
+        hideDelete: false,
       });
+      if (!this.state.listItem.firstInActiveList && !this.state.isItemActive) {
+        this.setState({
+          hideDelete: true,
+        });
+      }
     }
   }
 
@@ -189,8 +216,18 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public searchForText = (e: any): void => {
     this.state.component.title = e.target.value;
   }
+  public setIdsInGroup = (activeListIndex: number) => {
+    if (activeListIndex === 0) {
+      return 'first';
+    } else if (activeListIndex === this.props.activeList.length - 1) {
+      return 'last';
+    }
+    return null;
+  }
 
   public render(): JSX.Element {
+    const activeListIndex = this.props.activeList.findIndex((listItem) => listItem.id === this.props.id);
+    console.log(activeListIndex);
     return (
       <>
         <Grid container={true}>
@@ -200,8 +237,12 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             spacing={0}
             className={this.props.classes.wrapper}
           >
-            <Grid item={true} xs={11}>
-              <List>
+            <Grid item={true} xs={11} className={this.props.classes.gridWrapper}>
+              <div
+                className={(this.props.activeList.length > 1) && (activeListIndex >= 0)
+                  && this.props.classes.listBorder}
+                id={this.setIdsInGroup(activeListIndex)}
+              >
                 <ListItem
                   className={this.state.isItemActive ? this.props.classes.active : this.props.classes.formComponent}
                   onClick={this.handleSetActive}
@@ -225,22 +266,24 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     {this.props.component.component}
                   </span>
                 </ListItem>
-              </List>
+              </div>
             </Grid>
-            {!this.state.isEditMode && this.state.listItem.firstInActiveList &&
+            {!this.state.isEditMode &&
               < Grid
                 xs={true}
                 item={true}
                 className={this.state.isItemActive ? this.props.classes.gridForBtnActive
                   : this.props.classes.gridForBtn}
               >
-                <IconButton
-                  type='button'
-                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
-                  onClick={this.handleComponentDelete}
-                >
-                  <i className='ai ai-circletrash' />
-                </IconButton>
+                {this.state.listItem.firstInActiveList &&
+                  <IconButton
+                    type='button'
+                    className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                    onClick={this.handleComponentDelete}
+                  >
+                    <i className='ai ai-circletrash' />
+                  </IconButton>
+                }
                 {!(this.state.activeList.length > 1) &&
                   <IconButton
                     type='button'
