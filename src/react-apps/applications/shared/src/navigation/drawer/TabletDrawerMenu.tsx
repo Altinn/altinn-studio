@@ -27,6 +27,7 @@ export interface ITabletDrawerMenuState {
   open: boolean;
   openSubMenus: number[];
   selectedMenuItem: string;
+  isTop: boolean;
 }
 
 class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyles<typeof styles>,
@@ -38,7 +39,19 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
       open: false,
       openSubMenus: [],
       selectedMenuItem: this.props.activeSubHeaderSelection,
+      isTop: true,
     };
+  }
+
+  public componentDidMount() {
+    document.addEventListener('scroll', () => {
+      const isTop = window.scrollY < 20;
+      console.log(window.scrollY);
+      if (isTop !== this.state.isTop) {
+        this.setState({ isTop });
+        console.log(this.state.isTop);
+      }
+    });
   }
 
   public handleDrawerOpen = () => {
@@ -113,7 +126,7 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
               }),
             }}
             open={this.props.tabletDrawerOpen}
-            PaperProps={{ classes: { root: classes.drawerMenuPaper } }}
+            PaperProps={{ classes: { root: this.state.isTop ? classes.drawerMenuPaper : classes.drawerMenu } }}
           >
             <div style={{ width: '50%' }}>
               <List
