@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -226,33 +227,78 @@ namespace AltinnCore.Common.Services.Implementation
         /// Does not work because of GITEA BUG. Will create Issue for the one mentioned here
         /// https://github.com/go-gitea/gitea/issues/3842
         /// </summary>
-        /// <param name="name">app token name</param>
+        /// <param name="tokenName">app token name</param>
+        /// <param name="userName">The username of the token</param>
+        /// <param name="password">The password of the user</param>
         /// <returns>null</returns>
-        public async Task<string> CreateAppToken(string name)
+        public async Task<string> CreateAppToken(string tokenName, string userName, string password)
         {
             string token = null;
+            CreateAccessTokenOption tokenOption = new CreateAccessTokenOption(tokenName);
+ 
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            User user = GetCurrentUser(giteaSession).Result;
+
+            Uri giteaUrl = new Uri(_settings.ApiEndPoint + "/users/" + user.Login + "/tokens");
+            Cookie cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
+            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            {
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/users/" + user.Login + "/tokens");
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            }
+
+            using (HttpClient client = new HttpClient())
+            {
+                byte[] byteArray = Encoding.ASCII.GetBytes(userName + ":" + password);
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                HttpResponseMessage response = await client.PostAsJsonAsync<CreateAccessTokenOption>(giteaUrl, tokenOption);
+                if (response.StatusCode == System.Net.HttpStatusCode.Created)
+                {
+                    token = tokenName;
+                    return token;
+
+                    // TODO. The service should return header value, but does not. Will try it out on next version.
+                    // token = response.Headers.GetValues("sha1").FirstOrDefault();
+                }
+               
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// List app tokens for a user. Warning there is talks about removing this.
+        /// </summary>
+        /// <param name="userName">The user name</param>
+        /// <param name="password">The password</param>
+        /// <returns>The sha1 value</returns>
+        public async Task<List<AltinnCore.RepositoryClient.Model.AccessToken>> ListAccessTokens(string userName, string password)
+        {
+            List<AltinnCore.RepositoryClient.Model.AccessToken> accessTokens = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<AltinnCore.RepositoryClient.Model.AccessToken>));
 
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
             User user = GetCurrentUser(giteaSession).Result;
 
-            Uri giteaUrl = new Uri(_settings.ApiEndPoint + "/users/" + user.Login + "/tokens?name=" + name);
+            Uri giteaUrl = new Uri(_settings.ApiEndPoint + "/users/" + user.Login + "/tokens");
             Cookie cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
             {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/users/" + user.Login + "/tokens?name=" + name);
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/users/" + user.Login + "/tokens");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
 
-            CookieContainer cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-
-            using (HttpClient client = new HttpClient(handler))
+            using (HttpClient client = new HttpClient())
             {
-                HttpResponseMessage response = await client.PostAsync(giteaUrl, null);
-                if (response.StatusCode == System.Net.HttpStatusCode.Created)
+                byte[] byteArray = Encoding.ASCII.GetBytes(userName + ":" + password);
+                client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    token = response.Headers.GetValues("sha1").FirstOrDefault();
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    accessTokens = serializer.ReadObject(stream) as List<AltinnCore.RepositoryClient.Model.AccessToken>;
+                    return accessTokens;
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
                 response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
