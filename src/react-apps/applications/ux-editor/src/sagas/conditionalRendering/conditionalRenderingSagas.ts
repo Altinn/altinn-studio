@@ -6,10 +6,10 @@ import * as ConditionalRenderingActions from '../../actions/conditionalRendering
 import ConditionalRenderingActionDispatcher from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 // tslint:disable-next-line:max-line-length
 import * as ConditionalRenderingActionTypes from '../../actions/conditionalRenderingActions/conditionalRenderingActionTypes';
-import manageServiceConfigurationActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import ErrorActionDispatchers from '../../actions/errorActions/errorActionDispatcher';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
+import manageServiceConfigurationActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 // tslint:disable-next-line:max-line-length
 import * as ServiceConfigurationActionTypes from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionTypes';
 import { IAppDataState } from '../../reducers/appDataReducer';
