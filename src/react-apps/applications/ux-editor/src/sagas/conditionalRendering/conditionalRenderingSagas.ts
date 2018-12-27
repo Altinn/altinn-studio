@@ -6,6 +6,7 @@ import * as ConditionalRenderingActions from '../../actions/conditionalRendering
 import ConditionalRenderingActionDispatcher from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 // tslint:disable-next-line:max-line-length
 import * as ConditionalRenderingActionTypes from '../../actions/conditionalRenderingActions/conditionalRenderingActionTypes';
+import manageServiceConfigurationActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import ErrorActionDispatchers from '../../actions/errorActions/errorActionDispatcher';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
@@ -14,6 +15,7 @@ import * as ServiceConfigurationActionTypes from '../../actions/manageServiceCon
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
+import { getSaveServiceConfigurationUrl } from '../../utils/urlHelper';
 
 const selectAppData = (state: IAppState): IAppDataState => state.appData;
 const selectConditionalRuleConnection = (state: IAppState): any => state.serviceConfigurations.conditionalRendering;
@@ -24,6 +26,7 @@ function* addConditionalRenderingSaga({ newConnection }:
   ConditionalRenderingActions.IAddConditionalRendering): SagaIterator {
   try {
     yield call(ConditionalRenderingActionDispatcher.addConditionalRenderingFulfilled, newConnection);
+    yield call(manageServiceConfigurationActionDispatchers.saveJsonFile, getSaveServiceConfigurationUrl());
   } catch (err) {
     yield call(ConditionalRenderingActionDispatcher.addConditionalRenderingRejected, err);
   }
@@ -56,6 +59,7 @@ function* delConditionalRenderingSaga({ connectionId }:
     }, {});
 
     yield call(ConditionalRenderingActionDispatcher.delConditionalRenderingFulfilled, newConnectionObj);
+    yield call(manageServiceConfigurationActionDispatchers.saveJsonFile, getSaveServiceConfigurationUrl());
   } catch (err) {
     yield call(ConditionalRenderingActionDispatcher.delConditionalRenderingRejected, err);
   }
