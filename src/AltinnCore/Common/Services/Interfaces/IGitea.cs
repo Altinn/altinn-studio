@@ -64,5 +64,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repo">The name of the repo</param>
         /// <returns>The repoList</returns>
         Task<List<Branch>> GetBranches(string owner, string repo);
-  }
+
+        /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        Task<Branch> GetBranch(string owner, string repository, string branch);
+    }
 }

@@ -115,7 +115,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     MergeResult mergeResult = Commands.Pull(
                         repo,
-                        new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
+                        new LibGit2Sharp.Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
                         pullOptions);
 
                     if (mergeResult.Status == MergeStatus.Conflicts)
@@ -196,11 +196,11 @@ namespace AltinnCore.Common.Services.Implementation
                 Commands.Stage(repo, "*");
 
                 // Create the committer's signature and commit
-                Signature author = new Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                Signature committer = author;
+                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                LibGit2Sharp.Signature committer = author;
 
                 // Commit to the repository
-                Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
 
                 PushOptions options = new PushOptions();
                 options.CredentialsProvider = (_url, _user, _cred) =>
@@ -260,11 +260,11 @@ namespace AltinnCore.Common.Services.Implementation
                 Commands.Stage(repo, "*");
 
                 // Create the committer's signature and commit
-                Signature author = new Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                Signature committer = author;
+                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                LibGit2Sharp.Signature committer = author;
 
                 // Commit to the repository
-                Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
             }
         }
 
@@ -323,6 +323,43 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return repoStatus;
+        }
+
+        /// <summary>
+        /// List commits
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>List of commits</returns>
+        public List<AltinnCore.Common.Models.Commit> Log(string owner, string repository)
+        {
+            List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (var repo = new Repository(localServiceRepoFolder))
+            {
+                foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
+                {
+                    Models.Commit commit = new Models.Commit();
+                    commit.Message = c.Message;
+                    commit.MessageShort = c.MessageShort;
+                    commit.Encoding = c.Encoding;
+                    commit.Sha = c.Sha;
+
+                    commit.Author = new Models.Signature();
+                    commit.Author.Email = c.Author.Email;
+                    commit.Author.Name = c.Author.Name;
+                    commit.Author.When = c.Author.When;
+
+                    commit.Commiter = new Models.Signature();
+                    commit.Commiter.Name = c.Committer.Name;
+                    commit.Commiter.Email = c.Committer.Email;
+                    commit.Commiter.When = c.Committer.When;
+
+                    commits.Add(commit);
+                }
+            }
+
+            return commits;
         }
 
         /// <summary>
