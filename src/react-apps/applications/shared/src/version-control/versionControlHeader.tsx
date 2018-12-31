@@ -1,4 +1,4 @@
-import { createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import * as React from 'react';
 import { getLanguageFromKey } from '../utils/language';
 import FetchChangesComponent from '../version-control/fetchChanges';
