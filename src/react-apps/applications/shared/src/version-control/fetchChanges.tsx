@@ -35,7 +35,7 @@ const styles = createStyles({
     '&:hover': {
       cursor: 'pointer',
     },
-    'maxWidth': '150px',
+    'maxWidth': '250px',
   },
 });
 
@@ -51,7 +51,6 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
       <div
         onClick={this.fetchChangesHandler}
         className={classNames(classes.clickable)}
-        tabIndex={50}
       >
         <p
           className={classNames(

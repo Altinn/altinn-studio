@@ -1,11 +1,12 @@
-import { Grid } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
+import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
 import SyncModalComponent from './syncModal';
 
-export interface IVersionControlHeaderProps {
+export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
 }
 
@@ -18,6 +19,15 @@ export interface IVersionControlHeaderState {
   modalState: any;
   mergeConflict: boolean;
 }
+
+const theme = createMuiTheme(altinnTheme);
+
+const styles = createStyles({
+  headerStyling: {
+    background: theme.altinnPalette.primary.greyLight,
+    paddingTop: 10,
+  },
+});
 
 const initialState = {
   header: '',
@@ -313,8 +323,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public render() {
+    const { classes } = this.props;
     return (
-      <Grid container={true} direction='row' >
+      <Grid container={true} direction='row' className={classes.headerStyling}>
         <Grid item={true} xs={5}>
           <FetchChangesComponent
             language={this.props.language}
@@ -358,4 +369,4 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 }
 
-export default VersionControlHeader;
+export default withStyles(styles)(VersionControlHeader);
