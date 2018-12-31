@@ -40,6 +40,8 @@ const initialState = {
 };
 
 class VersionControlHeader extends React.Component<IVersionControlHeaderProps, IVersionControlHeaderState> {
+  public interval: any;
+  public _isMounted = false;
   constructor(_props: IVersionControlHeaderProps) {
     super(_props);
     this.state = {
@@ -75,14 +77,16 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
     this.performAPIFetch(url, (result: any) => {
-      if (callbackFunc) {
-        callbackFunc(result);
-      } else {
-        if (result) {
-          this.setState({
-            changesInMaster: result.behindBy === 0 ? false : true,
-            changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
-          });
+      if (this._isMounted) {
+        if (callbackFunc) {
+          callbackFunc(result);
+        } else {
+          if (result) {
+            this.setState({
+              changesInMaster: result.behindBy === 0 ? false : true,
+              changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
+            });
+          }
         }
       }
     });
@@ -100,7 +104,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?owner=${org}&repository=${service}`;
       this.performAPIFetch(url, (result: any) => {
-        if (result) {
+        if (this._isMounted && result) {
           const diff = new Date().getTime() - new Date(result.commiter.when).getTime();
           const oneHour = 60 * 60 * 1000;
           this.setState({
@@ -113,10 +117,19 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public componentWillMount() {
     // check status every 5 min
-    setInterval(() => this.updateStateOnIntervals(), 300000);
+    this.interval = setInterval(() => this.updateStateOnIntervals(), 300000);
     this.getStatus();
     this.getRepoRights();
     this.getLastPush();
+  }
+
+  public componentDidMount() {
+    this._isMounted = true;
+  }
+
+  public componentWillUnmount() {
+    clearInterval(this.interval);
+    this._isMounted = false;
   }
 
   public getRepoRights() {
@@ -124,7 +137,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const { service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
     this.performAPIFetch(url, (result: any) => {
-      if (result) {
+      if (this._isMounted && result) {
         const currentRepo = result.filter((e: any) => e.name === service);
         this.setState({
           hasPushRight: currentRepo.length > 0 ? currentRepo[0].permissions.push : false,
@@ -155,31 +168,33 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
 
     this.performAPIFetch(url, (result: any) => {
-      if (result.repositoryStatus === 'Ok') {
-        // if pull was successfull, show service is updated message
-        this.setState({
-          changesInMaster: result.behindBy === 0 ? false : true,
-          changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
-          modalState: {
-            header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
-            descriptionText:
-              getLanguageFromKey('sync_header.service_updated_to_latest_submessage', this.props.language),
-            isLoading: false,
-            shouldShowDoneIcon: true,
-          },
-        });
-      } else if (result.repositoryStatus === 'CheckoutConflict') {
-        // if pull gives merge conflict, show user needs to commit message
-        this.setState({
-          modalState: {
-            header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
-            descriptionText:
-              getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
-            btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
-            shouldShowCommitBox: true,
-            btnMethod: this.commitChanges,
-          },
-        });
+      if (this._isMounted) {
+        if (result.repositoryStatus === 'Ok') {
+          // if pull was successfull, show service is updated message
+          this.setState({
+            changesInMaster: result.behindBy === 0 ? false : true,
+            changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
+            modalState: {
+              header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
+              descriptionText:
+                getLanguageFromKey('sync_header.service_updated_to_latest_submessage', this.props.language),
+              isLoading: false,
+              shouldShowDoneIcon: true,
+            },
+          });
+        } else if (result.repositoryStatus === 'CheckoutConflict') {
+          // if pull gives merge conflict, show user needs to commit message
+          this.setState({
+            modalState: {
+              header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
+              descriptionText:
+                getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+              btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
+              shouldShowCommitBox: true,
+              btnMethod: this.commitChanges,
+            },
+          });
+        }
       }
     });
   }
@@ -249,17 +264,19 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
 
     this.performAPIFetch(url, (result: any) => {
-      this.setState({
-        changesInMaster: false,
-        changesInLocalRepo: false,
-        moreThanAnHourSinceLastPush: true,
-        modalState: {
-          header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
-          descriptionText:
-            getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
-          shouldShowDoneIcon: true,
-        },
-      });
+      if (this._isMounted) {
+        this.setState({
+          changesInMaster: false,
+          changesInLocalRepo: false,
+          moreThanAnHourSinceLastPush: true,
+          modalState: {
+            header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
+            descriptionText:
+              getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
+            shouldShowDoneIcon: true,
+          },
+        });
+      }
     }, requestObj);
   }
 
@@ -291,28 +308,31 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
     this.performAPIFetch(url, (commitResult: any) => {
       this.performAPIFetch(pullUrl, (result: any) => {
-        // if pull was successfull, show service updated message
-        if (result.repositoryStatus === 'Ok') {
-          this.setState({
-            modalState: {
-              header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
-              descriptionText: '',
-              btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
-              shouldShowDoneIcon: true,
-              btnMethod: this.pushChanges,
-            },
-          });
-        } else if (result.repositoryStatus === 'MergeConflict') {
-          // if pull resulted in a mergeconflict, show mergeconflict message
-          this.setState({
-            mergeConflict: true,
-            modalState: {
-              header: getLanguageFromKey('sync_header.merge_conflict_occured', this.props.language),
-              descriptionText: getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language),
-              btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
-              btnMethod: this.redirectToMergeConflictPage,
-            },
-          });
+        if (this._isMounted) {
+          // if pull was successfull, show service updated message
+          if (result.repositoryStatus === 'Ok') {
+            this.setState({
+              modalState: {
+                header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
+                descriptionText: '',
+                btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
+                shouldShowDoneIcon: true,
+                btnMethod: this.pushChanges,
+              },
+            });
+          } else if (result.repositoryStatus === 'MergeConflict') {
+            // if pull resulted in a mergeconflict, show mergeconflict message
+            this.setState({
+              mergeConflict: true,
+              modalState: {
+                header: getLanguageFromKey('sync_header.merge_conflict_occured', this.props.language),
+                // tslint:disable-next-line:max-line-length
+                descriptionText: getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language),
+                btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
+                btnMethod: this.redirectToMergeConflictPage,
+              },
+            });
+          }
         }
       });
     }, commitObject);
