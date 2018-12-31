@@ -326,6 +326,20 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Gets the latest commit for current user
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>The latest commit</returns>
+        public AltinnCore.Common.Models.Commit GetLatestCommitForCurrentUser(string owner, string repository)
+        {
+            List<AltinnCore.Common.Models.Commit> commits = Log(owner, repository);
+            var currentUser = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+
+            return commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
+        }
+
+        /// <summary>
         /// List commits
         /// </summary>
         /// <param name="owner">The owner of the repository</param>

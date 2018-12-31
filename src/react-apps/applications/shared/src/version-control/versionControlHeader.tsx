@@ -1,12 +1,11 @@
-import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
+import { createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
 import SyncModalComponent from './syncModal';
 
-export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
+export interface IVersionControlHeaderProps {
   language: any;
 }
 
@@ -19,12 +18,6 @@ export interface IVersionControlHeaderState {
   modalState: any;
   mergeConflict: boolean;
 }
-
-const theme = createMuiTheme(altinnTheme);
-
-const styles = createStyles({
-
-});
 
 const initialState = {
   header: '',
@@ -68,7 +61,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getStatus(callbackFunc?: any) {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
     this.performAPIFetch(url, (result: any) => {
@@ -92,14 +85,17 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public getLastPush() {
     if (!this.state.moreThanAnHourSinceLastPush) {
-      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const altinnWindow: any = window as any;
       const { org, service } = altinnWindow;
-      // TODO: correct url when method done
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/Branches?owner=${org}&repo=${service}`;
+      // tslint:disable-next-line:max-line-length
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?owner=${org}&repository=${service}`;
       this.performAPIFetch(url, (result: any) => {
         if (result) {
-          console.log(result);
-          // TODO: set moreThanAnHourSinceLastPush
+          const diff = new Date().getTime() - new Date(result.commiter.when).getTime();
+          const oneHour = 60 * 60 * 1000;
+          this.setState({
+            moreThanAnHourSinceLastPush: oneHour < diff,
+          });
         }
       });
     }
@@ -114,7 +110,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public getRepoRights() {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: any = window as any;
     const { service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
     this.performAPIFetch(url, (result: any) => {
@@ -144,7 +140,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
 
@@ -238,7 +234,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     };
 
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
 
@@ -246,6 +242,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       this.setState({
         changesInMaster: false,
         changesInLocalRepo: false,
+        moreThanAnHourSinceLastPush: true,
         modalState: {
           header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
           descriptionText:
@@ -265,7 +262,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const commitObject = {
       method: 'POST',
@@ -361,4 +358,4 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 }
 
-export default withStyles(styles)(VersionControlHeader);
+export default VersionControlHeader;

@@ -157,6 +157,19 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Push commits to repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        /// <returns>List of commits</returns>
+        [Authorize]
+        [HttpGet]
+        public Commit GetLatestCommitFromCurrentUser(string owner, string repository)
+        {
+            return _sourceControl.GetLatestCommitForCurrentUser(owner, repository);
+        }
+
+        /// <summary>
         /// List all branches for a repository
         /// </summary>
         /// <param name="owner">The owner of the repo</param>
