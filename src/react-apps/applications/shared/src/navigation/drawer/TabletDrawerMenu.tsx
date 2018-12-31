@@ -19,12 +19,15 @@ export interface ITabletDrawerMenuProps {
   logoutButton?: boolean;
   tabletDrawerOpen: boolean;
   theme: any;
+  activeLeftMenuSelection?: string;
+  activeSubHeaderSelection?: string;
 }
 
 export interface ITabletDrawerMenuState {
   open: boolean;
   openSubMenus: number[];
   selectedMenuItem: string;
+  isTop: boolean;
 }
 
 class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyles<typeof styles>,
@@ -35,8 +38,20 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
     this.state = {
       open: false,
       openSubMenus: [],
-      selectedMenuItem: '',
+      selectedMenuItem: this.props.activeSubHeaderSelection,
+      isTop: true,
     };
+  }
+
+  public componentDidMount() {
+    document.addEventListener('scroll', () => {
+      const isTop = window.scrollY < 20;
+      console.log(window.scrollY);
+      if (isTop !== this.state.isTop) {
+        this.setState({ isTop });
+        console.log(this.state.isTop);
+      }
+    });
   }
 
   public handleDrawerOpen = () => {
@@ -60,7 +75,9 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
         selectedMenuItem: menuItem.displayText,
       };
     });
-    this.handleSubmenuClicked(id);
+    if (menuItem.items && menuItem.items.length > 0) {
+      this.handleSubmenuClicked(id);
+    }
   }
 
   public handleSubmenuClicked = (id: number) => {
@@ -84,9 +101,14 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
       !logoutButton ? (
         <div>
           <Button
+            disableRipple={true}
+            disableFocusRipple={true}
+            disableTouchRipple={true}
             size='small'
             variant='outlined'
-            className={classes.button}
+            className={classNames(classes.button, {
+              [classes.closeButton]: this.props.tabletDrawerOpen,
+            })}
             onClick={this.handleDrawerOpen}
           >
             {this.props.tabletDrawerOpen ? 'lukk' : 'meny'}
@@ -104,12 +126,12 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
               }),
             }}
             open={this.props.tabletDrawerOpen}
-            PaperProps={{ classes: { root: classes.drawerMenuPaper } }}
+            PaperProps={{ classes: { root: this.state.isTop ? classes.drawerMenuPaper : classes.drawerMenu } }}
           >
             <div style={{ width: '50%' }}>
               <List
                 classes={{
-                  root: classNames(classes.toggleMenu, classes.toggleButton)
+                  root: classNames(classes.toggleMenu, classes.toggleButton),
                 }}
               >
                 <ListItem
@@ -134,29 +156,49 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
                     <div key={index}>
                       <ListItem
                         button={true}
+                        disableTouchRipple={true}
                         key={index}
                         onClick={this.handleMenuItemClicked.bind(this, menuItem, index)}
+                        className={classNames(classes.mainMenuItem, {
+                          [classes.activeListItem]: this.props.activeSubHeaderSelection ===
+                            menuItem.activeSubHeaderSelection,
+                        })}
                       >
                         <ListItemText
-                          classes={{ primary: classNames(classes.mainMenuItemText) }}
-                          primary={menuItem.displayText}
+                          disableTypography={true}
+                          classes={{ root: classNames(classes.mainMenuItem) }}
+                          primary={menuItem.activeSubHeaderSelection}
                         />
                       </ListItem>
                       {leftDrawerMenuSettings[menuItem.menuType].length > 0 ?
-                        <Collapse in={this.state.openSubMenus.indexOf(index) > -1} timeout='auto' unmountOnExit={true}>
-                          <List component='div' disablePadding={true}>
+                        <Collapse
+                          in={this.state.selectedMenuItem ===
+                            menuItem.displayText}
+                          timeout='auto'
+                          unmountOnExit={true}
+                        >
+                          <List
+                            component='div'
+                            disablePadding={true}
+                          >
                             {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
                               return (
                                 <Link to={item.navLink} style={{ borderBottom: 0 }} key={i}>
                                   <ListItem
                                     button={true}
+                                    disableTouchRipple={true}
                                     className={classes.nested}
                                     key={i}
                                   >
                                     <ListItemText
+                                      disableTypography={true}
                                       inset={true}
                                       primary={item.displayText}
                                       classes={{ primary: classNames(classes.subMenuItem) }}
+                                      className={classNames({
+                                        [classes.activeListItem]: this.props.activeLeftMenuSelection ===
+                                          item.activeLeftMenuSelection,
+                                      })}
                                     />
                                   </ListItem>
                                 </Link>

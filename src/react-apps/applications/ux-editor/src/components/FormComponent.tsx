@@ -215,6 +215,6 @@ const makeMapStateToProps = () => {
 };
 
 /**
- * Wrapper made avaiable for other compoments
+ * Wrapper made available for other compoments
  */
 export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);

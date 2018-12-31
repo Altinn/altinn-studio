@@ -20,7 +20,7 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     beforeEach(() => {
       mockOrg = 'jest-test-org';
       mockService = 'jest-test-service';
-      mockActiveSubHeaderSelection = 'create';
+      mockActiveSubHeaderSelection = 'Lage';
       mockShowSubheader = true;
 
     });
@@ -39,10 +39,10 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       expect(rendered).toMatchSnapshot();
     });
 
-    it('should match snapshot with subHeader and Publish selection active', () => {
+    it('should match snapshot with subHeader and Publisere selection active', () => {
       mockOrg = 'other-org';
       mockService = 'other-service';
-      mockActiveSubHeaderSelection = 'publish';
+      mockActiveSubHeaderSelection = 'Publisere';
       const rendered = renderer.create(
         <MemoryRouter>
           <AppBarComponent
@@ -53,6 +53,22 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
           />
         </MemoryRouter>,
       );
+      expect(rendered).toMatchSnapshot();
+    });
+
+    it('should match shallow snapshot with subHeader and Publisere selection active', () => {
+      mockOrg = 'other-org';
+      mockService = 'other-service';
+      mockActiveSubHeaderSelection = 'Publisere';
+      const wrapper = shallow(
+        <AppBarComponent
+          org={mockOrg}
+          service={mockService}
+          showSubHeader={mockShowSubheader}
+          activeSubHeaderSelection={mockActiveSubHeaderSelection}
+        />,
+      );
+      const rendered = wrapper.shallow();
       expect(rendered).toMatchSnapshot();
     });
 
@@ -112,15 +128,17 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       const mockActiveLeftMenuSelection = 'leftmenuselection';
 
       app = mount(
-        <MuiThemeProvider theme={theme}>
-          <AppBarComponent
-            org={mockOrg}
-            service={mockService}
-            showSubHeader={false}
-            activeSubHeaderSelection={mockActiveSubHeaderSelection}
-            activeLeftMenuSelection={mockActiveLeftMenuSelection}
-          />
-        </MuiThemeProvider>, { attachTo: document.getElementById('root') }
+        <MemoryRouter>
+          <MuiThemeProvider theme={theme}>
+            <AppBarComponent
+              org={mockOrg}
+              service={mockService}
+              showSubHeader={false}
+              activeSubHeaderSelection={mockActiveSubHeaderSelection}
+              activeLeftMenuSelection={mockActiveLeftMenuSelection}
+            />
+          </MuiThemeProvider>
+        </MemoryRouter>, { attachTo: document.getElementById('root') },
       );
       expect(app.text()).not.toMatch(`/ ${mockActiveSubHeaderSelection} / ${mockActiveLeftMenuSelection}`);
       expect(app.text()).toMatch(`${mockService}${mockOrg}`);
@@ -136,16 +154,18 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       window.resizeTo(tabletWidth, tabletHeight);
 
       app = mount(
-        <MuiThemeProvider theme={theme}>
-          <AppBarComponent
-            org={mockOrg}
-            service={mockService}
-            showBreadcrumbOnTablet={true}
-            showSubHeader={false}
-            activeSubHeaderSelection={mockActiveSubHeaderSelection}
-            activeLeftMenuSelection={mockActiveLeftMenuSelection}
-          />
-        </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+        <MemoryRouter>
+          <MuiThemeProvider theme={theme}>
+            <AppBarComponent
+              org={mockOrg}
+              service={mockService}
+              showBreadcrumbOnTablet={true}
+              showSubHeader={false}
+              activeSubHeaderSelection={mockActiveSubHeaderSelection}
+              activeLeftMenuSelection={mockActiveLeftMenuSelection}
+            />
+          </MuiThemeProvider>
+        </MemoryRouter>, { attachTo: document.getElementById('root') },
       );
       expect(app.text()).toMatch(`/ ${mockActiveSubHeaderSelection} / ${mockActiveLeftMenuSelection}`);
       expect(app.text()).not.toMatch(`${mockService}${mockOrg}`);
@@ -162,16 +182,18 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
         window.resizeTo(tabletWidth, tabletHeight);
 
         app = mount(
-          <MuiThemeProvider theme={theme}>
-            <AppBarComponent
-              org={mockOrg}
-              service={mockService}
-              showBreadcrumbOnTablet={false}
-              showSubHeader={false}
-              activeSubHeaderSelection={mockActiveSubHeaderSelection}
-              activeLeftMenuSelection={mockActiveLeftMenuSelection}
-            />
-          </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+          <MemoryRouter>
+            <MuiThemeProvider theme={theme}>
+              <AppBarComponent
+                org={mockOrg}
+                service={mockService}
+                showBreadcrumbOnTablet={false}
+                showSubHeader={false}
+                activeSubHeaderSelection={mockActiveSubHeaderSelection}
+                activeLeftMenuSelection={mockActiveLeftMenuSelection}
+              />
+            </MuiThemeProvider>
+          </MemoryRouter>, { attachTo: document.getElementById('root') },
         );
 
         expect(app.text()).not.toMatch(`/`);
@@ -189,17 +211,19 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       window.resizeTo(tabletWidth, tabletHeight);
 
       app = mount(
-        <MuiThemeProvider theme={theme}>
-          <AppBarComponent
-            logoutButton={true}
-            org={mockOrg}
-            service={mockService}
-            showBreadcrumbOnTablet={false}
-            showSubHeader={false}
-            activeSubHeaderSelection={mockActiveSubHeaderSelection}
-            activeLeftMenuSelection={mockActiveLeftMenuSelection}
-          />
-        </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+        <MemoryRouter>
+          <MuiThemeProvider theme={theme}>
+            <AppBarComponent
+              logoutButton={true}
+              org={mockOrg}
+              service={mockService}
+              showBreadcrumbOnTablet={false}
+              showSubHeader={false}
+              activeSubHeaderSelection={mockActiveSubHeaderSelection}
+              activeLeftMenuSelection={mockActiveLeftMenuSelection}
+            />
+          </MuiThemeProvider>
+        </MemoryRouter>, { attachTo: document.getElementById('root') },
       );
 
       expect(app.text()).toMatch(`logout`);
@@ -225,15 +249,17 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     AppBarConfig.menu.map((entry) => {
       it(`should render ${entry.key}`, () => {
         app = mount(
-          <MuiThemeProvider theme={theme}>
-            <AppBarComponent
-              org={mockOrg}
-              service={mockService}
-              showBreadcrumbOnTablet={true}
-              showSubHeader={mockShowSubheader}
-              activeSubHeaderSelection={entry.activeSubHeaderSelection}
-            />
-          </MuiThemeProvider>, { attachTo: document.getElementById('root') },
+          <MemoryRouter>
+            <MuiThemeProvider theme={theme}>
+              <AppBarComponent
+                org={mockOrg}
+                service={mockService}
+                showBreadcrumbOnTablet={true}
+                showSubHeader={mockShowSubheader}
+                activeSubHeaderSelection={entry.activeSubHeaderSelection}
+              />
+            </MuiThemeProvider>
+          </MemoryRouter>, { attachTo: document.getElementById('root') },
         );
         expect(app.text()).toMatch(`/ ${entry.activeSubHeaderSelection} / `);
       });
