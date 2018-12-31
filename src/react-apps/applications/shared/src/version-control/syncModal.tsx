@@ -3,7 +3,7 @@ import classNames = require('classnames');
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface ILargePopoverComponentProvidedProps {
+export interface ISyncModalComponentProvidedProps {
   classes: any;
   anchorEl: any;
   header?: string;
@@ -16,11 +16,11 @@ export interface ILargePopoverComponentProvidedProps {
   btnClick?: any;
 }
 
-export interface ILargePopoverComponentProps extends ILargePopoverComponentProvidedProps {
+export interface ISyncModalComponentProps extends ISyncModalComponentProvidedProps {
 
 }
 
-export interface ILargePopoverComponentState {
+export interface ISyncModalComponentState {
   commitMessage: string;
 }
 
@@ -79,8 +79,8 @@ const styles = createStyles({
   },
 });
 
-class LargePopoverComponent extends React.Component<ILargePopoverComponentProps, ILargePopoverComponentState> {
-  constructor(_props: ILargePopoverComponentProps) {
+class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISyncModalComponentState> {
+  constructor(_props: ISyncModalComponentProps) {
     super(_props);
     this.state = {
       commitMessage: '',
@@ -180,4 +180,4 @@ class LargePopoverComponent extends React.Component<ILargePopoverComponentProps,
   }
 }
 
-export default withStyles(styles)(LargePopoverComponent);
+export default withStyles(styles)(SyncModalComponent);

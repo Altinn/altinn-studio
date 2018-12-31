@@ -77,7 +77,11 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProp
   public render() {
     const { classes } = this.props;
     return (
-      <div onClick={this.shareChangesHandler} className={classNames(classes.color_blueDark, classes.clickable)}>
+      <div
+        onClick={this.shareChangesHandler}
+        className={classNames(classes.color_blueDark, classes.clickable)}
+        tabIndex={60}
+      >
         {this.renderCorrectText()}
       </div>
     );

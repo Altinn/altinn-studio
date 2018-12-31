@@ -48,7 +48,11 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
   public render() {
     const { classes } = this.props;
     return (
-      <div onClick={this.fetchChangesHandler} className={classNames(classes.clickable)}>
+      <div
+        onClick={this.fetchChangesHandler}
+        className={classNames(classes.clickable)}
+        tabIndex={50}
+      >
         <p
           className={classNames(
             classes.color_blueDark,
