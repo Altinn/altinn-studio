@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export interface ICheckboxContainerProps {
   id: string;
-  component: IFormComponent;
+  component: IFormCheckboxComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;

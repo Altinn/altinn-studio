@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export interface IRadioButtonsContainerProps {
   id: string;
-  component: IFormComponent;
+  component: IFormRadioButtonComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
@@ -31,10 +31,13 @@ export class RadioButtonContainerComponent
       selected: selectedValue,
     });
     this.props.handleDataChange(selectedValue);
+    console.log('***DATA CHANGED: New value: ' + selectedValue);
+
   }
 
   public render() {
     const { options } = this.props.component;
+    console.log('***RENDER: State: ' + this.state.selected);
     return (
       <div
         className={
