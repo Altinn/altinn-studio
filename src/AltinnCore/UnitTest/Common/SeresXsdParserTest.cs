@@ -79,7 +79,7 @@ namespace AltinnCore.UnitTest.Common
             JsonMetadataParser metadataParser = new JsonMetadataParser();
             string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
 
-            File.WriteAllText("classdata-recursive.json", classMeta);           
+            File.WriteAllText("classdata-recursive.cs", classMeta);           
         }
 
         /// <summary>
@@ -102,6 +102,72 @@ namespace AltinnCore.UnitTest.Common
             string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
 
             File.WriteAllText("edag.original.csharp.cs", classMeta);
+        }
+
+        /// <summary>
+        ///  convert a Skatteetaten schema
+        /// </summary>
+        [Fact]
+        public void ConvertSkatteetatenBSU()
+        {
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            var seresParser = new SeresXsdParser(moqRepository.Object);
+            XDocument mainXsd = XDocument.Load("Common/boligsparingForUngdom_v1_1.xsd");
+
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
+
+            string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
+
+            File.WriteAllText("boligsparingForUngdom.json", metadataAsJson);
+
+            JsonMetadataParser metadataParser = new JsonMetadataParser();
+            string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
+
+            File.WriteAllText("boligsparingForUngdom.cs", classMeta);
+        }
+
+        /// <summary>
+        ///  convert a Skatteetaten schema
+        /// </summary>
+        [Fact]
+        public void ConvertSkatteetatenMotorvognavgift()
+        {
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            var seresParser = new SeresXsdParser(moqRepository.Object);
+            XDocument mainXsd = XDocument.Load("Common/motorvognavgift-v4.xsd");
+
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
+
+            string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
+
+            File.WriteAllText("motorvognavgift.json", metadataAsJson);
+
+            JsonMetadataParser metadataParser = new JsonMetadataParser();
+            string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
+
+            File.WriteAllText("motorvognavgift.cs", classMeta);
+        }
+
+        /// <summary>
+        ///  convert a Skatteetaten schema
+        /// </summary>
+        [Fact]
+        public void ConvertSkatteetatenSkattemelding()
+        {
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            var seresParser = new SeresXsdParser(moqRepository.Object);
+            XDocument mainXsd = XDocument.Load("Common/Skattemelding_v6.25.xsd");
+
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
+
+            string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
+
+            File.WriteAllText("skattemelding.json", metadataAsJson);
+
+            JsonMetadataParser metadataParser = new JsonMetadataParser();
+            string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
+
+            File.WriteAllText("skattemelding.cs", classMeta);
         }
     }
 }

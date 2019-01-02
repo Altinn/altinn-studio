@@ -157,6 +157,25 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return newKey;
         }
 
+        private List<XElement> ExtractAllElementDeclarationsInTree(XElement root)
+        {
+            List<XElement> result = new List<XElement>();
+
+            foreach (var element in root.Elements())
+            {
+                if (element.Name.Equals(XDocName.Element))
+                {
+                    result.Add(element);
+                }
+                else
+                { 
+                    result.AddRange(ExtractAllElementDeclarationsInTree(element));
+                }
+            }
+
+            return result;
+        }
+
         private void BuildJsonRecursive(
             XElement currentComplexType,
             Dictionary<string, ElementMetadata> allElements,
@@ -183,12 +202,40 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 foreach (var childElement in sequenceElements)
                 {
-                    ProcessChildElement(
-                        currentComplexType,
-                        childElement,
-                        allElements,
-                        parentTrail, 
-                        allTexts);
+                    if (childElement.Name.Equals(XDocName.Choice))
+                    {
+                        // expand choice
+                        var choiceElements = ExtractAllElementDeclarationsInTree(childElement);
+
+                        foreach (var element in choiceElements)
+                        {
+                            string minOccurs = element.AttributeValue("minOccurs");
+                            if (string.IsNullOrEmpty(minOccurs)) 
+                            {
+                                element.AddAttribute("minOccurs", "0");
+                            }
+                            else
+                            {
+                                element.Attribute("minOccurs").Value = "0";                                
+                            }                            
+
+                            ProcessChildElement(
+                            currentComplexType,
+                            element,
+                            allElements,
+                            parentTrail,
+                            allTexts);
+                        }
+                    }
+                    else
+                    {
+                        ProcessChildElement(
+                            currentComplexType,
+                            childElement,
+                            allElements,
+                            parentTrail,
+                            allTexts);
+                    }
                 }
             }
         }
@@ -443,7 +490,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
         {          
             elementMetadata.XmlSchemaReference = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
-            elementMetadata.JsonSchemaReference = "/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
+            elementMetadata.JsonSchemaReference = "#/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
             string cardinality = "[" + elementMetadata.MinOccurs + ".." + (elementMetadata.MaxOccurs < MaxOccursMagicNumber ? elementMetadata.MaxOccurs.AsString() : "*") + "]";
             string typeName = elementMetadata.TypeName ?? elementMetadata.XsdValueType.AsString();
             elementMetadata.DisplayString = elementMetadata.ID + " : " + cardinality + " " + typeName;
@@ -783,31 +830,31 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var length = restriction.Element(XDocName.Length).AttributeValue("value");
             if (!string.IsNullOrEmpty(length))
             {
-                restrictions.Add("length", new Restriction { Value = length });
+                CreateOrUpdateRestriction(restrictions, "length", length);
             }
 
             var minLength = restriction.Element(XDocName.MinLength).AttributeValue("value");
             if (!string.IsNullOrEmpty(minLength))
             {
-                restrictions.Add("minLength", new Restriction { Value = minLength });
+                CreateOrUpdateRestriction(restrictions, "minLength", minLength);
             }
 
             var maxLength = restriction.Element(XDocName.MaxLength).AttributeValue("value");
             if (!string.IsNullOrEmpty(maxLength))
             {
-                restrictions.Add("maxLength", new Restriction { Value = maxLength });
+                CreateOrUpdateRestriction(restrictions, "maxLength", maxLength);
             }
 
             var minInclusive = restriction.Element(XDocName.MinInclusive).AttributeValue("value");
             if (!string.IsNullOrEmpty(minInclusive))
             {
-                restrictions.Add("minInclusive", new Restriction { Value = minInclusive });
+                CreateOrUpdateRestriction(restrictions, "minInclusive", minInclusive);
             }
 
             var maxInclusive = restriction.Element(XDocName.MaxInclusive).AttributeValue("value");
             if (!string.IsNullOrEmpty(maxInclusive))
             {
-                restrictions.Add("maxInclusive", new Restriction { Value = maxInclusive });
+                CreateOrUpdateRestriction(restrictions, "maxInclusive", maxInclusive);
             }
 
             var totalDigits = restriction.Element(XDocName.TotalDigits).AttributeValue("value");
@@ -819,7 +866,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var pattern = restriction.Element(XDocName.Pattern).AttributeValue("value");
             if (!string.IsNullOrEmpty(pattern))
             {
-                restrictions.Add("pattern", new Restriction { Value = pattern });
+                CreateOrUpdateRestriction(restrictions, "pattern", pattern);
             }
 
             var enumerations = restriction.Elements(XDocName.Enumeration);
@@ -836,6 +883,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
+        private static void CreateOrUpdateRestriction(Dictionary<string, Restriction> restrictions, string propertyName, string value)
+        {
+            if (restrictions.ContainsKey(propertyName))
+            {
+                var existingRestriction = restrictions.GetValueOrDefault(propertyName);
+                existingRestriction.Value = value;
+            }
+            else
+            {
+                restrictions.Add(propertyName, new Restriction { Value = value });
+            }
+        }
+
         private List<XElement> GetSequenceElementsFromComplexType(XElement complexType)
         {
             var sequenceElements = new List<XElement>();
@@ -843,10 +903,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 var name = complexType.AttributeValue("name");
 
-                var sequence = complexType.Element(XDocName.Sequence);
-                if ((sequence != null) && (sequence.Elements() != null))
-                {
-                    sequenceElements.AddRange(sequence.Elements());
+                var sequence = complexType.Element(XDocName.Sequence);                
+                if (sequence != null && sequence.Elements() != null)
+                {                  
+                        sequenceElements.AddRange(sequence.Elements());                                       
                 }
 
                 var complexContent = complexType.Element(XDocName.ComplexContent);
