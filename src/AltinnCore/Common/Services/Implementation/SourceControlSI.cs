@@ -314,6 +314,7 @@ namespace AltinnCore.Common.Services.Implementation
                     if (content.FileStatus == Enums.FileStatus.Conflicted)
                     {
                         repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                        repoStatus.HasMergeConflict = true;
                     }
                      
                     repoStatus.ContentStatus.Add(content);

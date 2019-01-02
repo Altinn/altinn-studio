@@ -26,9 +26,14 @@ namespace AltinnCore.Common.Models
         public List<RepositoryContent> ContentStatus { get; set; }
 
         /// <summary>
-        /// Defines 
+        /// Defines the status of the repository
         /// </summary>
         [JsonConverter(typeof(StringEnumConverter))]
         public RepositoryStatus RepositoryStatus { get; set; }
+
+        /// <summary>
+        /// Defines if there is any merge conflicts
+        /// </summary>
+        public bool HasMergeConflict { get; set;  }
     }
 }
