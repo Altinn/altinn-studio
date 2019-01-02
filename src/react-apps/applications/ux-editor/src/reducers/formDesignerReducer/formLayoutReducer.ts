@@ -56,7 +56,6 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       if (callback) {
         callback(component, id);
       }
-
       return update<IFormLayoutState>(state, {
         components: {
           [id]: {
@@ -78,6 +77,7 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         addToId,
         baseContainerId,
         callback,
+        destinationIndex,
       } = action as FormDesignerActions.IAddFormContainerActionFulfilled;
       if (callback) {
         callback(container, id);
@@ -129,6 +129,23 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
             },
             [addToId]: {
               $push: [id],
+            },
+          },
+        });
+      }
+      if (!destinationIndex === false || destinationIndex === 0) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            [id]: {
+              $set: container,
+            },
+          },
+          order: {
+            [id]: {
+              $set: [],
+            },
+            [baseContainerId]: {
+              $splice: [[destinationIndex, 0, id]],
             },
           },
         });
@@ -186,12 +203,31 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.DELETE_FORM_CONTAINER_FULFILLED: {
-      const { id } = action as FormDesignerActions.IDeleteComponentActionFulfilled;
+      const { id, parentContainerId } = action as FormDesignerActions.IDeleteContainerActionFulfilled;
+      if (!parentContainerId) {
+        return update<IFormLayoutState>(state, {
+          containers: {
+            $unset: [id],
+          },
+          order: {
+            $unset: [id],
+          },
+          unSavedChanges: {
+            $set: true,
+          },
+          error: {
+            $set: null,
+          },
+        });
+      }
       return update<IFormLayoutState>(state, {
         containers: {
           $unset: [id],
         },
         order: {
+          [parentContainerId]: {
+            $splice: [[state.order[parentContainerId].indexOf(id), 1]],
+          },
           $unset: [id],
         },
         unSavedChanges: {
@@ -269,6 +305,19 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
 
     case FormDesignerActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
       const { formLayout } = action as FormDesignerActions.IFetchFormLayoutFulfilledAction;
+      if (!formLayout) {
+        return update<IFormLayoutState>(state, {
+          fetching: {
+            $set: false,
+          },
+          fetched: {
+            $set: true,
+          },
+          error: {
+            $set: null,
+          },
+        });
+      }
       return update<IFormLayoutState>(state, {
         components: {
           $set: formLayout.components,

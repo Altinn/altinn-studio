@@ -7,7 +7,7 @@ import { getComponentTitleByComponentType } from '../../utils/language';
 
 export interface IToolbarItemProvidedProps {
   classes: any;
-  componentType?: ComponentTypes;
+  componentType: ComponentTypes;
   onClick: any;
   thirdPartyLabel?: string;
 }

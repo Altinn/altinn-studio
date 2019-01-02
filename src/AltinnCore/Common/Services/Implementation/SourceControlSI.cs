@@ -214,6 +214,39 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Gives the full repository status for 
+        /// </summary>
+        /// <param name="owner">The owner of the repo, org or user</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The repo status</returns>
+        public RepoStatus RepositoryStatus(string owner, string repository)
+        {
+            RepoStatus repoStatus = new RepoStatus();
+            repoStatus.ContentStatus = new List<RepositoryContent>();
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (var repo = new Repository(localServiceRepoFolder))
+            {
+                RepositoryStatus status = repo.RetrieveStatus(new LibGit2Sharp.StatusOptions());
+                foreach (StatusEntry item in status)
+                {
+                    RepositoryContent content = new RepositoryContent();
+                    content.FilePath = item.FilePath;
+                    content.FileStatus = (AltinnCore.Common.Enums.FileStatus)(int)item.State;
+                    repoStatus.ContentStatus.Add(content);
+                }
+
+                Branch branch = repo.Branches.FirstOrDefault(b => b.IsTracking == true);
+                if (branch != null)
+                {
+                    repoStatus.AheadBy = branch.TrackingDetails.AheadBy;
+                    repoStatus.BehindBy = branch.TrackingDetails.BehindBy;
+                }
+            }
+
+            return repoStatus;
+        }
+
+        /// <summary>
         /// Creates the remote repository
         /// </summary>
         /// <param name="org">The owning organization</param>

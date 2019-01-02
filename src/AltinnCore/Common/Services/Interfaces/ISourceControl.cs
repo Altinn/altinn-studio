@@ -66,6 +66,14 @@ namespace AltinnCore.Common.Services.Interfaces
         List<RepositoryContent> Status(string org, string repository);
 
         /// <summary>
+        /// Gives the full repository status for 
+        /// </summary>
+        /// <param name="owner">The owner of the repo, org or user</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The repostatus</returns>
+        RepoStatus RepositoryStatus(string owner, string repository);
+
+        /// <summary>
         /// Verifies if developer has a local repo
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
