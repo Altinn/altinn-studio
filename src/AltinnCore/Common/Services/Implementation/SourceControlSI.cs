@@ -311,6 +311,11 @@ namespace AltinnCore.Common.Services.Implementation
                     RepositoryContent content = new RepositoryContent();
                     content.FilePath = item.FilePath;
                     content.FileStatus = (AltinnCore.Common.Enums.FileStatus)(int)item.State;
+                    if (content.FileStatus == Enums.FileStatus.Conflicted)
+                    {
+                        repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                    }
+                     
                     repoStatus.ContentStatus.Add(content);
                 }
 
