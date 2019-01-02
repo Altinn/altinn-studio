@@ -83,8 +83,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         } else {
           if (result) {
             this.setState({
-              changesInMaster: result.behindBy === 0 ? false : true,
-              changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
+              changesInMaster: result.behindBy !== 0,
+              changesInLocalRepo: result.contentStatus.length > 0,
             });
           }
         }
@@ -172,8 +172,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         if (result.repositoryStatus === 'Ok') {
           // if pull was successfull, show service is updated message
           this.setState({
-            changesInMaster: result.behindBy === 0 ? false : true,
-            changesInLocalRepo: result.contentStatus.length > 0 ? true : false,
+            changesInMaster: result.behindBy !== 0,
+            changesInLocalRepo: result.contentStatus.length > 0,
             modalState: {
               header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
               descriptionText:
