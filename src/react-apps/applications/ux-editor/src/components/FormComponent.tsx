@@ -153,7 +153,7 @@ class FormComponent extends React.Component<
   }
 
   public handleActiveListChange = (obj: any, list: Array<any>) => {
-    FormDesignerActionDispatchers.updateContainerList(obj, list);
+    FormDesignerActionDispatchers.updateActiveList(obj, list);
     this.setState({
       activeList: this.props.activeList,
     });
@@ -164,6 +164,7 @@ class FormComponent extends React.Component<
    * It is either called from FormFiller or FormDesigner.
    */
   public render(): JSX.Element {
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList);
     if (!this.props.designMode) {
       return (
         <div className='row mt-2'>
@@ -182,6 +183,7 @@ class FormComponent extends React.Component<
     const order = this.props.order[key].indexOf(this.props.id);
     const activeListIndex = this.props.activeList.findIndex((listItem) => listItem.id === this.props.id);
 
+    console.log(activeListIndex, order);
     return (
       <EditContainer
         component={this.props.component}
@@ -190,7 +192,7 @@ class FormComponent extends React.Component<
         firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
         handler={this.handleActiveListChange}
       >
-        <div className='a-form-group' onClick={this.disableEditOnClickForAddedComponent}>
+        <div onClick={this.disableEditOnClickForAddedComponent}>
           {this.renderLabel()}
           {this.renderComponent()}
         </div>

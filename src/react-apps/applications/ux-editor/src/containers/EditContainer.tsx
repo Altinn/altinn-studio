@@ -1,5 +1,5 @@
 import {
-  createStyles, Grid, IconButton, List, ListItem, withStyles,
+  createStyles, Grid, IconButton, ListItem, withStyles,
 } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -30,6 +30,7 @@ const styles = createStyles({
     border: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
     color: altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
     padding: '10px 12px 14px 12px',
+    marginBottom: '1.2rem',
     '&:hover': {
       backgroundColor: '#fff',
       boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
@@ -39,7 +40,6 @@ const styles = createStyles({
     fontSize: '0.85em',
     fill: altinnTheme.altinnPalette.primary.blue,
     paddingLeft: '0',
-    marginTop: '0.1em',
     outline: 'none !important',
     '&:hover': {
       background: 'none',
@@ -49,14 +49,14 @@ const styles = createStyles({
     marginBottom: '0rem',
   },
   gridForBtn: {
+    marginTop: '-0.2rem !important',
     visibility: 'hidden',
-    paddingTop: '8px',
     paddingBottom: '8px',
     marginLeft: '2px',
   },
   gridForBtnActive: {
+    marginTop: '-0.2rem !important',
     visibility: 'visible',
-    paddingTop: '8px',
     paddingBottom: '8px',
     marginLeft: '2px',
   },
@@ -66,13 +66,13 @@ const styles = createStyles({
     lineHeight: '3.2rem',
   },
   listBorder: {
-    paddingLeft: '1.2rem',
+    padding: '1.1rem 1.2rem 0 1.2rem',
+    marginTop: '0.1rem',
     borderLeft: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
     borderRight: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
     '&#first': {
       paddingTop: '1.2rem',
       borderTop: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
-      marginTop: '1.2rem',
     },
     '&#last': {
       paddingBottom: '1.2rem',
@@ -163,6 +163,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.activeList.forEach((component) => {
       FormDesignerActionDispatchers.deleteFormComponent(component.id);
     });
+    FormDesignerActionDispatchers.deleteActiveListAction();
     e.stopPropagation();
   }
 

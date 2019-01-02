@@ -24,9 +24,10 @@ const sortByOrder = (array: Array<any>) => {
 const compareOrderNum = (a: any, b: any) => {
   if (a.order < b.order) {
     return -1;
-  }
-  if (a.order > b.order) {
+  } else if (a.order > b.order) {
     return 1;
+  } else if (a.order === b.order) {
+    b.order = a.order + 1;
   }
   return 0;
 };
@@ -53,7 +54,7 @@ const getArray = () => {
 
 const getSortedArray = () => {
   return createSelector(
-    [sortByOrder],
+    sortByOrder,
     (array: Array<any>) => {
       return array;
     },

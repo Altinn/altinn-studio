@@ -1,9 +1,13 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import {
-  watchUpdateContainerListSaga,
+  watchDeleteActiveListSaga,
+  watchUpdateActiveListSaga,
+  watchUpdateActiveOrderSaga,
 } from './editContainerSagas';
 
-export default function*(): SagaIterator {
-  yield fork(watchUpdateContainerListSaga);
+export default function* (): SagaIterator {
+  yield fork(watchUpdateActiveListSaga);
+  yield fork(watchUpdateActiveOrderSaga);
+  yield fork(watchDeleteActiveListSaga);
 }

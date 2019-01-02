@@ -247,16 +247,31 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
         },
       });
     }
-    case FormDesignerActionTypes.UPDATE_CONTAINER_LIST_FULFILLED: {
-      const { containerList } = action as FormDesignerActions.IUpdateContainerListActionFulfilled;
+    case FormDesignerActionTypes.DELETE_ACTIVE_LIST_FULFILLED: {
+      return update<IFormLayoutState>(state, {
+        activeList: {
+          $set: [],
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_ACTIVE_LIST_REJECTED: {
+      const { error } = action as FormDesignerActions.IDeleteActiveListActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_ORDER_FULFILLED: {
+      const { containerList } = action as FormDesignerActions.IUpdateActiveListOrderActionFulfilled;
       return update<IFormLayoutState>(state, {
         activeList: {
           $set: containerList,
         },
       });
     }
-    case FormDesignerActionTypes.UPDATE_CONTAINER_LIST_REJECTED: {
-      const { error } = action as FormDesignerActions.IUpdateContainerListActionRejected;
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_ORDER_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateActiveListOrderActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,

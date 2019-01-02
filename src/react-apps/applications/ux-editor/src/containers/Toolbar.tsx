@@ -48,6 +48,7 @@ export interface IToolbarProps extends IToolbarProvidedProps {
   textResources: ITextResource[];
   thirdPartyComponents: any;
   activeContainer: string;
+  activeList: Array<any>;
   language: any;
 }
 export interface IToolbarState {
@@ -99,8 +100,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           position,
           containerId,
         );
+        this.updateActiveListOrder();
       },
     } as IToolbarElement;
+  }
+
+  public updateActiveListOrder() {
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList);
+    console.log(this.props.activeList);
   }
 
   public addContainerToLayout(containerId: string, index: number) {
@@ -384,6 +391,7 @@ const mapsStateToProps = (
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
     activeContainer: state.formDesigner.layout.activeContainer,
+    activeList: state.formDesigner.layout.activeList,
     language: state.appData.language.language,
   };
 };

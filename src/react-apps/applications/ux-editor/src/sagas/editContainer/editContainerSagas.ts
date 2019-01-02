@@ -3,46 +3,63 @@ import { call, takeLatest } from 'redux-saga/effects';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
-import { addToOrDeleteFromArray } from '../../utils/arrayHelpers/arrayLogic';
+import { addToOrDeleteFromArray, sortArray } from '../../utils/arrayHelpers/arrayLogic';
+import { array } from 'prop-types';
 
-export function* updateContainerListSaga({
+export function* updateActiveListSaga({
   listItem,
   containerList,
-}: FormDesignerActions.IUpdateContainerListAction): SagaIterator {
+}: FormDesignerActions.IUpdateActiveListAction): SagaIterator {
   let returnedList = addToOrDeleteFromArray();
   returnedList = returnedList({ object: listItem, array: containerList });
   try {
     if (returnedList.length > 0) {
-      yield call(FormDesignerActionDispatchers.updateContainerListActionFulfilled, returnedList);
+      yield call(FormDesignerActionDispatchers.updateActiveListActionFulfilled, returnedList);
     }
   } catch (err) {
-    yield call(FormDesignerActionDispatchers.updateContainerListRejected, err);
+    yield call(FormDesignerActionDispatchers.updateActiveListRejected, err);
   }
 }
 
-export function* watchUpdateContainerListSaga(): SagaIterator {
+export function* watchUpdateActiveListSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_CONTAINER_LIST,
-    updateContainerListSaga,
+    updateActiveListSaga,
   );
 }
 
-export function* updateOrderSaga({
-  listItem,
+export function* updateActiveOrderSaga({
   containerList,
-}: FormDesignerActions.IUpdateContainerListAction): SagaIterator {
-  const returnedList = containerList;
+}: FormDesignerActions.IUpdateActiveListOrderAction): SagaIterator {
+  let returnedList = sortArray();
+  returnedList = returnedList(containerList);
   try {
     if (returnedList.length > 0) {
-      yield call(FormDesignerActionDispatchers.updateContainerListActionFulfilled, returnedList);
+      console.log(returnedList);
+      yield call(FormDesignerActionDispatchers.updateActiveListOrderActionFulfilled, returnedList);
     }
   } catch (err) {
-    yield call(FormDesignerActionDispatchers.updateContainerListRejected, err);
+    yield call(FormDesignerActionDispatchers.updateActiveListOrderRejected, err);
   }
 }
-export function* watchupdateOrderSaga(): SagaIterator {
+export function* watchUpdateActiveOrderSaga(): SagaIterator {
   yield takeLatest(
     FormDesignerActionTypes.UPDATE_ACTIVE_LIST_ORDER,
-    updateContainerListSaga,
+    updateActiveOrderSaga,
+  );
+}
+
+export function* deleteActiveListSaga({
+}: FormDesignerActions.IDeleteActiveListAction): SagaIterator {
+  try {
+    yield call(FormDesignerActionDispatchers.deleteActionListActionFulfilled);
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.deleteActionListActionRejected, err);
+  }
+}
+export function* watchDeleteActiveListSaga(): SagaIterator {
+  yield takeLatest(
+    FormDesignerActionTypes.DELETE_ACTIVE_LIST,
+    deleteActiveListSaga,
   );
 }

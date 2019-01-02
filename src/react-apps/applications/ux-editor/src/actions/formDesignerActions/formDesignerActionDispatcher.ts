@@ -59,6 +59,13 @@ export interface IFormDesignerActionDispatchers
   createRepeatingGroupRejected: (
     error: Error,
   ) => FormDesignerActions.ICreateRepeatingGroupRejected;
+  deleteActiveListAction: (
+  ) => FormDesignerActions.IDeleteActiveListAction;
+  deleteActionListActionFulfilled: (
+  ) => FormDesignerActions.IDeleteActiveListActionFulfilled;
+  deleteActionListActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IDeleteActiveListActionRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -104,18 +111,17 @@ export interface IFormDesignerActionDispatchers
   selectFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.ISelectLayoutElementActionRejected;
-  updateContainerList: (
+  updateActiveList: (
     listItem: any,
     containerList: Array<any>,
-  ) => FormDesignerActions.IUpdateContainerListAction;
-  updateContainerListActionFulfilled: (
+  ) => FormDesignerActions.IUpdateActiveListAction;
+  updateActiveListActionFulfilled: (
     containerList: Array<any>,
-  ) => FormDesignerActions.IUpdateContainerListActionFulfilled;
-  updateContainerListActionRejected: (
+  ) => FormDesignerActions.IUpdateActiveListActionFulfilled;
+  updateActiveListActionRejected: (
     error: Error,
-  ) => FormDesignerActions.IUpdateContainerListActionRejected;
+  ) => FormDesignerActions.IUpdateActiveListActionRejected;
   updateActiveListOrder: (
-    listItem: any,
     containerList: Array<any>,
   ) => FormDesignerActions.IUpdateActiveListOrderAction;
   updateActiveListOrderActionFulfilled: (
@@ -190,6 +196,9 @@ const actions: IFormDesignerActionDispatchers = {
   createRepeatingGroup: FormDesignerActions.createRepeatingGroupAction,
   createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
   createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
+  deleteActiveListAction: FormDesignerActions.deleteActiveListAction,
+  deleteActionListActionFulfilled: FormDesignerActions.deleteActiveListActionFulfilled,
+  deleteActionListActionRejected: FormDesignerActions.deleteActiveListActionRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
@@ -211,9 +220,9 @@ const actions: IFormDesignerActionDispatchers = {
   selectFormComponentFulfilled:
     FormDesignerActions.selectLayoutElementActionFulfilled,
   selectFormComponentRejected: FormDesignerActions.selectLayoutElementActionRejected,
-  updateContainerList: FormDesignerActions.updateContainerListAction,
-  updateContainerListActionFulfilled: FormDesignerActions.updateContainerListActionFulfilled,
-  updateContainerListActionRejected: FormDesignerActions.updateContainerListActionRejected,
+  updateActiveList: FormDesignerActions.updateActiveListAction,
+  updateActiveListActionFulfilled: FormDesignerActions.updateActiveListActionFulfilled,
+  updateActiveListActionRejected: FormDesignerActions.updateActiveListActionRejected,
   updateActiveListOrder: FormDesignerActions.updateActiveListOrderAction,
   updateActiveListOrderActionFulfilled: FormDesignerActions.updateActiveListOrderActionFulfilled,
   updateActiveListOrderActionRejected: FormDesignerActions.updateActiveListOrderActionRejected,

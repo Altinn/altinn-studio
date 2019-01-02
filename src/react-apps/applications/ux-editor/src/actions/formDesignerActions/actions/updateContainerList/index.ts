@@ -1,19 +1,18 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../../formDesignerActionTypes';
 
-export interface IUpdateContainerListAction extends Action {
+export interface IUpdateActiveListAction extends Action {
   listItem: any;
   containerList: Array<any>;
 }
-export interface IUpdateContainerListActionFulfilled extends Action {
+export interface IUpdateActiveListActionFulfilled extends Action {
   containerList: Array<any>;
 }
-export interface IUpdateContainerListActionRejected extends Action {
+export interface IUpdateActiveListActionRejected extends Action {
   error: Error;
 }
 
 export interface IUpdateActiveListOrderAction extends Action {
-  listItem: any;
   containerList: Array<any>;
 }
 export interface IUpdateActiveListOrderActionFulfilled extends Action {
@@ -23,27 +22,37 @@ export interface IUpdateActiveListOrderActionRejected extends Action {
   error: Error;
 }
 
-export function updateContainerListAction(
+export interface IDeleteActiveListAction extends Action {
+}
+
+export interface IDeleteActiveListActionFulfilled extends Action {
+}
+
+export interface IDeleteActiveListActionRejected extends Action {
+  error: Error;
+}
+
+export function updateActiveListAction(
   listItem: any,
   containerList: Array<any>,
-): IUpdateContainerListAction {
+): IUpdateActiveListAction {
   return {
     type: ActionTypes.UPDATE_CONTAINER_LIST,
     listItem,
     containerList,
   };
 }
-export function updateContainerListActionFulfilled(
+export function updateActiveListActionFulfilled(
   containerList: Array<any>,
-): IUpdateContainerListActionFulfilled {
+): IUpdateActiveListActionFulfilled {
   return {
     type: ActionTypes.UPDATE_CONTAINER_LIST_FULFILLED,
     containerList,
   };
 }
-export function updateContainerListActionRejected(
+export function updateActiveListActionRejected(
   error: Error,
-): IUpdateContainerListActionRejected {
+): IUpdateActiveListActionRejected {
   return {
     type: ActionTypes.UPDATE_CONTAINER_LIST_REJECTED,
     error,
@@ -51,13 +60,11 @@ export function updateContainerListActionRejected(
 }
 
 export function updateActiveListOrderAction(
-  listItem: any,
   containerList: Array<any>,
 ): IUpdateActiveListOrderAction {
   return {
-    type: ActionTypes.UPDATE_ACTIVE_LIST_ORDER,
-    listItem,
     containerList,
+    type: ActionTypes.UPDATE_ACTIVE_LIST_ORDER,
   };
 }
 export function updateActiveListOrderActionFulfilled(
@@ -73,6 +80,26 @@ export function updateActiveListOrderActionRejected(
 ): IUpdateActiveListOrderActionRejected {
   return {
     type: ActionTypes.UPDATE_ACTIVE_LIST_ORDER_REJECTED,
+    error,
+  };
+}
+export function deleteActiveListAction(
+): IDeleteActiveListAction {
+  return {
+    type: ActionTypes.DELETE_ACTIVE_LIST,
+  };
+}
+export function deleteActiveListActionFulfilled(
+): IDeleteActiveListActionFulfilled {
+  return {
+    type: ActionTypes.DELETE_ACTIVE_LIST_FULFILLED,
+  };
+}
+export function deleteActiveListActionRejected(
+  error: Error,
+): IUpdateActiveListOrderActionRejected {
+  return {
+    type: ActionTypes.DELETE_ACTIVE_LIST_REJECTED,
     error,
   };
 }
