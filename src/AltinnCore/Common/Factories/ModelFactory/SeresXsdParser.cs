@@ -318,10 +318,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 actualElement,
                                 simpleContent,
                                 allElements,
-                                $"{parentTrail}/{typeName.Split('-')[0]}",
+                                $"{parentTrail}/{SanitizeName(typeName)}",
                                 typeName.Split('.')[0]);
 
-                            AddAttributeElements(currentElement, allElements, $"{parentTrail}/{typeName.Split('-')[0]}");
+                            AddAttributeElements(currentElement, allElements, $"{parentTrail}/{SanitizeName(typeName)}");
                             currentIsComplex = true;
                             skipRecursive = true;
                         }
@@ -334,13 +334,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             elementMetadata.XName = typeName;
-            var classShortRefName = typeName.Split('-')[0];
+            var classShortRefName = SanitizeName(typeName);
             string newTrail = $"{parentTrail}/{typeName}";
 
             var elementName = classShortRefName;
             if (!string.IsNullOrEmpty(currentElement.AttributeValue("name")))
             {
-                elementName = currentElement.AttributeValue("name").Split('-')[0];
+                elementName = SanitizeName(currentElement.AttributeValue("name"));
                 elementMetadata.XName = currentElement.AttributeValue("name");
 
                 newTrail = $"{parentTrail}/{elementName}";
@@ -477,14 +477,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (allElements.ContainsKey(elementMetadata.ID))
             {
-                allElements.Add(elementMetadata.ID + _randomGen.Next(), elementMetadata);
+                elementMetadata.ID += _randomGen.Next();
             }
-            else
-            {
-                allElements.Add(elementMetadata.ID, elementMetadata);
-            }
+           
+            allElements.Add(elementMetadata.ID, elementMetadata);            
 
             AddSchemaReferenceInformation(currentComplexType, elementMetadata);
+        }
+
+        private static string SanitizeName(string name)
+        {
+            return name.Replace("-", string.Empty);
         }
 
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
@@ -500,11 +503,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             if (elementMetadata.Type.Equals("Attribute"))
             {
-                return "//xsd:attribute[@name='" + elementMetadata.Name + "']";
+                return "//xsd:attribute[@name='" + elementMetadata.XName + "']";
             }
             else
             {
-                return "//xsd:element[@name='" + elementMetadata.Name + "']";
+                return "//xsd:element[@name='" + elementMetadata.XName + "']";
             }
         }
 
@@ -738,12 +741,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (allElements.ContainsKey(attributeElementMetadata.ID))
                 {
-                    allElements.Add(attributeElementMetadata.ID + _randomGen.Next(), attributeElementMetadata);
+                    attributeElementMetadata.ID += _randomGen.Next();
                 }
-                else
-                {
-                    allElements.Add(attributeElementMetadata.ID, attributeElementMetadata);
-                }
+                               
+                allElements.Add(attributeElementMetadata.ID, attributeElementMetadata);                
 
                 AddSchemaReferenceInformation(currentComplexType, attributeElementMetadata);
             }
