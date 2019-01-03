@@ -1,5 +1,6 @@
 import { createMuiTheme, createStyles, Grid, WithStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
+import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import FetchChangesComponent from '../version-control/fetchChanges';
@@ -29,7 +30,7 @@ const styles = createStyles({
   },
 });
 
-const initialState = {
+const initialModalState = {
   header: '',
   descriptionText: '',
   isLoading: '',
@@ -51,32 +52,15 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       hasPushRight: false,
       anchorEl: null,
       mergeConflict: false,
-      modalState: initialState,
+      modalState: initialModalState,
     };
-  }
-
-  public performAPIFetch(url: string, callbackFunc: any, object?: any) {
-    fetch(url, object)
-      .then((response) => {
-        return response.text().then((text: any) => {
-          return text ? JSON.parse(text) : {};
-        });
-      })
-      .then(
-        (result) => {
-          callbackFunc(result);
-        },
-        (error) => {
-          console.error('Something went wrong: ' + error);
-        },
-      );
   }
 
   public getStatus(callbackFunc?: any) {
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
-    this.performAPIFetch(url, (result: any) => {
+    get(url).then((result: any) => {
       if (this._isMounted) {
         if (callbackFunc) {
           callbackFunc(result);
@@ -103,7 +87,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?owner=${org}&repository=${service}`;
-      this.performAPIFetch(url, (result: any) => {
+      get(url).then((result: any) => {
         if (this._isMounted && result) {
           const diff = new Date().getTime() - new Date(result.commiter.when).getTime();
           const oneHour = 60 * 60 * 1000;
@@ -115,16 +99,13 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     }
   }
 
-  public componentWillMount() {
+  public componentDidMount() {
+    this._isMounted = true;
     // check status every 5 min
     this.interval = setInterval(() => this.updateStateOnIntervals(), 300000);
     this.getStatus();
     this.getRepoRights();
     this.getLastPush();
-  }
-
-  public componentDidMount() {
-    this._isMounted = true;
   }
 
   public componentWillUnmount() {
@@ -136,7 +117,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const altinnWindow: any = window as any;
     const { service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Search`;
-    this.performAPIFetch(url, (result: any) => {
+    get(url).then((result: any) => {
       if (this._isMounted && result) {
         const currentRepo = result.filter((e: any) => e.name === service);
         this.setState({
@@ -167,7 +148,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
 
-    this.performAPIFetch(url, (result: any) => {
+    get(url).then((result: any) => {
       if (this._isMounted) {
         if (result.repositoryStatus === 'Ok') {
           // if pull was successfull, show service is updated message
@@ -251,19 +232,11 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       },
     });
 
-    const requestObj = {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    };
-
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
 
-    this.performAPIFetch(url, (result: any) => {
+    post(url).then((result: any) => {
       if (this._isMounted) {
         this.setState({
           changesInMaster: false,
@@ -277,7 +250,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           },
         });
       }
-    }, requestObj);
+    });
   }
 
   public commitChanges = (commitMessage: string) => {
@@ -291,23 +264,18 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
-    const commitObject = {
-      method: 'POST',
+    const options = {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        message: commitMessage,
-        org,
-        repository: service,
-      }),
     };
+    const bodyData = JSON.stringify({ message: commitMessage, org, repository: service });
 
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
     const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
-    this.performAPIFetch(url, (commitResult: any) => {
-      this.performAPIFetch(pullUrl, (result: any) => {
+    post(url, bodyData, options).then((commitResult: any) => {
+      get(pullUrl).then((result: any) => {
         if (this._isMounted) {
           // if pull was successfull, show service updated message
           if (result.repositoryStatus === 'Ok') {
@@ -335,7 +303,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           }
         }
       });
-    }, commitObject);
+    });
   }
 
   public redirectToMergeConflictPage() {
@@ -352,17 +320,6 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             fetchChanges={this.fetchChanges}
             changesInMaster={this.state.changesInMaster}
           />
-          <SyncModalComponent
-            anchorEl={this.state.anchorEl}
-            header={this.state.modalState.header}
-            descriptionText={this.state.modalState.descriptionText}
-            isLoading={this.state.modalState.isLoading}
-            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
-            btnText={this.state.modalState.btnText}
-            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-            handleClose={this.handleClose}
-            btnClick={this.state.modalState.btnMethod}
-          />
         </Grid>
         <Grid item={true} xs={7}>
           <ShareChangesComponent
@@ -372,18 +329,18 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
             hasPushRight={this.state.hasPushRight}
           />
-          <SyncModalComponent
-            anchorEl={this.state.anchorEl}
-            header={this.state.modalState.header}
-            descriptionText={this.state.modalState.descriptionText}
-            isLoading={this.state.modalState.isLoading}
-            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
-            btnText={this.state.modalState.btnText}
-            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-            handleClose={this.handleClose}
-            btnClick={this.state.modalState.btnMethod}
-          />
         </Grid>
+        <SyncModalComponent
+          anchorEl={this.state.anchorEl}
+          header={this.state.modalState.header}
+          descriptionText={this.state.modalState.descriptionText}
+          isLoading={this.state.modalState.isLoading}
+          shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+          btnText={this.state.modalState.btnText}
+          shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+          handleClose={this.handleClose}
+          btnClick={this.state.modalState.btnMethod}
+        />
       </Grid>
     );
   }

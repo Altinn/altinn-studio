@@ -61,7 +61,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProp
             { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
           )}
         >
-          {this.props.hasPushRight && <i className={classNames('ai ai-upload', classes.color_blueDarker)} />}
+          {this.props.hasPushRight && <i className={classNames('ai ai-upload', classes.color_blueDark)} />}
           {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
         </p>);
     } else {
