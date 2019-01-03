@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
-import { getTextResource, truncate } from '../utils/language';
 import '../styles/index.css';
+import { getTextResource, truncate } from '../utils/language';
 
 const styles = createStyles({
   active: {
