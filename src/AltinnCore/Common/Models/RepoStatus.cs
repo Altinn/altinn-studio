@@ -1,6 +1,7 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
+using AltinnCore.Common.Enums;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace AltinnCore.Common.Models
 {
@@ -23,5 +24,16 @@ namespace AltinnCore.Common.Models
         /// List over files that has changed
         /// </summary>
         public List<RepositoryContent> ContentStatus { get; set; }
+
+        /// <summary>
+        /// Defines the status of the repository
+        /// </summary>
+        [JsonConverter(typeof(StringEnumConverter))]
+        public RepositoryStatus RepositoryStatus { get; set; }
+
+        /// <summary>
+        /// Defines if there is any merge conflicts
+        /// </summary>
+        public bool HasMergeConflict { get; set;  }
     }
 }

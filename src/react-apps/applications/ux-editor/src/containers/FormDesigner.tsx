@@ -4,6 +4,7 @@ import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
+import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
@@ -104,6 +105,7 @@ class FormDesigner extends React.Component<
             <Toolbar />
           </Grid>
           <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
+            <VersionControlHeader language={this.props.language} />
             <div
               style={{
                 width: 'calc(100% - 48px)',
