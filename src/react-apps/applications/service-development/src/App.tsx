@@ -18,20 +18,74 @@ import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
 
+import HandleMergeConflict from './features/mergeConflict/HandleMergeConflictContainer';
+
+// import * as networking from '../../../applications/shared/src/utils/networking';
+
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
+  container: {
+    backgroundColor: theme.altinnPalette.primary.greyLight,
+    height: '100%',
+    width: '100%',
+  },
   subApp: {
     [theme.breakpoints.up('md')]: {
-      paddingLeft: 100,
+      paddingLeft: 73,
     },
+    height: '100%',
+    width: '100%',
   },
 });
 
-class App extends React.Component<WithStyles<typeof styles>, any> {
+export interface IServiceDevelopmentProps extends WithStyles<typeof styles> { }
+export interface IServiceDevelopmentState {
+  initialCheckComplete: boolean;
+  mergeConflict: boolean;
+}
+
+class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentState> {
+  constructor(_props: IServiceDevelopmentProps) {
+    super(_props);
+    this.state = {
+      initialCheckComplete: false,
+      mergeConflict: null,
+    };
+  }
+
+  public checkForMergeConflict = () => {
+    console.log('checkForMergeConflict');
+
+    const mockMergeStatus = {
+      behindBy: 1,
+      aheadBy: 2,
+      contentStatus: [
+        {
+          filePath: 'Resources/FormLayout.json',
+          fileStatus: 'ModifiedInWorkdir',
+        },
+      ],
+      repositoryStatus: 'Ok',
+    };
+
+    // mock data
+    setTimeout(() => {
+      this.setState(
+        {
+          initialCheckComplete: true,
+          mergeConflict: true,
+        },
+      );
+    }, 1000);
+  }
 
   public handleDrawerToggle = () => {
     NavigationActionDispatcher.toggleDrawer();
+  }
+
+  public componentDidMount() {
+    this.checkForMergeConflict();
   }
 
   public render() {
@@ -43,67 +97,83 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <Router>
-            <Grid container={true} direction='row'>
-              <Grid item={true} xs={12}>
-                {redirects.map((route, index) => (
-                  <Route
-                    key={index}
-                    exact={true}
-                    path={route.from}
-                    render={() => (
-                      <Redirect to={route.to} />
-                    )}
-                  />
-                ))}
-                {routes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    exact={route.exact}
-                    render={(props) => <AppBarComponent
-                      {...props}
-                      org={org}
-                      service={service}
-                      showBreadcrumbOnTablet={true}
-                      showSubHeader={true}
-                      activeSubHeaderSelection={route.activeSubHeaderSelection}
-                      activeLeftMenuSelection={route.activeLeftMenuSelection}
-                    />}
-                  />
-                ))}
-              </Grid>
-              <Grid item={true} xs={12}>
-                <Hidden smDown>
-                  <div style={{ top: 50 }}>
-                    {routes.map((route, index) => (
-                      <Route
-                        key={index}
-                        path={route.path}
-                        exact={route.exact}
-                        render={(props) => <LeftDrawerMenu
-                          {...props}
-                          menuType={route.menu}
-                          activeLeftMenuSelection={route.activeLeftMenuSelection}
-                        />}
-                      />
-                    ))}
-                  </div>
-                </Hidden>
-                <div className={classes.subApp}>
+            <div className={classes.container}>
+              <Grid container={true} direction='row' id='test'>
+                <Grid item={true} xs={12}>
+                  {redirects.map((route, index) => (
+                    <Route
+                      key={index}
+                      exact={true}
+                      path={route.from}
+                      render={() => (
+                        <Redirect to={route.to} />
+                      )}
+                    />
+                  ))}
                   {routes.map((route, index) => (
                     <Route
                       key={index}
                       path={route.path}
                       exact={route.exact}
-                      render={(props) => <route.subapp
+                      render={(props) => <AppBarComponent
                         {...props}
-                        name={route.path}
+                        org={org}
+                        service={service}
+                        showBreadcrumbOnTablet={true}
+                        showSubHeader={true}
+                        activeSubHeaderSelection={route.activeSubHeaderSelection}
+                        activeLeftMenuSelection={route.activeLeftMenuSelection}
                       />}
                     />
                   ))}
-                </div>
+                </Grid>
+                <Grid item={true} xs={12}>
+                  <Hidden smDown>
+                    <div style={{ top: 50 }}>
+                      {routes.map((route, index) => (
+                        <Route
+                          key={index}
+                          path={route.path}
+                          exact={route.exact}
+                          render={(props) => <LeftDrawerMenu
+                            {...props}
+                            menuType={route.menu}
+                            activeLeftMenuSelection={route.activeLeftMenuSelection}
+                          />}
+                        />
+                      ))}
+                    </div>
+                  </Hidden>
+                  {this.state.initialCheckComplete === true &&
+                    this.state.mergeConflict === false ?
+                    <div className={classes.subApp}>
+                      {routes.map((route, index) => (
+                        <Route
+                          key={index}
+                          path={route.path}
+                          exact={route.exact}
+                          render={(props) => <route.subapp
+                            {...props}
+                            name={route.path}
+                          />}
+                        />
+                      ))}
+                    </div>
+                    :
+                    null
+                  }
+                  {this.state.mergeConflict === true ?
+                    <div className={classes.subApp}>
+                      <HandleMergeConflict
+                        checkForMergeConflict={this.checkForMergeConflict}
+                      />
+                    </div>
+                    :
+                    null
+                  }
+                </Grid>
               </Grid>
-            </Grid>
+            </div>
           </Router>
         </MuiThemeProvider>
       </React.Fragment>

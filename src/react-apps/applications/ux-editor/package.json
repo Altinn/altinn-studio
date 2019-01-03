@@ -23,7 +23,7 @@
     "@types/react-select": "^2.0.10",
     "axios": "0.18.0",
     "babel-core": "6.26.3",
-    "classnames": "^2.2.6",
+    "classnames": "2.2.6",
     "deepmerge": "2.1.1",
     "dot-object": "^1.7.0",
     "immutability-helper": "2.7.0",
