@@ -30,7 +30,7 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
   public render() {
     let {height, width} = this.props;
     height = height ? height : '100%';
-    width = width ? width : 'calc(100% - 80px)';
+    width = width ? width : '100%';
     return (
       <MonacoEditor
         width={width}
@@ -43,8 +43,13 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
             autoIndent: true,
             automaticLayout: true,
             colorDecorators: true,
-            contextmenu: false,
+            minimap: {
+              enabled: false,
+            },
             cursorBlinking: 'smooth',
+            scrollbar: {
+              vertical: 'auto',
+            },
           }
         }
         editorDidMount={this.editorDidMount}

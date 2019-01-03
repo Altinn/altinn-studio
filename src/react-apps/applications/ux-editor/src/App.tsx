@@ -115,7 +115,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
   public renderLogicEditor = (): JSX.Element => {
     console.log('****RENDER LOGIC EDITOR****');
-    return <LogicEditor />;
+    return <LogicEditor folder='c' selectedFileName='Kalkuleringsfil.cs'/>;
   }
 
   public render() {
