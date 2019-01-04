@@ -11,7 +11,7 @@ export interface IRadioButtonsContainerProps {
 }
 
 export interface IRadioButtonsContainerState {
-  selected: any;
+  selected: string;
 }
 
 export class RadioButtonContainerComponent
@@ -22,7 +22,7 @@ export class RadioButtonContainerComponent
   constructor(props: IRadioButtonsContainerProps, state: IRadioButtonsContainerState) {
     super(props, state);
     this.state = {
-      selected: '',
+      selected: props.formData ? props.formData : '',
     };
   }
 
@@ -31,33 +31,39 @@ export class RadioButtonContainerComponent
       selected: selectedValue,
     });
     this.props.handleDataChange(selectedValue);
-    console.log('***DATA CHANGED: New value: ' + selectedValue);
-
   }
 
   public render() {
     const { options } = this.props.component;
-    console.log('***RENDER: State: ' + this.state.selected);
+    const optionsLength = (options) ? options.length : 0;
+    const isStacked: boolean = (optionsLength > 2);
     return (
       <div
         className={
-          this.props.isValid ? ((options.length > 2) ? 'form-check' : 'form-check form-check-inline')
-            : 'form-check validation-error'}
+          'form-check a-radioButtons pl-0' +
+          (isStacked ?
+            ' form-check-stacked' :
+            ' form-check-inline'
+          ) +
+          (!this.props.isValid ?
+            ' validation-error' :
+            '')
+        }
         id={this.props.id}
       >
         {options.map((option, index) => (
           <div
-            className='custom-control custom-radio pl-0 a-custom-radio custom-control-stacked'
+            className='custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
             key={index}
             onClick={this.onDataChanged.bind(this, option.value)}
           >
             <input
               type='radio'
-              name={'radio-' + this.props.id}
+              name={'radio-' + this.props.id + '-' + index}
               className='custom-control-input'
               checked={this.state.selected === option.value}
             />
-            <label className='custom-control-label pl-3 a-radioButtons-title'>
+            <label className='custom-control-label pl-3'>
               {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
             </label>
           </div>
