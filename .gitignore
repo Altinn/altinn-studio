@@ -45,6 +45,9 @@ cross/rootfs/
 *.VisualState.xml
 TestResult.xml
 
+#JUNIT
+junit.xml
+
 # Build Results of an ATL Project
 [Dd]ebugPS/
 [Rr]eleasePS/

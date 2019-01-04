@@ -9,6 +9,7 @@ import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
@@ -17,6 +18,8 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
+import { IServiceDevelopmentState } from './reducers/serviceDevelopmentReducer';
+import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -29,6 +32,12 @@ const styles = () => createStyles({
 });
 
 class App extends React.Component<WithStyles<typeof styles>, any> {
+
+  public componentDidMount() {
+    const altinnWindow: Window = window;
+    fetchLanguageDispatcher.fetchLanguage(
+      `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+  }
 
   public handleDrawerToggle = () => {
     NavigationActionDispatcher.toggleDrawer();
@@ -111,4 +120,11 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
   }
 }
 
-export default withStyles(styles)(App);
+const mapStateToProps = (
+  state: IServiceDevelopmentState,
+) => {
+  return {
+  };
+};
+
+export default withStyles(styles)(connect(mapStateToProps)(App));
