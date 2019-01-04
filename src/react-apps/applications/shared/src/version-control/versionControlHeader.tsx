@@ -62,6 +62,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
     get(url).then((result: any) => {
       if (this._isMounted) {
+        this.setState({
+          mergeConflict: result.repositoryStatus === 'MergeConflict',
+        });
         if (callbackFunc) {
           callbackFunc(result);
         } else {
@@ -328,6 +331,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             changesInLocalRepo={this.state.changesInLocalRepo}
             moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
             hasPushRight={this.state.hasPushRight}
+            hasMergeConflict={this.state.mergeConflict}
           />
         </Grid>
         <SyncModalComponent
