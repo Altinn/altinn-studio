@@ -1,10 +1,12 @@
 import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
-import {getTextResource, truncate} from '../../utils/language';
+import { getTextResource, truncate } from '../../utils/language';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
+import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const styles = createStyles({
   inputHelper: {
@@ -184,7 +186,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             formatCreateLabel={this.formatCreateTextLabel}
             noOptionsMessage={this.noOptionsMessage}
           />
-        :
+          :
           <Select
             styles={customInput}
             options={textRecources}
@@ -223,15 +225,15 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             spacing={0}
             direction={'column'}
           >
-          {this.renderSelectTextFromResources('modal_properties_header_helper',
-            this.handleTitleChange, this.props.component.title)}
+            {this.renderSelectTextFromResources('modal_properties_header_helper',
+              this.handleTitleChange, this.props.component.title)}
             <Grid item={true} xs={12}>
               {this.renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
               <Select
                 styles={customInput}
                 defaultValue={this.state.component.size ?
-                    sizes.find((size) => size.value === this.state.component.size ) :
-                    sizes[0]}
+                  sizes.find((size) => size.value === this.state.component.size) :
+                  sizes[0]}
                 onChange={this.handleUpdateHeaderSize}
                 options={sizes}
               />
@@ -254,11 +256,11 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <Grid>
             {this.renderSelectTextFromResources('modal_properties_paragraph_helper',
-            this.handleTitleChange, this.props.component.title, 80, false)}
+              this.handleTitleChange, this.props.component.title, 80, false)}
             {this.renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
             <textarea
               value={getTextResource(this.state.component.title, this.props.textResources)}
-              style={{width: '100%'}}
+              style={{ width: '100%' }}
               rows={4}
               className='form-control'
               onChange={this.handleParagraphChange}
@@ -421,10 +423,39 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
 
+      case 'AdressComponent': {
+        return (
+          <Grid
+            container={true}
+            spacing={0}
+            direction={'column'}
+          >
+            {this.renderSelectDataModelBinding()}
+            <Grid item={true} xs={12}>
+              {this.props.language.ux_editor.modal_configure_adress_component_simplified}
+              <Checkbox checked={this.state.component.simplified} onChange={this.handleToggleAdressSimple} />
+            </Grid>
+          </Grid >
+        );
+      }
+
       default: {
         return null;
       }
     }
+  }
+
+  public handleToggleAdressSimple = (event: object, checked: boolean) => {
+    this.setState({
+      component: {
+        ...this.state.component,
+        simplified: checked,
+      },
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      simplified: checked,
+    });
   }
 
   public renderTextResourceOptions = (): JSX.Element[] => {
