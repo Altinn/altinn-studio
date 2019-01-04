@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -40,6 +40,16 @@ const styles = createStyles({
     [theme.breakpoints.down('md')]: {
       float: 'right',
       marginRight: '10px',
+    },
+  },
+  btn: {
+    'textTransform': 'none',
+    'padding': 0,
+    '&:hover': {
+      backgroundColor: 'transparent !Important',
+    },
+    '&:focus': {
+      backgroundColor: 'transparent !Important',
     },
   },
 });
@@ -90,12 +100,12 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
   public render() {
     const { classes } = this.props;
     return (
-      <div
+      <Button
         onClick={this.shareChangesHandler}
-        className={classNames(classes.color_blueDark, classes.clickable)}
+        className={classNames(classes.color_blueDark, classes.clickable, classes.btn)}
       >
         {this.renderCorrectText()}
-      </div>
+      </Button>
     );
   }
 }
