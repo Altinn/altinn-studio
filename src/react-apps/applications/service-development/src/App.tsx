@@ -26,7 +26,7 @@ const theme = createMuiTheme(altinnTheme);
 const styles = () => createStyles({
   subApp: {
     [theme.breakpoints.up('md')]: {
-      paddingLeft: 100,
+      paddingLeft: 73,
     },
   },
 });

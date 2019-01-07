@@ -1,9 +1,12 @@
 import * as React from 'react';
+import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import uieditorApp from '../../../ux-editor/src/SubApp';
 
 const DummySubApp = (name: any) => {
   return (
-    <div>Dummy app for {name.name}</div>
+    <div>Dummy app for {name.name}
+      <VersionControlHeader language={null} />
+    </div>
   );
 };
 

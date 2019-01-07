@@ -423,6 +423,127 @@ namespace AltinnCore.Common.Services.Implementation
             return organization;
         }
 
+        /// <summary>
+        /// Returns all branch information for a repository
+        /// </summary>
+        /// <param name="owner">The owner</param>
+        /// <param name="repo">The name of the repo</param>
+        /// <returns>The branches</returns>
+        public async Task<List<Branch>> GetBranches(string owner, string repo)
+        {
+            List<Branch> branches = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Branch>));
+            Uri giteaUrl = null;
+            Cookie cookie = null;
+
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            {
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/repos/" + owner + "/" + repo + "/branches");
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            }
+            else
+            {
+                giteaUrl = new Uri(_settings.ApiEndPoint + "/repos/" + owner + "/" + repo + "/branches");
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
+            }
+
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            using (HttpClient client = new HttpClient(handler))
+            {
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    branches = serializer.ReadObject(stream) as List<Branch>;
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    // User is not logged in.
+                    return null;
+                }
+                else
+                {
+                    // Will cause an exception Temporary workaround
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    branches = serializer.ReadObject(stream) as List<Branch>;
+                }
+            }
+
+            return branches;
+        }
+
+        /// <summary>
+        /// Returns all branch information for a repository
+        /// </summary>
+        /// <param name="owner">The owner</param>
+        /// <param name="repo">The name of the repo</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branches</returns>
+        public async Task<Branch> GetBranch(string owner, string repo, string branch)
+        {
+            Branch branchinfo = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
+            Uri giteaUrl = null;
+            Cookie cookie = null;
+
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            {
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/repos/" + owner + "/" + repo + "/branches/" + branch);
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            }
+            else
+            {
+                giteaUrl = new Uri(_settings.ApiEndPoint + "/repos/" + owner + "/" + repo + "/branches/" + branch);
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
+            }
+
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            using (HttpClient client = new HttpClient(handler))
+            {
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    branchinfo = serializer.ReadObject(stream) as Branch;
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden ||
+                response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                {
+                    // User is not logged in.
+                    return null;
+                }
+                else
+                {
+                    // Will cause an exception Temporary workaround
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    branchinfo = serializer.ReadObject(stream) as Branch;
+                }
+            }
+
+            return branchinfo;
+        }
+
         private async Task<Organization> GetCachedOrg(string orgName)
         {
             Organization org = null;
