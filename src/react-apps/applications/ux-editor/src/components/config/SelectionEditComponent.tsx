@@ -25,6 +25,7 @@ const styles = createStyles({
   },
   formControlLabel: {
     fontSize: '1.6rem',
+    paddingRight: '58px',
   },
   radio: {
     color: ' #0095DD' + '!important',
