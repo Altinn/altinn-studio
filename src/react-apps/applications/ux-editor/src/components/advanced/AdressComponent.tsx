@@ -1,6 +1,8 @@
 import update from 'immutability-helper';
 import * as React from 'react';
 
+import '../../styles/AdressComponent.css';
+
 export interface IAdressComponentProps {
   component: IFormComponent;
   formData: any;
@@ -52,41 +54,83 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
 
     if (simplified) {
       return (
-        <div>
-          Adresse
-          <br />
-          <input value={adress} onChange={this.updateField.bind(null, AdressKeys.adress)} />
-          <br />
-          <br />
-          Postnummer
-          <input value={postNumber} onChange={this.updateField.bind(null, AdressKeys.postNumber)} />
-          Poststed
-          <input value={postPlace} onChange={this.updateField.bind(null, AdressKeys.postPlace)} />
-          <br />
+        <div className={'adress-component'}>
+          <label className={'adress-component-label'}>Adresse</label>
+          <input
+            className={'form-control'}
+            value={adress}
+            onChange={this.updateField.bind(null, AdressKeys.adress)}
+          />
+          <div className={'adress-component-postplace-postnumber'}>
+            <div className={'adress-component-postnumber'}>
+              <label className={'adress-component-label'}>Postnummer</label>
+              <input
+                className={'adress-component-small-inputs form-control'}
+                value={postNumber}
+                onChange={this.updateField.bind(null, AdressKeys.postNumber)}
+              />
+            </div>
+            <div className={'adress-component-postplace'}>
+              <label className={'adress-component-label'}>Poststed</label>
+              <input
+                className={'form-control'}
+                value={postPlace}
+                onChange={this.updateField.bind(null, AdressKeys.postPlace)}
+              />
+            </div>
+          </div>
         </div>
       );
     }
     return (
-      <div>
-        Adresse
-        <br />
-        <input value={adress} onChange={this.updateField.bind(null, AdressKeys.adress)} />
-        <br />
-        c/o eller annen tilleggsadresse
-        <br />
-        <input value={careOf} onChange={this.updateField.bind(null, AdressKeys.careOf)} />
-        <br />
-        Postnummer
-        <input value={postNumber} onChange={this.updateField.bind(null, AdressKeys.postNumber)} />
-        Poststed
-        <input value={postPlace} onChange={this.updateField.bind(null, AdressKeys.postPlace)} />
-        <br />
-        Bolignummer
-        <br />
-        Om adressen er felles for flere boenhenter må du oppgi bolignummer.
-        Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.
-        <br />
-        <input value={houseNumber} onChange={this.updateField.bind(null, AdressKeys.houseNumber)} />
+      <div className={'adress-component'}>
+        <label className={'adress-component-label'}>Adresse</label>
+        <input
+          className={'form-control'}
+          value={adress}
+          onChange={this.updateField.bind(null, AdressKeys.adress)}
+        />
+        <label className={'adress-component-label'}>c/o eller annen tilleggsadresse</label>
+        <input
+          className={'form-control'}
+          value={careOf}
+          onChange={this.updateField.bind(null, AdressKeys.careOf)}
+        />
+        <div className={'adress-component-postplace-postnumber'}>
+          <div className={'adress-component-postnumber'}>
+            <label className={'adress-component-label'}>Postnummer</label>
+            <br />
+            <input
+              className={'adress-component-small-inputs form-control'}
+              value={postNumber}
+              onChange={this.updateField.bind(null, AdressKeys.postNumber)}
+            />
+          </div>
+          <div className={'adress-component-postplace'}>
+            <label className={'adress-component-label'}>Poststed</label>
+            <br />
+            <input
+              className={'form-control'}
+              value={postPlace}
+              onChange={this.updateField.bind(null, AdressKeys.postPlace)}
+            />
+          </div>
+        </div>
+        <label className={'adress-component-label'}>
+          Bolignummer
+          <label className={'adress-component-label-smaller'}>
+            <span>&nbsp;</span>(Valgfri)
+          </label>
+        </label>
+        <p>
+          Om adressen er felles for flere boenhenter må du oppgi bolignummer.
+          Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.
+        </p>
+        <input
+          className={'adress-component-small-inputs form-control'}
+          value={houseNumber}
+          onChange={this.updateField.bind(null, AdressKeys.houseNumber)}
+        />
       </div>
     );
   }

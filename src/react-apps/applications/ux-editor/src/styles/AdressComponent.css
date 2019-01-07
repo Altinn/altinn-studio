@@ -1,0 +1,41 @@
+.adress-component {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.adress-component input {
+  max-width: 100%;
+}
+
+.adress-component-postplace-postnumber {
+  display: flex;
+  flex-direction: row;
+  align-content: space-between;
+  align-items: baseline;
+}
+
+.adress-component-postplace {
+  flex-grow: 4;
+  padding-left: 1.5rem;
+  max-width: 300px;
+}
+
+.adress-component-postnumber {
+  flex-grow: 0;
+}
+
+.adress-component-small-inputs {
+  max-width: 90px !important;
+}
+
+.adress-component-label {
+  font-weight: 500;
+  padding-top: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.adress-component-label-smaller {
+  font-weight: 100;
+  font-size: 1.5rem;
+}

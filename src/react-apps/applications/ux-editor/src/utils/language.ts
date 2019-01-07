@@ -54,6 +54,9 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.Paragraph: {
       return language.ux_editor.component_paragraph;
     }
+    case ComponentTypes.AdressComponent: {
+      return language.ux_editor.component_advanced_adress;
+    }
     default: {
       return '';
     }
@@ -67,6 +70,9 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
     }
     case CollapsableMenus.Texts: {
       return language.ux_editor.collapsable_text_components;
+    }
+    case CollapsableMenus.AdvancedComponents: {
+      return language.ux_editor.collapasble_text_advanced_components;
     }
   }
 }

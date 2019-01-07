@@ -149,7 +149,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public render() {
     return (
-      <div>
+      <div className={'col-12'}>
         {this.renderContent()}
         {this.renderNewGroupButton()}
       </div>
