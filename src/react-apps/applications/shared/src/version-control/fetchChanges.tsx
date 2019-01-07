@@ -32,10 +32,7 @@ const styles = createStyles({
     fontWeight: 500,
   },
   clickable: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-    'maxWidth': '250px',
+    maxWidth: '250px',
   },
   btn: {
     'textTransform': 'none',

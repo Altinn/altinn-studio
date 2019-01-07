@@ -33,10 +33,6 @@ const styles = createStyles({
     marginRight: '10px',
   },
   clickable: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-    'maxWidth': '260px',
     [theme.breakpoints.down('md')]: {
       float: 'right',
       marginRight: '10px',
