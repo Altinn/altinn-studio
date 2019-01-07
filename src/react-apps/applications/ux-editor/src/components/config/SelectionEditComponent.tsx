@@ -233,6 +233,7 @@ export class SelectionEditComponent
             <Input
               classes={{ root: this.props.classes.input, focused: this.props.classes.inputFocused }}
               disableUnderline={true}
+              inputProps={{ min: 0 }}
               type={'number'}
               placeholder={(this.props.type === 'checkboxes') ?
                 this.props.language.ux_editor.modal_check_box_preselected_placeholder :
