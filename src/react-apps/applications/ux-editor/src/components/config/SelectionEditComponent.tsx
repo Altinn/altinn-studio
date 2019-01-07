@@ -27,7 +27,7 @@ const styles = createStyles({
     fontSize: '1.6rem',
   },
   radio: {
-    color: altinnTheme.altinnPalette.primary.blue + '!important',
+    color: ' #0095DD' + '!important',
   },
   text: {
     fontSize: '1.6rem',
