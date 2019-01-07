@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/syncModal.tsx --- Snapshot +++ Should match snapshot when anchor element is null 1`] = `null`;
+
+exports[`>>> components/base/syncModal.tsx --- Snapshot +++ Should match snapshot when its more than an hour since last push and there are changes in the repo 1`] = `null`;
