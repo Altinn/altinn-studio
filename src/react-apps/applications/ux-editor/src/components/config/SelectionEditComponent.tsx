@@ -1,4 +1,4 @@
-import { createStyles, FormControlLabel, Grid, IconButton, Input, Radio, RadioGroup, Typography, withStyles } from '@material-ui/core';
+import { createStyles, FormControlLabel, Grid, IconButton, Input, Radio, RadioGroup, Typography, withStyles, TextField } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
@@ -75,7 +75,7 @@ export interface ISelectionEditComponentProvidedProps {
   handleUpdateOptionValue: (index: number, event: any) => void;
   handleRemoveOption: (index: number, event: any) => void;
   handleAddOption: () => void;
-  handlePreselectedOptionChange: (updatedValue: IOptions) => void;
+  handlePreselectedOptionChange: (event: any) => void;
   handleDataModelChange: (selectedDataModelElement: any) => void;
 }
 
@@ -159,13 +159,6 @@ export class SelectionEditComponent
               this.props.language,
               this.props.textResources,
               this.props.component.codeListId, undefined, false, 'codelist')
-            // TODO: Add the codelist-component and make the selection happen there.
-            // How should the different options be connected to the model?
-          }
-          {this.state.radioButtonSelection === 'codelist' &&
-            // TODO: Add codelist-component? If the codelist is cleared we should probably delete old api-connection
-            // How would we know when the component is added? Could we listen for a component update?
-            null
           }
           {this.state.radioButtonSelection === 'manual' &&
             this.props.component.options.map((option, index) => {
@@ -230,22 +223,23 @@ export class SelectionEditComponent
               </button>
             </div>
           }
-
           <Grid item={true}>
-            {renderSelectTextFromResources(
-              (this.props.type === 'radiobuttons') ?
-                'modal_radio_button_set_preselected' :
-                'modal_check_box_set_preselected',
-              this.props.handlePreselectedOptionChange,
-              this.props.component.options,
-              this.props.language,
-              this.props.textResources,
-              this.props.component.preselectedOptionIndex ? this.props.component.preselectedOptionIndex.toString() : null,
-              null,
-              false,
-              'option',
-            )
-            }
+            <Typography classes={{ root: this.props.classes.text }}>
+              {(this.props.type === 'checkboxes') ?
+                this.props.language.ux_editor.modal_check_box_set_preselected :
+                this.props.language.ux_editor.modal_radio_button_set_preselected}
+            </Typography>
+            <Input
+              classes={{ root: this.props.classes.input, focused: this.props.classes.inputFocused }}
+              disableUnderline={true}
+              type={'number'}
+              placeholder={(this.props.type === 'checkboxes') ?
+                this.props.language.ux_editor.modal_check_box_preselected_placeholder :
+                this.props.language.ux_editor.modal_radio_button_preselected_placeholder}
+              fullWidth={true}
+              onChange={this.props.handlePreselectedOptionChange}
+              defaultValue={this.props.component.preselectedOptionIndex}
+            />
           </Grid>
         </Grid>
       </div >

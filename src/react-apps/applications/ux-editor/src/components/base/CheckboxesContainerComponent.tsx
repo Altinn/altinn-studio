@@ -18,9 +18,23 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
 
   constructor(props: ICheckboxContainerProps, state: ICheckboxContainerState) {
     super(props, state);
-    this.state = {
-      selected: this.props.formData ? this.props.formData.split(',') : [],
-    };
+    if (
+      !this.props.formData &&
+      this.props.component.preselectedOptionIndex &&
+      this.props.component.options &&
+      this.props.component.preselectedOptionIndex < this.props.component.options.length
+    ) {
+      const selected: string[] = [];
+      selected[props.component.preselectedOptionIndex] =
+        props.component.options[this.props.component.preselectedOptionIndex].value;
+      this.state = {
+        selected,
+      };
+    } else {
+      this.state = {
+        selected: this.props.formData ? this.props.formData.split(',') : [],
+      };
+    }
   }
 
   public onDataChanged = (selectedValue: any, index: number) => {
@@ -43,14 +57,14 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     return (
       <div
         className={
-          'form-check a-form-checkboxes pl-0 ' +
+          'form-check a-form-checkboxes pl-0' +
           (isStacked ?
             ' form-check-stacked' :
             ' form-check-inline'
           ) +
-          (!this.props.isValid ?
-            ' validation-error' :
-            ''
+          (this.props.isValid ?
+            '' :
+            ' validation-error'
           )
         }
         id={this.props.id}
@@ -65,7 +79,9 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               className='custom-control-input'
               value={option.value}
               name={'checkbox-' + this.props.id + '-' + index}
-              checked={this.state.selected[index] === option.value}
+              checked={
+                this.state.selected[index] === option.value
+              }
             />
             <label className='pl-3 custom-control-label'>{option.label}</label>
           </div>

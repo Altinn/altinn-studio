@@ -156,9 +156,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public handlePreselectedOptionChange = (option: any): void => {
-    const updatedComponent = this.props.component as IFormCheckboxComponent | IFormRadioButtonComponent;
-    updatedComponent.preselectedOptionIndex = option.index;
+  public handlePreselectedOptionChange = (event: any): void => {
+    const updatedComponent = { ...this.props.component as IFormCheckboxComponent | IFormRadioButtonComponent };
+    updatedComponent.preselectedOptionIndex = event.target.value as number;
     this.props.handleComponentUpdate(updatedComponent);
   }
 

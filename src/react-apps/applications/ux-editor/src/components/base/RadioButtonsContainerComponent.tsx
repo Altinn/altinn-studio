@@ -21,9 +21,21 @@ export class RadioButtonContainerComponent
   > {
   constructor(props: IRadioButtonsContainerProps, state: IRadioButtonsContainerState) {
     super(props, state);
-    this.state = {
-      selected: props.formData ? props.formData : '',
-    };
+    if (
+      !this.props.formData &&
+      this.props.component.preselectedOptionIndex &&
+      this.props.component.options &&
+      this.props.component.preselectedOptionIndex < this.props.component.options.length
+    ) {
+      const preselectedValue = this.props.component.options[this.props.component.preselectedOptionIndex].value;
+      this.state = {
+        selected: preselectedValue,
+      };
+    } else {
+      this.state = {
+        selected: this.props.formData ? this.props.formData : '',
+      };
+    }
   }
 
   public onDataChanged = (selectedValue: any) => {
@@ -37,17 +49,21 @@ export class RadioButtonContainerComponent
     const { options } = this.props.component;
     const optionsLength = (options) ? options.length : 0;
     const isStacked: boolean = (optionsLength > 2);
+
     return (
       <div
         className={
-          'form-check a-radioButtons pl-0' +
+          'form-check a-radioButtons pl-0'
+          +
           (isStacked ?
             ' form-check-stacked' :
             ' form-check-inline'
-          ) +
-          (!this.props.isValid ?
-            ' validation-error' :
-            '')
+          )
+          +
+          (this.props.isValid ?
+            '' :
+            ' validation-error'
+          )
         }
         id={this.props.id}
       >
