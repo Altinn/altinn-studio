@@ -166,7 +166,7 @@ declare global {
     XPath: string;
     XsdValueType?: string;
     DisplayString: string;
-    XmlSchemaReference: string;
+    XmlSchemaXPath: string;
     JsonSchemaPointer: string;
   }
 

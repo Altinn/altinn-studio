@@ -492,7 +492,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
         {          
-            elementMetadata.XmlSchemaReference = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
+            elementMetadata.XmlSchemaXPath = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
             elementMetadata.JsonSchemaPointer = "#/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
             string cardinality = "[" + elementMetadata.MinOccurs + ".." + (elementMetadata.MaxOccurs < MaxOccursMagicNumber ? elementMetadata.MaxOccurs.AsString() : "*") + "]";
             string typeName = elementMetadata.TypeName ?? elementMetadata.XsdValueType.AsString();

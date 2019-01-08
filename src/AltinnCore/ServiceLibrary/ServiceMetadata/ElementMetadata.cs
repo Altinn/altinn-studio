@@ -114,7 +114,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     /// <summary>
     /// The reference to the Xml Schema declaration
     /// </summary>
-    public string XmlSchemaReference { get; set; }
+    public string XmlSchemaXPath { get; set; }
 
     /// <summary>
     /// The reference to the Json Schema declaration
