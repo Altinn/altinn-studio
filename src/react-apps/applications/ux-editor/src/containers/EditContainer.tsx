@@ -3,10 +3,13 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import uuid = require('uuid');
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
 import '../styles/index.css';
+import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
 import { getTextResource, truncate } from '../utils/language';
 
 const styles = createStyles({
@@ -86,6 +89,8 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
   dataModel: IDataModelFieldElement[];
   textResources: ITextResource[];
   language: any;
+  components: any;
+  connections: any;
 }
 
 export interface IEditContainerState {
@@ -102,7 +107,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       isEditModalOpen: false,
       isItemActive: false,
       isEditMode: false,
-      component: _props.component,
+      component: {
+        ...this.props.component,
+      },
     };
   }
 
@@ -117,6 +124,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public handleComponentDelete = (e: any): void => {
     FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
+    if (this.props.components[this.props.id].codeListId) {
+      const connectionId =
+        getCodeListConnectionForDatamodelBinding(
+          this.props.components[this.props.id].dataModelBinding,
+          this.props.connections);
+      if (connectionId) {
+        ApiActionDispatchers.delApiConnection(connectionId);
+      }
+    }
     e.stopPropagation();
   }
 
@@ -150,10 +166,72 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
+    this.checkForCodeListConnectionChanges(callbackComponent);
     FormDesignerActionDispatchers.updateFormComponent(
       callbackComponent,
       this.props.id,
     );
+  }
+
+  public checkForCodeListConnectionChanges = (callbackComponent: FormComponentType): void => {
+    const originalComponent: FormComponentType = this.props.components[this.props.id];
+    const codeListId = originalComponent.codeListId;
+    const dataModelBinding = originalComponent.dataModelBinding;
+    const newCodeListId = callbackComponent.codeListId;
+    const newDataModelBinding = callbackComponent.dataModelBinding;
+
+    if (!newCodeListId || !newDataModelBinding) {
+      if (codeListId && dataModelBinding) {
+        // there existed a connection before that should now be removed
+        const oldConnectionId = getCodeListConnectionForDatamodelBinding(dataModelBinding, this.props.connections);
+        if (oldConnectionId) {
+          ApiActionDispatchers.delApiConnection(oldConnectionId);
+        }
+      }
+      return;
+    }
+
+    // Update the relevant connection if something has changed, or create new if it does not exist
+    if (codeListId !== newCodeListId || dataModelBinding !== newDataModelBinding) {
+      const oldConnectionId = getCodeListConnectionForDatamodelBinding(dataModelBinding, this.props.connections);
+      if (newDataModelBinding && newCodeListId) {
+        this.handleSaveApiConnection(callbackComponent, oldConnectionId);
+      }
+    }
+  }
+
+  public handleDeleteApiConnection = (connectionId: string) => {
+    if (!connectionId) {
+      return;
+    }
+    ApiActionDispatchers.delApiConnection(connectionId);
+  }
+
+  public handleSaveApiConnection = (callbackComponent: FormComponentType, connectionId: string) => {
+    if (!callbackComponent.dataModelBinding) {
+      return;
+    }
+    if (!connectionId) {
+      connectionId = uuid();
+    }
+    const newConnection: any = {
+      [connectionId]: {
+        codeListId: callbackComponent.codeListId,
+        apiResponseMapping: {
+          [callbackComponent.dataModelBinding]: {
+            mappingKey: 'codes',
+            // for now we only support a key-value pair, this could be changed in the future
+            valueKey: 'key',
+            labelKey: 'value1',
+          },
+        },
+        clientParams: undefined,
+        metaParams: undefined,
+        externalApiId: undefined,
+
+      },
+    };
+    ApiActionDispatchers.addApiConnection(newConnection);
   }
 
   public handleTitleChange = (e: any): void => {
@@ -184,7 +262,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
                       <EditModalContent
-                        component={this.props.component}
+                        component={this.state.component}
                         language={this.props.language}
                         handleComponentUpdate={this.handleComponentUpdate}
                       />
@@ -265,6 +343,8 @@ const mapsStateToProps = (
     textResources: state.appData.textResources.resources,
     language: state.appData.language.language,
     classes: props.classes,
+    components: state.formDesigner.layout.components,
+    connections: state.serviceConfigurations.APIs.connections,
   };
 };
 

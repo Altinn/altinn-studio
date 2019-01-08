@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match shallow snapshot with subHeader and Publish selection active 1`] = `
+exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match shallow snapshot with subHeader and Publisere selection active 1`] = `
 ShallowWrapper {
   Symbol(enzyme.__root__): [Circular],
   Symbol(enzyme.__unrendered__): <AppBarComponent
-    activeSubHeaderSelection="publish"
+    activeSubHeaderSelection="Publisere"
     classes={
       Object {
         "appBar": "AppBarComponent-appBar-2",
@@ -183,6 +183,7 @@ ShallowWrapper {
                   item={true}
                 >
                   <WithStyles(TabletDrawerMenu)
+                    activeSubHeaderSelection="Publisere"
                     handleTabletDrawerMenu={[Function]}
                     logoutButton={false}
                     tabletDrawerOpen={false}
@@ -423,6 +424,7 @@ ShallowWrapper {
                     item={true}
                   >
                     <WithStyles(TabletDrawerMenu)
+                      activeSubHeaderSelection="Publisere"
                       handleTabletDrawerMenu={[Function]}
                       logoutButton={false}
                       tabletDrawerOpen={false}
@@ -667,6 +669,7 @@ ShallowWrapper {
                     item={true}
                   >
                     <WithStyles(TabletDrawerMenu)
+                      activeSubHeaderSelection="Publisere"
                       handleTabletDrawerMenu={[Function]}
                       logoutButton={false}
                       tabletDrawerOpen={false}
@@ -815,6 +818,7 @@ ShallowWrapper {
                       item={true}
                     >
                       <WithStyles(TabletDrawerMenu)
+                        activeSubHeaderSelection="Publisere"
                         handleTabletDrawerMenu={[Function]}
                         logoutButton={false}
                         tabletDrawerOpen={false}
@@ -1035,6 +1039,7 @@ ShallowWrapper {
                         item={true}
                       >
                         <WithStyles(TabletDrawerMenu)
+                          activeSubHeaderSelection="Publisere"
                           handleTabletDrawerMenu={[Function]}
                           logoutButton={false}
                           tabletDrawerOpen={false}
@@ -1217,6 +1222,7 @@ ShallowWrapper {
                         item={true}
                       >
                         <WithStyles(TabletDrawerMenu)
+                          activeSubHeaderSelection="Publisere"
                           handleTabletDrawerMenu={[Function]}
                           logoutButton={false}
                           tabletDrawerOpen={false}
@@ -1241,6 +1247,7 @@ ShallowWrapper {
                       "nodeType": "class",
                       "props": Object {
                         "children": <WithStyles(TabletDrawerMenu)
+                          activeSubHeaderSelection="Publisere"
                           handleTabletDrawerMenu={[Function]}
                           logoutButton={false}
                           tabletDrawerOpen={false}
@@ -1253,6 +1260,8 @@ ShallowWrapper {
                         "key": undefined,
                         "nodeType": "class",
                         "props": Object {
+                          "activeLeftMenuSelection": undefined,
+                          "activeSubHeaderSelection": "Publisere",
                           "handleTabletDrawerMenu": [Function],
                           "logoutButton": false,
                           "tabletDrawerOpen": false,
@@ -1834,6 +1843,7 @@ ShallowWrapper {
                     item={true}
                   >
                     <WithStyles(TabletDrawerMenu)
+                      activeSubHeaderSelection="Publisere"
                       handleTabletDrawerMenu={[Function]}
                       logoutButton={false}
                       tabletDrawerOpen={false}
@@ -2074,6 +2084,7 @@ ShallowWrapper {
                       item={true}
                     >
                       <WithStyles(TabletDrawerMenu)
+                        activeSubHeaderSelection="Publisere"
                         handleTabletDrawerMenu={[Function]}
                         logoutButton={false}
                         tabletDrawerOpen={false}
@@ -2318,6 +2329,7 @@ ShallowWrapper {
                       item={true}
                     >
                       <WithStyles(TabletDrawerMenu)
+                        activeSubHeaderSelection="Publisere"
                         handleTabletDrawerMenu={[Function]}
                         logoutButton={false}
                         tabletDrawerOpen={false}
@@ -2466,6 +2478,7 @@ ShallowWrapper {
                         item={true}
                       >
                         <WithStyles(TabletDrawerMenu)
+                          activeSubHeaderSelection="Publisere"
                           handleTabletDrawerMenu={[Function]}
                           logoutButton={false}
                           tabletDrawerOpen={false}
@@ -2686,6 +2699,7 @@ ShallowWrapper {
                           item={true}
                         >
                           <WithStyles(TabletDrawerMenu)
+                            activeSubHeaderSelection="Publisere"
                             handleTabletDrawerMenu={[Function]}
                             logoutButton={false}
                             tabletDrawerOpen={false}
@@ -2868,6 +2882,7 @@ ShallowWrapper {
                           item={true}
                         >
                           <WithStyles(TabletDrawerMenu)
+                            activeSubHeaderSelection="Publisere"
                             handleTabletDrawerMenu={[Function]}
                             logoutButton={false}
                             tabletDrawerOpen={false}
@@ -2892,6 +2907,7 @@ ShallowWrapper {
                         "nodeType": "class",
                         "props": Object {
                           "children": <WithStyles(TabletDrawerMenu)
+                            activeSubHeaderSelection="Publisere"
                             handleTabletDrawerMenu={[Function]}
                             logoutButton={false}
                             tabletDrawerOpen={false}
@@ -2904,6 +2920,8 @@ ShallowWrapper {
                           "key": undefined,
                           "nodeType": "class",
                           "props": Object {
+                            "activeLeftMenuSelection": undefined,
+                            "activeSubHeaderSelection": "Publisere",
                             "handleTabletDrawerMenu": [Function],
                             "logoutButton": false,
                             "tabletDrawerOpen": false,
@@ -6017,7 +6035,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
 </div>
 `;
 
-exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with subHeader and Publish selection active 1`] = `
+exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should match snapshot with subHeader and Publisere selection active 1`] = `
 <div
   className="AppBarComponent-root-1"
 >
