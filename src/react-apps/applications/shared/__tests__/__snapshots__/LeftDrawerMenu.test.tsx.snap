@@ -489,7 +489,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               </svg>
             </div>
             <div
-              className="MuiListItemText-root-85 LeftDrawerMenu-activeMenu-10"
+              className="MuiListItemText-root-85"
             >
               <span
                 className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
@@ -905,12 +905,12 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
               </svg>
             </div>
             <div
-              className="MuiListItemText-root-85 LeftDrawerMenu-activeMenu-10"
+              className="MuiListItemText-root-85"
             >
               <span
                 className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
               >
-                test
+                Test
               </span>
             </div>
             <span

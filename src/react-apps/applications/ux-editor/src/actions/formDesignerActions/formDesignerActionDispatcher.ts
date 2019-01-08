@@ -26,6 +26,7 @@ export interface IFormDesignerActionDispatchers
     positionAfterId?: string,
     addToId?: string,
     callback?: (...args: any[]) => any,
+    destinationIndex?: number,
   ) => FormDesignerActions.IAddFormContainerAction;
   addFormContainerFulfilled: (
     container: ICreateFormContainer,
@@ -34,6 +35,7 @@ export interface IFormDesignerActionDispatchers
     addToId?: string,
     baseContainerId?: string,
     callback?: (...args: any[]) => any,
+    destinationIndex?: number,
   ) => FormDesignerActions.IAddFormContainerActionFulfilled;
   addFormContainerRejected: (
     error: Error,
@@ -70,9 +72,12 @@ export interface IFormDesignerActionDispatchers
   deleteFormContainer: (
     id: string,
     index?: number,
+    parentContainerId?: string,
   ) => FormDesignerActions.IDeleteContainerAction;
   deleteFormContainerFulfilled: (
     id: string,
+    index?: number,
+    parentContainerId?: string,
   ) => FormDesignerActions.IDeleteContainerActionFulfilled;
   deleteFormContainerRejected: (
     error: Error,
@@ -138,8 +143,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IToggleFormContainerRepeatAction;
   updateFormComponentOrderAction: (
     id: string,
-    newPosition: number,
-    oldPostion: number,
+    newPositionIndex: number,
     destionationContainerId: string,
     sourceContainerId: string,
   ) => FormDesignerActions.IUpdateFormComponentOrderAction;

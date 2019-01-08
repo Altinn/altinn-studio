@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import ApiActionDispatcher from '../actions/apiActions/apiActionDispatcher';
 import AppConfigActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
@@ -88,17 +89,20 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     const altinnWindow = window as IAltinnWindow;
     const { service } = altinnWindow;
     return (
-      <WorkflowStep header={service}>
-        <div className='row'>
-          <Preview />
-        </div>
-        <div className='row mt-3'>
-          <div className='a-btn-group'>
-            {this.renderSaveButton()}
-            {this.renderSubmitButton()}
+      <>
+        <VersionControlHeader language={this.props.language} />
+        <WorkflowStep header={service}>
+          <div className='row'>
+            <Preview />
           </div>
-        </div>
-      </WorkflowStep>
+          <div className='row mt-3'>
+            <div className='a-btn-group'>
+              {this.renderSaveButton()}
+              {this.renderSubmitButton()}
+            </div>
+          </div>
+        </WorkflowStep>
+      </>
     );
   }
 }

@@ -5,7 +5,6 @@ import List from '@material-ui/core/List';
 import TextField from '@material-ui/core/TextField';
 import classNames = require('classnames');
 import * as React from 'react';
-import { Draggable, Droppable } from 'react-beautiful-dnd';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -17,15 +16,17 @@ import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModa
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
-import { ToolbarItemComponent } from '../components/toolbar/ToolbarItemComponent';
+
+import { ToolbarItem } from './ToolbarItem';
+
 import '../styles/toolBar.css';
 
 const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
-  actionMethod: () => void;
-  componentType?: ComponentTypes;
+  componentType: ComponentTypes;
+  actionMethod: (containerId: string, index: number) => void;
 }
 
 export enum LayoutItemType {
@@ -88,20 +89,21 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return {
       componentType: c.Type,
       label: c.name,
-      actionMethod: () => {
+      actionMethod: (containerId: string, position: number) => {
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
           title: c.name,
           ...JSON.parse(JSON.stringify(customProperties)),
         },
-          null,
+          position,
+          containerId,
         );
       },
     } as IToolbarElement;
   }
 
-  public addContainerToLayout(activeContainer: string) {
+  public addContainerToLayout(containerId: string, index: number) {
     FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
       dataModelGroup: null,
@@ -109,7 +111,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
     } as ICreateFormContainer,
       null,
-      activeContainer,
+      containerId,
+      null,
+      index,
     );
   }
 
@@ -132,6 +136,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       for (const componentName of thirdPartyComponents[packageName]) {
         thirdPartyComponentArray.push({
           label: `${packageName} - ${componentName}`,
+          componentType: null,
           actionMethod: FormDesignerActionDispatchers.addFormComponent({
             component: THIRD_PARTY_COMPONENT,
             title: `${packageName}.${componentName}`,
@@ -169,10 +174,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     this.setState({
       modalOpen: false,
     });
-  }
-
-  public onDragEnd = () => {
-    // Do Nothing
   }
 
   public handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
@@ -262,90 +263,30 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               dense={false}
               id='schema-components'
             >
-              <Droppable droppableId='ITEMS' isDropDisabled={true}>
-                {(provided: any) => (
-                  <div ref={provided.innerRef}>
-                    {this.components.map((component) => {
-                      return (
-                        <Draggable
-                          key={component.componentType}
-                          draggableId={component.componentType.toString()}
-                          index={component.componentType}
-                        >
-                          {
-                            /*tslint:disable-next-line:no-shadowed-variable */
-                            (provided: any) => (
-                              <div
-                                style={''}
-                                id={component.componentType}
-                                key={component.componentType.toString()}
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                              >
-                                <ToolbarItemComponent
-                                  componentType={component.componentType}
-                                  onClick={this.handleComponentInformationOpen}
-                                />
-                              </div>
+              {this.components.map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={component.label}
+                  componentType={component.componentType}
+                  onDropAction={component.actionMethod}
+                  onClick={this.handleComponentInformationOpen}
+                />
+              ))
+              }
 
-                            )}
-                        </Draggable>
-                      );
-                    })}
-
-                    {this.getThirdPartyComponents().map((component, index) => (
-                      <Draggable
-                        key={index}
-                        draggableId={component.label}
-                        index={5}
-                      >
-                        {
-                          /*tslint:disable-next-line:no-shadowed-variable */
-                          (provided: any) => (
-                            <div
-                              style={''}
-                              id={index.toString()}
-                              key={index}
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <ToolbarItemComponent
-                                thirdPartyLabel={component.label}
-                                onClick={this.handleComponentInformationOpen}
-                              />
-                            </div>
-                          )}
-                      </Draggable>
-                    ))}
-
-                    <Draggable
-                      key={'add container'}
-                      draggableId={'container'}
-                      index={7}
-                    >
-                      {
-                        /*tslint:disable-next-line:no-shadowed-variable */
-                        (provided: any) => (
-                          <div
-                            style={''}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                          >
-                            <ToolbarItemComponent
-                              componentType={ComponentTypes.Container}
-                              onClick={this.handleComponentInformationOpen}
-                            />
-                          </div>
-                        )
-                      }
-                    </Draggable>
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
+              {this.getThirdPartyComponents().map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={component.label}
+                  componentType={component.componentType}
+                  onDropAction={this.addThirdPartyComponentToLayout.bind(null, component, component.label)}
+                  onClick={this.handleComponentInformationOpen}
+                />
+              ))}
+              <ToolbarItem
+                text={this.props.language.ux_editor.container}
+                onClick={this.handleComponentInformationOpen}
+                onDropAction={this.addContainerToLayout}
+                componentType={ComponentTypes.Container}
+              />
             </List>
           </Collapse>
           <CollapsableMenuComponent
@@ -363,40 +304,17 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           >
             <List dense={false} id={'schema-texts'}>
-              <Droppable droppableId='ITEMS' isDropDisabled={true}>
-                {(provided: any) => (
-                  <div ref={provided.innerRef}>
-                    {this.textComponents.map((component) => (
-                      <Draggable
-                        key={component.componentType}
-                        draggableId={component.componentType.toString()}
-                        index={component.componentType}
-                      >
-                        {
-                          /*tslint:disable-next-line:no-shadowed-variable */
-                          (provided: any) => (
-                            <div
-                              style={''}
-                              id={component.componentType}
-                              key={component.componentType}
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <ToolbarItemComponent
-                                componentType={component.componentType}
-                                onClick={this.handleComponentInformationOpen}
-                              />
-                            </div>
-                          )}
-                      </Draggable>
-                    ))}
-                  </div>
-                )}
-              </Droppable>
+              {this.textComponents.map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={component.label}
+                  componentType={component.componentType}
+                  onClick={this.handleComponentInformationOpen}
+                  onDropAction={component.actionMethod}
+                />
+              ))}
             </List>
           </Collapse>
-        </List>
+        </List >
 
         <div className='d-block'>
           <ExternalApiModalComponent />

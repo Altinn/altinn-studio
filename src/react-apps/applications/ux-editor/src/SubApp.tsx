@@ -6,13 +6,18 @@ import { run } from './sagas';
 import { store } from './store';
 import './styles/index.css';
 
+let initializedSagas: boolean = false;
+
 export default class SubApp extends React.Component<any, any> {
   public store: any;
 
   constructor(props: any) {
     super(props);
     this.store = store;
-    run();
+    if (!initializedSagas) {
+      run();
+      initializedSagas = true;
+    }
   }
 
   public render() {
