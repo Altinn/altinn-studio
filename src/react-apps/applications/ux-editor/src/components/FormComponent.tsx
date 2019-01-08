@@ -94,7 +94,6 @@ class FormComponent extends React.Component<
   public renderLabel = (): JSX.Element => {
     if (this.props.component.component === 'Header' ||
       this.props.component.component === 'Paragraph' ||
-      this.props.component.component === 'Checkboxes' ||
       this.props.component.component === 'Submit' ||
       this.props.component.component === 'ThirdParty') {
       return null;
@@ -102,7 +101,7 @@ class FormComponent extends React.Component<
 
     if (this.props.component.title) {
       const label: string =
-      this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
+        this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
       return (
         <label className='a-form-label title-label' htmlFor={this.props.id}>
           {label}
@@ -119,8 +118,10 @@ class FormComponent extends React.Component<
 
   public renderDescription = (): JSX.Element => {
     if (this.props.component.description) {
-      const description: string = 
-      this.props.designMode ? this.props.component.description : this.getTextResource(this.props.component.description)
+      const description: string =
+        this.props.designMode ?
+          this.props.component.description :
+          this.getTextResource(this.props.component.description);
       return (
         <span className='a-form-label description-label'>{description}</span>
       );
