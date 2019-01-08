@@ -87,10 +87,17 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
-        /// <inheritdoc/>
-        public void PullRemoteChanges(string org, string repository)
+       /// <summary>
+       /// Pulls remote changes
+       /// </summary>
+       /// <param name="owner">Owner of the repository</param>
+       /// <param name="repository">The repository</param>
+       /// <returns>The repo status</returns>
+        public RepoStatus PullRemoteChanges(string owner, string repository)
         {
-            using (var repo = new Repository(FindLocalRepoLocation(org, repository)))
+            RepoStatus status = new RepoStatus();
+
+            using (var repo = new Repository(FindLocalRepoLocation(owner, repository)))
             {
                 PullOptions pullOptions = new PullOptions()
                 {
@@ -104,11 +111,25 @@ namespace AltinnCore.Common.Services.Implementation
                 pullOptions.FetchOptions.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
-                MergeResult mergeResult = Commands.Pull(
-                    repo,
-                    new Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
-                    pullOptions);
+                try
+                {
+                    MergeResult mergeResult = Commands.Pull(
+                        repo,
+                        new LibGit2Sharp.Signature("my name", "my email", DateTimeOffset.Now), // I dont want to provide these
+                        pullOptions);
+
+                    if (mergeResult.Status == MergeStatus.Conflicts)
+                    {
+                        status.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                    }
+                }
+                catch (LibGit2Sharp.CheckoutConflictException)
+                {
+                    status.RepositoryStatus = Enums.RepositoryStatus.CheckoutConflict;
+                }
             }
+
+            return status;
         }
 
         /// <summary>
@@ -175,17 +196,75 @@ namespace AltinnCore.Common.Services.Implementation
                 Commands.Stage(repo, "*");
 
                 // Create the committer's signature and commit
-                Signature author = new Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                Signature committer = author;
+                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                LibGit2Sharp.Signature committer = author;
 
                 // Commit to the repository
-                Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
 
                 PushOptions options = new PushOptions();
                 options.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
 
                 repo.Network.Push(remote, @"refs/heads/master", options);
+            }
+        }
+
+        /// <summary>
+        /// Push commits to repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repository">The repository</param>
+        public void Push(string owner, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                string remoteUrl = FindRemoteRepoLocation(owner, repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
+                {
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                }
+
+                PushOptions options = new PushOptions();
+                options.CredentialsProvider = (_url, _user, _cred) =>
+                        new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
+
+                repo.Network.Push(remote, @"refs/heads/master", options);
+            }
+        }
+
+        /// <summary>
+        /// Commit changes for repository
+        /// </summary>
+        /// <param name="commitInfo">Information about the commit</param>
+        public void Commit(CommitInfo commitInfo)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
+                {
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                }
+
+                Commands.Stage(repo, "*");
+
+                // Create the committer's signature and commit
+                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                LibGit2Sharp.Signature committer = author;
+
+                // Commit to the repository
+                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
             }
         }
 
@@ -232,6 +311,12 @@ namespace AltinnCore.Common.Services.Implementation
                     RepositoryContent content = new RepositoryContent();
                     content.FilePath = item.FilePath;
                     content.FileStatus = (AltinnCore.Common.Enums.FileStatus)(int)item.State;
+                    if (content.FileStatus == Enums.FileStatus.Conflicted)
+                    {
+                        repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
+                        repoStatus.HasMergeConflict = true;
+                    }
+                     
                     repoStatus.ContentStatus.Add(content);
                 }
 
@@ -244,6 +329,57 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return repoStatus;
+        }
+
+        /// <summary>
+        /// Gets the latest commit for current user
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>The latest commit</returns>
+        public AltinnCore.Common.Models.Commit GetLatestCommitForCurrentUser(string owner, string repository)
+        {
+            List<AltinnCore.Common.Models.Commit> commits = Log(owner, repository);
+            var currentUser = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+
+            return commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
+        }
+
+        /// <summary>
+        /// List commits
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>List of commits</returns>
+        public List<AltinnCore.Common.Models.Commit> Log(string owner, string repository)
+        {
+            List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (var repo = new Repository(localServiceRepoFolder))
+            {
+                foreach (LibGit2Sharp.Commit c in repo.Commits.Take(50))
+                {
+                    Models.Commit commit = new Models.Commit();
+                    commit.Message = c.Message;
+                    commit.MessageShort = c.MessageShort;
+                    commit.Encoding = c.Encoding;
+                    commit.Sha = c.Sha;
+
+                    commit.Author = new Models.Signature();
+                    commit.Author.Email = c.Author.Email;
+                    commit.Author.Name = c.Author.Name;
+                    commit.Author.When = c.Author.When;
+
+                    commit.Commiter = new Models.Signature();
+                    commit.Commiter.Name = c.Committer.Name;
+                    commit.Commiter.Email = c.Committer.Email;
+                    commit.Commiter.When = c.Committer.When;
+
+                    commits.Add(commit);
+                }
+            }
+
+            return commits;
         }
 
         /// <summary>

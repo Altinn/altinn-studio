@@ -14,10 +14,11 @@ export async function get(url: string, options?: any): Promise<any> {
 
 export async function post(
   url: string,
+  data?: string,
   options?: AxiosRequestConfig,
 ): Promise<void> {
   try {
-    await axios.post(url, options ? options : null);
+    await axios.post(url, data ? data : null, options ? options : null);
   } catch (err) {
     throw err;
   }

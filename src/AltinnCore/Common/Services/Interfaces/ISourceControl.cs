@@ -40,7 +40,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">the organisation</param>
         /// <param name="repository">name of the repository</param>
-        void PullRemoteChanges(string org, string repository);
+        /// <returns>The repo status</returns>
+        RepoStatus PullRemoteChanges(string org, string repository);
 
         /// <summary>
         /// Gets the number of commits the local repository is behind the remote
@@ -66,6 +67,22 @@ namespace AltinnCore.Common.Services.Interfaces
         List<RepositoryContent> Status(string org, string repository);
 
         /// <summary>
+        /// List commits
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>List of commits</returns>
+        List<Commit> Log(string owner, string repository);
+
+        /// <summary>
+        /// Gets the latest commit for current user
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>The latest commit</returns>
+        Commit GetLatestCommitForCurrentUser(string owner, string repository);
+        
+        /// <summary>
         /// Gives the full repository status for 
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
@@ -80,5 +97,18 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The name of the local repo</param>
         /// <returns>true if it exists</returns>
         bool IsLocalRepo(string org, string repository);
+
+        /// <summary>
+        /// Push commits to repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repository">The repository</param>
+        void Push(string owner, string repository);
+
+        /// <summary>
+        /// Commit changes for repository
+        /// </summary>
+        /// <param name="commitInfo">Information about the commit</param>
+        void Commit(CommitInfo commitInfo);
   }
 }

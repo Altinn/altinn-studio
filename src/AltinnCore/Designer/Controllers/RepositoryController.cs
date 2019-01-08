@@ -6,7 +6,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -39,6 +39,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="repositorySearch">The search params</param>
         /// <returns>List of repostories that user has access to.</returns>
+        [Authorize]
         [HttpGet]
         public List<Repository> Search(RepositorySearch repositorySearch)
         {
@@ -50,6 +51,7 @@ namespace AltinnCore.Designer.Controllers
         /// List of all organizations a user has access to.
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
+        [Authorize]
         [HttpGet]
         public List<Organization> Organizations()
         {
@@ -63,6 +65,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="id">The organization name</param>
         /// <returns>The organization</returns>
+        [Authorize]
         [HttpGet]
         public ActionResult<Organization> Organization(string id)
         {
@@ -78,14 +81,15 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// This method returns the status of a given repository 
         /// </summary>
-        /// <param name="org">The organization or user owning the repo</param>
+        /// <param name="owner">The organization or user owning the repo</param>
         /// <param name="repository">The repository</param>
         /// <returns>The repository status</returns>
+        [Authorize]
         [HttpGet]
-        public RepoStatus RepoStatus(string org, string repository)
+        public RepoStatus RepoStatus(string owner, string repository)
         {
-            _sourceControl.FetchRemoteChanges(org, repository);
-            return _sourceControl.RepositoryStatus(org, repository);
+            _sourceControl.FetchRemoteChanges(owner, repository);
+            return _sourceControl.RepositoryStatus(owner, repository);
         }
 
         /// <summary>
@@ -93,10 +97,21 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">Name of the repository</param>
+        /// <returns>Repo status</returns>
+        [Authorize]
         [HttpGet]
-        public void PullRepo(string owner, string repository)
+        public RepoStatus Pull(string owner, string repository)
         {
-            _sourceControl.PullRemoteChanges(owner, repository);
+            RepoStatus pullStatus = _sourceControl.PullRemoteChanges(owner, repository);
+
+            RepoStatus status = _sourceControl.RepositoryStatus(owner, repository);
+
+            if (pullStatus.RepositoryStatus != Common.Enums.RepositoryStatus.Ok)
+            {
+                status.RepositoryStatus = pullStatus.RepositoryStatus;
+            }
+
+            return status;
         }
 
         /// <summary>
@@ -104,9 +119,84 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
-        public void CommitAndPushRepo(CommitInfo commitInfo)
+        public void CommitAndPushRepo([FromBody]CommitInfo commitInfo)
         {
             _sourceControl.PushChangesForRepository(commitInfo);
+        }
+
+        /// <summary>
+        /// Commit changes
+        /// </summary>
+        /// <param name="commitInfo">Info about the commit</param>
+        [HttpPost]
+        public void Commit([FromBody]CommitInfo commitInfo)
+        {
+            _sourceControl.Commit(commitInfo);
+        }
+
+        /// <summary>
+        /// Push commits to repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        [Authorize]
+        [HttpPost]
+        public void Push(string owner, string repository)
+        {
+            _sourceControl.Push(owner, repository);
+        }
+
+        /// <summary>
+        /// Push commits to repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        /// <returns>List of commits</returns>
+        [Authorize]
+        [HttpGet]
+        public List<Commit> Log(string owner, string repository)
+        {
+            return _sourceControl.Log(owner, repository);
+        }
+
+        /// <summary>
+        /// Push commits to repo
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        /// <returns>List of commits</returns>
+        [Authorize]
+        [HttpGet]
+        public Commit GetLatestCommitFromCurrentUser(string owner, string repository)
+        {
+            return _sourceControl.GetLatestCommitForCurrentUser(owner, repository);
+        }
+
+        /// <summary>
+        /// List all branches for a repository
+        /// </summary>
+        /// <param name="owner">The owner of the repo</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>List of repos</returns>
+        [Authorize]
+        [HttpGet]
+        public List<Branch> Branches(string owner, string repository)
+        {
+            return _giteaApi.GetBranches(owner, repository).Result;
+        }
+
+        /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        [Authorize]
+        [HttpGet]
+        public Branch Branch(string owner, string repository, string branch)
+        {
+            return _giteaApi.GetBranch(owner, repository, branch).Result;
         }
 
         /// <summary>
