@@ -3,20 +3,21 @@ import * as ActionTypes from '../../formDesignerActionTypes';
 
 export interface IUpdateActiveListAction extends Action {
   listItem: any;
-  containerList: Array<any>;
+  containerList: any;
 }
 export interface IUpdateActiveListActionFulfilled extends Action {
-  containerList: Array<any>;
+  containerList: any;
 }
 export interface IUpdateActiveListActionRejected extends Action {
   error: Error;
 }
 
 export interface IUpdateActiveListOrderAction extends Action {
-  containerList: Array<any>;
+  containerList: any;
+  orderList: any[];
 }
 export interface IUpdateActiveListOrderActionFulfilled extends Action {
-  containerList: Array<any>;
+  containerList: any;
 }
 export interface IUpdateActiveListOrderActionRejected extends Action {
   error: Error;
@@ -34,19 +35,19 @@ export interface IDeleteActiveListActionRejected extends Action {
 
 export function updateActiveListAction(
   listItem: any,
-  containerList: Array<any>,
+  containerList: any,
 ): IUpdateActiveListAction {
   return {
-    type: ActionTypes.UPDATE_CONTAINER_LIST,
+    type: ActionTypes.UPDATE_ACTIVE_LIST,
     listItem,
     containerList,
   };
 }
 export function updateActiveListActionFulfilled(
-  containerList: Array<any>,
+  containerList: any,
 ): IUpdateActiveListActionFulfilled {
   return {
-    type: ActionTypes.UPDATE_CONTAINER_LIST_FULFILLED,
+    type: ActionTypes.UPDATE_ACTIVE_LIST_FULFILLED,
     containerList,
   };
 }
@@ -54,21 +55,23 @@ export function updateActiveListActionRejected(
   error: Error,
 ): IUpdateActiveListActionRejected {
   return {
-    type: ActionTypes.UPDATE_CONTAINER_LIST_REJECTED,
+    type: ActionTypes.UPDATE_ACTIVE_LIST_REJECTED,
     error,
   };
 }
 
 export function updateActiveListOrderAction(
-  containerList: Array<any>,
+  containerList: any,
+  orderList: any[],
 ): IUpdateActiveListOrderAction {
   return {
     containerList,
+    orderList,
     type: ActionTypes.UPDATE_ACTIVE_LIST_ORDER,
   };
 }
 export function updateActiveListOrderActionFulfilled(
-  containerList: Array<any>,
+  containerList: any,
 ): IUpdateActiveListOrderActionFulfilled {
   return {
     type: ActionTypes.UPDATE_ACTIVE_LIST_ORDER_FULFILLED,

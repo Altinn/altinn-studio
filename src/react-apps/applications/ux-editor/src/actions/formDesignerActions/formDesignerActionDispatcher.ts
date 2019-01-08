@@ -113,19 +113,20 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.ISelectLayoutElementActionRejected;
   updateActiveList: (
     listItem: any,
-    containerList: Array<any>,
+    containerList: any,
   ) => FormDesignerActions.IUpdateActiveListAction;
   updateActiveListActionFulfilled: (
-    containerList: Array<any>,
+    containerList: any,
   ) => FormDesignerActions.IUpdateActiveListActionFulfilled;
   updateActiveListActionRejected: (
     error: Error,
   ) => FormDesignerActions.IUpdateActiveListActionRejected;
   updateActiveListOrder: (
-    containerList: Array<any>,
+    containerList: any,
+    orderList: any[],
   ) => FormDesignerActions.IUpdateActiveListOrderAction;
   updateActiveListOrderActionFulfilled: (
-    containerList: Array<any>,
+    containerList: any,
   ) => FormDesignerActions.IUpdateActiveListOrderActionFulfilled;
   updateActiveListOrderActionRejected: (
     error: Error,

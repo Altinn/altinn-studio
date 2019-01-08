@@ -10,7 +10,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   saving: boolean;
   unSavedChanges: boolean;
   activeContainer: string;
-  activeList: Array<any>;
+  activeList: any;
 }
 
 const initialState: IFormLayoutState = {
@@ -241,6 +241,22 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     }
     case FormDesignerActionTypes.DELETE_FORM_CONTAINER_REJECTED: {
       const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_FULFILLED: {
+      const { containerList } = action as FormDesignerActions.IUpdateActiveListActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        activeList: {
+          $set: containerList,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateActiveListActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,

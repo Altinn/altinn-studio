@@ -18,8 +18,13 @@ const styles = createStyles({
 export interface IProvidedProps {
   id: string;
   formData: any;
+  activeList: any[];
   handleDataUpdate: (id: string, dataModelElement: any, value: any) => void;
   classes: any;
+  firstInActiveList: boolean;
+  lastInActiveList: boolean;
+  handler: any;
+  singleSelected: boolean;
 }
 
 /**
@@ -34,8 +39,7 @@ export interface IFormElementProps extends IProvidedProps {
   validationErrors: any[];
   textResources: any[];
   thirdPartyComponents: any;
-  order: Array<any>;
-  activeList: Array<any>;
+  order: any[];
 }
 
 /**
@@ -43,7 +47,7 @@ export interface IFormElementProps extends IProvidedProps {
  */
 export interface IFormElementState {
   component: FormComponentType;
-  activeList: Array<any>;
+  activeList: any[];
 }
 
 /**
@@ -152,11 +156,9 @@ class FormComponent extends React.Component<
     e.stopPropagation();
   }
 
-  public handleActiveListChange = (obj: any, list: Array<any>) => {
+  public handleActiveListChange = (obj: any, list: any) => {
     FormDesignerActionDispatchers.updateActiveList(obj, list);
-    this.setState({
-      activeList: this.props.activeList,
-    });
+    this.props.handler();
   }
 
   /**
@@ -164,7 +166,6 @@ class FormComponent extends React.Component<
    * It is either called from FormFiller or FormDesigner.
    */
   public render(): JSX.Element {
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList);
     if (!this.props.designMode) {
       return (
         <div className='row mt-2'>
@@ -181,16 +182,15 @@ class FormComponent extends React.Component<
     }
     const key: any = Object.keys(this.props.order)[0];
     const order = this.props.order[key].indexOf(this.props.id);
-    const activeListIndex = this.props.activeList.findIndex((listItem) => listItem.id === this.props.id);
-
-    console.log(activeListIndex, order);
     return (
       <EditContainer
         component={this.props.component}
         id={this.props.id}
         order={order}
-        firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
+        firstInActiveList={this.props.firstInActiveList}
+        lastInActiveList={this.props.lastInActiveList}
         handler={this.handleActiveListChange}
+        singleSelected={this.props.singleSelected}
       >
         <div onClick={this.disableEditOnClickForAddedComponent}>
           {this.renderLabel()}
@@ -225,13 +225,17 @@ class FormComponent extends React.Component<
 const makeMapStateToProps = () => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
+    activeList: props.activeList,
     id: props.id,
+    firstInActiveList: props.firstInActiveList,
+    lastInActiveList: props.lastInActiveList,
     formData: props.formData,
     classes: props.classes,
     handleDataUpdate: props.handleDataUpdate,
+    handler: props.handler,
+    singleSelected: props.singleSelected,
     component: state.formDesigner.layout.components[props.id],
     order: GetLayoutOrderSelector(state),
-    activeList: state.formDesigner.layout.activeList,
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
       (element) => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),

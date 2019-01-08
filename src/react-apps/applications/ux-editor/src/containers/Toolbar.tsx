@@ -16,6 +16,7 @@ import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModa
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 import { ToolbarItem } from './ToolbarItem';
 
@@ -48,8 +49,9 @@ export interface IToolbarProps extends IToolbarProvidedProps {
   textResources: ITextResource[];
   thirdPartyComponents: any;
   activeContainer: string;
-  activeList: Array<any>;
+  activeList: any[];
   language: any;
+  order: any[];
 }
 export interface IToolbarState {
   modalOpen: boolean;
@@ -106,8 +108,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public updateActiveListOrder() {
-    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList);
-    console.log(this.props.activeList);
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
   public addContainerToLayout(containerId: string, index: number) {
@@ -385,6 +386,7 @@ const mapsStateToProps = (
   state: IAppState,
   props: IToolbarProvidedProps,
 ): IToolbarProps => {
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   return {
     classes: props.classes,
     dataModel: state.appData.dataModel.model,
@@ -392,6 +394,7 @@ const mapsStateToProps = (
     thirdPartyComponents: state.thirdPartyComponents.components,
     activeContainer: state.formDesigner.layout.activeContainer,
     activeList: state.formDesigner.layout.activeList,
+    order: GetLayoutOrderSelector(state),
     language: state.appData.language.language,
   };
 };

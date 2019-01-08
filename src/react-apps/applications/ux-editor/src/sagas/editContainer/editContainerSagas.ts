@@ -4,17 +4,17 @@ import * as FormDesignerActions from '../../actions/formDesignerActions/actions'
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormDesignerActionTypes from '../../actions/formDesignerActions/formDesignerActionTypes';
 import { addToOrDeleteFromArray, sortArray } from '../../utils/arrayHelpers/arrayLogic';
-import { array } from 'prop-types';
 
 export function* updateActiveListSaga({
   listItem,
   containerList,
 }: FormDesignerActions.IUpdateActiveListAction): SagaIterator {
-  let returnedList = addToOrDeleteFromArray();
-  returnedList = returnedList({ object: listItem, array: containerList });
+  let returnedList = null;
+  containerList.length > 1 ? (returnedList = addToOrDeleteFromArray(),
+  returnedList = returnedList({ object: listItem, array: containerList })) : returnedList = [];
   try {
-    if (returnedList.length > 0) {
-      yield call(FormDesignerActionDispatchers.updateActiveListActionFulfilled, returnedList);
+    if (Array.isArray(returnedList)) {
+      yield call(FormDesignerActionDispatchers.updateActiveListActionFulfilled, [...returnedList]);
     }
   } catch (err) {
     yield call(FormDesignerActionDispatchers.updateActiveListRejected, err);
@@ -23,19 +23,21 @@ export function* updateActiveListSaga({
 
 export function* watchUpdateActiveListSaga(): SagaIterator {
   yield takeLatest(
-    FormDesignerActionTypes.UPDATE_CONTAINER_LIST,
+    FormDesignerActionTypes.UPDATE_ACTIVE_LIST,
     updateActiveListSaga,
   );
 }
 
 export function* updateActiveOrderSaga({
   containerList,
+  orderList,
 }: FormDesignerActions.IUpdateActiveListOrderAction): SagaIterator {
-  let returnedList = sortArray();
-  returnedList = returnedList(containerList);
+  const key: any = Object.keys(orderList)[0];
+  let returnedList = null;
+  containerList.length > 1 ? (returnedList = sortArray(),
+  returnedList = returnedList({array: containerList, order: orderList[key]})) : returnedList = [];
   try {
     if (returnedList.length > 0) {
-      console.log(returnedList);
       yield call(FormDesignerActionDispatchers.updateActiveListOrderActionFulfilled, returnedList);
     }
   } catch (err) {
