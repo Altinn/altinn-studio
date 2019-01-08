@@ -102,7 +102,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       isEditModalOpen: false,
       isItemActive: false,
       isEditMode: false,
-      component: { ... this.props.component },
+      component: { ...this.props.component },
     };
   }
 
