@@ -6,7 +6,6 @@ import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getCodeListIndexByName } from '../../utils/apiConnection';
 import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { customInput } from './EditModalContent';
-import { string } from 'prop-types';
 
 const styles = createStyles({
   formComponentsBtn: {

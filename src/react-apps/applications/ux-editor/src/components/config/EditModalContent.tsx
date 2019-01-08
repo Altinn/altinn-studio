@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { SelectionEdit, ICodeListOption } from './SelectionEditComponent';
+import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {
   control: (base: any) => ({
