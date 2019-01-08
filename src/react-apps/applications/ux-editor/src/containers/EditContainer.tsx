@@ -102,7 +102,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       isEditModalOpen: false,
       isItemActive: false,
       isEditMode: false,
-      component: _props.component,
+      component: { ... this.props.component },
     };
   }
 
@@ -110,7 +110,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.setState((state) => {
       return {
         ...state,
-        component: updatedComponent,
+        component: { ...updatedComponent },
       };
     });
   }
@@ -144,6 +144,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
   public handleDiscard = (): void => {
     this.setState({
+      component: { ...this.props.component },
       isItemActive: false,
       isEditMode: false,
     });
@@ -184,7 +185,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
                       <EditModalContent
-                        component={this.props.component}
+                        component={this.state.component}
                         language={this.props.language}
                         handleComponentUpdate={this.handleComponentUpdate}
                       />
