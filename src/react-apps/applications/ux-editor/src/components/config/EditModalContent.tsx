@@ -150,9 +150,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     return element.Texts.Label;
   }
 
-  public handleCodeListChange = (selectedCodeList: IOptions): void => {
+  public handleCodeListChange = (selectedCodeList: ICodeListListElement): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.codeListId = selectedCodeList ? selectedCodeList.value : undefined;
+    updatedComponent.codeListId = selectedCodeList ? selectedCodeList.codeListName : undefined;
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -180,7 +180,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.textResources,
               this.state.component.title, null, false)}
             <Grid item={true} xs={12}>
               {renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
@@ -207,13 +206,11 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.textResources,
               this.props.component.title)}
             {renderSelectTextFromResources('modal_properties_description_helper',
               this.handleDescriptionChange,
               this.props.textResources,
               this.props.language,
-              this.props.textResources,
               this.props.component.description)}
           </Grid>
         );
@@ -225,7 +222,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.textResources,
               this.props.component.title,
               null,
               false)}

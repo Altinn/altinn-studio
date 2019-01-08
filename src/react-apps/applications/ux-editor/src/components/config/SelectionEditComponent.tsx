@@ -1,8 +1,11 @@
-import { createStyles, FormControlLabel, Grid, IconButton, Input, Radio, RadioGroup, Typography, withStyles, TextField } from '@material-ui/core';
+import { createStyles, FormControlLabel, Grid, IconButton, Input, Radio, RadioGroup, TextField, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import Select from 'react-select';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
-import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import { getCodeListIndexByName } from '../../utils/apiConnection';
+import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import { customInput } from './EditModalContent';
 
 const styles = createStyles({
   inputHelper: {
@@ -58,10 +61,13 @@ const styles = createStyles({
     padding: '12px',
   },
   gridContainer: {
-    paddingBottom: '24px',
+    marginBottom: '2.4rem',
   },
   gridItem: {
-    paddingBottom: '12px',
+    marginBottom: '1.2rem',
+  },
+  gridItemWithTopMargin: {
+    marginTop: '2.4rem',
   },
 });
 
@@ -69,7 +75,7 @@ export interface ISelectionEditComponentProvidedProps {
   classes: any;
   component: IFormCheckboxComponent | IFormRadioButtonComponent;
   type: 'checkboxes' | 'radiobuttons';
-  handleCodeListChanged: (selectedCodeList: IOptions) => void;
+  handleCodeListChanged: (e: any) => void;
   handleTitleChange: (updatedTitle: string) => void;
   handleDescriptionChange: (updatedDescription: string) => void;
   handleUpdateOptionLabel: (index: number, event: any) => void;
@@ -112,6 +118,10 @@ export class SelectionEditComponent
     });
   }
 
+  public getCodeListLabel(codeList: ICodeListListElement): string {
+    return codeList.codeListName + ' (' + codeList.id + ')';
+  }
+
   public render() {
     return (
       <div>
@@ -125,11 +135,10 @@ export class SelectionEditComponent
             this.props.handleTitleChange,
             this.props.textResources,
             this.props.language,
-            this.props.textResources,
             this.props.component.title)}
           {renderSelectTextFromResources('modal_properties_description_helper',
             this.props.handleDescriptionChange, this.props.textResources,
-            this.props.language, this.props.textResources, this.props.component.description)}
+            this.props.language, this.props.component.description)}
           <Typography classes={{ root: this.props.classes.textWithTopPadding }}>
             {(this.props.type === 'radiobuttons') ?
               this.props.language.ux_editor.modal_properties_add_radio_button_options :
@@ -154,12 +163,24 @@ export class SelectionEditComponent
             />
           </RadioGroup>
           {this.state.radioButtonSelection === 'codelist' &&
-            renderSelectTextFromResources('modal_properties_codelist_helper',
-              this.props.handleCodeListChanged,
-              this.props.codeListResources,
-              this.props.language,
-              this.props.textResources,
-              this.props.component.codeListId, undefined, false, 'codelist')
+            <Typography classes={{ root: this.props.classes.text }}>
+              {this.props.language.ux_editor.modal_properties_codelist_helper}
+            </Typography>}
+          {this.state.radioButtonSelection === 'codelist' &&
+            <Select
+              styles={customInput}
+              getOptionLabel={this.getCodeListLabel}
+              options={this.props.codeListResources}
+              defaultValue={
+                this.props.codeListResources[
+                getCodeListIndexByName(this.props.component.codeListId, this.props.codeListResources)
+                ]}
+              isClearable={true}
+              isSearchable={true}
+              onChange={this.props.handleCodeListChanged}
+              noOptionsMessage={noOptionsMessage.bind(this, this.props.language)}
+              placeholder={this.props.language.general.choose}
+            />
           }
           {this.state.radioButtonSelection === 'manual' &&
             this.props.component.options.map((option, index) => {
@@ -224,7 +245,7 @@ export class SelectionEditComponent
               </button>
             </div>
           }
-          <Grid item={true}>
+          <Grid item={true} classes={{ item: this.props.classes.gridItemWithTopMargin }}>
             <Typography classes={{ root: this.props.classes.text }}>
               {(this.props.type === 'checkboxes') ?
                 this.props.language.ux_editor.modal_check_box_set_preselected :
@@ -235,9 +256,7 @@ export class SelectionEditComponent
               disableUnderline={true}
               inputProps={{ min: 0 }}
               type={'number'}
-              placeholder={(this.props.type === 'checkboxes') ?
-                this.props.language.ux_editor.modal_check_box_preselected_placeholder :
-                this.props.language.ux_editor.modal_radio_button_preselected_placeholder}
+              placeholder={this.props.language.ux_editor.modal_selection_set_preselected_placeholder}
               fullWidth={true}
               onChange={this.props.handlePreselectedOptionChange}
               defaultValue={this.props.component.preselectedOptionIndex}

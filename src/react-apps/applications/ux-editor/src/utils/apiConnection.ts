@@ -18,3 +18,15 @@ export function getCodeListConnectionForDatamodelBinding(dataModelId: string, co
   }
   return connectionId;
 }
+
+/*
+  Returns the index of a given code list name, or -1 if not found
+*/
+export function getCodeListIndexByName(name: string, codeLists: ICodeListListElement[]) {
+  for (let i = 0; i < codeLists.length; i++) {
+    if (codeLists[i].codeListName === name) {
+      return i;
+    }
+  }
+  return -1;
+}

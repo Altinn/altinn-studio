@@ -124,6 +124,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public handleComponentDelete = (e: any): void => {
     FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
+    if (this.props.components[this.props.id].codeListId) {
+      const connectionId =
+        getCodeListConnectionForDatamodelBinding(
+          this.props.components[this.props.id].dataModelBinding,
+          this.props.connections);
+      if (connectionId) {
+        ApiActionDispatchers.delApiConnection(connectionId);
+      }
+    }
     e.stopPropagation();
   }
 
