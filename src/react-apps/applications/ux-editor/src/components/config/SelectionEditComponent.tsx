@@ -6,6 +6,7 @@ import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getCodeListIndexByName } from '../../utils/apiConnection';
 import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { customInput } from './EditModalContent';
+import { string } from 'prop-types';
 
 const styles = createStyles({
   formComponentsBtn: {
@@ -89,6 +90,12 @@ export interface ISelectionEditComponentProps extends ISelectionEditComponentPro
 
 export interface ISelectionEditComponentState {
   radioButtonSelection: string;
+  codeListOptions: ICodeListOption[];
+}
+
+export interface ICodeListOption {
+  label: string;
+  value: ICodeListListElement;
 }
 
 export class SelectionEditComponent
@@ -104,7 +111,18 @@ export class SelectionEditComponent
     }
     this.state = {
       radioButtonSelection,
+      codeListOptions: this.getCodeListOptionArray(),
     };
+  }
+
+  public getCodeListOptionArray(): ICodeListOption[] {
+    const options: any[] = [];
+    if (this.props.codeListResources) {
+      this.props.codeListResources.forEach((codeList) => {
+        options.push({ label: codeList.codeListName, value: codeList });
+      });
+    }
+    return options;
   }
 
   public handleRadioButtonChange = (event: any, value: string) => {
@@ -164,12 +182,10 @@ export class SelectionEditComponent
           {this.state.radioButtonSelection === 'codelist' &&
             <Select
               styles={customInput}
-              getOptionLabel={this.getCodeListLabel}
-              options={this.props.codeListResources}
-              defaultValue={
-                this.props.codeListResources[
+              options={this.state.codeListOptions}
+              defaultValue={this.state.codeListOptions[
                 getCodeListIndexByName(this.props.component.codeListId, this.props.codeListResources)
-                ]}
+              ]}
               isClearable={true}
               isSearchable={true}
               onChange={this.props.handleCodeListChanged}

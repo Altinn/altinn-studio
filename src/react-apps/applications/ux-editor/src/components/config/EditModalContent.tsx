@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { SelectionEdit } from './SelectionEditComponent';
+import { SelectionEdit, ICodeListOption } from './SelectionEditComponent';
 
 export const customInput = {
   control: (base: any) => ({
@@ -150,9 +150,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     return element.Texts.Label;
   }
 
-  public handleCodeListChange = (selectedCodeList: ICodeListListElement): void => {
+  public handleCodeListChange = (option: ICodeListOption): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.codeListId = selectedCodeList ? selectedCodeList.codeListName : undefined;
+    updatedComponent.codeListId = option ? option.value.codeListName : undefined;
     this.props.handleComponentUpdate(updatedComponent);
   }
 
