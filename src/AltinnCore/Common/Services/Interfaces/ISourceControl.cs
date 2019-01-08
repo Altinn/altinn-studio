@@ -112,14 +112,15 @@ namespace AltinnCore.Common.Services.Interfaces
         void Commit(CommitInfo commitInfo);
 
         /// <summary>
-        /// Resets the commit for the given commit sha
+        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         void ResetCommit(string owner, string repository);
 
         /// <summary>
-        /// Resets the commit for the specified file and updates the file to origin version
+        /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
+        /// by checking out the specific file
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
