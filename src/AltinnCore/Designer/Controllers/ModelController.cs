@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
@@ -56,9 +57,9 @@ namespace AltinnCore.Designer.Controllers
             var secondaryXsds = new Dictionary<string, XDocument>();
 
             string mainFileName = ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
-            using (var reader = new StreamReader(thefile.OpenReadStream()))
+            using (var reader = XmlReader.Create(thefile.OpenReadStream()))
             {
-                mainXsd = XDocument.Parse(reader.ReadToEnd());
+                mainXsd = XDocument.Load(reader);
             }
 
             secondaryXsds.Clear();
@@ -66,9 +67,9 @@ namespace AltinnCore.Designer.Controllers
             foreach (IFormFile file in secondaryFiles)
             {
                 string filename = ContentDispositionHeaderValue.Parse(new StringSegment(file.ContentDisposition)).FileName.ToString();
-                using (var reader = new StreamReader(file.OpenReadStream()))
+                using (var reader = XmlReader.Create(file.OpenReadStream()))
                 {
-                    secondaryXsds.Add(filename, XDocument.Parse(reader.ReadToEnd()));
+                    secondaryXsds.Add(filename, XDocument.Load(reader));
                 }
             }
 
@@ -96,7 +97,7 @@ namespace AltinnCore.Designer.Controllers
         public ActionResult GetJson(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
         {
             ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
-            return Json(metadata, new JsonSerializerSettings() { Formatting = Formatting.Indented });
+            return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
         }
 
         /// <summary>
