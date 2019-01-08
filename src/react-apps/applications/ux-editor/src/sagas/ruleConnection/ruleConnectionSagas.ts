@@ -2,6 +2,7 @@ import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import ErrorActionDispatchers from '../../actions/errorActions/errorActionDispatcher';
 import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
+import manageServiceConfigurationActionDispatcher from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import * as RuleConnetionActions from '../../actions/ruleConnectionActions/actions';
 import RuleConnectionActionDispatchers from '../../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import * as RuleConnectionActionTypes from '../../actions/ruleConnectionActions/ruleConnectionActionTypes';
@@ -9,6 +10,7 @@ import { IAppDataState } from '../../reducers/appDataReducer';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IRuleConnectionState } from '../../reducers/ruleConnectionReducer';
+import { getSaveServiceConfigurationUrl } from '../../utils/urlHelper';
 
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
@@ -18,6 +20,7 @@ const selectAppData = (state: IAppState): IAppDataState => state.appData;
 function* addRuleConnectionSaga({ newConnection }: RuleConnetionActions.IAddRuleConnection): SagaIterator {
   try {
     yield call(RuleConnectionActionDispatchers.addRuleConnectionFulfilled, newConnection);
+    yield call(manageServiceConfigurationActionDispatcher.saveJsonFile, getSaveServiceConfigurationUrl());
   } catch (err) {
     yield call(RuleConnectionActionDispatchers.addRuleConnectionRejected, err);
   }
@@ -48,6 +51,7 @@ function* delRuleConnectionSaga({ connectionId }: RuleConnetionActions.IDelRuleC
     }, {});
 
     yield call(RuleConnectionActionDispatchers.delRuleConnectionFulfilled, newConnectionObj);
+    yield call(manageServiceConfigurationActionDispatcher.saveJsonFile, getSaveServiceConfigurationUrl());
   } catch (err) {
     yield call(RuleConnectionActionDispatchers.delRuleConnectionRejected, err);
   }

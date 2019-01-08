@@ -1,0 +1,42 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace AltinnCore.Common.Models
+{
+    /// <summary>
+    /// Describes a 
+    /// </summary>
+    public class Commit
+    {
+        /// <summary>
+        /// The commit message
+        /// </summary>
+        public string Message { get; set; }
+
+        /// <summary>
+        /// The author
+        /// </summary>
+        public Signature Author { get; set; }
+
+        /// <summary>
+        /// The comitter
+        /// </summary>
+        public Signature Commiter { get; set; }
+
+        /// <summary>
+        /// The Sha
+        /// </summary>
+        public string Sha { get; set; }
+
+        /// <summary>
+        /// Short Message
+        /// </summary>
+        public string MessageShort { get; internal set; }
+
+        /// <summary>
+        /// Encoding of Commit
+        /// </summary>
+        public string Encoding { get; internal set; }
+    }
+}

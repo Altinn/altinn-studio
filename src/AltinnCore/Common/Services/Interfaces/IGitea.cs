@@ -39,9 +39,19 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Create app token
         /// </summary>
-        /// <param name="name">app token name</param>
+        /// <param name="tokenName">app token name</param>
+        /// <param name="userName">The userName of the user that need a token</param>
+        /// <param name="password">The password for the user that need a token</param>
         /// <returns>null</returns>
-        Task<string> CreateAppToken(string name);
+        Task<string> CreateAppToken(string tokenName, string userName, string password);
+
+        /// <summary>
+        /// List app tokens for a user. Warning there is talks about removing this.
+        /// </summary>
+        /// <param name="userName">The user name</param>
+        /// <param name="password">The password</param>
+        /// <returns>The sha1 value</returns>
+        Task<List<AltinnCore.RepositoryClient.Model.AccessToken>> ListAccessTokens(string userName, string password);
 
         /// <summary>
         /// Returns organization that user has access to
@@ -56,5 +66,22 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="name">The name of the organization</param>
         /// <returns>The organization</returns>
         Task<Organization> GetOrganization(string name);
-  }
+
+        /// <summary>
+        /// List all branches with commit for a repo
+        /// </summary>
+        /// <param name="owner">The owner of the</param>
+        /// <param name="repo">The name of the repo</param>
+        /// <returns>The repoList</returns>
+        Task<List<Branch>> GetBranches(string owner, string repo);
+
+        /// <summary>
+        /// Returns information about a given branch
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="branch">Name of branch</param>
+        /// <returns>The branch info</returns>
+        Task<Branch> GetBranch(string owner, string repository, string branch);
+    }
 }
