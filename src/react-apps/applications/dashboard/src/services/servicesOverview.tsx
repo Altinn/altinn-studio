@@ -11,6 +11,7 @@ import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
 import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { ServicesCategory } from './servicesCategory';
+import { NewServiceModal } from './newServiceModal';
 
 export interface IServicesOverviewComponentProvidedProps {
   classes: any;
@@ -195,10 +196,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             xs={12}
             className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
           >
-            <AltinnIconButton
-              btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
-              iconClass='ai ai-circle-plus'
-            />
+            <NewServiceModal />
           </Grid>
         </Grid>
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>

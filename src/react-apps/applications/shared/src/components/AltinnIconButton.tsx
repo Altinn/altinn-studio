@@ -14,6 +14,7 @@ export interface IAltinnIconButtonCompontentProvidedProps {
 
 export interface IAltinnIconButtonComponentState {
 }
+
 const theme = createMuiTheme(altinnTheme);
 
 const styles = {
@@ -51,7 +52,7 @@ class AltinnIconButton extends React.Component<IAltinnIconButtonCompontentProvid
   public render() {
     const { classes } = this.props;
     return (
-      <Button variant='contained' className={classes.dottedBtn} >
+      <Button variant='contained' className={classes.dottedBtn} onClick={this.props.onclickFunction}>
         <i className={classNames(this.props.iconClass, classes.dottedBtnIcon)} />
         {this.props.btnText}
       </Button>
