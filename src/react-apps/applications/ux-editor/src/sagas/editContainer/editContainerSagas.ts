@@ -9,9 +9,8 @@ export function* updateActiveListSaga({
   listItem,
   containerList,
 }: FormDesignerActions.IUpdateActiveListAction): SagaIterator {
-  let returnedList = null;
-  containerList.length > 1 ? (returnedList = addToOrDeleteFromArray(),
-  returnedList = returnedList({ object: listItem, array: containerList })) : returnedList = [];
+  let returnedList = addToOrDeleteFromArray();
+  returnedList = returnedList({ object: listItem, array: containerList });
   try {
     if (Array.isArray(returnedList)) {
       yield call(FormDesignerActionDispatchers.updateActiveListActionFulfilled, [...returnedList]);
@@ -34,7 +33,7 @@ export function* updateActiveOrderSaga({
 }: FormDesignerActions.IUpdateActiveListOrderAction): SagaIterator {
   const key: any = Object.keys(orderList)[0];
   let returnedList = null;
-  containerList.length > 1 ? (returnedList = sortArray(),
+  containerList.length >= 1 ? (returnedList = sortArray(),
   returnedList = returnedList({array: containerList, order: orderList[key]})) : returnedList = [];
   try {
     if (returnedList.length > 0) {

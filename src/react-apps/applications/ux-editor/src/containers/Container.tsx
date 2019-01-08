@@ -257,9 +257,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
-  public handleActiveListChange = () => {
+  public handleActiveListChange = (list: any[]) => {
     this.setState({
-      activeList: this.props.activeList,
+      activeList: list,
     });
   }
 

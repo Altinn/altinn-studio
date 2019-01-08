@@ -13,28 +13,28 @@ import { getTextResource, truncate } from '../utils/language';
 const styles = createStyles({
   active: {
     backgroundColor: '#fff',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
-    padding: '10px 12px 14px 12px',
+    boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
+    padding: '1rem 1.2rem 1.4rem 1.2rem',
     marginBottom: '1.2rem',
   },
   activeWrapper: {
-    padding: '10px 12px 20px 12px',
+    padding: '1.0rem 1.2rem 2rem 1.2rem',
   },
   caption: {
     position: 'absolute',
-    right: '12px',
-    top: '6px',
+    right: '1.2rem',
+    top: '0.6rem',
     fontSize: '1.2rem',
   },
   formComponent: {
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
-    border: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+    border: '1.5rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     color: altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
-    padding: '10px 12px 14px 12px',
+    padding: '1rem 1.2rem 1.4rem 1.2rem',
     marginBottom: '1.2rem',
     '&:hover': {
       backgroundColor: '#fff',
-      boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
+      boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
     },
   },
   formComponentsBtn: {
@@ -52,32 +52,32 @@ const styles = createStyles({
   gridForBtn: {
     marginTop: '-0.2rem !important',
     visibility: 'hidden',
-    paddingBottom: '8px',
-    marginLeft: '2px',
+    paddingBottom: '0.8rem',
+    marginLeft: '0.2rem',
   },
   gridForBtnActive: {
     marginTop: '-0.2rem !important',
     visibility: 'visible',
-    paddingBottom: '8px',
-    marginLeft: '2px',
+    paddingBottom: '0.8rem',
+    marginLeft: '0.2rem',
   },
   inputHelper: {
-    marginTop: '1em',
+    marginTop: '1rem',
     fontSize: '1.6rem',
     lineHeight: '3.2rem',
   },
   listBorder: {
     padding: '1.1rem 1.2rem 0 1.2rem',
     marginTop: '0.1rem',
-    borderLeft: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
-    borderRight: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+    borderLeft: '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
+    borderRight: '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     '&.first': {
       paddingTop: '1.2rem',
-      borderTop: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+      borderTop: '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     },
     '&.last': {
       paddingBottom: '1.2rem',
-      borderBottom: '1.5px dotted ' + altinnTheme.altinnPalette.primary.grey,
+      borderBottom: '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
       marginBottom: '1.2rem',
     },
     '& $active': {
@@ -86,7 +86,7 @@ const styles = createStyles({
   },
   specialBtn: {
     fontSize: '0.6em !important',
-    paddingLeft: '4px',
+    paddingLeft: '0.4rem',
   },
   textPrimaryDark: {
     color: altinnTheme.altinnPalette.primary.blueDarker + '!important',
@@ -130,7 +130,6 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
 export interface IEditContainerState {
   component: IFormComponent;
   isEditModalOpen: boolean;
-  hasActiveClass: boolean;
   isEditMode: boolean;
   hideDelete: boolean;
   hideEdit: boolean;
@@ -144,7 +143,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state = {
       isEditModalOpen: false,
       isEditMode: false,
-      hasActiveClass: false,
       hideDelete: false,
       hideEdit: false,
       component: _props.component,
@@ -173,7 +171,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         FormDesignerActionDispatchers.deleteFormComponent(component.id);
       });
       FormDesignerActionDispatchers.deleteActiveListAction();
-      console.log(this.props.activeList);
     } else {
       FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
     }
@@ -190,7 +187,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     if (!this.state.isEditMode) {
       this.props.handler(this.state.listItem, this.state.activeList);
       this.setState({
-        hasActiveClass: !this.state.hasActiveClass,
         listItem: this.state.listItem,
         hideDelete: false,
       });
@@ -229,11 +225,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public setPlacementClass = (index: number) => {
-    if (this.state.activeList[index].firstInActiveList && this.state.activeList[index].lastInActiveList) {
+    const first = this.props.activeList[index].firstInActiveList;
+    const last = this.props.activeList[index].lastInActiveList;
+    if (first && last) {
       return 'first last';
-    } else if (this.state.activeList[index].firstInActiveList && !this.state.activeList[index].lastInActiveList) {
+    } else if (first && !last) {
       return 'first';
-    } else if (!this.state.activeList[index].firstInActiveList && this.state.activeList[index].lastInActiveList) {
+    } else if (!first && last) {
       return 'last';
     } else {
       return '';
@@ -258,7 +256,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   this.props.classes.listBorder + ' ' + this.setPlacementClass(activeListIndex) : 'undefined'}
               >
                 <ListItem
-                  className={this.state.hasActiveClass ? this.props.classes.active : this.props.classes.formComponent}
+                  className={activeListIndex > -1 ? this.props.classes.active : this.props.classes.formComponent}
                   onClick={this.handleSetActive}
                 >
                   {this.state.isEditMode ?
@@ -314,11 +312,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               </Grid>
               </Grid>}
             {this.state.isEditMode &&
+              <Grid item={true} xs={1}>
               <Grid
-                xs={true}
-                item={true}
+                container={true}
+                direction={'row'}
                 className={this.props.classes.gridForBtn}
               >
+              <Grid item={true} xs={12}>
                 <IconButton
                   type='button'
                   className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
@@ -326,6 +326,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 >
                   <i className='ai ai-circlecancel' />
                 </IconButton>
+                </Grid>
+                <Grid item={true} xs={12}>
                 <IconButton
                   type='button'
                   className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
@@ -333,7 +335,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 >
                   <i className='ai ai-circlecheck' />
                 </IconButton>
-              </Grid>}
+                </Grid>
+              </Grid>
+            </Grid>}
           </Grid>
         </Grid>
       </>

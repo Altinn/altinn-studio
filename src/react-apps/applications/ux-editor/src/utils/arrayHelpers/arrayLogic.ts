@@ -9,8 +9,9 @@ const pushOrPop = (obj: any) => {
     const index = obj.array.indexOf(tempObj);
     obj.array.splice(index, 1);
   }
-  markFirstAndLastObject(obj.array);
-  findMissing(obj.array);
+  if (obj.array.length > 0) {
+    markFirstAndLastObject(obj.array);
+  }
   const cloneOfObj = JSON.parse(JSON.stringify(obj));
   return cloneOfObj;
 };
@@ -21,9 +22,8 @@ const changeOrderNum = (obj: any) => {
       component.order = obj.order.indexOf(component.id);
     }
   });
-  const clone = obj.array.map((a: any) => Object.assign({}, a));
-  obj.array = clone;
-  return obj;
+  const cloneOfObj = JSON.parse(JSON.stringify(obj));
+  return cloneOfObj;
 };
 
 const compareOrderNum = (a: any, b: any) => {
@@ -60,7 +60,10 @@ const findMissing = (a: any[]) => {
 
 const markFirstAndLastObject = (array: any[]) => {
   for (let i = 0; i <= array.length - 1; i++) {
-    if (i === 0) {
+    if (i === 0 && array.length === 1) {
+      array[i].firstInActiveList = true;
+      array[i].lastInActiveList = true;
+    } else if (i === 0 && array.length > 1) {
       array[i].firstInActiveList = true;
       array[i].lastInActiveList = false;
     } else if (i === array.length - 1) {
@@ -71,7 +74,8 @@ const markFirstAndLastObject = (array: any[]) => {
       array[i].lastInActiveList = false;
     }
   }
-  return array;
+  const sorted = findMissing(array);
+  return sorted;
 };
 
 const getArray = () => {
