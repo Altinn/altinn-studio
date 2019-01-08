@@ -31,7 +31,7 @@ const styles = createStyles({
   },
   formComponent: {
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
-    border: '1.5rem dotted ' + altinnTheme.altinnPalette.primary.grey,
+    border: '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     color: altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
     padding: '1rem 1.2rem 1.4rem 1.2rem',
     marginBottom: '1.2rem',
@@ -179,6 +179,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       FormDesignerActionDispatchers.deleteActiveListAction();
     } else {
       FormDesignerActionDispatchers.deleteFormComponent(this.props.id);
+    }
+    if (this.props.components[this.props.id].codeListId) {
+      const connectionId =
+        getCodeListConnectionForDatamodelBinding(
+          this.props.components[this.props.id].dataModelBinding,
+          this.props.connections);
+      if (connectionId) {
+        ApiActionDispatchers.delApiConnection(connectionId);
+      }
     }
     e.stopPropagation();
   }
