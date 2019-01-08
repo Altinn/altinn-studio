@@ -498,5 +498,40 @@ namespace AltinnCore.Common.Services.Implementation
                 return $"{_settings.RepositoryBaseURL}{org}/{repository}.git";
             }
         }
+
+        /// <summary>
+        /// Resets the commit and updates the working tree to the origin version
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        public void ResetCommit(string owner, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                repo.Reset(ResetMode.Hard, "origin/master");
+                repo.RemoveUntrackedFiles();               
+            }
+        }
+
+        /// <summary>
+        /// Resets the commit for the specified file and updates the file to origin version
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="fileName">the name of the file</param>
+        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                CheckoutOptions checkoutOptions = new CheckoutOptions
+                {
+                    CheckoutModifiers = CheckoutModifiers.Force,
+                };
+
+                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
+            }
+        }
     }
 }

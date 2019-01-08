@@ -224,5 +224,30 @@ namespace AltinnCore.Designer.Controllers
                 return NotFound();
             }
         }
+
+        /// <summary>
+        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        [Authorize]
+        [HttpGet]
+        public void DiscardLocalChanges(string owner, string repository)
+        {
+            _sourceControl.ResetCommit(owner, repository);
+        }
+
+        /// <summary>
+        /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="fileName">the name of the file</param>
+        [Authorize]
+        [HttpGet]
+        public void DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
+        {
+            _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+        }
     }
 }

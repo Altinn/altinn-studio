@@ -110,5 +110,20 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
         void Commit(CommitInfo commitInfo);
-  }
+
+        /// <summary>
+        /// Resets the commit for the given commit sha
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        void ResetCommit(string owner, string repository);
+
+        /// <summary>
+        /// Resets the commit for the specified file and updates the file to origin version
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="fileName">the name of the file</param>
+        void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
+    }
 }
