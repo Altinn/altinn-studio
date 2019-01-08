@@ -119,7 +119,9 @@ class FormComponent extends React.Component<
   public renderDescription = (): JSX.Element => {
     if (this.props.component.description) {
       const description: string =
-        this.props.designMode ? this.props.component.description : this.getTextResource(this.props.component.description)
+        this.props.designMode ?
+          this.props.component.description :
+          this.getTextResource(this.props.component.description)
       return (
         <span className='a-form-label description-label'>{description}</span>
       );

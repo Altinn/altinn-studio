@@ -56,7 +56,7 @@ export function renderSelectTextFromResources(
 ): JSX.Element {
   const resources: any = [];
   if (textResources) {
-    textResources.map((textResource: any) => {
+    textResources.forEach((textResource: any) => {
       const option = truncate(textResource.value, truncateLimit);
       resources.push({ value: textResource.id, label: option.concat('\n(', textResource.id, ')') });
     });
