@@ -119,7 +119,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     /// <summary>
     /// The reference to the Json Schema declaration
     /// </summary>
-    public string JsonSchemaReference { get; set; }
+    public string JsonSchemaPointer { get; set; }
 
     /// <summary>
     /// Used to display the property in a view. Contains name, cardinality and type
