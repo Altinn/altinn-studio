@@ -8,11 +8,6 @@ import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromRes
 import { customInput } from './EditModalContent';
 
 const styles = createStyles({
-  inputHelper: {
-    marginTop: '1em',
-    fontSize: '1.6rem',
-    lineHeight: '3.2rem',
-  },
   formComponentsBtn: {
     'fontSize': '0.85em',
     'fill': altinnTheme.altinnPalette.primary.blueDarker,
@@ -28,7 +23,7 @@ const styles = createStyles({
   },
   formControlLabel: {
     fontSize: '1.6rem',
-    paddingRight: '58px',
+    paddingRight: '5.8rem',
   },
   radio: {
     color: ' #0095DD' + '!important',
@@ -38,7 +33,7 @@ const styles = createStyles({
   },
   textWithTopPadding: {
     fontSize: '1.6rem',
-    paddingTop: '24px',
+    paddingTop: '2.6rem',
   },
   textBold: {
     fontSize: '1.6rem',
@@ -46,19 +41,19 @@ const styles = createStyles({
   },
   input: {
     fontSize: '1.6rem',
-    border: '1px solid #BCC7CC',
-    paddingLeft: '8px',
+    border: '0.1rem solid #BCC7CC',
+    paddingLeft: '0.8rem',
   },
   inputFocused: {
     borderColor: '#2684FF',
-    boxShadow: '0 0 0 1px #2684FF',
+    boxShadow: '0 0 0 0.1rem #2684FF',
     borderRadius: '0 !important',
     borderStyle: 'solid',
-    borderWidth: '1px',
+    borderWidth: '0.1rem',
   },
   gridContentWrapper: {
-    border: '1px solid #BCC7CC',
-    padding: '12px',
+    border: '0.1rem solid #BCC7CC',
+    padding: '1.2rem',
   },
   gridContainer: {
     marginBottom: '2.4rem',
