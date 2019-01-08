@@ -640,7 +640,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
 
                 resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(new StringFormat("date", JsonSchemaVersion.All, null));
+                resultSchema.Format(StringFormat.GetFormat("date"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
             {
@@ -660,7 +660,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
 
                 resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(new StringFormat("year", JsonSchemaVersion.All, null));
+                resultSchema.Format(StringFormat.GetFormat("year"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
             {
@@ -670,7 +670,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
 
                 resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(new StringFormat("year-month", JsonSchemaVersion.All, null));
+                resultSchema.Format(StringFormat.GetFormat("year-month"));
             }
             else
             {
