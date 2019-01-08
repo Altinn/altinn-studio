@@ -54,7 +54,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
                 else if (enumerator.Current is XmlSchemaGroup)
                 {
-//                    ParseRootGroup((XmlSchemaGroup)enumerator.Current);
+// ParseRootGroup((XmlSchemaGroup)enumerator.Current);
                 }
                 else if (enumerator.Current is XmlSchemaSimpleType)
                 {
@@ -133,11 +133,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (!item.IsNillable)
             {
-                //ToDo
+                // ToDo
             }
 
-            //if (item.MinOccursString != null) {} //MinOccurs is handled elsewhere (search for .Required )
-
+            // if (item.MinOccursString != null) {} //MinOccurs is handled elsewhere (search for .Required )
             if (item.MaxOccursString != null)
             {
                 int d = 0;
@@ -151,12 +150,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.SchemaType != null)
             {
-                //definitionName = item.Name;
+                // definitionName = item.Name;
                 if (item.SchemaType is XmlSchemaComplexType)
                 {
                     XmlSchemaComplexType complexType = (XmlSchemaComplexType)item.SchemaType;
                     string anonymousName = ObjectNameOrAnonymous(item);
                     AddType(item.SchemaType, definitionSchema);
+
                     // AddNamedComplexType(mainJsonSchema, complexType, anonymousName);
                     // anonymousTypes.Add(anonymousName);
                 }
@@ -170,6 +170,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 AddType(item, definitionSchema);
             }
+
             /*
             if (isTopLevelElement)
             {*/
@@ -323,7 +324,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new NotImplementedException();
             }
 
-            //throw new NotImplementedException();
+            // throw new NotImplementedException();
             int d = 0;
         }
 
@@ -384,6 +385,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         int d = 0;
                     }
+
                     propertySchema.Type(JsonSchemaTypeFromString(attribute.SchemaTypeName.Name));
                 }
 
@@ -440,6 +442,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     AddType(choiceItem, oneOfSchema);
                     oneOfSchemaList.Add(oneOfSchema);
                 }
+
                 resultSchema.OneOf(oneOfSchemaList.ToArray());
             }
             else if (item is XmlSchemaGroupRef)
@@ -479,6 +482,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         int d = 0;
                     }
+
                     resultSchema.Type(JsonSchemaType.Array);
                     resultSchema.MinItems(Convert.ToUInt32(elementItem.MinOccurs));
                     if (!"unbounded".Equals(elementItem.MaxOccursString))
@@ -488,20 +492,20 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                     JsonSchema[] itemsSchemas = new JsonSchema[1];
                     itemsSchemas[0] = new JsonSchema();
-                    //AddAnnotation(particle, itemsSchemas[0]);
-                    //AddTypeToSchema(schemaType, schemaTypeName, elementName, itemsSchemas[0]);
+
+                    // AddAnnotation(particle, itemsSchemas[0]);
+                    // AddTypeToSchema(schemaType, schemaTypeName, elementName, itemsSchemas[0]);
                     AddTypeFromNameInternal(elementItem.SchemaTypeName, itemsSchemas[0]);
                     resultSchema.Items(itemsSchemas);
                 }
                 else
                 {
-//                    AddTypeToSchema(schemaType, schemaTypeName, elementName, propertySchema);
+                    // AddTypeToSchema(schemaType, schemaTypeName, elementName, propertySchema);
                     AddTypeFromNameInternal(elementItem.SchemaTypeName, resultSchema);
                 }
 
-
-                //string referencedType =
-                //AddTypeFromNameInternal(((XmlSchemaElement)item).SchemaTypeName, resultSchema);
+                // string referencedType =
+                // AddTypeFromNameInternal(((XmlSchemaElement)item).SchemaTypeName, resultSchema);
                 /*
                 if (referencedType != null)
                 {
@@ -598,6 +602,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.String);
             }
             else if ("http://www.w3.org/2001/XMLSchema:boolean".Equals(type))
@@ -606,6 +611,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.Boolean);
             }
             else if ("http://www.w3.org/2001/XMLSchema:integer".Equals(type))
@@ -614,6 +620,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.Integer);
             }
             else if ("http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
@@ -622,6 +629,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.Number);
             }
             else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
@@ -630,6 +638,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.String);
                 resultSchema.Format(new StringFormat("date", JsonSchemaVersion.All, null));
             }
@@ -639,6 +648,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.String);
                 resultSchema.Format(StringFormat.DateTime);
             }
@@ -648,6 +658,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.String);
                 resultSchema.Format(new StringFormat("year", JsonSchemaVersion.All, null));
             }
@@ -657,6 +668,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     int d = 0;
                 }
+
                 resultSchema.Type(JsonSchemaType.String);
                 resultSchema.Format(new StringFormat("year-month", JsonSchemaVersion.All, null));
             }
@@ -672,6 +684,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     return name;
                 }
             }
+
             return null;
         }
 
@@ -697,7 +710,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             try
                             {
                                 resultSchema.MinLength(Convert.ToUInt32(facet.Value));
-                            } catch (OverflowException)
+                            }
+                            catch (OverflowException)
                             {
                                 resultSchema.MinLength(uint.MinValue);
                             }
@@ -707,7 +721,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             try
                             {
                                 resultSchema.MaxLength(Convert.ToUInt32(facet.Value));
-                            } catch (OverflowException)
+                            }
+                            catch (OverflowException)
                             {
                                 resultSchema.MaxLength(uint.MaxValue);
                             }
@@ -722,6 +737,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 resultSchema.MinLength(uint.MinValue);
                             }
+
                             try
                             {
                                 resultSchema.MaxLength(Convert.ToUInt32(facet.Value));
@@ -737,7 +753,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         }
                         else if (facet is XmlSchemaFractionDigitsFacet)
                         {
-                            //Use pattern?
+                            // Use pattern?
                         }
                         else
                         {
@@ -798,6 +814,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
         }
+
 /*
         private void AddDocumentation(XmlSchemaDocumentation item, JsonSchema resultSchema)
         {
@@ -942,11 +959,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                 }
 
-                if (allOfList.Count>0)
+                if (allOfList.Count > 0)
                 {
                     AddTypeObject(resultSchema);
                     resultSchema.AllOf(allOfList.ToArray());
                 }
+
                 if (definitionSchema.Count > 0)
                 {
                     string name = ObjectName(contentExtensionItem);
@@ -1055,22 +1073,24 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaElement elementItem = (XmlSchemaElement)item;
                 string name = elementItem.Name;
-                if (name==null && elementItem.RefName!=null)
+                if (name == null && elementItem.RefName != null)
                 {
                     XmlSchemaObject refObject = FindObject(elementItem.RefName.ToString());
                     name = ObjectName(refObject);
                 }
-                return name==null ? ObjectName(item.Parent) : name;
+
+                return name == null ? ObjectName(item.Parent) : name;
             }
             else if (item is XmlSchemaAttribute)
             {
                 XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)item;
                 string name = attributeItem.Name;
-                if (name==null && attributeItem.RefName!=null)
+                if (name == null && attributeItem.RefName != null)
                 {
                     XmlSchemaObject refObject = FindObject(attributeItem.RefName.ToString());
                     name = ObjectName(refObject);
                 }
+
                 return name == null ? ObjectName(item.Parent) : name;
             }
             else if (item is XmlSchemaType)
@@ -1097,6 +1117,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 throw new XmlSchemaException();
             }
+
             string anonymousNamePart = tmpName.Substring(0, 1).ToUpper() + tmpName.Substring(1);
 
             int i = 0;
