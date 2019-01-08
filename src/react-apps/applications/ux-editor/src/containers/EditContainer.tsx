@@ -3,11 +3,14 @@ import {
 } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import uuid = require('uuid');
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { makeGetLayoutComponentsSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
+import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
 import { getTextResource, truncate } from '../utils/language';
 
 const styles = createStyles({
@@ -125,6 +128,7 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   activeList: any;
+  connections: any;
 }
 
 export interface IEditContainerState {
@@ -145,7 +149,9 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       isEditMode: false,
       hideDelete: false,
       hideEdit: false,
-      component: _props.component,
+      component: {
+        ...this.props.component,
+      },
       listItem: {
         id: _props.id,
         order: _props.order,
@@ -212,8 +218,72 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
-    this.state.component.size = this.props.component.size;
-    this.handleComponentUpdate(callbackComponent);
+    this.checkForCodeListConnectionChanges(callbackComponent);
+    FormDesignerActionDispatchers.updateFormComponent(
+      callbackComponent,
+      this.props.id,
+    );
+  }
+
+  public checkForCodeListConnectionChanges = (callbackComponent: FormComponentType): void => {
+    const originalComponent: FormComponentType = this.props.components[this.props.id];
+    const codeListId = originalComponent.codeListId;
+    const dataModelBinding = originalComponent.dataModelBinding;
+    const newCodeListId = callbackComponent.codeListId;
+    const newDataModelBinding = callbackComponent.dataModelBinding;
+
+    if (!newCodeListId || !newDataModelBinding) {
+      if (codeListId && dataModelBinding) {
+        // there existed a connection before that should now be removed
+        const oldConnectionId = getCodeListConnectionForDatamodelBinding(dataModelBinding, this.props.connections);
+        if (oldConnectionId) {
+          ApiActionDispatchers.delApiConnection(oldConnectionId);
+        }
+      }
+      return;
+    }
+
+    // Update the relevant connection if something has changed, or create new if it does not exist
+    if (codeListId !== newCodeListId || dataModelBinding !== newDataModelBinding) {
+      const oldConnectionId = getCodeListConnectionForDatamodelBinding(dataModelBinding, this.props.connections);
+      if (newDataModelBinding && newCodeListId) {
+        this.handleSaveApiConnection(callbackComponent, oldConnectionId);
+      }
+    }
+  }
+
+  public handleDeleteApiConnection = (connectionId: string) => {
+    if (!connectionId) {
+      return;
+    }
+    ApiActionDispatchers.delApiConnection(connectionId);
+  }
+
+  public handleSaveApiConnection = (callbackComponent: FormComponentType, connectionId: string) => {
+    if (!callbackComponent.dataModelBinding) {
+      return;
+    }
+    if (!connectionId) {
+      connectionId = uuid();
+    }
+    const newConnection: any = {
+      [connectionId]: {
+        codeListId: callbackComponent.codeListId,
+        apiResponseMapping: {
+          [callbackComponent.dataModelBinding]: {
+            mappingKey: 'codes',
+            // for now we only support a key-value pair, this could be changed in the future
+            valueKey: 'key',
+            labelKey: 'value1',
+          },
+        },
+        clientParams: undefined,
+        metaParams: undefined,
+        externalApiId: undefined,
+
+      },
+    };
+    ApiActionDispatchers.addApiConnection(newConnection);
   }
 
   public handleTitleChange = (e: any): void => {
@@ -262,7 +332,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
                       <EditModalContent
-                        component={this.props.component}
+                        component={this.state.component}
                         language={this.props.language}
                         handleComponentUpdate={this.handleComponentUpdate}
                       />
@@ -356,6 +426,7 @@ const makeMapStateToProps = () => {
       classes: props.classes,
       component: props.component,
       components: GetLayoutComponentsSelector(state),
+      connections: state.serviceConfigurations.APIs.connections,
       dataModel: state.appData.dataModel.model,
       firstInActiveList: props.firstInActiveList,
       handler: props.handler,

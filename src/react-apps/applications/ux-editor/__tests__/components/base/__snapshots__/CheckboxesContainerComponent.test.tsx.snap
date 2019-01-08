@@ -2,24 +2,41 @@
 
 exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> Capture snapshot of CheckboxesContainerComponent 1`] = `
 <div
-  className="form-group"
+  className="form-check a-form-checkboxes pl-0 form-check-inline"
   id="mock-id"
 >
   <div
-    className="pl-0 custom-control custom-control-stacked custom-checkbox a-custom-checkbox"
+    className="custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3"
     onClick={[Function]}
   >
     <input
       checked={false}
       className="custom-control-input"
-      name="mock-id"
+      name="checkbox-mock-id-0"
       type="checkbox"
+      value="test-1"
     />
     <label
-      className="pl-3 custom-control-label a-fontBold"
-      htmlFor="mock-id"
+      className="pl-3 custom-control-label"
     >
-      test-checkboxescontainer
+      test-label-1
+    </label>
+  </div>
+  <div
+    className="custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3"
+    onClick={[Function]}
+  >
+    <input
+      checked={false}
+      className="custom-control-input"
+      name="checkbox-mock-id-1"
+      type="checkbox"
+      value="test-1"
+    />
+    <label
+      className="pl-3 custom-control-label"
+    >
+      test-label-1
     </label>
   </div>
 </div>

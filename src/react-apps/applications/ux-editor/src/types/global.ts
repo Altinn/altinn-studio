@@ -64,6 +64,7 @@ declare global {
     dataModelBinding?: string;
     textResourceId?: string;
     customType?: string;
+    codeListId?: string;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
     handleUpdateFormData?: (formData: any) => void;
@@ -88,6 +89,7 @@ declare global {
 
   export interface IFormCheckboxComponent extends IFormComponent {
     options: IOptions[];
+    preselectedOptionIndex?: number;
   }
 
   export interface IFormTextAreaComponent extends IFormComponent { }
@@ -98,6 +100,7 @@ declare global {
 
   export interface IFormRadioButtonComponent extends IFormComponent {
     options: IOptions[];
+    preselectedOptionIndex?: number;
   }
 
   export interface IFormDropdownComponent extends IFormComponent {
