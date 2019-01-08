@@ -10,7 +10,7 @@ import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
+import { HashRouter as Router, Redirect, Route, withRouter } from 'react-router-dom';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
@@ -18,10 +18,13 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
-import { IServiceDevelopmentState } from './reducers/serviceDevelopmentReducer';
 import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
 
-import HandleMergeConflict from './features/mergeConflict/HandleMergeConflictContainer';
+import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
+import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
+import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
+import { compose } from 'redux';
+
 
 // import * as networking from '../../../applications/shared/src/utils/networking';
 
@@ -42,63 +45,52 @@ const styles = () => createStyles({
   },
 });
 
-export interface IServiceDevelopmentProps extends WithStyles<typeof styles> { }
-export interface IServiceDevelopmentState {
-  initialCheckComplete: boolean;
-  mergeConflict: boolean;
+export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
+  location: any;
+  repoStatus: any;
+}
+export interface IServiceDevelopmentAppState {
+  forceRepoStatusCheckComplete: boolean;
+
 }
 
-class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentState> {
-  constructor(_props: IServiceDevelopmentProps) {
-    super(_props);
+class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState> {
+  constructor(_props: IServiceDevelopmentProps, _state: IServiceDevelopmentAppState) {
+    super(_props, _state);
     this.state = {
-      initialCheckComplete: false,
-      mergeConflict: null,
+      forceRepoStatusCheckComplete: true,
     };
   }
 
   public checkForMergeConflict = () => {
-    console.log('checkForMergeConflict');
+    HandleMergeConflictDispatchers.fetchRepoStatus('test', 'foo', 'bar');
+  }
 
-    const mockMergeStatus = {
-      behindBy: 1,
-      aheadBy: 2,
-      contentStatus: [
-        {
-          filePath: 'Resources/FormLayout.json',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-      ],
-      repositoryStatus: 'Ok',
-    };
-
-    // mock data
-    setTimeout(() => {
-      this.setState(
-        {
-          initialCheckComplete: true,
-          mergeConflict: true,
-        },
-      );
-    }, 1000);
+  public forceRepoStatusCheck = () => {
+    this.setState(
+      {
+        forceRepoStatusCheckComplete: false,
+      },
+    );
   }
 
   public componentDidMount() {
     const altinnWindow: Window = window;
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+
+    this.checkForMergeConflict();
+
+    console.log('location', queryString.parse(this.props.location.search));
   }
 
   public handleDrawerToggle = () => {
     NavigationActionDispatcher.toggleDrawer();
   }
 
-  public componentDidMount() {
-    this.checkForMergeConflict();
-  }
-
   public render() {
-    const { classes } = this.props;
+    const { classes, repoStatus } = this.props;
+    const { forceRepoStatusCheckComplete } = this.state;
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
 
@@ -153,8 +145,8 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentS
                       ))}
                     </div>
                   </Hidden>
-                  {this.state.initialCheckComplete === true &&
-                    this.state.mergeConflict === false ?
+                  {forceRepoStatusCheckComplete === true &&
+                    repoStatus.hasMergeConflict === false ?
                     <div className={classes.subApp}>
                       {routes.map((route, index) => (
                         <Route
@@ -171,7 +163,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentS
                     :
                     null
                   }
-                  {this.state.mergeConflict === true ?
+                  {repoStatus.hasMergeConflict === true ?
                     <div className={classes.subApp}>
                       <HandleMergeConflict
                         checkForMergeConflict={this.checkForMergeConflict}
@@ -190,11 +182,20 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentS
   }
 }
 
-const mapStateToProps = (
-  state: IServiceDevelopmentState,
-) => {
-  return {
+const makeMapStateToProps = () => {
+  const GetRepoStatusSelector = makeGetRepoStatusSelector();
+  const mapStateToProps = (
+    state: IServiceDevelopmentState,
+  ) => {
+    return {
+      repoStatus: GetRepoStatusSelector(state),
+    };
   };
+  return mapStateToProps;
 };
 
-export default withStyles(styles)(connect(mapStateToProps)(App));
+export default compose(
+  withRouter,
+  withStyles(styles),
+  connect(makeMapStateToProps),
+)(App);

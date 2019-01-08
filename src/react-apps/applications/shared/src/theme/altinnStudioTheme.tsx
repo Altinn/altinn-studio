@@ -1,6 +1,11 @@
 declare module '@material-ui/core/styles/createMuiTheme' {
   // tslint:disable-next-line:interface-name
   interface Theme {
+    accessability: {
+      focusVisible: {
+        border: string,
+      },
+    };
     altinnPalette: {
       primary: {
         blueDarker: string,
@@ -26,27 +31,9 @@ declare module '@material-ui/core/styles/createMuiTheme' {
 }
 
 const theme = {
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 1025,
-      lg: 1440,
-      xl: 1920,
-    },
-  },
-  overrides: {
-    MuiToolbar: {
-      regular: {
-        '@media (min-width: 600px)': {
-          minHeight: 55,
-        },
-      },
-    },
-    MuiTypography: {
-      h1: {
-        fontSize: 36,
-      },
+  accessability: {
+    focusVisible: {
+      border: '2px solid #1eaef7',
     },
   },
   altinnPalette: {
@@ -72,6 +59,29 @@ const theme = {
       white: '#FFF',
     },
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1025,
+      lg: 1440,
+      xl: 1920,
+    },
+  },
+  overrides: {
+    MuiToolbar: {
+      regular: {
+        '@media (min-width: 600px)': {
+          minHeight: 55,
+        },
+      },
+    },
+    MuiTypography: {
+      h1: {
+        fontSize: 36,
+      },
+    },
+  },
   palette: {
     primary: {
       main: '#000',
@@ -80,6 +90,12 @@ const theme = {
     secondary: {
       main: '#000',
       dark: '#d2d2d2',
+    },
+  },
+  props: {
+    MuiButtonBase: {
+      disableRipple: true,
+      disableTouchRipple: true,
     },
   },
   typography: {
