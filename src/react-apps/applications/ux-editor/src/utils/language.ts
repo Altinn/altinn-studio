@@ -83,3 +83,7 @@ export function getTextResource(resourceKey: string, textResources: ITextResourc
   const textResource = textResources.find((resource) => resource.id === resourceKey);
   return textResource ? textResource.value : resourceKey;
 }
+
+export function formatCreateTextLabel(textToCreate: string, language: any): string {
+  return language.general.create.concat(' ', textToCreate);
+}
