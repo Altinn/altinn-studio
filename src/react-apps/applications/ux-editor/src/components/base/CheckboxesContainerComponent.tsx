@@ -71,6 +71,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
       >
         {options.map((option, index) => (
           <div
+            key={index}
             className='custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
             onClick={this.onDataChanged.bind(this, option.value, index)}
           >
