@@ -110,5 +110,21 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
         void Commit(CommitInfo commitInfo);
-  }
+
+        /// <summary>
+        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        void ResetCommit(string owner, string repository);
+
+        /// <summary>
+        /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
+        /// by checking out the specific file
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="fileName">the name of the file</param>
+        void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
+    }
 }
