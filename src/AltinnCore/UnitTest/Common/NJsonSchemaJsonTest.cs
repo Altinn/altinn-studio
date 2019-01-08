@@ -15,6 +15,7 @@ namespace AltinnCore.UnitTest.Common
     /// </summary>
     public class NJsonSchemaJsonTest
     {
+        /*
         /// <summary>
         /// Test generating C# code from Json Schema (converted from XSD)
         /// </summary>
@@ -30,5 +31,6 @@ namespace AltinnCore.UnitTest.Common
             var generator = new CSharpGenerator(jsonSchema, settings);
             var code = generator.GenerateFile();
         }
-    }
+        */
+        }
 }
