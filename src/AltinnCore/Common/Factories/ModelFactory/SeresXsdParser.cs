@@ -10,11 +10,11 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 namespace AltinnCore.Common.Factories.ModelFactory
 {
     /// <summary>
-    ///     Transforms OR XSD to metadata
+    ///     Transforms OR XSD to metadata (Json Instance Model)
     /// </summary>
     public class SeresXsdParser
     {
-        private const int MaxOccursMagicNumber = 9999;
+        private const int MaxOccursMagicNumber = 99999;
         private readonly Random _randomGen = new Random();
         private readonly IRepository _repository;
         private readonly Dictionary<string, XDocument> secondaryXsdsByNamespace = new Dictionary<string, XDocument>();
