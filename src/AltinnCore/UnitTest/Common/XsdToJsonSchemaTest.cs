@@ -17,7 +17,6 @@ namespace AltinnCore.UnitTest.Common
     /// </summary>
     public class XsdToJsonSchemaTest
     {
-        /*
         /// <summary>
         /// Test converting edag XSD to Json Schema
         /// </summary>
@@ -39,7 +38,6 @@ namespace AltinnCore.UnitTest.Common
             var schemaText = converter.AsJsonSchema();
             int d = 0;
         }
-        
 
         /// <summary>
         /// Test converting BoligsparingForUngdom XSD to Json Schema
@@ -52,7 +50,6 @@ namespace AltinnCore.UnitTest.Common
             int d = 0;
         }
 
-        
         /// <summary>
         /// Test converting Motorvognavgift XSD to Json Schema
         /// </summary>
@@ -85,6 +82,5 @@ namespace AltinnCore.UnitTest.Common
             var schemaText = converter.AsJsonSchema();
             int d = 0;
         }
-        */
     }
 }
