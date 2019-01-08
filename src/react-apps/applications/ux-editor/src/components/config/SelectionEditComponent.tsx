@@ -14,11 +14,11 @@ const styles = createStyles({
     lineHeight: '3.2rem',
   },
   formComponentsBtn: {
-    fontSize: '0.85em',
-    fill: altinnTheme.altinnPalette.primary.blueDarker,
-    paddingLeft: '0',
-    marginTop: '0.1em',
-    outline: 'none !important',
+    'fontSize': '0.85em',
+    'fill': altinnTheme.altinnPalette.primary.blueDarker,
+    'paddingLeft': '0',
+    'marginTop': '0.1em',
+    'outline': 'none !important',
     '&:hover': {
       background: 'none',
     },
