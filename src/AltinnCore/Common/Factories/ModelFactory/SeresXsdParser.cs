@@ -472,7 +472,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (string.IsNullOrEmpty(elementMetadata.TypeName))
             {
-                elementMetadata.TypeName = null; // elementMetadata.Name;
+                elementMetadata.TypeName = null; 
             }
 
             if (allElements.ContainsKey(elementMetadata.ID))
@@ -904,10 +904,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 var name = complexType.AttributeValue("name");
 
-                var sequence = complexType.Element(XDocName.Sequence);                
+                var sequence = complexType.Element(XDocName.Sequence);
                 if (sequence != null && sequence.Elements() != null)
-                {                  
-                        sequenceElements.AddRange(sequence.Elements());                                       
+                {
+                    sequenceElements.AddRange(sequence.Elements());
                 }
 
                 var complexContent = complexType.Element(XDocName.ComplexContent);

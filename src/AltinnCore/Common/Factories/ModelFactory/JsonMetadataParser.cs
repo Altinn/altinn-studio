@@ -167,11 +167,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             classBuilder.AppendLine("}");
 
-            if (string.IsNullOrEmpty(parentElement.TypeName))
-            {
-                // return;
-            }
-
             if (!classes.ContainsKey(parentElement.TypeName))
             {
                 classes.Add(parentElement.TypeName, classBuilder.ToString());

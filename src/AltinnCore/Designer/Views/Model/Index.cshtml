@@ -59,79 +59,79 @@
 
 <hr />
 <ul id="tabs" class="nav nav-tabs">
-  <li class="nav-item">
-    <a class="nav-link active" data-toggle="tab" href="#treeTab" role="tab">Visuell visning</a>
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#json" role="tab">JSON</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#csharp" role="tab">C#</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#xml" role="tab">XSD</a>
-  </li>
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="tab" href="#schema.json" role="tab">JSON SCHEMA</a>
-  </li>
+    <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#treeTab" role="tab">Visuell visning</a>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#json" role="tab">JSON</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#csharp" role="tab">C#</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#xml" role="tab">XSD</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#schema.json" role="tab">JSON SCHEMA</a>
+    </li>
 </ul>
 
 <div class="tab-content" style="position:relative">
-  <div class="tab-pane fade in active" id="treeTab" role="tabpanel">
-    <div class="row">
-      <div class="col-lg-6">
-        <input id="search" type="search" class="form-control" placeholder="Søk modell..." autocomplete="on">
-        <span class="fa fa-search" aria-hidden="true"></span>
-      </div>
+    <div class="tab-pane fade in active" id="treeTab" role="tabpanel">
+        <div class="row">
+            <div class="col-lg-6">
+                <input id="search" type="search" class="form-control" placeholder="Søk modell..." autocomplete="on">
+                <span class="fa fa-search" aria-hidden="true"></span>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-6" id="treeView"></div>
+            <div class="col-lg-6">
+                <h6 id="elementName"></h6>
+                <div style="min-height: 300px"id="elementDetails"></div>
+                <button style="display:none" class="btn btn-outline-primary" id="saveModelChangesBtn">Lagre endringer</button>
+            </div>
+        </div>
     </div>
-    <div class="row">
-      <div class="col-lg-6" id="treeView"></div>
-      <div class="col-lg-6">
-        <h6 id="elementName"></h6>
-        <div style="min-height: 300px" id="elementDetails"></div>
-        <button style="display:none" class="btn btn-outline-primary" id="saveModelChangesBtn">Lagre endringer</button>
-      </div>
-    </div>
-  </div>
 
-  <div class="tab-pane fade in" id="json" role="tabpanel">
-    <a title="Last ned JSON-modell" asp-action="GetJson" download="@service-model.json">
-      <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
-    </a>
-    <div id="json-container" class="editor-frame">
-      <div id="json-editor" class="editor" style="width:100%;min-height:600px;"></div>
+    <div class="tab-pane fade in" id="json" role="tabpanel"> 
+        <a title="Last ned JSON-modell" asp-action="GetJson" download="@service-model.json">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
+        </a>
+        <div id="json-container" class="editor-frame">
+            <div id="json-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="json-model" style="display: none;"></div>
     </div>
-    <div id="json-model" style="display: none;"></div>
-  </div>
 
-  <div class="tab-pane fade" id="csharp" role="tabpanel">
-    <a title="Last ned C# modell" asp-action="GetModel" download="@service-model.cs">
-      <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned C# modell</span>
-    </a>
-    <div id="csharp-container" class="editor-frame">
-      <div id="csharp-editor" class="editor" style="width:100%;min-height:600px;"></div>
+    <div class="tab-pane fade" id="csharp" role="tabpanel">
+        <a title="Last ned C# modell" asp-action="GetModel" download="@service-model.cs">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned C# modell</span>
+        </a>
+        <div id="csharp-container" class="editor-frame">
+            <div id="csharp-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="csharp-model" style="display: none;"></div>
     </div>
-    <div id="csharp-model" style="display: none;"></div>
-  </div>
 
-  <div class="tab-pane fade" id="xml" role="tabpanel">
-    <a title="Last ned XSD" asp-action="GetXsd" download="@service-model.xsd">
-      <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
-    </a>
-    <div id="xml-container" class="editor-frame">
-      <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
+    <div class="tab-pane fade" id="xml" role="tabpanel">
+        <a title="Last ned XSD" asp-action="GetXsd" download="@service-model.xsd">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
+        </a>
+        <div id="xml-container" class="editor-frame">  
+            <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="xml-model" style="display: none;"></div>
     </div>
-    <div id="xml-model" style="display: none;"></div>
-  </div>
 
-  <div class="tab-pane fade" id="xml" role="tabpanel">
-    <a title="Last ned Json Schema" asp-action="GetJsonSchema" download="@service-model.schema.json">
-      <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned Json Schema</span>
-    </a>
-    <div id="xml-container" class="editor-frame">
-      <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
-    </div>
-    <div id="xml-model" style="display: none;"></div>
-  </div>
+    <div class="tab-pane fade" id="xml" role="tabpanel">
+        <a title="Last ned Json Schema" asp-action="GetJsonSchema" download="@service-model.schema.json">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned Json Schema</span>
+        </a>
+        <div id="xml-container" class="editor-frame">
+            <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="xml-model" style="display: none;"></div>
+     </div>
 </div>
 
 <script>
