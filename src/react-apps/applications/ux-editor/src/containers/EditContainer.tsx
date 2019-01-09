@@ -117,7 +117,7 @@ export interface IEditContainerProvidedProps {
   order: number;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
-  handler: any;
+  sendItemToParent: any;
   classes: any;
   singleSelected: boolean;
 }
@@ -205,13 +205,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: true,
       },
     }, () => {
-      this.props.handler(this.state.listItem);
+      this.props.sendItemToParent(this.state.listItem);
     });
   }
 
   public handleSetActive = (): void => {
     if (!this.state.isEditMode) {
-      this.props.handler(this.state.listItem);
+      this.props.sendItemToParent(this.state.listItem);
       this.setState({
         listItem: this.state.listItem,
         hideDelete: false,
@@ -232,7 +232,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: false,
       },
     }, () => {
-      this.props.handler(this.state.listItem);
+      this.props.sendItemToParent(this.state.listItem);
     });
   }
   public handleDiscard = (): void => {
@@ -465,7 +465,7 @@ const makeMapStateToProps = () => {
       connections: state.serviceConfigurations.APIs.connections,
       dataModel: state.appData.dataModel.model,
       firstInActiveList: props.firstInActiveList,
-      handler: props.handler,
+      sendItemToParent: props.sendItemToParent,
       id: props.id,
       language: state.appData.language.language,
       lastInActiveList: props.lastInActiveList,

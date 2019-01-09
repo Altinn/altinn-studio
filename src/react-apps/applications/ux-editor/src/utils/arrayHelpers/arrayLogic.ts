@@ -10,37 +10,37 @@ export interface ITwoArraysObj {
   order: any [];
 }
 
-const pushOrPop = (obj: IUpdateArrayObj) => {
-  const tempObj = obj.array.find((o: any) => o.id === obj.object.id);
-  const index = obj.array.indexOf(tempObj);
-  if (obj.array.find((o: any) => o.inEditMode === true)) {
+const pushOrPop = ({array, object}: IUpdateArrayObj) => {
+  const tempObj = array.find((o: any) => o.id === object.id);
+  const index = array.indexOf(tempObj);
+  if (array.find((o: any) => o.inEditMode === true)) {
     if (tempObj) {
-      obj.array[index] = obj.object;
+      array[index] = object;
     }
-    const cloneOfObj = JSON.parse(JSON.stringify(obj));
+    const cloneOfObj = JSON.parse(JSON.stringify({array, object}));
     return cloneOfObj;
   } else {
     if (!tempObj) {
-      obj.array.push(obj.object);
-      obj.array.sort(compareOrderNum);
+      array.push(object);
+      array.sort(compareOrderNum);
     } else {
-      obj.object.inEditMode ? obj.array[index] = obj.object : obj.array.splice(index, 1);
+      object.inEditMode ? array[index] = object : array.splice(index, 1);
     }
-    if (obj.array.length > 0) {
-      markFirstAndLastObject(obj.array);
+    if (array.length > 0) {
+      markFirstAndLastObject(array);
     }
-    const cloneOfObj = JSON.parse(JSON.stringify(obj));
+    const cloneOfObj = JSON.parse(JSON.stringify({array, object}));
     return cloneOfObj;
   }
 };
 
-const changeOrderNum = (obj: ITwoArraysObj) => {
-  obj.array.forEach((component: any) => {
-    if (obj.order.indexOf(component.id) >= 0) {
-      component.order = obj.order.indexOf(component.id);
+const changeOrderNum = ({array, order}: ITwoArraysObj) => {
+  array.forEach((component: any) => {
+    if (order.indexOf(component.id) >= 0) {
+      component.order = order.indexOf(component.id);
     }
   });
-  const cloneOfObj = JSON.parse(JSON.stringify(obj));
+  const cloneOfObj = JSON.parse(JSON.stringify({array, order}));
   return cloneOfObj;
 };
 

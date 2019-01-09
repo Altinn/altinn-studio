@@ -23,7 +23,7 @@ export interface IProvidedProps {
   classes: any;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
-  handler: any;
+  sendListToParent: any;
   singleSelected: boolean;
 }
 
@@ -158,7 +158,7 @@ class FormComponent extends React.Component<
 
   public handleActiveListChange = (obj: any) => {
     FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
-    this.props.handler(this.props.activeList);
+    this.props.sendListToParent(this.props.activeList);
   }
 
   /**
@@ -189,7 +189,7 @@ class FormComponent extends React.Component<
         order={order}
         firstInActiveList={this.props.firstInActiveList}
         lastInActiveList={this.props.lastInActiveList}
-        handler={this.handleActiveListChange}
+        sendItemToParent={this.handleActiveListChange}
         singleSelected={this.props.singleSelected}
       >
         <div onClick={this.disableEditOnClickForAddedComponent}>
@@ -232,7 +232,7 @@ const makeMapStateToProps = () => {
     formData: props.formData,
     classes: props.classes,
     handleDataUpdate: props.handleDataUpdate,
-    handler: props.handler,
+    sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
     component: state.formDesigner.layout.components[props.id],
     order: GetLayoutOrderSelector(state),
