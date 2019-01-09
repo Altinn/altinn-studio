@@ -291,7 +291,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             formData={this.props.formData[this.props.components[id].dataModelBinding] ?
               this.props.formData[this.props.components[id].dataModelBinding] : ''}
             handler={this.handleActiveListChange}
-            singleSelected={this.props.activeList.length === 1 ? true : false}
+            singleSelected={this.props.activeList.length === 1}
           />
         </DroppableDraggableComponent>
       );
@@ -307,7 +307,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         formData={this.props.formData[this.props.components[id].dataModelBinding] ?
           this.props.formData[this.props.components[id].dataModelBinding] : ''}
         handler={this.handleActiveListChange}
-        singleSelected={this.props.activeList.length === 1 ? true : false}
+        singleSelected={this.props.activeList.length === 1}
       />
     );
   }
