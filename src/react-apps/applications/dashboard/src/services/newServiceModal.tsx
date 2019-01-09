@@ -23,7 +23,12 @@ export interface INewServiceModalProps extends INewServiceModalProvidedProps {
 
 export interface INewServiceModalState {
   isOpen: boolean;
-  isSnackbarOpen: boolean;
+  isServiceOwnerSnackbarOpen: boolean;
+  serviceOwnerSnackbarMessage: string;
+  serviceOwnerSnackbarPosition: any;
+  isRepoNameSnackbarOpen: boolean;
+  repoNameSnackbarMessage: string;
+  repoNameSnackbarPosition: any;
   selectedOrgOrUser: string;
   serviceName: string;
   repoName: string;
@@ -69,7 +74,12 @@ const styles = {
 class NewServiceModalComponent extends React.Component<INewServiceModalProps, INewServiceModalState> {
   public state: INewServiceModalState = {
     isOpen: false,
-    isSnackbarOpen: false,
+    isServiceOwnerSnackbarOpen: false,
+    serviceOwnerSnackbarMessage: '',
+    serviceOwnerSnackbarPosition: { top: 0, left: 0 },
+    isRepoNameSnackbarOpen: false,
+    repoNameSnackbarMessage: '',
+    repoNameSnackbarPosition: { top: 0, left: 0 },
     selectedOrgOrUser: '',
     serviceName: '',
     repoName: '',
@@ -83,12 +93,19 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     this.setState({ isOpen: false });
   }
 
-  public handleSnackbarOpen = () => {
-    this.setState({ isSnackbarOpen: true });
+  public handleServiceOwnerSnackbarOpen = () => {
+    this.setState({ isServiceOwnerSnackbarOpen: true });
   }
 
-  public handleSnackbarClose = () => {
-    this.setState({ isSnackbarOpen: false });
+  public handleServiceOwnerSnackbarClose = () => {
+    this.setState({ isServiceOwnerSnackbarOpen: false });
+  }
+  public handleRepoNameSnackbarOpen = () => {
+    this.setState({ isRepoNameSnackbarOpen: true });
+  }
+
+  public handleRepoNameSnackbarClose = () => {
+    this.setState({ isRepoNameSnackbarOpen: false });
   }
 
   public handleUpdateDropdown = (event: any) => {
@@ -103,8 +120,23 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     this.setState({ repoName: event.target.value });
   }
 
+
   public createNewService = () => {
     const altinnWindow: Window = window;
+    if (!this.state.selectedOrgOrUser) {
+      this.setState({
+        serviceOwnerSnackbarMessage: getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language),
+        isServiceOwnerSnackbarOpen: true,
+      });
+    }
+
+    if (!this.state.repoName) {
+      this.setState({
+        repoNameSnackbarMessage: getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language),
+        isRepoNameSnackbarOpen: true,
+      });
+    }
+
     if (this.state.selectedOrgOrUser && this.state.repoName) {
       const options = {
         headers: {
@@ -118,7 +150,7 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
       post(url, bodyData, options).then((result: any) => {
         console.log(result);
-        this.handleSnackbarOpen();
+        //this.handleSnackbarOpen();
       });
     }
     // TODO: hva hvis det er null?
@@ -126,7 +158,6 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
 
   public render() {
     const { classes } = this.props;
-    const choices = ['hanne', 'FirstOrg', 'SecondOrg'];
     return (
       <div>
         <AltinnIconButton
@@ -147,6 +178,11 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
             dropdownItems={this.props.selectableUser}
             selectedValue={this.state.selectedOrgOrUser}
           />
+          <AltinnSnackbar
+            isOpen={this.state.isServiceOwnerSnackbarOpen}
+            message={this.state.serviceOwnerSnackbarMessage}
+            postition={this.state.serviceOwnerSnackbarPosition}
+          />
           <AltinnInputField
             id={'service-name'}
             inputHeader={getLanguageFromKey('dashboard.service_name', this.props.language)}
@@ -161,14 +197,15 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
             inputValue={this.state.repoName}
             onChangeFunction={this.repoNameUpdated}
           />
+          <AltinnSnackbar
+            isOpen={this.state.isRepoNameSnackbarOpen}
+            message={this.state.repoNameSnackbarMessage}
+            postition={this.state.repoNameSnackbarPosition}
+          />
           <AltinnButton
             btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}
             className={classes.button}
             onClickFunction={this.createNewService}
-          />
-          <AltinnSnackbar
-            isOpen={this.state.isSnackbarOpen}
-            message={'dette er teksten'}
           />
         </AltinnModal>
       </div >

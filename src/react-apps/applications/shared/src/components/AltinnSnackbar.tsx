@@ -1,4 +1,4 @@
-import { createMuiTheme, Snackbar } from '@material-ui/core';
+import { createMuiTheme, Snackbar, SnackbarContent } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -11,6 +11,7 @@ export interface IAltinnSnackbarComponentProvidedProps {
   isOpen: boolean;
   handleClose?: any;
   message?: string;
+  postition: any;
 }
 
 export interface IAltinnSnackbarComponentState {
@@ -19,38 +20,44 @@ export interface IAltinnSnackbarComponentState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = {
-  button: {
-    'color': theme.altinnPalette.primary.white,
-    'background': theme.altinnPalette.primary.blueDark,
-    'maxWidth': '150px',
-    'textTransform': 'none' as 'none',
-    'fontWeight': 400,
-    'marginTop': '20px',
-    'borderRadius': '0',
-    '&:hover': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
-    },
-    '&:focus': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
-    },
+  snackbar_info: {
+    color: altinnTheme.altinnPalette.primary.black,
+  },
+  snackbar_error: {
+    color: altinnTheme.altinnPalette.primary.black,
+    background: altinnTheme.altinnPalette.primary.redLight,
+    borderRadius: 0,
+    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    fontSize: 16,
   },
 };
 
 class AltinnSnackbar extends React.Component<IAltinnSnackbarComponentProvidedProps, IAltinnSnackbarComponentState> {
   public render() {
     const { classes } = this.props;
+    const style = {
+      top: this.props.postition.top,
+      left: this.props.postition.left,
+    }
     return (
       <Snackbar
         anchorOrigin={{
           vertical: 'top',
-          horizontal: 'center',
+          horizontal: 'left',
         }}
+        transitionDuration={{
+          enter: 0,
+        }}
+        style={style}
         open={this.props.isOpen}
         onClose={this.props.handleClose}
-        message={this.props.message}
-      />
+
+      >
+        <SnackbarContent
+          message={this.props.message}
+          className={classNames(classes.snackbar_error)}
+        />
+      </Snackbar>
     );
   }
 }
