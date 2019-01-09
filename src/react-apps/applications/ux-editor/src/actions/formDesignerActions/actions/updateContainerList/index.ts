@@ -23,12 +23,6 @@ export interface IUpdateActiveListOrderActionRejected extends Action {
   error: Error;
 }
 
-export interface IDeleteActiveListAction {
-}
-
-export interface IDeleteActiveListActionFulfilled {
-}
-
 export interface IDeleteActiveListActionRejected extends Action {
   error: Error;
 }
@@ -87,13 +81,13 @@ export function updateActiveListOrderActionRejected(
   };
 }
 export function deleteActiveListAction(
-): IDeleteActiveListAction {
+): Action {
   return {
     type: ActionTypes.DELETE_ACTIVE_LIST,
   };
 }
 export function deleteActiveListActionFulfilled(
-): IDeleteActiveListActionFulfilled {
+): Action {
   return {
     type: ActionTypes.DELETE_ACTIVE_LIST_FULFILLED,
   };
