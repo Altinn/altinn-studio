@@ -112,10 +112,10 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     this.getStatus();
     this.getRepoRights();
     this.getLastPush();
-    window.addEventListener('message', this.changeToRepoOccurd);
+    window.addEventListener('message', this.changeToRepoOccured);
   }
 
-  public changeToRepoOccurd = (event: any) => {
+  public changeToRepoOccured = (event: any) => {
     if (event.data === 'SAVED' && this._isMounted && !this.state.timeoutIsRunning) {
       this.setState({
         timeoutIsRunning: true,
@@ -133,7 +133,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     clearInterval(this.interval);
     this._isMounted = false;
     clearTimeout(this.timeout);
-    window.removeEventListener('message', this.changeToRepoOccurd);
+    window.removeEventListener('message', this.changeToRepoOccured);
   }
 
   public getRepoRights() {
