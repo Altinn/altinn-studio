@@ -1,3 +1,4 @@
+import axios, { AxiosResponse } from 'axios';
 import update from 'immutability-helper';
 import * as React from 'react';
 
@@ -11,17 +12,23 @@ export interface IAdressComponentProps {
   simplified: boolean;
 }
 
+interface IAdressValidationErrors {
+  zipCode?: string;
+  houseNumber?: string;
+}
+
 export interface IAdressComponentState {
   adress: string;
-  postNumber: number;
+  zipCode: string;
   postPlace: string;
   careOf: string;
   houseNumber: string;
+  validations: IAdressValidationErrors;
 }
 
 enum AdressKeys {
   adress,
-  postNumber,
+  zipCode,
   postPlace,
   careOf,
   houseNumber,
@@ -32,25 +39,101 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
     super(_props);
     this.state = {
       adress: '',
-      postNumber: null,
+      zipCode: '',
       postPlace: '',
       careOf: '',
       houseNumber: '',
+      validations: {
+        zipCode: null,
+        houseNumber: null,
+      },
     };
   }
 
+  public fetchPostPlace: (zipCode: string) => void = (zipCode: string) => {
+    if (zipCode.match(new RegExp('^[0-9]{4}$'))) {
+      axios.get('https://api.bring.com/shippingguide/api/postalCode.json', {
+        params: {
+          clientUrl: window.location.href,
+          pnr: zipCode,
+        },
+      }).then((response: AxiosResponse) => {
+        if (response.data.valid) {
+          this.setState({
+            postPlace: response.data.result,
+            validations: {
+              zipCode: null,
+            },
+          });
+        } else {
+          this.setState({
+            postPlace: '',
+            validations: {
+              zipCode: 'Postnummer er ikke gyldig',
+            },
+          });
+        }
+      });
+      this.setState({
+        postPlace: 'Laster...',
+      });
+    }
+  }
+
+  public validate: () => IAdressValidationErrors = () => {
+    const { zipCode, houseNumber } = this.state;
+    const validationErrors: IAdressValidationErrors = {
+      zipCode: null,
+      houseNumber: null,
+    };
+    if (!zipCode.match(new RegExp('^[0-9]{4}$')) && zipCode !== '') {
+      validationErrors.zipCode = 'Postnummer er ikke gyldig';
+    } else {
+      validationErrors.zipCode = null;
+    }
+    if (!houseNumber.match(new RegExp('^[a-z,A-Z]{1}[0-9]{4}$')) && houseNumber !== '') {
+      validationErrors.houseNumber = 'Bolignummer er ikke gyldig';
+    } else {
+      validationErrors.houseNumber = null;
+    }
+    return validationErrors;
+  }
+
   public updateField: (key: AdressKeys, event: any) => void = (key: AdressKeys, event: any): void => {
-    const changedFieldValue = event.target.value;
+    const changedFieldValue: string = event.target.value;
+    const changedKey: string = AdressKeys[key];
     this.setState((state: IAdressComponentState) => update(state, {
-      [AdressKeys[key]]: {
+      [changedKey]: {
         $set: changedFieldValue,
       },
     }));
+    if (AdressKeys[key] === 'zipCode') {
+      this.fetchPostPlace(changedFieldValue);
+    }
+  }
+
+  public onBlurField: () => void = () => {
+    const { adress, zipCode, postPlace, careOf, houseNumber } = this.state;
+    const validationErrors: IAdressValidationErrors = this.validate();
+    if (!validationErrors.zipCode && !validationErrors.houseNumber) {
+      if (adress !== '' && zipCode !== '' && postPlace !== '') {
+        this.props.handleDataChange({
+          adress,
+          zipCode,
+          postPlace,
+          careOf,
+          houseNumber,
+        });
+      }
+    }
+    this.setState({
+      validations: validationErrors,
+    });
   }
 
   public render(): JSX.Element {
     const { component: { simplified } } = this.props;
-    const { adress, postNumber, postPlace, careOf, houseNumber } = this.state;
+    const { adress, zipCode, postPlace, careOf, houseNumber, validations } = this.state;
 
     if (simplified) {
       return (
@@ -60,14 +143,20 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
             className={'form-control'}
             value={adress}
             onChange={this.updateField.bind(null, AdressKeys.adress)}
+            onBlur={this.onBlurField}
           />
-          <div className={'adress-component-postplace-postnumber'}>
-            <div className={'adress-component-postnumber'}>
+          <div className={'adress-component-postplace-zipCode'}>
+            <div className={'adress-component-zipCode'}>
               <label className={'adress-component-label'}>Postnummer</label>
               <input
-                className={'adress-component-small-inputs form-control'}
-                value={postNumber}
-                onChange={this.updateField.bind(null, AdressKeys.postNumber)}
+                className={
+                  !validations.zipCode ?
+                    'adress-component-small-inputs form-control' :
+                    'adress-component-small-inputs form-control validation-error'
+                }
+                value={zipCode}
+                onChange={this.updateField.bind(null, AdressKeys.zipCode)}
+                onBlur={this.onBlurField}
               />
             </div>
             <div className={'adress-component-postplace'}>
@@ -76,9 +165,18 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
                 className={'form-control'}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AdressKeys.postPlace)}
+                onBlur={this.onBlurField}
               />
             </div>
           </div>
+          {!validations.zipCode ?
+            null :
+            <label
+              className={'adress-component-validation-label'}
+            >
+              {validations.zipCode}
+            </label>
+          }
         </div>
       );
     }
@@ -89,21 +187,28 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
           className={'form-control'}
           value={adress}
           onChange={this.updateField.bind(null, AdressKeys.adress)}
+          onBlur={this.onBlurField}
         />
         <label className={'adress-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
           className={'form-control'}
           value={careOf}
           onChange={this.updateField.bind(null, AdressKeys.careOf)}
+          onBlur={this.onBlurField}
         />
-        <div className={'adress-component-postplace-postnumber'}>
-          <div className={'adress-component-postnumber'}>
+        <div className={'adress-component-postplace-zipCode'}>
+          <div className={'adress-component-zipCode'}>
             <label className={'adress-component-label'}>Postnummer</label>
             <br />
             <input
-              className={'adress-component-small-inputs form-control'}
-              value={postNumber}
-              onChange={this.updateField.bind(null, AdressKeys.postNumber)}
+              className={
+                !validations.zipCode ?
+                  'adress-component-small-inputs form-control' :
+                  'adress-component-small-inputs form-control validation-error'
+              }
+              value={zipCode}
+              onChange={this.updateField.bind(null, AdressKeys.zipCode)}
+              onBlur={this.onBlurField}
             />
           </div>
           <div className={'adress-component-postplace'}>
@@ -113,9 +218,18 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
               className={'form-control'}
               value={postPlace}
               onChange={this.updateField.bind(null, AdressKeys.postPlace)}
+              onBlur={this.onBlurField}
             />
           </div>
         </div>
+        {!validations.zipCode ?
+          null :
+          <label
+            className={'adress-component-validation-label'}
+          >
+            {validations.zipCode}
+          </label>
+        }
         <label className={'adress-component-label'}>
           Bolignummer
           <label className={'adress-component-label-smaller'}>
@@ -127,10 +241,23 @@ export class AdressComponent extends React.Component<IAdressComponentProps, IAdr
           Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.
         </p>
         <input
-          className={'adress-component-small-inputs form-control'}
+          className={
+            !validations.houseNumber ?
+              'adress-component-small-inputs form-control' :
+              'adress-component-small-inputs form-control validation-error'
+          }
           value={houseNumber}
           onChange={this.updateField.bind(null, AdressKeys.houseNumber)}
+          onBlur={this.onBlurField}
         />
+        {!validations.houseNumber ?
+          null :
+          <label
+            className={'adress-component-validation-label'}
+          >
+            {validations.houseNumber}
+          </label>
+        }
       </div>
     );
   }

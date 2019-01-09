@@ -8,7 +8,7 @@
   max-width: 100%;
 }
 
-.adress-component-postplace-postnumber {
+.adress-component-postplace-zipCode {
   display: flex;
   flex-direction: row;
   align-content: space-between;
@@ -21,7 +21,7 @@
   max-width: 300px;
 }
 
-.adress-component-postnumber {
+.adress-component-zipCode {
   flex-grow: 0;
 }
 
@@ -38,4 +38,8 @@
 .adress-component-label-smaller {
   font-weight: 100;
   font-size: 1.5rem;
+}
+
+.adress-component-validation-label {
+  color: red;
 }
