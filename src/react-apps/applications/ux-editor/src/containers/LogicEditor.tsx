@@ -1,12 +1,13 @@
-import {Button, Grid, MenuItem, Select} from '@material-ui/core';
+import {Grid, IconButton, MenuItem, Select} from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
 import * as React from 'react';
 import CodeEditor from '../../../shared/src/code-editor/codeEditor';
+import { get } from '../utils/networking';
 
-// import theme from '../../../shared/src/theme/altinnStudioTheme';
+import theme from '../../../shared/src/theme/altinnStudioTheme';
 
-// const altinnTheme = theme;
+const altinnTheme = theme;
 
 const languages: ICodeLanguage = {
   cs: {
@@ -34,29 +35,96 @@ const languages: ICodeLanguage = {
 export interface ILogicEditorProvidedProps {
   classes: any;
   folder: string;
-  selectedFileName: string;
-  availableFiles: string[];
-  onSwitchFile?: (fileName: string) => void;
   closeLogicEditor?: () => void;
+}
+
+export interface ILogicEditorState {
+  selectedFile: string;
+  availableFiles: string[];
+  value: string;
 }
 
 const styles = createStyles({
   fileHeader: {
     borderBottom: '1px solid #C9C9C9',
     marginBottom: '1.6rem',
-    paddingTop: '1rem',
-    paddingBottom: '1.3rem',
+    paddingTop: '1.2rem',
+    paddingLeft: '1.3rem',
+    paddingBottom: '1.1rem',
   },
   codeEditorContent: {
-    minHeight: '50vh',
+    minHeight: 'calc(100vh - 5.7em)',
   },
   selectFile: {
-    borderBottom: '1px solid blue',
+    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
     fontSize: '1.6rem',
+  },
+  fileMenuItem: {
+    fontSize: '1.6rem',
+  },
+  selectMenu: {
+    paddingRight: '0',
+  },
+  hideIcon: {
+    display: 'none',
+  },
+  formComponentsBtn: {
+    fontSize: '0.85em',
+    fill: altinnTheme.altinnPalette.primary.blue,
+    paddingLeft: '0',
+    marginTop: '0.1em',
+    outline: 'none !important',
+    '&:hover': {
+      background: 'none',
+    },
+  },
+  specialBtn: {
+    fontSize: '0.6em !important',
   },
 });
 
-class LogicEditor extends React.Component<ILogicEditorProvidedProps, any> {
+class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEditorState> {
+  constructor(props: ILogicEditorProvidedProps) {
+    super(props);
+    this.state = {
+      selectedFile: '',
+      availableFiles: [],
+      value: '',
+    };
+  }
+
+  public componentDidMount() {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service} = altinnWindow;
+    const servicePath = `${org}/${service}`;
+    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment/GetLogicFiles`).then((response) => {
+      const files = response.split(',');
+      this.loadFileContent(files[0]);
+      this.setState((prevState: ILogicEditorState) => {
+        return {
+          ...prevState,
+          availableFiles: files,
+        };
+      });
+    });
+  }
+
+  public loadFileContent = (fileName: string) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service} = altinnWindow;
+    const servicePath = `${org}/${service}`;
+    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment/GetLogicFile?fileName=${fileName}`)
+      .then((logicFileContent) => {
+        console.log('logic file:', logicFileContent);
+        this.setState((prevState: ILogicEditorState) => {
+          return {
+            ...prevState,
+            selectedFile: fileName,
+            value: logicFileContent,
+          };
+        });
+      });
+  }
 
   public getFolderText(): string {
     switch (this.props.folder) {
@@ -75,58 +143,98 @@ class LogicEditor extends React.Component<ILogicEditorProvidedProps, any> {
     }
   }
 
+  public switchFile = (e: any) => {
+    const fileName = e.target.value;
+    this.loadFileContent(fileName);
+  }
+
   public getLanguageFromFileName = (): any => {
-    const splitFileName = this.props.selectedFileName.split('.');
+    const splitFileName = this.state.selectedFile.split('.');
     if (splitFileName && splitFileName.length > 1) {
       const extension = splitFileName[splitFileName.length - 1];
       if (languages[extension]) {
         return languages[extension];
       }
     }
-
     return { name: '', displayName: ''};
   }
 
   public renderCloseButton = (): JSX.Element => {
     return (
-      <Button onClick={this.props.closeLogicEditor}>Close</Button>
+      <Grid
+          item={true}
+          xs={1}
+          className={this.props.classes.fileHeader}
+      >
+        <IconButton
+          type='button'
+          className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+          onClick={this.props.closeLogicEditor}
+        >
+          <i className='ai ai-circlecancel' />
+        </IconButton>
+        <IconButton
+          type='button'
+          className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+          // onClick={this.handleDiscard}
+        >
+          <i className='ai ai-circlecheck' />
+        </IconButton>
+      </Grid>
     );
   }
 
   public render() {
-    console.log('doing something');
-    const {classes, selectedFileName, availableFiles} = this.props;
+    console.log('state:', this.state);
+    const {classes} = this.props;
     const foldertext = this.getFolderText();
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
     return (
       <Grid container={true} spacing={0} className={classes.codeEditorContent}>
-        <Grid item={true} xs={12}  className={classes.fileHeader}>
+        <Grid item={true} xs={11}  className={classes.fileHeader}>
           <span>
             {foldertext}
             <i className='ai ai-expand' style={{fontSize: '2rem'}}/>
             <Select
-              value={selectedFileName}
-              classes={{root: classNames(classes.selectFile)}}
+              value={this.state.selectedFile}
+              classes={
+                {
+                  root: classNames(classes.selectFile),
+                  icon: classNames(classes.hideIcon),
+                  selectMenu: classNames(classes.selectMenu)}
+              }
+              onChange={this.switchFile}
             >
-              {availableFiles.map((file: string) => {
-                return <MenuItem value={file} key={file}>{file}</MenuItem>;
+              {this.state.availableFiles.map((file: string) => {
+                return (
+                  <MenuItem
+                    value={file}
+                    key={file}
+                    className={classes.fileMenuItem}
+                  >
+                    {file}
+                  </MenuItem>
+                );
               })}
             </Select>
           </span>
-          {this.props.closeLogicEditor ? this.renderCloseButton() : null}
+
         </Grid>
+        {this.props.closeLogicEditor ? this.renderCloseButton() : null}
+
         <Grid item={true} xs={12} className={classes.codeEditorContent}>
         <CodeEditor
           language={language.name}
-          value={'// type some code here...'}
+          value={this.state.value}
         />
         </Grid>
-        <Grid item={true} xs={12}>
-          <span>language: {language.displayName}</span>
+        <Grid item={true} xs={11}/>
+        <Grid item={true} xs={1}>
+          <span>{language.displayName}</span>
         </Grid>
       </Grid>
     );
   }
 }
 
-export default withStyles(styles)(LogicEditor);
+export default withStyles(styles, {withTheme: true})(LogicEditor);

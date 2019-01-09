@@ -36,7 +36,7 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
       <MonacoEditor
         width={width}
         height={height}
-        value={this.state.code}
+        value={this.props.value}
         language={this.props.language}
         options={
           {
