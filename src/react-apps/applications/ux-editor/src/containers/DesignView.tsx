@@ -6,7 +6,6 @@ import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
 
-
 interface IDesignerPreviewProps {
   layoutOrder: IFormLayoutOrder;
   order: any[];
