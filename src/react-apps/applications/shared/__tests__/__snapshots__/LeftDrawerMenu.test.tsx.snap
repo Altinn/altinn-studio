@@ -5,18 +5,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mock value is invalid m
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about should render left drawer menu for about option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-24 MuiPaper-elevation0-26 MuiDrawer-paper-14 LeftDrawerMenu-paper-9 LeftDrawerMenu-drawerClose-6 MuiDrawer-paperAnchorLeft-15 MuiDrawer-paperAnchorDockedLeft-19"
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
     >
       <hr
-        className="MuiDivider-root-51"
+        className="MuiDivider-root-52"
       />
       <ul
-        className="MuiList-root-56 MuiList-padding-57"
+        className="MuiList-root-57 MuiList-padding-58"
       >
         <a
           href="/aboutservice"
@@ -27,53 +27,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Om tjenesten
-              </span>
+              Om tjenesten
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/rolesandrights"
@@ -84,55 +61,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h20v20H0V0z"
-                  fill="none"
-                  transform="scale(1.2, 1.2)"
-                />
-                <path
-                  d="M15.95 10.78c.03-.25.05-.51.05-.78s-.02-.53-.06-.78l1.69-1.32c.15-.12.19-.34.1-.51l-1.6-2.77c-.1-.18-.31-.24-.49-.18l-1.99.8c-.42-.32-.86-.58-1.35-.78L12 2.34c-.03-.2-.2-.34-.4-.34H8.4c-.2 0-.36.14-.39.34l-.3 2.12c-.49.2-.94.47-1.35.78l-1.99-.8c-.18-.07-.39 0-.49.18l-1.6 2.77c-.1.18-.06.39.1.51l1.69 1.32c-.04.25-.07.52-.07.78s.02.53.06.78L2.37 12.1c-.15.12-.19.34-.1.51l1.6 2.77c.1.18.31.24.49.18l1.99-.8c.42.32.86.58 1.35.78l.3 2.12c.04.2.2.34.4.34h3.2c.2 0 .37-.14.39-.34l.3-2.12c.49-.2.94-.47 1.35-.78l1.99.8c.18.07.39 0 .49-.18l1.6-2.77c.1-.18.06-.39-.1-.51l-1.67-1.32zM10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
-                  transform="scale(1.2, 1.2)"
-                />
-              </svg>
+              <i
+                className="ai ai-others"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Roller og rettigheter
-              </span>
+              Roller og rettigheter
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/production"
@@ -143,53 +95,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Produksjon
-              </span>
+              Produksjon
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/versionhistory"
@@ -200,53 +129,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-deadline"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Versjonshistorikk
-              </span>
+              Versjonshistorikk
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/aboutenduser"
@@ -257,53 +163,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Om sluttbrukeren
-              </span>
+              Om sluttbrukeren
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/altinn"
@@ -314,55 +197,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h20v20H0V0z"
-                  fill="none"
-                  transform="scale(1.2, 1.2)"
-                />
-                <path
-                  d="M15.95 10.78c.03-.25.05-.51.05-.78s-.02-.53-.06-.78l1.69-1.32c.15-.12.19-.34.1-.51l-1.6-2.77c-.1-.18-.31-.24-.49-.18l-1.99.8c-.42-.32-.86-.58-1.35-.78L12 2.34c-.03-.2-.2-.34-.4-.34H8.4c-.2 0-.36.14-.39.34l-.3 2.12c-.49.2-.94.47-1.35.78l-1.99-.8c-.18-.07-.39 0-.49.18l-1.6 2.77c-.1.18-.06.39.1.51l1.69 1.32c-.04.25-.07.52-.07.78s.02.53.06.78L2.37 12.1c-.15.12-.19.34-.1.51l1.6 2.77c.1.18.31.24.49.18l1.99-.8c.42.32.86.58 1.35.78l.3 2.12c.04.2.2.34.4.34h3.2c.2 0 .37-.14.39-.34l.3-2.12c.49-.2.94-.47 1.35-.78l1.99.8c.18.07.39 0 .49-.18l1.6-2.77c.1-.18.06-.39-.1-.51l-1.67-1.32zM10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
-                  transform="scale(1.2, 1.2)"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Altinn.no
-              </span>
+              Altinn.no
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
       </ul>
     </div>
@@ -373,18 +231,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create should render left drawer menu for create option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-24 MuiPaper-elevation0-26 MuiDrawer-paper-14 LeftDrawerMenu-paper-9 LeftDrawerMenu-drawerClose-6 MuiDrawer-paperAnchorLeft-15 MuiDrawer-paperAnchorDockedLeft-19"
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
     >
       <hr
-        className="MuiDivider-root-51"
+        className="MuiDivider-root-52"
       />
       <ul
-        className="MuiList-root-56 MuiList-padding-57"
+        className="MuiList-root-57 MuiList-padding-58"
       >
         <a
           href="/datamodel"
@@ -395,53 +253,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Datamodell
-              </span>
+              Datamodell
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/uieditor"
@@ -452,55 +287,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h20v20H0V0z"
-                  fill="none"
-                  transform="scale(1.2, 1.2)"
-                />
-                <path
-                  d="M15.95 10.78c.03-.25.05-.51.05-.78s-.02-.53-.06-.78l1.69-1.32c.15-.12.19-.34.1-.51l-1.6-2.77c-.1-.18-.31-.24-.49-.18l-1.99.8c-.42-.32-.86-.58-1.35-.78L12 2.34c-.03-.2-.2-.34-.4-.34H8.4c-.2 0-.36.14-.39.34l-.3 2.12c-.49.2-.94.47-1.35.78l-1.99-.8c-.18-.07-.39 0-.49.18l-1.6 2.77c-.1.18-.06.39.1.51l1.69 1.32c-.04.25-.07.52-.07.78s.02.53.06.78L2.37 12.1c-.15.12-.19.34-.1.51l1.6 2.77c.1.18.31.24.49.18l1.99-.8c.42.32.86.58 1.35.78l.3 2.12c.04.2.2.34.4.34h3.2c.2 0 .37-.14.39-.34l.3-2.12c.49-.2.94-.47 1.35-.78l1.99.8c.18.07.39 0 .49-.18l1.6-2.77c.1-.18.06-.39-.1-.51l-1.67-1.32zM10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
-                  transform="scale(1.2, 1.2)"
-                />
-              </svg>
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                GUI
-              </span>
+              GUI
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/api"
@@ -511,53 +321,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                API
-              </span>
+              API
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
       </ul>
     </div>
@@ -570,18 +357,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is empty s
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is language should render left drawer menu for language option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-24 MuiPaper-elevation0-26 MuiDrawer-paper-14 LeftDrawerMenu-paper-9 LeftDrawerMenu-drawerClose-6 MuiDrawer-paperAnchorLeft-15 MuiDrawer-paperAnchorDockedLeft-19"
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
     >
       <hr
-        className="MuiDivider-root-51"
+        className="MuiDivider-root-52"
       />
       <ul
-        className="MuiList-root-56 MuiList-padding-57"
+        className="MuiList-root-57 MuiList-padding-58"
       >
         <a
           href="/text"
@@ -592,53 +379,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Tekst
-              </span>
+              Tekst
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/translate"
@@ -649,55 +413,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h20v20H0V0z"
-                  fill="none"
-                  transform="scale(1.2, 1.2)"
-                />
-                <path
-                  d="M15.95 10.78c.03-.25.05-.51.05-.78s-.02-.53-.06-.78l1.69-1.32c.15-.12.19-.34.1-.51l-1.6-2.77c-.1-.18-.31-.24-.49-.18l-1.99.8c-.42-.32-.86-.58-1.35-.78L12 2.34c-.03-.2-.2-.34-.4-.34H8.4c-.2 0-.36.14-.39.34l-.3 2.12c-.49.2-.94.47-1.35.78l-1.99-.8c-.18-.07-.39 0-.49.18l-1.6 2.77c-.1.18-.06.39.1.51l1.69 1.32c-.04.25-.07.52-.07.78s.02.53.06.78L2.37 12.1c-.15.12-.19.34-.1.51l1.6 2.77c.1.18.31.24.49.18l1.99-.8c.42.32.86.58 1.35.78l.3 2.12c.04.2.2.34.4.34h3.2c.2 0 .37-.14.39-.34l.3-2.12c.49-.2.94-.47 1.35-.78l1.99.8c.18.07.39 0 .49-.18l1.6-2.77c.1-.18.06-.39-.1-.51l-1.67-1.32zM10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
-                  transform="scale(1.2, 1.2)"
-                />
-              </svg>
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Flere språk
-              </span>
+              Flere språk
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
       </ul>
     </div>
@@ -710,18 +449,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is null sh
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish should render left drawer menu for publish option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-24 MuiPaper-elevation0-26 MuiDrawer-paper-14 LeftDrawerMenu-paper-9 LeftDrawerMenu-drawerClose-6 MuiDrawer-paperAnchorLeft-15 MuiDrawer-paperAnchorDockedLeft-19"
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
     >
       <hr
-        className="MuiDivider-root-51"
+        className="MuiDivider-root-52"
       />
       <ul
-        className="MuiList-root-56 MuiList-padding-57"
+        className="MuiList-root-57 MuiList-padding-58"
       >
         <a
           href="/productionsetting"
@@ -732,53 +471,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Produksjonsette
-              </span>
+              Produksjonsette
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
         <a
           href="/status"
@@ -789,55 +505,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h20v20H0V0z"
-                  fill="none"
-                  transform="scale(1.2, 1.2)"
-                />
-                <path
-                  d="M15.95 10.78c.03-.25.05-.51.05-.78s-.02-.53-.06-.78l1.69-1.32c.15-.12.19-.34.1-.51l-1.6-2.77c-.1-.18-.31-.24-.49-.18l-1.99.8c-.42-.32-.86-.58-1.35-.78L12 2.34c-.03-.2-.2-.34-.4-.34H8.4c-.2 0-.36.14-.39.34l-.3 2.12c-.49.2-.94.47-1.35.78l-1.99-.8c-.18-.07-.39 0-.49.18l-1.6 2.77c-.1.18-.06.39.1.51l1.69 1.32c-.04.25-.07.52-.07.78s.02.53.06.78L2.37 12.1c-.15.12-.19.34-.1.51l1.6 2.77c.1.18.31.24.49.18l1.99-.8c.42.32.86.58 1.35.78l.3 2.12c.04.2.2.34.4.34h3.2c.2 0 .37-.14.39-.34l.3-2.12c.49-.2.94-.47 1.35-.78l1.99.8c.18.07.39 0 .49-.18l1.6-2.77c.1-.18.06-.39-.1-.51l-1.67-1.32zM10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"
-                  transform="scale(1.2, 1.2)"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Status
-              </span>
+              Status
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
       </ul>
     </div>
@@ -848,18 +539,18 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
 exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test should render left drawer menu for test option in header that matches the snapshot 1`] = `
 <div>
   <div
-    className="MuiDrawer-root-12 MuiDrawer-docked-13 LeftDrawerMenu-drawer-4 LeftDrawerMenu-drawerClose-6"
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
     onMouseLeave={[Function]}
     onMouseOver={[Function]}
   >
     <div
-      className="MuiPaper-root-24 MuiPaper-elevation0-26 MuiDrawer-paper-14 LeftDrawerMenu-paper-9 LeftDrawerMenu-drawerClose-6 MuiDrawer-paperAnchorLeft-15 MuiDrawer-paperAnchorDockedLeft-19"
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
     >
       <hr
-        className="MuiDivider-root-51"
+        className="MuiDivider-root-52"
       />
       <ul
-        className="MuiList-root-56 MuiList-padding-57"
+        className="MuiList-root-57 MuiList-padding-58"
       >
         <a
           href="/test"
@@ -870,53 +561,30 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
             }
           }
         >
-          <div
-            className="MuiButtonBase-root-72 MuiListItem-root-60 MuiListItem-default-63 MuiListItem-gutters-68 MuiListItem-button-69"
-            onBlur={[Function]}
-            onFocus={[Function]}
-            onKeyDown={[Function]}
-            onKeyUp={[Function]}
-            onMouseDown={[Function]}
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
             onMouseLeave={[Function]}
-            onMouseUp={[Function]}
-            onTouchEnd={[Function]}
-            onTouchMove={[Function]}
-            onTouchStart={[Function]}
-            role="button"
-            tabIndex="0"
           >
             <div
-              className="MuiListItemIcon-root-75"
+              className="MuiListItemIcon-root-73"
             >
-              <svg
-                aria-hidden="true"
-                className="MuiSvgIcon-root-76"
-                focusable="false"
-                role="presentation"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M0 0h24v24H0z"
-                  fill="none"
-                />
-                <path
-                  d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"
-                />
-              </svg>
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
             </div>
             <div
-              className="MuiListItemText-root-85"
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
-              <span
-                className="MuiTypography-root-91 MuiTypography-subheading-98 MuiListItemText-primary-88 LeftDrawerMenu-menuItemText-11"
-              >
-                Test
-              </span>
+              Test
             </div>
-            <span
-              className="MuiTouchRipple-root-126"
-            />
-          </div>
+          </li>
         </a>
       </ul>
     </div>
