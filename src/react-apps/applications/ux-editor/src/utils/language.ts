@@ -72,7 +72,7 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
       return language.ux_editor.collapsable_text_components;
     }
     case CollapsableMenus.AdvancedComponents: {
-      return language.ux_editor.collapasble_text_advanced_components;
+      return language.ux_editor.collapsable_text_advanced_components;
     }
   }
 }
