@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -53,6 +54,11 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult Upload(string org, string service, IFormFile thefile, IEnumerable<IFormFile> secondaryFiles)
         {
+            if (thefile == null)
+            {
+                throw new ApplicationException("Cannot upload empty file");
+            }
+
             XDocument mainXsd = null;
             var secondaryXsds = new Dictionary<string, XDocument>();
 
@@ -64,12 +70,15 @@ namespace AltinnCore.Designer.Controllers
 
             secondaryXsds.Clear();
 
-            foreach (IFormFile file in secondaryFiles)
+            if (secondaryFiles != null)
             {
-                string filename = ContentDispositionHeaderValue.Parse(new StringSegment(file.ContentDisposition)).FileName.ToString();
-                using (var reader = XmlReader.Create(file.OpenReadStream()))
+                foreach (IFormFile file in secondaryFiles)
                 {
-                    secondaryXsds.Add(filename, XDocument.Load(reader));
+                    string filename = ContentDispositionHeaderValue.Parse(new StringSegment(file.ContentDisposition)).FileName.ToString();
+                    using (var reader = XmlReader.Create(file.OpenReadStream()))
+                    {
+                        secondaryXsds.Add(filename, XDocument.Load(reader));
+                    }
                 }
             }
 
