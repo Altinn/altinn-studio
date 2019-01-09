@@ -4,6 +4,7 @@ import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles 
 import * as React from 'react';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 
+import HandleMergeConflictDiscardAllChanges from './components/HandleMergeConflictDiscardAlLChanges';
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
 
 import classNames from 'classnames';
@@ -65,7 +66,7 @@ const styles = () => createStyles({
     },
   },
   paper: {
-    padding: 1.5,
+    // padding: 1.5,
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
   },
   title: {
@@ -75,6 +76,7 @@ const styles = () => createStyles({
 
 export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
   checkForMergeConflict: () => void;
+  language: any;
   repoStatus: any;
 }
 
@@ -141,7 +143,7 @@ class HandleMergeConflictContainer extends
   }
 
   public render() {
-    const { classes, repoStatus } = this.props;
+    const { classes, language, repoStatus } = this.props;
 
     return (
       <React.Fragment>
@@ -177,6 +179,7 @@ class HandleMergeConflictContainer extends
 
                     <HandleMergeConflictFileList
                       repoStatus={repoStatus}
+                      language={language}
                     />
                   </Paper>
                 </Grid>
@@ -198,8 +201,10 @@ class HandleMergeConflictContainer extends
                 className={classes.boxBottom}
               >
                 <Grid item={true} xs={4} className={classes.boxWithForkast}>
-                  Forkast alle mine filer
-                  </Grid>
+                  <HandleMergeConflictDiscardAllChanges
+                    language={language}
+                  />
+                </Grid>
 
                 <Grid item={true} xs={8}>
                   <Paper>
@@ -223,6 +228,7 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
+      language: state.language,
     };
   };
   return mapStateToProps;

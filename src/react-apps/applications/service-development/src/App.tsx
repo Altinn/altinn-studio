@@ -46,6 +46,7 @@ const styles = () => createStyles({
 });
 
 export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
+  language: any;
   location: any;
   repoStatus: any;
 }
@@ -81,7 +82,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
     this.checkForMergeConflict();
 
-    console.log('location', queryString.parse(this.props.location.search));
   }
 
   public handleDrawerToggle = () => {
@@ -189,6 +189,7 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
+      language: state.language,
     };
   };
   return mapStateToProps;

@@ -51,18 +51,19 @@ const styles = () => createStyles({
   },
 });
 
-export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
+export interface IHandleMergeConflictFileListProps extends WithStyles<typeof styles> {
+  language: any;
   repoStatus: any;
 }
 
-export interface IHandleMergeConflictContainerState {
+export interface IHandleMergeConflictFileListState {
   selectedIndex: number;
 }
 
 class HandleMergeConflictFileList extends
-  React.Component<IHandleMergeConflictContainerProps, IHandleMergeConflictContainerState> {
+  React.Component<IHandleMergeConflictFileListProps, IHandleMergeConflictFileListState> {
 
-  constructor(_props: IHandleMergeConflictContainerProps) {
+  constructor(_props: IHandleMergeConflictFileListProps) {
     super(_props);
     this.state = {
       selectedIndex: null,
@@ -85,7 +86,7 @@ class HandleMergeConflictFileList extends
               <ListItem
                 button={true}
                 key={index}
-                // selected={selectedIndex === index}
+                selected={selectedIndex === index}
                 onClick={this.handleListItemClick(index)}
                 classes={{
                   button: classNames(classes.listItemButton),
