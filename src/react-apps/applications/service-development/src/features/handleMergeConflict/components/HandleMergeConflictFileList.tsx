@@ -1,5 +1,4 @@
-import { List, ListItem, ListItemText, Paper, Typography, ListItemIcon } from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
+import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
@@ -15,7 +14,6 @@ const styles = () => createStyles({
     textDecoration: 'underline',
     color: theme.altinnPalette.primary.blueDark,
     border: theme.accessability.focusVisible.border,
-    margin: -2,
   },
   listItemIcon: {
     marginRight: 6,
@@ -44,6 +42,10 @@ const styles = () => createStyles({
   },
   primaryTextUnselected: {
     color: theme.altinnPalette.primary.blueDarker,
+  },
+  root: {
+    paddingTop: 0,
+    paddingBottom: 0,
   },
   secondaryText: {
     color: theme.altinnPalette.primary.blue,
@@ -80,7 +82,11 @@ class HandleMergeConflictFileList extends
 
     return (
       <React.Fragment>
-        <List>
+        <List
+          classes={{
+            root: classNames(classes.root),
+          }}
+        >
           {repoStatus.contentStatus.length > 0 ? repoStatus.contentStatus.map((item: any, index: any) => {
             return (
               <ListItem

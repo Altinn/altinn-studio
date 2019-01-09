@@ -1,17 +1,15 @@
-import { List, ListItem, ListItemText, Paper, Typography, ListItemIcon } from '@material-ui/core';
+import { Paper, Typography } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import classNames from 'classnames';
 import * as React from 'react';
+import { connect } from 'react-redux';
+import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
-
+import { get } from '../../../../shared/src/utils/networking';
+import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
 import HandleMergeConflictDiscardAllChanges from './components/HandleMergeConflictDiscardAlLChanges';
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
-
-import classNames from 'classnames';
-import { compose } from 'redux';
-import { connect } from 'react-redux';
-import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
-import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -71,7 +69,7 @@ const styles = () => createStyles({
   },
   title: {
     marginBottom: 16,
-  }
+  },
 });
 
 export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
@@ -90,14 +88,24 @@ class HandleMergeConflictContainer extends
     super(_props);
   }
 
+  public discardAllChanges() {
+    const altinnWindow: any = window as any;
+    const { org, service } = altinnWindow;
+    const url = `${altinnWindow.location.origin}
+      /designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
+    get(url).then((result: any) => {
+      console.log('discard result', result);
+    });
+  }
+
   public renderFileWithMergeConflict1 = (item: any): JSX.Element => {
     const { classes } = this.props;
     return (
       <Grid
-        container
+        container={true}
       >
         <Grid
-          item
+          item={true}
           xs={1}
           className={classes.boxWithIcon}
         >
@@ -109,7 +117,7 @@ class HandleMergeConflictContainer extends
           />
         </Grid>
         <Grid
-          item
+          item={true}
           xs={6}
           className={classes.fileWithMergeConflict}
         >
@@ -120,27 +128,27 @@ class HandleMergeConflictContainer extends
     );
   }
 
-  public renderFileWithMergeConflict = (item: any): JSX.Element => {
-    const { classes } = this.props;
-    const { filePath, fileStatus } = item;
+  // public renderFileWithMergeConflict = (item: any): JSX.Element => {
+  //   const { classes } = this.props;
+  //   const { filePath, fileStatus } = item;
 
-    return (
-      <ListItem button>
-        <ListItemIcon>
-          <AltinnIcon
-            isActive={true}
-            iconClass='ai ai-circlecancel'
-            iconColor='#022F51'
-            iconSize={16}
-          />
-        </ListItemIcon>
-        <ListItemText
-          primary={filePath}
-          secondary={null}
-        />
-      </ListItem>
-    );
-  }
+  //   return (
+  //     <ListItem button>
+  //       <ListItemIcon>
+  //         <AltinnIcon
+  //           isActive={true}
+  //           iconClass='ai ai-circlecancel'
+  //           iconColor='#022F51'
+  //           iconSize={16}
+  //         />
+  //       </ListItemIcon>
+  //       <ListItemText
+  //         primary={filePath}
+  //         secondary={null}
+  //       />
+  //     </ListItem>
+  //   );
+  // }
 
   public render() {
     const { classes, language, repoStatus } = this.props;
@@ -190,12 +198,11 @@ class HandleMergeConflictContainer extends
                   </Paper>
                 </Grid>
 
-
               </Grid>
               {/* Bottom grid */}
               <Grid
-                container
-                item
+                container={true}
+                item={true}
                 xs={12}
                 alignItems='center'
                 className={classes.boxBottom}
