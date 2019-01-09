@@ -1,0 +1,16 @@
+{
+  "dataFormatProvider": "SERES",
+  "dataFormatId": "3940",
+  "dataFormatIdVersion": "20161021",
+  "Leveranse": {
+    "leveringstidspunkt": "2018-11-08T10:30:00",
+    "kalendermaaned": "2018-11",
+    "kildesystem": "12345",
+    "meldingsId": "23425",
+    "opplysningspliktig": {
+      "norskIdentifikator": "asdf"
+    },
+    "oppgave": {
+    }
+  }
+}

@@ -72,6 +72,9 @@
     <li class="nav-item">
         <a class="nav-link" data-toggle="tab" href="#xml" role="tab">XSD</a>
     </li>
+    <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#schema.json" role="tab">JSON SCHEMA</a>
+    </li>
 </ul>
 
 <div class="tab-content" style="position:relative">
@@ -121,6 +124,16 @@
         </div>
         <div id="xml-model" style="display: none;"></div>
     </div>
+
+    <div class="tab-pane fade" id="xml" role="tabpanel">
+        <a title="Last ned Json Schema" asp-action="GetJsonSchema" download="@service-model.schema.json">
+            <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned Json Schema</span>
+        </a>
+        <div id="xml-container" class="editor-frame">
+            <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        </div>
+        <div id="xml-model" style="display: none;"></div>
+     </div>
 </div>
 
 <script>
@@ -188,12 +201,12 @@
                                     language: 'json'
                                 });
                                 $('#saveModelChangesBtn').show();
-                                $('#elementName').text(data.model.ID);
+                                $('#elementName').text(data.model.DisplayString);
                             } else {
                                 root.updateModelValue();
 
                                 root.editor.setValue(JSON.stringify(data.model, null, "\t"));
-                                $('#elementName').text(data.model.ID);
+                                $('#elementName').text(data.model.DisplayString);
                             }
 
                             previousNode = data;
@@ -232,6 +245,11 @@
         $.get("@Url.Action("GetXsd")",
             function (data) {
                 $("#xml-model").text(data);
+             });
+
+             $.get("@Url.Action("GetJsonSchema")",
+            function (data) {
+                $("#json-schema-model").text(data);
             });
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -282,6 +300,16 @@
                 removeEmptyNodes(data[y]);
             }
             return data;
+        } 
+
+        function typeElement(element) {
+          var name = element.DisplayString;
+          if (name && name.indexOf(":")) {
+
+            return " " + name.substring(name.indexOf(":"), name.length);
+          }
+
+          return "";
         }
 
         function insertElement(data, element) {
@@ -300,7 +328,7 @@
 
                 if (!elementExists) {
                     var newElement = {
-                        text: element.Name,
+                        text: element.Name + typeElement(element),
                         id: idParts[i],
                         href: "#" + element.ID,
                         nodes: [],
