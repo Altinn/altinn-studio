@@ -1485,6 +1485,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Copy default Dockerfile
             string servicePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
+            File.Copy(_generalSettings.DefaultProjectFile, servicePath + _settings.ProjectFileName);
         }
 
         private void CreateInitialServiceImplementation(string org, string service)
