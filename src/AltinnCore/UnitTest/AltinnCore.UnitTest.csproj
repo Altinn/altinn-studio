@@ -38,4 +38,10 @@
     <ProjectReference Include="..\Designer\AltinnCore.Designer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Designer\Edag-latin1.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
