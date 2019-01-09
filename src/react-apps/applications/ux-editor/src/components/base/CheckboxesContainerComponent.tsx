@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export interface ICheckboxContainerProps {
   id: string;
-  component: IFormComponent;
+  component: IFormCheckboxComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
@@ -11,32 +11,82 @@ export interface ICheckboxContainerProps {
 }
 
 export interface ICheckboxContainerState {
-  selected: boolean;
+  selected: string[];
 }
 
 export class CheckboxContainerComponent extends React.Component<ICheckboxContainerProps, ICheckboxContainerState> {
 
-  public onDataChanged = (e: any) => {
-    this.props.handleDataChange(!this.props.formData);
+  constructor(props: ICheckboxContainerProps, state: ICheckboxContainerState) {
+    super(props, state);
+    if (
+      !this.props.formData &&
+      this.props.component.preselectedOptionIndex &&
+      this.props.component.options &&
+      this.props.component.preselectedOptionIndex < this.props.component.options.length
+    ) {
+      const selected: string[] = [];
+      selected[props.component.preselectedOptionIndex] =
+        props.component.options[this.props.component.preselectedOptionIndex].value;
+      this.state = {
+        selected,
+      };
+    } else {
+      this.state = {
+        selected: this.props.formData ? this.props.formData.split(',') : [],
+      };
+    }
+  }
+
+  public onDataChanged = (selectedValue: any, index: number) => {
+    const newSelected = this.state.selected;
+    if (newSelected[index] === selectedValue) {
+      newSelected[index] = '';
+    } else {
+      newSelected[index] = selectedValue;
+    }
+    this.setState({
+      selected: newSelected,
+    });
+    this.props.handleDataChange(newSelected.join());
   }
 
   public render() {
+    const { options } = this.props.component;
+    const optionsLength = (options) ? options.length : 0;
+    const isStacked: boolean = (optionsLength > 2);
     return (
-      <div className={this.props.isValid ? 'form-group' : 'form-group validation-error'} id={this.props.id}>
-        <div
-          className={'pl-0 custom-control custom-control-stacked custom-checkbox a-custom-checkbox'}
-          onClick={this.onDataChanged}
-        >
-          <input
-            type='checkbox'
-            checked={this.props.formData === true}
-            name={this.props.component.id}
-            className={this.props.isValid ? 'custom-control-input' : 'custom-control-input validation-error'}
-          />
-          <label className={'pl-3 custom-control-label a-fontBold'} htmlFor={this.props.component.id}>
-            {this.props.designMode ? this.props.component.title : this.props.getTextResource(this.props.component.title)}
-          </label>
-        </div>
+      <div
+        className={
+          'form-check a-form-checkboxes pl-0' +
+          (isStacked ?
+            ' form-check-stacked' :
+            ' form-check-inline'
+          ) +
+          (this.props.isValid ?
+            '' :
+            ' validation-error'
+          )
+        }
+        id={this.props.id}
+      >
+        {options.map((option, index) => (
+          <div
+            key={index}
+            className='custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
+            onClick={this.onDataChanged.bind(this, option.value, index)}
+          >
+            <input
+              type='checkbox'
+              className='custom-control-input'
+              value={option.value}
+              name={'checkbox-' + this.props.id + '-' + index}
+              checked={
+                this.state.selected[index] === option.value
+              }
+            />
+            <label className='pl-3 custom-control-label'>{option.label}</label>
+          </div>
+        ))}
       </div>
     );
   }

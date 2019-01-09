@@ -498,5 +498,41 @@ namespace AltinnCore.Common.Services.Implementation
                 return $"{_settings.RepositoryBaseURL}{org}/{repository}.git";
             }
         }
+
+        /// <summary>
+        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        public void ResetCommit(string owner, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                repo.Reset(ResetMode.Hard, "origin/master");
+                repo.RemoveUntrackedFiles();               
+            }
+        }
+
+        /// <summary>
+        /// Discards local changes to a specific file and the file is updated with latest remote commit (origin/master)
+        /// by checking out the specific file
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="fileName">the name of the file</param>
+        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                CheckoutOptions checkoutOptions = new CheckoutOptions
+                {
+                    CheckoutModifiers = CheckoutModifiers.Force,
+                };
+
+                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
+            }
+        }
     }
 }
