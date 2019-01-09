@@ -23,10 +23,10 @@ export interface IUpdateActiveListOrderActionRejected extends Action {
   error: Error;
 }
 
-export interface IDeleteActiveListAction extends Action {
+export interface IDeleteActiveListAction {
 }
 
-export interface IDeleteActiveListActionFulfilled extends Action {
+export interface IDeleteActiveListActionFulfilled {
 }
 
 export interface IDeleteActiveListActionRejected extends Action {
