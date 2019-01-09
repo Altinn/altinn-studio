@@ -7,11 +7,10 @@ import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnFilterChip from '../../../shared/src/components/AltinnFilterChip';
-import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
 import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { ServicesCategory } from './servicesCategory';
 import { NewServiceModal } from './newServiceModal';
+import { ServicesCategory } from './servicesCategory';
 
 export interface IServicesOverviewComponentProvidedProps {
   classes: any;

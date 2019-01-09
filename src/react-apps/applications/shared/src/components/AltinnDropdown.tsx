@@ -1,20 +1,20 @@
-import { createMuiTheme, FormControl, TextField, Typography } from '@material-ui/core';
+import { createMuiTheme, FormControl, TextField, MenuItem, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnInputFieldComponentProvidedProps {
-  classes: any;
+export interface IAltinnDropdownComponentProvidedProps {
   id: string;
-  placeholder?: any;
-  onChangeFunction?: any;
+  classes: any;
+  handleChange: any;
+  dropdownItems: string[];
+  selectedValue: string;
   inputHeader?: string;
   inputDescription?: string;
-  inputValue?: string;
 }
 
-export interface IAltinnInputFieldComponentState {
+export interface IAltinnDropdownComponentState {
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -42,7 +42,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedProps, IAltinnDropdownComponentState> {
   public render() {
     const { classes } = this.props;
     return (
@@ -63,18 +63,24 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
         >
           <TextField
             id={this.props.id}
-            onChange={this.props.onChangeFunction}
-            value={this.props.inputValue}
-            placeholder={this.props.placeholder}
+            select={true}
+            value={this.props.selectedValue}
+            onChange={this.props.handleChange}
             InputProps={{
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },
             }}
-          />
+          >
+            {this.props.dropdownItems.map((option: string) => (
+              <MenuItem key={option} value={option} className={classes.test}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
         </FormControl>
       </div>
     );
   }
 }
 
-export default withStyles(styles)(AltinnInputField);
+export default withStyles(styles)(AltinnDropdown);

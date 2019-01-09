@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnSearchInputCompontentProvidedProps {
+export interface IAltinnSearchInputComponentProvidedProps {
   classes: any;
   id: string;
   placeholder: any;
@@ -37,7 +37,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnSearchInput extends React.Component<IAltinnSearchInputCompontentProvidedProps, IAltinnSearchInputComponentState> {
+class AltinnSearchInput extends React.Component<IAltinnSearchInputComponentProvidedProps, IAltinnSearchInputComponentState> {
   public render() {
     const { classes } = this.props;
     return (

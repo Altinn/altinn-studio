@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnIconButtonCompontentProvidedProps {
+export interface IAltinnIconButtonComponentProvidedProps {
   classes: any;
   onclickFunction?: any;
   className?: string;
@@ -48,7 +48,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnIconButton extends React.Component<IAltinnIconButtonCompontentProvidedProps, IAltinnIconButtonComponentState> {
+class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProvidedProps, IAltinnIconButtonComponentState> {
   public render() {
     const { classes } = this.props;
     return (

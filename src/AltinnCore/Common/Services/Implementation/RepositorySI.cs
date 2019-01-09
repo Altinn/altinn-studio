@@ -174,7 +174,8 @@ namespace AltinnCore.Common.Services.Implementation
                 if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
                 {
                     // Create service with already existing repo
-                    bool serviceCreated = CreateService(org, new ServiceConfiguration { Code = service }, true);
+                    RepositoryClient.Model.Repository repositoryCreated = CreateService(org, new ServiceConfiguration { RepoName = service }, true);
+                    bool serviceCreated = repositoryCreated.Equals(null) ? false : true;
                     if (serviceCreated)
                     {
                         CreateServiceMetadata(new ServiceMetadata { Org = org, Service = service });
@@ -824,42 +825,45 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
         /// <param name="repoCreated">whether the repo is created or not</param>
-        /// <returns>Was the service creation successful</returns>
-        public bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
+        /// <returns>The repository created in gitea</returns>
+        public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
-            string filename = _settings.GetServicePath(org, serviceConfig.Code, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
-
-            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
+            string filename = _settings.GetServicePath(org, serviceConfig.RepoName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
+            AltinnCore.RepositoryClient.Model.Repository repository = null;
+            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepoName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
-                AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
+                repository = CreateRepository(org, createRepoOption);
             }
 
-            bool created = repoCreated;
-            if (!File.Exists(filename))
+            if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.OK)
             {
-                _sourceControl.CloneRemoteRepository(org, serviceConfig.Code);
-            
-                // Verify if directory exist. Should Exist if Cloning of new repository worked
-                if (!new FileInfo(filename).Directory.Exists)
+                bool created = repoCreated;
+                if (!File.Exists(filename))
                 {
-                    new FileInfo(filename).Directory.Create();
+                    _sourceControl.CloneRemoteRepository(org, serviceConfig.RepoName);
+
+                    // Verify if directory exist. Should Exist if Cloning of new repository worked
+                    if (!new FileInfo(filename).Directory.Exists)
+                    {
+                        new FileInfo(filename).Directory.Create();
+                    }
+
+                    using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
+                    using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                    {
+                        streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                    }
+
+                    created = true;
+                    CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepoName, Message = "Service Created" };
+
+                    _sourceControl.PushChangesForRepository(commitInfo);
                 }
-
-                using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
-                using (StreamWriter streamWriter = new StreamWriter(fileStream))
-                {
-                    streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
-                }
-
-                created = true;
-                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.Code, Message = "Service Created" };
-
-                _sourceControl.PushChangesForRepository(commitInfo);
             }
 
-            return created;
+            return repository;
         }
 
         /// <summary>

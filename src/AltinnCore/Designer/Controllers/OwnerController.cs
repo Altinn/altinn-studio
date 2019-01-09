@@ -92,9 +92,9 @@ namespace AltinnCore.Designer.Controllers
         {
             if (ModelState.IsValid)
             {
-                string serviceName = serviceConfiguration.Code;
+                string serviceName = serviceConfiguration.RepoName;
                 IList<ServiceConfiguration> services = _repository.GetServices(org);
-                List<string> serviceNames = services.Select(c => c.Code.ToLower()).ToList();
+                List<string> serviceNames = services.Select(c => c.RepoName.ToLower()).ToList();
                 bool serviceNameAlreadyExists = serviceNames.Contains(serviceName.ToLower());
 
                 if (!serviceNameAlreadyExists)
@@ -106,7 +106,7 @@ namespace AltinnCore.Designer.Controllers
                         Service = serviceName,
                     };
                     _repository.CreateServiceMetadata(metadata);
-                    return RedirectToAction("Index", "Service", new { org, service = serviceConfiguration.Code });
+                    return RedirectToAction("Index", "Service", new { org, service = serviceConfiguration.RepoName });
                 }
                 else
                 {

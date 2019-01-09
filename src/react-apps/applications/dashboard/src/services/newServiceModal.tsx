@@ -1,13 +1,16 @@
-import { Modal, Typography, FormControl, TextField, InputAdornment, Button } from '@material-ui/core';
 import { createMuiTheme, withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import AltinnButton from '../../../shared/src/components/AltinnButton';
+import AltinnDropdown from '../../../shared/src/components/AltinnDropdown';
 import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
+import AltinnInputField from '../../../shared/src/components/AltinnInputField';
+import AltinnModal from '../../../shared/src/components/AltinnModal';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import AltinnInputField from '../../../shared/src/components/AltinnInputField';
-import AltinnButton from '../../../shared/src/components/AltinnButton';
+import fetchServicesDispatchers from './fetchDashboardDispatcher';
+import { post } from '../../../shared/src/utils/networking';
+import AltinnSnackbar from '../../../shared/src/components/AltinnSnackbar';
 
 export interface INewServiceModalProvidedProps {
   classes: any;
@@ -15,10 +18,15 @@ export interface INewServiceModalProvidedProps {
 
 export interface INewServiceModalProps extends INewServiceModalProvidedProps {
   language: any;
+  selectableUser: any;
 }
 
 export interface INewServiceModalState {
   isOpen: boolean;
+  isSnackbarOpen: boolean;
+  selectedOrgOrUser: string;
+  serviceName: string;
+  repoName: string;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -50,20 +58,6 @@ const styles = {
     paddingTop: 45,
     paddingBottom: 34,
   },
-  inputHeader: {
-    fontSize: '24px',
-    marginBottom: '10px',
-  },
-  descriptionInput: {
-    fontSize: '16px',
-  },
-  inputField: {
-    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-    marginTop: '10px',
-    marginBottom: '24px',
-    background: 'none',
-    width: '386px',
-  },
   button: {
     fontSize: '16px',
     padding: '5px 45px 5px 45px',
@@ -73,9 +67,12 @@ const styles = {
 };
 
 class NewServiceModalComponent extends React.Component<INewServiceModalProps, INewServiceModalState> {
-
   public state: INewServiceModalState = {
     isOpen: false,
+    isSnackbarOpen: false,
+    selectedOrgOrUser: '',
+    serviceName: '',
+    repoName: '',
   };
 
   public handleOpen = () => {
@@ -86,8 +83,50 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     this.setState({ isOpen: false });
   }
 
+  public handleSnackbarOpen = () => {
+    this.setState({ isSnackbarOpen: true });
+  }
+
+  public handleSnackbarClose = () => {
+    this.setState({ isSnackbarOpen: false });
+  }
+
+  public handleUpdateDropdown = (event: any) => {
+    this.setState({ selectedOrgOrUser: event.target.value });
+  }
+
+  public serviceNameUpdated = (event: any) => {
+    this.setState({ serviceName: event.target.value });
+  }
+
+  public repoNameUpdated = (event: any) => {
+    this.setState({ repoName: event.target.value });
+  }
+
+  public createNewService = () => {
+    const altinnWindow: Window = window;
+    if (this.state.selectedOrgOrUser && this.state.repoName) {
+      const options = {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      };
+      const bodyData = '';
+
+      // tslint:disable-next-line:max-line-length
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
+      post(url, bodyData, options).then((result: any) => {
+        console.log(result);
+        this.handleSnackbarOpen();
+      });
+    }
+    // TODO: hva hvis det er null?
+  }
+
   public render() {
     const { classes } = this.props;
+    const choices = ['hanne', 'FirstOrg', 'SecondOrg'];
     return (
       <div>
         <AltinnIconButton
@@ -95,43 +134,54 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
           btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
           iconClass='ai ai-circle-plus'
         />
-        <Modal
-          open={this.state.isOpen}
+        <AltinnModal
+          isOpen={this.state.isOpen}
           onClose={this.handleClose}
+          headerText={getLanguageFromKey('dashboard.new_service_header', this.props.language)}
         >
-          <div className={classes.modal}>
-            <div className={classes.header}>
-              <Typography className={classes.headerText}>
-                {getLanguageFromKey('dashboard.new_service_header', this.props.language)}
-              </Typography>
-            </div>
-            <div className={classes.body}>
-              <AltinnInputField
-                id={'service-owner'}
-                inputHeader={getLanguageFromKey('dashboard.service_owner', this.props.language)}
-                inputDescription={getLanguageFromKey('dashboard.service_owner_description', this.props.language)}
-              />
-              <AltinnInputField
-                id={'service-name'}
-                inputHeader={getLanguageFromKey('dashboard.service_name', this.props.language)}
-                inputDescription={getLanguageFromKey('dashboard.service_name_description', this.props.language)}
-              />
-              <AltinnInputField
-                id={'service-saved-name'}
-                inputHeader={getLanguageFromKey('dashboard.service_saved_name', this.props.language)}
-                inputDescription={getLanguageFromKey('dashboard.service_saved_name_descripyion', this.props.language)}
-              />
-              <AltinnButton
-                btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}
-                className={classes.button}
-              />
-            </div>
-          </div>
-        </Modal>
+          <AltinnDropdown
+            id={'service-owner'}
+            inputHeader={getLanguageFromKey('dashboard.service_owner', this.props.language)}
+            inputDescription={getLanguageFromKey('dashboard.service_owner_description', this.props.language)}
+            handleChange={this.handleUpdateDropdown}
+            dropdownItems={this.props.selectableUser}
+            selectedValue={this.state.selectedOrgOrUser}
+          />
+          <AltinnInputField
+            id={'service-name'}
+            inputHeader={getLanguageFromKey('dashboard.service_name', this.props.language)}
+            inputDescription={getLanguageFromKey('dashboard.service_name_description', this.props.language)}
+            inputValue={this.state.serviceName}
+            onChangeFunction={this.serviceNameUpdated}
+          />
+          <AltinnInputField
+            id={'service-saved-name'}
+            inputHeader={getLanguageFromKey('dashboard.service_saved_name', this.props.language)}
+            inputDescription={getLanguageFromKey('dashboard.service_saved_name_descripyion', this.props.language)}
+            inputValue={this.state.repoName}
+            onChangeFunction={this.repoNameUpdated}
+          />
+          <AltinnButton
+            btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}
+            className={classes.button}
+            onClickFunction={this.createNewService}
+          />
+          <AltinnSnackbar
+            isOpen={this.state.isSnackbarOpen}
+            message={'dette er teksten'}
+          />
+        </AltinnModal>
       </div >
     );
   }
 }
+const combineCurrentUserAndOrg = (organizations: any, user: any) => {
+  const allUsers = organizations.map((org: any) => org.full_name ? org.full_name : org.username);
+  const currentUserName =
+    user.full_name ? user.full_name : user.login;
+  allUsers.push(currentUserName);
+  return allUsers;
+};
 
 const mapStateToProps = (
   state: IDashboardAppState,
@@ -140,6 +190,8 @@ const mapStateToProps = (
   return {
     classes: props.classes,
     language: state.language.language,
+    selectableUser: combineCurrentUserAndOrg(state.dashboard.organizations, state.dashboard.user),
+
   };
 };
 

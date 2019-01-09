@@ -133,6 +133,8 @@ namespace AltinnCore.Common.Services.Implementation
                     Stream stream = await response.Content.ReadAsStreamAsync();
                     repository = serializer.ReadObject(stream) as AltinnCore.RepositoryClient.Model.Repository;
                 }
+
+                repository.RepositoryCreatedStatus = response.StatusCode;
             }
 
             return repository;
