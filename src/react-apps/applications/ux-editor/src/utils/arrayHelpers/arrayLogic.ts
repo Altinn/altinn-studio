@@ -1,6 +1,16 @@
 import { createSelector } from 'reselect';
 
-const pushOrPop = (obj: any) => {
+export interface IUpdateArrayObj {
+  array: any[];
+  object: any;
+}
+
+export interface ITwoArraysObj {
+  array: any[];
+  order: any [];
+}
+
+const pushOrPop = (obj: IUpdateArrayObj) => {
   const tempObj = obj.array.find((o: any) => o.id === obj.object.id);
   if (!tempObj) {
     obj.array.push(obj.object);
@@ -16,7 +26,7 @@ const pushOrPop = (obj: any) => {
   return cloneOfObj;
 };
 
-const changeOrderNum = (obj: any) => {
+const changeOrderNum = (obj: ITwoArraysObj) => {
   obj.array.forEach((component: any) => {
     if (obj.order.indexOf(component.id) >= 0) {
       component.order = obj.order.indexOf(component.id);
@@ -45,7 +55,7 @@ const findMissing = (a: any[]) => {
     return o.order;
   }));
   let index = 0;
-  Array.from(Array(maximum).keys()).map((i: number) => {
+  Array.from(Array(maximum).keys()).forEach((i: number) => {
     const obj = a.find((x: any) => x.order === i);
     if (obj) {
       index = a.indexOf(obj);
@@ -81,7 +91,7 @@ const markFirstAndLastObject = (array: any[]) => {
 const getArray = () => {
   return createSelector(
     pushOrPop,
-    (obj: any) => {
+    (obj: IUpdateArrayObj) => {
       return obj.array;
     },
   );
@@ -90,7 +100,7 @@ const getArray = () => {
 const getSortedArray = () => {
   return createSelector(
     changeOrderNum,
-    (obj: any) => {
+    (obj: ITwoArraysObj) => {
       return obj.array;
     },
   );
