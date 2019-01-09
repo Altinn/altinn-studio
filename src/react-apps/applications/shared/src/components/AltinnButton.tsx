@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnButtonCompontentProvidedProps {
+export interface IAltinnButtonComponentProvidedProps {
   classes: any;
   btnText: string;
   onClickFunction?: any;
@@ -36,7 +36,7 @@ const styles = {
   },
 };
 
-class AltinnButton extends React.Component<IAltinnButtonCompontentProvidedProps, IAltinnButtonComponentState> {
+class AltinnButton extends React.Component<IAltinnButtonComponentProvidedProps, IAltinnButtonComponentState> {
   public render() {
     const { classes } = this.props;
     return (
