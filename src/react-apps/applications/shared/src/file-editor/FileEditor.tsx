@@ -2,7 +2,7 @@ import {Grid, IconButton, MenuItem, Select} from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
 import * as React from 'react';
-import CodeEditor from '../../../shared/src/code-editor/codeEditor';
+import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
 import { get } from '../utils/networking';
 
 import theme from '../../../shared/src/theme/altinnStudioTheme';
@@ -32,13 +32,13 @@ const languages: ICodeLanguage = {
   },
 };
 
-export interface ILogicEditorProvidedProps {
+export interface IFileEditorProvidedProps {
   classes: any;
   folder: string;
-  closeLogicEditor?: () => void;
+  closeFileEditor?: () => void;
 }
 
-export interface ILogicEditorState {
+export interface IFileEditorState {
   selectedFile: string;
   availableFiles: string[];
   value: string;
@@ -83,8 +83,8 @@ const styles = createStyles({
   },
 });
 
-class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEditorState> {
-  constructor(props: ILogicEditorProvidedProps) {
+class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorState> {
+  constructor(props: IFileEditorProvidedProps) {
     super(props);
     this.state = {
       selectedFile: '',
@@ -100,7 +100,7 @@ class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEdito
     get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment/GetLogicFiles`).then((response) => {
       const files = response.split(',');
       this.loadFileContent(files[0]);
-      this.setState((prevState: ILogicEditorState) => {
+      this.setState((prevState: IFileEditorState) => {
         return {
           ...prevState,
           availableFiles: files,
@@ -116,7 +116,7 @@ class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEdito
     get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment/GetLogicFile?fileName=${fileName}`)
       .then((logicFileContent) => {
         console.log('logic file:', logicFileContent);
-        this.setState((prevState: ILogicEditorState) => {
+        this.setState((prevState: IFileEditorState) => {
           return {
             ...prevState,
             selectedFile: fileName,
@@ -169,7 +169,7 @@ class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEdito
         <IconButton
           type='button'
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
-          onClick={this.props.closeLogicEditor}
+          onClick={this.props.closeFileEditor}
         >
           <i className='ai ai-circlecancel' />
         </IconButton>
@@ -220,10 +220,10 @@ class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEdito
           </span>
 
         </Grid>
-        {this.props.closeLogicEditor ? this.renderCloseButton() : null}
+        {this.props.closeFileEditor ? this.renderCloseButton() : null}
 
         <Grid item={true} xs={12} className={classes.codeEditorContent}>
-        <CodeEditor
+        <MonacoEditorComponent
           language={language.name}
           value={this.state.value}
         />
@@ -237,4 +237,4 @@ class LogicEditor extends React.Component<ILogicEditorProvidedProps, ILogicEdito
   }
 }
 
-export default withStyles(styles, {withTheme: true})(LogicEditor);
+export default withStyles(styles, {withTheme: true})(FileEditor);

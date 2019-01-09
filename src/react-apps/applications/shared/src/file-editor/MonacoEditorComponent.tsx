@@ -1,23 +1,23 @@
 import * as React from 'react';
 import MonacoEditor from 'react-monaco-editor';
 
-export interface ICodeEditorProps {
+export interface IMonacoEditorComponentProps {
   height?: string;
   width?: string;
   language: string;
   value: string;
 }
 
-export interface ICodeEditorState {
+export interface IMonacoEditorComponentState {
   code: string;
  }
 
-export interface ICodeEditorWindow extends Window {
+export interface IMonacoEditorComponentWindow extends Window {
   MonacoEnvironment: any;
 }
 
-class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
-  constructor(props: ICodeEditorProps, state: ICodeEditorState) {
+class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps, IMonacoEditorComponentState> {
+  constructor(props: IMonacoEditorComponentProps, state: IMonacoEditorComponentState) {
     super(props);
     this.state = {
       code: props.value,
@@ -59,4 +59,4 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
   }
 }
 
-export default CodeEditor;
+export default MonacoEditorComponent;
