@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Datamodell";
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
@@ -27,7 +27,7 @@
         </label>
         <label id="submitLabel" class="form-control-label btn disabled" disabled>
             <span>Last opp</span>
-            <input type="submit" id="submit" value="Last opp" style="display:none;" />
+            <input type="submit" id="submit" value="Last opp" style="display:none;" disabled />
         </label>
     </div>
     <div>
@@ -39,11 +39,13 @@
             $("#thefile").change(function () {
                 var fileName = $(this).val();
                 if ( fileName.substr( 0, 12 ) === "C:\\fakepath\\" ) {
-					fileName = fileName.substr( 12 );
-				}
+					        fileName = fileName.substr( 12 );
+				        }
                 $("#filebtn").text(fileName);
                 $("#filelabel").addClass("disabled");
                 $("#submitLabel").removeClass("disabled").addClass("btn-primary").prop("disabled", false);
+                $("#submit").prop("disabled", false);
+                $("#secondaryFiles").prop("disabled", false);
             });
             $("#secondaryFiles").change(function () {
                 var fileName = $(this).val();
