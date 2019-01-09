@@ -74,6 +74,7 @@ const styles = createStyles({
     'marginTop': '0.1rem',
     'borderLeft': '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     'borderRight': '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
+    'outline': '0 !important',
     '&.first': {
       paddingTop: '1.2rem',
       borderTop: '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
@@ -86,6 +87,9 @@ const styles = createStyles({
     '& $active': {
       marginBottom: '0rem !important',
     },
+  },
+  noOutline: {
+    outline: '0 !important',
   },
   specialBtn: {
     fontSize: '0.6em !important',
@@ -304,6 +308,12 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.state.component.title = e.target.value;
   }
 
+  public handleKeyPress = (e: any) => {
+    if (e.key === 'Enter') {
+      this.handleSetActive();
+    }
+  }
+
   public setPlacementClass = (index: number) => {
     const first = this.props.activeList[index].firstInActiveList;
     const last = this.props.activeList[index].lastInActiveList;
@@ -332,8 +342,11 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
           >
             <Grid item={true} xs={11} className={this.props.classes.gridWrapper}>
               <div
+                tabIndex={0}
+                onKeyPress={this.handleKeyPress}
                 className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
-                  this.props.classes.listBorder + ' ' + this.setPlacementClass(activeListIndex) : 'undefined'}
+                  this.props.classes.listBorder + ' ' + this.setPlacementClass(activeListIndex) :
+                  this.props.classes.noOutline}
               >
                 <ListItem
                   className={activeListIndex > -1 ? this.props.classes.active : this.props.classes.formComponent}
