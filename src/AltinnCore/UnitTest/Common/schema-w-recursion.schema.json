@@ -1,0 +1,52 @@
+{
+	"type": "object",
+	"properties": {
+		"melding": {
+			"$ref": "#/definitions/EMPL"
+		}
+	},
+	"definitions": {		
+		"EMPL": {
+			"type": "object",
+			"properties": {
+				"ansatte": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"$ref": "#/definitions/Person"
+					}
+				}
+			},
+			"required": ["ansatte"]
+		},
+		"Person": {
+			"type": "object",
+			"properties": {
+				"navn": {
+					"type": "string"
+				},
+				"fødselsdato": {
+					"type": "string",
+					"format": "date"
+				},
+				"foresatt": {
+					"type": "array",
+					"minItems": 0,
+					"items": {
+						"$ref": "#/definitions/Person"
+					}
+				},
+				"barn": {
+					"type": "array",
+					"minItems": 0,
+					"items": {
+						"$ref": "#/definitions/Person"
+					}
+				}
+			},
+			"required": ["navn", "fødselsdato"]
+		}
+	},
+	"$schema": "http://json-schema.org/schema#",
+	"$id": "8c3e4317-0763-4649-bc8b-ad0a0aa93a26"
+}

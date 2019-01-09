@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot there are no changes in master 1`] = `
+<button
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 FetchChangesComponenet-clickable-4 FetchChangesComponenet-btn-5"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-7"
+  >
+    <p
+      className="FetchChangesComponenet-color_blueDark-2"
+    >
+      <i
+        className="ai ai-download FetchChangesComponenet-color_blueDark-2"
+      />
+       
+      sync_header.fetch_changes
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-35"
+  />
+</button>
+`;
+
+exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot when changes in master 1`] = `
+<button
+  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 FetchChangesComponenet-clickable-4 FetchChangesComponenet-btn-5"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-7"
+  >
+    <p
+      className="FetchChangesComponenet-color_blueDark-2 FetchChangesComponenet-bold-3"
+    >
+      <i
+        className="ai ai-download FetchChangesComponenet-color_blueDark-2"
+      />
+       
+      sync_header.fetch_changes
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-35"
+  />
+</button>
+`;

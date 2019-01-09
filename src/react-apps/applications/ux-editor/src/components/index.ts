@@ -63,6 +63,9 @@ export const schemaComponents: IComponent[] = [
     name: 'Checkboxes',
     Tag: CheckboxContainerComponent,
     Type: ComponentTypes.CheckBox,
+    customProperties: {
+      options: [],
+    },
   },
   {
     name: 'RadioButtons',
