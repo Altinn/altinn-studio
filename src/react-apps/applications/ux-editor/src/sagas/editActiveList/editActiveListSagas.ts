@@ -50,8 +50,7 @@ export function* watchUpdateActiveOrderSaga(): SagaIterator {
   );
 }
 
-export function* deleteActiveListSaga({
-}: FormDesignerActions.IDeleteActiveListAction): SagaIterator {
+export function* deleteActiveListSaga(): SagaIterator {
   try {
     yield call(FormDesignerActionDispatchers.deleteActionListActionFulfilled);
   } catch (err) {

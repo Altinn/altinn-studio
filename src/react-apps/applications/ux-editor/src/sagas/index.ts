@@ -6,7 +6,7 @@ import apiSagas from './api';
 import appDataSagas from './appData';
 import codeListsSagas from './codeLists';
 import conditionalRenderingSagas from './conditionalRendering';
-import editContainerSagas from './editContainer';
+import editContainerSagas from './editActiveList';
 import formDesignerSagas from './formDesigner';
 import formFillerSagas from './formFiller';
 import manageJsonFileSagas from './manageServiceConfiguration';

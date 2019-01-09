@@ -60,9 +60,9 @@ export interface IFormDesignerActionDispatchers
     error: Error,
   ) => FormDesignerActions.ICreateRepeatingGroupRejected;
   deleteActiveListAction: (
-  ) => FormDesignerActions.IDeleteActiveListAction;
+  ) => Action;
   deleteActionListActionFulfilled: (
-  ) => FormDesignerActions.IDeleteActiveListActionFulfilled;
+  ) => Action;
   deleteActionListActionRejected: (
     error: Error,
   ) => FormDesignerActions.IDeleteActiveListActionRejected;
