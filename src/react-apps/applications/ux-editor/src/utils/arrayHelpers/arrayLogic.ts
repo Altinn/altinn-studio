@@ -12,18 +12,26 @@ export interface ITwoArraysObj {
 
 const pushOrPop = (obj: IUpdateArrayObj) => {
   const tempObj = obj.array.find((o: any) => o.id === obj.object.id);
-  if (!tempObj) {
-    obj.array.push(obj.object);
-    obj.array.sort(compareOrderNum);
+  const index = obj.array.indexOf(tempObj);
+  if (obj.array.find((o: any) => o.inEditMode === true)) {
+    if (tempObj) {
+      obj.array[index] = obj.object;
+    }
+    const cloneOfObj = JSON.parse(JSON.stringify(obj));
+    return cloneOfObj;
   } else {
-    const index = obj.array.indexOf(tempObj);
-    obj.array.splice(index, 1);
+    if (!tempObj) {
+      obj.array.push(obj.object);
+      obj.array.sort(compareOrderNum);
+    } else {
+      obj.object.inEditMode ? obj.array[index] = obj.object : obj.array.splice(index, 1);
+    }
+    if (obj.array.length > 0) {
+      markFirstAndLastObject(obj.array);
+    }
+    const cloneOfObj = JSON.parse(JSON.stringify(obj));
+    return cloneOfObj;
   }
-  if (obj.array.length > 0) {
-    markFirstAndLastObject(obj.array);
-  }
-  const cloneOfObj = JSON.parse(JSON.stringify(obj));
-  return cloneOfObj;
 };
 
 const changeOrderNum = (obj: ITwoArraysObj) => {
@@ -84,8 +92,8 @@ const markFirstAndLastObject = (array: any[]) => {
       array[i].lastInActiveList = false;
     }
   }
-  const sorted = findMissing(array);
-  return sorted;
+  const handleMissingInOrder = findMissing(array);
+  return handleMissingInOrder;
 };
 
 const getArray = () => {

@@ -9,10 +9,10 @@ export function* updateActiveListSaga({
   listItem,
   containerList,
 }: FormDesignerActions.IUpdateActiveListAction): SagaIterator {
-  let returnedList = null;
+  let returnedList = [];
   const func = addToOrDeleteFromArray();
   containerList.length >= 1 ? returnedList = func({ array: containerList, object: listItem }) :
-    returnedList = containerList.push(listItem);
+    returnedList.push(listItem);
   try {
     if (Array.isArray(returnedList)) {
       yield call(FormDesignerActionDispatchers.updateActiveListActionFulfilled, [...returnedList]);

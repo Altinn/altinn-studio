@@ -161,6 +161,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         order: _props.order,
         firstInActiveList: _props.firstInActiveList,
         lastInActiveList: _props.lastInActiveList,
+        inEditMode: false,
       },
       activeList: _props.activeList,
     };
@@ -199,12 +200,18 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public handleOpenEdit = (): void => {
     this.setState({
       isEditMode: true,
+      listItem: {
+        ...this.state.listItem,
+        inEditMode: true,
+      },
+    }, () => {
+      this.props.handler(this.state.listItem);
     });
   }
 
   public handleSetActive = (): void => {
     if (!this.state.isEditMode) {
-      this.props.handler(this.state.listItem, this.state.activeList);
+      this.props.handler(this.state.listItem);
       this.setState({
         listItem: this.state.listItem,
         hideDelete: false,
@@ -218,11 +225,15 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSave = (): void => {
-    this.props.handler(this.state.listItem, this.state.activeList);
     this.setState({
       isEditMode: false,
+      listItem: {
+        ...this.state.listItem,
+        inEditMode: false,
+      },
+    }, () => {
+      this.props.handler(this.state.listItem);
     });
-    this.handleSaveChange(this.state.component);
   }
   public handleDiscard = (): void => {
     this.setState({
@@ -331,6 +342,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public render(): JSX.Element {
     const activeListIndex =
       this.props.activeList.findIndex((listItem: any) => listItem.id === this.props.id);
+    const first = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList :  true;
     return (
       <>
         <Grid container={true}>
@@ -349,7 +361,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   this.props.classes.noOutline}
               >
                 <ListItem
-                  className={activeListIndex > -1 ? this.props.classes.active : this.props.classes.formComponent}
+                  className={activeListIndex > -1 || this.state.isEditMode ? this.props.classes.active :
+                    this.props.classes.formComponent}
                   onClick={this.handleSetActive}
                 >
                   {this.state.isEditMode ?
@@ -378,10 +391,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               < Grid
                 container={true}
                 direction={'row'}
-                className={this.props.classes.gridForBtn}
+                className={activeListIndex > -1 ? this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
               >
               <Grid item={true} xs={12}>
-              {this.state.listItem.firstInActiveList &&
+              {first &&
                 <IconButton
                   type='button'
                   className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
@@ -392,7 +405,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               }
               </Grid>
               <Grid item={true} xs={12}>
-              {!(this.state.activeList.length > 1) &&
+              {!(this.props.activeList.length > 1) &&
                 <IconButton
                   type='button'
                   className={this.props.classes.formComponentsBtn}
@@ -409,7 +422,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               <Grid
                 container={true}
                 direction={'row'}
-                className={this.props.classes.gridForBtn}
+                className={this.props.classes.gridForBtnActive}
               >
               <Grid item={true} xs={12}>
                 <IconButton

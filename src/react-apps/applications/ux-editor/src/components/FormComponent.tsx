@@ -156,9 +156,9 @@ class FormComponent extends React.Component<
     e.stopPropagation();
   }
 
-  public handleActiveListChange = (obj: any, list: any) => {
-    FormDesignerActionDispatchers.updateActiveList(obj, list);
-    this.props.handler(list);
+  public handleActiveListChange = (obj: any) => {
+    FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
+    this.props.handler(this.props.activeList);
   }
 
   /**
