@@ -50,6 +50,7 @@ export function* saveJsonFileSaga({ url }: ManageJsonFileActions.ISaveJsonFileAc
       ManageJsonFileActionDispatcher.saveJsonFileFulfilled,
       'data',
     );
+    window.postMessage('SAVED', window.location.href);
   } catch (err) {
     yield call(ManageJsonFileActionDispatcher.saveJsonFileRejected, err);
   }

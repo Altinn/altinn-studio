@@ -107,9 +107,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       isEditModalOpen: false,
       isItemActive: false,
       isEditMode: false,
-      component: {
-        ...this.props.component,
-      },
+      component: { ...this.props.component },
     };
   }
 
@@ -117,7 +115,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     this.setState((state) => {
       return {
         ...state,
-        component: updatedComponent,
+        component: { ...updatedComponent },
       };
     });
   }
@@ -160,6 +158,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
   public handleDiscard = (): void => {
     this.setState({
+      component: { ...this.props.component },
       isItemActive: false,
       isEditMode: false,
     });

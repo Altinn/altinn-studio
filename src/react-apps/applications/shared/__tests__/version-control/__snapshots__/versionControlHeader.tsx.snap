@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should match snapshot 1`] = `
+<div
+  className="MuiGrid-container-2 VersionControlHeader-headerStyling-1"
+>
+  <div
+    className="MuiGrid-item-3 MuiGrid-grid-xs-5-35"
+  >
+    <button
+      className="MuiButtonBase-root-130 MuiButton-root-104 MuiButton-text-106 MuiButton-flat-109 FetchChangesComponenet-clickable-102 FetchChangesComponenet-btn-103"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex="0"
+      type="button"
+    >
+      <span
+        className="MuiButton-label-105"
+      >
+        <p
+          className="FetchChangesComponenet-color_blueDark-100"
+        >
+          <i
+            className="ai ai-download FetchChangesComponenet-color_blueDark-100"
+          />
+           
+          sync_header.fetch_changes
+        </p>
+      </span>
+      <span
+        className="MuiTouchRipple-root-150"
+      />
+    </button>
+  </div>
+  <div
+    className="MuiGrid-item-3 MuiGrid-grid-xs-7-37"
+  >
+    <button
+      className="MuiButtonBase-root-130 MuiButton-root-104 MuiButton-text-106 MuiButton-flat-109 ShareChangesCompoenent-color_blueDark-134 ShareChangesCompoenent-clickable-138 ShareChangesCompoenent-btn-139"
+      disabled={false}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onKeyDown={[Function]}
+      onKeyUp={[Function]}
+      onMouseDown={[Function]}
+      onMouseLeave={[Function]}
+      onMouseUp={[Function]}
+      onTouchEnd={[Function]}
+      onTouchMove={[Function]}
+      onTouchStart={[Function]}
+      tabIndex="0"
+      type="button"
+    >
+      <span
+        className="MuiButton-label-105"
+      >
+        <p>
+          <i
+            className="ai ai-check ShareChangesCompoenent-color_blueDarker-133"
+          />
+          sync_header.no_changes_to_share
+        </p>
+      </span>
+      <span
+        className="MuiTouchRipple-root-150"
+      />
+    </button>
+  </div>
+</div>
+`;

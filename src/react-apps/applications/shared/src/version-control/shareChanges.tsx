@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -10,15 +10,8 @@ export interface IShareChangesCompoenentProvidedProps {
   changesInLocalRepo: boolean;
   moreThanAnHourSinceLastPush: boolean;
   hasPushRight: boolean;
+  hasMergeConflict: boolean;
   language: any;
-}
-
-export interface IShareChangesCompoenentProps extends IShareChangesCompoenentProvidedProps {
-
-}
-
-export interface IShareChangesCompoenentState {
-
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -33,19 +26,31 @@ const styles = createStyles({
   bold: {
     fontWeight: 500,
   },
+  fontSize_16: {
+    fontSize: '16px !Important',
+  },
+  marginRight_10: {
+    marginRight: '10px',
+  },
   clickable: {
-    '&:hover': {
-      cursor: 'pointer',
-    },
-    'maxWidth': '260px',
     [theme.breakpoints.down('md')]: {
       float: 'right',
       marginRight: '10px',
     },
   },
+  btn: {
+    'textTransform': 'none',
+    'padding': 0,
+    '&:hover': {
+      backgroundColor: 'transparent !Important',
+    },
+    '&:focus': {
+      backgroundColor: 'transparent !Important',
+    },
+  },
 });
 
-class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProps, IShareChangesCompoenentState> {
+class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProvidedProps, any> {
   public shareChangesHandler = (event: any) => {
     if (this.props.changesInLocalRepo) {
       this.props.shareChanges(event.currentTarget);
@@ -54,7 +59,21 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProp
 
   public renderCorrectText() {
     const { classes } = this.props;
-    if (this.props.changesInLocalRepo) {
+    if (this.props.hasMergeConflict) {
+      return (
+        <p
+          className={classNames(classes.bold)}
+        >
+          {<i
+            className={classNames(
+              'ai ai-circlecancel',
+              classes.color_blueDark,
+              classes.fontSize_16,
+              classes.marginRight_10)}
+          />}
+          {getLanguageFromKey('sync_header.merge_conflict', this.props.language)}
+        </p>);
+    } else if (this.props.changesInLocalRepo) {
       return (
         <p
           className={classNames(
@@ -77,12 +96,12 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProp
   public render() {
     const { classes } = this.props;
     return (
-      <div
+      <Button
         onClick={this.shareChangesHandler}
-        className={classNames(classes.color_blueDark, classes.clickable)}
+        className={classNames(classes.color_blueDark, classes.clickable, classes.btn)}
       >
         {this.renderCorrectText()}
-      </div>
+      </Button>
     );
   }
 }

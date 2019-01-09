@@ -79,7 +79,7 @@
     <None Update="Common\ServiceModel.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-	<None Update="Common\schema-w-recursion.xsd">
+	  <None Update="Common\schema-w-recursion.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Common\schema.xsd">
@@ -88,6 +88,8 @@
     <None Update="Common\Skattemelding_v6.25.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Designer\Edag-latin1.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-  
 </Project>
