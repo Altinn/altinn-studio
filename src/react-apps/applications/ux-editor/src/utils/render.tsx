@@ -52,7 +52,7 @@ export function renderSelectTextFromResources(
   language: any,
   placeholder?: string,
   truncateLimit: number = 80,
-  createNewTextAllowed: boolean = true,
+  createNewTextAllowed: boolean = false,
 ): JSX.Element {
   const resources: any = [];
   if (textResources) {
