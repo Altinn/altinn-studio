@@ -201,4 +201,13 @@ declare global {
     id: string;
     value: string;
   }
+
+  export interface ICodeLanguageItem {
+    name: string;
+    displayName: string;
+  }
+
+  export interface ICodeLanguage {
+    [id: string]: ICodeLanguageItem;
+  }
 }

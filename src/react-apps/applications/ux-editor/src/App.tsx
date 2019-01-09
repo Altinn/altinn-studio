@@ -113,9 +113,10 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     return <FormFiller />;
   }
 
+  
+
   public renderLogicEditor = (): JSX.Element => {
-    console.log('****RENDER LOGIC EDITOR****');
-    return <LogicEditor folder='c' selectedFileName='Kalkuleringsfil.cs'/>;
+    return <LogicEditor folder='c' selectedFileName='Kalkuleringsfil1.cs' availableFiles={['Kalkuleringsfil1.cs','Kalkuleringsfil2.cs','Kalkuleringsfil3.cs']}/>;
   }
 
   public render() {

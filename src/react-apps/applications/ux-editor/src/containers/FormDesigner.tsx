@@ -1,4 +1,4 @@
-import { createStyles, Grid, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Drawer, Grid, Theme, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
@@ -8,6 +8,7 @@ import VersionControlHeader from '../../../shared/src/version-control/versionCon
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
+import LogicEditor from './LogicEditor';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
@@ -17,7 +18,9 @@ export interface IFormDesignerProvidedProps {
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
 }
-export interface IFormDesignerState { }
+export interface IFormDesignerState {
+  codeEditorOpen: boolean;
+}
 
 const styles = ((theme: Theme) => createStyles({
   root: {
@@ -48,6 +51,11 @@ class FormDesigner extends React.Component<
   IFormDesignerProps,
   IFormDesignerState
   > {
+
+  public state = {
+    codeEditorOpen: true,
+  };
+
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
@@ -59,6 +67,14 @@ class FormDesigner extends React.Component<
     ManageServiceConfigurationDispatchers.fetchJsonFile(
       `${altinnWindow.location.origin}/designer/${
       servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+  }
+
+  public toggleCodeEditor = () => {
+    this.setState((prevState: IFormDesignerState) => {
+      return {
+        codeEditorOpen: !prevState.codeEditorOpen,
+      };
+    });
   }
 
   public render() {
@@ -93,6 +109,17 @@ class FormDesigner extends React.Component<
               }}
             >
               <DesignView />
+              <Drawer
+                anchor='bottom'
+                open={this.state.codeEditorOpen}
+              >
+                <LogicEditor
+                  folder='c'
+                  selectedFileName='Kalkuleringsfil1.cs'
+                  availableFiles={['Kalkuleringsfil1.cs', 'Kalkuleringsfil2.cs', 'Kalkuleringsfil3.cs']}
+                  closeLogicEditor={this.toggleCodeEditor}
+                />
+              </Drawer>
             </div>
           </Grid>
           <Grid item={true} classes={{ item: classNames(classes.item) }}>

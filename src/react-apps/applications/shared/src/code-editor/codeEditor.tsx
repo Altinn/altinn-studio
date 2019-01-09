@@ -5,6 +5,7 @@ export interface ICodeEditorProps {
   height?: string;
   width?: string;
   language: string;
+  value: string;
 }
 
 export interface ICodeEditorState {
@@ -19,7 +20,7 @@ class CodeEditor extends React.Component<ICodeEditorProps, ICodeEditorState> {
   constructor(props: ICodeEditorProps, state: ICodeEditorState) {
     super(props);
     this.state = {
-      code: '// Type some code here...',
+      code: props.value,
     };
   }
 
