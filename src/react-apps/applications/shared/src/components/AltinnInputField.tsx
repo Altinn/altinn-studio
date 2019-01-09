@@ -60,9 +60,9 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
         <FormControl
           classes={{ root: classNames(classes.inputField) }}
           fullWidth={true}
+          id={this.props.id}
         >
           <TextField
-            id={this.props.id}
             onChange={this.props.onChangeFunction}
             value={this.props.inputValue}
             placeholder={this.props.placeholder}

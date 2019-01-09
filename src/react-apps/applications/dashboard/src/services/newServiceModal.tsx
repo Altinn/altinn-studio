@@ -8,10 +8,8 @@ import AltinnInputField from '../../../shared/src/components/AltinnInputField';
 import AltinnModal from '../../../shared/src/components/AltinnModal';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import fetchServicesDispatchers from './fetchDashboardDispatcher';
 import { post } from '../../../shared/src/utils/networking';
-import AltinnSnackbar from '../../../shared/src/components/AltinnSnackbar';
-
+import AltinnPopper from '../../../shared/src/components/AltinnPopper';
 export interface INewServiceModalProvidedProps {
   classes: any;
 }
@@ -23,12 +21,10 @@ export interface INewServiceModalProps extends INewServiceModalProvidedProps {
 
 export interface INewServiceModalState {
   isOpen: boolean;
-  isServiceOwnerSnackbarOpen: boolean;
-  serviceOwnerSnackbarMessage: string;
-  serviceOwnerSnackbarPosition: any;
-  isRepoNameSnackbarOpen: boolean;
-  repoNameSnackbarMessage: string;
-  repoNameSnackbarPosition: any;
+  serviceOwnerAnchorEl: any;
+  serviceOwnerPopperMessage: string;
+  repoNameAnchorEl: any;
+  repoNamePopperMessage: string;
   selectedOrgOrUser: string;
   serviceName: string;
   repoName: string;
@@ -74,12 +70,10 @@ const styles = {
 class NewServiceModalComponent extends React.Component<INewServiceModalProps, INewServiceModalState> {
   public state: INewServiceModalState = {
     isOpen: false,
-    isServiceOwnerSnackbarOpen: false,
-    serviceOwnerSnackbarMessage: '',
-    serviceOwnerSnackbarPosition: { top: 0, left: 0 },
-    isRepoNameSnackbarOpen: false,
-    repoNameSnackbarMessage: '',
-    repoNameSnackbarPosition: { top: 0, left: 0 },
+    serviceOwnerAnchorEl: null,
+    serviceOwnerPopperMessage: '',
+    repoNameAnchorEl: null,
+    repoNamePopperMessage: '',
     selectedOrgOrUser: '',
     serviceName: '',
     repoName: '',
@@ -93,23 +87,35 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     this.setState({ isOpen: false });
   }
 
-  public handleServiceOwnerSnackbarOpen = () => {
-    this.setState({ isServiceOwnerSnackbarOpen: true });
+  public showServiceOwnerPopper = (message: string) => {
+    this.setState(
+      {
+        serviceOwnerAnchorEl: document.getElementById('service-owner'),
+        serviceOwnerPopperMessage: message,
+      });
+  }
+
+  public showRepoNamePopper = (message: string) => {
+    this.setState(
+      {
+        repoNameAnchorEl: document.getElementById('service-saved-name'),
+        repoNamePopperMessage: message,
+      });
   }
 
   public handleServiceOwnerSnackbarClose = () => {
-    this.setState({ isServiceOwnerSnackbarOpen: false });
-  }
-  public handleRepoNameSnackbarOpen = () => {
-    this.setState({ isRepoNameSnackbarOpen: true });
+    this.setState({ serviceOwnerAnchorEl: null });
   }
 
   public handleRepoNameSnackbarClose = () => {
-    this.setState({ isRepoNameSnackbarOpen: false });
+    this.setState({ repoNameAnchorEl: null });
   }
 
   public handleUpdateDropdown = (event: any) => {
-    this.setState({ selectedOrgOrUser: event.target.value });
+    this.setState({
+      selectedOrgOrUser: event.target.value,
+      serviceOwnerAnchorEl: null,
+    });
   }
 
   public serviceNameUpdated = (event: any) => {
@@ -117,39 +123,28 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
   }
 
   public repoNameUpdated = (event: any) => {
-    this.setState({ repoName: event.target.value });
+    this.setState({
+      repoName: event.target.value,
+      repoNameAnchorEl: null,
+    });
   }
 
-
   public createNewService = () => {
-    const altinnWindow: Window = window;
     if (!this.state.selectedOrgOrUser) {
-      this.setState({
-        serviceOwnerSnackbarMessage: getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language),
-        isServiceOwnerSnackbarOpen: true,
-      });
+      this.showServiceOwnerPopper(getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language));
     }
 
     if (!this.state.repoName) {
-      this.setState({
-        repoNameSnackbarMessage: getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language),
-        isRepoNameSnackbarOpen: true,
-      });
+      this.showRepoNamePopper(getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language));
     }
 
     if (this.state.selectedOrgOrUser && this.state.repoName) {
-      const options = {
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      };
-      const bodyData = '';
-
+      const altinnWindow: Window = window;
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
-      post(url, bodyData, options).then((result: any) => {
+      post(url).then((result: any) => {
         console.log(result);
+        result
         //this.handleSnackbarOpen();
       });
     }
@@ -178,10 +173,9 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
             dropdownItems={this.props.selectableUser}
             selectedValue={this.state.selectedOrgOrUser}
           />
-          <AltinnSnackbar
-            isOpen={this.state.isServiceOwnerSnackbarOpen}
-            message={this.state.serviceOwnerSnackbarMessage}
-            postition={this.state.serviceOwnerSnackbarPosition}
+          <AltinnPopper
+            anchorEl={this.state.serviceOwnerAnchorEl}
+            message={this.state.serviceOwnerPopperMessage}
           />
           <AltinnInputField
             id={'service-name'}
@@ -197,10 +191,9 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
             inputValue={this.state.repoName}
             onChangeFunction={this.repoNameUpdated}
           />
-          <AltinnSnackbar
-            isOpen={this.state.isRepoNameSnackbarOpen}
-            message={this.state.repoNameSnackbarMessage}
-            postition={this.state.repoNameSnackbarPosition}
+          <AltinnPopper
+            anchorEl={this.state.repoNameAnchorEl}
+            message={this.state.repoNamePopperMessage}
           />
           <AltinnButton
             btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}

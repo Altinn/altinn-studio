@@ -60,9 +60,9 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
         <FormControl
           classes={{ root: classNames(classes.inputField) }}
           fullWidth={true}
+          id={this.props.id}
         >
           <TextField
-            id={this.props.id}
             select={true}
             value={this.props.selectedValue}
             onChange={this.props.handleChange}
