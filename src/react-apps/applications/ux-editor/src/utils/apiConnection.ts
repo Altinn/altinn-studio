@@ -6,6 +6,9 @@ import { IApiConnection } from '../reducers/apiReducer';
 */
 export function getCodeListConnectionForDatamodelBinding(dataModelId: string, connections: IApiConnection): string {
   let connectionId: string;
+  if (!connections) {
+    return connectionId;
+  }
   for (const connectionKey of Object.keys(connections)) {
     const connection: IConnection = connections[connectionKey];
     if (!connection.codeListId) {
