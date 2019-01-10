@@ -96,7 +96,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Save form layout as JSON
         /// </summary>
-        /// <param name="jsonData">The code list data to save</param>p
+        /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>A success message if the save was successful</returns>
