@@ -103,14 +103,6 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
       });
   }
 
-  public handleServiceOwnerSnackbarClose = () => {
-    this.setState({ serviceOwnerAnchorEl: null });
-  }
-
-  public handleRepoNameSnackbarClose = () => {
-    this.setState({ repoNameAnchorEl: null });
-  }
-
   public handleUpdateDropdown = (event: any) => {
     this.setState({
       selectedOrgOrUser: event.target.value,
@@ -133,9 +125,18 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     if (!this.state.selectedOrgOrUser) {
       this.showServiceOwnerPopper(getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language));
     }
-
     if (!this.state.repoName) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language));
+    }
+
+    if (!/^[a-zA-Z]+[a-zA-Z0-9_]*$/.test(this.state.repoName)) {
+      this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_has_illegal_characters', this.props.language));
+      return;
+    }
+
+    if (this.state.repoName.length > 100) {
+      this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_is_too_long', this.props.language));
+      return;
     }
 
     if (this.state.selectedOrgOrUser && this.state.repoName) {
@@ -143,12 +144,13 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
       post(url).then((result: any) => {
-        console.log(result);
-        result
-        //this.handleSnackbarOpen();
+        if (result.repositoryCreatedStatus === 422) {
+          this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_already_exist', this.props.language));
+        } else if (result.repositoryCreatedStatus === 201) {
+          window.location.href = `${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`;
+        }
       });
     }
-    // TODO: hva hvis det er null?
   }
 
   public render() {

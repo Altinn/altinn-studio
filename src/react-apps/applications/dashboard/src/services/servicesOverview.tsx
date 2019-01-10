@@ -222,12 +222,12 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
                 />
               </Grid>
               <Hidden lgUp={true}>
-                {this.renderSort()}
+                {/* {this.renderSort()} */}
                 {this.renderFilters()}
               </Hidden>
               <Hidden mdDown={true}>
                 {this.renderFilters()}
-                {this.renderSort()}
+                {/* {this.renderSort()} */}
               </Hidden>
             </Grid>
             <ServicesCategory

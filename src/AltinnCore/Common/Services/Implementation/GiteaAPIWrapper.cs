@@ -99,13 +99,14 @@ namespace AltinnCore.Common.Services.Implementation
         {
             AltinnCore.RepositoryClient.Model.Repository repository = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
+            string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == org ? "/user/repos" : "/org/" + org + "/repos";
+            Uri giteaUrl = new Uri(_settings.ApiEndPoint + urlEnd);
 
-            Uri giteaUrl = new Uri(_settings.ApiEndPoint + "/org/" + org + "/repos");
             Cookie cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
 
             if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
             {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + "/org/" + org + "/repos");
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("GiteaApiEndpoint") + urlEnd);
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
 

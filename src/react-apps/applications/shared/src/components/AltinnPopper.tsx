@@ -25,6 +25,7 @@ const styles = {
     fontSize: 16,
     zIndex: 1300,
     padding: '12px 24px 12px 24px',
+    maxWidth: '550px',
   },
 };
 

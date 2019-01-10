@@ -837,7 +837,7 @@ namespace AltinnCore.Common.Services.Implementation
                 repository = CreateRepository(org, createRepoOption);
             }
 
-            if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.OK)
+            if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
                 bool created = repoCreated;
                 if (!File.Exists(filename))
