@@ -448,14 +448,14 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("InternalRepositoryBaseURL") + "user/settings/");
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
             else
             {
-                giteaUrl = new Uri(_settings.InternalRepositoryBaseURL + "user/settings");
+                giteaUrl = new Uri(_settings.RepositoryBaseURL + "user/settings");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
 
@@ -493,14 +493,14 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("InternalRepositoryBaseURL") + "user/settings/applications");
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/applications");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
             }
             else
             {
-                giteaUrl = new Uri(_settings.InternalRepositoryBaseURL + "user/settings/applications");
+                giteaUrl = new Uri(_settings.RepositoryBaseURL + "user/settings/applications");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
 
@@ -536,14 +536,14 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("GiteaApiEndpoint") != null && Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("InternalRepositoryBaseURL") + "user/settings/applications");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("GiteaEndpoint"));
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/applications");
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("RepositoryBaseURL"));
             }
             else
             {
-                giteaUrl = new Uri(_settings.InternalRepositoryBaseURL + "user/settings/applications");
+                giteaUrl = new Uri(_settings.RepositoryBaseURL + "user/settings/applications");
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
             }
 

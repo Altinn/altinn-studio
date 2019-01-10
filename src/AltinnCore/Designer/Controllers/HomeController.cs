@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
@@ -264,6 +265,18 @@ namespace AltinnCore.Designer.Controllers
         {
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
+        }
+
+        /// <summary>
+        /// Shows devinfo
+        /// </summary>
+        /// <returns>Shows Devinfo</returns>
+        public IActionResult DevInfo()
+        {
+            StringBuilder builder = new StringBuilder();
+            builder.Append("Path: " + Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL"));
+            builder.Append("Path API: " + Environment.GetEnvironmentVariable("ApiEndPoint"));
+            return Content(builder.ToString());
         }
     }
 }
