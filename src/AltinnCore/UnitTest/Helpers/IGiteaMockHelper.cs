@@ -59,7 +59,7 @@ namespace AltinnCore.UnitTest.Helpers
         public static void GetCurrentUser_ReturnsOne(Mock<IGitea> moqGiteaWrapper)
         {
             User user = new User() { Login = "MockUser" };
-            moqGiteaWrapper.Setup(gitea => gitea.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(gitea => gitea.GetCurrentUser()).ReturnsAsync(user);
         }
 
         /// <summary>
