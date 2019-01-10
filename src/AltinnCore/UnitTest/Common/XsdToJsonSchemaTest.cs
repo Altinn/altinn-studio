@@ -29,6 +29,17 @@ namespace AltinnCore.UnitTest.Common
         }
 
         /// <summary>
+        /// Test converting edag XSD (in iso-8859-1 encoding) to Json Schema
+        /// </summary>
+        [Fact]
+        public void EdagLatin1ConvertToJsonSchema()
+        {
+            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/Edag-latin1.xsd"));
+            var schemaText = converter.AsJsonSchema();
+            int d = 0;
+        }
+
+        /// <summary>
         /// Test converting ServiceModel XSD to Json Schema
         /// </summary>
         [Fact]

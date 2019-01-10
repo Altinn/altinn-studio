@@ -55,6 +55,9 @@
     <None Update="Common\boligsparingForUngdom_v1_1.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Common\Edag-latin1.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\edag.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
