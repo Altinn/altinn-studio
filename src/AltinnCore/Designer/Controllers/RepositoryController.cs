@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -264,9 +265,19 @@ namespace AltinnCore.Designer.Controllers
                     var metadata = new ServiceMetadata
                     {
                         Org = org,
-                        Service = serviceName1,
+                        ServiceName = serviceName,
+                        RepositoryName = repoName,
                     };
                     _repository.CreateServiceMetadata(metadata);
+                    if (!string.IsNullOrEmpty(serviceName))
+                    {
+                        JObject json = JObject.FromObject(new
+                        {
+                            language = "nb-NO",
+                            resources = new[] { new { id = "ServiceName", value = serviceName } },
+                        });
+                        _repository.SaveResource(org, repoName, "nb-NO", json.ToString());
+                    }
                 }
 
                 return repository;

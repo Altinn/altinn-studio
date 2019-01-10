@@ -81,7 +81,7 @@ namespace AltinnCore.Common.Services.Implementation
                 serviceOrgPath = _settings.RepositoryLocation + serviceMetadata.Org;
             }
 
-            string servicePath = serviceOrgPath + "/" + serviceMetadata.Service;
+            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
 
             if (!Directory.Exists(serviceOrgPath))
             {
@@ -95,7 +95,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             string metaDataDir = _settings.GetMetadataPath(
                 serviceMetadata.Org,
-                serviceMetadata.Service,
+                serviceMetadata.RepositoryName,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
@@ -105,7 +105,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             string resourceDir = _settings.GetResourcePath(
                 serviceMetadata.Org,
-                serviceMetadata.Service,
+                serviceMetadata.RepositoryName,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             DirectoryInfo resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
@@ -116,16 +116,16 @@ namespace AltinnCore.Common.Services.Implementation
             string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
-            AddDefaultFiles(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialServiceImplementation(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialRuleHandler(serviceMetadata.Org, serviceMetadata.Service);
+            AddDefaultFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialServiceImplementation(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialRuleHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
-            CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -178,7 +178,7 @@ namespace AltinnCore.Common.Services.Implementation
                     bool serviceCreated = repositoryCreated.Equals(null) ? false : true;
                     if (serviceCreated)
                     {
-                        CreateServiceMetadata(new ServiceMetadata { Org = org, Service = service });
+                        CreateServiceMetadata(new ServiceMetadata { Org = org, RepositoryName = service });
                         filedata = File.ReadAllText(filename, Encoding.UTF8);
                         return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
                     }
@@ -623,7 +623,7 @@ namespace AltinnCore.Common.Services.Implementation
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
             serviceMetadata.Org = org;
-            serviceMetadata.Service = service;
+            serviceMetadata.RepositoryName = service;
 
             string classes = modelGenerator.CreateModelFromMetadata(serviceMetadata);
 

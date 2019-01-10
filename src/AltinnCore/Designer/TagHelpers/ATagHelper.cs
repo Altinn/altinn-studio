@@ -62,7 +62,7 @@ namespace AltinnCore.Designer.TagHelpers
                 {
                     var href = output.Attributes["href"];
                     var serverurl = ViewContext.HttpContext.Request.Host;
-                    var url = "/ui/" + serviceContext.ServiceMetaData.Org + "/" + serviceContext.ServiceMetaData.Service + "/" + requestContext.InstanceId + "/" + output.Attributes["name"].Value;
+                    var url = "/ui/" + serviceContext.ServiceMetaData.Org + "/" + serviceContext.ServiceMetaData.RepositoryName + "/" + requestContext.InstanceId + "/" + output.Attributes["name"].Value;
                     var protocol = ViewContext.HttpContext.Request.Protocol.Split('/')[0]; // Strips away the protocol version in the last part
                     href = new TagHelperAttribute("href", protocol + "://" + serverurl + url, href.ValueStyle);
                     output.Attributes.SetAttribute(href);

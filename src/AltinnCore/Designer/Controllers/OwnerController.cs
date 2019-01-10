@@ -103,7 +103,8 @@ namespace AltinnCore.Designer.Controllers
                     var metadata = new ServiceMetadata
                     {
                         Org = org,
-                        Service = serviceName,
+                        ServiceName = serviceName,
+                        RepositoryName = serviceName,
                     };
                     _repository.CreateServiceMetadata(metadata);
                     return RedirectToAction("Index", "Service", new { org, service = serviceConfiguration.RepoName });
