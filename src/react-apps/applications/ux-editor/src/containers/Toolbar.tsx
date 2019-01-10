@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
+import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
@@ -38,6 +38,7 @@ export enum LayoutItemType {
 export enum CollapsableMenus {
   Components,
   Texts,
+  AdvancedComponents,
 }
 
 export interface IToolbarProvidedProps {
@@ -64,10 +65,13 @@ export interface IToolbarState {
   componentListCloseAnimationDone: boolean;
   textListOpen: boolean;
   textListCloseAnimationDone: boolean;
+  advancedComponentListOpen: boolean;
+  advancedComponentListCloseAnimationDone: boolean;
 }
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public components: IToolbarElement[];
   public textComponents: IToolbarElement[];
+  public advancedComponents: IToolbarElement[];
 
   constructor(props: IToolbarProps, state: IToolbarState) {
     super(props, state);
@@ -82,9 +86,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       componentListCloseAnimationDone: false,
       textListOpen: true,
       textListCloseAnimationDone: false,
+      advancedComponentListOpen: true,
+      advancedComponentListCloseAnimationDone: false,
     };
     this.components = schemaComponents.map(this.mapComponentToToolbarElement);
     this.textComponents = textComponents.map(this.mapComponentToToolbarElement);
+    this.advancedComponents = advancedComponents.map(this.mapComponentToToolbarElement);
   }
 
   public mapComponentToToolbarElement = (c: IComponent): IToolbarElement => {
@@ -205,9 +212,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       this.setState({
         componentListOpen: !this.state.componentListOpen,
       });
-    } else {
+    } else if (menu === CollapsableMenus.Texts) {
       this.setState({
         textListOpen: !this.state.textListOpen,
+      });
+    } else if (menu === CollapsableMenus.AdvancedComponents) {
+      this.setState({
+        advancedComponentListOpen: !this.state.advancedComponentListOpen,
       });
     }
   }
@@ -224,6 +235,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     } else if (list === 'text') {
       this.setState({
         textListCloseAnimationDone: done,
+      });
+    } else if (list === 'advancedComponent') {
+      this.setState({
+        advancedComponentListCloseAnimationDone: done,
       });
     }
   }
@@ -313,6 +328,31 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           >
             <List dense={false} id={'schema-texts'}>
               {this.textComponents.map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={component.label}
+                  componentType={component.componentType}
+                  onClick={this.handleComponentInformationOpen}
+                  onDropAction={component.actionMethod}
+                />
+              ))}
+            </List>
+          </Collapse>
+          <CollapsableMenuComponent
+            menuIsOpen={this.state.advancedComponentListOpen}
+            onClick={this.handleCollapsableListClicked}
+            menuType={CollapsableMenus.AdvancedComponents}
+          />
+          <Collapse
+            in={this.state.advancedComponentListOpen}
+            onExited={this.setCollapsableListAnimationState.bind(this, 'advancedComponent', true)}
+            onEnter={this.setCollapsableListAnimationState.bind(this, 'advancedComponent', false)}
+            style={this.state.advancedComponentListCloseAnimationDone ? { display: 'none' } : {}}
+            classes={{
+              container: this.props.classes.collapsableContainer,
+            }}
+          >
+            <List dense={false} id={'advanced-components'}>
+              {this.advancedComponents.map((component: IToolbarElement) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
