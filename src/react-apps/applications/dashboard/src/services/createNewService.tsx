@@ -1,4 +1,6 @@
-import { withStyles } from '@material-ui/core/styles';
+import { CircularProgress, Typography } from '@material-ui/core';
+import { createMuiTheme, withStyles } from '@material-ui/core/styles';
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnButton from '../../../shared/src/components/AltinnButton';
@@ -7,6 +9,7 @@ import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
 import AltinnInputField from '../../../shared/src/components/AltinnInputField';
 import AltinnModal from '../../../shared/src/components/AltinnModal';
 import AltinnPopper from '../../../shared/src/components/AltinnPopper';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { post } from '../../../shared/src/utils/networking';
 export interface ICreateNewServiceProvidedProps {
@@ -18,6 +21,8 @@ export interface ICreateNewServiceProps extends ICreateNewServiceProvidedProps {
   selectableUser: any;
 }
 
+const theme = createMuiTheme(altinnTheme);
+
 export interface ICreateNewServiceState {
   isOpen: boolean;
   serviceOwnerAnchorEl: any;
@@ -28,6 +33,7 @@ export interface ICreateNewServiceState {
   selectedOrgOrUserDisabled: boolean;
   serviceName: string;
   repoName: string;
+  isLoading: boolean;
 }
 
 const styles = {
@@ -36,7 +42,20 @@ const styles = {
     padding: '5px 45px 5px 45px',
     height: '37px !Important',
   },
-
+  spinner: {
+    marginTop: '20px',
+    color: theme.altinnPalette.primary.blueDark,
+    marginRight: 'auto',
+    marginLeft: 'auto',
+    display: 'inline-block',
+  },
+  spinnerText: {
+    display: 'inline-block',
+    fontSize: 16,
+    marginLeft: '10px',
+    verticalAlign: 'middle',
+    marginBottom: '25px',
+  },
 };
 
 class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
@@ -50,6 +69,7 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
     selectedOrgOrUserDisabled: false,
     serviceName: '',
     repoName: '',
+    isLoading: false,
   };
 
   public handleModalOpen = () => {
@@ -144,11 +164,17 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
     }
 
     if (this.state.selectedOrgOrUser && this.state.repoName) {
+      this.setState({
+        isLoading: true,
+      });
       const altinnWindow: Window = window;
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
       post(url).then((result: any) => {
         if (result.repositoryCreatedStatus === 422) {
+          this.setState({
+            isLoading: false,
+          });
           this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_already_exist', this.props.language));
         } else if (result.repositoryCreatedStatus === 201) {
           window.location.href = `${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`;
@@ -203,11 +229,20 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
             anchorEl={this.state.repoNameAnchorEl}
             message={this.state.repoNamePopperMessage}
           />
-          <AltinnButton
-            btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}
-            className={classes.button}
-            onClickFunction={this.createNewService}
-          />
+          {this.state.isLoading ?
+            <div>
+              <CircularProgress className={classNames(classes.spinner)} />
+              <Typography className={classNames(classes.spinnerText)}>Oppretter tjenesten din</Typography>
+            </div>
+            :
+            <AltinnButton
+              btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}
+              className={classes.button}
+              onClickFunction={this.createNewService}
+            />
+
+          }
+
         </AltinnModal>
       </div >
     );
