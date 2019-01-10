@@ -141,7 +141,7 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             User user = new User();
-            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrappeer.Setup(g => g.GetCurrentUser()).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,
@@ -180,7 +180,7 @@ namespace AltinnCore.UnitTest.Designer
 
             User user = new User();
             user.Login = "Test";
-            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrappeer.Setup(g => g.GetCurrentUser()).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,
@@ -218,7 +218,7 @@ namespace AltinnCore.UnitTest.Designer
 
             User user = new User();
             user.Login = "Test";
-            moqGiteaWrapper.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(g => g.GetCurrentUser()).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
                 moqRepository.Object,
@@ -256,7 +256,7 @@ namespace AltinnCore.UnitTest.Designer
 
             User user = new User();
             user.Login = "Test";
-            moqGiteaWrapper.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(g => g.GetCurrentUser()).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,

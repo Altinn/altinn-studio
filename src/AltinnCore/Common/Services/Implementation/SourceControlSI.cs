@@ -419,24 +419,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The app token</returns>
         public string GetAppToken()
         {
-            string path = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
-            }
-            else
-            {
-                path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
-            }
-
-            string token = null;
-
-            if (File.Exists(path))
-            {
-                token = File.ReadAllText(path, Encoding.UTF8);
-            }
-
-            return token;
+            return AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext);
         }
 
         /// <summary>

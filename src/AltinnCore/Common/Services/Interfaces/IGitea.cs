@@ -14,9 +14,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Get the current user
         /// </summary>
-        /// <param name="giteaSession">the gitea session</param>
         /// <returns>The current user</returns>
-        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession);
+        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser();
 
         /// <summary>
         /// Create repository for th organisation
@@ -83,5 +82,22 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         Task<Branch> GetBranch(string owner, string repository, string branch);
+
+        /// <summary>
+        /// This method screen scrapes the user from the profile ui in GITEA.
+        /// This was needed when GITEA changed their API policy in 1.5.2 and requiring
+        /// only API calls with token. This is currently the only known way to get
+        /// info about the logged in user in GITEA. 
+        /// </summary>
+        /// <returns>Returns the logged in user</returns>
+        Task<string> GetUserNameFromUI();
+
+        /// <summary>
+        /// This method generates a application key in GITEA with
+        /// help of screen scraping the Application form in GITEA
+        /// This is the only  way (currently) to generate a APP key without involving the user in 
+        /// </summary>
+        /// <returns>A newly generated token</returns>
+        Task<string> GetSessionAppKey();
     }
 }
