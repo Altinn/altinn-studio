@@ -185,7 +185,7 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
     if (!responseList) {
       return;
     }
-    const options: IOptions[] = [{ label: '<Select>', value: '' }];
+    const options: IOptions[] = [];
     const valueKey = connectionDef.apiResponseMapping[dataBindingName].valueKey;
     const labelKey = connectionDef.apiResponseMapping[dataBindingName].labelKey;
     responseList.forEach((item) => {

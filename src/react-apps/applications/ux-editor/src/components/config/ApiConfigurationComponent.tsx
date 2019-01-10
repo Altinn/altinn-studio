@@ -173,7 +173,12 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
   }
 
   public handleMappingChange = (id: any, name: string, e: any) => {
-    const value = e.target.value;
+    let value: string;
+    if (!e.target) {
+      value = e;
+    } else {
+      value = e.target.value;
+    }
     this.setState((prevState, props) => {
       return {
         ...prevState,

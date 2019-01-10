@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
+import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
@@ -16,6 +16,7 @@ import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModa
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 import { ToolbarItem } from './ToolbarItem';
 
@@ -37,6 +38,7 @@ export enum LayoutItemType {
 export enum CollapsableMenus {
   Components,
   Texts,
+  AdvancedComponents,
 }
 
 export interface IToolbarProvidedProps {
@@ -48,7 +50,9 @@ export interface IToolbarProps extends IToolbarProvidedProps {
   textResources: ITextResource[];
   thirdPartyComponents: any;
   activeContainer: string;
+  activeList: any[];
   language: any;
+  order: any[];
 }
 export interface IToolbarState {
   modalOpen: boolean;
@@ -61,10 +65,13 @@ export interface IToolbarState {
   componentListCloseAnimationDone: boolean;
   textListOpen: boolean;
   textListCloseAnimationDone: boolean;
+  advancedComponentListOpen: boolean;
+  advancedComponentListCloseAnimationDone: boolean;
 }
 class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   public components: IToolbarElement[];
   public textComponents: IToolbarElement[];
+  public advancedComponents: IToolbarElement[];
 
   constructor(props: IToolbarProps, state: IToolbarState) {
     super(props, state);
@@ -79,9 +86,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       componentListCloseAnimationDone: false,
       textListOpen: true,
       textListCloseAnimationDone: false,
+      advancedComponentListOpen: true,
+      advancedComponentListCloseAnimationDone: false,
     };
     this.components = schemaComponents.map(this.mapComponentToToolbarElement);
     this.textComponents = textComponents.map(this.mapComponentToToolbarElement);
+    this.advancedComponents = advancedComponents.map(this.mapComponentToToolbarElement);
   }
 
   public mapComponentToToolbarElement = (c: IComponent): IToolbarElement => {
@@ -99,8 +109,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           position,
           containerId,
         );
+        this.updateActiveListOrder();
       },
     } as IToolbarElement;
+  }
+
+  public updateActiveListOrder() {
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
   public addContainerToLayout(containerId: string, index: number) {
@@ -197,9 +212,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       this.setState({
         componentListOpen: !this.state.componentListOpen,
       });
-    } else {
+    } else if (menu === CollapsableMenus.Texts) {
       this.setState({
         textListOpen: !this.state.textListOpen,
+      });
+    } else if (menu === CollapsableMenus.AdvancedComponents) {
+      this.setState({
+        advancedComponentListOpen: !this.state.advancedComponentListOpen,
       });
     }
   }
@@ -216,6 +235,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     } else if (list === 'text') {
       this.setState({
         textListCloseAnimationDone: done,
+      });
+    } else if (list === 'advancedComponent') {
+      this.setState({
+        advancedComponentListCloseAnimationDone: done,
       });
     }
   }
@@ -314,6 +337,31 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               ))}
             </List>
           </Collapse>
+          <CollapsableMenuComponent
+            menuIsOpen={this.state.advancedComponentListOpen}
+            onClick={this.handleCollapsableListClicked}
+            menuType={CollapsableMenus.AdvancedComponents}
+          />
+          <Collapse
+            in={this.state.advancedComponentListOpen}
+            onExited={this.setCollapsableListAnimationState.bind(this, 'advancedComponent', true)}
+            onEnter={this.setCollapsableListAnimationState.bind(this, 'advancedComponent', false)}
+            style={this.state.advancedComponentListCloseAnimationDone ? { display: 'none' } : {}}
+            classes={{
+              container: this.props.classes.collapsableContainer,
+            }}
+          >
+            <List dense={false} id={'advanced-components'}>
+              {this.advancedComponents.map((component: IToolbarElement) => (
+                <ToolbarItem
+                  text={component.label}
+                  componentType={component.componentType}
+                  onClick={this.handleComponentInformationOpen}
+                  onDropAction={component.actionMethod}
+                />
+              ))}
+            </List>
+          </Collapse>
         </List >
 
         <div className='d-block'>
@@ -378,12 +426,15 @@ const mapsStateToProps = (
   state: IAppState,
   props: IToolbarProvidedProps,
 ): IToolbarProps => {
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   return {
     classes: props.classes,
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
     activeContainer: state.formDesigner.layout.activeContainer,
+    activeList: state.formDesigner.layout.activeList,
+    order: GetLayoutOrderSelector(state),
     language: state.appData.language.language,
   };
 };

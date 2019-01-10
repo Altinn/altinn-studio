@@ -233,7 +233,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Logout 
+        /// Logout
         /// </summary>
         /// <returns>The logout page</returns>
         public async Task<IActionResult> Logout()
@@ -246,6 +246,7 @@ namespace AltinnCore.Designer.Controllers
         /// Go to app token view
         /// </summary>
         /// <returns>The app token view</returns>
+        [Authorize]
         [HttpGet]
         public IActionResult AppToken()
         {
@@ -257,6 +258,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="appKey">the app key</param>
         /// <returns>redirects user</returns>
+        [Authorize]
         [HttpPost]
         public IActionResult AppToken(AppKey appKey)
         {

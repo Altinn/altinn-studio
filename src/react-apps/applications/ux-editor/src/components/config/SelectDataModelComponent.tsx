@@ -85,7 +85,7 @@ export class SelectDataModel extends React.Component<
     const dataModelElementNames = [];
     for (const element of this.props.dataModelElements) {
       if (element.DataBindingName) {
-        dataModelElementNames.push({value: element.DataBindingName, label: element.DataBindingName});
+        dataModelElementNames.push({value: element.DataBindingName, label: element.DisplayString});
       }
     }
     return (

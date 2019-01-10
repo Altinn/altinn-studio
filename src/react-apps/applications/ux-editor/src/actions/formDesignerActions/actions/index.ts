@@ -8,6 +8,7 @@ export * from './fetchFormLayout';
 export * from './generateRepeatingGroups';
 export * from './saveFormLayout';
 export * from './selectFormComponent';
+export * from './updateActiveList';
 export * from './updateDataModelBinding';
 export * from './updateFormComponent';
 export * from './updateFormContainer';

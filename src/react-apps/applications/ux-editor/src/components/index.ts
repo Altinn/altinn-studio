@@ -1,3 +1,4 @@
+import { AddressComponent } from './advanced/AddressComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 import { DropdownComponent } from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
@@ -28,6 +29,7 @@ export enum ComponentTypes {
   FileUpload,
   Submit,
   Container,
+  AddressComponent,
 }
 
 export const textComponents: IComponent[] = [
@@ -61,6 +63,9 @@ export const schemaComponents: IComponent[] = [
     name: 'Checkboxes',
     Tag: CheckboxContainerComponent,
     Type: ComponentTypes.CheckBox,
+    customProperties: {
+      options: [],
+    },
   },
   {
     name: 'RadioButtons',
@@ -91,6 +96,17 @@ export const schemaComponents: IComponent[] = [
   },
 ];
 
-const components: IComponent[] = textComponents.concat(schemaComponents);
+export const advancedComponents: IComponent[] = [
+  {
+    name: 'AddressComponent',
+    Tag: AddressComponent,
+    Type: ComponentTypes.AddressComponent,
+    customProperties: {
+      simplified: true,
+    },
+  },
+];
+
+const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
 
 export default components;

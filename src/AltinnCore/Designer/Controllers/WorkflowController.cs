@@ -1,5 +1,6 @@
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -9,6 +10,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller for workflow
     /// </summary>
+    [Authorize]
     public class WorkflowController : Controller
     {
         private readonly IHostingEnvironment _hostingEnvironment;
@@ -85,7 +87,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public IActionResult GetWorkflow(string org, string service)
         {
-            var workflowJson = _repository.GetConfiguration(org, service,  _settings.WorkFlowFileName);
+            var workflowJson = _repository.GetConfiguration(org, service, _settings.WorkFlowFileName);
             if (string.IsNullOrWhiteSpace(workflowJson))
             {
                 var defaulFile = _defaultFileFactory.GetJsonDefaultFile(_settings.WorkFlowFileName, org);

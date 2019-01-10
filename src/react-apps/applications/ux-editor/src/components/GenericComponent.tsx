@@ -22,7 +22,8 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
       || !this.props.thirdPartyComponents[packageName][component]) {
       return null;
     }
-    return thirdPartyComponentWithElementHandler(this.props.thirdPartyComponents[packageName][component], this.props.handleDataChange);
+    return thirdPartyComponentWithElementHandler(this.props.thirdPartyComponents[packageName][component],
+      this.props.handleDataChange);
   }
 
   public render() {
@@ -30,7 +31,8 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
       return this.renderThirdPartyComponent();
     }
 
-    const TagName = formComponentWithHandlers(components.find((c: any) => c.name === this.props.component.component).Tag);
+    const TagName = formComponentWithHandlers(components.find((c: any) => c.name ===
+      this.props.component.component).Tag);
     return (
       <TagName
         id={this.props.id}
