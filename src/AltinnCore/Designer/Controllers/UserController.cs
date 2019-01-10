@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -13,6 +14,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// API controller for User functionality
     /// </summary>
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IGitea _giteaApi;
