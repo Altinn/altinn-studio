@@ -67,6 +67,7 @@ class FormDesigner extends React.Component<
       <div className={classes.root}>
         <Grid
           container={true}
+          wrap={'nowrap'}
           spacing={0}
           classes={{ container: classNames(classes.container) }}
         >
