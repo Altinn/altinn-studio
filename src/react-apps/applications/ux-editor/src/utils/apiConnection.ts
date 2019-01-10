@@ -6,6 +6,9 @@ import { IApiConnection } from '../reducers/apiReducer';
 */
 export function getCodeListConnectionForDatamodelBinding(dataModelId: string, connections: IApiConnection): string {
   let connectionId: string;
+  if (!connections) {
+    return connectionId;
+  }
   for (const connectionKey of Object.keys(connections)) {
     const connection: IConnection = connections[connectionKey];
     if (!connection.codeListId) {
@@ -23,6 +26,9 @@ export function getCodeListConnectionForDatamodelBinding(dataModelId: string, co
   Returns the index of a given code list name, or -1 if not found
 */
 export function getCodeListIndexByName(name: string, codeLists: ICodeListListElement[]) {
+  if (!codeLists) {
+    return -1;
+  }
   for (let i = 0; i < codeLists.length; i++) {
     if (codeLists[i].codeListName === name) {
       return i;

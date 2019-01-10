@@ -1,0 +1,176 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its less than an hour since last push and there are changes in the repo 1`] = `
+<button
+  className="MuiButtonBase-root-34 MuiButton-root-8 MuiButton-text-10 MuiButton-flat-13 ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-clickable-6 ShareChangesCompoenent-btn-7"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-9"
+  >
+    <p
+      className=""
+    >
+      <i
+        className="ai ai-upload ShareChangesCompoenent-color_blueDark-2"
+      />
+      sync_header.changes_to_share
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-37"
+  />
+</button>
+`;
+
+exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when its more than an hour since last push and there are changes in the repo 1`] = `
+<button
+  className="MuiButtonBase-root-34 MuiButton-root-8 MuiButton-text-10 MuiButton-flat-13 ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-clickable-6 ShareChangesCompoenent-btn-7"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-9"
+  >
+    <p
+      className="ShareChangesCompoenent-bold-3"
+    >
+      <i
+        className="ai ai-upload ShareChangesCompoenent-color_blueDark-2"
+      />
+      sync_header.changes_to_share
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-37"
+  />
+</button>
+`;
+
+exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has a mergeconflict 1`] = `
+<button
+  className="MuiButtonBase-root-34 MuiButton-root-8 MuiButton-text-10 MuiButton-flat-13 ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-clickable-6 ShareChangesCompoenent-btn-7"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-9"
+  >
+    <p
+      className="ShareChangesCompoenent-bold-3"
+    >
+      <i
+        className="ai ai-circlecancel ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-fontSize_16-4 ShareChangesCompoenent-marginRight_10-5"
+      />
+      sync_header.merge_conflict
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-37"
+  />
+</button>
+`;
+
+exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user has no changes in local repo 1`] = `
+<button
+  className="MuiButtonBase-root-34 MuiButton-root-8 MuiButton-text-10 MuiButton-flat-13 ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-clickable-6 ShareChangesCompoenent-btn-7"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-9"
+  >
+    <p>
+      <i
+        className="ai ai-check ShareChangesCompoenent-color_blueDarker-1"
+      />
+      sync_header.no_changes_to_share
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-37"
+  />
+</button>
+`;
+
+exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snapshot when user only has read access to service 1`] = `
+<button
+  className="MuiButtonBase-root-34 MuiButton-root-8 MuiButton-text-10 MuiButton-flat-13 ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-clickable-6 ShareChangesCompoenent-btn-7"
+  disabled={false}
+  onBlur={[Function]}
+  onClick={[Function]}
+  onFocus={[Function]}
+  onKeyDown={[Function]}
+  onKeyUp={[Function]}
+  onMouseDown={[Function]}
+  onMouseLeave={[Function]}
+  onMouseUp={[Function]}
+  onTouchEnd={[Function]}
+  onTouchMove={[Function]}
+  onTouchStart={[Function]}
+  tabIndex="0"
+  type="button"
+>
+  <span
+    className="MuiButton-label-9"
+  >
+    <p
+      className="ShareChangesCompoenent-bold-3"
+    >
+      sync_header.changes_to_share
+    </p>
+  </span>
+  <span
+    className="MuiTouchRipple-root-37"
+  />
+</button>
+`;

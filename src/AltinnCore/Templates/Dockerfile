@@ -1,6 +1,7 @@
 #altinn-runtime with sdk
 FROM altinntjenestercontainerregistry.azurecr.io/altinn-runtime:latest AS build
 WORKDIR /AltinnService/
+COPY AltinnService.csproj ./
 COPY Implementation/*.cs ./
 COPY Model/*.cs ./
 RUN dotnet publish -o publish/

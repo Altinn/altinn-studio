@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:altinn="www.altinn.no/infopath-extensions">
+  <xsd:element name="melding" type="EMPL" />
+  <xsd:complexType name="EMPL">
+    <xsd:sequence>
+      <xsd:element name="ansatte" type="Person" maxOccurs="unbounded" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="Person">
+    <xsd:sequence>
+      <xsd:element name="navn" type="xsd:string" />
+      <xsd:element name="fødselsdato" type="xsd:date" />
+      <xsd:element name="foresatt" type="Person" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="barn" type="Person" minOccurs="0" maxOccurs="unbounded" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

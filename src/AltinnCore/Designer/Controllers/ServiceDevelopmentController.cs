@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -9,6 +10,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// The service builder API
     /// </summary>
+    [Authorize]
     public class ServiceDevelopmentController : Controller
     {
         /// <summary>

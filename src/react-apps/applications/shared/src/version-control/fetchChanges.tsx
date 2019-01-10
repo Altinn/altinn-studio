@@ -1,4 +1,4 @@
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -32,10 +32,17 @@ const styles = createStyles({
     fontWeight: 500,
   },
   clickable: {
+    maxWidth: '250px',
+  },
+  btn: {
+    'textTransform': 'none',
+    'padding': 0,
     '&:hover': {
-      cursor: 'pointer',
+      backgroundColor: 'transparent !Important',
     },
-    'maxWidth': '250px',
+    '&:focus': {
+      backgroundColor: 'transparent !Important',
+    },
   },
 });
 
@@ -48,9 +55,9 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
   public render() {
     const { classes } = this.props;
     return (
-      <div
+      <Button
         onClick={this.fetchChangesHandler}
-        className={classNames(classes.clickable)}
+        className={classNames(classes.clickable, classes.btn)}
       >
         <p
           className={classNames(
@@ -62,7 +69,7 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
             className={classNames('ai ai-download', classes.color_blueDark)}
           /> {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
         </p>
-      </div>
+      </Button>
     );
   }
 }

@@ -183,30 +183,33 @@ namespace AltinnCore.Common.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
+                // Restrict users from empty commit 
+                if (repo.RetrieveStatus().IsDirty)
                 {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
+                    string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
+                    Remote remote = repo.Network.Remotes["origin"];
 
-                Commands.Stage(repo, "*");
+                    if (!remote.PushUrl.Equals(remoteUrl))
+                    {
+                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                        // Requires adminstrator access to update files.
+                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                    }
 
-                // Create the committer's signature and commit
-                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                LibGit2Sharp.Signature committer = author;
+                    Commands.Stage(repo, "*");
 
-                // Commit to the repository
-                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                    // Create the committer's signature and commit
+                    LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                    LibGit2Sharp.Signature committer = author;
 
-                PushOptions options = new PushOptions();
-                options.CredentialsProvider = (_url, _user, _cred) =>
+                    // Commit to the repository
+                    LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+
+                    PushOptions options = new PushOptions();
+                    options.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                repo.Network.Push(remote, @"refs/heads/master", options);
+                    repo.Network.Push(remote, @"refs/heads/master", options);
+                }
             }
         }
 
