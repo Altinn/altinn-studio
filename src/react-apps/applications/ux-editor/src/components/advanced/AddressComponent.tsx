@@ -5,7 +5,7 @@ import * as React from 'react';
 import '../../styles/AddressComponent.css';
 
 export interface IAddressComponentProps {
-  component: IFormComponent;
+  component: IFormAddressComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
