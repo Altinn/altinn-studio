@@ -64,7 +64,6 @@ declare global {
     dataModelBinding?: string;
     textResourceId?: string;
     customType?: string;
-    simplified?: boolean;
     codeListId?: string;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
@@ -112,7 +111,7 @@ declare global {
     description: string;
   }
 
-  export interface IFormAdressComponent extends IFormComponent {
+  export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
   }
 
@@ -125,7 +124,7 @@ declare global {
     | IFormRadioButtonComponent
     | IFormDropdownComponent
     | IFormFileUploaderComponent
-    | IFormAdressComponent;
+    | IFormAddressComponent;
 
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;

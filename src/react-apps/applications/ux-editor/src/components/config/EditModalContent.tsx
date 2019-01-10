@@ -193,7 +193,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 options={sizes}
               />
             </Grid>
-          </Grid >
+          </Grid>
         );
       }
       case 'Input': {
@@ -234,7 +234,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               className='form-control'
               onChange={this.handleParagraphChange}
             />
-          </Grid >
+          </Grid>
         );
       }
       case 'Checkboxes': {
@@ -373,7 +373,10 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             )}
             <Grid item={true} xs={12}>
               {this.props.language.ux_editor.modal_configure_address_component_simplified}
-              <Checkbox checked={this.state.component.simplified} onChange={this.handleToggleAdressSimple} />
+              <Checkbox
+                checked={(this.state.component as IFormAddressComponent).simplified}
+                onChange={this.handleToggleAdressSimple}
+              />
             </Grid>
           </Grid >
         );
