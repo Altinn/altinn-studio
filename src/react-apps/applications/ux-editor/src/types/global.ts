@@ -168,6 +168,9 @@ declare global {
     XName?: string;
     XPath: string;
     XsdValueType?: string;
+    DisplayString: string;
+    XmlSchemaXPath: string;
+    JsonSchemaPointer: string;
   }
 
   export interface IDataModelBinding {

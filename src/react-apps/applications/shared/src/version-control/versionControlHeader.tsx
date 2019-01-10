@@ -19,6 +19,7 @@ export interface IVersionControlHeaderState {
   anchorEl: any;
   modalState: any;
   mergeConflict: boolean;
+  timeoutIsRunning: boolean;
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -43,6 +44,7 @@ const initialModalState = {
 class VersionControlHeader extends React.Component<IVersionControlHeaderProps, IVersionControlHeaderState> {
   public interval: any;
   public _isMounted = false;
+  public timeout: any;
   constructor(_props: IVersionControlHeaderProps) {
     super(_props);
     this.state = {
@@ -53,6 +55,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
+      timeoutIsRunning: false,
     };
   }
 
@@ -62,6 +65,9 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     const url = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
     get(url).then((result: any) => {
       if (this._isMounted) {
+        this.setState({
+          mergeConflict: result.repositoryStatus === 'MergeConflict',
+        });
         if (callbackFunc) {
           callbackFunc(result);
         } else {
@@ -106,11 +112,28 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     this.getStatus();
     this.getRepoRights();
     this.getLastPush();
+    window.addEventListener('message', this.changeToRepoOccured);
+  }
+
+  public changeToRepoOccured = (event: any) => {
+    if (event.data === 'SAVED' && this._isMounted && !this.state.timeoutIsRunning) {
+      this.setState({
+        timeoutIsRunning: true,
+      });
+      this.timeout = setTimeout(() => {
+        this.setState({
+          timeoutIsRunning: false,
+        });
+        this.getStatus();
+      }, 10000);
+    }
   }
 
   public componentWillUnmount() {
     clearInterval(this.interval);
     this._isMounted = false;
+    clearTimeout(this.timeout);
+    window.removeEventListener('message', this.changeToRepoOccured);
   }
 
   public getRepoRights() {
@@ -328,6 +351,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             changesInLocalRepo={this.state.changesInLocalRepo}
             moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
             hasPushRight={this.state.hasPushRight}
+            hasMergeConflict={this.state.mergeConflict}
           />
         </Grid>
         <SyncModalComponent
