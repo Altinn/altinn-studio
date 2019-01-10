@@ -12,6 +12,7 @@ export interface IAltinnDropdownComponentProvidedProps {
   selectedValue: string;
   inputHeader?: string;
   inputDescription?: string;
+  disabled: boolean;
 }
 
 export interface IAltinnDropdownComponentState {
@@ -34,9 +35,13 @@ const styles = {
     background: 'none',
     width: '386px',
   },
+  inputField_disabled: {
+    background: theme.altinnPalette.primary.greyLight,
+    border: '1px solid ' + theme.altinnPalette.primary.grey,
+  },
   inputFieldText: {
     fontSize: '16px',
-    color: '#000000',
+    color: theme.altinnPalette.primary.black + '!Important',
     padding: '6px',
   },
 };
@@ -58,14 +63,15 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
           </Typography>
         }
         <FormControl
-          classes={{ root: classNames(classes.inputField) }}
+          classes={{ root: classNames(classes.inputField, { [classes.inputField_disabled]: this.props.disabled }) }}
           fullWidth={true}
           id={this.props.id}
         >
           <TextField
-            select={true}
+            select={!this.props.disabled}
             value={this.props.selectedValue}
             onChange={this.props.handleChange}
+            disabled={this.props.disabled}
             InputProps={{
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },

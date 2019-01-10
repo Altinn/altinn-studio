@@ -25,6 +25,7 @@ export interface ICreateNewServiceState {
   repoNameAnchorEl: any;
   repoNamePopperMessage: string;
   selectedOrgOrUser: string;
+  selectedOrgOrUserDisabled: boolean;
   serviceName: string;
   repoName: string;
 }
@@ -46,12 +47,17 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
     repoNameAnchorEl: null,
     repoNamePopperMessage: '',
     selectedOrgOrUser: '',
+    selectedOrgOrUserDisabled: false,
     serviceName: '',
     repoName: '',
   };
 
   public handleModalOpen = () => {
-    this.setState({ isOpen: true });
+    this.setState({
+      isOpen: true,
+      selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0] : '',
+      selectedOrgOrUserDisabled: this.props.selectableUser.length === 1,
+    });
   }
 
   public handleModalClose = () => {
@@ -99,6 +105,24 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
       repoName: event.target.value,
       repoNameAnchorEl: null,
     });
+  }
+
+  public handleServiceNameOnBlur = () => {
+    if (this.state.serviceName && !this.state.repoName) {
+      this.setState({
+        repoName: this.createRepoNameFromServiceName(this.state.serviceName),
+      });
+    }
+  }
+
+  public createRepoNameFromServiceName(serviceName: string) {
+    return serviceName
+      .replace(/^[0-9 _]+/, '')
+      .replace(/[ ]+/g, '_')
+      .replace(/[æÆ]+/g, 'ae')
+      .replace(/[øØ]+/g, 'oe')
+      .replace(/[åÅ]+/g, 'aa')
+      .replace(/[^0-9a-zA-Z_]+/g, '_').substring(0, 100);
   }
 
   public createNewService = () => {
@@ -154,6 +178,7 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
             handleChange={this.handleUpdateDropdown}
             dropdownItems={this.props.selectableUser}
             selectedValue={this.state.selectedOrgOrUser}
+            disabled={this.state.selectedOrgOrUserDisabled}
           />
           <AltinnPopper
             anchorEl={this.state.serviceOwnerAnchorEl}
@@ -165,6 +190,7 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
             inputDescription={getLanguageFromKey('dashboard.service_name_description', this.props.language)}
             inputValue={this.state.serviceName}
             onChangeFunction={this.handleServiceNameUpdated}
+            onBlurFunction={this.handleServiceNameOnBlur}
           />
           <AltinnInputField
             id={'service-saved-name'}

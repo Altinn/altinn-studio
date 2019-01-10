@@ -12,6 +12,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   inputHeader?: string;
   inputDescription?: string;
   inputValue?: string;
+  onBlurFunction?: any;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -63,6 +64,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
           id={this.props.id}
         >
           <TextField
+            onBlur={this.props.onBlurFunction}
             onChange={this.props.onChangeFunction}
             value={this.props.inputValue}
             placeholder={this.props.placeholder}

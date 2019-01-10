@@ -248,6 +248,7 @@ namespace AltinnCore.Designer.Controllers
             ServiceConfiguration serviceConfiguration = new ServiceConfiguration
             {
                 RepoName = repoName,
+                ServiceName = serviceName,
             };
 
             string serviceName1 = serviceConfiguration.RepoName;
