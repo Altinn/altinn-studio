@@ -1,4 +1,4 @@
-import { AdressComponent } from './advanced/AdressComponent';
+import { AddressComponent } from './advanced/AddressComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
 import { DropdownComponent } from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
@@ -29,7 +29,7 @@ export enum ComponentTypes {
   FileUpload,
   Submit,
   Container,
-  AdressComponent,
+  AddressComponent,
 }
 
 export const textComponents: IComponent[] = [
@@ -98,9 +98,9 @@ export const schemaComponents: IComponent[] = [
 
 export const advancedComponents: IComponent[] = [
   {
-    name: 'AdressComponent',
-    Tag: AdressComponent,
-    Type: ComponentTypes.AdressComponent,
+    name: 'AddressComponent',
+    Tag: AddressComponent,
+    Type: ComponentTypes.AddressComponent,
     customProperties: {
       simplified: true,
     },

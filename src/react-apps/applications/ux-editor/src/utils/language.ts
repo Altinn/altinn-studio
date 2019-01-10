@@ -54,8 +54,8 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.Paragraph: {
       return language.ux_editor.component_paragraph;
     }
-    case ComponentTypes.AdressComponent: {
-      return language.ux_editor.component_advanced_adress;
+    case ComponentTypes.AddressComponent: {
+      return language.ux_editor.component_advanced_address;
     }
     default: {
       return '';

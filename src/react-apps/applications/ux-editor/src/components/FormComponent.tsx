@@ -96,7 +96,7 @@ class FormComponent extends React.Component<
       this.props.component.component === 'Paragraph' ||
       this.props.component.component === 'Submit' ||
       this.props.component.component === 'ThirdParty' ||
-      this.props.component.component === 'AdressComponent') {
+      this.props.component.component === 'AddressComponent') {
       return null;
     }
 

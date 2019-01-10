@@ -360,16 +360,20 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
 
-      case 'AdressComponent': {
+      case 'AddressComponent': {
         return (
           <Grid
             container={true}
             spacing={0}
             direction={'column'}
           >
-            {this.renderSelectDataModelBinding()}
+            {renderSelectDataModelBinding(
+              this.props.component.dataModelBinding,
+              this.handleDataModelChange,
+              this.props.language,
+            )}
             <Grid item={true} xs={12}>
-              {this.props.language.ux_editor.modal_configure_adress_component_simplified}
+              {this.props.language.ux_editor.modal_configure_address_component_simplified}
               <Checkbox checked={this.state.component.simplified} onChange={this.handleToggleAdressSimple} />
             </Grid>
           </Grid >
