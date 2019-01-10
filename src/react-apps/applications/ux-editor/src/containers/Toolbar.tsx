@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { ComponentTypes, IComponent, schemaComponents, textComponents, advancedComponents } from '../components';
+import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
