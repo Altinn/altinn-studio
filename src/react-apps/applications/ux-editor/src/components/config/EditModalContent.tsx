@@ -7,7 +7,6 @@ import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
-
 export const customInput = {
   control: (base: any) => ({
     ...base,
