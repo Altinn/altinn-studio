@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import AltinnFilterChip from '../../../shared/src/components/AltinnFilterChip';
 import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { NewServiceModal } from './newServiceModal';
+import { CreateNewService } from './createNewService';
 import { ServicesCategory } from './servicesCategory';
 
 export interface IServicesOverviewComponentProvidedProps {
@@ -195,7 +195,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             xs={12}
             className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
           >
-            <NewServiceModal />
+            <CreateNewService />
           </Grid>
         </Grid>
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>

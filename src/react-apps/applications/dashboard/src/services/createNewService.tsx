@@ -1,4 +1,4 @@
-import { createMuiTheme, withStyles } from '@material-ui/core/styles';
+import { withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnButton from '../../../shared/src/components/AltinnButton';
@@ -6,20 +6,19 @@ import AltinnDropdown from '../../../shared/src/components/AltinnDropdown';
 import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
 import AltinnInputField from '../../../shared/src/components/AltinnInputField';
 import AltinnModal from '../../../shared/src/components/AltinnModal';
-import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+import AltinnPopper from '../../../shared/src/components/AltinnPopper';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { post } from '../../../shared/src/utils/networking';
-import AltinnPopper from '../../../shared/src/components/AltinnPopper';
-export interface INewServiceModalProvidedProps {
+export interface ICreateNewServiceProvidedProps {
   classes: any;
 }
 
-export interface INewServiceModalProps extends INewServiceModalProvidedProps {
+export interface ICreateNewServiceProps extends ICreateNewServiceProvidedProps {
   language: any;
   selectableUser: any;
 }
 
-export interface INewServiceModalState {
+export interface ICreateNewServiceState {
   isOpen: boolean;
   serviceOwnerAnchorEl: any;
   serviceOwnerPopperMessage: string;
@@ -30,35 +29,7 @@ export interface INewServiceModalState {
   repoName: string;
 }
 
-const theme = createMuiTheme(altinnTheme);
-
 const styles = {
-  modal: {
-    width: '876px',
-    backgroundColor: theme.altinnPalette.primary.white,
-    boxShadow: theme.shadows[5],
-    outline: 'none',
-    marginRight: 'auto',
-    marginLeft: 'auto',
-    marginTop: '10%',
-  },
-  header: {
-    backgroundColor: altinnTheme.altinnPalette.primary.blueDarker,
-    height: '96px',
-    paddingLeft: 48,
-    paddingTop: 30,
-    paddingBottom: 30,
-  },
-  headerText: {
-    fontSize: '28px',
-    color: altinnTheme.altinnPalette.primary.white,
-  },
-  body: {
-    paddingLeft: 90,
-    paddingRight: 243,
-    paddingTop: 45,
-    paddingBottom: 34,
-  },
   button: {
     fontSize: '16px',
     padding: '5px 45px 5px 45px',
@@ -67,8 +38,8 @@ const styles = {
 
 };
 
-class NewServiceModalComponent extends React.Component<INewServiceModalProps, INewServiceModalState> {
-  public state: INewServiceModalState = {
+class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
+  public state: ICreateNewServiceState = {
     isOpen: false,
     serviceOwnerAnchorEl: null,
     serviceOwnerPopperMessage: '',
@@ -79,12 +50,21 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     repoName: '',
   };
 
-  public handleOpen = () => {
+  public handleModalOpen = () => {
     this.setState({ isOpen: true });
   }
 
-  public handleClose = () => {
-    this.setState({ isOpen: false });
+  public handleModalClose = () => {
+    this.setState({
+      isOpen: false,
+      serviceOwnerAnchorEl: null,
+      serviceOwnerPopperMessage: '',
+      repoNameAnchorEl: null,
+      repoNamePopperMessage: '',
+      selectedOrgOrUser: '',
+      serviceName: '',
+      repoName: '',
+    });
   }
 
   public showServiceOwnerPopper = (message: string) => {
@@ -110,11 +90,11 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     });
   }
 
-  public serviceNameUpdated = (event: any) => {
+  public handleServiceNameUpdated = (event: any) => {
     this.setState({ serviceName: event.target.value });
   }
 
-  public repoNameUpdated = (event: any) => {
+  public handleRepoNameUpdated = (event: any) => {
     this.setState({
       repoName: event.target.value,
       repoNameAnchorEl: null,
@@ -158,13 +138,13 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
     return (
       <div>
         <AltinnIconButton
-          onclickFunction={this.handleOpen}
+          onclickFunction={this.handleModalOpen}
           btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
           iconClass='ai ai-circle-plus'
         />
         <AltinnModal
           isOpen={this.state.isOpen}
-          onClose={this.handleClose}
+          onClose={this.handleModalClose}
           headerText={getLanguageFromKey('dashboard.new_service_header', this.props.language)}
         >
           <AltinnDropdown
@@ -184,14 +164,14 @@ class NewServiceModalComponent extends React.Component<INewServiceModalProps, IN
             inputHeader={getLanguageFromKey('dashboard.service_name', this.props.language)}
             inputDescription={getLanguageFromKey('dashboard.service_name_description', this.props.language)}
             inputValue={this.state.serviceName}
-            onChangeFunction={this.serviceNameUpdated}
+            onChangeFunction={this.handleServiceNameUpdated}
           />
           <AltinnInputField
             id={'service-saved-name'}
             inputHeader={getLanguageFromKey('dashboard.service_saved_name', this.props.language)}
             inputDescription={getLanguageFromKey('dashboard.service_saved_name_descripyion', this.props.language)}
             inputValue={this.state.repoName}
-            onChangeFunction={this.repoNameUpdated}
+            onChangeFunction={this.handleRepoNameUpdated}
           />
           <AltinnPopper
             anchorEl={this.state.repoNameAnchorEl}
@@ -217,8 +197,8 @@ const combineCurrentUserAndOrg = (organizations: any, user: any) => {
 
 const mapStateToProps = (
   state: IDashboardAppState,
-  props: INewServiceModalProvidedProps,
-): INewServiceModalProps => {
+  props: ICreateNewServiceProvidedProps,
+): ICreateNewServiceProps => {
   return {
     classes: props.classes,
     language: state.language.language,
@@ -227,4 +207,4 @@ const mapStateToProps = (
   };
 };
 
-export const NewServiceModal = withStyles(styles)(connect(mapStateToProps)(NewServiceModalComponent));
+export const CreateNewService = withStyles(styles)(connect(mapStateToProps)(CreateNewServiceComponent));

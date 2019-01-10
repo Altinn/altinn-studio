@@ -10,7 +10,7 @@ namespace AltinnCore.ServiceLibrary.Configuration
         /// <summary>
         /// Gets or sets the repository name
         /// </summary>
-        [RegularExpression("^[a-zA-Z][a-zA-Z0-9_\\-]{2,30}$", ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('-' er tillatt)")]
+        [RegularExpression("^[a-zA-Z]+[a-zA-Z0-9_]*$", ErrorMessage = "Må begynne med en bokstav og ikke inneholde mellomrom eller spesialtegn ('-' er tillatt)")]
         public string RepoName { get; set; }
 
         /// <summary>
