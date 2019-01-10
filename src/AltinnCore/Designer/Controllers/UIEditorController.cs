@@ -9,6 +9,7 @@ using System.Text;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all react-ions
     /// </summary>
+    [Authorize]
     public class UIEditorController : Controller
     {
         private readonly IRepository _repository;
@@ -94,7 +96,7 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Save form layout as JSON
         /// </summary>
-        /// <param name="jsonData">The code list data to save</param>
+        /// <param name="jsonData">The code list data to save</param>p
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>A success message if the save was successful</returns>
