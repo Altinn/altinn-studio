@@ -80,6 +80,7 @@ Build and run the code.
 
 ```cmd
 dotnet build
+npm run gulp
 npm run gulp-develop
 ```
 
