@@ -300,6 +300,7 @@ function* saveFormLayoutSaga({
       },
     });
     yield call(FormDesignerActionDispatchers.saveFormLayoutFulfilled);
+    window.postMessage('SAVED', window.location.href);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.saveFormLayoutRejected, err);
   }

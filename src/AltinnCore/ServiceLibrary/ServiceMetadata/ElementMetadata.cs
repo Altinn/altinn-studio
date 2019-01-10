@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
@@ -110,5 +110,20 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     /// Gets or sets a value indicating whether this element is read only
     /// </summary>
     public bool IsReadOnly { get; set; }
-  }
+
+    /// <summary>
+    /// The reference to the Xml Schema declaration
+    /// </summary>
+    public string XmlSchemaXPath { get; set; }
+
+    /// <summary>
+    /// The reference to the Json Schema declaration
+    /// </summary>
+    public string JsonSchemaPointer { get; set; }
+
+    /// <summary>
+    /// Used to display the property in a view. Contains name, cardinality and type
+    /// </summary>
+    public string DisplayString { get; set; }
+    }
 }

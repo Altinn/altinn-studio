@@ -220,6 +220,11 @@ namespace AltinnCore.Common.Configuration
         public string DockerfileFileName { get; set; } = "Dockerfile";
 
         /// <summary>
+        /// Gets or sets the filename for the altinn service project
+        /// </summary>
+        public string ProjectFileName { get; set; } = "AltinnService.csproj";
+
+        /// <summary>
         /// Gets or sets the filename for the generated methods class
         /// </summary>
         public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;

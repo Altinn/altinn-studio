@@ -61,36 +61,6 @@ class FormDesigner extends React.Component<
       servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
 
-  public renderSaveButton = (): JSX.Element => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-
-    const handleSaveButton: any = (): any => {
-      ManageServiceConfigurationDispatchers.saveJsonFile(
-        `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${
-        altinnWindow.service}/UIEditor/SaveJsonFile?fileName=ServiceConfigurations.json`);
-
-      FormDesignerActionDispatchers.saveFormLayout(
-        `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${
-        altinnWindow.service
-        }/UIEditor/SaveFormLayout`,
-      );
-    };
-
-    return (
-      <button type='button' className='a-btn a-btn-success' onClick={handleSaveButton}>
-        {this.props.language.general.save}
-      </button>
-    );
-  }
-
-  public handleNext(component: any, id: string) {
-    this.setState({
-      selectedComp: component,
-      selectedCompId: id,
-      modalOpen: true,
-    });
-  }
-
   public render() {
     const { classes } = this.props;
     return (
@@ -123,9 +93,6 @@ class FormDesigner extends React.Component<
               }}
             >
               <DesignView />
-              <div className='col-12 justify-content-center d-flex mt-3'>
-                {this.renderSaveButton()}
-              </div>
             </div>
           </Grid>
           <Grid item={true} classes={{ item: classNames(classes.item) }}>
