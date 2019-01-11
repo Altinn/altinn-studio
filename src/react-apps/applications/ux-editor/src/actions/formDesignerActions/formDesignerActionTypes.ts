@@ -70,3 +70,18 @@ export const GENERATE_REPEATING_GROUPS_REJECTED: string = `${moduleName}.GENERAT
 export const UPDATE_FORM_COMPONENT_ORDER: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER`;
 export const UPDATE_FORM_COMPONENT_ORDER_FULFILLED: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER_FULFILLED`;
 export const UPDATE_FORM_COMPONENT_ORDER_REJECTED: string = `${moduleName}.UPDATE_FORM_COMPONENT_ORDER_REJECTED`;
+
+// Update activeList
+export const UPDATE_ACTIVE_LIST: string = `${moduleName}.UPDATE_ACTIVE_LIST`;
+export const UPDATE_ACTIVE_LIST_FULFILLED: string = `${moduleName}.UPDATE_ACTIVE_LIST_FULFILLED`;
+export const UPDATE_ACTIVE_LIST_REJECTED: string = `${moduleName}.UPDATE_ACTIVE_LIST_REJECTED`;
+
+// Update activeList order
+export const UPDATE_ACTIVE_LIST_ORDER: string = `${moduleName}.UPDATE_ACTIVE_LIST_ORDER`;
+export const UPDATE_ACTIVE_LIST_ORDER_FULFILLED: string = `${moduleName}.UPDATE_ACTIVE_LIST_ORDER_FULFILLED`;
+export const UPDATE_ACTIVE_LIST_ORDER_REJECTED: string = `${moduleName}.UPDATE_ACTIVE_LIST_ORDER_REJECTED`;
+
+// Delete activeList
+export const DELETE_ACTIVE_LIST: string = `${moduleName}.DELETE_ACTIVE_LIST`;
+export const DELETE_ACTIVE_LIST_FULFILLED: string = `${moduleName}.DELETE_ACTIVE_LIST_FULFILLED`;
+export const DELETE_ACTIVE_LIST_REJECTED: string = `${moduleName}.DELETE_ACTIVE_LIST_REJECTED`;

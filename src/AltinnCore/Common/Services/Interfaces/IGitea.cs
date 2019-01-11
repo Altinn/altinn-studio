@@ -14,18 +14,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Get the current user
         /// </summary>
-        /// <param name="giteaSession">the gitea session</param>
         /// <returns>The current user</returns>
-        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser(string giteaSession);
+        Task<AltinnCore.RepositoryClient.Model.User> GetCurrentUser();
 
         /// <summary>
         /// Create repository for th organisation
         /// </summary>
-        /// <param name="giteaSession">the gitea session</param>
         /// <param name="org">the organisation</param>
         /// <param name="createRepoOption">the options for creating repository</param>
         /// <returns>The newly created for the repository</returns>
-        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepositoryForOrg(string giteaSession, string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
+        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepositoryForOrg(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
 
         /// <summary>
         /// Search the repository for the given parameters
@@ -37,28 +35,10 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
 
         /// <summary>
-        /// Create app token
-        /// </summary>
-        /// <param name="tokenName">app token name</param>
-        /// <param name="userName">The userName of the user that need a token</param>
-        /// <param name="password">The password for the user that need a token</param>
-        /// <returns>null</returns>
-        Task<string> CreateAppToken(string tokenName, string userName, string password);
-
-        /// <summary>
-        /// List app tokens for a user. Warning there is talks about removing this.
-        /// </summary>
-        /// <param name="userName">The user name</param>
-        /// <param name="password">The password</param>
-        /// <returns>The sha1 value</returns>
-        Task<List<AltinnCore.RepositoryClient.Model.AccessToken>> ListAccessTokens(string userName, string password);
-
-        /// <summary>
         /// Returns organization that user has access to
         /// </summary>
-        /// <param name="giteaSession">the gitea session</param>
         /// <returns>A list over organizations</returns>
-        Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations(string giteaSession);
+        Task<List<AltinnCore.RepositoryClient.Model.Organization>> GetUserOrganizations();
 
         /// <summary>
         /// Returns information about a organization based on name
@@ -83,5 +63,22 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="branch">Name of branch</param>
         /// <returns>The branch info</returns>
         Task<Branch> GetBranch(string owner, string repository, string branch);
+
+        /// <summary>
+        /// This method screen scrapes the user from the profile ui in GITEA.
+        /// This was needed when GITEA changed their API policy in 1.5.2 and requiring
+        /// only API calls with token. This is currently the only known way to get
+        /// info about the logged in user in GITEA. 
+        /// </summary>
+        /// <returns>Returns the logged in user</returns>
+        Task<string> GetUserNameFromUI();
+
+        /// <summary>
+        /// This method generates a application key in GITEA with
+        /// help of screen scraping the Application form in GITEA
+        /// This is the only  way (currently) to generate a APP key without involving the user in 
+        /// </summary>
+        /// <returns>A newly generated token</returns>
+        Task<string> GetSessionAppKey();
     }
 }

@@ -2,11 +2,14 @@ import update from 'immutability-helper';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
 
 interface IDesignerPreviewProps {
   layoutOrder: IFormLayoutOrder;
+  order: any[];
+  activeList: any[];
 }
 
 interface IDesignerPreviewState extends IDesignerPreviewProps {
@@ -31,6 +34,8 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     this.state = {
       layoutOrder: _props.layoutOrder,
       isDragging: false,
+      order: _props.order,
+      activeList: _props.activeList,
     };
   }
 
@@ -148,6 +153,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       destinationContainerId,
       sourceContainerId,
     );
+    FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
   public render(): JSX.Element {
@@ -182,9 +188,16 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     );
   }
 }
+const mapsStateToProps = (
+  state: IAppState,
+  _empty: any,
+): IDesignerPreviewProps => {
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+  return {
+  layoutOrder: state.formDesigner.layout.order,
+  order: GetLayoutOrderSelector(state),
+  activeList: state.formDesigner.layout.activeList,
+  };
+};
 
-const makeMapStateToProps = (store: IAppState, _empty: any): IDesignerPreviewProps => ({
-  layoutOrder: store.formDesigner.layout.order,
-});
-
-export default connect(makeMapStateToProps)(DesignView);
+export default connect(mapsStateToProps)(DesignView);

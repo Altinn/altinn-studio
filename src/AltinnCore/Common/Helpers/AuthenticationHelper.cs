@@ -36,6 +36,40 @@ namespace AltinnCore.Common.Helpers
         }
 
         /// <summary>
+        /// Gets the Developer App token from cookie
+        /// </summary>
+        /// <param name="context">The Http Context</param>
+        /// <returns>The developer app token</returns>
+        public static string GetDeveloperAppToken(HttpContext context)
+        {
+            string accessToken = null;
+
+            if (context.User != null)
+            {
+                foreach (Claim claim in context.User.Claims)
+                {
+                    if (claim.Type.Equals(AltinnCoreClaimTypes.DeveloperToken))
+                    {
+                        accessToken = claim.Value;
+                    }
+                }
+            }
+
+            return accessToken;
+        }
+
+        /// <summary>
+        /// Builds the header value for use against GITEA API
+        /// Requires a special format.
+        /// </summary>
+        /// <param name="context">The http context</param>
+        /// <returns>A header value string</returns>
+        public static string GetDeveloperTokenHeaderValue(HttpContext context)
+        {
+            return "token " + AuthenticationHelper.GetDeveloperAppToken(context);
+        }
+
+        /// <summary>
         /// Gets the gitea session for the given session id
         /// </summary>
         /// <param name="context">the http context</param>

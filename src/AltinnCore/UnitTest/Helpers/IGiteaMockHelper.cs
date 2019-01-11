@@ -49,7 +49,7 @@ namespace AltinnCore.UnitTest.Helpers
             List<Organization> orgs = new List<Organization>();
             orgs.Add(new Organization() { FullName = "Org 1" });
   
-            moqGiteaWrapper.Setup(gitea => gitea.GetUserOrganizations(It.IsAny<string>())).ReturnsAsync(orgs);
+            moqGiteaWrapper.Setup(gitea => gitea.GetUserOrganizations()).ReturnsAsync(orgs);
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace AltinnCore.UnitTest.Helpers
         public static void GetCurrentUser_ReturnsOne(Mock<IGitea> moqGiteaWrapper)
         {
             User user = new User() { Login = "MockUser" };
-            moqGiteaWrapper.Setup(gitea => gitea.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(gitea => gitea.GetCurrentUser()).ReturnsAsync(user);
         }
 
         /// <summary>

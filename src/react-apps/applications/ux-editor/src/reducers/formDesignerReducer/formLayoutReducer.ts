@@ -10,6 +10,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   saving: boolean;
   unSavedChanges: boolean;
   activeContainer: string;
+  activeList: any;
 }
 
 const initialState: IFormLayoutState = {
@@ -22,7 +23,7 @@ const initialState: IFormLayoutState = {
   saving: false,
   unSavedChanges: false,
   activeContainer: '',
-
+  activeList: [],
 };
 
 const formLayoutReducer: Reducer<IFormLayoutState> = (
@@ -240,6 +241,53 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
     }
     case FormDesignerActionTypes.DELETE_FORM_CONTAINER_REJECTED: {
       const { error } = action as FormDesignerActions.IDeleteComponentActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_FULFILLED: {
+      const { containerList } = action as FormDesignerActions.IUpdateActiveListActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        activeList: {
+          $set: containerList,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateActiveListActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_ACTIVE_LIST_FULFILLED: {
+      return update<IFormLayoutState>(state, {
+        activeList: {
+          $set: [],
+        },
+      });
+    }
+    case FormDesignerActionTypes.DELETE_ACTIVE_LIST_REJECTED: {
+      const { error } = action as FormDesignerActions.IDeleteActiveListActionRejected;
+      return update<IFormLayoutState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_ORDER_FULFILLED: {
+      const { containerList } = action as FormDesignerActions.IUpdateActiveListOrderActionFulfilled;
+      return update<IFormLayoutState>(state, {
+        activeList: {
+          $set: containerList,
+        },
+      });
+    }
+    case FormDesignerActionTypes.UPDATE_ACTIVE_LIST_ORDER_REJECTED: {
+      const { error } = action as FormDesignerActions.IUpdateActiveListOrderActionRejected;
       return update<IFormLayoutState>(state, {
         error: {
           $set: error,

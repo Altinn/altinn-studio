@@ -184,8 +184,7 @@ namespace AltinnCore.Runtime.Controllers
                 // Temporary catch errors until we figure out how to force this.
                 try
                 {
-                    string sessionId = Request.Cookies[_settings.GiteaCookieName];
-                    AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
+                    AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser().Result;
                     if (user == null)
                     {
                         if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
