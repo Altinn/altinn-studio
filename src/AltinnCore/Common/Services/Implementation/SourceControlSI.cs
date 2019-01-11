@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -490,34 +492,71 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
-        public void ResetCommit(string owner, string repository)
+        /// <returns>Http response message as ok if reset operation is successful</returns>
+        public HttpResponseMessage ResetCommit(string owner, string repository)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            try
             {
-                repo.Reset(ResetMode.Hard, "origin/master");
-                repo.RemoveUntrackedFiles();               
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+
+                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                using (Repository repo = new Repository(localServiceRepoFolder))
+                {
+                    if (repo.RetrieveStatus().IsDirty)
+                    {
+                        repo.Reset(ResetMode.Hard, "origin/master");
+                        repo.RemoveUntrackedFiles();
+                    }
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
 
         /// <summary>
         /// Discards local changes to a specific file and the file is updated with latest remote commit (origin/master)
-        /// by checking out the specific file
+        /// by checking out the specific file.
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
-        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        /// <returns>Http response message as ok if checkout operation is successful</returns>
+        public HttpResponseMessage CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            try
             {
-                CheckoutOptions checkoutOptions = new CheckoutOptions
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
                 {
-                    CheckoutModifiers = CheckoutModifiers.Force,
-                };
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
 
-                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
+                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                using (Repository repo = new Repository(localServiceRepoFolder))
+                {
+                    CheckoutOptions checkoutOptions = new CheckoutOptions
+                    {
+                        CheckoutModifiers = CheckoutModifiers.Force,
+                    };
+
+                    repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
     }
