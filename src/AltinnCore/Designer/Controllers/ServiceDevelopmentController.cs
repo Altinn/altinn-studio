@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Enums;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc;
@@ -36,13 +37,45 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Gets the logic files for the service
+        /// Gets all service files for specified mode
         /// </summary>
         /// <param name="org">The organization identifier</param>
         /// <param name="service">The service identifier</param>
-        /// <param name="fileType">The type of file (calculation | validation | dynamic)</param>
-        /// <returns>The list of files</returns>
-        public ActionResult GetLogicFiles(string org, string service, string fileType)
+        /// <param name="fileEditorMode">The mode for which files should be fetched</param>
+        /// <returns>A comma-separated list of all the files</returns>
+        public ActionResult GetServiceFiles(string org, string service, FileEditorMode fileEditorMode)
+        {
+            switch (fileEditorMode)
+            {
+                case FileEditorMode.Implementation:
+                    return GetImplementationFiles(org, service);
+
+                default:
+                    return Content(string.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Gets the content of a specified file for the service
+        /// </summary>
+        /// <param name="org">The organization identifier</param>
+        /// <param name="service">The service identifier</param>
+        /// <param name="fileEditorMode">The mode for which files should be fetched</param>
+        /// <param name="fileName">The name of the file to fetch</param>
+        /// <returns>The content of the file</returns>
+        public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
+        {
+            switch (fileEditorMode)
+            {
+                case FileEditorMode.Implementation:
+                    return GetImplementationFile(org, service, fileName);
+
+                default:
+                    return Content(string.Empty);
+            }
+        }
+
+        private ActionResult GetImplementationFiles(string org, string service)
         {
             List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, service);
             string fileList = string.Empty;
@@ -56,14 +89,7 @@ namespace AltinnCore.Designer.Controllers
             return Content(fileList, "text/plain", Encoding.UTF8);
         }
 
-        /// <summary>
-        /// Get a specified logic file
-        /// </summary>
-        /// <param name="org">The organization identifier</param>
-        /// <param name="service">The service identifier</param>
-        /// <param name="fileName">The name of the file</param>
-        /// <returns>The file contents</returns>
-        public ActionResult GetLogicFile(string org, string service, string fileName)
+        private ActionResult GetImplementationFile(string org, string service, string fileName)
         {
             string file = string.Empty;
             if (fileName == "RuleHandler.js")

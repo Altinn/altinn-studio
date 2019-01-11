@@ -9,6 +9,15 @@ import theme from '../../../shared/src/theme/altinnStudioTheme';
 
 const altinnTheme = theme;
 
+export interface ICodeLanguageItem {
+  name: string;
+  displayName: string;
+}
+
+export interface ICodeLanguage {
+  [id: string]: ICodeLanguageItem;
+}
+
 const languages: ICodeLanguage = {
   cs: {
     name: 'csharp',
@@ -34,7 +43,7 @@ const languages: ICodeLanguage = {
 
 export interface IFileEditorProvidedProps {
   classes: any;
-  folder: string;
+  mode: number;
   closeFileEditor?: () => void;
 }
 
@@ -97,7 +106,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service} = altinnWindow;
     const servicePath = `${org}/${service}`;
-    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment/GetLogicFiles`).then((response) => {
+    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment
+      /GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
       const files = response.split(',');
       this.loadFileContent(files[0]);
       this.setState((prevState: IFileEditorState) => {
@@ -113,7 +123,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service} = altinnWindow;
     const servicePath = `${org}/${service}`;
-    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment/GetLogicFile?fileName=${fileName}`)
+    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment
+      /GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
       .then((logicFileContent) => {
         console.log('logic file:', logicFileContent);
         this.setState((prevState: IFileEditorState) => {
@@ -127,18 +138,27 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public getFolderText(): string {
-    switch (this.props.folder) {
-      case ('c'): {
-        return 'Kalkuleringer';
+    switch (this.props.mode) {
+      case 1: {
+        return 'Deployment';
       }
-      case ('v'): {
-        return ('Valideringer');
+      case 2: {
+        return 'Implementation';
       }
-      case ('d'): {
-        return ('Dynamikk');
+      case 3: {
+        return 'Metadata';
+      }
+      case 4: {
+        return 'Model';
+      }
+      case 5: {
+        return 'Resources';
+      }
+      case 6: {
+        return 'Test';
       }
       default: {
-        return 'Fil';
+        return 'File';
       }
     }
   }

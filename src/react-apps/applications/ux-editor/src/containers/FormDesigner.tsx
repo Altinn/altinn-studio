@@ -4,11 +4,11 @@ import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
+import LogicEditor from '../../../shared/src/file-editor/FileEditor';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import LogicEditor from './LogicEditor';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
@@ -114,10 +114,8 @@ class FormDesigner extends React.Component<
                 open={this.state.codeEditorOpen}
               >
                 <LogicEditor
-                  folder='c'
-                  selectedFileName='Kalkuleringsfil1.cs'
-                  availableFiles={['Kalkuleringsfil1.cs', 'Kalkuleringsfil2.cs', 'Kalkuleringsfil3.cs']}
-                  closeLogicEditor={this.toggleCodeEditor}
+                  mode={2}
+                  closeFileEditor={this.toggleCodeEditor}
                 />
               </Drawer>
             </div>
