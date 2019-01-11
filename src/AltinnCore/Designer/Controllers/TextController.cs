@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller for resources
     /// </summary>
+    [Authorize]
     public class TextController : Controller
     {
         private readonly IHostingEnvironment _hostingEnvironment;

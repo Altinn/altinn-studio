@@ -54,6 +54,9 @@ export function getComponentTitleByComponentType(componentType: ComponentTypes, 
     case ComponentTypes.Paragraph: {
       return language.ux_editor.component_paragraph;
     }
+    case ComponentTypes.AddressComponent: {
+      return language.ux_editor.component_advanced_address;
+    }
     default: {
       return '';
     }
@@ -67,6 +70,9 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
     }
     case CollapsableMenus.Texts: {
       return language.ux_editor.collapsable_text_components;
+    }
+    case CollapsableMenus.AdvancedComponents: {
+      return language.ux_editor.collapsable_text_advanced_components;
     }
   }
 }
@@ -82,4 +88,8 @@ export function truncate(s: string, size: number) {
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
   const textResource = textResources.find((resource) => resource.id === resourceKey);
   return textResource ? textResource.value : resourceKey;
+}
+
+export function formatCreateTextLabel(textToCreate: string, language: any): string {
+  return language.general.create.concat(' ', textToCreate);
 }

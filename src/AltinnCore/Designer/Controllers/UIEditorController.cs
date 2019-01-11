@@ -9,6 +9,7 @@ using System.Text;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all react-ions
     /// </summary>
+    [Authorize]
     public class UIEditorController : Controller
     {
         private readonly IRepository _repository;

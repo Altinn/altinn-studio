@@ -183,30 +183,33 @@ namespace AltinnCore.Common.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
+                // Restrict users from empty commit 
+                if (repo.RetrieveStatus().IsDirty)
                 {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                }
+                    string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
+                    Remote remote = repo.Network.Remotes["origin"];
 
-                Commands.Stage(repo, "*");
+                    if (!remote.PushUrl.Equals(remoteUrl))
+                    {
+                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                        // Requires adminstrator access to update files.
+                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                    }
 
-                // Create the committer's signature and commit
-                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                LibGit2Sharp.Signature committer = author;
+                    Commands.Stage(repo, "*");
 
-                // Commit to the repository
-                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                    // Create the committer's signature and commit
+                    LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                    LibGit2Sharp.Signature committer = author;
 
-                PushOptions options = new PushOptions();
-                options.CredentialsProvider = (_url, _user, _cred) =>
+                    // Commit to the repository
+                    LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+
+                    PushOptions options = new PushOptions();
+                    options.CredentialsProvider = (_url, _user, _cred) =>
                         new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-
-                repo.Network.Push(remote, @"refs/heads/master", options);
+                    repo.Network.Push(remote, @"refs/heads/master", options);
+                }
             }
         }
 
@@ -496,6 +499,42 @@ namespace AltinnCore.Common.Services.Implementation
             else
             {
                 return $"{_settings.RepositoryBaseURL}{org}/{repository}.git";
+            }
+        }
+
+        /// <summary>
+        /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        public void ResetCommit(string owner, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                repo.Reset(ResetMode.Hard, "origin/master");
+                repo.RemoveUntrackedFiles();               
+            }
+        }
+
+        /// <summary>
+        /// Discards local changes to a specific file and the file is updated with latest remote commit (origin/master)
+        /// by checking out the specific file
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <param name="fileName">the name of the file</param>
+        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                CheckoutOptions checkoutOptions = new CheckoutOptions
+                {
+                    CheckoutModifiers = CheckoutModifiers.Force,
+                };
+
+                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
             }
         }
     }

@@ -12,6 +12,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to basic configuration of a service owner
     /// </summary>
+    [Authorize]
     public class OwnerController : Controller
     {
         private readonly IRepository _repository;
@@ -37,7 +38,6 @@ namespace AltinnCore.Designer.Controllers
         /// A view containing basic information about the current service owner,
         /// and a list of all services under the current service owner
         /// </returns>
-        [Authorize]
         public IActionResult Index(string org)
         {
             // IList<ServiceConfiguration> services = _repository.GetServices(org);
@@ -50,7 +50,6 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The service owner code of the current service owner</param>
         /// <returns>A view for creating a new service under the current service owner</returns>
-        [Authorize]
         [HttpGet]
         public IActionResult CreateService(string org)
         {
@@ -70,7 +69,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="org">the organisation</param>
         /// <param name="repo">the name of repository</param>
         /// <returns>The clone remote repoository view</returns>
-        [Authorize]
         [HttpGet]
         public IActionResult CloneRemoteRepo(string org, string repo)
         {
@@ -86,7 +84,6 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>
         /// A redirect to the created service if successful, reload of the same view if unsuccessful with appropriate error messages
         /// </returns>
-        [Authorize]
         [HttpPost]
         public IActionResult CreateService(string org, ServiceConfiguration serviceConfiguration)
         {

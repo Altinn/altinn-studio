@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -58,7 +58,7 @@
     <MakeDir Directories="$(PublishDir)Testdata" Condition="!Exists('$(PublishDir)Testdata')" />
     <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
     <MakeDir Directories="$(PublishDir)Deployment" Condition="!Exists('$(PublishDir)Deployment')" />
-    <Copy SourceFiles="@(CoreTemplates)" DestinationFolder="$(PublishDir)Templates" />
+    <Copy SourceFiles="@(CoreTemplates)" DestinationFolder="$(PublishDir)Templates\%(RecursiveDir)" />
     <Copy SourceFiles="@(CoreTestdata)" DestinationFolder="$(PublishDir)Testdata\%(RecursiveDir)" />
     <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
     <Copy SourceFiles="@(CoreDeployment)" DestinationFolder="$(PublishDir)Deployment\%(RecursiveDir)" />

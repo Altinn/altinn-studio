@@ -6,6 +6,7 @@ using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller for all actions related to service rules
     /// </summary>
+    [Authorize]
     public class RulesController : Controller
     {
         private readonly IRepository _repository;

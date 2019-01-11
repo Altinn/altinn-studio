@@ -6,6 +6,7 @@ import apiSagas from './api';
 import appDataSagas from './appData';
 import codeListsSagas from './codeLists';
 import conditionalRenderingSagas from './conditionalRendering';
+import editContainerSagas from './editActiveList';
 import formDesignerSagas from './formDesigner';
 import formFillerSagas from './formFiller';
 import manageJsonFileSagas from './manageServiceConfiguration';
@@ -13,6 +14,7 @@ import ruleConnectionSagas from './ruleConnection';
 import thirdPartyComponentSagas from './thirdPartyComponents';
 
 function* root(): SagaIterator {
+  yield fork(editContainerSagas);
   yield fork(formDesignerSagas);
   yield fork(formFillerSagas);
   yield fork(apiSagas);
