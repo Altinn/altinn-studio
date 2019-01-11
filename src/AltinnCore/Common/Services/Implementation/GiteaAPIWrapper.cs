@@ -78,7 +78,7 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.Repository repository = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
 
-            Uri endpointUrl = new Uri(_settings.ApiEndPoint + "/org/" + org + "/repos");
+            Uri endpointUrl = new Uri(GetApiBaseUrl() + "/org/" + org + "/repos");
            
             using (HttpClient client = GetApiClient())
             {
