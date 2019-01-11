@@ -140,9 +140,8 @@ namespace AltinnCore.UnitTest.Designer
 
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
-            User user = new User();
-            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
-
+            moqGiteaWrappeer.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("Test");
+       
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,
             moqLogger.Object,
@@ -178,9 +177,8 @@ namespace AltinnCore.UnitTest.Designer
 
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
-            User user = new User();
-            user.Login = "Test";
-            moqGiteaWrappeer.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrappeer.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("Test");
+            moqGiteaWrappeer.Setup(g => g.GetSessionAppKey()).ReturnsAsync("Test");
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,
@@ -218,7 +216,7 @@ namespace AltinnCore.UnitTest.Designer
 
             User user = new User();
             user.Login = "Test";
-            moqGiteaWrapper.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
+            moqGiteaWrapper.Setup(g => g.GetCurrentUser()).ReturnsAsync(user);
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
                 moqRepository.Object,
@@ -235,46 +233,6 @@ namespace AltinnCore.UnitTest.Designer
             // Assert
             LocalRedirectResult redirectResult = Assert.IsType<LocalRedirectResult>(result.Result);
             Assert.Equal("/user/logout", redirectResult.Url);
-        }
-
-        /// <summary>
-        /// Verifies adding app token.
-        /// </summary>
-        [Fact]
-        public void RegisterAppToken()
-        {
-            // Arrange
-            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
-            Moq.Mock<ILogger<HomeController>> moqLogger = new Mock<ILogger<HomeController>>();
-            Moq.Mock<IHttpContextAccessor> moqHttpContextAccessor = new Mock<IHttpContextAccessor>();
-            Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
-
-            Moq.Mock<IGitea> moqGiteaWrapper = IGiteaMockHelper.GetMock();
-            IGiteaMockHelper.AddSevenReposForOrg1(moqGiteaWrapper);
-
-            Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
-
-            User user = new User();
-            user.Login = "Test";
-            moqGiteaWrapper.Setup(g => g.GetCurrentUser(It.IsAny<string>())).ReturnsAsync(user);
-
-            AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
-            moqRepository.Object,
-            moqLogger.Object,
-            moqServiceRepositorySettings.Object,
-            moqGiteaWrapper.Object,
-            moqHttpContextAccessor.Object,
-            moqSourceControl.Object)
-            { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556") };
-
-            AppKey key = new AppKey() { Key = "12345" };
-
-            // Act
-            IActionResult result = controller.AppToken(key);
-
-            // Assert
-            RedirectResult redirectResult = Assert.IsType<RedirectResult>(result);
-            Assert.Equal("/", redirectResult.Url);
         }
 
         private Moq.Mock<ISourceControl> GetMoqSourceControlForIndexTest()

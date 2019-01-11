@@ -38,8 +38,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public AltinnCore.RepositoryClient.Model.User Current()
         {
-            string sessionId = Request.Cookies[_settings.GiteaCookieName];
-            AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
+            AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser().Result;
             return user;
         }
     }

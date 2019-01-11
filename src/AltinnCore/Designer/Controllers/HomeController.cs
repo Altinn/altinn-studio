@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
@@ -57,8 +58,9 @@ namespace AltinnCore.Designer.Controllers
         public ActionResult StartPage()
         {
             string sessionId = Request.Cookies[_settings.GiteaCookieName];
-            AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
-            if (user == null)
+            string userName = _giteaApi.GetUserNameFromUI().Result;
+    
+            if (string.IsNullOrEmpty(userName))
             {
                 return View("StartPage");
             }
@@ -188,34 +190,30 @@ namespace AltinnCore.Designer.Controllers
             string userName = "TestUser";
             string goToUrl = "/";
 
-            if (_settings.ForceGiteaAuthentication)
+            // Temporary catch errors until we figure out how to force this.
+            try
             {
-                // Temporary catch errors until we figure out how to force this.
-                try
+                userName = _giteaApi.GetUserNameFromUI().Result;
+                if (string.IsNullOrEmpty(userName))
                 {
-                    string sessionId = Request.Cookies[_settings.GiteaCookieName];
-                    AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser(sessionId).Result;
-                    if (user == null)
+                    if (Environment.GetEnvironmentVariable("GiteaLoginEndpoint") != null)
                     {
-                        if (Environment.GetEnvironmentVariable("GiteaLoginEndpoint") != null)
-                        {
-                            return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
-                        }
-
-                        return Redirect(_settings.GiteaLoginUrl);
+                        return Redirect(Environment.GetEnvironmentVariable("GiteaLoginEndpoint"));
                     }
 
-                    userName = user.Login;
-                }
-                catch (Exception ex)
-                {
-                    return Content(ex.ToString());
+                    return Redirect(_settings.GiteaLoginUrl);
                 }
             }
-
+            catch (Exception ex)
+            {
+                return Content(ex.ToString());
+            }
+        
+            string accessToken = _giteaApi.GetSessionAppKey().Result;
             List<Claim> claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
+            claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperToken, accessToken, ClaimValueTypes.String, Issuer));
 
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);

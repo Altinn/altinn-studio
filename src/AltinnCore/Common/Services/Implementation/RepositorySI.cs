@@ -1100,7 +1100,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The newly created repository</returns>
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;
+            return _gitea.CreateRepositoryForOrg(org, createRepoOption).Result;
         }
 
         /// <summary>
