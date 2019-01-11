@@ -63,5 +63,5 @@ export function* watchFetchOrganizationsSaga(): SagaIterator {
 export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
   yield fork(watchFetchCurrentUserSaga);
-  yield fork(watchFetchOrganizationsSaga)
+  yield fork(watchFetchOrganizationsSaga);
 }
