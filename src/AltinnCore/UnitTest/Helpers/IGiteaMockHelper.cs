@@ -49,7 +49,7 @@ namespace AltinnCore.UnitTest.Helpers
             List<Organization> orgs = new List<Organization>();
             orgs.Add(new Organization() { FullName = "Org 1" });
   
-            moqGiteaWrapper.Setup(gitea => gitea.GetUserOrganizations(It.IsAny<string>())).ReturnsAsync(orgs);
+            moqGiteaWrapper.Setup(gitea => gitea.GetUserOrganizations()).ReturnsAsync(orgs);
         }
 
         /// <summary>
