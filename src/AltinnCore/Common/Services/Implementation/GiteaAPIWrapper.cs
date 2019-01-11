@@ -107,7 +107,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/search?");
 
-            giteaUrl = new Uri(giteaUrl.OriginalString + "limit=" + 50);
+            giteaUrl = new Uri(giteaUrl.OriginalString + "limit=" + _settings.RepoSearchPageCount);
             giteaUrl = new Uri(giteaUrl.OriginalString + "&page=" + page);
             if (onlyAdmin)
             {
