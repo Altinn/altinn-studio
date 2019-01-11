@@ -232,6 +232,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
         inEditMode: false,
       },
     }, () => {
+      this.handleSaveChange(this.state.component);
       this.props.sendItemToParent(this.state.listItem);
     });
   }
@@ -342,7 +343,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public render(): JSX.Element {
     const activeListIndex =
       this.props.activeList.findIndex((listItem: any) => listItem.id === this.props.id);
-    const first = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList :  true;
+    const first = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
     return (
       <>
         <Grid container={true}>
@@ -388,62 +389,62 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             </Grid>
             {!this.state.isEditMode &&
               <Grid item={true} xs={1}>
-              < Grid
-                container={true}
-                direction={'row'}
-                className={activeListIndex > -1 ? this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
-              >
-              <Grid item={true} xs={12}>
-              {first &&
-                <IconButton
-                  type='button'
-                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
-                  onClick={this.handleComponentDelete}
+                <Grid
+                  container={true}
+                  direction={'row'}
+                  className={activeListIndex > -1 ? this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
                 >
-                  <i className='ai ai-circletrash' />
-                </IconButton>
-              }
-              </Grid>
-              <Grid item={true} xs={12}>
-              {!(this.props.activeList.length > 1) &&
-                <IconButton
-                  type='button'
-                  className={this.props.classes.formComponentsBtn}
-                  onClick={this.handleOpenEdit}
-                >
-                  <i className='reg reg-edit' />
-                </IconButton>
-              }
-              </Grid>
-              </Grid>
+                  <Grid item={true} xs={12}>
+                    {first &&
+                      <IconButton
+                        type='button'
+                        className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                        onClick={this.handleComponentDelete}
+                      >
+                        <i className='ai ai-circletrash' />
+                      </IconButton>
+                    }
+                  </Grid>
+                  <Grid item={true} xs={12}>
+                    {!(this.props.activeList.length > 1) &&
+                      <IconButton
+                        type='button'
+                        className={this.props.classes.formComponentsBtn}
+                        onClick={this.handleOpenEdit}
+                      >
+                        <i className='reg reg-edit' />
+                      </IconButton>
+                    }
+                  </Grid>
+                </Grid>
               </Grid>}
             {this.state.isEditMode &&
               <Grid item={true} xs={1}>
-              <Grid
-                container={true}
-                direction={'row'}
-                className={this.props.classes.gridForBtnActive}
-              >
-              <Grid item={true} xs={12}>
-                <IconButton
-                  type='button'
-                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
-                  onClick={this.handleDiscard}
+                <Grid
+                  container={true}
+                  direction={'row'}
+                  className={this.props.classes.gridForBtnActive}
                 >
-                  <i className='ai ai-circlecancel' />
-                </IconButton>
+                  <Grid item={true} xs={12}>
+                    <IconButton
+                      type='button'
+                      className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                      onClick={this.handleDiscard}
+                    >
+                      <i className='ai ai-circlecancel' />
+                    </IconButton>
+                  </Grid>
+                  <Grid item={true} xs={12}>
+                    <IconButton
+                      type='button'
+                      className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
+                      onClick={this.handleSave}
+                    >
+                      <i className='ai ai-circlecheck' />
+                    </IconButton>
+                  </Grid>
                 </Grid>
-                <Grid item={true} xs={12}>
-                <IconButton
-                  type='button'
-                  className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
-                  onClick={this.handleSave}
-                >
-                  <i className='ai ai-circlecheck' />
-                </IconButton>
-                </Grid>
-              </Grid>
-            </Grid>}
+              </Grid>}
           </Grid>
         </Grid>
       </>
