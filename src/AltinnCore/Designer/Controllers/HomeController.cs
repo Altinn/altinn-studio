@@ -274,9 +274,10 @@ namespace AltinnCore.Designer.Controllers
         public IActionResult Debug()
         {
             StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.Append("Debug");
-            stringBuilder.Append("Environment" + Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL"));
-            stringBuilder.Append("UserName from service" + _giteaApi.GetUserNameFromUI());
+            stringBuilder.AppendLine("Debug info");
+            stringBuilder.AppendLine("Environment setting for ServiceRepositorySettings__RepositoryBaseURL: " + Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL"));
+            stringBuilder.AppendLine("Environment setting for GiteaEndpoint: " + Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            stringBuilder.AppendLine("UserName from service: " + _giteaApi.GetUserNameFromUI().Result);
             return Content(stringBuilder.ToString());
         }
     }
