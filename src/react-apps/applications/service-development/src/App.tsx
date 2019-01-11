@@ -64,7 +64,12 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public checkForMergeConflict = () => {
-    HandleMergeConflictDispatchers.fetchRepoStatus('test', 'foo', 'bar');
+    const altinnWindow: any = window;
+    const { org, service } = altinnWindow;
+    // tslint:disable-next-line:max-line-length
+    const repoStatusUrl = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+
+    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, service);
   }
 
   public forceRepoStatusCheck = () => {

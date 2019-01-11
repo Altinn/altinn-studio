@@ -32,10 +32,10 @@ export interface IHandleMergeConflictDiscardAllChangesProps extends WithStyles<t
 
 export interface IHandleMergeConflictDiscardAllChangesState {
   anchorEl: any;
-  modalState: any;
+  popoverState: any;
 }
 
-const initialModalState = {
+const initialPopoverState = {
   descriptionText: '',
   isLoading: false,
   shouldShowDoneIcon: false,
@@ -52,15 +52,15 @@ class HandleMergeConflictDiscardAllChanges extends
     super(_props);
     this.state = {
       anchorEl: null,
-      modalState: initialModalState, // TODO: Rename to PopoverState
+      popoverState: initialPopoverState,
     };
   }
 
   public discardAllChangesPopover = (event: any) => {
     this.setState({
       anchorEl: event.currentTarget,
-      modalState: { // TODO: Immutability-helper
-        ...this.state.modalState,
+      popoverState: { // TODO: Immutability-helper
+        ...this.state.popoverState,
         btnMethod: this.discardAllChangesConfirmed,
         btnText: getLanguageFromKey('handle_merge_conflict.confirm_discard_local_changes_button_confirm',
           this.props.language),
@@ -90,6 +90,8 @@ class HandleMergeConflictDiscardAllChanges extends
 
   public render() {
     const { classes } = this.props;
+    const { popoverState } = this.state;
+
     return (
       <React.Fragment>
         <span
@@ -112,15 +114,15 @@ class HandleMergeConflictDiscardAllChanges extends
         <AltinnPopover
           anchorEl={this.state.anchorEl}
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-          btnCancelText={this.state.modalState.btnCancelText}
-          btnClick={this.state.modalState.btnMethod}
-          btnConfirmText={this.state.modalState.btnText}
-          descriptionText={this.state.modalState.descriptionText}
+          btnCancelText={popoverState.btnCancelText}
+          btnClick={popoverState.btnMethod}
+          btnConfirmText={popoverState.btnText}
+          descriptionText={popoverState.descriptionText}
           handleClose={this.handleClose}
-          header={this.state.modalState.header}
-          isLoading={this.state.modalState.isLoading}
-          shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-          shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+          header={popoverState.header}
+          isLoading={popoverState.isLoading}
+          shouldShowCommitBox={popoverState.shouldShowCommitBox}
+          shouldShowDoneIcon={popoverState.shouldShowDoneIcon}
           transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
         />
 

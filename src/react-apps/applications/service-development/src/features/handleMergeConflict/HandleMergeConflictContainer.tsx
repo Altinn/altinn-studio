@@ -8,8 +8,9 @@ import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { get } from '../../../../shared/src/utils/networking';
 import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
-import HandleMergeConflictDiscardAllChanges from './components/HandleMergeConflictDiscardAlLChanges';
+import HandleMergeConflictDiscardAllChanges from './components/HandleMergeConflictDiscardAllChanges';
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
+import HandleMergeConflictValidateChanges from './components/HandleMergeConflictValidateChanges';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -55,7 +56,7 @@ const styles = () => createStyles({
     // },
     height: 130,
     marginTop: 20,
-    backgroundColor: '#cccccc',
+    // backgroundColor: '#cccccc',
   },
   fileWithMergeConflict: {
     '&:hover': {
@@ -128,28 +129,6 @@ class HandleMergeConflictContainer extends
     );
   }
 
-  // public renderFileWithMergeConflict = (item: any): JSX.Element => {
-  //   const { classes } = this.props;
-  //   const { filePath, fileStatus } = item;
-
-  //   return (
-  //     <ListItem button>
-  //       <ListItemIcon>
-  //         <AltinnIcon
-  //           isActive={true}
-  //           iconClass='ai ai-circlecancel'
-  //           iconColor='#022F51'
-  //           iconSize={16}
-  //         />
-  //       </ListItemIcon>
-  //       <ListItemText
-  //         primary={filePath}
-  //         secondary={null}
-  //       />
-  //     </ListItem>
-  //   );
-  // }
-
   public render() {
     const { classes, language, repoStatus } = this.props;
 
@@ -214,9 +193,10 @@ class HandleMergeConflictContainer extends
                 </Grid>
 
                 <Grid item={true} xs={8}>
-                  <Paper>
-                    Content
-                  </Paper>
+                  <HandleMergeConflictValidateChanges
+                    language={language}
+                    repoStatus={this.props.repoStatus}
+                  />
                 </Grid>
               </Grid>
 
