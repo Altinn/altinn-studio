@@ -225,7 +225,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSave = (): void => {
-    console.log("HANDLE SAVE");
     this.setState({
       isEditMode: false,
       listItem: {
