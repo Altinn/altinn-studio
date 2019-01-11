@@ -389,7 +389,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             </Grid>
             {!this.state.isEditMode &&
               <Grid item={true} xs={1}>
-                < Grid
+                <Grid
                   container={true}
                   direction={'row'}
                   className={activeListIndex > -1 ? this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
