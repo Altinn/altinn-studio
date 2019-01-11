@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
+using AltinnCore.Common.Enums;
+using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -13,6 +17,18 @@ namespace AltinnCore.Designer.Controllers
     [Authorize]
     public class ServiceDevelopmentController : Controller
     {
+        private readonly IRepository _repository;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServiceDevelopmentController"/> class
+        /// </summary>
+        /// <param name="repositoryService">The service repository service</param>
+        public ServiceDevelopmentController(
+            IRepository repositoryService)
+        {
+            _repository = repositoryService;
+        }
+
         /// <summary>
         /// Default action for the designer
         /// </summary>
@@ -20,6 +36,74 @@ namespace AltinnCore.Designer.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        /// <summary>
+        /// Gets all service files for specified mode
+        /// </summary>
+        /// <param name="org">The organization identifier</param>
+        /// <param name="service">The service identifier</param>
+        /// <param name="fileEditorMode">The mode for which files should be fetched</param>
+        /// <returns>A comma-separated list of all the files</returns>
+        public ActionResult GetServiceFiles(string org, string service, FileEditorMode fileEditorMode)
+        {
+            switch (fileEditorMode)
+            {
+                case FileEditorMode.Implementation:
+                    return GetImplementationFiles(org, service);
+
+                default:
+                    return Content(string.Empty);
+            }
+        }
+
+        /// <summary>
+        /// Gets the content of a specified file for the service
+        /// </summary>
+        /// <param name="org">The organization identifier</param>
+        /// <param name="service">The service identifier</param>
+        /// <param name="fileEditorMode">The mode for which files should be fetched</param>
+        /// <param name="fileName">The name of the file to fetch</param>
+        /// <returns>The content of the file</returns>
+        public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
+        {
+            switch (fileEditorMode)
+            {
+                case FileEditorMode.Implementation:
+                    return GetImplementationFile(org, service, fileName);
+
+                default:
+                    return Content(string.Empty);
+            }
+        }
+
+        private ActionResult GetImplementationFiles(string org, string service)
+        {
+            List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, service);
+            string fileList = string.Empty;
+            foreach (AltinnCoreFile file in files)
+            {
+                fileList += file.FileName + ",";
+            }
+
+            fileList = fileList.Substring(0, fileList.Length - 1);
+
+            return Content(fileList, "text/plain", Encoding.UTF8);
+        }
+
+        private ActionResult GetImplementationFile(string org, string service, string fileName)
+        {
+            string file = string.Empty;
+            if (fileName == "RuleHandler.js")
+            {
+                file = _repository.GetResourceFile(org, service, fileName);
+            }
+            else
+            {
+                file = _repository.GetImplementationFile(org, service, fileName);
+            }
+
+            return Content(file, "text/plain", Encoding.UTF8);
         }
     }
 }
