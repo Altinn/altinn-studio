@@ -7,7 +7,7 @@ import AltinnPopover from '../../../../../shared/src/components/AltinnPopover';
 import AltinnInput from '../../../../../shared/src/components/AltinnInput';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import { get, post } from '../../../../../shared/src/utils/networking';
+import { get } from '../../../../../shared/src/utils/networking';
 // import { makeGetApiConnectionsSelector } from '../../../../../ux-editor/src/selectors/getServiceConfigurations';
 const theme = createMuiTheme(altinnTheme);
 
