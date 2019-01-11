@@ -4,6 +4,8 @@ import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
+import ServiceLogicMenu from '../../../shared/src/navigation/drawer/serviceLogicMenu';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -27,6 +29,7 @@ const styles = ((theme: Theme) => createStyles({
   container: {
     height: 'calc(100vh - 69px)',
     top: '69px',
+    backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
   },
   item: {
     padding: 0,
@@ -89,14 +92,14 @@ class FormDesigner extends React.Component<
                 width: 'calc(100% - 48px)',
                 paddingTop: '24px',
                 marginLeft: '24px',
-                background: '#FFFFFF',
               }}
             >
               <DesignView />
             </div>
           </Grid>
           <Grid item={true} classes={{ item: classNames(classes.item) }}>
-            <div />
+            <span> hello </span>
+            <ServiceLogicMenu open={false} />
           </Grid>
         </Grid>
       </div>

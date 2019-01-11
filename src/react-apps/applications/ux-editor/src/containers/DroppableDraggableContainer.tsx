@@ -13,6 +13,7 @@ import {
   DropTargetSpec,
 } from 'react-dnd';
 import * as ReactDOM from 'react-dom';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 
 const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
   beginDrag(props: IDroppableDraggableContainerProps) {
@@ -144,7 +145,7 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
           border: '1px solid #ccc',
           padding: '1em',
           marginBottom: -1,
-          backgroundColor: isOver ? 'lightgrey' : 'white',
+          backgroundColor: isOver ? 'white' :  altinnTheme.altinnPalette.primary.greyLight,
         }}
       >
         {this.props.children}
