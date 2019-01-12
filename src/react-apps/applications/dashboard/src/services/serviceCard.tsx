@@ -64,7 +64,13 @@ class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, 
   }
 
   public openService = () => {
-    window.location.href = `/designer/${this.props.service.full_name}`;
+    // todo:
+    if (true) {
+      window.location.href = `/designer/${this.props.service.full_name}`;
+    } else {
+      //redirect to clone service
+    }
+
   }
 
   public render() {
