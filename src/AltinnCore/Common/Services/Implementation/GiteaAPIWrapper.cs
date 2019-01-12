@@ -378,7 +378,7 @@ namespace AltinnCore.Common.Services.Implementation
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/applications");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("RepositoryBaseURL"));
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
             }
             else
             {
