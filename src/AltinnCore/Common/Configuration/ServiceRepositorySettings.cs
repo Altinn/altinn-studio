@@ -220,6 +220,16 @@ namespace AltinnCore.Common.Configuration
         public string DockerfileFileName { get; set; } = "Dockerfile";
 
         /// <summary>
+        /// Gets or sets the filename for the altinn service project
+        /// </summary>
+        public string ProjectFileName { get; set; } = "AltinnService.csproj";
+
+        /// <summary>
+        /// Gets or sets the repo search page count used for searching repos
+        /// </summary>
+        public int RepoSearchPageCount { get; set; } = 1337;
+
+        /// <summary>
         /// Gets or sets the filename for the generated methods class
         /// </summary>
         public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;

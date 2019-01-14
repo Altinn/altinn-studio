@@ -111,6 +111,10 @@ declare global {
     description: string;
   }
 
+  export interface IFormAddressComponent extends IFormComponent {
+    simplified: boolean;
+  }
+
   export type FormComponentType =
     | IFormHeaderComponent
     | IFormInputComponent
@@ -119,7 +123,8 @@ declare global {
     | IFormButtonComponent
     | IFormRadioButtonComponent
     | IFormDropdownComponent
-    | IFormFileUploaderComponent;
+    | IFormFileUploaderComponent
+    | IFormAddressComponent;
 
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;
@@ -168,6 +173,9 @@ declare global {
     XName?: string;
     XPath: string;
     XsdValueType?: string;
+    DisplayString: string;
+    XmlSchemaXPath: string;
+    JsonSchemaPointer: string;
   }
 
   export interface IDataModelBinding {

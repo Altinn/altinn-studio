@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -14,6 +15,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// The service builder API
     /// </summary>
+    [Authorize]
     public class ServiceDevelopmentController : Controller
     {
         private readonly IRepository _repository;

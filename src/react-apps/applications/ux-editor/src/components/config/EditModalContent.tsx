@@ -1,4 +1,5 @@
 import { Grid } from '@material-ui/core';
+import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
@@ -358,10 +359,46 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
 
+      case 'AddressComponent': {
+        return (
+          <Grid
+            container={true}
+            spacing={0}
+            direction={'column'}
+          >
+            {renderSelectDataModelBinding(
+              this.props.component.dataModelBinding,
+              this.handleDataModelChange,
+              this.props.language,
+            )}
+            <Grid item={true} xs={12}>
+              {this.props.language.ux_editor.modal_configure_address_component_simplified}
+              <Checkbox
+                checked={(this.state.component as IFormAddressComponent).simplified}
+                onChange={this.handleToggleAdressSimple}
+              />
+            </Grid>
+          </Grid >
+        );
+      }
+
       default: {
         return null;
       }
     }
+  }
+
+  public handleToggleAdressSimple = (event: object, checked: boolean) => {
+    this.setState({
+      component: {
+        ...this.state.component,
+        simplified: checked,
+      },
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      simplified: checked,
+    });
   }
 
   public renderTextResourceOptions = (): JSX.Element[] => {

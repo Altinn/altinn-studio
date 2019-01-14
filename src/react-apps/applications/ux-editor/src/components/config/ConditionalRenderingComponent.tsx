@@ -104,8 +104,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   /**
    * Methods that updates the input param connections to the datamodel
    */
-  public handleParamDataChange = (paramName: any, e: any): void => {
-    const value = e.target.value;
+  public handleParamDataChange = (paramName: any, value: any): void => {
     this.setState({
       conditionalRendering: {
         ...this.state.conditionalRendering,

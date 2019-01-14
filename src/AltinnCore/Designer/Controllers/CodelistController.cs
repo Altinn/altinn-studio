@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -8,6 +9,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to code lists
     /// </summary>
+    [Authorize]
     public class CodelistController : Controller
     {
         private readonly IRepository _repository;

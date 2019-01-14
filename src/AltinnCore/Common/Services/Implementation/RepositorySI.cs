@@ -1100,7 +1100,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The newly created repository</returns>
         public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;
+            return _gitea.CreateRepositoryForOrg(org, createRepoOption).Result;
         }
 
         /// <summary>
@@ -1485,6 +1485,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Copy default Dockerfile
             string servicePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
+            File.Copy(_generalSettings.DefaultProjectFile, servicePath + _settings.ProjectFileName);
         }
 
         private void CreateInitialServiceImplementation(string org, string service)
