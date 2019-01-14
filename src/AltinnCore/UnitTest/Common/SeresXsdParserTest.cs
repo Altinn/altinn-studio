@@ -130,6 +130,71 @@ namespace AltinnCore.UnitTest.Common
         ///  convert a Skatteetaten schema
         /// </summary>
         [Fact]
+        public void ConvertServiceModel()
+        {
+            Dictionary<string, Dictionary<string, string>> textDictionary = new Dictionary<string, Dictionary<string, string>>();
+
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            moqRepository
+                .Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>())).Returns(textDictionary);
+
+            var seresParser = new SeresXsdParser(moqRepository.Object);
+            XDocument mainXsd = XDocument.Load("Common/ServiceModel.xsd");
+
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
+
+            string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
+
+            File.WriteAllText("service-model.json", metadataAsJson);
+
+            JsonMetadataParser metadataParser = new JsonMetadataParser();
+            string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
+
+            File.WriteAllText("service-model.cs", classMeta);
+
+            File.WriteAllText("servcie-model-texts.txt", Newtonsoft.Json.JsonConvert.SerializeObject(textDictionary));
+        }
+
+        /// <summary>
+        ///  convert a Skatteetaten schema
+        /// </summary>
+        [Fact]
+        public void ConvertNæringsoppgave()
+        {
+            string xsdFileName = "Common/melding-2-12186.xsd";
+            string outName = "melding-2-12186-output";
+
+            Dictionary<string, Dictionary<string, string>> textDictionary = new Dictionary<string, Dictionary<string, string>>();
+
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            moqRepository
+                .Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>())).Returns(textDictionary);
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+
+            var doc = XmlReader.Create(xsdFileName, settings);
+            XDocument mainXsd = XDocument.Load(doc);
+
+            var seresParser = new SeresXsdParser(moqRepository.Object);
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
+
+            string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
+
+            File.WriteAllText(outName + ".json", metadataAsJson);
+
+            JsonMetadataParser metadataParser = new JsonMetadataParser();
+            string classMeta = metadataParser.CreateModelFromMetadata(serviceMetadata);
+
+            File.WriteAllText(outName + ".cs", classMeta);
+
+            File.WriteAllText(outName + "-texts.json", Newtonsoft.Json.JsonConvert.SerializeObject(textDictionary));
+        }
+
+        /// <summary>
+        ///  convert a Skatteetaten schema
+        /// </summary>
+        [Fact]
         public void ConvertSkatteetatenMotorvognavgift()
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>();
