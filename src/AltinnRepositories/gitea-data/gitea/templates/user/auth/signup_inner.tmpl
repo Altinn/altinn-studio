@@ -24,10 +24,12 @@ h2 {
 <div class="user signup{{if .LinkAccountMode}} icon{{end}}">
 	<div class="ui middle very relaxed page grid">
   <div class="row" style="align-items:center">
-    <div class="column1">
-        <img src="{{AppSubUrl}}/img/flower2.svg">
-    </div>
-    <div class="column2">
+    {{if not .LinkAccountMode}}
+      <div class="column1">
+          <img src="{{AppSubUrl}}/img/flower2.svg">
+      </div>
+    {{end}}
+    <div class="{{if .LinkAccountMode}} column {{else}} column2 {{end}}">
       <form class="ui form" action="{{.SignUpLink}}" method="post">
         {{.CsrfTokenHtml}}
         <h2>
@@ -95,10 +97,13 @@ h2 {
             {{end}}
           {{end}}
         </div>
+        {{if not .LinkAccountMode}}
         <div class="field" style="padding-top:100px">
+          {{range $key := .OrderedOAuth2Names}}
           <a class="link-box"
-            href="{{AppSubUrl}}">{{.i18n.Tr "auth.github_registration"}}</a>
+            href="{{AppSubUrl}}/user/oauth2/{{$key}}">{{.i18n.Tr "auth.oauth_signup_title"}}</a>
         </div>
+        {{end}}
       </form>
     </div>
   </div>

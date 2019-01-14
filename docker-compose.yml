@@ -97,7 +97,7 @@ services:
 
   altinn_repositories:
     container_name: altinn-repositories
-    image: altinn-gitea:latest
+    image: gitea/gitea:1.7
     restart: always
     networks:
       - altinncore_network
