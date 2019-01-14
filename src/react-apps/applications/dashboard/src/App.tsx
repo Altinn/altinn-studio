@@ -73,15 +73,9 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
                 </Grid>)}
             />
             <Route
-              path={'/servicename/:serviceName'}
+              path={'/org/:org/servicename/:serviceName'}
               exact={true}
               component={CloneService}
-            // render={(props) => (
-            //   <Grid container={true} justify='center' direction='row' className='block-with-text' >
-            //     <Grid item={true} xs={10}>
-            //       <CloneService />
-            //     </Grid>
-            //   </Grid>)}
             />
           </div>
         </Router>
