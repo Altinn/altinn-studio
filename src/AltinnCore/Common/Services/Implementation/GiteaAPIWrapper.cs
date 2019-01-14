@@ -305,12 +305,6 @@ namespace AltinnCore.Common.Services.Implementation
 
                     return GetStringFromHtmlContent(htmlContent, "<input id=\"username\" name=\"name\" value=\"", "\"");
                 }
-                else
-                {
-                    StringBuilder str = new StringBuilder();
-                    str.AppendLine(await response.Content.ReadAsStringAsync());
-                    return response.StatusCode + str.ToString();
-                }
             }
 
             return null;
