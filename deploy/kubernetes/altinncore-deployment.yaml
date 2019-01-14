@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: altinn-repositories
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.0.9
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.1.0
         ports:
         - containerPort: 3000
         volumeMounts:
@@ -60,6 +60,8 @@ spec:
           value: /AltinnCore/Repos/
         - name: ServiceRepositorySettings__RepositoryBaseURL
           value: http://altinn-repositories:3000/
+        - name: ServiceRepositorySettings__GiteaInternalHost
+          value: altinn-repositories
         - name: ServiceRepositorySettings__EnableGiteaIntegration
           value: "true"
         - name: GeneralSettings__LanguageFilesLocation
