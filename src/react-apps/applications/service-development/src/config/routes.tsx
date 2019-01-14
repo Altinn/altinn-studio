@@ -99,13 +99,6 @@ export const routes = [
     subapp: DummySubApp,
   },
   {
-    path: '/logic',
-    exact: true,
-    activeSubHeaderSelection: 'Lage',
-    menu: 'create',
-    subapp: uieditorApp,
-  },
-  {
     path: '/api',
     exact: true,
     activeSubHeaderSelection: 'Lage',
