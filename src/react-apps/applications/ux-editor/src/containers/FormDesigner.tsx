@@ -1,9 +1,10 @@
-import { createStyles, Grid, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Drawer, Grid, Theme, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
+import LogicEditor from '../../../shared/src/file-editor/FileEditor';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -17,7 +18,9 @@ export interface IFormDesignerProvidedProps {
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
 }
-export interface IFormDesignerState { }
+export interface IFormDesignerState {
+  codeEditorOpen: boolean;
+}
 
 const styles = ((theme: Theme) => createStyles({
   root: {
@@ -27,6 +30,7 @@ const styles = ((theme: Theme) => createStyles({
   container: {
     height: 'calc(100vh - 69px)',
     top: '69px',
+    overflow: 'auto',
   },
   item: {
     padding: 0,
@@ -36,7 +40,6 @@ const styles = ((theme: Theme) => createStyles({
     borderLeft: '1px solid #C9C9C9',
     borderRight: '1px solid #C9C9C9',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
-    overflowY: 'auto',
   },
 }));
 export enum LayoutItemType {
@@ -48,6 +51,11 @@ class FormDesigner extends React.Component<
   IFormDesignerProps,
   IFormDesignerState
   > {
+
+  public state = {
+    codeEditorOpen: true,
+  };
+
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
@@ -61,14 +69,22 @@ class FormDesigner extends React.Component<
       servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
 
+  public toggleCodeEditor = () => {
+    this.setState((prevState: IFormDesignerState) => {
+      return {
+        codeEditorOpen: !prevState.codeEditorOpen,
+      };
+    });
+  }
+
   public render() {
     const { classes } = this.props;
     return (
       <div className={classes.root}>
         <Grid
           container={true}
-          wrap={'nowrap'}
           spacing={0}
+          wrap={'nowrap'}
           classes={{ container: classNames(classes.container) }}
         >
           <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
@@ -93,6 +109,15 @@ class FormDesigner extends React.Component<
               }}
             >
               <DesignView />
+              <Drawer
+                anchor='bottom'
+                open={this.state.codeEditorOpen}
+              >
+                <LogicEditor
+                  mode={2}
+                  closeFileEditor={this.toggleCodeEditor}
+                />
+              </Drawer>
             </div>
           </Grid>
           <Grid item={true} classes={{ item: classNames(classes.item) }}>
