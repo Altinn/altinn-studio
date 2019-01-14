@@ -139,6 +139,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     if (repo.Owner != null && !string.IsNullOrEmpty(repo.Owner.Login))
                     {
+                        repo.IsClonedToLocal = IsLocalRepo(repo.Owner.Login, repo.Name);
                         Organization org = await GetCachedOrg(repo.Owner.Login);
                         if (org != null)
                         {
@@ -395,6 +396,27 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return null;
+        }
+
+        private bool IsLocalRepo(string org, string service)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            if (Directory.Exists(localServiceRepoFolder))
+            {
+                try
+                {
+                    using (LibGit2Sharp.Repository repo = new LibGit2Sharp.Repository(localServiceRepoFolder))
+                    {
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+            }
+
+            return false;
         }
 
         private string GetStringFromHtmlContent(string htmlContent, string inputSearchTextBefore, string inputSearchTextAfter)
