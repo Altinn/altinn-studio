@@ -65,6 +65,7 @@ describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
         full_name: 'Mons Monsen',
         login: 'mons',
       },
+      organizations: [] as any[],
     },
   };
 
@@ -81,6 +82,7 @@ describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
           full_name: 'Mons Monsen',
           login: 'mons',
         },
+        organizations: [] as any[],
       },
     };
     mockStore = createStore(initialState);
