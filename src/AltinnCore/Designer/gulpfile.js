@@ -19,6 +19,7 @@ const jsServDevFile = '../../react-apps/applications/service-development/dist/se
 const jsServDevModuleFile0 = '../../react-apps/applications/service-development/dist/0.service-development.js';
 const jsServDevModuleFile1 = '../../react-apps/applications/service-development/dist/1.service-development.js';
 const jsServDevModuleFile2 = '../../react-apps/applications/service-development/dist/2.service-development.js';
+const jsServDevModuleFile3 = '../../react-apps/applications/service-development/dist/3.service-development.js';
 const jsServDevMonacoWorker1 = '../../react-apps/applications/service-development/js/react/editor.worker.js';
 const jsServDevMonacoWorker2 = '../../react-apps/applications/service-development/js/react/typescript.worker.js';
 const jsDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.js';
@@ -142,6 +143,7 @@ function copyServDevJs() {
     gulp.src(jsServDevModuleFile0).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevModuleFile1).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevModuleFile2).pipe(gulp.dest('./wwwroot/designer/js/react'));
+    gulp.src(jsServDevModuleFile3).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest('./wwwroot/designer/js/react'));
   }, 1000);
