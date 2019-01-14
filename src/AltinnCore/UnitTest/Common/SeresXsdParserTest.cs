@@ -170,9 +170,13 @@ namespace AltinnCore.UnitTest.Common
             moqRepository
                 .Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>())).Returns(textDictionary);
 
-            var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load(xsdFileName);
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
 
+            var doc = XmlReader.Create(xsdFileName, settings);
+            XDocument mainXsd = XDocument.Load(doc);
+
+            var seresParser = new SeresXsdParser(moqRepository.Object);
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 
             string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);

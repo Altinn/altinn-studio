@@ -65,9 +65,13 @@ namespace AltinnCore.Designer.Controllers
             var secondaryXsds = new Dictionary<string, XDocument>();
 
             string mainFileName = ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
-            using (var reader = XmlReader.Create(thefile.OpenReadStream()))
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+
+            using (var reader = XmlReader.Create(thefile.OpenReadStream(), settings))
             {
-                mainXsd = XDocument.Load(reader);
+                mainXsd = XDocument.Load(reader, LoadOptions.None);
             }
 
             secondaryXsds.Clear();
