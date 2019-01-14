@@ -54,8 +54,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public List<Organization> Organizations()
         {
-            string sessionId = Request.Cookies[_settings.GiteaCookieName];
-            List<Organization> orglist = _giteaApi.GetUserOrganizations(sessionId).Result;
+            List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
             return orglist;
         }
 
@@ -188,32 +187,6 @@ namespace AltinnCore.Designer.Controllers
         public Branch Branch(string owner, string repository, string branch)
         {
             return _giteaApi.GetBranch(owner, repository, branch).Result;
-        }
-
-        /// <summary>
-        /// API for creating a API Token in GITEA and store it to the user folder
-        /// This is not a ideal way of doing it, and we risk that one of the method are
-        /// deleted, but currently the firt method does not return the required params. (Sha1 header when
-        /// creating the token)
-        /// </summary>
-        /// <param name="userName">The Gitea username</param>
-        /// <param name="password">The Gitea password</param>
-        /// <returns>The http status</returns>
-        [HttpPost]
-        public async Task<ActionResult> ConnectUserToRepositories(string userName, string password)
-        {
-            string tokenID = await _giteaApi.CreateAppToken(Guid.NewGuid().ToString(), userName, password);
-            List<AccessToken> accessTokens = await _giteaApi.ListAccessTokens(userName, password);
-            AccessToken token = accessTokens.FirstOrDefault(t => t.Name == tokenID);
-            if (token != null)
-            {
-                _sourceControl.StoreAppTokenForUser(token.Sha1);
-                return Ok();
-            }
-            else
-            {
-                return NotFound();
-            }
         }
 
         /// <summary>
