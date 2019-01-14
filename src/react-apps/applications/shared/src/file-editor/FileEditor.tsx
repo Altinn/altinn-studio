@@ -126,6 +126,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
       .then((logicFileContent) => {
+        console.log('logic file:', logicFileContent);
         this.setState((prevState: IFileEditorState) => {
           return {
             ...prevState,
@@ -175,13 +176,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
     `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
     post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then((response) => {
-      if (this.props.closeFileEditor) {
-        this.props.closeFileEditor();
-      }
+      console.log('Server responded with: ', response);
     });
   }
 
   public onValueChange = (value: string) => {
+    console.log('got new value, ', value);
     this.setState((prevState: IFileEditorState) => {
       return {
         ...prevState,
@@ -227,6 +227,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public render() {
+    console.log('state:', this.state);
     const {classes} = this.props;
     const foldertext = this.getFolderText();
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
