@@ -73,6 +73,9 @@
     <None Update="Common\melding-2-12186.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Common\melding.schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\motorvognavgift-v4.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -29,20 +29,20 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 AttributeFormDefault = XmlSchemaForm.Unqualified,
             };
 
-            string title = GetterExtensions.Title(jSchema);
-
-            XmlSchemaElement rootElement = new XmlSchemaElement
+            string title = GetterExtensions.Title(jSchema);         
+          
+            foreach (KeyValuePair<string, JsonSchema> property in jSchema.Properties())
             {
-                Name = title,
-            };
-
-            rootElement.SchemaTypeName = new XmlQualifiedName(title);
-
-            xsdSchema.Items.Add(rootElement);
-
-            // handle properties of root object type
-            ExtractProperties(xsdSchema, title, jSchema);                                  
-
+                string referencedType = GetterExtensions.Ref(property.Value);
+                XmlSchemaElement rootElement = new XmlSchemaElement
+                {
+                    Name = property.Key,
+                    SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(referencedType)),
+                };
+                
+                xsdSchema.Items.Add(rootElement);
+            }
+           
             // Handle all definitions
             foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Definitions(jSchema))
             {
