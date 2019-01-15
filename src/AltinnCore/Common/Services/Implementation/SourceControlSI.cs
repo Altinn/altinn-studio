@@ -388,12 +388,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the remote repository
         /// </summary>
-        /// <param name="org">The owning organization</param>
+        /// <param name="owner">The owner</param>
         /// <param name="createRepoOption">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepositoryForOrg(AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName), org, createRepoOption).Result;
+            return _gitea.CreateRepository(owner, createRepoOption).Result;
         }
 
         /// <summary>
@@ -422,24 +422,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The app token</returns>
         public string GetAppToken()
         {
-            string path = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
-            }
-            else
-            {
-                path = _settings.RepositoryLocation + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + "/AuthToken.txt";
-            }
-
-            string token = null;
-
-            if (File.Exists(path))
-            {
-                token = File.ReadAllText(path, Encoding.UTF8);
-            }
-
-            return token;
+            return AuthenticationHelper.GetDeveloperAppToken(_httpContextAccessor.HttpContext);
         }
 
         /// <summary>

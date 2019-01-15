@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnFilterChipCompontentProvidedProps {
+export interface IAltinnFilterChipComponentProvidedProps {
   classes: any;
   key: any;
   label: string;
@@ -64,7 +64,7 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnFilterChip extends React.Component<IAltinnFilterChipCompontentProvidedProps, IAltinnFilterChipComponentState> {
+class AltinnFilterChip extends React.Component<IAltinnFilterChipComponentProvidedProps, IAltinnFilterChipComponentState> {
   public render() {
     const { classes } = this.props;
     return (

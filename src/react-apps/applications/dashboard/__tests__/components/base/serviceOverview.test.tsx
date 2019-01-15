@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { ServicesOverview } from '../../../src/services/servicesOverview';
+import { ServicesOverview } from '../../../src/dashboardServices/serviceOverview/servicesOverview';
 
 describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
   let mockStore: any;
@@ -65,6 +65,7 @@ describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
         full_name: 'Mons Monsen',
         login: 'mons',
       },
+      organizations: [] as any[],
     },
   };
 
@@ -81,6 +82,7 @@ describe('>>> components/base/serviceOverview.tsx --- Snapshot', () => {
           full_name: 'Mons Monsen',
           login: 'mons',
         },
+        organizations: [] as any[],
       },
     };
     mockStore = createStore(initialState);

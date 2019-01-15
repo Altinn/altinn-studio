@@ -2,13 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
+using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -21,6 +26,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly IGitea _giteaApi;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
+        private readonly IRepository _repository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
@@ -28,11 +34,13 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="repositorySettings">Settings for repository</param>
         /// <param name="sourceControl">the source control</param>
-        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl)
+        /// <param name="repository">the repository control</param>
+        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl, IRepository repository)
         {
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
             _sourceControl = sourceControl;
+            _repository = repository;
         }
 
         /// <summary>
@@ -54,8 +62,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public List<Organization> Organizations()
         {
-            string sessionId = Request.Cookies[_settings.GiteaCookieName];
-            List<Organization> orglist = _giteaApi.GetUserOrganizations(sessionId).Result;
+            List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
             return orglist;
         }
 
@@ -191,32 +198,6 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// API for creating a API Token in GITEA and store it to the user folder
-        /// This is not a ideal way of doing it, and we risk that one of the method are
-        /// deleted, but currently the firt method does not return the required params. (Sha1 header when
-        /// creating the token)
-        /// </summary>
-        /// <param name="userName">The Gitea username</param>
-        /// <param name="password">The Gitea password</param>
-        /// <returns>The http status</returns>
-        [HttpPost]
-        public async Task<ActionResult> ConnectUserToRepositories(string userName, string password)
-        {
-            string tokenID = await _giteaApi.CreateAppToken(Guid.NewGuid().ToString(), userName, password);
-            List<AccessToken> accessTokens = await _giteaApi.ListAccessTokens(userName, password);
-            AccessToken token = accessTokens.FirstOrDefault(t => t.Name == tokenID);
-            if (token != null)
-            {
-                _sourceControl.StoreAppTokenForUser(token.Sha1);
-                return Ok();
-            }
-            else
-            {
-                return NotFound();
-            }
-        }
-
-        /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
@@ -237,6 +218,64 @@ namespace AltinnCore.Designer.Controllers
         public void DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
         {
             _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+        }
+
+        /// <summary>
+        /// Action used to create a new service under the current service owner
+        /// </summary>
+        /// <param name="org">The service owner code</param>
+        /// <param name="serviceName">The name of the service to create</param>
+        /// <param name="repoName">The repository name of the service to create</param>
+        /// <returns>
+        /// An indication if service was created successful or not
+        /// </returns>
+        [Authorize]
+        [HttpPost]
+        public Repository CreateService(string org, string serviceName, string repoName)
+        {
+            ServiceConfiguration serviceConfiguration = new ServiceConfiguration
+            {
+                RepositoryName = repoName,
+                ServiceName = serviceName,
+            };
+
+            string serviceName1 = serviceConfiguration.RepositoryName;
+            IList<ServiceConfiguration> services = _repository.GetServices(org);
+            List<string> serviceNames = services.Select(c => c.RepositoryName.ToLower()).ToList();
+            bool serviceNameAlreadyExists = serviceNames.Contains(serviceName1.ToLower());
+
+            if (!serviceNameAlreadyExists)
+            {
+                Repository repository = _repository.CreateService(org, serviceConfiguration);
+                if (repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
+                {
+                    var metadata = new ServiceMetadata
+                    {
+                        Org = org,
+                        ServiceName = serviceName,
+                        RepositoryName = repoName,
+                    };
+                    _repository.CreateServiceMetadata(metadata);
+                    if (!string.IsNullOrEmpty(serviceName))
+                    {
+                        JObject json = JObject.FromObject(new
+                        {
+                            language = "nb-NO",
+                            resources = new[] { new { id = "ServiceName", value = serviceName } },
+                        });
+                        _repository.SaveResource(org, repoName, "nb-NO", json.ToString());
+                    }
+                }
+
+                return repository;
+            }
+            else
+            {
+                return new Repository()
+                {
+                    RepositoryCreatedStatus = System.Net.HttpStatusCode.UnprocessableEntity,
+                };
+            }
         }
     }
 }
