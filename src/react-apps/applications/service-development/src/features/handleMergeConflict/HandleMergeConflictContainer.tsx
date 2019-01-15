@@ -12,6 +12,8 @@ import HandleMergeConflictDiscardAllChanges from './components/HandleMergeConfli
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
 import HandleMergeConflictValidateChanges from './components/HandleMergeConflictValidateChanges';
 
+import FileEditor from '../../../../shared/src/file-editor/FileEditor';
+
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
@@ -172,9 +174,9 @@ class HandleMergeConflictContainer extends
                 </Grid>
 
                 <Grid item={true} xs={8}>
-                  <Paper className={classes.paper} square={true}>
-                    Monacos
-                  </Paper>
+                  <FileEditor
+                    mode={2}
+                  />
                 </Grid>
 
               </Grid>

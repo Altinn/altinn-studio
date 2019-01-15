@@ -61,25 +61,25 @@ class HandleMergeConflictValidateChanges extends
   }
 
   public validateChanges = async () => {
-    const { commitMessageInput } = this.state.form;
+    // const { commitMessageInput } = this.state.form;
 
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
 
-    const options = {
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-      },
-    };
+    // const options = {
+    //   headers: {
+    //     'Accept': 'application/json',
+    //     'Content-Type': 'application/json',
+    //   },
+    // };
 
-    const commitBody = JSON.stringify({ message: commitMessageInput, org, repository: service });
+    // const commitBody = JSON.stringify({ message: commitMessageInput, org, repository: service });
 
-    const commitUrl = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
+    // const commitUrl = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
     const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
 
-    //const commitResult = await post(commitUrl, commitBody, options);
-    //console.log('commitResult', commitResult);
+    // const commitResult = await post(commitUrl, commitBody, options);
+    // console.log('commitResult', commitResult);
     const pullResult = await get(pullUrl);
     console.log('pullResult', pullResult);
 
@@ -108,9 +108,9 @@ class HandleMergeConflictValidateChanges extends
   }
 
   public handleFormChange = (event: any) => {
-    console.log('target.id', event.target.value)
+    console.log('target.id', event.target.value);
     const target = event.target;
-    //Use target.type checkbox if checkbox is used.
+    // Use target.type checkbox if checkbox is used.
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const id = target.id;
 
@@ -131,7 +131,6 @@ class HandleMergeConflictValidateChanges extends
           container={true}
           alignItems='flex-end'
           justify='flex-end'
-          xs={12}
         >
           <Grid
             container={true}
@@ -141,10 +140,10 @@ class HandleMergeConflictValidateChanges extends
             justify='flex-end'
             alignItems='stretch'
           >
-            <Grid xs={12}>
+            <Grid item={true} xs={12}>
               TEXT_beskrive endringene dine
             </Grid>
-            <Grid xs={12}>
+            <Grid item={true} xs={12}>
               <span >
 
                 <AltinnInput
@@ -158,6 +157,7 @@ class HandleMergeConflictValidateChanges extends
 
           </Grid>
           <Grid
+            item={true}
             xs={4}
             className={classes.buttonGridItem}
           >
