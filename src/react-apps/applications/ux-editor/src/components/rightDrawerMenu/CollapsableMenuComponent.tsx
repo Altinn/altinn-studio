@@ -33,10 +33,12 @@ const styles = createStyles({
     transform: 'rotate(90deg)',
     fontSize: '1.3rem',
     margin: '0 !important',
+    cursor: 'pointer',
   },
   rotateRight: {
     fontSize: '1.3rem',
     margin: '0 !important',
+    cursor: 'pointer',
   },
 });
 export interface ICollapsableMenuProvidedProps {
@@ -73,6 +75,11 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
       showContent: !prevState.showContent,
     }));
   }
+  public handleKeyPress = (e: any) => {
+    if (e.key === 'Enter') {
+      this.toggleMenu();
+    }
+  }
   public render(): JSX.Element {
     return (
       <List className={this.props.classes.list}>
@@ -82,6 +89,8 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
           <ListItemIcon
             className={this.state.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
             onClick={this.toggleMenu}
+            tabIndex={0}
+            onKeyPress={this.handleKeyPress}
           >
             <i className={'ai ai-expand ' + this.props.classes.icon} />
           </ListItemIcon>

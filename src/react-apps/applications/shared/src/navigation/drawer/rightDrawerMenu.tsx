@@ -7,16 +7,17 @@ const styles = createStyles({
   drawer: {
     width: 240,
     flexShrink: 0,
-    whiteSpace: 'nowrap',
     top: 64,
   },
   drawerHeader: {
    display: 'flex',
    alignContent: 'flex-start',
  },
+ hidden: {
+   visibility: 'hidden',
+ },
  paper: {
    borderTop: '1px solid ' + altinnTheme.altinnPalette.primary.greyMedium,
-   position: 'absolute',
    background: altinnTheme.altinnPalette.primary.greyLight,
    top: 146,
    width: 240,
@@ -51,20 +52,29 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
       open: !this.state.open,
     });
   }
+  public handleKeyPress = (e: any) => {
+    if (e.key === 'Enter') {
+      this.handleDrawerOpen();
+    }
+  }
   public render(): JSX.Element {
     return(
       <>
         <div
           onClick={this.handleDrawerOpen}
+          tabIndex={0}
+          onKeyPress={this.handleKeyPress}
         >
           {this.props.button}
         </div>
         <Drawer
-          className={this.props.classes.drawer}
+          className={this.state.open ? this.props.classes.drawer :
+            this.props.classes.drawer + ' ' + this.props.classes.hidden}
           variant={'persistent'}
           anchor={'right'}
           open={this.state.open}
           classes={{paper: this.props.classes.paper}}
+          SlideProps={{unmountOnExit: false}}
         >
         <div className={this.props.classes.drawerHeader}>
           {this.props.children}
