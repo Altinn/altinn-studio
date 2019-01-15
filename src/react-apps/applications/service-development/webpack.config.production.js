@@ -10,6 +10,7 @@ module.exports = {
   devtool: false,
   entry: "./src/index.tsx",
   output: {
+    path: path.resolve(__dirname, 'dist'),
     filename: "service-development.js"
   },
   resolve: {
