@@ -4,6 +4,9 @@ networks:
   altinncore_network:
     external: false
 
+volumes:
+  gitea-data:
+
 services:
   altinn_dashboard:
     container_name: studiodashboard
@@ -99,10 +102,13 @@ services:
     networks:
       - altinncore_network
     volumes:
-      - "./src/AltinnRepositories/gitea-data:/data"
+      - "gitea-data:/data"
     ports:
       - "3000:3000"
       - "222:22"
+    build:
+      context: .
+      dockerfile: src/AltinnRepositories/Dockerfile
 
   altinn_runttimedb:
     container_name: altinn-runtimedb
