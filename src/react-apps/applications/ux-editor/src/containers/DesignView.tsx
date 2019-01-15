@@ -46,19 +46,14 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     destinationContainerId: string,
   ): void => {
     if (!id) {
-      console.log('###################### MOVECOMP FIRST IF #####################');
+      console.log('#### movecomponent no id');
       // dragging a toolbaritem - they don't have ids
       return;
     }
     if (sourceContainerId === destinationContainerId) {
-      console.log('###################### MOVECOMP SECOND IF #####################');
-      console.log('ID: ', id);
-      console.log('INDEX: ', index);
-      console.log('// MOVECOMP SECOND IF #####################');
       const { layoutOrder } = this.state;
       const updatedOrder: string[] = layoutOrder[sourceContainerId];
       const [moveItem] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
-      console.log('LAYOUTORDER in IF: ', layoutOrder);
       updatedOrder.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
@@ -71,11 +66,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         },
       }));
     } else {
-      console.log('###################### MOVECOMP ELSE #####################');
       const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
-      console.log('LAYOUTORDER in ELSE: ', layoutOrder);
 
       if (updatedDestination.indexOf('placeholder') > -1) {
         // remove the placeholder in the destination
@@ -151,7 +144,18 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public dropItem = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
-    console.log('###################### DROPPING ITEM #####################');
+    console.log('### dropItem ###');
+    console.log('### sourceContainerId: ', sourceContainerId);
+    console.log('### destinationContainerId: ', destinationContainerId);
+
+    let newIndex;
+    const tmpArray = this.state.layoutOrder[destinationContainerId];
+    for (let i = 0; i < tmpArray.length; i++) {
+      if (tmpArray[i] === id) {
+        newIndex = i;
+      }
+    }
+
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
@@ -159,7 +163,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     }));
     FormDesignerActionDispatchers.updateFormComponentOrderAction(
       id,
-      index,
+      newIndex,
       destinationContainerId,
       sourceContainerId,
     );
