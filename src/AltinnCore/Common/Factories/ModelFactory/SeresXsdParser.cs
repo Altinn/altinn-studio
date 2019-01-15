@@ -391,13 +391,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 currentElementAnnotations = newElementAnnotations;
             }
 
-            var orid = string.Empty;
-            var xnameParts = elementMetadata.XName.Split('-');
-
-            if ((xnameParts.Length == 3) && ((xnameParts[1] == "grp") || (xnameParts[1] == "datadef")))
-            {
-                orid = xnameParts[2];
-            }
+            string orid = GetOrid(elementMetadata.XName);
 
             foreach (var cultureString in currentElementAnnotations)
             {
@@ -475,22 +469,41 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (string.IsNullOrEmpty(elementMetadata.TypeName))
             {
-                elementMetadata.TypeName = null; 
+                elementMetadata.TypeName = null;
             }
 
             if (allElements.ContainsKey(elementMetadata.ID))
             {
                 elementMetadata.ID += _randomGen.Next();
             }
-           
-            allElements.Add(elementMetadata.ID, elementMetadata);            
 
+            allElements.Add(elementMetadata.ID, elementMetadata);
             AddSchemaReferenceInformation(currentComplexType, elementMetadata);
+        }
+
+        private static string GetOrid(string xName)
+        {
+            var orid = string.Empty;
+            var xnameParts = xName.Split('-');
+
+            if ((xnameParts.Length == 3) && ((xnameParts[1] == "grp") || (xnameParts[1] == "datadef")))
+            {
+                orid = xnameParts[2];
+            }
+
+            return orid;
         }
 
         private static string SanitizeName(string name)
         {
-            return name.Replace("-", string.Empty);
+            if (!string.IsNullOrEmpty(GetOrid(name)))
+            {
+                return name.Split("-")[0]; 
+            }
+            else
+            {
+                return name.Replace("-", string.Empty);
+            }
         }
 
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
@@ -687,6 +700,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             allElements.Add(elementMetadata.ID, elementMetadata);
+            AddSchemaReferenceInformation(simpleContent, elementMetadata);
         }
 
         private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements, string parentTrail)
