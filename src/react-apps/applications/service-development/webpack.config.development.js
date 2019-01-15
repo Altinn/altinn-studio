@@ -87,7 +87,7 @@ module.exports = {
     new CheckerPlugin(),
     new MonacoPlugin({
       output: path.join('..', 'js', 'react'),
-      languages: ['typescript', 'csharp']
+      languages: ['typescript', 'javascript', 'csharp']
     }),
   ],
   devServer: {

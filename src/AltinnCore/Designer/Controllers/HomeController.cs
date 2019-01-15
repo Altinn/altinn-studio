@@ -266,5 +266,19 @@ namespace AltinnCore.Designer.Controllers
             _sourceControl.StoreAppTokenForUser(appKey.Key);
             return Redirect("/");
         }
+
+        /// <summary>
+        /// Debug info
+        /// </summary>
+        /// <returns>The debug info you want</returns>
+        public IActionResult Debug()
+        {
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.AppendLine("Debug info");
+            stringBuilder.AppendLine("Environment setting for ServiceRepositorySettings__RepositoryBaseURL: " + Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL"));
+            stringBuilder.AppendLine("Environment setting for GiteaEndpoint: " + Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            stringBuilder.AppendLine("UserName from service: " + _giteaApi.GetUserNameFromUI().Result);
+            return Content(stringBuilder.ToString());
+        }
     }
 }

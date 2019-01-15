@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -71,10 +72,54 @@ namespace AltinnCore.Designer.Controllers
             {
                 case FileEditorMode.Implementation:
                     return GetImplementationFile(org, service, fileName);
-
+                case FileEditorMode.All:
+                    string file = string.Empty;
+                    file = _repository.GetConfiguration(org, service, fileName);
+                    return Content(file, "text/plain", Encoding.UTF8);
                 default:
                     return Content(string.Empty);
             }
+        }
+
+        /// <summary>
+        /// Gets the content of a specified file for the service
+        /// </summary>
+        /// <param name="org">The organization identifier</param>
+        /// <param name="service">The service identifier</param>
+        /// <param name="fileEditorMode">The mode for which files should be saved</param>
+        /// <param name="fileName">The name of the file to save</param>
+        /// <returns>The content of the file</returns>
+        [HttpPost]
+        public IActionResult SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
+        {
+            string content = string.Empty;
+            using (var reader = new StreamReader(Request.Body))
+            {
+                content = reader.ReadToEnd();
+            }
+
+            switch (fileEditorMode)
+            {
+                case FileEditorMode.Implementation:
+                    if (fileName == "RuleHandler.js")
+                    {
+                        _repository.SaveResourceFile(org, service, fileName, content);
+                    }
+                    else
+                    {
+                        _repository.SaveImplementationFile(org, service, fileName, content);
+                    }
+
+                    break;
+                case FileEditorMode.All:
+                    _repository.SaveConfiguration(org, service, fileName, content);
+                    break;
+                default:
+                    // Return 501 Not Implemented
+                    return StatusCode(501);
+            }
+
+            return StatusCode(200);
         }
 
         private ActionResult GetImplementationFiles(string org, string service)

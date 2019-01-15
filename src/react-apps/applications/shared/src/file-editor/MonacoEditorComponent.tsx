@@ -6,6 +6,7 @@ export interface IMonacoEditorComponentProps {
   width?: string;
   language: string;
   value: string;
+  onValueChange: (value: string) => void;
 }
 
 export interface IMonacoEditorComponentState {
@@ -22,10 +23,6 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     this.state = {
       code: props.value,
     };
-  }
-
-  public editorDidMount(editor: any, monaco: any) {
-    console.log('editorDidMount', editor);
   }
   
   public render() {
@@ -53,7 +50,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
             },
           }
         }
-        editorDidMount={this.editorDidMount}
+        onChange={this.props.onValueChange}
       />
     );
   }

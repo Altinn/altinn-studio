@@ -3,7 +3,7 @@ import { createStyles, withStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
 import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
-import { get } from '../utils/networking';
+import { get, post } from '../utils/networking';
 
 import theme from '../../../shared/src/theme/altinnStudioTheme';
 
@@ -106,8 +106,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service} = altinnWindow;
     const servicePath = `${org}/${service}`;
-    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment
-      /GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
+    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+    `/GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
       const files = response.split(',');
       this.loadFileContent(files[0]);
       this.setState((prevState: IFileEditorState) => {
@@ -123,10 +123,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service} = altinnWindow;
     const servicePath = `${org}/${service}`;
-    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment
-      /GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
+    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+      `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
       .then((logicFileContent) => {
-        console.log('logic file:', logicFileContent);
         this.setState((prevState: IFileEditorState) => {
           return {
             ...prevState,
@@ -157,8 +156,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       case 6: {
         return 'Test';
       }
+      case 0:
       default: {
-        return 'File';
+        return 'All';
       }
     }
   }
@@ -166,6 +166,28 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   public switchFile = (e: any) => {
     const fileName = e.target.value;
     this.loadFileContent(fileName);
+  }
+
+  public saveFile = (e: any) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service} = altinnWindow;
+    const servicePath = `${org}/${service}`;
+    const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+    `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
+    post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then((response) => {
+      if (this.props.closeFileEditor) {
+        this.props.closeFileEditor();
+      }
+    });
+  }
+
+  public onValueChange = (value: string) => {
+    this.setState((prevState: IFileEditorState) => {
+      return {
+        ...prevState,
+        value,
+      };
+    });
   }
 
   public getLanguageFromFileName = (): any => {
@@ -196,7 +218,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <IconButton
           type='button'
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
-          // onClick={this.handleDiscard}
+          onClick={this.saveFile}
         >
           <i className='ai ai-circlecheck' />
         </IconButton>
@@ -205,7 +227,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public render() {
-    console.log('state:', this.state);
     const {classes} = this.props;
     const foldertext = this.getFolderText();
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
@@ -246,6 +267,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <MonacoEditorComponent
           language={language.name}
           value={this.state.value}
+          onValueChange={this.onValueChange}
         />
         </Grid>
         <Grid item={true} xs={11}/>

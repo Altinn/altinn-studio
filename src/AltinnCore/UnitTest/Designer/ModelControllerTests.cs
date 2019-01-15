@@ -48,6 +48,40 @@ namespace AltinnCore.UnitTest.Designer
             Assert.True(serviceMetadata.Elements.ContainsKey("melding.LeveranseæøåÆØÅ"));
         }
 
+        /// <summary>
+        ///  2x
+        /// </summary>
+        [Fact]
+        public void CanUploadTextsThatIgnoresWithespace()
+        {
+            // Arrange
+            Dictionary<string, Dictionary<string, string>> dictionary = null;
+
+            Dictionary<string, Dictionary<string, string>> existingDictionary = new Dictionary<string, Dictionary<string, string>>();
+
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))        
+                .Callback<string, string, Dictionary<string, Dictionary<string, string>>>((o, s, d) =>
+                {
+                    dictionary = d;
+                });
+            moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(existingDictionary);                
+
+            ModelController controller = new ModelController(moqRepository.Object);
+
+            IFormFile formFile = AsMockIFormFile("Common/ServiceModel.xsd");
+
+            ActionResult result = controller.Upload("Org", "service2", formFile, null);
+
+            Assert.NotNull(dictionary);
+
+            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinforgrp5801.Label").GetValueOrDefault("nb-NO");
+
+            // Text should be without extra withespaces
+            Assert.Equal("Informasjon om skattyter", lookupValue);           
+        }
+
         private IFormFile AsMockIFormFile(string file)
         {
             var physicalFile = new FileInfo(file);

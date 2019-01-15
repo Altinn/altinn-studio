@@ -183,13 +183,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             CultureDictionary allTexts)
         {
             var typeName = currentComplexType.AttributeValue("name");
-            if (_complexTypes.Contains(typeName))
+            if (!string.IsNullOrEmpty(typeName))
             {
-                return;
-            }
-            else
-            {
-                _complexTypes.Add(typeName);
+                if (_complexTypes.Contains(typeName))
+                {
+                    return;
+                }
+                else
+                {
+                    _complexTypes.Add(typeName);
+                }
             }
 
             // Process attributes
