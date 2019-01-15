@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -14,6 +15,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Implementation for deploy actions
     /// </summary>
+    [Authorize]
     public class DeployController : Controller
     {
         private readonly ISourceControl _sourceControl;

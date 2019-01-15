@@ -71,8 +71,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
     });
   }
 
-  public handleParamDataChange = (paramName: any, e: any): void => {
-    const value = e.target.value;
+  public handleParamDataChange = (paramName: any, value: any): void => {
     this.setState({
       ruleConnection: {
         ...this.state.ruleConnection,
@@ -84,8 +83,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
     });
   }
 
-  public handleOutParamDataChange = (paramName: any, e: any): void => {
-    const value = e.target.value;
+  public handleOutParamDataChange = (paramName: any, value: any): void => {
     this.setState({
       ruleConnection: {
         ...this.state.ruleConnection,

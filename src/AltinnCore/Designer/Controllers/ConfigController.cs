@@ -1,4 +1,5 @@
 ﻿using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller exposing
     /// </summary>
+    [Authorize]
     public class ConfigController : Controller
     {
         private readonly IHostingEnvironment _hostingEnvironment;

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -8,6 +9,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to testing of services
     /// </summary>
+    [Authorize]
     public class TestingController : Controller
     {
         private readonly ITestingRepository _testingRepository;
