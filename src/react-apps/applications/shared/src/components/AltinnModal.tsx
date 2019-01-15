@@ -1,4 +1,4 @@
-import { createMuiTheme, IconButton, Modal, Typography } from '@material-ui/core';
+import { createMuiTheme, createStyles, IconButton, Modal, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -17,7 +17,7 @@ export interface IAltinnModalComponentState {
 
 const theme = createMuiTheme(altinnTheme);
 
-const styles = {
+const styles = createStyles({
   modal: {
     width: '876px',
     backgroundColor: theme.altinnPalette.primary.white,
@@ -53,7 +53,7 @@ const styles = {
     color: altinnTheme.altinnPalette.primary.white,
     fontSize: 38,
   },
-};
+});
 
 class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
   public render() {

@@ -235,13 +235,13 @@ namespace AltinnCore.Designer.Controllers
         {
             ServiceConfiguration serviceConfiguration = new ServiceConfiguration
             {
-                RepoName = repoName,
+                RepositoryName = repoName,
                 ServiceName = serviceName,
             };
 
-            string serviceName1 = serviceConfiguration.RepoName;
+            string serviceName1 = serviceConfiguration.RepositoryName;
             IList<ServiceConfiguration> services = _repository.GetServices(org);
-            List<string> serviceNames = services.Select(c => c.RepoName.ToLower()).ToList();
+            List<string> serviceNames = services.Select(c => c.RepositoryName.ToLower()).ToList();
             bool serviceNameAlreadyExists = serviceNames.Contains(serviceName1.ToLower());
 
             if (!serviceNameAlreadyExists)

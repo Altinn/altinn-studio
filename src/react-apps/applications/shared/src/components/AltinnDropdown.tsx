@@ -1,4 +1,4 @@
-import { createMuiTheme, FormControl, MenuItem, TextField, Typography } from '@material-ui/core';
+import { createMuiTheme, createStyles, FormControl, MenuItem, TextField, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -20,7 +20,7 @@ export interface IAltinnDropdownComponentState {
 
 const theme = createMuiTheme(altinnTheme);
 
-const styles = {
+const styles = createStyles({
   inputHeader: {
     fontSize: '24px',
   },
@@ -44,7 +44,7 @@ const styles = {
     color: theme.altinnPalette.primary.black + '!Important',
     padding: '6px',
   },
-};
+});
 
 // tslint:disable-next-line:max-line-length
 class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedProps, IAltinnDropdownComponentState> {

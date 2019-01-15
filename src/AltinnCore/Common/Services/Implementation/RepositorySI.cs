@@ -174,7 +174,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
                 {
                     // Create service with already existing repo
-                    RepositoryClient.Model.Repository repositoryCreated = CreateService(org, new ServiceConfiguration { RepoName = service }, true);
+                    RepositoryClient.Model.Repository repositoryCreated = CreateService(org, new ServiceConfiguration { RepositoryName = service }, true);
                     bool serviceCreated = repositoryCreated.Equals(null) ? false : true;
                     if (serviceCreated)
                     {
@@ -819,22 +819,22 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a new service folder under the given <paramref name="org">service owner</paramref> and saves the
+        /// Creates a new service folder under the given <paramref name="owner">service owner</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="org">The service owner to create the new service under</param>
+        /// <param name="owner">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
         /// <param name="repoCreated">whether the repo is created or not</param>
         /// <returns>The repository created in gitea</returns>
-        public RepositoryClient.Model.Repository CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
+        public RepositoryClient.Model.Repository CreateService(string owner, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
-            string filename = _settings.GetServicePath(org, serviceConfig.RepoName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
+            string filename = _settings.GetServicePath(owner, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
             AltinnCore.RepositoryClient.Model.Repository repository = null;
-            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepoName, Readme: "Tjenestedata", Description: string.Empty);
+            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
-                repository = CreateRepository(org, createRepoOption);
+                repository = CreateRepository(owner, createRepoOption);
             }
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
@@ -842,7 +842,7 @@ namespace AltinnCore.Common.Services.Implementation
                 bool created = repoCreated;
                 if (!File.Exists(filename))
                 {
-                    _sourceControl.CloneRemoteRepository(org, serviceConfig.RepoName);
+                    _sourceControl.CloneRemoteRepository(owner, serviceConfig.RepositoryName);
 
                     // Verify if directory exist. Should Exist if Cloning of new repository worked
                     if (!new FileInfo(filename).Directory.Exists)
@@ -857,7 +857,7 @@ namespace AltinnCore.Common.Services.Implementation
                     }
 
                     created = true;
-                    CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepoName, Message = "Service Created" };
+                    CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
 
                     _sourceControl.PushChangesForRepository(commitInfo);
                 }

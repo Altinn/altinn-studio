@@ -1,4 +1,4 @@
-import { createMuiTheme, Popper } from '@material-ui/core';
+import { createMuiTheme, createStyles, Popper } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -16,7 +16,7 @@ export interface IAltinnPopperComponentState {
 
 const theme = createMuiTheme(altinnTheme);
 
-const styles = {
+const styles = createStyles({
   snackbar_error: {
     color: theme.altinnPalette.primary.black,
     background: theme.altinnPalette.primary.redLight,
@@ -27,7 +27,7 @@ const styles = {
     padding: '12px 24px 12px 24px',
     maxWidth: '550px',
   },
-};
+});
 
 class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, IAltinnPopperComponentState> {
   public render() {

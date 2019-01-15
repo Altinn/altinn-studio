@@ -1,4 +1,4 @@
-import { createMuiTheme, FormControl, TextField, Typography } from '@material-ui/core';
+import { createMuiTheme, createStyles, FormControl, TextField, Typography } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
@@ -20,7 +20,7 @@ export interface IAltinnInputFieldComponentState {
 
 const theme = createMuiTheme(altinnTheme);
 
-const styles = {
+const styles = createStyles({
   inputHeader: {
     fontSize: '24px',
   },
@@ -40,7 +40,7 @@ const styles = {
     color: '#000000',
     padding: '6px',
   },
-};
+});
 
 // tslint:disable-next-line:max-line-length
 class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {

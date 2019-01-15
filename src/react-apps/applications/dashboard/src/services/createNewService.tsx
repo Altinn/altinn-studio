@@ -1,5 +1,5 @@
 import { CircularProgress, Typography } from '@material-ui/core';
-import { createMuiTheme, withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -36,7 +36,7 @@ export interface ICreateNewServiceState {
   isLoading: boolean;
 }
 
-const styles = {
+const styles = createStyles({
   button: {
     fontSize: '16px',
     padding: '5px 45px 5px 45px',
@@ -56,7 +56,7 @@ const styles = {
     verticalAlign: 'middle',
     marginBottom: '25px',
   },
-};
+});
 
 class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
   public state: ICreateNewServiceState = {
