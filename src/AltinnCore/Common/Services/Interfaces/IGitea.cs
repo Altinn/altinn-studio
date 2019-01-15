@@ -20,10 +20,10 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Create repository for th organisation
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="owner">the owner</param>
         /// <param name="createRepoOption">the options for creating repository</param>
         /// <returns>The newly created for the repository</returns>
-        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepositoryForOrg(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
+        Task<AltinnCore.RepositoryClient.Model.Repository> CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption);
 
         /// <summary>
         /// Search the repository for the given parameters
