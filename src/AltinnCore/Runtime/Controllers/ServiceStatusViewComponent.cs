@@ -170,7 +170,7 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             var routParameters =
-                new { org = serviceMetadata.Org, service = serviceMetadata.Service };
+                new { org = serviceMetadata.Org, service = serviceMetadata.RepositoryName };
             if (serviceMetadata.Elements == null || !serviceMetadata.Elements.Any())
             {
                 var dataModellMissing = ServiceStatusViewModel.UserMessage.Error("Tjenestens datamodell mangler");

@@ -388,12 +388,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the remote repository
         /// </summary>
-        /// <param name="org">The owning organization</param>
+        /// <param name="owner">The owner</param>
         /// <param name="createRepoOption">Options for the remote repository</param>
         /// <returns>The repostory from API</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepositoryForOrg(org, createRepoOption).Result;
+            return _gitea.CreateRepository(owner, createRepoOption).Result;
         }
 
         /// <summary>
