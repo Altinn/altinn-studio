@@ -7,7 +7,7 @@ import '../../styles/AddressComponent.css';
 export interface IAddressComponentProps {
   component: IFormAddressComponent;
   formData: any;
-  handleDataChange: (value: any) => void;
+  handleDataChange: (value: any, key: any) => void;
   isValid?: boolean;
   simplified: boolean;
 }
@@ -26,12 +26,12 @@ export interface IAddressComponentState {
   validations: IAddressValidationErrors;
 }
 
-enum AddressKeys {
-  address,
-  zipCode,
-  postPlace,
-  careOf,
-  houseNumber,
+export enum AddressKeys {
+  address = 'address',
+  zipCode = 'zipCode',
+  postPlace = 'postPlace',
+  careOf = 'careOf',
+  houseNumber = 'houseNumber',
 }
 
 export class AddressComponent extends React.Component<IAddressComponentProps, IAddressComponentState> {
@@ -112,18 +112,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     }
   }
 
-  public onBlurField: () => void = () => {
-    const { address, zipCode, postPlace, careOf, houseNumber } = this.state;
+  public onBlurField: (key: AddressKeys) => void = (key: AddressKeys) => {
     const validationErrors: IAddressValidationErrors = this.validate();
     if (!validationErrors.zipCode && !validationErrors.houseNumber) {
-      if (address !== '' && zipCode !== '' && postPlace !== '') {
-        this.props.handleDataChange({
-          address,
-          zipCode,
-          postPlace,
-          careOf,
-          houseNumber,
-        });
+      if (this.state[key]) {
+        this.props.handleDataChange(this.state[key], key);
       }
     }
     this.setState({
@@ -143,7 +136,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             className={'form-control'}
             value={address}
             onChange={this.updateField.bind(null, AddressKeys.address)}
-            onBlur={this.onBlurField}
+            onBlur={this.onBlurField.bind(null, AddressKeys.address)}
           />
           <div className={'address-component-postplace-zipCode'}>
             <div className={'address-component-zipCode'}>
@@ -156,7 +149,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                 }
                 value={zipCode}
                 onChange={this.updateField.bind(null, AddressKeys.zipCode)}
-                onBlur={this.onBlurField}
+                onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
               />
             </div>
             <div className={'address-component-postplace'}>
@@ -165,7 +158,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                 className={'form-control'}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AddressKeys.postPlace)}
-                onBlur={this.onBlurField}
+                onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
               />
             </div>
           </div>
@@ -187,14 +180,14 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           className={'form-control'}
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
-          onBlur={this.onBlurField}
+          onBlur={this.onBlurField.bind(null, AddressKeys.address)}
         />
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
           className={'form-control'}
           value={careOf}
           onChange={this.updateField.bind(null, AddressKeys.careOf)}
-          onBlur={this.onBlurField}
+          onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
         />
         <div className={'address-component-postplace-zipCode'}>
           <div className={'address-component-zipCode'}>
@@ -208,7 +201,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               }
               value={zipCode}
               onChange={this.updateField.bind(null, AddressKeys.zipCode)}
-              onBlur={this.onBlurField}
+              onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
             />
           </div>
           <div className={'address-component-postplace'}>
@@ -218,7 +211,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               className={'form-control'}
               value={postPlace}
               onChange={this.updateField.bind(null, AddressKeys.postPlace)}
-              onBlur={this.onBlurField}
+              onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
             />
           </div>
         </div>
@@ -248,7 +241,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           }
           value={houseNumber}
           onChange={this.updateField.bind(null, AddressKeys.houseNumber)}
-          onBlur={this.onBlurField}
+          onBlur={this.onBlurField.bind(null, AddressKeys.houseNumber)}
         />
         {!validations.houseNumber ?
           null :

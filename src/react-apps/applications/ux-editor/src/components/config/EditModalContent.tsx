@@ -3,8 +3,9 @@ import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import { getTextResource, truncate } from '../../utils/language';
+import { getTextResource, getTextResourceByAddressKey, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import { AddressKeys } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {
@@ -366,18 +367,28 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             spacing={0}
             direction={'column'}
           >
-            {renderSelectDataModelBinding(
-              this.props.component.dataModelBinding,
-              this.handleDataModelChange,
-              this.props.language,
-            )}
             <Grid item={true} xs={12}>
               {this.props.language.ux_editor.modal_configure_address_component_simplified}
               <Checkbox
                 checked={(this.state.component as IFormAddressComponent).simplified}
-                onChange={this.handleToggleAdressSimple}
+                onChange={this.handleToggleAddressSimple}
               />
             </Grid>
+            {Object.keys(AddressKeys).map((value: AddressKeys) => {
+              const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
+              if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
+                return null;
+              }
+              return (
+                renderSelectDataModelBinding(
+                  this.props.component.dataModelBindings[value],
+                  this.handleDataModelMappingChange,
+                  this.props.language,
+                  getTextResourceByAddressKey(value, this.props.language),
+                  value,
+                )
+              );
+            })}
           </Grid >
         );
       }
@@ -388,7 +399,25 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public handleToggleAdressSimple = (event: object, checked: boolean) => {
+  public handleDataModelMappingChange = (selectedDataModelElement: string, key: AddressKeys) => {
+    let { dataModelBindings } = (this.state.component as IFormAddressComponent);
+    if (!dataModelBindings) {
+      dataModelBindings = {};
+    }
+    dataModelBindings[key] = selectedDataModelElement;
+    this.setState({
+      component: {
+        ...this.state.component,
+        dataModelBindings,
+      },
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      dataModelBindings,
+    });
+  }
+
+  public handleToggleAddressSimple = (event: object, checked: boolean) => {
     this.setState({
       component: {
         ...this.state.component,

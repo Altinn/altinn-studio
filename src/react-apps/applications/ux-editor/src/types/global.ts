@@ -65,6 +65,7 @@ declare global {
     textResourceId?: string;
     customType?: string;
     codeListId?: string;
+    dataModelBindings?: IDataModelBindings;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
     handleUpdateFormData?: (formData: any) => void;
@@ -111,8 +112,13 @@ declare global {
     description: string;
   }
 
+  export interface IDataModelBindings {
+    [id: string]: string;
+  }
+
   export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
+    dataModelBindings: IDataModelBindings;
   }
 
   export type FormComponentType =

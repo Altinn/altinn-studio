@@ -103,6 +103,7 @@ export const advancedComponents: IComponent[] = [
     Type: ComponentTypes.AddressComponent,
     customProperties: {
       simplified: true,
+      dataModelBindings: {},
     },
   },
 ];

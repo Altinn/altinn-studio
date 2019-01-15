@@ -36,6 +36,7 @@ export interface IFormElementProps extends IProvidedProps {
   connections: any;
   externalApi: any;
   dataModelElement: IDataModelFieldElement;
+  dataModel: IDataModelFieldElement[];
   validationErrors: any[];
   textResources: any[];
   thirdPartyComponents: any;
@@ -71,12 +72,22 @@ class FormComponent extends React.Component<
    * that is sendt to the different Action dispatcher.
    * This event handler is used for all form components rendered from this
    */
-  public handleComponentDataUpdate = (callbackValue: any): void => {
-    if (!this.props.component.dataModelBinding) {
+  public handleComponentDataUpdate = (callbackValue: any, key?: any): void => {
+    if (!this.props.component.dataModelBinding && !this.props.component.dataModelBindings) {
       return;
     }
-
-    this.props.handleDataUpdate(this.props.id, this.props.dataModelElement, callbackValue);
+    let dataModelElement = this.props.dataModelElement;
+    if (this.props.component.dataModelBindings) {
+      if (!key) {
+        return;
+      }
+      if (!this.props.component.dataModelBindings[key]) {
+        return;
+      }
+      dataModelElement = this.props.dataModel.find(
+        (element) => element.DataBindingName === this.props.component.dataModelBindings[key]);
+    }
+    this.props.handleDataUpdate(this.props.id, dataModelElement, callbackValue);
   }
 
   /**
@@ -248,6 +259,7 @@ const makeMapStateToProps = () => {
         : null,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
+    dataModel: state.appData.dataModel.model,
   });
   return mapStateToProps;
 };
