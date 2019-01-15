@@ -93,5 +93,16 @@ namespace AltinnCore.UnitTest.Common
             var schemaText = converter.AsJsonSchema();
             int d = 0;
         }
+
+        /// <summary>
+        /// Test converting AnonymousTypes XSD to Json Schema
+        /// </summary>
+        [Fact]
+        public void AnonymousTypesConvertToJsonSchema()
+        {
+            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/AnonymousTypes.xsd"));
+            var schemaText = converter.AsJsonSchema();
+            int d = 0;
+        }
     }
 }
