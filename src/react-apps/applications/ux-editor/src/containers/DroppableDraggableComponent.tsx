@@ -38,11 +38,36 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
   canDrag(props: IDroppableDraggableComponentProps) {
     return props.canDrag;
   },
+  endDrag(props: IDroppableDraggableComponentProps, monitor: DragSourceMonitor, component: any) {
+    if (!monitor.didDrop()) {
+      console.log('### DROPPING OUTSIDE', props);
+      console.log('component: ', component);
+      console.log('monitor: ', monitor);
+      const draggedComponent = monitor.getItem();
+      let hoverOverIndex = props.index;
+      const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
+      const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+      if (hoverClientY > hoverMiddleY) {
+        hoverOverIndex += 1;
+      }
+
+      props.onDropComponent(
+        draggedComponent.id,
+        hoverOverIndex,
+        props.containerId,
+        component.props.containerId,
+      );
+    }
+  }
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
   drop(props: IDroppableDraggableComponentProps, monitor: DropTargetMonitor, component: any) {
     if (!component) {
+      console.log('!component');
       return;
     }
     if (monitor.isOver({ shallow: true })) {
@@ -71,6 +96,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           break;
         }
         case 'ITEM': {
+          console.log('### DROPPING INSIDE', props);
           const draggedComponent = monitor.getItem();
           let hoverOverIndex = props.index;
           const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
@@ -161,6 +187,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           break;
         }
         case 'ITEM': {
+          console.log('HOVER ITEM');
           const draggedItem = monitor.getItem();
           let hoverOverIndex = props.index;
           const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();

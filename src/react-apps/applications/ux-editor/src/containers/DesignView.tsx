@@ -46,13 +46,19 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     destinationContainerId: string,
   ): void => {
     if (!id) {
+      console.log('###################### MOVECOMP FIRST IF #####################');
       // dragging a toolbaritem - they don't have ids
       return;
     }
     if (sourceContainerId === destinationContainerId) {
+      console.log('###################### MOVECOMP SECOND IF #####################');
+      console.log('ID: ', id);
+      console.log('INDEX: ', index);
+      console.log('// MOVECOMP SECOND IF #####################');
       const { layoutOrder } = this.state;
       const updatedOrder: string[] = layoutOrder[sourceContainerId];
       const [moveItem] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
+      console.log('LAYOUTORDER in IF: ', layoutOrder);
       updatedOrder.splice(index, 0, moveItem);
       this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
         layoutOrder: {
@@ -65,9 +71,12 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
         },
       }));
     } else {
+      console.log('###################### MOVECOMP ELSE #####################');
       const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
+      console.log('LAYOUTORDER in ELSE: ', layoutOrder);
+
       if (updatedDestination.indexOf('placeholder') > -1) {
         // remove the placeholder in the destination
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
@@ -142,6 +151,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public dropItem = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+    console.log('###################### DROPPING ITEM #####################');
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
@@ -194,9 +204,9 @@ const mapsStateToProps = (
 ): IDesignerPreviewProps => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   return {
-  layoutOrder: state.formDesigner.layout.order,
-  order: GetLayoutOrderSelector(state),
-  activeList: state.formDesigner.layout.activeList,
+    layoutOrder: state.formDesigner.layout.order,
+    order: GetLayoutOrderSelector(state),
+    activeList: state.formDesigner.layout.activeList,
   };
 };
 

@@ -29,6 +29,9 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
   isDragging(props: IDroppableDraggableContainerProps, monitor: DragSourceMonitor) {
     return props.id === monitor.getItem().id;
   },
+  endDrag(props: IDroppableDraggableContainerProps, monitor: DragSourceMonitor) {
+    console.log('################ End drag ##################');
+  }
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
