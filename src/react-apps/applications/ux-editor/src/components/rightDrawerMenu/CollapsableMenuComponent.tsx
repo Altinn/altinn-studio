@@ -1,4 +1,4 @@
-import { createStyles, List, ListItem, ListItemIcon, ListItemText, withStyles } from '@material-ui/core';
+import { createStyles, List, ListItem, ListItemIcon, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
