@@ -4,14 +4,16 @@ import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
-import ServiceLogicMenu from '../../../shared/src/navigation/drawer/serviceLogicMenu';
+import { ServiceLogicMenu } from '../../../shared/src/navigation/drawer/rightDrawerMenu';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
+import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
+
 
 export interface IFormDesignerProvidedProps {
   classes: any;
@@ -26,10 +28,20 @@ const styles = ((theme: Theme) => createStyles({
     flexGrow: 1,
     minHeight: 'calc(100vh - 69px)',
   },
+  button: {
+    position: 'relative',
+    zIndex: 9999,
+    background: 'red',
+  },
   container: {
     height: 'calc(100vh - 69px)',
     top: '69px',
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
+  },
+  devider: {
+    width: '100%',
+    height: '0.1rem',
+    background: altinnTheme.altinnPalette.primary.greyMedium,
   },
   item: {
     padding: 0,
@@ -40,6 +52,13 @@ const styles = ((theme: Theme) => createStyles({
     borderRight: '1px solid #C9C9C9',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
     overflowY: 'auto',
+  },
+  menuHeader: {
+    padding: '2.5rem 2.5rem 1.2rem 2.5rem',
+    margin: 0,
+  },
+  fullWidth: {
+    width: '100%',
   },
 }));
 export enum LayoutItemType {
@@ -98,8 +117,42 @@ class FormDesigner extends React.Component<
             </div>
           </Grid>
           <Grid item={true} classes={{ item: classNames(classes.item) }}>
-            <span> hello </span>
-            <ServiceLogicMenu open={false} />
+            <ServiceLogicMenu
+              open={false}
+              button={
+                <Grid
+                  container={true}
+                  direction={'column'}
+                  justify={'center'}
+                  alignItems={'flex-end'}
+                >
+                  <span className={this.props.classes.button}>
+                    Click me
+                  </span>
+                </Grid>}
+            >
+              <div className={this.props.classes.fullWidth}>
+                <h3 className={this.props.classes.menuHeader}>
+                  {this.props.language.ux_editor.service_logic}
+                </h3>
+                <CollapsableMenuComponent
+                  header={this.props.language.ux_editor.service_logic_validations}
+                  listItems={[{name: this.props.language.ux_editor.service_logic_edit_validations}]}
+                  menuIsOpen={true}
+                />
+                <CollapsableMenuComponent
+                  header={this.props.language.ux_editor.service_logic_dynamics}
+                  listItems={[{name: this.props.language.ux_editor.service_logic_edit_dynamics}]}
+                  menuIsOpen={true}
+                />
+                <CollapsableMenuComponent
+                  header={this.props.language.ux_editor.service_logic_calculations}
+                  listItems={[{name: this.props.language.ux_editor.service_logic_edit_calculations}]}
+                  menuIsOpen={true}
+                />
+                <div className={this.props.classes.devider}/>
+              </div>
+            </ServiceLogicMenu >
           </Grid>
         </Grid>
       </div>
