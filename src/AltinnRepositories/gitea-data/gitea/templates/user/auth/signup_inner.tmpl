@@ -34,11 +34,16 @@ h2 {
           {{.CsrfTokenHtml}}
           <h2>
             {{if .LinkAccountMode}}
-              {{.i18n.Tr "auth.oauth_signup_title"}}
+              {{.i18n.Tr "auth.oauth_signup_tab"}}
             {{else}}
               {{.i18n.Tr "sign_up"}}
             {{end}}
           </h2>
+           {{if .LinkAccountMode}}
+           <h5>
+              {{.i18n.Tr "auth.oauth_signup_title"}}
+           </h5>
+          {{end}}
           <div>
             {{if or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeRegister)}}
             {{template "base/alert" .}}
@@ -106,5 +111,12 @@ h2 {
         </form>
     </div>
   </div>
+  {{if .LinkAccountMode}}
+  <div class="row center" style="padding-top:100px;">
+    <div class="column">
+      <img src="{{AppSubUrl}}/img/flower1.svg">
+    </div>
+  </div>
+  {{end}}
   </div>
 </div>
