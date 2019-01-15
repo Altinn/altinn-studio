@@ -43,7 +43,5 @@ namespace AltinnCore.Common.Enums
         /// All the files in the Test folder
         /// </summary>
         Test = 6,
-
-
     }
 }
