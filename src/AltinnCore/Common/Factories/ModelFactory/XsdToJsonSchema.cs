@@ -687,6 +687,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 appendToSchema.Type(JsonSchemaType.String);
                 appendToSchema.Format(StringFormat.GetFormat("year-month"));
             }
+            else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                appendToSchema.Minimum(long.MinValue);
+                appendToSchema.Maximum(long.MaxValue);
+            }
+            else if (type.StartsWith("http://www.w3.org/2001/XMLSchema:"))
+            {
+                int d = 0;
+
+                // throw new NotImplementedException();
+            }
             else
             {
                 if (name == null)
@@ -752,6 +764,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 XmlSchemaSimpleTypeRestriction simpleTypeRestriction = (XmlSchemaSimpleTypeRestriction)item;
                 AppendTypeFromSchemaTypeInternal(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, appendToSchema);
             }
+            else if (item is XmlSchemaSequence)
+            {
+                List<string> requiredList = new List<string>();
+                AppendParticle((XmlSchemaSequence)item, appendToSchema, requiredList);
+
+                if (requiredList.Count > 0)
+                {
+                    appendToSchema.Required(requiredList.ToArray());
+                }
+            }
             else
             {
                 throw new NotImplementedException();
@@ -785,8 +807,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else
             {
                 AddTypeObject(appendToSchema);
-                string name = GetItemName(item);
-                appendToSchema.Property(name, definitionSchema);
+                appendToSchema.Property(GetItemName(item), definitionSchema);
             }
         }
 
