@@ -6,22 +6,22 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { compose } from 'redux';
+import AltinnBreadcrumb from '../../../shared/src/components/AltinnBreadcrumb';
+import AltinnButton from '../../../shared/src/components/AltinnButton';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { get } from '../../../shared/src/utils/networking';
-import AltinnButton from '../../../shared/src/components/AltinnButton';
 
-export interface ICloneServiceCompontentProvidedProps {
+export interface ICloneServiceComponentProvidedProps {
   classes: any;
 }
 
-export interface ICloneServiceCompontentProps extends ICloneServiceCompontentProvidedProps, RouteChildrenProps {
+export interface ICloneServiceComponentProps extends ICloneServiceComponentProvidedProps, RouteChildrenProps {
   language: any;
   repositoryInfo: any;
 }
 
 export interface ICloneServiceComponentState {
-  createdInfo: any;
-  lastChangedInfo: any;
+  createdBy: string;
 }
 
 const styles = {
@@ -54,49 +54,33 @@ const styles = {
   editService: {
     marginRight: '24px',
   },
+  breadCrumb: {
+    marginTop: 24,
+    marginLeft: 66,
+    fontSize: 16,
+  },
+  backToDashboard: {
+    fontWeight: 600,
+  },
 };
 
-class CloneServiceComponent extends React.Component<ICloneServiceCompontentProps, ICloneServiceComponentState> {
+class CloneServiceComponent extends React.Component<ICloneServiceComponentProps, ICloneServiceComponentState> {
   public _isMounted = false;
-  constructor(_props: any) {
-    super(_props);
-    this.state = {
-      createdInfo: {
-        createdBy: '',
-        createdDate: '',
-      },
-      lastChangedInfo: {
-        lastChangedBy: '',
-        lastChangedDate: '',
-
-      },
-    };
-  }
-  public formatDate(date: any): any {
-    return moment(new Date(date)).format('DD.MM.YYYY');
-  }
+  public state: ICloneServiceComponentState = {
+    createdBy: '',
+  };
 
   public componentDidMount() {
     this._isMounted = true;
     const altinnWindow: any = window as any;
     // tslint:disable-next-line:max-line-length
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/Log?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Branch?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}&branch=master`;
     get(url).then((result: any) => {
-      if (this._isMounted && result) {
-        if (result.length > 0) {
-          const createdInfo = result[result.length - 1];
-          const lastChanged = result[0];
-          this.setState({
-            createdInfo: {
-              createdBy: createdInfo.commiter.name,
-              createdDate: createdInfo.commiter.when,
-            },
-            lastChangedInfo: {
-              lastChangedBy: lastChanged.commiter.name,
-              lastChangedDate: lastChanged.commiter.when,
-            },
-          });
-        }
+      console.log(result);
+      if (result && this._isMounted) {
+        this.setState({
+          createdBy: result.commit.author.name,
+        });
       }
     });
   }
@@ -106,8 +90,8 @@ class CloneServiceComponent extends React.Component<ICloneServiceCompontentProps
   }
 
   public formatNameAndDate(name: string, date: string) {
-    const returnDate = date ? moment(new Date(date)).format('DD.MM.YYYY') : date;
-    return `${name} ${returnDate}`;
+    const returnDate = date ? moment(new Date(date)).format('DD.MM.YYYY HH:mm') : date;
+    return name ? `${name} ${returnDate}` : returnDate;
   }
 
   public redirectToCode = () => {
@@ -115,13 +99,25 @@ class CloneServiceComponent extends React.Component<ICloneServiceCompontentProps
   }
 
   public cloneAndEditService = () => {
-
+    const altinnWindow: any = window as any;
+    // tslint:disable-next-line:max-line-length
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
+    get(url).then((result: any) => {
+      // tslint:disable-next-line:max-line-length
+      window.location.href = `${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`;
+    });
   }
 
   public render() {
     const { classes } = this.props;
     return (
       <>
+        <AltinnBreadcrumb
+          className={classes.breadCrumb}
+          firstLink={`${window.location.origin}/`}
+          firstLinkTxt={getLanguageFromKey('dashboard.main_header', this.props.language)}
+          secondLinkTxt={(this.props.match.params as any).serviceName}
+        />
         {this.props.repositoryInfo &&
           <div className={classes.mainStyle}>
             <Typography component='h1' variant='h1' gutterBottom={true}>
@@ -141,11 +137,11 @@ class CloneServiceComponent extends React.Component<ICloneServiceCompontentProps
             <div className={classes.metadataStyle}>
               <Typography>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.created_by', this.props.language)} {this.formatNameAndDate(this.state.createdInfo.createdBy, this.state.createdInfo.createdDate)}
+                {getLanguageFromKey('dashboard.created_time', this.props.language)} {this.formatNameAndDate(this.state.createdBy, this.props.repositoryInfo.created_at)}
               </Typography>
               <Typography>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate(this.state.lastChangedInfo.lastChangedBy, this.state.lastChangedInfo.lastChangedDate)}
+                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate('', this.props.repositoryInfo.updated_at)}
               </Typography>
             </div>
             <div className={classes.descriptionStyle}>
@@ -181,11 +177,11 @@ const getCurrentRepositoryInfo = (services: any, org: string, servicename: strin
     }
   });
   return returnService.length === 1 ? returnService[0] : null;
-}
+};
 
 const mapStateToProps = (
   state: IDashboardAppState,
-  props: ICloneServiceCompontentProps,
+  props: ICloneServiceComponentProps,
 ): any => {
   return {
     classes: props.classes,

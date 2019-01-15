@@ -211,5 +211,17 @@ namespace AltinnCore.Designer.Controllers
         {
             _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
         }
+
+        /// <summary>
+        /// Clones the remote repository
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The result of the cloning</returns>
+        [HttpGet]
+        public string CloneRemoteRepository(string owner, string repository)
+        {
+            return _sourceControl.CloneRemoteRepository(owner, repository);
+        }
     }
 }
