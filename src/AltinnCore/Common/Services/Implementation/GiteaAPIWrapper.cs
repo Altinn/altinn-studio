@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
-using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -274,23 +273,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the logged in user</returns>
         public async Task<string> GetUserNameFromUI()
         {
-            Uri giteaUrl = null;
-            Cookie cookie = null;
-
+            Uri giteaUrl = BuildGiteaUrl("user/settings/");
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-
-            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
-            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
-            }
-            else
-            {
-                giteaUrl = new Uri(_settings.RepositoryBaseURL + "user/settings");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
-            }
+            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
 
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
@@ -320,22 +305,11 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string csrf = GetCsrf().Result;
 
-            Uri giteaUrl = null;
-            Cookie cookie = null;
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            DeleteCurrentAppKeys(csrf);
 
-            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
-            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/applications");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
-            }
-            else
-            {
-                giteaUrl = new Uri(_settings.RepositoryBaseURL + "user/settings/applications");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
-            }
+            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
 
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
@@ -363,22 +337,9 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async Task<string> GetCsrf()
         {
-            Uri giteaUrl = null;
-            Cookie cookie = null;
+            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
             string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-
-            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
-            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
-            {
-                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + "user/settings/applications");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
-            }
-            else
-            {
-                giteaUrl = new Uri(_settings.RepositoryBaseURL + "user/settings/applications");
-                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
-            }
+            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
 
             CookieContainer cookieContainer = new CookieContainer();
             cookieContainer.Add(cookie);
@@ -395,6 +356,77 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return null;
+        }
+
+        private async void DeleteCurrentAppKeys(string csrf)
+        {
+            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
+            List<string> appKeyIds = new List<string>();
+
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+            using (HttpClient client = new HttpClient(handler))
+            {
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    string htmlContent = await response.Content.ReadAsStringAsync();
+                    appKeyIds = FindAllAppKeysId(htmlContent);
+                }
+            }
+
+            DeleteAllAppKeys(appKeyIds, csrf);
+        }
+
+        private async void DeleteAllAppKeys(List<string> appKeys, string csrf)
+        {
+            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
+            
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
+
+            using (HttpClient client = new HttpClient(handler))
+            {
+                foreach (string key in appKeys)
+                {
+                    List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
+                    formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
+                    formValues.Add(new KeyValuePair<string, string>("id", key));
+
+                    FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
+                    HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
+                }
+            }
+        }
+
+        private List<string> FindAllAppKeysId(string htmlContent)
+        {
+            List<string> htmlValues = new List<string>();
+            HtmlAgilityPack.HtmlDocument htmlDocument = new HtmlAgilityPack.HtmlDocument();
+            htmlDocument.LoadHtml(htmlContent);
+
+            HtmlAgilityPack.HtmlNode node = htmlDocument.DocumentNode.SelectSingleNode("//div[contains(@class, 'ui key list')]");
+
+            HtmlAgilityPack.HtmlNodeCollection nodes = node.ChildNodes;
+
+            foreach (HtmlAgilityPack.HtmlNode keyNode in nodes)
+            {
+                if (keyNode.OuterHtml.Contains("AltinnStudioAppKey"))
+                {
+                    // Returns the button node
+                    HtmlAgilityPack.HtmlNode deleteButtonNode = keyNode.SelectSingleNode("./div/button");
+                    string dataId = deleteButtonNode.GetAttributeValue("data-id", string.Empty);
+                    htmlValues.Add(dataId);
+                }
+            }
+
+            return htmlValues;
         }
 
         private string GetStringFromHtmlContent(string htmlContent, string inputSearchTextBefore, string inputSearchTextAfter)
@@ -459,6 +491,40 @@ namespace AltinnCore.Common.Services.Implementation
             HttpClient client = new HttpClient(httpClientHandler);
             client.DefaultRequestHeaders.Add(Constants.General.AuthorizationTokenHeaderName, AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext));
             return client;
+        }
+
+        private Cookie CreateGiteaSessionCookie(string giteaSession)
+        {
+            Cookie cookie;
+
+            // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
+            // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            {
+                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
+            }
+            else
+            {
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", _settings.ApiEndPointHost);
+            }
+
+            return cookie;
+        }
+
+        private Uri BuildGiteaUrl(string path)
+        {
+            Uri giteaUrl; 
+
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            {
+                giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path);
+            }
+            else
+            {
+                giteaUrl = new Uri(_settings.RepositoryBaseURL + path);
+            }
+
+            return giteaUrl;
         }
     }
 }
