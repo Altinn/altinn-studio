@@ -2,6 +2,7 @@ const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const CheckerPlugin = require('awesome-typescript-loader').CheckerPlugin;
+const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
@@ -9,6 +10,7 @@ module.exports = {
   devtool: false,
   entry: "./src/index.tsx",
   output: {
+    path: path.resolve(__dirname, 'dist'),
     filename: "service-development.js"
   },
   resolve: {
@@ -65,5 +67,9 @@ module.exports = {
       filename: "service-development.css",
     }),
     new UglifyJsPlugin(),
+    new MonacoPlugin({
+      output: path.join('..', 'js', 'react'),
+      languages: ['typescript', 'javascript', 'csharp']
+    }),
   ],
 }

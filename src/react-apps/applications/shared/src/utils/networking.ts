@@ -14,7 +14,7 @@ export async function get(url: string, options?: any): Promise<any> {
 
 export async function post(
   url: string,
-  data?: string,
+  data?: any,
   options?: AxiosRequestConfig,
 ): Promise<void> {
   try {
