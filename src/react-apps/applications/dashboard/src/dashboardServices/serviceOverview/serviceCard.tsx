@@ -5,7 +5,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import TruncateMarkup from 'react-truncate-markup';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 
 export interface IServiceCardComponentProvidedProps {
   classes: any;

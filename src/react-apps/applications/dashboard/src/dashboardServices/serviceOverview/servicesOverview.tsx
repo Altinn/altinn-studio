@@ -6,10 +6,10 @@ import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnFilterChip from '../../../shared/src/components/AltinnFilterChip';
-import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { CreateNewService } from './createNewService';
+import AltinnFilterChip from '../../../../shared/src/components/AltinnFilterChip';
+import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
 export interface IServicesOverviewComponentProvidedProps {

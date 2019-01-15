@@ -5,9 +5,9 @@ import { connect } from 'react-redux';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
+import fetchServicesActionDispatchers from './dashboardServices/fetchDashboardDispatcher';
+import { ServicesOverview } from './dashboardServices/serviceOverview/servicesOverview';
 import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
-import fetchServicesActionDispatchers from './services/fetchDashboardDispatcher';
-import { ServicesOverview } from './services/servicesOverview';
 
 export interface IMainDashboardState {
   drawerOpen: boolean;

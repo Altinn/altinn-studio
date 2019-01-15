@@ -3,15 +3,15 @@ import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styl
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnButton from '../../../shared/src/components/AltinnButton';
-import AltinnDropdown from '../../../shared/src/components/AltinnDropdown';
-import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
-import AltinnInputField from '../../../shared/src/components/AltinnInputField';
-import AltinnModal from '../../../shared/src/components/AltinnModal';
-import AltinnPopper from '../../../shared/src/components/AltinnPopper';
-import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { post } from '../../../shared/src/utils/networking';
+import AltinnButton from '../../../../shared/src/components/AltinnButton';
+import AltinnDropdown from '../../../../shared/src/components/AltinnDropdown';
+import AltinnIconButton from '../../../../shared/src/components/AltinnIconButton';
+import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
+import AltinnModal from '../../../../shared/src/components/AltinnModal';
+import AltinnPopper from '../../../../shared/src/components/AltinnPopper';
+import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { post } from '../../../../shared/src/utils/networking';
 export interface ICreateNewServiceProvidedProps {
   classes: any;
 }

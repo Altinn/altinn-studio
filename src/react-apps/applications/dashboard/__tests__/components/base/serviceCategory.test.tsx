@@ -3,7 +3,7 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { ServicesCategory } from '../../../src/services/servicesCategory';
+import { ServicesCategory } from '../../../src/dashboardServices/serviceOverview/servicesCategory';
 
 describe('>>> components/base/serviceCategory.tsx --- Snapshot', () => {
   let mockHeader: any;
