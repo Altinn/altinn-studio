@@ -175,7 +175,7 @@ class HandleMergeConflictContainer extends
 
                 <Grid item={true} xs={8}>
                   <FileEditor
-                    mode={2}
+                    loadFile='Deployment/templates/NOTES.txt'
                   />
                 </Grid>
 
