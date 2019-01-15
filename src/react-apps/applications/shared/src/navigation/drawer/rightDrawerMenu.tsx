@@ -1,6 +1,5 @@
 import { createStyles, Drawer, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import { connect } from 'react-redux';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 const styles = createStyles({
@@ -40,8 +39,8 @@ export interface IServiceLogicMenuState {
 }
 
 class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuState> {
-  constructor(_props: IServiceLogicMenuProps, _state: IServiceLogicMenuState) {
-    super(_props, _state);
+  constructor(_props: IServiceLogicMenuProps) {
+    super(_props);
     this.state = {
       open: _props.open,
       button: _props.button,
@@ -85,15 +84,4 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
   }
 }
 
-const makeMapStateToProps = (
-    state: IAppState,
-    props: IServiceLogicMenuProvidedProps,
-  ): IServiceLogicMenuProps => {
-    return {
-        classes: props.classes,
-        button: props.button,
-        open: props.open,
-      };
-    };
-
-export const ServiceLogicMenu = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(Menu));
+export const ServiceLogicMenu = withStyles(styles, { withTheme: true })(Menu);
