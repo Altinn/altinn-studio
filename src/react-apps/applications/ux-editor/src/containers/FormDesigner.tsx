@@ -1,4 +1,4 @@
-import { createStyles, Grid, Theme, withStyles } from '@material-ui/core';
+import { createStyles, IconButton, Grid, Theme, withStyles } from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
@@ -31,7 +31,6 @@ const styles = ((theme: Theme) => createStyles({
   button: {
     position: 'relative',
     zIndex: 9999,
-    background: 'red',
   },
   container: {
     height: 'calc(100vh - 69px)',
@@ -126,9 +125,12 @@ class FormDesigner extends React.Component<
                   justify={'center'}
                   alignItems={'flex-end'}
                 >
-                  <span className={this.props.classes.button}>
-                    Click me
-                  </span>
+                <IconButton
+                  type='button'
+                  className={this.props.classes.button}
+                >
+                  <i className='ai ai-plain-circle' />
+                </IconButton>
                 </Grid>}
             >
               <div className={this.props.classes.fullWidth}>
