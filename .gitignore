@@ -311,6 +311,7 @@ src/react-apps/applications/ux-editor/dist
 src/react-apps/applications/service-development/node_modules
 src/react-apps/applications/service-development/compiled
 src/react-apps/applications/service-development/dist
+src/react-apps/applications/service-development/js
 src/react-apps/applications/dashboard/node_modules
 src/react-apps/applications/dashboard/compiled
 src/react-apps/applications/dashboard/dist
