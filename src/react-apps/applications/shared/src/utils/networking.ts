@@ -18,7 +18,8 @@ export async function post(
   options?: AxiosRequestConfig,
 ): Promise<void> {
   try {
-    await axios.post(url, data ? data : null, options ? options : null);
+    const response: AxiosResponse = await axios.post(url, data ? data : null, options ? options : null);
+    return response.data ? response.data : null;
   } catch (err) {
     throw err;
   }

@@ -4,7 +4,7 @@ import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-export interface IAltinnIconButtonCompontentProvidedProps {
+export interface IAltinnIconButtonComponentProvidedProps {
   classes: any;
   onclickFunction?: any;
   className?: string;
@@ -14,6 +14,7 @@ export interface IAltinnIconButtonCompontentProvidedProps {
 
 export interface IAltinnIconButtonComponentState {
 }
+
 const theme = createMuiTheme(altinnTheme);
 
 const styles = {
@@ -47,11 +48,11 @@ const styles = {
 };
 
 // tslint:disable-next-line:max-line-length
-class AltinnIconButton extends React.Component<IAltinnIconButtonCompontentProvidedProps, IAltinnIconButtonComponentState> {
+class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProvidedProps, IAltinnIconButtonComponentState> {
   public render() {
     const { classes } = this.props;
     return (
-      <Button variant='contained' className={classes.dottedBtn} >
+      <Button variant='contained' className={classes.dottedBtn} onClick={this.props.onclickFunction}>
         <i className={classNames(this.props.iconClass, classes.dottedBtnIcon)} />
         {this.props.btnText}
       </Button>
