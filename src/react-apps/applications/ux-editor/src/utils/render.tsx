@@ -5,6 +5,7 @@ import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import { formatCreateTextLabel, getTextResource, truncate } from './language';
+import { DefaultDataModelBindingKey } from '../components/FormComponent';
 
 export const styles = {
   inputHelper: {
@@ -32,7 +33,7 @@ export function renderSelectDataModelBinding(
   language: any,
   label?: string,
   returnValue?: any,
-  key = 'dataModelBinding',
+  key: string = DefaultDataModelBindingKey,
 ): JSX.Element {
   return (
     <div>

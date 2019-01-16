@@ -7,6 +7,7 @@ import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
+import { DefaultDataModelBindingKey } from '../FormComponent';
 
 export const customInput = {
   control: (base: any) => ({
@@ -394,7 +395,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public handleDataModelChange = (selectedDataModelElement: string, key = 'dataModelBinding') => {
+  public handleDataModelChange = (selectedDataModelElement: string, key: string = DefaultDataModelBindingKey) => {
     let { dataModelBinding } = (this.state.component as IFormAddressComponent);
     if (!dataModelBinding) {
       dataModelBinding = {};
