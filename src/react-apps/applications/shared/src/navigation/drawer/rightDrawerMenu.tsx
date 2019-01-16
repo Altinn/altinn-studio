@@ -20,6 +20,7 @@ const styles = createStyles({
    background: altinnTheme.altinnPalette.primary.greyLight,
    top: 146,
    width: 240,
+  position: 'absolute',
  },
 });
 
