@@ -134,12 +134,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public handleDataModelChange = (selectedDataModelElement: any): void => {
-    const updatedComponent = this.props.component;
-    updatedComponent.dataModelBinding = selectedDataModelElement;
-    this.props.handleComponentUpdate(updatedComponent);
-  }
-
   public handleDescriptionChange = (selectedText: any): void => {
     const updatedComponent = this.props.component;
     updatedComponent.description = selectedText ? selectedText.value : null;
@@ -381,10 +375,11 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               }
               return (
                 renderSelectDataModelBinding(
-                  this.props.component.dataModelBindings[value],
-                  this.handleDataModelMappingChange,
+                  this.props.component.dataModelBinding,
+                  this.handleDataModelChange,
                   this.props.language,
                   getTextResourceByAddressKey(value, this.props.language),
+                  value,
                   value,
                 )
               );
@@ -399,21 +394,21 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public handleDataModelMappingChange = (selectedDataModelElement: string, key: AddressKeys) => {
-    let { dataModelBindings } = (this.state.component as IFormAddressComponent);
-    if (!dataModelBindings) {
-      dataModelBindings = {};
+  public handleDataModelChange = (selectedDataModelElement: string, key = 'dataModelBinding') => {
+    let { dataModelBinding } = (this.state.component as IFormAddressComponent);
+    if (!dataModelBinding) {
+      dataModelBinding = {};
     }
-    dataModelBindings[key] = selectedDataModelElement;
+    dataModelBinding[key] = selectedDataModelElement;
     this.setState({
       component: {
         ...this.state.component,
-        dataModelBindings,
+        dataModelBinding,
       },
     });
     this.props.handleComponentUpdate({
       ...this.props.component,
-      dataModelBindings,
+      dataModelBinding,
     });
   }
 

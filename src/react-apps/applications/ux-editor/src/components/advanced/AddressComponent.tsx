@@ -119,9 +119,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   public onBlurField: (key: AddressKeys) => void = (key: AddressKeys) => {
     const validationErrors: IAddressValidationErrors = this.validate();
     if (!validationErrors.zipCode && !validationErrors.houseNumber) {
-      if (this.state[key]) {
-        this.props.handleDataChange(this.state[key], key);
-      }
+      this.props.handleDataChange(this.state[key], key);
     }
     this.setState({
       validations: validationErrors,

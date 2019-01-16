@@ -27,11 +27,12 @@ export function noOptionsMessage(language: any): string {
 }
 
 export function renderSelectDataModelBinding(
-  selectedElement: any,
+  dataModelBinding: IDataModelBindings = {},
   onDataModelChange: any,
   language: any,
   label?: string,
   returnValue?: any,
+  key = 'dataModelBinding',
 ): JSX.Element {
   return (
     <div>
@@ -40,7 +41,7 @@ export function renderSelectDataModelBinding(
         language.ux_editor.modal_properties_data_model_helper)
       }
       <SelectDataModelComponent
-        selectedElement={selectedElement}
+        selectedElement={dataModelBinding[key]}
         // tslint:disable-next-line:jsx-no-lambda
         onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, returnValue)}
         language={language}

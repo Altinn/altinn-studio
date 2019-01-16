@@ -61,11 +61,10 @@ declare global {
     size?: string;
     options?: IOptions[];
     description?: string;
-    dataModelBinding?: string;
+    dataModelBinding?: IDataModelBindings;
     textResourceId?: string;
     customType?: string;
     codeListId?: string;
-    dataModelBindings?: IDataModelBindings;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
     handleUpdateFormData?: (formData: any) => void;
@@ -118,7 +117,6 @@ declare global {
 
   export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
-    dataModelBindings: IDataModelBindings;
   }
 
   export type FormComponentType =
