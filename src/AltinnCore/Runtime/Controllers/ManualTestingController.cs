@@ -184,8 +184,8 @@ namespace AltinnCore.Runtime.Controllers
                 // Temporary catch errors until we figure out how to force this.
                 try
                 {
-                    AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser().Result;
-                    if (user == null)
+                    string user = _giteaApi.GetUserNameFromUI().Result;
+                    if (string.IsNullOrEmpty(user))
                     {
                         if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
                         {
@@ -195,7 +195,7 @@ namespace AltinnCore.Runtime.Controllers
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 
-                    developer = user.Login;
+                    developer = user;
                 }
                 catch (Exception ex)
                 {
