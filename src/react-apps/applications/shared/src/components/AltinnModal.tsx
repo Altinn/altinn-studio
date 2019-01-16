@@ -26,6 +26,7 @@ const styles = createStyles({
     marginRight: 'auto',
     marginLeft: 'auto',
     marginTop: '10%',
+    marginBottom: '10%',
   },
   header: {
     backgroundColor: altinnTheme.altinnPalette.primary.blueDarker,
@@ -53,6 +54,9 @@ const styles = createStyles({
     color: altinnTheme.altinnPalette.primary.white,
     fontSize: 38,
   },
+  scroll: {
+    overflow: 'overlay',
+  },
 });
 
 class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IAltinnModalComponentState> {
@@ -61,6 +65,7 @@ class AltinnModal extends React.Component<IAltinnModalComponentProvidedProps, IA
     return (
       <Modal
         open={this.props.isOpen}
+        className={this.props.classes.scroll}
       >
         <div className={classes.modal}>
           <div className={classes.header}>

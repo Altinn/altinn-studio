@@ -1,9 +1,10 @@
-import { createStyles, IconButton, Grid, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Drawer, Grid, IconButton, Theme, withStyles} from '@material-ui/core';
 import classNames = require('classnames');
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
+import FileEditor from '../../../shared/src/file-editor/FileEditor';
 import ServiceLogicMenu from '../../../shared/src/navigation/drawer/rightDrawerMenu';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
@@ -11,6 +12,8 @@ import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDisp
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
+import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
+import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
@@ -20,7 +23,12 @@ export interface IFormDesignerProvidedProps {
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
 }
+
+type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
+
 export interface IFormDesignerState {
+  codeEditorOpen: boolean;
+  codeEditorMode: LogicMode;
   menuOpen: boolean;
 }
 
@@ -88,12 +96,15 @@ class FormDesigner extends React.Component<
   IFormDesignerProps,
   IFormDesignerState
   > {
-    constructor(props: IFormDesignerProps) {
-      super(props);
-      this.state = {
-        menuOpen: false,
-      };
-    }
+
+  constructor(props: IFormDesignerProps) {
+    super(props);
+    this.state = {
+      codeEditorOpen: false,
+      codeEditorMode: null,
+      menuOpen: false,
+    };
+  }
 
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
@@ -107,11 +118,33 @@ class FormDesigner extends React.Component<
       `${altinnWindow.location.origin}/designer/${
       servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
   }
-
   public toggleMenu = () => {
     this.setState({
       menuOpen: !this.state.menuOpen,
     });
+  }
+
+  public toggleCodeEditor = (mode?: LogicMode) => {
+    this.setState((prevState: IFormDesignerState) => {
+      return {
+        codeEditorOpen: !prevState.codeEditorOpen,
+        codeEditorMode: mode ? mode : null,
+      };
+    });
+  }
+
+  public renderLogicMenu = () => {
+    return (
+      <Drawer
+        anchor='bottom'
+        open={this.state.codeEditorOpen}
+      >
+        <FileEditor
+          mode={this.state.codeEditorMode.toString()}
+          closeFileEditor={this.toggleCodeEditor}
+        />
+      </Drawer>
+    );
   }
 
   public render() {
@@ -132,19 +165,14 @@ class FormDesigner extends React.Component<
             <div
               style={{
                 width: 'calc(100% - 48px)',
-                height: '71px', background: '#022F51',
-                marginTop: '48px',
-                marginLeft: '24px',
-              }}
-            />
-            <div
-              style={{
-                width: 'calc(100% - 48px)',
                 paddingTop: '24px',
                 marginLeft: '24px',
               }}
             >
               <DesignView />
+              {this.state.codeEditorOpen ?
+                this.renderLogicMenu()
+              : null}
             </div>
           </Grid>
           <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
@@ -182,9 +210,16 @@ class FormDesigner extends React.Component<
                 />
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_dynamics}
-                  listItems={[{name: this.props.language.ux_editor.service_logic_edit_dynamics}]}
+                  listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_dynamics,
+                        action: this.toggleCodeEditor.bind(this, 'Dynamics'),
+                      }]}
                   menuIsOpen={true}
-                />
+                >
+                  <RuleModalComponent/>
+                  <ConditionalRenderingModalComponent/>
+                </CollapsableMenuComponent>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_calculations}
                   listItems={[{name: this.props.language.ux_editor.service_logic_edit_calculations}]}

@@ -11,11 +11,9 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
-import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
-import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 import { ToolbarItem } from './ToolbarItem';
@@ -286,22 +284,24 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               dense={false}
               id='schema-components'
             >
-              {this.components.map((component: IToolbarElement) => (
+              {this.components.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
+                  key={index}
                 />
               ))
               }
 
-              {this.getThirdPartyComponents().map((component: IToolbarElement) => (
+              {this.getThirdPartyComponents().map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onDropAction={this.addThirdPartyComponentToLayout.bind(null, component, component.label)}
                   onClick={this.handleComponentInformationOpen}
+                  key={index}
                 />
               ))}
               <ToolbarItem
@@ -327,12 +327,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           >
             <List dense={false} id={'schema-texts'}>
-              {this.textComponents.map((component: IToolbarElement) => (
+              {this.textComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
+                  key={index}
                 />
               ))}
             </List>
@@ -352,12 +353,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           >
             <List dense={false} id={'advanced-components'}>
-              {this.advancedComponents.map((component: IToolbarElement) => (
+              {this.advancedComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
+                  key={index}
                 />
               ))}
             </List>
@@ -366,12 +368,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
         <div className='d-block'>
           <ExternalApiModalComponent />
-        </div>
-        <div className='d-block'>
-          <RuleModalComponent />
-        </div>
-        <div className='d-block'>
-          <ConditionalRenderingModalComponent />
         </div>
         <Modal
           isOpen={this.state.modalOpen}

@@ -178,7 +178,7 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
                           unmountOnExit={true}
                         >
                           <List
-                            component='div'
+                            component='span'
                             disablePadding={true}
                           >
                             {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {
