@@ -6,10 +6,10 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
 import { compose } from 'redux';
-import AltinnBreadcrumb from '../../../shared/src/components/AltinnBreadcrumb';
-import AltinnButton from '../../../shared/src/components/AltinnButton';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
-import { get } from '../../../shared/src/utils/networking';
+import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
+import AltinnButton from '../../../../shared/src/components/AltinnButton';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { get } from '../../../../shared/src/utils/networking';
 
 export interface ICloneServiceComponentProvidedProps {
   classes: any;

@@ -1,5 +1,5 @@
+import { IDashboardState } from '../dashboardServices/dashboardReducer';
 import { IFetchedLanguageState } from '../fetchLanguage/languageReducer';
-import { IDashboardState } from '../services/dashboardReducer';
 
 declare global {
   export interface IDashboardNameSpace<T1, T2> {
@@ -12,4 +12,11 @@ declare global {
     <IDashboardState,
     IFetchedLanguageState
     > { }
+
+  export interface IAltinnWindow extends Window {
+    org: string;
+    service: string;
+    instanceId: string;
+    reportee: string;
+  }
 }

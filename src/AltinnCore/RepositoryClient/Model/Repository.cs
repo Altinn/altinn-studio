@@ -15,6 +15,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -226,6 +227,12 @@ namespace AltinnCore.RepositoryClient.Model
         /// </summary>
         [DataMember(Name = "is_cloned_to_local", EmitDefaultValue = false)]
         public bool IsClonedToLocal { get; set; }
+
+        /// <summary>
+        /// Gets or sets the repository created status
+        /// </summary>
+        [JsonProperty]
+        public HttpStatusCode RepositoryCreatedStatus { get; set; }
 
         /// <summary>
         /// Returns the string presentation of the object

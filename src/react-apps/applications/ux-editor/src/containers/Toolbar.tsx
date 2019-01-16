@@ -286,22 +286,24 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               dense={false}
               id='schema-components'
             >
-              {this.components.map((component: IToolbarElement) => (
+              {this.components.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
+                  key={index}
                 />
               ))
               }
 
-              {this.getThirdPartyComponents().map((component: IToolbarElement) => (
+              {this.getThirdPartyComponents().map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onDropAction={this.addThirdPartyComponentToLayout.bind(null, component, component.label)}
                   onClick={this.handleComponentInformationOpen}
+                  key={index}
                 />
               ))}
               <ToolbarItem
@@ -327,12 +329,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           >
             <List dense={false} id={'schema-texts'}>
-              {this.textComponents.map((component: IToolbarElement) => (
+              {this.textComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
+                  key={index}
                 />
               ))}
             </List>
@@ -352,12 +355,13 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             }}
           >
             <List dense={false} id={'advanced-components'}>
-              {this.advancedComponents.map((component: IToolbarElement) => (
+              {this.advancedComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
+                  key={index}
                 />
               ))}
             </List>

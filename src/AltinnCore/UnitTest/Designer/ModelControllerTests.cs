@@ -76,7 +76,7 @@ namespace AltinnCore.UnitTest.Designer
 
             Assert.NotNull(dictionary);
 
-            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinforgrp5801.Label").GetValueOrDefault("nb-NO");
+            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinfor.Label").GetValueOrDefault("nb-NO");
 
             // Text should be without extra withespaces
             Assert.Equal("Informasjon om skattyter", lookupValue);           

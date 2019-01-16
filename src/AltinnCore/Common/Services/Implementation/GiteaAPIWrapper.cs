@@ -70,15 +70,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create repository
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="owner">the organisation or user</param>
         /// <param name="createRepoOption">the options for creating repository</param>
         /// <returns>The newly created repository</returns>
-        public async Task<Repository> CreateRepositoryForOrg(string org, CreateRepoOption createRepoOption)
+        public async Task<Repository> CreateRepository(string owner, CreateRepoOption createRepoOption)
         {
             AltinnCore.RepositoryClient.Model.Repository repository = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
-
-            Uri endpointUrl = new Uri(GetApiBaseUrl() + "/org/" + org + "/repos");
+            string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == owner ? "/user/repos" : "/org/" + owner + "/repos";
+            Uri endpointUrl = new Uri(GetApiBaseUrl() + urlEnd);
            
             using (HttpClient client = GetApiClient())
             {
@@ -90,8 +90,10 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + org + " and reponame " + createRepoOption.Name);
+                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " Create repository failed with statuscode " + response.StatusCode + " for " + owner + " and reponame " + createRepoOption.Name);
                 }
+
+                repository.RepositoryCreatedStatus = response.StatusCode;
             }
 
             return repository;
