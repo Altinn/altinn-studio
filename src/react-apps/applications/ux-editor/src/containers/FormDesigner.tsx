@@ -4,7 +4,7 @@ import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
 import { connect } from 'react-redux';
-import { ServiceLogicMenu } from '../../../shared/src/navigation/drawer/rightDrawerMenu';
+import ServiceLogicMenu from '../../../shared/src/navigation/drawer/rightDrawerMenu';
 import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
@@ -21,7 +21,9 @@ export interface IFormDesignerProvidedProps {
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
 }
-export interface IFormDesignerState { }
+export interface IFormDesignerState {
+  menuOpen: boolean;
+}
 
 const styles = ((theme: Theme) => createStyles({
   root: {
@@ -29,8 +31,12 @@ const styles = ((theme: Theme) => createStyles({
     minHeight: 'calc(100vh - 69px)',
   },
   button: {
-    position: 'relative',
-    zIndex: 9999,
+    'position': 'relative',
+    'zIndex': 9999,
+    'padding': '1.2rem 0.6rem',
+    '&:hover': {
+      background: 'none',
+    },
   },
   container: {
     height: 'calc(100vh - 69px)',
@@ -45,6 +51,20 @@ const styles = ((theme: Theme) => createStyles({
   item: {
     padding: 0,
     minWidth: '171px', /* Two columns at 1024px screen size */
+  },
+  icon: {
+    'fontSize': '3rem',
+    'border': '0.1rem solid ' + altinnTheme.altinnPalette.primary.blueDark,
+    'color': altinnTheme.altinnPalette.primary.blueDark,
+    'borderRadius': '50%',
+    '&:hover': {
+      color: '#fff',
+      background: altinnTheme.altinnPalette.primary.blueDark,
+    },
+  },
+  iconActive: {
+    color: '#fff',
+    background: altinnTheme.altinnPalette.primary.blueDark,
   },
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
@@ -69,6 +89,13 @@ class FormDesigner extends React.Component<
   IFormDesignerProps,
   IFormDesignerState
   > {
+    constructor(props: IFormDesignerProps) {
+      super(props);
+      this.state = {
+        menuOpen: false,
+      };
+    }
+
   public componentDidMount() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
@@ -80,6 +107,12 @@ class FormDesigner extends React.Component<
     ManageServiceConfigurationDispatchers.fetchJsonFile(
       `${altinnWindow.location.origin}/designer/${
       servicePath}/UIEditor/GetJsonFile?fileName=ServiceConfigurations.json`);
+  }
+
+  public toggleMenu = () => {
+    this.setState({
+      menuOpen: !this.state.menuOpen,
+    });
   }
 
   public render() {
@@ -115,9 +148,10 @@ class FormDesigner extends React.Component<
               <DesignView />
             </div>
           </Grid>
-          <Grid item={true} classes={{ item: classNames(classes.item) }}>
+          <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
             <ServiceLogicMenu
-              open={false}
+              open={this.state.menuOpen}
+              openCloseHandler={this.toggleMenu}
               button={
                 <Grid
                   container={true}
@@ -129,7 +163,12 @@ class FormDesigner extends React.Component<
                   type='button'
                   className={this.props.classes.button}
                 >
-                  <i className='ai ai-plain-circle' />
+                  <i
+                    className={
+                      (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
+                        this.props.classes.icon) + ' fa fa-logikkutensirkel'
+                    }
+                  />
                 </IconButton>
                 </Grid>}
             >

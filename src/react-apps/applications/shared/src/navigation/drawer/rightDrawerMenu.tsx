@@ -27,6 +27,7 @@ export interface IServiceLogicMenuProvidedProps {
   classes: any;
   open: boolean;
   button: any;
+  openCloseHandler: any;
 }
 export interface IServiceLogicMenuProps extends IServiceLogicMenuProvidedProps {
   open: boolean;
@@ -50,6 +51,7 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
     this.setState({
       open: !this.state.open,
     });
+    this.props.openCloseHandler();
   }
   public handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
@@ -84,4 +86,4 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
   }
 }
 
-export const ServiceLogicMenu = withStyles(styles, { withTheme: true })(Menu);
+export default withStyles(styles, { withTheme: true })(Menu);
