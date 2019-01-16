@@ -44,7 +44,6 @@ const styles = createStyles({
     'fontSize': '0.85em',
     'fill': altinnTheme.altinnPalette.primary.blue,
     'paddingLeft': '0',
-    'outline': 'none !important',
     '&:hover': {
       background: 'none',
     },
@@ -355,8 +354,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
           >
             <Grid item={true} xs={11} className={this.props.classes.gridWrapper}>
               <div
-                tabIndex={0}
-                onKeyPress={this.handleKeyPress}
                 className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
                   this.props.classes.listBorder + ' ' + this.setPlacementClass(activeListIndex) :
                   this.props.classes.noOutline}
@@ -365,6 +362,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                   className={activeListIndex > -1 || this.state.isEditMode ? this.props.classes.active :
                     this.props.classes.formComponent}
                   onClick={this.handleSetActive}
+                  tabIndex={0}
+                  onKeyPress={this.handleKeyPress}
                 >
                   {this.state.isEditMode ?
                     <Grid item={true} xs={12} className={this.props.classes.activeWrapper}>
@@ -400,6 +399,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         type='button'
                         className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
                         onClick={this.handleComponentDelete}
+                        tabIndex={0}
                       >
                         <i className='ai ai-circletrash' />
                       </IconButton>
@@ -411,6 +411,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         type='button'
                         className={this.props.classes.formComponentsBtn}
                         onClick={this.handleOpenEdit}
+                        tabIndex={0}
                       >
                         <i className='reg reg-edit' />
                       </IconButton>
@@ -430,6 +431,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       type='button'
                       className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
                       onClick={this.handleDiscard}
+                      tabIndex={0}
                     >
                       <i className='ai ai-circlecancel' />
                     </IconButton>
@@ -439,6 +441,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       type='button'
                       className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
                       onClick={this.handleSave}
+                      tabIndex={0}
                     >
                       <i className='ai ai-circlecheck' />
                     </IconButton>
