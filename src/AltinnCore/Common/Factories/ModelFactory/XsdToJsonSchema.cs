@@ -646,7 +646,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new ArgumentException();
             }
 
-            if ("http://www.w3.org/2001/XMLSchema:string".Equals(type))
+            if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
+                || "http://www.w3.org/2001/XMLSchema:normalizedString".Equals(type)
+                || "http://www.w3.org/2001/XMLSchema:token".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
             }
@@ -658,12 +660,26 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
             }
-            else if ("http://www.w3.org/2001/XMLSchema:positiveInteger".Equals(type))
+            else if ("http://www.w3.org/2001/XMLSchema:positiveInteger".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:nonNegativeInteger".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
                 appendToSchema.Minimum(0);
             }
-            else if ("http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
+            else if ("http://www.w3.org/2001/XMLSchema:short".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                appendToSchema.Minimum(short.MinValue);
+                appendToSchema.Maximum(short.MaxValue);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                appendToSchema.Minimum(long.MinValue);
+                appendToSchema.Maximum(long.MaxValue);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:double".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Number);
             }
@@ -671,6 +687,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 appendToSchema.Type(JsonSchemaType.String);
                 appendToSchema.Format(StringFormat.GetFormat("date"));
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:time".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.Format(StringFormat.GetFormat("time"));
             }
             else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
             {
@@ -687,17 +708,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 appendToSchema.Type(JsonSchemaType.String);
                 appendToSchema.Format(StringFormat.GetFormat("year-month"));
             }
-            else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
+            else if ("http://www.w3.org/2001/XMLSchema:base64Binary".Equals(type))
             {
-                appendToSchema.Type(JsonSchemaType.Integer);
-                appendToSchema.Minimum(long.MinValue);
-                appendToSchema.Maximum(long.MaxValue);
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.ContentEncoding("base64");
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:anyURI".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
             }
             else if (type.StartsWith("http://www.w3.org/2001/XMLSchema:"))
             {
-                int d = 0;
-
-                // throw new NotImplementedException();
+                throw new NotImplementedException();
             }
             else
             {
