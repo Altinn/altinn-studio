@@ -18,6 +18,8 @@ export interface IAppCompoentState { }
 const RUNTIME = 'runtime';
 const PREVIEW = 'preview';
 
+// DUMMY COMMENT FOR TESTING, REMOVE WHEN DONE!!!
+
 /**
  * This is the main React component responsible for controlling
  * the mode of the application and loading initial data for the
