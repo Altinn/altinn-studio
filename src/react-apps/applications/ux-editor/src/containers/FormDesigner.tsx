@@ -14,6 +14,8 @@ import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfi
 import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
+import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 
 
 export interface IFormDesignerProvidedProps {
@@ -179,12 +181,15 @@ class FormDesigner extends React.Component<
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_dynamics}
                   listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_dynamics,
-                      action: this.toggleCodeEditor.bind(this, 'Dynamics'),
-                    }]}
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_dynamics,
+                        action: this.toggleCodeEditor.bind(this, 'Dynamics'),
+                      }]}
                   menuIsOpen={true}
-                />
+                >
+                  <RuleModalComponent/>
+                  <ConditionalRenderingModalComponent/>
+                </CollapsableMenuComponent>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_calculations}
                   listItems={[{name: this.props.language.ux_editor.service_logic_edit_calculations}]}

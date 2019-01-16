@@ -16,6 +16,7 @@ const styles = createStyles({
   link: {
     textDecoration: 'underline',
     textDecorationColor: altinnTheme.altinnPalette.primary.blueDark,
+    cursor: 'pointer',
   },
   list: {
     padding: 0,
@@ -112,11 +113,7 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
                 {item.name}
               </span>
             </ListItem>
-            {this.state.showContent && this.props.children &&
-              <ListItem>
-                {this.props.children}
-              </ListItem>
-            }
+            {this.props.children}
             </>
           );
         })}
