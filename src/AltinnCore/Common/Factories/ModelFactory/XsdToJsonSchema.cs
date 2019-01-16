@@ -360,9 +360,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 {
                                     appendToSchema.MinLength(Convert.ToUInt32(facet.Value));
                                 }
-                                catch (OverflowException)
+                                catch (Exception)
                                 {
-                                    appendToSchema.MinLength(uint.MinValue);
                                 }
                             }
                             else if (facet is XmlSchemaMaxLengthFacet || facet is XmlSchemaMaxInclusiveFacet)
@@ -371,9 +370,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 {
                                     appendToSchema.MaxLength(Convert.ToUInt32(facet.Value));
                                 }
-                                catch (OverflowException)
+                                catch (Exception)
                                 {
-                                    appendToSchema.MaxLength(uint.MaxValue);
                                 }
                             }
                             else if (facet is XmlSchemaLengthFacet || facet is XmlSchemaTotalDigitsFacet)
@@ -382,18 +380,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 {
                                     appendToSchema.MinLength(Convert.ToUInt32(facet.Value));
                                 }
-                                catch (OverflowException)
+                                catch (Exception)
                                 {
-                                    appendToSchema.MinLength(uint.MinValue);
                                 }
 
                                 try
                                 {
                                     appendToSchema.MaxLength(Convert.ToUInt32(facet.Value));
                                 }
-                                catch (OverflowException)
+                                catch (Exception)
                                 {
-                                    appendToSchema.MaxLength(uint.MaxValue);
                                 }
                             }
                             else if (facet is XmlSchemaPatternFacet)
