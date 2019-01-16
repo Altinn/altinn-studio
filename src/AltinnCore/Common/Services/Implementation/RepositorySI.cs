@@ -459,7 +459,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetRuleHandler(string org, string service)
         {
-            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string filePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -681,11 +681,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 throw new Exception("Resource directory missing.");
             }
-
-            string ruleHandlerPath = resourceDirectory + _settings.RuleHandlerFileName;
-            File.WriteAllText(
-                ruleHandlerPath,
-                File.ReadAllText(ruleHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
             string implementationDirectory = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(implementationDirectory))
