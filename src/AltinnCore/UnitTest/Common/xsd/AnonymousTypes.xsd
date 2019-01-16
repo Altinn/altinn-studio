@@ -13,8 +13,11 @@
                 </xsd:complexType>
               </xsd:element>
               <xsd:element name="c" type="xsd:string"/>
+              <xsd:element name="test" default="sdfg" form="unqualified" block="extension"/>
+              <xsd:element name="test" fixed="sdfg" form="unqualified" block="extension"/>
           </xsd:sequence>
       </xsd:complexType>
     </xsd:element>
     <xsd:element name="b" type="xsd:string"/>
+  <xsd:element name="test2" substitutionGroup="a" abstract="false" block="#all" final="#all"/>
 </xsd:schema>
