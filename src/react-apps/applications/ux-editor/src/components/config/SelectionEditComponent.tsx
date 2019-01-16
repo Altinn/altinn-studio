@@ -139,7 +139,7 @@ export class SelectionEditComponent
       <div>
         <Grid item={true} xs={12}>
           {renderSelectDataModelBinding(
-            this.props.component.dataModelBinding,
+            this.props.component.dataModelBindings,
             this.props.handleDataModelChange,
             this.props.language,
           )}

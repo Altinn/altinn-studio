@@ -104,6 +104,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           component: c.name,
           itemType: LayoutItemType.Component,
           title: c.name,
+          textResourceBindings: {},
+          dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
         },
           position,

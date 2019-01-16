@@ -53,16 +53,18 @@ declare global {
     hidden?: boolean;
   }
 
+  export interface ITextResourceBindings {
+    [id: string]: string;
+  }
+
   export interface ICreateFormComponent {
-    title?: string;
     component: string;
     type?: string;
     name?: string;
     size?: string;
     options?: IOptions[];
-    description?: string;
-    dataModelBinding?: IDataModelBindings;
-    textResourceId?: string;
+    dataModelBindings: IDataModelBindings;
+    textResourceBindings: ITextResourceBindings;
     customType?: string;
     codeListId?: string;
     handleUpdateElement?: (component: FormComponentType) => void;

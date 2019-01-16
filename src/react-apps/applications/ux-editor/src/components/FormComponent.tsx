@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { TextResourceBindingKeys } from './config/EditModalContent';
 import GenericComponent from './GenericComponent';
 
 const styles = createStyles({
@@ -75,11 +76,11 @@ class FormComponent extends React.Component<
    * This event handler is used for all form components rendered from this
    */
   public handleComponentDataUpdate = (callbackValue: any, key: string = DefaultDataModelBindingKey): void => {
-    if (!this.props.component.dataModelBinding || !this.props.component.dataModelBinding[key]) {
+    if (!this.props.component.dataModelBindings || !this.props.component.dataModelBindings[key]) {
       return;
     }
     const dataModelElement = this.props.dataModel.find(
-      (element) => element.DataBindingName === this.props.component.dataModelBinding[key],
+      (element) => element.DataBindingName === this.props.component.dataModelBindings[key],
     );
     this.props.handleDataUpdate(this.props.id, dataModelElement, callbackValue);
   }
@@ -123,9 +124,11 @@ class FormComponent extends React.Component<
       return null;
     }
 
-    if (this.props.component.title) {
+    if (this.props.component.textResourceBindings[TextResourceBindingKeys.Title]) {
       const label: string =
-        this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
+        this.props.designMode ?
+          this.props.component.textResourceBindings[TextResourceBindingKeys.Title] :
+          this.getTextResource(this.props.component.textResourceBindings[TextResourceBindingKeys.Title]);
       return (
         <label className='a-form-label title-label' htmlFor={this.props.id}>
           {label}
@@ -141,11 +144,11 @@ class FormComponent extends React.Component<
   }
 
   public renderDescription = (): JSX.Element => {
-    if (this.props.component.description) {
+    if (this.props.component.textResourceBindings[TextResourceBindingKeys.Description]) {
       const description: string =
         this.props.designMode ?
-          this.props.component.description :
-          this.getTextResource(this.props.component.description);
+          this.props.component.textResourceBindings[TextResourceBindingKeys.Description] :
+          this.getTextResource(this.props.component.textResourceBindings[TextResourceBindingKeys.Description]);
       return (
         <span className='a-form-label description-label'>{description}</span>
       );
@@ -244,7 +247,9 @@ const makeMapStateToProps = () => {
     order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
-      (element) => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),
+      (element) =>
+        element.DataBindingName ===
+        state.formDesigner.layout.components[props.id].dataModelBindings[DefaultDataModelBindingKey]),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:

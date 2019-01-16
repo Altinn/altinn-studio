@@ -8,6 +8,7 @@ import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
+import { DefaultDataModelBindingKey } from '../components/FormComponent';
 import { makeGetLayoutComponentsSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
@@ -254,14 +255,16 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public checkForCodeListConnectionChanges = (callbackComponent: FormComponentType): void => {
     const originalComponent: FormComponentType = this.props.components[this.props.id];
     const codeListId = originalComponent.codeListId;
-    const dataModelBinding = originalComponent.dataModelBinding;
+    const dataModelBinding = originalComponent.dataModelBindings[DefaultDataModelBindingKey];
     const newCodeListId = callbackComponent.codeListId;
-    const newDataModelBinding = callbackComponent.dataModelBinding;
+    const newDataModelBinding = callbackComponent.dataModelBindings[DefaultDataModelBindingKey];
 
     if (!newCodeListId || !newDataModelBinding) {
       if (codeListId && dataModelBinding) {
         // there existed a connection before that should now be removed
-        const oldConnectionId = getCodeListConnectionForDatamodelBinding(dataModelBinding, this.props.connections);
+        const oldConnectionId = getCodeListConnectionForDatamodelBinding(
+          dataModelBinding,
+          this.props.connections);
         if (oldConnectionId) {
           ApiActionDispatchers.delApiConnection(oldConnectionId);
         }
@@ -286,7 +289,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveApiConnection = (callbackComponent: FormComponentType, connectionId: string) => {
-    if (!callbackComponent.dataModelBinding) {
+    if (!callbackComponent.dataModelBindings) {
       return;
     }
     if (!connectionId) {
@@ -296,7 +299,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       [connectionId]: {
         codeListId: callbackComponent.codeListId,
         apiResponseMapping: {
-          [callbackComponent.dataModelBinding]: {
+          [callbackComponent.dataModelBindings]: {
             mappingKey: 'codes',
             // for now we only support a key-value pair, this could be changed in the future
             valueKey: 'key',

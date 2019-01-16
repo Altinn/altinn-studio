@@ -8,6 +8,7 @@ import FormDesignerActionDispatchers from '../../actions/formDesignerActions/for
 import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
 import ServiceConfigActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import appConfig from '../../appConfig';
+import { DefaultDataModelBindingKey } from '../../components/FormComponent';
 import { IApiState } from '../../reducers/apiReducer';
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
@@ -265,7 +266,8 @@ function* apiCheckValue(
                 if (!component) {
                   continue;
                 }
-                if (components[component].dataModelBinding === updatedDataBinding.DataBindingName) {
+                if (components[component].dataModelBindings[DefaultDataModelBindingKey] ===
+                  updatedDataBinding.DataBindingName) {
                   updatedComponent = component;
                 }
               }
