@@ -123,7 +123,9 @@ class FormComponent extends React.Component<
       this.props.component.component === 'AddressComponent') {
       return null;
     }
-
+    if (!this.props.component.textResourceBindings) {
+      return null;
+    }
     if (this.props.component.textResourceBindings[TextResourceBindingKeys.Title]) {
       const label: string =
         this.props.designMode ?
@@ -144,6 +146,9 @@ class FormComponent extends React.Component<
   }
 
   public renderDescription = (): JSX.Element => {
+    if (!this.props.component.textResourceBindings) {
+      return null;
+    }
     if (this.props.component.textResourceBindings[TextResourceBindingKeys.Description]) {
       const description: string =
         this.props.designMode ?
