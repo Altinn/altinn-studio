@@ -43,5 +43,20 @@ namespace AltinnCore.Common.Enums
         /// All the files in the Test folder
         /// </summary>
         Test = 6,
+
+        /// <summary>
+        /// All the files in the Model folder
+        /// </summary>
+        Calculation = 7,
+
+        /// <summary>
+        /// All the files in the Resource folder
+        /// </summary>
+        Dynamics = 8,
+
+        /// <summary>
+        /// All the files in the Test folder
+        /// </summary>
+        Validation = 9,
     }
 }

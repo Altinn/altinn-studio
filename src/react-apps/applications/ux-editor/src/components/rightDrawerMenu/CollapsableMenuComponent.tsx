@@ -44,7 +44,7 @@ const styles = createStyles({
 export interface ICollapsableMenuProvidedProps {
   classes: any;
   header: string;
-  listItems: any[];
+  listItems: ICollapsableMenuListItem[];
   menuIsOpen: boolean;
 }
 
@@ -55,6 +55,11 @@ export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
 export interface ICollapsableMenuState {
   showContent: boolean;
   menuIsOpen: boolean;
+}
+
+export interface ICollapsableMenuListItem {
+  name: string;
+  action?: () => void;
 }
 
 class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsableMenuState> {
@@ -102,14 +107,14 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
             <ListItem key={index} className={this.props.classes.listItem}>
               <span
                 className={this.props.classes.link}
-                onClick={this.showContent}
+                onClick={item.action}
               >
                 {item.name}
               </span>
             </ListItem>
-            {this.state.showContent &&
+            {this.state.showContent && this.props.children &&
               <ListItem>
-                here comes content
+                {this.props.children}
               </ListItem>
             }
             </>
