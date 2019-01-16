@@ -4,6 +4,13 @@
 		"Skjema": {
 			"description": "<brreg:tekst brreg:lang=\"NOB\" brreg:teksttype=\"LEDE\" xmlns:brreg=\"http://www.brreg.no/or\"><p>RF-1117 Klage på likningen</p></brreg:tekst>\n<brreg:tekst brreg:lang=\"NOB\" brreg:teksttype=\"HJELP\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Skjema gjelder for alle grupper av skattytere. NB! Inneholder klagen  sensitiv informasjon (f.eks. om sykdom) kan den ikke leveres  elektronisk. Klagen sendes da med brev til skattekontoret.</p></brreg:tekst>\n<brreg:tekst brreg:lang=\"NON\" brreg:teksttype=\"LEDE\" xmlns:brreg=\"http://www.brreg.no/or\"><p>RF-1117 Klage på likninga</p></brreg:tekst>\n<brreg:tekst brreg:lang=\"NON\" brreg:teksttype=\"HJELP\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Klageskjemaet gjeld for alle grupper av skattytarar. NB! Inneheld  klaga sensitive opplysningar (t.d om sjukdom) kan du ikkje levere  klaga elektronisk. Ho må sendast i brev til skattekontoret.</p></brreg:tekst>",
 			"$ref": "#/definitions/Skjema"
+		},		
+		"T1": {
+			"type": "integer"
+		},
+		"T2": {
+			"type": "array",
+			"items": { "$ref": "#/definitions/Skjema"}
 		},
 		"Skattyterinfor-grp-5801": {
 			"description": "<brreg:tekst brreg:lang=\"NOB\" brreg:teksttype=\"LEDE\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Informasjon om skattyter</p></brreg:tekst>\n<brreg:tekst brreg:lang=\"NOB\" brreg:teksttype=\"HJELP\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Gi opplysninger om klagers navn, postadresse, postnummer og  fødsels-/organisasjonsnummer</p></brreg:tekst>\n<brreg:tekst brreg:lang=\"NON\" brreg:teksttype=\"LEDE\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Informasjon om skattytar</p></brreg:tekst>\n<brreg:tekst brreg:lang=\"NON\" brreg:teksttype=\"HJELP\" xmlns:brreg=\"http://www.brreg.no/or\"><p>Gi opplysningar om klagar sitt namn, postadresse, postnummer og  fødsels-/organisasjonsnummer</p></brreg:tekst>",

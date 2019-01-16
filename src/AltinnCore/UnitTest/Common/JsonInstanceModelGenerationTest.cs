@@ -39,6 +39,29 @@ namespace AltinnCore.UnitTest.Common
         }
 
         /// <summary>
+        ///  nokså fantastisk
+        /// </summary>
+        [Fact]
+        public void JsonInstanceFromAutogenJson()
+        {
+            var schemaText = File.ReadAllText("Common/melding.schema.json");
+            var schemaJson = JsonValue.Parse(schemaText);
+            var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
+
+            JsonSchemaToJsonInstanceModelGenerator converter = new JsonSchemaToJsonInstanceModelGenerator("TestOrg", "edag", schema);
+
+            JsonObject instanceModel = converter.GetInstanceModel();
+
+            Assert.NotNull(instanceModel);
+            JsonObject actualElements = instanceModel.TryGetObject("Elements");
+            Assert.Equal(84, actualElements.Count);
+
+            string metadataAsJson = instanceModel.ToString();
+
+            File.WriteAllText("melding.instance-model.json", metadataAsJson);
+        }
+
+        /// <summary>
         ///  Tests a recursive schema and expand/remove path. Happy days!
         /// </summary>
         [Fact]

@@ -30,14 +30,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             };
 
             string title = GetterExtensions.Title(jSchema);         
-          
+
+            // Handle global element declarations
             foreach (KeyValuePair<string, JsonSchema> property in jSchema.Properties())
             {
-                string referencedType = GetterExtensions.Ref(property.Value);
                 XmlSchemaElement rootElement = new XmlSchemaElement
                 {
                     Name = property.Key,
-                    SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(referencedType)),
+                    SchemaTypeName = GetTypeName(property.Value),
                 };
                 
                 xsdSchema.Items.Add(rootElement);
@@ -50,6 +50,52 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             return xsdSchema;
+        }
+
+        private XmlQualifiedName GetTypeName(JsonSchema jSchema)
+        {
+            string referencedType = GetterExtensions.Ref(jSchema);
+            if (!string.IsNullOrEmpty(referencedType))
+            {
+                return new XmlQualifiedName(ExtractTypeFromDefinitionReference(referencedType));
+            }
+
+            TypeKeyword type = jSchema.Get<TypeKeyword>();
+            if (type != null)
+            {
+                switch (type.Value)
+                {
+                    case JsonSchemaType.String:
+                        return new XmlQualifiedName("string", XmlSchemaNamespace);
+
+                    case JsonSchemaType.Integer:
+                        return new XmlQualifiedName("integer", XmlSchemaNamespace);
+
+                    case JsonSchemaType.Number:
+                        return new XmlQualifiedName("decimal", XmlSchemaNamespace);
+
+                    case JsonSchemaType.Boolean:
+                        return new XmlQualifiedName("boolean", XmlSchemaNamespace);
+
+                    case JsonSchemaType.Array:
+                        {
+                            List<JsonSchema> itemsSchemas = GetterExtensions.Items(jSchema);
+                            JsonSchema itemSchema = itemsSchemas.ToArray()[0];
+
+                            string itemsReferencedType = GetterExtensions.Ref(itemSchema);
+                            if (!string.IsNullOrEmpty(itemsReferencedType))
+                            {
+                                return new XmlQualifiedName(ExtractTypeFromDefinitionReference(itemsReferencedType));
+                            }
+
+                            return null;
+                        }                   
+                }
+
+                return null;                
+            }
+
+            return null;
         }
 
         private void ExtractProperties(XmlSchema xsdSchema, string name, JsonSchema jSchema)
