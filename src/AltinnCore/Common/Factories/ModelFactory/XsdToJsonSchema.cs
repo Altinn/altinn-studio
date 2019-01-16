@@ -354,7 +354,27 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 enumList.Add(new JsonValue(facet.Value));
                             }
-                            else if (facet is XmlSchemaMinLengthFacet || facet is XmlSchemaMinInclusiveFacet)
+                            else if (facet is XmlSchemaMinInclusiveFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.Minimum(Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            else if (facet is XmlSchemaMaxInclusiveFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.Maximum(Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            else if (facet is XmlSchemaMinLengthFacet)
                             {
                                 try
                                 {
@@ -364,7 +384,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 {
                                 }
                             }
-                            else if (facet is XmlSchemaMaxLengthFacet || facet is XmlSchemaMaxInclusiveFacet)
+                            else if (facet is XmlSchemaMaxLengthFacet)
                             {
                                 try
                                 {
@@ -639,7 +659,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string name = (qname == null) ? null : qname.Name;
             if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
             {
-                throw new ArgumentException();
+                // xs:anyType
+                appendToSchema.Type(JsonSchemaType.String);
             }
 
             if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
@@ -909,9 +930,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     if (!contentExtensionItem.BaseTypeName.IsEmpty)
                     {
                         JsonSchema valueAttributeSchema = new JsonSchema();
-                        valueAttributeSchema.OtherData.Add("@xsdType", new Manatee.Json.JsonValue("XmlAttribute"));
                         AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, valueAttributeSchema);
-                        appendToSchema.Property("Value", valueAttributeSchema);
+                        appendToSchema.Property("value", valueAttributeSchema);
                     }
                 }
                 else if (!contentExtensionItem.BaseTypeName.IsEmpty)
