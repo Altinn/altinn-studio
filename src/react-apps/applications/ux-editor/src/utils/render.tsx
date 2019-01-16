@@ -35,7 +35,10 @@ export function renderSelectDataModelBinding(
 ): JSX.Element {
   return (
     <div>
-      {renderPropertyLabel(label ? label : language.ux_editor.modal_properties_data_model_helper)}
+      {renderPropertyLabel(label ?
+        language.ux_editor.modal_properties_data_model_helper + ' ' + language.general.for + ' ' + label :
+        language.ux_editor.modal_properties_data_model_helper)
+      }
       <SelectDataModelComponent
         selectedElement={selectedElement}
         // tslint:disable-next-line:jsx-no-lambda

@@ -3,9 +3,9 @@ import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import { getTextResource, getTextResourceByAddressKey, truncate } from '../../utils/language';
+import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { AddressKeys } from '../advanced/AddressComponent';
+import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {

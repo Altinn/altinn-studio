@@ -72,7 +72,7 @@ class FormComponent extends React.Component<
    * that is sendt to the different Action dispatcher.
    * This event handler is used for all form components rendered from this
    */
-  public handleComponentDataUpdate = (callbackValue: any, key?: any): void => {
+  public handleComponentDataUpdate = (callbackValue: any, key?: string): void => {
     if (!this.props.component.dataModelBinding && !this.props.component.dataModelBindings) {
       return;
     }

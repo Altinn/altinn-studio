@@ -94,23 +94,3 @@ export function getTextResource(resourceKey: string, textResources: ITextResourc
 export function formatCreateTextLabel(textToCreate: string, language: any): string {
   return language.general.create.concat(' ', textToCreate);
 }
-
-export function getTextResourceByAddressKey(key: AddressKeys, language: any): string {
-  switch (key) {
-    case AddressKeys.address: {
-      return language.ux_editor.modal_address;
-    }
-    case AddressKeys.zipCode: {
-      return language.ux_editor.modal_address_zip_code;
-    }
-    case AddressKeys.houseNumber: {
-      return language.ux_editor.modal_address_house_number;
-    }
-    case AddressKeys.careOf: {
-      return language.ux_editor.modal_address_care_of;
-    }
-    case AddressKeys.postPlace: {
-      return language.ux_editor.modal_address_post_place;
-    }
-  }
-}

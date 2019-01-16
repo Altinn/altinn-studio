@@ -7,7 +7,7 @@ import '../../styles/AddressComponent.css';
 export interface IAddressComponentProps {
   component: IFormAddressComponent;
   formData: any;
-  handleDataChange: (value: any, key: any) => void;
+  handleDataChange: (value: any, key: string) => void;
   isValid?: boolean;
   simplified: boolean;
 }
@@ -64,6 +64,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             validations: {
               zipCode: null,
             },
+          }, () => {
+            this.onBlurField(AddressKeys.postPlace);
           });
         } else {
           this.setState({
@@ -253,5 +255,25 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         }
       </div>
     );
+  }
+}
+
+export function getTextResourceByAddressKey(key: AddressKeys, language: any): string {
+  switch (key) {
+    case AddressKeys.address: {
+      return language.ux_editor.modal_address;
+    }
+    case AddressKeys.zipCode: {
+      return language.ux_editor.modal_address_zip_code;
+    }
+    case AddressKeys.houseNumber: {
+      return language.ux_editor.modal_address_house_number;
+    }
+    case AddressKeys.careOf: {
+      return language.ux_editor.modal_address_care_of;
+    }
+    case AddressKeys.postPlace: {
+      return language.ux_editor.modal_address_post_place;
+    }
   }
 }
