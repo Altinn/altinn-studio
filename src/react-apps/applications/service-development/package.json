@@ -19,6 +19,7 @@
   "dependencies": {
     "@material-ui/core": "3.6.1",
     "immutability-helper": "2.7.0",
+    "monaco-editor-webpack-plugin": "1.7.0",
     "react": "16.6.3",
     "react-dom": "16.6.3",
     "react-grid-layout": "0.16.6",

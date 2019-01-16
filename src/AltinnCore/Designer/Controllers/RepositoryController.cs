@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 using AltinnCore.Common.Configuration;
@@ -202,10 +203,11 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of repository</param>
+        /// <returns>Http response message as ok if reset operation is successful</returns>
         [HttpGet]
-        public void DiscardLocalChanges(string owner, string repository)
+        public HttpResponseMessage DiscardLocalChanges(string owner, string repository)
         {
-            _sourceControl.ResetCommit(owner, repository);
+           return _sourceControl.ResetCommit(owner, repository);
         }
 
         /// <summary>
@@ -214,10 +216,11 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of repository</param>
         /// <param name="fileName">the name of the file</param>
+        /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
-        public void DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
+        public HttpResponseMessage DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
         {
-            _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+           return _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
         }
 
         /// <summary>

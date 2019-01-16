@@ -12,4 +12,11 @@ declare global {
     <IDashboardState,
     IFetchedLanguageState
     > { }
+
+  export interface IAltinnWindow extends Window {
+    org: string;
+    service: string;
+    instanceId: string;
+    reportee: string;
+  }
 }

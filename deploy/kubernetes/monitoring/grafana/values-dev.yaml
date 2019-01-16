@@ -1,0 +1,9 @@
+grafana.ini:
+  server:
+    domain: dev.altinn.studio
+    root_url: https://dev.altinn.studio/grafana/
+persistence:
+  enabled: true
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
