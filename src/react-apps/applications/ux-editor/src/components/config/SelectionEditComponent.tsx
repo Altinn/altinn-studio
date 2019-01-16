@@ -5,7 +5,7 @@ import Select from 'react-select';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getCodeListIndexByName } from '../../utils/apiConnection';
 import { noOptionsMessage, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
-import { customInput } from './EditModalContent';
+import { customInput, TextResourceBindingKeys } from './EditModalContent';
 
 const styles = createStyles({
   formComponentsBtn: {
@@ -147,10 +147,12 @@ export class SelectionEditComponent
             this.props.handleTitleChange,
             this.props.textResources,
             this.props.language,
-            this.props.component.title)}
+            this.props.component.textResourceBindings[TextResourceBindingKeys.Title])}
           {renderSelectTextFromResources('modal_properties_description_helper',
-            this.props.handleDescriptionChange, this.props.textResources,
-            this.props.language, this.props.component.description)}
+            this.props.handleDescriptionChange,
+            this.props.textResources,
+            this.props.language,
+            this.props.component.textResourceBindings[TextResourceBindingKeys.Description])}
           <Typography classes={{ root: this.props.classes.textWithTopPadding }}>
             {(this.props.type === 'radiobuttons') ?
               this.props.language.ux_editor.modal_properties_add_radio_button_options :
