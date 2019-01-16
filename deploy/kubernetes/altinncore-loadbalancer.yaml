@@ -14,7 +14,7 @@ spec:
         # for prod uncomment next line
         # image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer:1.15.0
         # for dev uncomment next line
-        # image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer-dev:1.0.3
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer-dev:1.0.7
         ports:
           - containerPort: 80
           - containerPort: 443
@@ -34,5 +34,5 @@ spec:
   selector:
     app: altinn-loadbalancer
   # Change this to what ever your public ip on azure is.
-  loadBalancerIP: [[YOUR PUBLIC IP]]
+  loadBalancerIP: 40.113.5.36
   type: LoadBalancer
