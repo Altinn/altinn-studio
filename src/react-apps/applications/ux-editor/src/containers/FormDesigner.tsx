@@ -14,7 +14,6 @@ import { CollapsableMenuComponent } from '../components/rightDrawerMenu/Collapsa
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
-
 export interface IFormDesignerProvidedProps {
   classes: any;
 }
