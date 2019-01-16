@@ -901,20 +901,20 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
                         if (attributeSchema != null)
                         {
-                            string name = GetItemName(attribute);
-                            appendToSchema.Property(name, attributeSchema);
-                            if (isRequired)
-                            {
-                                int d = 0;
-
-                                // throw new NotImplementedException();
-                                // requiredList.Add(name);
-                            }
+                            appendToSchema.Property(GetItemName(attribute), attributeSchema);
                         }
                     }
-                }
 
-                if (!contentExtensionItem.BaseTypeName.IsEmpty)
+                    // Create the special Value property?
+                    if (!contentExtensionItem.BaseTypeName.IsEmpty)
+                    {
+                        JsonSchema valueAttributeSchema = new JsonSchema();
+                        valueAttributeSchema.OtherData.Add("@xsdType", new Manatee.Json.JsonValue("XmlAttribute"));
+                        AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, valueAttributeSchema);
+                        appendToSchema.Property("Value", valueAttributeSchema);
+                    }
+                }
+                else if (!contentExtensionItem.BaseTypeName.IsEmpty)
                 {
                     AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, appendToSchema);
                 }
