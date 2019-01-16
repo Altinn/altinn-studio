@@ -12,7 +12,7 @@ spec:
       containers:
       - name: altinn-loadbalancer
         # for prod uncomment next line
-        # image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer:1.15.0
+        # image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer:1.16.0
         # for dev uncomment next line
         # image: altinntjenestercontainerregistry.azurecr.io/altinn-loadbalancer-dev:1.0.7
         ports:
