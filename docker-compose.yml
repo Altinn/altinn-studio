@@ -90,6 +90,7 @@ services:
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
       - ServiceRepositorySettings:ShouldFetchFromDatabase=false
       - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
+      - TestdataRepositorySettings:DesignerHost=altinn-designer
     ports:
       - "5005:5005"
     build:

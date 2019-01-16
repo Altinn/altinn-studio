@@ -276,14 +276,8 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/");
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-
-            CookieContainer cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            handler.AllowAutoRedirect = false;
-            using (HttpClient client = new HttpClient(handler))
+           
+            using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -310,20 +304,14 @@ namespace AltinnCore.Common.Services.Implementation
             DeleteCurrentAppKeys(csrf);
 
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-
-            CookieContainer cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-
+          
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", "AltinnStudioAppKey"));
 
             FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
 
-            using (HttpClient client = new HttpClient(handler))
+            using (HttpClient client = GetWebHtmlClient())
             {
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -340,13 +328,8 @@ namespace AltinnCore.Common.Services.Implementation
         private async Task<string> GetCsrf()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-
-            CookieContainer cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            using (HttpClient client = new HttpClient(handler))
+            
+            using (HttpClient client = GetWebHtmlClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -363,14 +346,9 @@ namespace AltinnCore.Common.Services.Implementation
         private async void DeleteCurrentAppKeys(string csrf)
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
             List<string> appKeyIds = new List<string>();
 
-            CookieContainer cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
-            using (HttpClient client = new HttpClient(handler))
+            using (HttpClient client = GetWebHtmlClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
@@ -386,14 +364,8 @@ namespace AltinnCore.Common.Services.Implementation
         private async void DeleteAllAppKeys(List<string> appKeys, string csrf)
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
-            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
-            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
-            
-            CookieContainer cookieContainer = new CookieContainer();
-            cookieContainer.Add(cookie);
-            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer };
 
-            using (HttpClient client = new HttpClient(handler))
+            using (HttpClient client = GetWebHtmlClient())
             {
                 foreach (string key in appKeys)
                 {
@@ -493,6 +465,18 @@ namespace AltinnCore.Common.Services.Implementation
             HttpClient client = new HttpClient(httpClientHandler);
             client.DefaultRequestHeaders.Add(Constants.General.AuthorizationTokenHeaderName, AuthenticationHelper.GetDeveloperTokenHeaderValue(_httpContextAccessor.HttpContext));
             return client;
+        }
+
+        private HttpClient GetWebHtmlClient(bool allowAutoRedirect = true)
+        {
+            string giteaSession = AuthenticationHelper.GetGiteaSession(_httpContextAccessor.HttpContext, _settings.GiteaCookieName);
+            Cookie cookie = CreateGiteaSessionCookie(giteaSession);
+
+            CookieContainer cookieContainer = new CookieContainer();
+            cookieContainer.Add(cookie);
+            HttpClientHandler handler = new HttpClientHandler() { CookieContainer = cookieContainer, AllowAutoRedirect = allowAutoRedirect };
+
+            return new HttpClient(handler);
         }
 
         private Cookie CreateGiteaSessionCookie(string giteaSession)

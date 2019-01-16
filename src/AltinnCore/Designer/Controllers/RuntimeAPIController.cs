@@ -12,6 +12,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller for file sharing between designer and runtime
     /// </summary>
+    [Authorize]
     public class RuntimeAPIController : Controller
     {
         private readonly ServiceRepositorySettings _settings;
