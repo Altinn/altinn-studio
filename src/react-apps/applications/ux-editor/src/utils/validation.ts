@@ -1,5 +1,4 @@
 import { getKeyWithoutIndex } from './databindings';
-import { DefaultDataModelBindingKey } from '../components/FormComponent';
 
 export function min(value: number, test: number): boolean {
   test = Number(test);
@@ -79,7 +78,7 @@ export function validateFormData(
     }
 
     const layoutModelKey = Object.keys(layoutModelElements).find(
-      (e) => layoutModelElements[e].dataModelBindings[DefaultDataModelBindingKey] === dataBindingName);
+      (e) => layoutModelElements[e].dataModelBindings.simpleBinding === dataBindingName);
 
     const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
 

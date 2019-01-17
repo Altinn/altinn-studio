@@ -63,8 +63,8 @@ declare global {
     name?: string;
     size?: string;
     options?: IOptions[];
-    dataModelBindings: IDataModelBindings;
-    textResourceBindings: ITextResourceBindings;
+    dataModelBindings?: IDataModelBindings;
+    textResourceBindings?: ITextResourceBindings;
     customType?: string;
     codeListId?: string;
     handleUpdateElement?: (component: FormComponentType) => void;

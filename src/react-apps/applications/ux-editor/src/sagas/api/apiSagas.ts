@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, takeLatest, cps } from 'redux-saga/effects';
 import * as ApiActions from '../../actions/apiActions/actions';
 import ApiActionDispatchers from '../../actions/apiActions/apiActionDispatcher';
 import * as ApiActionTypes from '../../actions/apiActions/apiActionTypes';
@@ -8,7 +8,6 @@ import FormDesignerActionDispatchers from '../../actions/formDesignerActions/for
 import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
 import ServiceConfigActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import appConfig from '../../appConfig';
-import { DefaultDataModelBindingKey } from '../../components/FormComponent';
 import { IApiState } from '../../reducers/apiReducer';
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
@@ -145,7 +144,7 @@ export function* watchFetchApiListResponseSaga(): SagaIterator {
   );
 }
 
-function* apiFetchList(connectionDef: any, externalApisById: any, components: any) {
+function* apiFetchList(connectionDef: any, externalApisById: any, components: IFormDesignerComponent) {
   let dataBindingName;
   for (const dataMapping in connectionDef.apiResponseMapping) {
     if (!dataMapping || dataMapping === 'labelKey' || dataMapping === 'valueKey') {
@@ -156,10 +155,15 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
 
   const mappedComponent: any = {};
   for (const component in components) {
-    if (components[component].dataModelBinding === dataBindingName) {
-      mappedComponent.component = components[component];
-      mappedComponent.id = component;
-      break;
+    if (!component) {
+      continue;
+    }
+    for (const dataModelBindingKey in components[component].dataModelBindings) {
+      if (components[component].dataModelBindings[dataModelBindingKey] === dataBindingName) {
+        mappedComponent.component = components[component];
+        mappedComponent.id = component;
+        break;
+      }
     }
   }
 
@@ -266,9 +270,11 @@ function* apiCheckValue(
                 if (!component) {
                   continue;
                 }
-                if (components[component].dataModelBindings[DefaultDataModelBindingKey] ===
-                  updatedDataBinding.DataBindingName) {
-                  updatedComponent = component;
+                for (const dataBindingKey in components[component].dataModelBindings) {
+                  if (dataBindingKey === updatedDataBinding.DataBindingName) {
+                    updatedComponent = component;
+                    break;
+                  }
                 }
               }
               if (!updatedDataBinding) {

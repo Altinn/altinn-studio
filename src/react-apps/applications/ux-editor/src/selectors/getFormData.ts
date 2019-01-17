@@ -1,5 +1,4 @@
 import { createSelector, createSelectorCreator, defaultMemoize } from 'reselect';
-import { DefaultDataModelBindingKey } from '../components/FormComponent';
 const isEqual = require('lodash.isequal');
 
 const formDataSelector = (state: IAppState) => {
@@ -22,7 +21,7 @@ const formDataForContainerSelector = (state: IAppState, props: any, index?: numb
     if (!component.dataModelBindings) {
       continue;
     }
-    let formDataKey = component.dataModelBindings[DefaultDataModelBindingKey];
+    let formDataKey = component.dataModelBindings.simpleBinding;
     if (!formDataKey) {
       continue;
     }
@@ -31,7 +30,7 @@ const formDataForContainerSelector = (state: IAppState, props: any, index?: numb
     }
     const formData = state.formFiller.formData;
     if (formData[formDataKey]) {
-      filteredFormData[component.dataModelBindings[DefaultDataModelBindingKey]] = formData[formDataKey];
+      filteredFormData[component.dataModelBindings.simpleBinding] = formData[formDataKey];
     }
   }
   return filteredFormData;

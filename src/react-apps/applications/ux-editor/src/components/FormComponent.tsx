@@ -6,7 +6,6 @@ import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import { TextResourceBindingKeys } from './config/EditModalContent';
 import GenericComponent from './GenericComponent';
 
 const styles = createStyles({
@@ -126,11 +125,11 @@ class FormComponent extends React.Component<
     if (!this.props.component.textResourceBindings) {
       return null;
     }
-    if (this.props.component.textResourceBindings[TextResourceBindingKeys.Title]) {
+    if (this.props.component.textResourceBindings.title) {
       const label: string =
         this.props.designMode ?
-          this.props.component.textResourceBindings[TextResourceBindingKeys.Title] :
-          this.getTextResource(this.props.component.textResourceBindings[TextResourceBindingKeys.Title]);
+          this.props.component.textResourceBindings.title :
+          this.getTextResource(this.props.component.textResourceBindings.title);
       return (
         <label className='a-form-label title-label' htmlFor={this.props.id}>
           {label}
@@ -149,11 +148,11 @@ class FormComponent extends React.Component<
     if (!this.props.component.textResourceBindings) {
       return null;
     }
-    if (this.props.component.textResourceBindings[TextResourceBindingKeys.Description]) {
+    if (this.props.component.textResourceBindings.description) {
       const description: string =
         this.props.designMode ?
-          this.props.component.textResourceBindings[TextResourceBindingKeys.Description] :
-          this.getTextResource(this.props.component.textResourceBindings[TextResourceBindingKeys.Description]);
+          this.props.component.textResourceBindings.description :
+          this.getTextResource(this.props.component.textResourceBindings.description);
       return (
         <span className='a-form-label description-label'>{description}</span>
       );
@@ -254,7 +253,7 @@ const makeMapStateToProps = () => {
     dataModelElement: state.appData.dataModel.model.find(
       (element) =>
         element.DataBindingName ===
-        state.formDesigner.layout.components[props.id].dataModelBindings[DefaultDataModelBindingKey]),
+        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:

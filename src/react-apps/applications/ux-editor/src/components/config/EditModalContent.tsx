@@ -31,11 +31,6 @@ export interface IEditModalContentProps {
   language: any;
 }
 
-export enum TextResourceBindingKeys {
-  Title = 'Title',
-  Description = 'Description',
-}
-
 export interface IEditModalContentState {
   component: IFormComponent;
 }
@@ -72,9 +67,18 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
   }
 
+  public handleTextResourceBindingChange = (e: any, key: string): void => {
+    const updatedComponent = this.props.component;
+    updatedComponent.textResourceBindings[key] = e ? e.value : null;
+    this.setState({
+      component: updatedComponent,
+    });
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
   public handleTitleChange = (e: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.textResourceBindings[TextResourceBindingKeys.Title] = e ? e.value : null;
+    updatedComponent.textResourceBindings.title = e ? e.value : null;
     this.setState((state) => {
       return {
         ...state,
@@ -147,7 +151,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleDescriptionChange = (selectedText: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.textResourceBindings[TextResourceBindingKeys.Description]
+    updatedComponent.textResourceBindings.title
       = selectedText ? selectedText.value : null;
     this.props.handleComponentUpdate(updatedComponent);
   }
@@ -188,7 +192,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.state.component.textResourceBindings[TextResourceBindingKeys.Title], null, false)}
+              this.state.component.textResourceBindings.title)}
             <Grid item={true} xs={12}>
               {renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
               <Select
@@ -214,12 +218,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings[TextResourceBindingKeys.Title])}
+              this.props.component.textResourceBindings.title)}
             {renderSelectTextFromResources('modal_properties_description_helper',
               this.handleDescriptionChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings[TextResourceBindingKeys.Description])}
+              this.props.component.textResourceBindings.title)}
           </Grid>
         );
       }
@@ -230,13 +234,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings[TextResourceBindingKeys.Title],
-              null,
-              false)}
+              this.props.component.textResourceBindings.title,
+            )}
             {renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
             <textarea
               value={getTextResource(
-                this.state.component.textResourceBindings[TextResourceBindingKeys.Title], this.props.textResources)}
+                this.state.component.textResourceBindings.title, this.props.textResources)}
               style={{ width: '100%' }}
               rows={4}
               className='form-control'
@@ -360,7 +363,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <input
               type='text'
               disabled={true}
-              value={this.props.component.textResourceBindings[TextResourceBindingKeys.Title]}
+              value={this.props.component.textResourceBindings.title}
               className='form-control'
             />
           </div>
@@ -396,6 +399,18 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                   value,
                 )
               );
+            })}
+            {Object.keys(AddressKeys).map((value: AddressKeys) => {
+              return (
+                renderSelectTextFromResources(
+                  this.state.component.textResourceBindings[value],
+                  this.handleTextResourceBindingChange,
+                  this.props.textResources,
+                  this.props.language,
+                  this.state.component.textResourceBindings[value],
+                  value,
+                )
+              )
             })}
           </Grid >
         );

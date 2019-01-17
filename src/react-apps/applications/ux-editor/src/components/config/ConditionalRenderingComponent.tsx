@@ -180,7 +180,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
   public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
     return (
       <option key={id} value={id}>
-        {`${this.props.formLayoutComponents[id].title} (id=${id})`}
+        {`${this.props.formLayoutComponents[id].component} (id=${id})`}
       </option>
     );
   }

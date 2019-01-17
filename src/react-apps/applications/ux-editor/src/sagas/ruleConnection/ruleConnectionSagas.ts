@@ -6,7 +6,6 @@ import manageServiceConfigurationActionDispatcher from '../../actions/manageServ
 import * as RuleConnetionActions from '../../actions/ruleConnectionActions/actions';
 import RuleConnectionActionDispatchers from '../../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
 import * as RuleConnectionActionTypes from '../../actions/ruleConnectionActions/ruleConnectionActionTypes';
-import { DefaultDataModelBindingKey } from '../../components/FormComponent';
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
@@ -142,9 +141,15 @@ function* checkIfRuleShouldRunSaga({
                 continue;
               }
             }
-            if (formDesignerState.layout.components[component].dataModelBindings[DefaultDataModelBindingKey]
-              === connectionDef.outParams.outParam0) {
-              updatedComponent = component;
+            for (const dataBindingKey in formDesignerState.layout.components[component].dataModelBindings) {
+              if (!dataBindingKey) {
+                continue;
+              }
+              if (formDesignerState.layout.components[component].dataModelBindings[dataBindingKey] ===
+                connectionDef.outParam0) {
+                updatedComponent = component;
+                break;
+              }
             }
           }
           if (!updatedDataBinding) {

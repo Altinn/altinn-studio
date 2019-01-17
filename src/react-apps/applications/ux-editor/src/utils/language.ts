@@ -1,5 +1,4 @@
 import { ComponentTypes } from '../components';
-import { AddressKeys } from '../components/advanced/AddressComponent';
 import { CollapsableMenus } from '../containers/Toolbar';
 
 export function getComponentHelperTextByComponentType(componentType: ComponentTypes, language: any): string {

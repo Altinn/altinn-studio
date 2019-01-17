@@ -4,8 +4,8 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
-import { formatCreateTextLabel, getTextResource, truncate } from './language';
 import { DefaultDataModelBindingKey } from '../components/FormComponent';
+import { formatCreateTextLabel, getTextResource, truncate } from './language';
 
 export const styles = {
   inputHelper: {
@@ -55,10 +55,11 @@ export function renderSelectDataModelBinding(
 
 export function renderSelectTextFromResources(
   labelText: string,
-  onChangeFunction: (e: any) => void,
+  onChangeFunction: (e: any, returnValue?: string) => void,
   textResources: ITextResource[],
   language: any,
   placeholder?: string,
+  returnValue?: string,
   truncateLimit: number = 80,
   createNewTextAllowed: boolean = false,
 ): JSX.Element {
@@ -77,7 +78,8 @@ export function renderSelectTextFromResources(
           styles={customInput}
           options={resources}
           defaultValue={''}
-          onChange={onChangeFunction}
+          // tslint:disable-next-line:jsx-no-lambda
+          onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
@@ -92,7 +94,8 @@ export function renderSelectTextFromResources(
           styles={customInput}
           options={resources}
           defaultValue={''}
-          onChange={onChangeFunction}
+          // tslint:disable-next-line:jsx-no-lambda
+          onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
