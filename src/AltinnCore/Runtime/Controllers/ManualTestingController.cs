@@ -71,7 +71,7 @@ namespace AltinnCore.Runtime.Controllers
             _giteaApi = giteaWrapper;
             _execution = execution;
             _httpContextAccessor = contextAccessor;
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <summary>

@@ -32,7 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <inheritdoc/>

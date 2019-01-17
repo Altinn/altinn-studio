@@ -99,8 +99,7 @@ namespace AltinnCore.Common.Helpers
         }
 
         /// <summary>
-        /// Creates a HttpClient with nescerry cookies to call the designer APIS from runtime.
-        /// Relevant 
+        /// Creates a HttpClient with necessary cookies to call the designer APIS from runtime.
         /// </summary>
         /// <param name="context">The http context</param>
         /// <param name="cookieHost">The cookie host for the designer cookie</param>
