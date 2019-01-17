@@ -27,7 +27,6 @@ export interface IProvidedProps {
   singleSelected: boolean;
 }
 
-export const DefaultDataModelBindingKey = 'simpleBinding';
 
 /**
  * Properties for the component itself. mapStateToProps convert to this from
@@ -74,7 +73,7 @@ class FormComponent extends React.Component<
    * that is sendt to the different Action dispatcher.
    * This event handler is used for all form components rendered from this
    */
-  public handleComponentDataUpdate = (callbackValue: any, key: string = DefaultDataModelBindingKey): void => {
+  public handleComponentDataUpdate = (callbackValue: any, key: string = 'simpleBinding'): void => {
     if (!this.props.component.dataModelBindings || !this.props.component.dataModelBindings[key]) {
       return;
     }

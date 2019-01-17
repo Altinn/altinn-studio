@@ -38,12 +38,6 @@ export interface IEditModalContentState {
 class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
   constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
     super(_props, _state);
-    if (!this.props.component.dataModelBindings) {
-      this.props.component.dataModelBindings = {};
-    }
-    if (!this.props.component.textResourceBindings) {
-      this.props.component.textResourceBindings = {};
-    }
     this.state = {
       component: _props.component,
     };
@@ -68,7 +62,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public handleTextResourceBindingChange = (e: any, key: string): void => {
-    const updatedComponent = this.props.component;
+    const updatedComponent = this.state.component;
     updatedComponent.textResourceBindings[key] = e ? e.value : null;
     this.setState({
       component: updatedComponent,
@@ -77,7 +71,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public handleTitleChange = (e: any): void => {
-    const updatedComponent = this.props.component;
+    const updatedComponent = this.state.component;
     updatedComponent.textResourceBindings.title = e ? e.value : null;
     this.setState((state) => {
       return {

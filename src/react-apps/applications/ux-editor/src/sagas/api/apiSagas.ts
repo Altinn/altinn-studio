@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest, cps } from 'redux-saga/effects';
+import { call, select, takeLatest } from 'redux-saga/effects';
 import * as ApiActions from '../../actions/apiActions/actions';
 import ApiActionDispatchers from '../../actions/apiActions/apiActionDispatcher';
 import * as ApiActionTypes from '../../actions/apiActions/apiActionTypes';
@@ -271,7 +271,7 @@ function* apiCheckValue(
                   continue;
                 }
                 for (const dataBindingKey in components[component].dataModelBindings) {
-                  if (dataBindingKey === updatedDataBinding.DataBindingName) {
+                  if (components[component].dataModelBindings[dataBindingKey] === updatedDataBinding.DataBindingName) {
                     updatedComponent = component;
                     break;
                   }

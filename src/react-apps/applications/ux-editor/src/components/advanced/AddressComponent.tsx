@@ -38,11 +38,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   constructor(_props: IAddressComponentProps) {
     super(_props);
     this.state = {
-      address: '',
-      zipCode: '',
-      postPlace: '',
-      careOf: '',
-      houseNumber: '',
+      address: this.props.formData ? this.props.formData[AddressKeys.address] : '',
+      zipCode: this.props.formData ? this.props.formData[AddressKeys.zipCode] : '',
+      postPlace: this.props.formData ? this.props.formData[AddressKeys.postPlace] : '',
+      careOf: this.props.formData ? this.props.formData[AddressKeys.careOf] : '',
+      houseNumber: this.props.formData ? this.props.formData[AddressKeys.houseNumber] : '',
       validations: {
         zipCode: null,
         houseNumber: null,

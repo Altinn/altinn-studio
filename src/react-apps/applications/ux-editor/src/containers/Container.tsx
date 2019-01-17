@@ -288,8 +288,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
             firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
             lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
             handleDataUpdate={this.handleComponentDataUpdate}
-            formData={this.props.formData[this.props.components[id].dataModelBinding] ?
-              this.props.formData[this.props.components[id].dataModelBinding] : ''}
+            formData={this.getFormData(id)}
             sendListToParent={this.handleActiveListChange}
             singleSelected={this.props.activeList.length === 1}
           />
@@ -304,12 +303,32 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
         lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
         handleDataUpdate={this.handleComponentDataUpdate}
-        formData={this.props.formData[this.props.components[id].dataModelBinding] ?
-          this.props.formData[this.props.components[id].dataModelBinding] : ''}
+        formData={this.getFormData(id)}
         sendListToParent={this.handleActiveListChange}
         singleSelected={this.props.activeList.length === 1}
       />
     );
+  }
+
+  public getFormData = (id: string): string | {} => {
+    if (!this.props.components[id].dataModelBindings ||
+      Object.keys(this.props.components[id].dataModelBindings).length === 0) {
+      return '';
+    }
+    const valueArr: { [id: string]: string } = {};
+    for (const dataBindingKey in this.props.components[id].dataModelBindings) {
+      if (!dataBindingKey) {
+        continue;
+      }
+      valueArr[dataBindingKey] = this.props.formData[this.props.components[id].dataModelBindings[dataBindingKey]];
+    }
+    if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
+      // Simple component
+      return valueArr.simpleBinding;
+    } else {
+      // Advanced component
+      return valueArr;
+    }
   }
 
   public handleAddNewGroup = () => {
