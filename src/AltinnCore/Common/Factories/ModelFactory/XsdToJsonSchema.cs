@@ -18,8 +18,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private XmlSchema mainXsd;
         private JsonSchema mainJsonSchema;
 
-        private IDictionary<XmlSchemaObject, string> itemNames = new Dictionary<XmlSchemaObject, string>();
-        private IDictionary<XmlSchemaObject, string> typeNames = new Dictionary<XmlSchemaObject, string>();
+        private IDictionary<XmlSchemaObject, XmlQualifiedName> itemNames = new Dictionary<XmlSchemaObject, XmlQualifiedName>();
+        private IDictionary<XmlSchemaObject, XmlQualifiedName> typeNames = new Dictionary<XmlSchemaObject, XmlQualifiedName>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XsdToJsonSchema"/> class.
@@ -56,7 +56,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     JsonSchema itemSchema = ParseTopLevelElement((XmlSchemaElement)item, out isRequired);
                     if (itemSchema != null)
                     {
-                        mainJsonSchema.Property(GetItemName(item), itemSchema);
+                        mainJsonSchema.Property(GetItemName(item).Name, itemSchema);
                     }
                 }
             }
@@ -114,9 +114,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 return ParseAnnotation((XmlSchemaAnnotation)item);
             }
-            else if (item is XmlSchemaGroup)
+            else if (item is XmlSchemaGroup || item is XmlSchemaAttribute)
             {
-                // Do nothing. xsd:group is expanded in place
+                // Do nothing. xsd:group and top-level xsd:attribute is expanded in place
                 return null;
             }
             else
@@ -137,7 +137,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private JsonSchema ParseElement(XmlSchemaElement item, bool isFirstPass, out bool isRequired)
         {
-            string elementName = GetItemName(item); // This will become either .Name of .RefName.Name
+            XmlQualifiedName elementName = GetItemName(item); // This will become either .Name of .RefName.Name
 
             isRequired = false;
 
@@ -218,14 +218,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     if (item.SchemaType is XmlSchemaComplexType)
                     {
-                        string complexTypeName = GetItemName(item.SchemaType);
+                        XmlQualifiedName complexTypeName = GetItemName(item.SchemaType);
                         JsonSchema complexTypeSchema = ParseComplexType((XmlSchemaComplexType)item.SchemaType);
                         AddDefinition(item.SchemaType, complexTypeSchema);
-                        AppendTypeFromNameInternal(new XmlQualifiedName(complexTypeName), elementSchema);
+                        AppendTypeFromNameInternal(complexTypeName, elementSchema);
                     }
                     else if (item.SchemaType is XmlSchemaSimpleType)
                     {
-                        string simpleTypeName = GetItemName(item.SchemaType);
+                        XmlQualifiedName simpleTypeName = GetItemName(item.SchemaType);
                         JsonSchema simpleTypeSchema = new JsonSchema();
                         AppendSimpleType((XmlSchemaSimpleType)item.SchemaType, simpleTypeSchema);
                         AddDefinition(item.SchemaType, simpleTypeSchema);
@@ -248,7 +248,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private JsonSchema ParseComplexType(XmlSchemaComplexType item)
         {
             JsonSchema complexTypeSchema = new JsonSchema();
-            List<string> requiredList = new List<string>();
+            List<XmlQualifiedName> requiredList = new List<XmlQualifiedName>();
 
             if (item.Annotation != null)
             {
@@ -267,8 +267,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
                     if (attributeSchema != null)
                     {
-                        string name = GetItemName(attribute);
-                        complexTypeSchema.Property(name, attributeSchema);
+                        XmlQualifiedName name = GetItemName(attribute);
+                        complexTypeSchema.Property(name.Name, attributeSchema);
                         if (isRequired)
                         {
                             requiredList.Add(name);
@@ -310,7 +310,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (requiredList.Count > 0)
             {
-                complexTypeSchema.Required(requiredList.ToArray());
+                complexTypeSchema.Required(RequiredListToArray(requiredList));
             }
 
             return complexTypeSchema;
@@ -434,6 +434,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                     AppendTypeFromSchemaTypeInternal(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, appendToSchema);
                 }
+                else if (simpleTypeContent is XmlSchemaSimpleTypeList)
+                {
+                    XmlSchemaSimpleTypeList simpleTypeListItem = (XmlSchemaSimpleTypeList)simpleTypeContent;
+
+                    if (simpleTypeListItem.ItemType != null)
+                    {
+                        int d = 0;
+                    }
+                    else if (!simpleTypeListItem.ItemTypeName.IsEmpty)
+                    {
+                        int d = 0;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
                 else
                 {
                     throw new NotImplementedException();
@@ -485,6 +502,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (!attribute.RefName.IsEmpty)
             {
+                XmlSchemaObject refAttributeItem = FindObject(attribute.RefName);
                 throw new NotImplementedException();
             }
 
@@ -543,7 +561,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AppendParticle(XmlSchemaParticle particle, JsonSchema appendToSchema, List<string> requiredList)
+        private void AppendParticle(XmlSchemaParticle particle, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (particle == null)
             {
@@ -565,14 +583,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AppendParticleProperty(XmlSchemaParticle item, JsonSchema appendToSchema, List<string> requiredList)
+        private void AppendParticleProperty(XmlSchemaParticle item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item is XmlSchemaElement)
             {
-                string elementName = GetItemName(item);
+                XmlQualifiedName elementName = GetItemName(item);
                 bool isRequired;
                 JsonSchema elementSchema = ParseElement((XmlSchemaElement)item, out isRequired);
-                appendToSchema.Property(elementName, elementSchema);
+                appendToSchema.Property(elementName.Name, elementSchema);
 
                 if (isRequired)
                 {
@@ -649,7 +667,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else
             {
-                return AppendTypeFromNameInternal(new XmlQualifiedName(GetItemName(schemaType)), appendToSchema);
+                return AppendTypeFromNameInternal(GetItemName(schemaType), appendToSchema);
             }
         }
 
@@ -805,12 +823,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else if (item is XmlSchemaSequence)
             {
-                List<string> requiredList = new List<string>();
+                List<XmlQualifiedName> requiredList = new List<XmlQualifiedName>();
                 AppendParticle((XmlSchemaSequence)item, appendToSchema, requiredList);
 
                 if (requiredList.Count > 0)
                 {
-                    appendToSchema.Required(requiredList.ToArray());
+                    appendToSchema.Required(RequiredListToArray(requiredList));
                 }
             }
             else
@@ -819,17 +837,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private bool HasDefinition(string name)
+        private bool HasDefinition(XmlQualifiedName name)
         {
-            return mainJsonSchema.Definitions() != null && mainJsonSchema.Definitions().ContainsKey(name);
+            return mainJsonSchema.Definitions() != null && mainJsonSchema.Definitions().ContainsKey(name.Name);
         }
 
         private void AddDefinition(XmlSchemaObject item, JsonSchema definition)
         {
-            string name = GetItemName(item);
+            XmlQualifiedName name = GetItemName(item);
             if (!HasDefinition(name))
             {
-                mainJsonSchema.Definition(name, definition);
+                mainJsonSchema.Definition(name.Name, definition);
             }
             else
             {
@@ -846,13 +864,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else
             {
                 AddTypeObject(appendToSchema);
-                appendToSchema.Property(GetItemName(item), definitionSchema);
+                appendToSchema.Property(GetItemName(item).Name, definitionSchema);
             }
         }
 
-        private void ExpandAndAppendGroupRef(XmlSchemaGroupRef groupRefItem, JsonSchema appendToSchema, List<string> requiredList)
+        private void ExpandAndAppendGroupRef(XmlSchemaGroupRef groupRefItem, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
-            XmlSchemaObject groupObject = FindObject(groupRefItem.RefName.ToString());
+            XmlSchemaObject groupObject = FindObject(groupRefItem.RefName);
             if (groupObject != null)
             {
                 if (groupObject is XmlSchemaGroup)
@@ -922,7 +940,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
                         if (attributeSchema != null)
                         {
-                            appendToSchema.Property(GetItemName(attribute), attributeSchema);
+                            appendToSchema.Property(GetItemName(attribute).Name, attributeSchema);
                         }
                     }
 
@@ -964,8 +982,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
                         if (attributeSchema != null)
                         {
-                            string name = GetItemName(attribute);
-                            appendToSchema.Property(name, attributeSchema);
+                            XmlQualifiedName name = GetItemName(attribute);
+                            appendToSchema.Property(name.Name, attributeSchema);
                             if (isRequired)
                             {
                                 throw new NotImplementedException();
@@ -986,13 +1004,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (contentExtensionItem.Particle != null)
                 {
                     JsonSchema usingSchema = isInherit ? new JsonSchema() : definitionSchema;
-                    List<string> requiredList = new List<string>();
+                    List<XmlQualifiedName> requiredList = new List<XmlQualifiedName>();
 
                     AppendParticle(contentExtensionItem.Particle, usingSchema, requiredList);
 
                     if (requiredList.Count > 0)
                     {
-                        usingSchema.Required(requiredList.ToArray());
+                        usingSchema.Required(RequiredListToArray(requiredList));
                     }
 
                     if (isInherit)
@@ -1026,32 +1044,44 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private XmlSchemaObject FindObject(string name)
+        private XmlSchemaObject FindObject(XmlQualifiedName name)
         {
             XmlSchemaObjectEnumerator enumerator = mainXsd.Items.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 XmlSchemaObject xmlSchemaObject = enumerator.Current;
 
-                string objectName = null;
+                XmlQualifiedName objectName = XmlQualifiedName.Empty;
                 if (xmlSchemaObject is XmlSchemaGroup)
                 {
-                    objectName = ((XmlSchemaGroup)xmlSchemaObject).Name;
+                    XmlSchemaGroup groupItem = (XmlSchemaGroup)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
                 }
                 else if (xmlSchemaObject is XmlSchemaElement)
                 {
-                    objectName = ((XmlSchemaElement)xmlSchemaObject).Name;
+                    XmlSchemaElement elementItem = (XmlSchemaElement)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(elementItem.QualifiedName, elementItem.Name, elementItem);
                 }
                 else if (xmlSchemaObject is XmlSchemaType)
                 {
-                    objectName = ((XmlSchemaType)xmlSchemaObject).Name;
+                    XmlSchemaType typeItem = (XmlSchemaType)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(typeItem.QualifiedName, typeItem.Name, typeItem);
+                }
+                else if (xmlSchemaObject is XmlSchemaAttribute)
+                {
+                    XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(attributeItem.QualifiedName, attributeItem.Name, attributeItem);
+                }
+                else if (xmlSchemaObject is XmlSchemaAnnotation)
+                {
+                    // No name
                 }
                 else
                 {
                     throw new NotImplementedException();
                 }
 
-                if (name.Equals(objectName))
+                if (name == objectName)
                 {
                     return xmlSchemaObject;
                 }
@@ -1060,11 +1090,72 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return null;
         }
 
-        private string GetItemName(XmlSchemaObject item)
+        private string GetNamespaceForItem(XmlSchemaObject item)
         {
             if (item == null)
             {
                 return null;
+            }
+
+            if (itemNames.ContainsKey(item))
+            {
+                return itemNames[item].Namespace;
+            }
+
+            XmlQualifiedName xmlQualifiedName = XmlQualifiedName.Empty;
+
+            if (item is XmlSchemaElement)
+            {
+                xmlQualifiedName = ((XmlSchemaElement)item).QualifiedName;
+            }
+            else if (item is XmlSchemaAttribute)
+            {
+                xmlQualifiedName = ((XmlSchemaAttribute)item).QualifiedName;
+            }
+            else if (item is XmlSchemaType)
+            {
+                xmlQualifiedName = ((XmlSchemaType)item).QualifiedName;
+            }
+            else if (item is XmlSchemaGroup)
+            {
+                xmlQualifiedName = ((XmlSchemaGroup)item).QualifiedName;
+            }
+
+            if (!xmlQualifiedName.IsEmpty)
+            {
+                return xmlQualifiedName.Namespace;
+            }
+            else if (item.Parent != mainXsd)
+            {
+                return GetNamespaceForItem(item.Parent);
+            }
+            else
+            {
+                return mainXsd.TargetNamespace;
+            }
+        }
+
+        private XmlQualifiedName QualifiedNameOrName(XmlQualifiedName qualifiedName, string name, XmlSchemaObject item)
+        {
+            if (!qualifiedName.IsEmpty)
+            {
+                return qualifiedName;
+            }
+            else if (name != null)
+            {
+                return new XmlQualifiedName(name, GetNamespaceForItem(item));
+            }
+            else
+            {
+                return XmlQualifiedName.Empty;
+            }
+        }
+
+        private XmlQualifiedName GetItemName(XmlSchemaObject item)
+        {
+            if (item == null)
+            {
+                return XmlQualifiedName.Empty;
             }
 
             if (itemNames.ContainsKey(item))
@@ -1075,10 +1166,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (item is XmlSchemaElement)
             {
                 XmlSchemaElement elementItem = (XmlSchemaElement)item;
-                string name = elementItem.Name;
-                if (name == null && elementItem.RefName != null)
+                XmlQualifiedName name = QualifiedNameOrName(elementItem.QualifiedName, elementItem.Name, elementItem);
+                if (name.IsEmpty && !elementItem.RefName.IsEmpty)
                 {
-                    XmlSchemaObject refObject = FindObject(elementItem.RefName.ToString());
+                    XmlSchemaObject refObject = FindObject(elementItem.RefName);
                     name = GetItemName(refObject);
                 }
 
@@ -1087,10 +1178,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else if (item is XmlSchemaAttribute)
             {
                 XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)item;
-                string name = attributeItem.Name;
-                if (name == null && attributeItem.RefName != null)
+                XmlQualifiedName name = QualifiedNameOrName(attributeItem.QualifiedName, attributeItem.Name, attributeItem);
+                if (name.IsEmpty && !attributeItem.RefName.IsEmpty)
                 {
-                    XmlSchemaObject refObject = FindObject(attributeItem.RefName.ToString());
+                    XmlSchemaObject refObject = FindObject(attributeItem.RefName);
                     name = GetItemName(refObject);
                 }
 
@@ -1098,9 +1189,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else if (item is XmlSchemaType)
             {
-                string name = ((XmlSchemaType)item).Name;
-
-                if (name == null)
+                XmlSchemaType typeItem = (XmlSchemaType)item;
+                XmlQualifiedName name = QualifiedNameOrName(typeItem.QualifiedName, typeItem.Name, typeItem);
+                if (name.IsEmpty)
                 {
                     name = GetItemName(item.Parent);
 
@@ -1114,22 +1205,24 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else if (item is XmlSchemaGroup)
             {
-                return RegisterItemName(item, ((XmlSchemaGroup)item).Name);
+                XmlSchemaGroup groupItem = (XmlSchemaGroup)item;
+                XmlQualifiedName name = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
+                return RegisterItemName(item, name);
             }
             else
             {
-                return RegisterItemName(item, null);
+                return RegisterItemName(item, XmlQualifiedName.Empty);
             }
         }
 
-        private string RegisterItemName(XmlSchemaObject item, string name)
+        private XmlQualifiedName RegisterItemName(XmlSchemaObject item, XmlQualifiedName name)
         {
-            if (name == null)
+            if (name.IsEmpty)
             {
                 name = GetItemName(item.Parent);
             }
 
-            if (name != null)
+            if (!name.IsEmpty)
             {
                 itemNames[item] = name;
 
@@ -1138,53 +1231,58 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     typeNames[item] = name;
                 }
             }
+            else
+            {
+                int d = 0;
+            }
 
             return name;
         }
 
-        private string GenerateAnonymousTypeName(XmlSchemaType item)
+        private XmlQualifiedName GenerateAnonymousTypeName(XmlSchemaType item)
         {
             if (itemNames.ContainsKey(item))
             {
                 return itemNames[item];
             }
 
-            string tmpName = item.Name;
-            if (tmpName == null)
+            XmlQualifiedName tmpName = QualifiedNameOrName(item.QualifiedName, item.Name, item);
+            if (tmpName.IsEmpty)
             {
                 tmpName = GetItemName(item.Parent);
 
-                if (tmpName == null)
+                if (tmpName.IsEmpty)
                 {
                     throw new XmlSchemaException();
                 }
             }
 
-            string typeName;
+            XmlQualifiedName newName;
 
             // string typeNamePart = tmpName.Substring(0, 1).ToUpper() + tmpName.Substring(1); //Use this to force first letter uppercase
-            string typeNamePart = tmpName;
+            string typeNamePart = tmpName.Name;
 
             int i = 0;
             while (true)
             {
                 i++;
 
-                typeName = typeNamePart;
+                string typeName = typeNamePart;
                 if (i > 1)
                 {
                     typeName += i.ToString();
                 }
 
                 // Is name unused?
-                if (!itemNames.Values.Contains(typeName) &&
-                    !HasDefinition(typeName))
+                newName = new XmlQualifiedName(typeName, tmpName.Namespace);
+                if (!itemNames.Values.Contains(newName) &&
+                    !HasDefinition(newName))
                 {
                     break;
                 }
             }
 
-            return RegisterItemName(item, typeName);
+            return RegisterItemName(item, newName);
         }
 
         private JsonSchemaType JsonSchemaTypeFromString(string type)
@@ -1200,6 +1298,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 case "string": return JsonSchemaType.String;
                 default: return JsonSchemaType.NotDefined;
             }
+        }
+
+        private string[] RequiredListToArray(List<XmlQualifiedName> requiredList)
+        {
+            List<string> requiredArrayList = new List<string>();
+            foreach (XmlQualifiedName name in requiredList)
+            {
+                requiredArrayList.Add(name.Name);
+            }
+
+            return requiredArrayList.ToArray();
         }
 
         private bool IsTopLevel(XmlSchemaObject item)
