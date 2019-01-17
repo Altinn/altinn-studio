@@ -531,6 +531,37 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return attributeSchema;
         }
 
+        private JsonSchema ParseAny(XmlSchemaAny item, out bool isRequired)
+        {
+            isRequired = false;
+
+            JsonSchema anySchema = new JsonSchema();
+
+            if (item.Annotation != null)
+            {
+                string annotated = ParseAnnotated(item);
+                if (annotated != null && annotated.Length > 0)
+                {
+                    anySchema.Description(annotated);
+                }
+            }
+
+            if (item.MinOccurs >= 1 ||
+                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString) >= 1))
+            {
+                isRequired = true;
+            }
+
+            if (item.MaxOccursString != null)
+            {
+                // This is handled when appending type info
+            }
+
+            AppendType(item, anySchema);
+
+            return anySchema;
+        }
+
         private JsonSchema ParseParticle(XmlSchemaParticle item, out bool isRequired)
         {
             JsonSchema particleSchema = new JsonSchema();
@@ -616,6 +647,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 appendToSchema.OneOf(oneOfSchemaList.ToArray());
             }
+            else if (item is XmlSchemaAny)
+            {
+                XmlQualifiedName anyName = GetItemName(item);
+                bool isRequired;
+                JsonSchema anySchema = ParseAny((XmlSchemaAny)item, out isRequired);
+                appendToSchema.Property(anyName.Name, anySchema);
+
+                if (isRequired)
+                {
+                    requiredList.Add(anyName);
+                }
+            }
             else if (item is XmlSchemaGroupRef)
             {
                 ExpandAndAppendGroupRef((XmlSchemaGroupRef)item, appendToSchema, requiredList);
@@ -680,17 +723,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string AppendTypeFromNameInternal(XmlQualifiedName qname, JsonSchema appendToSchema)
         {
-            string type = (qname == null) ? null : qname.ToString();
-            string name = (qname == null) ? null : qname.Name;
+            string type = (qname == null || qname.IsEmpty) ? null : qname.ToString();
+            string name = (qname == null || qname.IsEmpty) ? null : qname.Name;
             if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
             {
                 // xs:anyType
                 appendToSchema.Type(JsonSchemaType.String);
             }
-
-            if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
-                || "http://www.w3.org/2001/XMLSchema:normalizedString".Equals(type)
-                || "http://www.w3.org/2001/XMLSchema:token".Equals(type))
+            else if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:normalizedString".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:token".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.String);
             }
@@ -836,6 +878,29 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (requiredList.Count > 0)
                 {
                     appendToSchema.Required(RequiredListToArray(requiredList));
+                }
+            }
+            else if (item is XmlSchemaAny)
+            {
+                XmlSchemaAny anyItem = (XmlSchemaAny)item;
+                if (anyItem.MaxOccurs > 1)
+                {
+                    appendToSchema.Type(JsonSchemaType.Array);
+                    appendToSchema.MinItems(Convert.ToUInt32(anyItem.MinOccurs));
+                    if (!"unbounded".Equals(anyItem.MaxOccursString))
+                    {
+                        appendToSchema.MaxItems(Convert.ToUInt32(anyItem.MaxOccurs));
+                    }
+
+                    JsonSchema[] itemsSchemas = new JsonSchema[1];
+                    itemsSchemas[0] = new JsonSchema();
+
+                    AppendTypeFromSchemaTypeInternal(null, XmlQualifiedName.Empty, itemsSchemas[0]);
+                    appendToSchema.Items(itemsSchemas);
+                }
+                else
+                {
+                    AppendTypeFromSchemaTypeInternal(null, XmlQualifiedName.Empty, appendToSchema);
                 }
             }
             else
