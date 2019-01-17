@@ -224,6 +224,19 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Stages a specific file changed in working repository.
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <param name="fileName">the entire file path with filen name</param>
+        /// <returns>Http response message as ok if checkout operation is successful</returns>
+        [HttpGet]
+        public ActionResult<HttpResponseMessage> StageChange(string owner, string repository, string fileName)
+        {
+            return _sourceControl.StageChange(owner, repository, fileName);
+        }
+
+        /// <summary>
         /// Action used to create a new service under the current service owner
         /// </summary>
         /// <param name="org">The service owner code</param>
