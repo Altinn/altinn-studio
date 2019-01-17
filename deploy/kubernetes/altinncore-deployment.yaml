@@ -165,6 +165,8 @@ spec:
             value: "true"
           - name: ServiceRepositorySettings__RuntimeAPIEndPoint
             value: "https://dev.altinn.studio/"
+          - name:  Designer_InternalHost
+            value: "altinn-designer"
       volumes:
       - name: altinn-runtime-repo-storage
         persistentVolumeClaim:
