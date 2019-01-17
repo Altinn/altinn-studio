@@ -76,6 +76,9 @@
     <None Update="Common\melding.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Common\melding1.schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\motorvognavgift-v4.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

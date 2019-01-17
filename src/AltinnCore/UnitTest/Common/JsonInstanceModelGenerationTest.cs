@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
+using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+using Moq;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Common
@@ -25,7 +29,7 @@ namespace AltinnCore.UnitTest.Common
             var schemaJson = JsonValue.Parse(schemaText);
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
-            JsonSchemaToJsonInstanceModelGenerator converter = new JsonSchemaToJsonInstanceModelGenerator("TestOrg", "edag", schema);
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "edag", schema);
 
             JsonObject instanceModel = converter.GetInstanceModel();
 
@@ -44,22 +48,30 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void JsonInstanceFromAutogenJson()
         {
-            var schemaText = File.ReadAllText("Common/melding.schema.json");
+            var schemaText = File.ReadAllText("Common/melding1.schema.json");
             var schemaJson = JsonValue.Parse(schemaText);
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
-            JsonSchemaToJsonInstanceModelGenerator converter = new JsonSchemaToJsonInstanceModelGenerator("TestOrg", "edag", schema);
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "edag", schema);
 
             JsonObject instanceModel = converter.GetInstanceModel();
 
             Assert.NotNull(instanceModel);
             JsonObject actualElements = instanceModel.TryGetObject("Elements");
-            Assert.Equal(84, actualElements.Count);
+            Assert.Equal(101, actualElements.Count);
 
             string metadataAsJson = instanceModel.ToString();
 
-            File.WriteAllText("melding.instance-model.json", metadataAsJson);
-        }
+            File.WriteAllText("melding1.instance-model.json", metadataAsJson);
+
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            var seresParser = new SeresXsdParser(moqRepository.Object);
+            XDocument mainXsd = XDocument.Load("Common/ServiceModel.xsd");
+
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);            
+
+            File.WriteAllText("medling1.element-metadata.json", Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata));
+        }    
 
         /// <summary>
         ///  Tests a recursive schema and expand/remove path. Happy days!
@@ -72,7 +84,7 @@ namespace AltinnCore.UnitTest.Common
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
             // test recursive schema
-            JsonSchemaToJsonInstanceModelGenerator converter = new JsonSchemaToJsonInstanceModelGenerator("TestOrg", "edag", schema);
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "edag", schema);
             JsonObject instanceModel = converter.GetInstanceModel();
 
             Assert.NotNull(instanceModel);
@@ -108,7 +120,7 @@ namespace AltinnCore.UnitTest.Common
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
             // test recursive schema
-            JsonSchemaToJsonInstanceModelGenerator converter = new JsonSchemaToJsonInstanceModelGenerator("TestOrg", "edag", schema);
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "edag", schema);
             JsonObject instanceModel = converter.GetInstanceModel();
 
             Assert.NotNull(instanceModel);
