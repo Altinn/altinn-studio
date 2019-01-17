@@ -113,6 +113,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             var existingTexts = _repository.GetServiceTexts(org, service);
 
+            if (existingTexts == null)
+            {
+                existingTexts = new Dictionary<string, Dictionary<string, string>>();
+            }
+
             var allTexts = new CultureDictionary();
 
             _complexTypes = new HashSet<string>();
@@ -497,7 +502,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return orid;
         }
 
-        private static string SanitizeName(string name)
+        /// <summary>
+        /// Returns a sanitized name. It removes -, grp-9999 and datadef-9999
+        /// </summary>
+        /// <param name="name">the name to sanitize</param>
+        /// <returns>the santized name</returns>
+        public static string SanitizeName(string name)
         {
             if (!string.IsNullOrEmpty(GetOrid(name)))
             {
@@ -526,6 +536,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         type = elementMetadata.ParentElement.Substring(fromIndex + 1);
                     }
+                }
+                else
+                {
+                    type = elementMetadata.ParentElement;
                 }
             }
 
@@ -781,6 +795,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 attributeElementMetadata.XPath = newTrail;
                 attributeElementMetadata.ID = newTrail.Replace("/", ".").Substring(1);
                 attributeElementMetadata.ParentElement = parentTrail.Replace("/", ".").Substring(1);
+                attributeElementMetadata.MaxOccurs = 1;
+
+                if (attribute.AttributeValue("optional") != null)
+                {
+                    attributeElementMetadata.MinOccurs = 0;
+                }
+                else
+                {
+                    attributeElementMetadata.MinOccurs = 1;
+                }
 
                 attributeElementMetadata.Type = ElementType.Attribute;
 

@@ -9,7 +9,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// <summary>
     ///     Utility class for converting JSON Schema to a Json Instance model
     /// </summary>
-    public class JsonSchemaToJsonInstanceModelGenerator
+    public class JsonSchemaToInstanceModelGenerator
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
         private const int MagicNumberMaxOccurs = 99999;
@@ -21,14 +21,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private JsonSchema jsonSchema;
 
         /// <summary>
-        ///  Initializes a new instance of the <see cref="JsonSchemaToJsonInstanceModelGenerator"/> class.
+        ///  Initializes a new instance of the <see cref="JsonSchemaToInstanceModelGenerator"/> class.
         ///  Creates an initial JSON Instance Model. Assumes top object has properties and that there are multiple definitions.
         ///  <see cref="cref="getInstanceModel"> to get the model </see>"/>
         /// </summary>
         /// <param name="organizationName">The organisation name</param>
         /// <param name="serviceName">Service name</param>
         /// <param name="jsonSchema">The Json Schema to generate the instance model from</param>
-        public JsonSchemaToJsonInstanceModelGenerator(string organizationName, string serviceName, JsonSchema jsonSchema)
+        public JsonSchemaToInstanceModelGenerator(string organizationName, string serviceName, JsonSchema jsonSchema)
         {
             instanceModel.Add("Org", organizationName);
             instanceModel.Add("Service", serviceName);
@@ -157,10 +157,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return false;
         }
 
+        private string SanitizeName(string name)
+        {
+            return SeresXsdParser.SanitizeName(name);
+        }
+
         private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired)
         {
+            string sanitizedPropertyName = SanitizeName(propertyName);
             string path = string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".";
-            path += propertyName;
+            path += sanitizedPropertyName;
 
             string minItems = "0";
             string maxItems = "1";
@@ -197,21 +203,39 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
                                      
             JsonObject result = new JsonObject();
+
+            string inputType = "Field";
+            string xsdType = propertyType.OtherData.TryGetString("@xsdType");
+
+            result.Add("ID", path);
+
             string parentElement = ExtractParent(path);
             result.Add("ParentElement", parentElement);
-            result.Add("Name", propertyName);
 
-            // result.Add("DataBindingName", null);
             string typeName = ExtractTypeNameFromSchema(propertyType);
-            result.Add("TypeName", typeName);
-
-            result.Add("MinOccurs", minItems);
-            result.Add("MaxOccurs", maxItems.Equals("*") ? MagicNumberMaxOccurs.ToString() : maxItems);
-
             string xsdValueType = FollowValueType(propertyType);
-            string inputType = "Field";
+            if (xsdValueType == null)
+            {
+                result.Add("TypeName", SanitizeName(typeName));
+            }
+            else
+            {
+                result.Add("TypeName", null);
+                if (typeName != null)
+                {
+                    typeName = xsdValueType;
+                }
+            }
 
-            string xsdType = propertyType.OtherData.TryGetString("@xsdType");
+            result.Add("Name", sanitizedPropertyName);
+
+            string fixedValue = null;
+            JsonValue fixedValueJson = GetterExtensions.Const(propertyType);
+            if (fixedValueJson != null)
+            {
+                fixedValue = fixedValueJson.String;
+            }
+
             if (xsdType != null && xsdType.Equals("XmlAttribute"))
             {
                 inputType = "Attribute";
@@ -221,14 +245,37 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 inputType = "Group";
             }
 
-            result.Add("Type", inputType);
+            if (inputType.Equals("Group") || !string.IsNullOrEmpty(fixedValue))
+            {
+                result.Add("DataBindingName", null);
+            }
+            else 
+            {
+                result.Add("DataBindingName", path);
+            }
 
+            result.Add("XPath", "/" + path.Replace(".", "/"));
+
+            result.Add("Restrictions", new JsonObject()); // TODO
+            result.Add("Choices", null); // ??
+            
+            result.Add("Type", inputType);
+            
             result.Add("XsdValueType", xsdValueType);
 
-            string cardinality = "[" + minItems + ".." + maxItems + "]";
-            string displayString = RemoveLastStar(path) + " : " + cardinality + " " + typeName;
-            result.Add("DisplayString", displayString);
+            result.Add("Texts", new JsonObject()); // TODO
+            result.Add("CustomProperties", new JsonObject()); // ??
 
+            result.Add("MaxOccurs", maxItems.Equals("*") ? MagicNumberMaxOccurs : int.Parse(maxItems));
+            result.Add("MinOccurs", int.Parse(minItems));
+
+            result.Add("XName", propertyName);
+                        
+            if (fixedValue != null)
+            {
+                result.Add("FixedValue", fixedValue);
+            }
+                        
             string jsonSchemaPointer = "#/properties/" + propertyName;
             if (parentElement != null) 
             {
@@ -237,11 +284,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             result.Add("JsonSchemaPointer", jsonSchemaPointer);
 
-            JsonValue fixedValueJson = GetterExtensions.Const(propertyType);
-            if (fixedValueJson != null)
-            {
-                result.Add("FixedValue", fixedValueJson.String);
-            }
+            string cardinality = "[" + minItems + ".." + maxItems + "]";
+            string displayString = RemoveLastStar(path) + " : " + cardinality + " " + SanitizeName(typeName);
+            result.Add("DisplayString", displayString);
 
             // TODO, add texts, ..., XmlSchemaReference
             elements.Add(path, result);
@@ -381,7 +426,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     case JsonSchemaType.Number:
                         return "decimal";
                     case JsonSchemaType.Integer:
-                        return "integer";
+                        {
+                            double? minimum = GetterExtensions.Minimum(jSchema);
+                            if (minimum == 0.0)
+                            {
+                                return "positiveInteger";
+                            }
+                            else
+                            {
+                                return "integer";
+                            }
+                        }                        
                 }
             }
 
