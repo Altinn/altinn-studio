@@ -1,6 +1,4 @@
-import { CircularProgress, Typography } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
+import { createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnButton from '../../../../shared/src/components/AltinnButton';
@@ -9,7 +7,7 @@ import AltinnIconButton from '../../../../shared/src/components/AltinnIconButton
 import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
 import AltinnModal from '../../../../shared/src/components/AltinnModal';
 import AltinnPopper from '../../../../shared/src/components/AltinnPopper';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { post } from '../../../../shared/src/utils/networking';
 export interface ICreateNewServiceProvidedProps {
@@ -20,8 +18,6 @@ export interface ICreateNewServiceProps extends ICreateNewServiceProvidedProps {
   language: any;
   selectableUser: any;
 }
-
-const theme = createMuiTheme(altinnTheme);
 
 export interface ICreateNewServiceState {
   isOpen: boolean;
@@ -41,20 +37,6 @@ const styles = createStyles({
     fontSize: '16px',
     padding: '5px 45px 5px 45px',
     height: '37px !Important',
-  },
-  spinner: {
-    marginTop: '20px',
-    color: theme.altinnPalette.primary.blueDark,
-    marginRight: 'auto',
-    marginLeft: 'auto',
-    display: 'inline-block',
-  },
-  spinnerText: {
-    display: 'inline-block',
-    fontSize: 16,
-    marginLeft: '10px',
-    verticalAlign: 'middle',
-    marginBottom: '25px',
   },
 });
 
@@ -230,10 +212,9 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
             message={this.state.repoNamePopperMessage}
           />
           {this.state.isLoading ?
-            <div>
-              <CircularProgress className={classNames(classes.spinner)} />
-              <Typography className={classNames(classes.spinnerText)}>Oppretter tjenesten din</Typography>
-            </div>
+            <AltinnSpinner
+              spinnerText={getLanguageFromKey('dashboard.creating_your_service', this.props.language)}
+            />
             :
             <AltinnButton
               btnText={getLanguageFromKey('dashboard.create_service_btn', this.props.language)}

@@ -11,7 +11,7 @@ spec:
     spec:
       containers:
       - name: altinn-repositories
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.1.0
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.2.0
         ports:
         - containerPort: 3000
         volumeMounts:
