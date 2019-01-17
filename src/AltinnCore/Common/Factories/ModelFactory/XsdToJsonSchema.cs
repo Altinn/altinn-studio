@@ -465,6 +465,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private JsonSchema ParseAttribute(XmlSchemaAttribute attribute, out bool isRequired)
         {
+            if (attribute != null && !attribute.RefName.IsEmpty)
+            {
+                XmlSchemaObject refAttribute = FindObject(attribute.RefName);
+                if (refAttribute is XmlSchemaAttribute)
+                {
+                    return ParseAttribute((XmlSchemaAttribute)refAttribute, out isRequired);
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+            }
+
             JsonSchema attributeSchema = new JsonSchema();
 
             isRequired = false;
@@ -497,12 +510,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (!attribute.QualifiedName.IsEmpty)
             {
-                throw new NotImplementedException();
-            }
-
-            if (!attribute.RefName.IsEmpty)
-            {
-                XmlSchemaObject refAttributeItem = FindObject(attribute.RefName);
                 throw new NotImplementedException();
             }
 
