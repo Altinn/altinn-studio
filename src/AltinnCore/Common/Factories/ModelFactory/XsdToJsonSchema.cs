@@ -291,11 +291,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if (item.ContentModel is XmlSchemaComplexContent)
                 {
-                    AppendComplexContent((XmlSchemaComplexContent)item.ContentModel, complexTypeSchema);
+                    AppendComplexContent((XmlSchemaComplexContent)item.ContentModel, complexTypeSchema, requiredList);
                 }
                 else if (item.ContentModel is XmlSchemaSimpleContent)
                 {
-                    AppendSimpleContent((XmlSchemaSimpleContent)item.ContentModel, complexTypeSchema);
+                    AppendSimpleContent((XmlSchemaSimpleContent)item.ContentModel, complexTypeSchema, requiredList);
                 }
                 else
                 {
@@ -970,7 +970,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AppendComplexContent(XmlSchemaComplexContent item, JsonSchema appendToSchema)
+        private void AppendComplexContent(XmlSchemaComplexContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item.Annotation != null)
             {
@@ -983,11 +983,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Content != null)
             {
-                AppendContent(item.Content, appendToSchema);
+                AppendContent(item.Content, appendToSchema, requiredList);
             }
         }
 
-        private void AppendSimpleContent(XmlSchemaSimpleContent item, JsonSchema appendToSchema)
+        private void AppendSimpleContent(XmlSchemaSimpleContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item.Annotation != null)
             {
@@ -1000,11 +1000,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Content != null)
             {
-                AppendContent(item.Content, appendToSchema);
+                AppendContent(item.Content, appendToSchema, requiredList);
             }
         }
 
-        private void AppendContent(XmlSchemaContent item, JsonSchema appendToSchema)
+        private void AppendContent(XmlSchemaContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item is XmlSchemaSimpleContentExtension)
             {
@@ -1026,7 +1026,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
                         if (attributeSchema != null)
                         {
-                            appendToSchema.Property(GetItemName(attribute).Name, attributeSchema);
+                            XmlQualifiedName name = GetItemName(attribute);
+                            appendToSchema.Property(name.Name, attributeSchema);
+                            if (isRequired)
+                            {
+                                requiredList.Add(name);
+                            }
                         }
                     }
 
@@ -1036,6 +1041,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         JsonSchema valueAttributeSchema = new JsonSchema();
                         AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, valueAttributeSchema);
                         appendToSchema.Property("value", valueAttributeSchema);
+                        requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
                     }
                 }
                 else if (!contentExtensionItem.BaseTypeName.IsEmpty)
@@ -1072,9 +1078,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             appendToSchema.Property(name.Name, attributeSchema);
                             if (isRequired)
                             {
-                                throw new NotImplementedException();
-
-                                // requiredList.Add(name);
+                                requiredList.Add(name);
                             }
                         }
                     }
@@ -1090,13 +1094,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (contentExtensionItem.Particle != null)
                 {
                     JsonSchema usingSchema = isInherit ? new JsonSchema() : definitionSchema;
-                    List<XmlQualifiedName> requiredList = new List<XmlQualifiedName>();
+                    List<XmlQualifiedName> particleRequiredList = new List<XmlQualifiedName>();
 
-                    AppendParticle(contentExtensionItem.Particle, usingSchema, requiredList);
+                    AppendParticle(contentExtensionItem.Particle, usingSchema, particleRequiredList);
 
-                    if (requiredList.Count > 0)
+                    if (particleRequiredList.Count > 0)
                     {
-                        usingSchema.Required(RequiredListToArray(requiredList));
+                        usingSchema.Required(RequiredListToArray(particleRequiredList));
                     }
 
                     if (isInherit)
