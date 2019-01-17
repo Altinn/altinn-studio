@@ -199,14 +199,14 @@ namespace AltinnCore.Common.Services.Interfaces
         bool CreateOrg(OrgConfiguration ownerConfig);
 
         /// <summary>
-        /// Creates a new service folder under the given <paramref name="org">service owner</paramref> and saves the
-        /// given <paramref name="serviceConfiguration"/>
+        /// Creates a new service folder under the given <paramref name="owner">service owner</paramref> and saves the
+        /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="org">The service owner to create the new service under</param>
+        /// <param name="owner">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
         /// <param name="repoCreated">whether the repo is created or not</param>
-        /// <returns>Was the service creation successful</returns>
-        bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false);
+        /// <returns>The repository created in gitea</returns>
+        RepositoryClient.Model.Repository CreateService(string owner, ServiceConfiguration serviceConfig, bool repoCreated = false);
 
         /// <summary>
         ///  Deletes a service folder from disk
