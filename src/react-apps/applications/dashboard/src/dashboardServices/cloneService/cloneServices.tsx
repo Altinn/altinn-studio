@@ -5,9 +5,9 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { RouteChildrenProps, withRouter } from 'react-router';
-import { compose } from 'redux';
 import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
 import AltinnButton from '../../../../shared/src/components/AltinnButton';
+import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
 
@@ -15,13 +15,14 @@ export interface ICloneServiceComponentProvidedProps {
   classes: any;
 }
 
-export interface ICloneServiceComponentProps extends ICloneServiceComponentProvidedProps, RouteChildrenProps {
+export interface ICloneServiceComponentProps extends ICloneServiceComponentProvidedProps {
   language: any;
-  repositoryInfo: any;
+  services: any;
 }
 
 export interface ICloneServiceComponentState {
   createdBy: string;
+  isLoading: boolean;
 }
 
 const styles = {
@@ -33,17 +34,19 @@ const styles = {
     fontSize: '16px',
     marginTop: '60px',
   },
+  serviceHeader: {
+    maxWidth: 840,
+    overflowWrap: 'break-word',
+  },
   iconStyling: {
     fontSize: '36px',
   },
   metadataStyle: {
-    fontSize: '16px',
     marginTop: '50px',
   },
 
   descriptionStyle: {
     marginTop: '36px',
-    fontSize: '16px',
   },
   descriptionHeader: {
     fontSize: '20px',
@@ -59,15 +62,17 @@ const styles = {
     marginLeft: 66,
     fontSize: 16,
   },
-  backToDashboard: {
-    fontWeight: 600,
+  fontSize_16: {
+    fontSize: 16,
   },
 };
 
-class CloneServiceComponent extends React.Component<ICloneServiceComponentProps, ICloneServiceComponentState> {
+// tslint:disable-next-line:max-line-length
+export class CloneServiceComponent extends React.Component<ICloneServiceComponentProps & RouteChildrenProps, ICloneServiceComponentState> {
   public _isMounted = false;
   public state: ICloneServiceComponentState = {
     createdBy: '',
+    isLoading: false,
   };
 
   public componentDidMount() {
@@ -76,7 +81,6 @@ class CloneServiceComponent extends React.Component<ICloneServiceComponentProps,
     // tslint:disable-next-line:max-line-length
     const url = `${altinnWindow.location.origin}/designerapi/Repository/Branch?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}&branch=master`;
     get(url).then((result: any) => {
-      console.log(result);
       if (result && this._isMounted) {
         this.setState({
           createdBy: result.commit.author.name,
@@ -95,13 +99,28 @@ class CloneServiceComponent extends React.Component<ICloneServiceComponentProps,
   }
 
   public redirectToCode = () => {
-    window.location.href = `/${this.props.repositoryInfo.full_name}`;
+    // tslint:disable-next-line:max-line-length
+    const repoInfo = this.getCurrentRepositoryInfo();
+    window.location.href = `/${repoInfo.full_name}`;
+  }
+
+  public getCurrentRepositoryInfo = () => {
+    const returnService = this.props.services.filter((service: any) => {
+      // tslint:disable-next-line:max-line-length
+      if (service.full_name === `${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`) {
+        return service;
+      }
+    });
+    return returnService.length === 1 ? returnService[0] : null;
   }
 
   public cloneAndEditService = () => {
     const altinnWindow: any = window as any;
     // tslint:disable-next-line:max-line-length
     const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
+    this.setState({
+      isLoading: true,
+    });
     get(url).then((result: any) => {
       // tslint:disable-next-line:max-line-length
       window.location.href = `${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`;
@@ -110,6 +129,8 @@ class CloneServiceComponent extends React.Component<ICloneServiceComponentProps,
 
   public render() {
     const { classes } = this.props;
+    // tslint:disable-next-line:max-line-length
+    const repoInfo = this.getCurrentRepositoryInfo();
     return (
       <>
         <AltinnBreadcrumb
@@ -118,50 +139,59 @@ class CloneServiceComponent extends React.Component<ICloneServiceComponentProps,
           firstLinkTxt={getLanguageFromKey('dashboard.main_header', this.props.language)}
           secondLinkTxt={(this.props.match.params as any).serviceName}
         />
-        {this.props.repositoryInfo &&
+        {repoInfo &&
           <div className={classes.mainStyle}>
-            <Typography component='h1' variant='h1' gutterBottom={true}>
-              {this.props.repositoryInfo.name}
+            <Typography component='h1' variant='h1' gutterBottom={true} className={classes.serviceHeader}>
+              {repoInfo.name}
             </Typography>
             <div>
               <Typography className={classes.ownerStyle}>
                 <i
                   className={classNames(
                     classes.iconStyling,
-                    { ['ai ai-corp']: this.props.repositoryInfo.owner.UserType === 2 },
-                    { ['ai ai-private']: this.props.repositoryInfo.owner.UserType !== 2 })}
+                    { ['ai ai-corp']: repoInfo.owner.UserType === 2 },
+                    { ['ai ai-private']: repoInfo.owner.UserType !== 2 })}
                   aria-hidden='true'
-                /> {this.props.repositoryInfo.owner.full_name || this.props.repositoryInfo.owner.login}
+                /> {repoInfo.owner.full_name || repoInfo.owner.login}
               </Typography>
             </div>
             <div className={classes.metadataStyle}>
-              <Typography>
+              <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.created_time', this.props.language)} {this.formatNameAndDate(this.state.createdBy, this.props.repositoryInfo.created_at)}
+                {getLanguageFromKey('dashboard.created_time', this.props.language)} {this.formatNameAndDate(this.state.createdBy, repoInfo.created_at)}
               </Typography>
-              <Typography>
+              <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate('', this.props.repositoryInfo.updated_at)}
+                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate('', repoInfo.updated_at)}
               </Typography>
             </div>
             <div className={classes.descriptionStyle}>
               <Typography className={classes.descriptionHeader}>
                 {getLanguageFromKey('dashboard.description_header', this.props.language)}
               </Typography>
-              <Typography>
-                {this.props.repositoryInfo.description}
+              <Typography className={classes.fontSize_16}>
+                {repoInfo.description ||
+                  getLanguageFromKey('dashboard.no_description', this.props.language)}
               </Typography>
             </div>
             <div className={classes.btnStyle}>
-              <AltinnButton
-                btnText={getLanguageFromKey('dashboard.edit_service', this.props.language)}
-                className={classes.editService}
-                onClickFunction={this.cloneAndEditService}
-              />
-              <AltinnButton
-                btnText={getLanguageFromKey('dashboard.see_source_code', this.props.language)}
-                onClickFunction={this.redirectToCode}
-              />
+              {this.state.isLoading ?
+                <AltinnSpinner
+                  spinnerText={getLanguageFromKey('dashboard.loading_service', this.props.language)}
+                />
+                :
+                <>
+                  <AltinnButton
+                    btnText={getLanguageFromKey('dashboard.edit_service', this.props.language)}
+                    className={classes.editService}
+                    onClickFunction={this.cloneAndEditService}
+                  />
+                  <AltinnButton
+                    btnText={getLanguageFromKey('dashboard.see_source_code', this.props.language)}
+                    onClickFunction={this.redirectToCode}
+                  />
+                </>
+              }
             </div>
           </div>
         }
@@ -170,29 +200,17 @@ class CloneServiceComponent extends React.Component<ICloneServiceComponentProps,
   }
 }
 
-const getCurrentRepositoryInfo = (services: any, org: string, servicename: string) => {
-  const returnService = services.filter((service: any) => {
-    if (service.full_name === `${org}/${servicename}`) {
-      return service;
-    }
-  });
-  return returnService.length === 1 ? returnService[0] : null;
-};
-
 const mapStateToProps = (
   state: IDashboardAppState,
-  props: ICloneServiceComponentProps,
-): any => {
+  props: ICloneServiceComponentProvidedProps,
+): ICloneServiceComponentProps => {
   return {
-    classes: props.classes,
     language: state.language.language,
-    // tslint:disable-next-line:max-line-length
-    repositoryInfo: getCurrentRepositoryInfo(state.dashboard.services, (props.match.params as any).org, (props.match.params as any).serviceName),
+    services: state.dashboard.services,
+    classes: props.classes,
   };
 };
 
-export const CloneService = compose(
-  withStyles(styles),
-  withRouter,
-  connect(mapStateToProps),
-)(CloneServiceComponent);
+export const CloneService = withRouter(
+  withStyles(styles)
+    (connect(mapStateToProps)(CloneServiceComponent)));
