@@ -46,7 +46,6 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     destinationContainerId: string,
   ): void => {
     if (!id) {
-      console.log('#### movecomponent no id');
       // dragging a toolbaritem - they don't have ids
       return;
     }
@@ -100,6 +99,12 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
   }
 
   public moveContainer = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+    console.log('############ MOVECONTAINER');
+    console.log('id: ', id);
+    console.log('index: ', index);
+    console.log('sourceContainerId: ', sourceContainerId);
+    console.log('destinationContainerId: ', destinationContainerId);
+
     if (!id) {
       // No id, no drag
       return;
@@ -143,8 +148,9 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     }
   }
 
-  public dropItem = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+  public dropItem = (id: string, sourceContainerId: string, destinationContainerId: string) => {
     console.log('### dropItem ###');
+    console.log('### id: ', id);
     console.log('### sourceContainerId: ', sourceContainerId);
     console.log('### destinationContainerId: ', destinationContainerId);
 
