@@ -23,5 +23,15 @@ namespace AltinnCore.Common.Constants
         /// The name of the authorization token
         /// </summary>
         public const string AuthorizationTokenHeaderName = "Authorization";
+
+        /// <summary>
+        /// The name of the cookie used for asp authentication in runtime application
+        /// </summary>
+        public const string RuntimeCookieName = "AltinnStudioRuntime";
+
+        /// <summary>
+        /// The name of the cookie used for asp authentication in designer application
+        /// </summary>
+        public const string DesignerCookieName = "AltinnStudioDesigner";
     }
 }

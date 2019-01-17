@@ -4,10 +4,27 @@
   border: 1px solid #d4d4d5;
   padding: 20px;
 }
-h2 {
+
+.main-header {
   font-size: 36px;
+}
+
+.header-spacing {
   padding-bottom: 55px;
 }
+
+.sub-header {
+  font-size: 16px;
+  padding-top: 20px;
+  padding-bottom:43px;
+}
+
+.altinn-button
+{
+  background-color: #0062BA !important;
+  color: #FFFFFF !important;
+}
+
 </style>
 <div class="ui middle very relaxed page grid">
 {{if or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeSignIn)}}
@@ -16,13 +33,18 @@ h2 {
 		<div>
 			<form class="ui form" action="{{.SignInLink}}" method="post">
 			{{.CsrfTokenHtml}}
-      <h2>
+      <p class="main-header {{if not .LinkAccountMode}}header-spacing{{end}}">
         {{if .LinkAccountMode}}
           {{.i18n.Tr "auth.oauth_signin_title"}}
         {{else}}
           {{.i18n.Tr "auth.login_userpass"}}
         {{end}}
-      </h2>
+      </p>
+      {{if .LinkAccountMode}}
+        <p class="sub-header">
+          {{.i18n.Tr "auth.oauth_signin_info"}}
+        </p>
+      {{end}}
 			<div class="required field {{if and (.Err_UserName) (or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeSignIn))}}error{{end}}">
 				<label for="user_name">{{.i18n.Tr "home.uname_holder"}}</label>
 				<input id="user_name" name="user_name" value="{{.user_name}}" autofocus required>
@@ -43,7 +65,7 @@ h2 {
 
 			<div class="field">
 				<label></label>
-				<button class="ui green button">
+				<button class="ui button altinn-button">
 					{{if .LinkAccountMode}}
 						{{.i18n.Tr "auth.oauth_signin_submit"}}
 					{{else}}
@@ -78,10 +100,5 @@ h2 {
 				</div>
 			</div>*/}}
 			</form>
-      <div class="row center" style="padding-top:100px;">
-        <div class="column mobile hidden">
-          <img src="{{AppSubUrl}}/img/flower1.svg">
-        </div>
-      </div>
 		</div>
 </div>
