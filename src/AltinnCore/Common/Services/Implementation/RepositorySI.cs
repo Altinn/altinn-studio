@@ -175,7 +175,7 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     // Create service with already existing repo
                     RepositoryClient.Model.Repository repositoryCreated = CreateService(org, new ServiceConfiguration { RepositoryName = service }, true);
-                    bool serviceCreated = repositoryCreated.Equals(null) ? false : true;
+                    bool serviceCreated = repositoryCreated != null;
                     if (serviceCreated)
                     {
                         CreateServiceMetadata(new ServiceMetadata { Org = org, RepositoryName = service });
