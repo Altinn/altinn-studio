@@ -12,8 +12,8 @@
     "@material-ui/icons": "3.0.1",
     "axios": "0.18.0",
     "classnames": "^2.2.6",
-    "react": "16.6.3",
     "react-monaco-editor": "0.22.0",
+    "react": "16.7.0",
     "react-router-dom": "4.3.1",
     "react-truncate-markup": "2.0.1"
   },
@@ -22,7 +22,7 @@
     "@types/enzyme": "3.1.15",
     "@types/jest": "^23.3.10",
     "@types/jsdom": "^12.2.0",
-    "@types/react": "16.4.14",
+    "@types/react": "16.7.18",
     "@types/react-router-dom": "4.3.1",
     "@types/react-test-renderer": "^16.0.3",
     "altinn-designsystem": "2.0.19",
