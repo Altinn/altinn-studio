@@ -6,6 +6,6 @@ FROM gitea/gitea:1.7
 COPY gitea-config/dev/app.ini etc/templates/app.ini
 
 # Copy rest of configuration
-COPY src/AltinnRepositories/gitea-data/gitea/options data/gitea/options/
-COPY src/AltinnRepositories/gitea-data/gitea/public/img data/gitea/public/img
-COPY src/AltinnRepositories/gitea-data/gitea/templates data/gitea/templates
+COPY gitea-data/gitea/options data/gitea/options/
+COPY gitea-data/gitea/public/img data/gitea/public/img
+COPY gitea-data/gitea/templates data/gitea/templates
