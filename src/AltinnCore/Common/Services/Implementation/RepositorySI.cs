@@ -171,24 +171,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
-                {
-                    // Create service with already existing repo
-                    RepositoryClient.Model.Repository repositoryCreated = CreateService(org, new ServiceConfiguration { RepositoryName = service }, true);
-                    bool serviceCreated = repositoryCreated != null;
-                    if (serviceCreated)
-                    {
-                        CreateServiceMetadata(new ServiceMetadata { Org = org, RepositoryName = service });
-                        filedata = File.ReadAllText(filename, Encoding.UTF8);
-                        return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
-                    }
-                    else
-                    {
-                        throw new Exception("Unable to create service");
-                    }
-                }
-
-                throw;
+                throw new Exception("Something went wrong when fetching service metadata ", ex);
             }
         }
 
@@ -839,7 +822,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
-                bool created = repoCreated;
                 if (!File.Exists(filename))
                 {
                     _sourceControl.CloneRemoteRepository(owner, serviceConfig.RepositoryName);
@@ -855,12 +837,30 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
                     }
-
-                    created = true;
-                    CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
-
-                    _sourceControl.PushChangesForRepository(commitInfo);
                 }
+
+                ServiceMetadata metadata = new ServiceMetadata
+                {
+                    Org = owner,
+                    ServiceName = serviceConfig.ServiceName,
+                    RepositoryName = serviceConfig.RepositoryName,
+                };
+
+                CreateServiceMetadata(metadata);
+
+                if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
+                {
+                    JObject json = JObject.FromObject(new
+                    {
+                        language = "nb-NO",
+                        resources = new[] { new { id = "ServiceName", value = serviceConfig.ServiceName } },
+                    });
+                    SaveResource(owner, serviceConfig.RepositoryName, "nb-NO", json.ToString());
+                }
+
+                CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
+
+                _sourceControl.PushChangesForRepository(commitInfo);
             }
 
             return repository;

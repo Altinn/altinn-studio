@@ -249,28 +249,7 @@ namespace AltinnCore.Designer.Controllers
 
             if (!serviceNameAlreadyExists)
             {
-                Repository repository = _repository.CreateService(org, serviceConfiguration);
-                if (repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
-                {
-                    var metadata = new ServiceMetadata
-                    {
-                        Org = org,
-                        ServiceName = serviceName,
-                        RepositoryName = repoName,
-                    };
-                    _repository.CreateServiceMetadata(metadata);
-                    if (!string.IsNullOrEmpty(serviceName))
-                    {
-                        JObject json = JObject.FromObject(new
-                        {
-                            language = "nb-NO",
-                            resources = new[] { new { id = "ServiceName", value = serviceName } },
-                        });
-                        _repository.SaveResource(org, repoName, "nb-NO", json.ToString());
-                    }
-                }
-
-                return repository;
+                return _repository.CreateService(org, serviceConfiguration);
             }
             else
             {
