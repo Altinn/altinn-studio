@@ -3,7 +3,7 @@ FROM gitea/gitea:1.7
 
 # copy configuration file
 # Has to be copied to the templates-folder so parsing of environment variables is correct
-COPY giteaConf/prod/app.ini etc/templates/app.ini
+COPY gitea-config/prod/app.ini etc/templates/app.ini
 
 # Copy rest of configuration
 COPY src/AltinnRepositories/gitea-data/gitea/options data/gitea/options/
