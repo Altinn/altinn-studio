@@ -54,12 +54,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">the organisation</param>
         /// <param name="repository">the name of the repository</param>
-        public void CloneRemoteRepository(string org, string repository)
+        /// <returns>The result of the cloning</returns>
+        public string CloneRemoteRepository(string org, string repository)
         {
             string remoteRepo = FindRemoteRepoLocation(org, repository);
             CloneOptions cloneOptions = new CloneOptions();
             cloneOptions.CredentialsProvider = (a, b, c) => new UsernamePasswordCredentials { Username = GetAppToken(), Password = string.Empty };
-            Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
+            return Repository.Clone(remoteRepo, FindLocalRepoLocation(org, repository), cloneOptions);
         }
 
         /// <summary>

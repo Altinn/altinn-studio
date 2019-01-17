@@ -16,7 +16,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">the organisation</param>
         /// <param name="repository">Name of the repository</param>
-        void CloneRemoteRepository(string org, string repository);
+        /// <returns>The result of the cloning</returns>
+        string CloneRemoteRepository(string org, string repository);
 
         /// <summary>
         /// Stores a App token for user
