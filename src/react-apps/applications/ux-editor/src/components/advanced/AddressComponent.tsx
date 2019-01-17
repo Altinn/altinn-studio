@@ -6,8 +6,9 @@ import '../../styles/AddressComponent.css';
 
 export interface IAddressComponentProps {
   component: IFormAddressComponent;
-  formData: any;
+  formData: { [id: string]: string };
   handleDataChange: (value: any, key: string) => void;
+  getTextResource: (key: string) => string;
   isValid?: boolean;
   simplified: boolean;
 }
@@ -37,12 +38,13 @@ export enum AddressKeys {
 export class AddressComponent extends React.Component<IAddressComponentProps, IAddressComponentState> {
   constructor(_props: IAddressComponentProps) {
     super(_props);
+    const formData = this.props.formData ? this.props.formData : {};
     this.state = {
-      address: this.props.formData ? this.props.formData[AddressKeys.address] : '',
-      zipCode: this.props.formData ? this.props.formData[AddressKeys.zipCode] : '',
-      postPlace: this.props.formData ? this.props.formData[AddressKeys.postPlace] : '',
-      careOf: this.props.formData ? this.props.formData[AddressKeys.careOf] : '',
-      houseNumber: this.props.formData ? this.props.formData[AddressKeys.houseNumber] : '',
+      address: formData[AddressKeys.address],
+      zipCode: formData[AddressKeys.zipCode],
+      postPlace: formData[AddressKeys.postPlace],
+      careOf: formData[AddressKeys.careOf],
+      houseNumber: formData[AddressKeys.houseNumber],
       validations: {
         zipCode: null,
         houseNumber: null,

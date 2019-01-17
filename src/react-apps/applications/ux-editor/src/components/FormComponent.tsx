@@ -27,7 +27,6 @@ export interface IProvidedProps {
   singleSelected: boolean;
 }
 
-
 /**
  * Properties for the component itself. mapStateToProps convert to this from
  */

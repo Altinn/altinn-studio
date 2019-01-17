@@ -6,7 +6,6 @@ import Select from 'react-select';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
-import { DefaultDataModelBindingKey } from '../FormComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {

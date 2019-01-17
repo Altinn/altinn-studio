@@ -4,7 +4,6 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
-import { DefaultDataModelBindingKey } from '../components/FormComponent';
 import { formatCreateTextLabel, getTextResource, truncate } from './language';
 
 export const styles = {
