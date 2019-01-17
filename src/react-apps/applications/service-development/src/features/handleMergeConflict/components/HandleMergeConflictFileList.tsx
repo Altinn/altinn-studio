@@ -9,6 +9,13 @@ import AltinnIcon from '../../../../../shared/src/components/AltinnIcon';
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
+  root: {
+    paddingTop: 0,
+    paddingBottom: 0,
+    height: '100%',
+    background: theme.altinnPalette.primary.white,
+    boxShadow: theme.sharedStyles.boxShadow,
+  },
   listItemFocusVisible: {
     backgroundColor: '#fff',
     textDecoration: 'underline',
@@ -43,10 +50,6 @@ const styles = () => createStyles({
   primaryTextUnselected: {
     color: theme.altinnPalette.primary.blueDarker,
   },
-  root: {
-    paddingTop: 0,
-    paddingBottom: 0,
-  },
   secondaryText: {
     color: theme.altinnPalette.primary.blue,
     fontSize: 12,
@@ -54,6 +57,7 @@ const styles = () => createStyles({
 });
 
 export interface IHandleMergeConflictFileListProps extends WithStyles<typeof styles> {
+  changeSelectedFile: (file: string) => void;
   language: any;
   repoStatus: any;
 }
@@ -72,8 +76,10 @@ class HandleMergeConflictFileList extends
     };
   }
 
-  public handleListItemClick = (index: number) => () => {
+  public handleListItemClick = (index: number, item: any) => () => {
+    console.log('handleListItemClick item', item);
     this.setState({ selectedIndex: index });
+    this.props.changeSelectedFile(item.filePath);
   }
 
   public render() {
@@ -93,7 +99,7 @@ class HandleMergeConflictFileList extends
                 button={true}
                 key={index}
                 selected={selectedIndex === index}
-                onClick={this.handleListItemClick(index)}
+                onClick={this.handleListItemClick(index, item)}
                 classes={{
                   button: classNames(classes.listItemButton),
                   focusVisible: classNames(classes.listItemFocusVisible),

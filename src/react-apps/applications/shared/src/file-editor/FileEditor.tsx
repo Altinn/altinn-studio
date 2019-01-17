@@ -6,6 +6,7 @@ import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorC
 import { get, post } from '../utils/networking';
 
 import theme from '../../../shared/src/theme/altinnStudioTheme';
+import AltinnButton from '../components/AltinnButton';
 
 const altinnTheme = theme;
 
@@ -42,31 +43,48 @@ const languages: ICodeLanguage = {
 };
 
 export interface IFileEditorProvidedProps {
+  boxShadow?: boolean;
+  checkForMergeConflict?: () => void;
   classes: any;
-  mode?: number;
   closeFileEditor?: () => void;
   loadFile?: string;
+  mode?: number;
+  showSaveButton?: boolean;
 }
 
 export interface IFileEditorState {
-  selectedFile: string;
   availableFiles: string[];
+  selectedFile: string;
   value: string;
 }
 
 const styles = createStyles({
+  temp: {
+    background: 'blue',
+  },
   fileHeader: {
+    background: altinnTheme.altinnPalette.primary.white,
     borderBottom: '1px solid #C9C9C9',
-    marginBottom: '1.6rem',
-    paddingTop: '1.2rem',
+    marginBottom: '0.1rem',
+    // paddingTop: '1.2rem',
     paddingLeft: '1.3rem',
-    paddingBottom: '1.1rem',
+    // paddingBottom: '1.1rem',
+    minHeight: '4.4rem',
+  },
+  boxShadow: {
+    background: theme.altinnPalette.primary.white,
+    boxShadow: theme.sharedStyles.boxShadow,
   },
   codeEditorContent: {
     minHeight: '100%',
   },
   selectFile: {
     borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+    color: altinnTheme.altinnPalette.primary.blueDarker,
+    fontSize: '1.6rem',
+  },
+  file: {
+    color: altinnTheme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
   fileMenuItem: {
@@ -104,13 +122,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public componentDidMount() {
-
-    if (this.props.loadFile) {
-
-      this.loadFileContent(`../${this.props.loadFile}`);
-
-    } else {
-
+    if (this.props.mode) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service } = altinnWindow;
       const servicePath = `${org}/${service}`;
@@ -125,6 +137,15 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             };
           });
         });
+    }
+  }
+
+  public componentDidUpdate(prevProps: any) {
+    if (this.props.loadFile !== prevProps.loadFile) {
+      this.setState({
+        selectedFile: `../${this.props.loadFile}`,
+      });
+      this.loadFileContent(`../${this.props.loadFile}`);
     }
   }
 
@@ -184,8 +205,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
     post(postUrl, this.state.value, { headers: { 'Content-type': 'text/plain;charset=utf-8' } }).then((response) => {
+      // TODO: Handle reponse with error
       if (this.props.closeFileEditor) {
         this.props.closeFileEditor();
+      }
+      if (this.props.checkForMergeConflict) {
+        this.props.checkForMergeConflict();
       }
     });
   }
@@ -207,7 +232,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         return languages[extension];
       }
     }
-    return { name: '', displayName: '' };
+    return { name: null, displayName: null };
   }
 
   public renderCloseButton = (): JSX.Element => {
@@ -235,88 +260,147 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     );
   }
 
+  public renderSaveButton = (): JSX.Element => {
+    return (
+      <Grid
+        item={true}
+        xs={true}
+        container={true}
+        justify='flex-end'
+        alignItems='center'
+      >
+        <Grid
+          item={true}
+        >
+          <AltinnButton
+            btnText='Lagre fil'
+            onClickFunction={this.saveFile}
+            secondaryButton={true}
+          />
+        </Grid>
+      </Grid>
+    );
+  }
+
   public render() {
     const { classes } = this.props;
     const foldertext = this.getFolderText();
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
+
     return (
       <Grid container={true} spacing={0} className={classes.codeEditorContent}>
-        <Grid item={true} xs={11} className={classes.fileHeader}>
-          <span>
-            {/* If this.props.loadFile is present,
+        <Grid
+          item={true}
+          xs={true}
+          container={true}
+          justify='flex-start'
+          alignItems='center'
+          className={
+            classNames(classes.fileHeader, {
+              [classes.boxShadow]: this.props.boxShadow,
+            })
+          }
+        >
+          <Grid
+            item={true}
+            xs={true}
+          >
+            <span>
+              {/* If this.props.loadFile is present,
               * if loadFile contains directories then split and show,
               * else show the 'mode' location from 'foldertext'.
               */}
-            {this.props.loadFile ?
-              this.props.loadFile.split('/').map((folder, index) => {
-                {/* If one or last element, return without expand icon */ }
-                if (this.props.loadFile.split('/').length === index + 1) {
+              {this.props.loadFile ?
+                this.props.loadFile.split('/').map((folder, index) => {
+                  {/* If one or last element, return without expand icon */ }
+                  if (this.props.loadFile.split('/').length === index + 1) {
+                    return (
+                      <React.Fragment key={index}>
+                        <span className={classes.file}>
+                          {folder}
+                        </span>
+                      </React.Fragment>
+                    );
+                  }
+                  {/* Return folder with expand icon */ }
                   return (
-                    <React.Fragment>
-                      {folder}
+                    <React.Fragment key={index}>
+                      {folder} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
                     </React.Fragment>
                   );
-                }
-                {/* Return folder with expand icon */ }
-                return (
-                  <React.Fragment key={index}>
-                    {folder} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
-                  </React.Fragment>
-                );
-              })
-              :
+                })
 
-              <React.Fragment>
-                {foldertext} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
-              </React.Fragment>
-            }
+                :
 
-            {/* If this.props.loadFile is not present, show select*/}
-            {!this.props.loadFile ?
-              <Select
-                value={this.state.selectedFile}
-                classes={
-                  {
-                    root: classNames(classes.selectFile),
-                    icon: classNames(classes.hideIcon),
-                    selectMenu: classNames(classes.selectMenu),
-                  }
-                }
-                onChange={this.switchFile}
-              >
-                {this.state.availableFiles.map((file: string) => {
-                  return (
-                    <MenuItem
-                      value={file}
-                      key={file}
-                      className={classes.fileMenuItem}
-                    >
-                      {file}
-                    </MenuItem>
-                  );
-                })}
-              </Select>
+                <React.Fragment>
+                  <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                </React.Fragment>
+              }
 
-              :
+              {/* If this.props.mode is present, show select*/}
+              {this.props.mode ?
 
-              null
-            }
-          </span>
+                <React.Fragment>
+                  {foldertext} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  <Select
+                    value={this.state.selectedFile}
+                    classes={
+                      {
+                        root: classNames(classes.selectFile),
+                        icon: classNames(classes.hideIcon),
+                        selectMenu: classNames(classes.selectMenu),
+                      }
+                    }
+                    onChange={this.switchFile}
+                  >
+                    {this.state.availableFiles.map((file: string) => {
+                      return (
+                        <MenuItem
+                          value={file}
+                          key={file}
+                          className={classes.fileMenuItem}
+                        >
+                          {file}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </React.Fragment>
+
+                :
+
+                null
+              }
+            </span>
+          </Grid>
+
+          {this.props.closeFileEditor ? this.renderCloseButton() : null}
+          {this.props.showSaveButton ? this.renderSaveButton() : null}
 
         </Grid>
-        {this.props.closeFileEditor ? this.renderCloseButton() : null}
 
-        <Grid item={true} xs={12} className={classes.codeEditorContent}>
+        <Grid
+          item={true}
+          xs={12}
+          className={classNames(classes.codeEditorContent, {
+            [classes.boxShadow]: this.props.boxShadow,
+          })}
+        >
           <MonacoEditorComponent
             language={language.name}
             value={this.state.value}
             onValueChange={this.onValueChange}
           />
         </Grid>
-        <Grid item={true} xs={11} />
-        <Grid item={true} xs={1}>
-          <span>{language.displayName}</span>
-        </Grid>
+        {language.displayName ?
+          <React.Fragment>
+            <Grid item={true} xs={11} />
+            <Grid item={true} xs={1}>
+              <span>{language.displayName}</span>
+            </Grid>
+          </React.Fragment>
+          :
+          null}
       </Grid>
     );
   }

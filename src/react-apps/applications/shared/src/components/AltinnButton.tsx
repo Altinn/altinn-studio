@@ -19,13 +19,16 @@ export interface IAltinnButtonComponentState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
+  borderBottom: {
+    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+  },
   button: {
     'color': theme.altinnPalette.primary.white,
     'background': theme.altinnPalette.primary.blueDark,
     'textTransform': 'none' as 'none',
     'fontWeight': 400,
     'height': 36,
-    'marginTop': '20px',
+    // 'marginTop': '20px',
     'borderRadius': '0',
     '&:hover': {
       background: theme.altinnPalette.primary.blueDarker,
@@ -43,20 +46,17 @@ const styles = () => createStyles({
     'height': 36,
     // 'maxWidth': '150px',
     'textTransform': 'none',
-    'textDecoration': 'underline',
     'fontWeight': 400,
-    'marginTop': '20px',
+    // 'marginTop': '20px',
     'borderRadius': '0',
     '&:hover': {
-      // background: theme.altinnPalette.primary.greyLight,
-      background: 'transparent',
+      background: theme.altinnPalette.primary.greyLight,
       color: theme.altinnPalette.primary.blueDarker,
-      textDecoration: 'underline',
-      fontWeight: 500,
+      // fontWeight: 500,
     },
     '&:focus': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
+      background: theme.altinnPalette.primary.greyLight,
+      color: theme.altinnPalette.primary.black,
     },
   },
 });
@@ -78,7 +78,9 @@ class AltinnButton extends
         onClick={this.props.onClickFunction}
         style={{ fontSize: 16 }}
       >
-        {this.props.btnText}
+        <span className={classNames({ [classes.borderBottom]: this.props.secondaryButton === true })}>
+          {this.props.btnText}
+        </span>
       </Button>
     );
   }

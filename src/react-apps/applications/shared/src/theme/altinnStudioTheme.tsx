@@ -27,6 +27,9 @@ declare module '@material-ui/core/styles/createMuiTheme' {
         white: string,
       },
     };
+    sharedStyles: {
+      boxShadow: string,
+    };
   }
 }
 
@@ -97,6 +100,9 @@ const theme = {
       disableRipple: true,
       disableTouchRipple: true,
     },
+  },
+  sharedStyles: {
+    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
   },
   typography: {
     htmlFontSize: 16,

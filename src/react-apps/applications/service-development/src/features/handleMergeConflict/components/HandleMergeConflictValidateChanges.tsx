@@ -3,23 +3,23 @@ import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-
 import * as React from 'react';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
 // import AltinnIcon from '../../../../../shared/src/components/AltinnIcon';
-import AltinnPopover from '../../../../../shared/src/components/AltinnPopover';
 import AltinnInput from '../../../../../shared/src/components/AltinnInput';
-import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
+import AltinnPopover from '../../../../../shared/src/components/AltinnPopover';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { get } from '../../../../../shared/src/utils/networking';
+import HandleMergeConflictAbort from './HandleMergeConflictAbort';
 // import { makeGetApiConnectionsSelector } from '../../../../../ux-editor/src/selectors/getServiceConfigurations';
+
+import * as classNames from 'classnames';
+import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
-  validateButtons: {
-    marginleft: 92,
+  textDisabled: {
+    color: theme.altinnPalette.primary.grey,
   },
-  buttonGridItem: {
-    textAlign: 'right',
-  },
-  theme: {
-    border: theme.accessability.focusVisible.border,
+  input: {
+    marginRight: 49,
   },
 });
 
@@ -133,47 +133,35 @@ class HandleMergeConflictValidateChanges extends
           justify='flex-end'
         >
           <Grid
-            container={true}
             item={true}
-            xs={6}
-            direction='column'
-            justify='flex-end'
-            alignItems='stretch'
+            className={classes.input}
           >
-            <Grid item={true} xs={12}>
-              TEXT_beskrive endringene dine
-            </Grid>
-            <Grid item={true} xs={12}>
-              <span >
+            <span
+              className={classNames({
+                [classes.textDisabled]: repoStatus.hasMergeConflict,
+              })}
+            >
+              {getLanguageFromKey('handle_merge_conflict.commit_message_label', this.props.language)}
+            </span>
 
-                <AltinnInput
-                  id='commitMessageInput'
-                  onChangeFunction={this.handleFormChange}
-                  fullWidth={true}
-                  disabled={repoStatus.hasMergeConflict}
-                />
-              </span>
-            </Grid>
-
+            <AltinnInput
+              id='commitMessageInput'
+              onChangeFunction={this.handleFormChange}
+              fullWidth={true}
+              disabled={repoStatus.hasMergeConflict}
+            />
           </Grid>
           <Grid
             item={true}
-            xs={4}
-            className={classes.buttonGridItem}
           >
-            <span className={classes.validateButtons}>
-              <AltinnButton
-                btnText={getLanguageFromKey('general.validate_changes', this.props.language)}
-                onClickFunction={this.validateChanges}
-                disabled={repoStatus.hasMergeConflict}
-              />
-
-              <AltinnButton
-                btnText={getLanguageFromKey('general.cancel', this.props.language)}
-                secondaryButton={true}
-              />
-            </span>
-
+            <AltinnButton
+              btnText={getLanguageFromKey('general.validate_changes', this.props.language)}
+              onClickFunction={this.validateChanges}
+              disabled={repoStatus.hasMergeConflict}
+            />
+            <HandleMergeConflictAbort
+              language={this.props.language}
+            />
           </Grid>
 
         </Grid>

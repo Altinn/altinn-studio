@@ -21,9 +21,14 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = {
   searchBox: {
-    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
     background: 'none',
-    height: 32,
+    height: 36,
+  },
+  searchBoxEnabled: {
+    border: '1px solid ' + theme.altinnPalette.primary.blueDark,
+  },
+  searchBoxDisabled: {
+    border: '1px solid ' + theme.altinnPalette.primary.grey,
   },
   altinnInput: {
     fontSize: '16px',
@@ -43,7 +48,12 @@ class AltinnInput extends React.Component<IAltinnInputCompontentProvidedProps, I
     const { classes } = this.props;
     return (
       <FormControl
-        classes={{ root: classNames(classes.searchBox) }}
+        classes={{
+          root: classNames(classes.searchBox, {
+            [classes.searchBoxEnabled]: !this.props.disabled,
+            [classes.searchBoxDisabled]: this.props.disabled,
+          }),
+        }}
         fullWidth={true}
         style={{
           width: this.props.width ? this.props.width : null,

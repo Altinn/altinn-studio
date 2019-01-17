@@ -1,4 +1,4 @@
-import { Paper, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
@@ -8,7 +8,6 @@ import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { get } from '../../../../shared/src/utils/networking';
 import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
-import HandleMergeConflictDiscardAllChanges from './components/HandleMergeConflictDiscardAllChanges';
 import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
 import HandleMergeConflictValidateChanges from './components/HandleMergeConflictValidateChanges';
 
@@ -26,17 +25,8 @@ const styles = () => createStyles({
     paddingBottom: 10,
     paddingLeft: 60,
   },
-  container: {
-  },
-  boxWithFiles: {
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
-  },
-  boxWithMonaco: {
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
-  },
-  boxWithForkast: {
+  box: {
+    padding: 1,
   },
   boxWithIcon: {
     textAlign: 'center',
@@ -57,7 +47,7 @@ const styles = () => createStyles({
     //   height: `calc(25vh)`,
     // },
     height: 130,
-    marginTop: 20,
+    // marginTop: 20,
     // backgroundColor: '#cccccc',
   },
   fileWithMergeConflict: {
@@ -65,10 +55,6 @@ const styles = () => createStyles({
       color: '#0062BA',
       textDecoration: 'underline',
     },
-  },
-  paper: {
-    // padding: 1.5,
-    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
   },
   title: {
     marginBottom: 16,
@@ -82,16 +68,26 @@ export interface IHandleMergeConflictContainerProps extends WithStyles<typeof st
 }
 
 export interface IHandleMergeConflictContainerState {
+  selectedFile: string;
 }
 
 class HandleMergeConflictContainer extends
   React.Component<IHandleMergeConflictContainerProps, IHandleMergeConflictContainerState> {
 
-  constructor(_props: IHandleMergeConflictContainerProps) {
-    super(_props);
+  constructor(_props: IHandleMergeConflictContainerProps, _state: IHandleMergeConflictContainerState) {
+    super(_props, _state);
+    this.state = {
+      selectedFile: null,
+    };
   }
 
-  public discardAllChanges() {
+  public changeSelectedFile = (file: string) => {
+    this.setState({
+      selectedFile: file,
+    });
+  }
+
+  public Abort() {
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
     const url = `${altinnWindow.location.origin}
@@ -133,6 +129,7 @@ class HandleMergeConflictContainer extends
 
   public render() {
     const { classes, language, repoStatus } = this.props;
+    const { selectedFile } = this.state;
 
     return (
       <React.Fragment>
@@ -141,7 +138,6 @@ class HandleMergeConflictContainer extends
 
             <Grid
               container={true}
-              className={classes.container}
               justify='flex-start'
               id='grid1'
             >
@@ -156,26 +152,41 @@ class HandleMergeConflictContainer extends
               </Grid>
 
               <Grid
+                id='boxtop'
                 container={true}
                 item={true}
                 xs={12}
                 direction='row'
                 className={classes.boxTop}
-                spacing={8}
-              >
-                <Grid item={true} xs={4}>
-                  <Paper className={classNames(classes.paper, classes.boxTop)} square={true}>
 
-                    <HandleMergeConflictFileList
-                      repoStatus={repoStatus}
-                      language={language}
-                    />
-                  </Paper>
+              >
+                <Grid
+                  id='mergeConflictFileList'
+                  item={true}
+                  xs={4}
+                  className={classNames(classes.box)}
+                >
+
+
+                  <HandleMergeConflictFileList
+                    repoStatus={repoStatus}
+                    language={language}
+                    changeSelectedFile={this.changeSelectedFile}
+                  />
+
                 </Grid>
 
-                <Grid item={true} xs={8}>
+                <Grid
+                  id='monacoEditor'
+                  item={true}
+                  xs={8}
+                  className={classNames(classes.box)}
+                >
                   <FileEditor
-                    loadFile='Deployment/templates/NOTES.txt'
+                    loadFile={selectedFile}
+                    boxShadow={true}
+                    showSaveButton={true}
+                    checkForMergeConflict={this.props.checkForMergeConflict}
                   />
                 </Grid>
 
@@ -186,15 +197,11 @@ class HandleMergeConflictContainer extends
                 item={true}
                 xs={12}
                 alignItems='center'
+                justify='flex-end'
                 className={classes.boxBottom}
               >
-                <Grid item={true} xs={4} className={classes.boxWithForkast}>
-                  <HandleMergeConflictDiscardAllChanges
-                    language={language}
-                  />
-                </Grid>
 
-                <Grid item={true} xs={8}>
+                <Grid item={true}>
                   <HandleMergeConflictValidateChanges
                     language={language}
                     repoStatus={this.props.repoStatus}
