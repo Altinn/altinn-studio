@@ -110,7 +110,7 @@ namespace AltinnCore.Common.Services.Implementation
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/search?");
 
             giteaUrl = new Uri(giteaUrl.OriginalString + "limit=" + _settings.RepoSearchPageCount);
-            giteaUrl = new Uri(giteaUrl.OriginalString + "&page=" + page);
+
             if (onlyAdmin)
             {
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&uid=" + user.Id);
@@ -123,15 +123,57 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = GetApiClient())
             {
-                HttpResponseMessage response = await client.GetAsync(giteaUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                bool allElementsRetrieved = false;
+
+                int resultPage = 1;
+                if (page != 0)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    repository = serializer.ReadObject(stream) as SearchResults;
+                    resultPage = page;
                 }
-                else
+
+                int totalCount = 0;
+               
+                while (!allElementsRetrieved)
                 {
-                    _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+                    Uri tempUrl = new Uri(giteaUrl.OriginalString + "&page=" + resultPage);
+
+                    HttpResponseMessage response = await client.GetAsync(tempUrl);
+                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        Stream stream = await response.Content.ReadAsStreamAsync();
+                        if (resultPage == 1 || page == resultPage)
+                        {
+                            // This is the first or a specific page requested
+                            repository = serializer.ReadObject(stream) as SearchResults;
+                        }
+                        else
+                        {
+                            SearchResults pageResultRepository = serializer.ReadObject(stream) as SearchResults;
+                            repository.Data.AddRange(pageResultRepository.Data);
+                        }
+
+                        IEnumerable<string> values;
+                        if (response.Headers.TryGetValues("X-Total-Count", out values))
+                        {
+                           totalCount = Convert.ToInt32(values.First());
+                        }
+
+                        if (page == resultPage
+                            || (repository != null && repository.Data != null && repository.Data.Count >= totalCount)
+                            || (repository != null && repository.Data != null && repository.Data.Count >= _settings.RepoSearchPageCount))
+                        {
+                            allElementsRetrieved = true;
+                        }
+                        else
+                        {
+                            resultPage++;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) + " SearchRepository failed with statuscode " + response.StatusCode);
+                        allElementsRetrieved = true;
+                    }
                 }
             }
 
