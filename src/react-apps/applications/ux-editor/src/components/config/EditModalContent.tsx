@@ -236,8 +236,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.props.language,
               this.props.component.textResourceBindings.title,
             )}
-            {renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
-            <textarea
+            {false && renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
+            {false && <textarea
               value={getTextResource(
                 this.state.component.textResourceBindings.title, this.props.textResources)}
               style={{ width: '100%' }}
@@ -245,6 +245,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               className='form-control'
               onChange={this.handleParagraphChange}
             />
+            }
           </Grid>
         );
       }

@@ -6,10 +6,10 @@ import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnFilterChip from '../../../shared/src/components/AltinnFilterChip';
-import AltinnIconButton from '../../../shared/src/components/AltinnIconButton';
-import AltinnSearchInput from '../../../shared/src/components/AltinnSearchInput';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import AltinnFilterChip from '../../../../shared/src/components/AltinnFilterChip';
+import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
 export interface IServicesOverviewComponentProvidedProps {
@@ -195,10 +195,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             xs={12}
             className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
           >
-            <AltinnIconButton
-              btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
-              iconClass='ai ai-circle-plus'
-            />
+            <CreateNewService />
           </Grid>
         </Grid>
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
@@ -225,12 +222,12 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
                 />
               </Grid>
               <Hidden lgUp={true}>
-                {this.renderSort()}
+                {/* {this.renderSort()} */}
                 {this.renderFilters()}
               </Hidden>
               <Hidden mdDown={true}>
                 {this.renderFilters()}
-                {this.renderSort()}
+                {/* {this.renderSort()} */}
               </Hidden>
             </Grid>
             <ServicesCategory

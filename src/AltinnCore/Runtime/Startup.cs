@@ -127,7 +127,7 @@ namespace AltinnCore.Runtime
                 {
                     options.AccessDeniedPath = "/runtime/ManualTesting/NotAuthorized/";
                     options.LoginPath = "/runtime/ManualTesting/Users/";
-                    options.Cookie.Name = "RuntimeCookie";
+                    options.Cookie.Name = AltinnCore.Common.Constants.General.RuntimeCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade

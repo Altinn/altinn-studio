@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Text;
 using AltinnCore.Common.Models;
 
@@ -116,7 +117,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
-        void ResetCommit(string owner, string repository);
+        /// <returns>Http response message as ok if reset operation is successful</returns>
+        HttpResponseMessage ResetCommit(string owner, string repository);
 
         /// <summary>
         /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
@@ -125,6 +127,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
-        void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
+        /// <returns>Http response message as ok if checkout operation is successful</returns>
+        HttpResponseMessage CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
     }
 }

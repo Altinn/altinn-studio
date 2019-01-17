@@ -27,6 +27,17 @@ export function* fetchCurrentUserSaga({
   }
 }
 
+export function* fetchOrganizationsSaga({
+  url,
+}: FetchDashboardActions.IFetchOrganizationsAction): SagaIterator {
+  try {
+    const user = yield call(get, url);
+    yield call(FetchDashboardDispatchers.fetchOrganizationsFulfilled, user);
+  } catch (err) {
+    yield call(FetchDashboardDispatchers.fetchOrganizationsRejected, err);
+  }
+}
+
 export function* watchFetchServicesSaga(): SagaIterator {
   yield takeLatest(
     FetchDashboardActionTypes.FETCH_SERVICES,
@@ -41,8 +52,16 @@ export function* watchFetchCurrentUserSaga(): SagaIterator {
   );
 }
 
+export function* watchFetchOrganizationsSaga(): SagaIterator {
+  yield takeLatest(
+    FetchDashboardActionTypes.FETCH_ORGANIZATIONS,
+    fetchOrganizationsSaga,
+  );
+}
+
 // tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
   yield fork(watchFetchServicesSaga);
   yield fork(watchFetchCurrentUserSaga);
+  yield fork(watchFetchOrganizationsSaga);
 }

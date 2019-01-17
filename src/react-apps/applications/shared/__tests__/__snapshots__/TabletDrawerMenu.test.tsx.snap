@@ -3,7 +3,7 @@
 exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDrawerOpen is true should render tablet menu and menu items must match the snapshot  1`] = `
 <div>
   <button
-    className="MuiButtonBase-root-200 MuiButton-root-174 MuiButton-outlined-182 MuiButton-sizeSmall-197 TabletDrawerMenu-button-171 TabletDrawerMenu-closeButton-172"
+    className="MuiButtonBase-root-193 MuiButton-root-167 MuiButton-outlined-175 MuiButton-sizeSmall-190 TabletDrawerMenu-button-164 TabletDrawerMenu-closeButton-165"
     disabled={false}
     onBlur={[Function]}
     onClick={[Function]}
@@ -20,16 +20,16 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
     type="button"
   >
     <span
-      className="MuiButton-label-175"
+      className="MuiButton-label-168"
     >
       lukk
     </span>
   </button>
   <div
-    className="MuiDrawer-root-203 MuiDrawer-docked-204 TabletDrawerMenu-drawer-161"
+    className="MuiDrawer-root-196 MuiDrawer-docked-197 TabletDrawerMenu-drawer-154"
   >
     <div
-      className="MuiPaper-root-215 TabletDrawerMenu-drawerMenuPaper-169 MuiPaper-elevation0-217 MuiDrawer-paper-205 MuiDrawer-paperAnchorLeft-206 MuiDrawer-paperAnchorDockedLeft-210"
+      className="MuiPaper-root-208 TabletDrawerMenu-drawerMenuPaper-162 MuiPaper-elevation0-210 MuiDrawer-paper-198 MuiDrawer-paperAnchorLeft-199 MuiDrawer-paperAnchorDockedLeft-203"
       direction="right"
       style={Object {}}
     >
@@ -41,10 +41,10 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
         }
       >
         <ul
-          className="MuiList-root-242 MuiList-padding-243"
+          className="MuiList-root-235 MuiList-padding-236"
         >
           <div
-            className="MuiButtonBase-root-200 MuiListItem-root-246 TabletDrawerMenu-menuItem-166 MuiListItem-default-249 MuiListItem-gutters-254 MuiListItem-button-255"
+            className="MuiButtonBase-root-193 MuiListItem-root-239 TabletDrawerMenu-menuItem-159 MuiListItem-default-242 MuiListItem-gutters-247 MuiListItem-button-248"
             onBlur={[Function]}
             onClick={[Function]}
             onFocus={[Function]}
@@ -60,28 +60,28 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
             tabIndex="0"
           >
             <div
-              className="MuiListItemText-root-258"
+              className="MuiListItemText-root-251"
             >
               <span
-                className="MuiTypography-root-264 MuiTypography-subheading-271 MuiListItemText-primary-261 TabletDrawerMenu-menuItemText-167"
+                className="MuiTypography-root-257 MuiTypography-subheading-264 MuiListItemText-primary-254 TabletDrawerMenu-menuItemText-160"
               >
                 Logg ut
               </span>
             </div>
             <span
-              className="MuiTouchRipple-root-308"
+              className="MuiTouchRipple-root-301"
             />
           </div>
         </ul>
         <hr
-          className="MuiDivider-root-299 TabletDrawerMenu-divider-163"
+          className="MuiDivider-root-292 TabletDrawerMenu-divider-156"
         />
         <ul
-          className="MuiList-root-242 MuiList-padding-243"
+          className="MuiList-root-235 MuiList-padding-236"
         >
           <div>
             <div
-              className="MuiButtonBase-root-200 MuiListItem-root-246 MuiListItem-default-249 MuiListItem-gutters-254 MuiListItem-button-255 TabletDrawerMenu-mainMenuItem-168"
+              className="MuiButtonBase-root-193 MuiListItem-root-239 MuiListItem-default-242 MuiListItem-gutters-247 MuiListItem-button-248 TabletDrawerMenu-mainMenuItem-161"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -97,21 +97,21 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
               tabIndex="0"
             >
               <div
-                className="MuiListItemText-root-258 TabletDrawerMenu-mainMenuItem-168"
+                className="MuiListItemText-root-251 TabletDrawerMenu-mainMenuItem-161"
               >
                 Om
               </div>
               <span
-                className="MuiTouchRipple-root-308"
+                className="MuiTouchRipple-root-301"
               />
             </div>
             <hr
-              className="MuiDivider-root-299 TabletDrawerMenu-divider-163"
+              className="MuiDivider-root-292 TabletDrawerMenu-divider-156"
             />
           </div>
           <div>
             <div
-              className="MuiButtonBase-root-200 MuiListItem-root-246 MuiListItem-default-249 MuiListItem-gutters-254 MuiListItem-button-255 TabletDrawerMenu-mainMenuItem-168"
+              className="MuiButtonBase-root-193 MuiListItem-root-239 MuiListItem-default-242 MuiListItem-gutters-247 MuiListItem-button-248 TabletDrawerMenu-mainMenuItem-161"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -127,21 +127,21 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
               tabIndex="0"
             >
               <div
-                className="MuiListItemText-root-258 TabletDrawerMenu-mainMenuItem-168"
+                className="MuiListItemText-root-251 TabletDrawerMenu-mainMenuItem-161"
               >
                 Lage
               </div>
               <span
-                className="MuiTouchRipple-root-308"
+                className="MuiTouchRipple-root-301"
               />
             </div>
             <hr
-              className="MuiDivider-root-299 TabletDrawerMenu-divider-163"
+              className="MuiDivider-root-292 TabletDrawerMenu-divider-156"
             />
           </div>
           <div>
             <div
-              className="MuiButtonBase-root-200 MuiListItem-root-246 MuiListItem-default-249 MuiListItem-gutters-254 MuiListItem-button-255 TabletDrawerMenu-mainMenuItem-168"
+              className="MuiButtonBase-root-193 MuiListItem-root-239 MuiListItem-default-242 MuiListItem-gutters-247 MuiListItem-button-248 TabletDrawerMenu-mainMenuItem-161"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -157,21 +157,21 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
               tabIndex="0"
             >
               <div
-                className="MuiListItemText-root-258 TabletDrawerMenu-mainMenuItem-168"
+                className="MuiListItemText-root-251 TabletDrawerMenu-mainMenuItem-161"
               >
                 Språk
               </div>
               <span
-                className="MuiTouchRipple-root-308"
+                className="MuiTouchRipple-root-301"
               />
             </div>
             <hr
-              className="MuiDivider-root-299 TabletDrawerMenu-divider-163"
+              className="MuiDivider-root-292 TabletDrawerMenu-divider-156"
             />
           </div>
           <div>
             <div
-              className="MuiButtonBase-root-200 MuiListItem-root-246 MuiListItem-default-249 MuiListItem-gutters-254 MuiListItem-button-255 TabletDrawerMenu-mainMenuItem-168"
+              className="MuiButtonBase-root-193 MuiListItem-root-239 MuiListItem-default-242 MuiListItem-gutters-247 MuiListItem-button-248 TabletDrawerMenu-mainMenuItem-161"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -187,21 +187,21 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
               tabIndex="0"
             >
               <div
-                className="MuiListItemText-root-258 TabletDrawerMenu-mainMenuItem-168"
+                className="MuiListItemText-root-251 TabletDrawerMenu-mainMenuItem-161"
               >
                 Teste
               </div>
               <span
-                className="MuiTouchRipple-root-308"
+                className="MuiTouchRipple-root-301"
               />
             </div>
             <hr
-              className="MuiDivider-root-299 TabletDrawerMenu-divider-163"
+              className="MuiDivider-root-292 TabletDrawerMenu-divider-156"
             />
           </div>
           <div>
             <div
-              className="MuiButtonBase-root-200 MuiListItem-root-246 MuiListItem-default-249 MuiListItem-gutters-254 MuiListItem-button-255 TabletDrawerMenu-mainMenuItem-168"
+              className="MuiButtonBase-root-193 MuiListItem-root-239 MuiListItem-default-242 MuiListItem-gutters-247 MuiListItem-button-248 TabletDrawerMenu-mainMenuItem-161"
               onBlur={[Function]}
               onClick={[Function]}
               onFocus={[Function]}
@@ -217,16 +217,16 @@ exports[`>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx when the tabletDr
               tabIndex="0"
             >
               <div
-                className="MuiListItemText-root-258 TabletDrawerMenu-mainMenuItem-168"
+                className="MuiListItemText-root-251 TabletDrawerMenu-mainMenuItem-161"
               >
                 Publisere
               </div>
               <span
-                className="MuiTouchRipple-root-308"
+                className="MuiTouchRipple-root-301"
               />
             </div>
             <hr
-              className="MuiDivider-root-299 TabletDrawerMenu-divider-163"
+              className="MuiDivider-root-292 TabletDrawerMenu-divider-156"
             />
           </div>
         </ul>
@@ -258,22 +258,22 @@ ShallowWrapper {
     "nodeType": "class",
     "props": Object {
       "classes": Object {
-        "activeListItem": "TabletDrawerMenu-activeListItem-173",
-        "button": "TabletDrawerMenu-button-171",
-        "closeButton": "TabletDrawerMenu-closeButton-172",
-        "divider": "TabletDrawerMenu-divider-163",
-        "drawer": "TabletDrawerMenu-drawer-161",
-        "drawerMenu": "TabletDrawerMenu-drawerMenu-170",
-        "drawerMenuPaper": "TabletDrawerMenu-drawerMenuPaper-169",
-        "drawerPaper": "TabletDrawerMenu-drawerPaper-162",
-        "hide": "TabletDrawerMenu-hide-160",
-        "mainMenuItem": "TabletDrawerMenu-mainMenuItem-168",
-        "menuButton": "TabletDrawerMenu-menuButton-159",
-        "menuItem": "TabletDrawerMenu-menuItem-166",
-        "menuItemText": "TabletDrawerMenu-menuItemText-167",
-        "nested": "TabletDrawerMenu-nested-164",
-        "root": "TabletDrawerMenu-root-158",
-        "subMenuItem": "TabletDrawerMenu-subMenuItem-165",
+        "activeListItem": "TabletDrawerMenu-activeListItem-166",
+        "button": "TabletDrawerMenu-button-164",
+        "closeButton": "TabletDrawerMenu-closeButton-165",
+        "divider": "TabletDrawerMenu-divider-156",
+        "drawer": "TabletDrawerMenu-drawer-154",
+        "drawerMenu": "TabletDrawerMenu-drawerMenu-163",
+        "drawerMenuPaper": "TabletDrawerMenu-drawerMenuPaper-162",
+        "drawerPaper": "TabletDrawerMenu-drawerPaper-155",
+        "hide": "TabletDrawerMenu-hide-153",
+        "mainMenuItem": "TabletDrawerMenu-mainMenuItem-161",
+        "menuButton": "TabletDrawerMenu-menuButton-152",
+        "menuItem": "TabletDrawerMenu-menuItem-159",
+        "menuItemText": "TabletDrawerMenu-menuItemText-160",
+        "nested": "TabletDrawerMenu-nested-157",
+        "root": "TabletDrawerMenu-root-151",
+        "subMenuItem": "TabletDrawerMenu-subMenuItem-158",
       },
       "handleTabletDrawerMenu": [MockFunction],
       "tabletDrawerOpen": false,
@@ -649,22 +649,22 @@ ShallowWrapper {
       "nodeType": "class",
       "props": Object {
         "classes": Object {
-          "activeListItem": "TabletDrawerMenu-activeListItem-173",
-          "button": "TabletDrawerMenu-button-171",
-          "closeButton": "TabletDrawerMenu-closeButton-172",
-          "divider": "TabletDrawerMenu-divider-163",
-          "drawer": "TabletDrawerMenu-drawer-161",
-          "drawerMenu": "TabletDrawerMenu-drawerMenu-170",
-          "drawerMenuPaper": "TabletDrawerMenu-drawerMenuPaper-169",
-          "drawerPaper": "TabletDrawerMenu-drawerPaper-162",
-          "hide": "TabletDrawerMenu-hide-160",
-          "mainMenuItem": "TabletDrawerMenu-mainMenuItem-168",
-          "menuButton": "TabletDrawerMenu-menuButton-159",
-          "menuItem": "TabletDrawerMenu-menuItem-166",
-          "menuItemText": "TabletDrawerMenu-menuItemText-167",
-          "nested": "TabletDrawerMenu-nested-164",
-          "root": "TabletDrawerMenu-root-158",
-          "subMenuItem": "TabletDrawerMenu-subMenuItem-165",
+          "activeListItem": "TabletDrawerMenu-activeListItem-166",
+          "button": "TabletDrawerMenu-button-164",
+          "closeButton": "TabletDrawerMenu-closeButton-165",
+          "divider": "TabletDrawerMenu-divider-156",
+          "drawer": "TabletDrawerMenu-drawer-154",
+          "drawerMenu": "TabletDrawerMenu-drawerMenu-163",
+          "drawerMenuPaper": "TabletDrawerMenu-drawerMenuPaper-162",
+          "drawerPaper": "TabletDrawerMenu-drawerPaper-155",
+          "hide": "TabletDrawerMenu-hide-153",
+          "mainMenuItem": "TabletDrawerMenu-mainMenuItem-161",
+          "menuButton": "TabletDrawerMenu-menuButton-152",
+          "menuItem": "TabletDrawerMenu-menuItem-159",
+          "menuItemText": "TabletDrawerMenu-menuItemText-160",
+          "nested": "TabletDrawerMenu-nested-157",
+          "root": "TabletDrawerMenu-root-151",
+          "subMenuItem": "TabletDrawerMenu-subMenuItem-158",
         },
         "handleTabletDrawerMenu": [MockFunction],
         "tabletDrawerOpen": false,

@@ -1,4 +1,4 @@
-﻿@model List<ServiceConfiguration>
+@model List<ServiceConfiguration>
 @using AltinnCore.ServiceLibrary.Configuration;
 
 @{
@@ -12,7 +12,7 @@
     <ul>
         @foreach (ServiceConfiguration service in Model)
         {
-            <li><a href="/ServiceCatalogue?org=@ViewBag.Org&service=@service.Code">@service.Name @service.Code</a></li>
+            <li><a href="/ServiceCatalogue?org=@ViewBag.Org&service=@service.RepositoryName">@service.ServiceName @service.RepositoryName</a></li>
         
         }
     </ul>

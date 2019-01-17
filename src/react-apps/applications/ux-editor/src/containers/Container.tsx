@@ -274,6 +274,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           canDrag={true}
           id={id}
           index={index}
+          key={index}
           containerId={this.props.id}
           onDropComponent={this.props.onDropContainer}
           onMoveComponent={this.props.onMoveComponent}
