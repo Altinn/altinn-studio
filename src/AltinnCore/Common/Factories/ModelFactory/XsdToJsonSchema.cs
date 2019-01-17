@@ -114,7 +114,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 return ParseAnnotation((XmlSchemaAnnotation)item);
             }
-            else if (item is XmlSchemaGroup || item is XmlSchemaAttribute)
+            else if (item is XmlSchemaGroup || item is XmlSchemaAttributeGroup || item is XmlSchemaAttribute)
             {
                 // Do nothing. xsd:group and top-level xsd:attribute is expanded in place
                 return null;
@@ -205,7 +205,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (!item.RefName.IsEmpty)
             {
-                AppendType(FindObject(elementName), elementSchema); // Elementname is already set to refName here
+                AppendType(FindObject(elementName), item, elementSchema); // Elementname is already set to refName here
             }
 
             if (item.SchemaType != null)
@@ -440,15 +440,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                     if (simpleTypeListItem.ItemType != null)
                     {
-                        int d = 0;
+                        XmlQualifiedName simpleTypeName = GetItemName(simpleTypeListItem.ItemType);
+                        JsonSchema simpleTypeSchema = new JsonSchema();
+                        AppendSimpleType((XmlSchemaSimpleType)simpleTypeListItem.ItemType, simpleTypeSchema);
+                        AddDefinition(simpleTypeListItem.ItemType, simpleTypeSchema);
                     }
                     else if (!simpleTypeListItem.ItemTypeName.IsEmpty)
                     {
-                        int d = 0;
+                        AppendType(item, appendToSchema);
                     }
                     else
                     {
-                        throw new NotImplementedException();
+                        throw new ArgumentException();
                     }
                 }
                 else
@@ -823,16 +826,24 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void AppendType(XmlSchemaObject item, JsonSchema appendToSchema)
         {
+            AppendType(item, null, appendToSchema);
+        }
+
+        private void AppendType(XmlSchemaObject item, XmlSchemaObject referencedFromItem, JsonSchema appendToSchema)
+        {
             if (item is XmlSchemaElement)
             {
                 XmlSchemaElement elementItem = (XmlSchemaElement)item;
-                if (elementItem.MaxOccurs > 1)
+                var maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : elementItem.MaxOccurs;
+                if (maxOccurs > 1)
                 {
                     appendToSchema.Type(JsonSchemaType.Array);
-                    appendToSchema.MinItems(Convert.ToUInt32(elementItem.MinOccurs));
-                    if (!"unbounded".Equals(elementItem.MaxOccursString))
+                    var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : elementItem.MinOccurs;
+                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : elementItem.MaxOccursString;
+                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
+                    if (!"unbounded".Equals(maxOccursString))
                     {
-                        appendToSchema.MaxItems(Convert.ToUInt32(elementItem.MaxOccurs));
+                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs));
                     }
 
                     JsonSchema[] itemsSchemas = new JsonSchema[1];
@@ -883,13 +894,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else if (item is XmlSchemaAny)
             {
                 XmlSchemaAny anyItem = (XmlSchemaAny)item;
-                if (anyItem.MaxOccurs > 1)
+                var maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : anyItem.MaxOccurs;
+                if (maxOccurs > 1)
                 {
                     appendToSchema.Type(JsonSchemaType.Array);
-                    appendToSchema.MinItems(Convert.ToUInt32(anyItem.MinOccurs));
-                    if (!"unbounded".Equals(anyItem.MaxOccursString))
+                    var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : anyItem.MinOccurs;
+                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccursString : anyItem.MinOccursString;
+                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
+                    if (!"unbounded".Equals(maxOccursString))
                     {
-                        appendToSchema.MaxItems(Convert.ToUInt32(anyItem.MaxOccurs));
+                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs));
                     }
 
                     JsonSchema[] itemsSchemas = new JsonSchema[1];
@@ -1143,6 +1157,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)xmlSchemaObject;
                     objectName = QualifiedNameOrName(attributeItem.QualifiedName, attributeItem.Name, attributeItem);
+                }
+                else if (xmlSchemaObject is XmlSchemaAttributeGroup)
+                {
+                    XmlSchemaAttributeGroup groupItem = (XmlSchemaAttributeGroup)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
                 }
                 else if (xmlSchemaObject is XmlSchemaAnnotation)
                 {
