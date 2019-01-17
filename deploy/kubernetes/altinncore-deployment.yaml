@@ -11,7 +11,55 @@ spec:
     spec:
       containers:
       - name: altinn-repositories
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories:1.2.0
+        # Uncomment the image that has the name of the environement you're deploying to
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev:1.4.1
+        # image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod:1.4.1
+        env:
+        - name: USER_UID
+          value: "1000"
+        - name: USER_GID
+          value: "1000"
+        - name: DB_TYPE
+          value: "postgres"
+        - name: INSTALL_LOCK
+          value: "true"
+        - name: DB_SSL_MODE
+          value: require
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: gitea-db-secret
+              key: host
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: gitea-db-secret
+              key: db-name
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-db-secret
+              key: username
+        - name: DB_PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-db-secret
+              key: password
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: gitea-security
+              key: secretkey
+        - name: INTERNAL_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: gitea-security
+              key: internaltoken
+        - name: LFS_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: gitea-server-jwt-secret
+              key: lfsjwtsecret
         ports:
         - containerPort: 3000
         volumeMounts:
