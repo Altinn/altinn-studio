@@ -35,7 +35,6 @@ const styles = () => createStyles({
       color: theme.altinnPalette.primary.blueDark,
       textDecoration: 'none',
     },
-
   },
   sidePadding: {
     paddingRight: '5px',

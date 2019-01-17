@@ -1,5 +1,5 @@
 import { Typography } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as moment from 'moment';
 import * as React from 'react';
@@ -8,6 +8,7 @@ import { RouteChildrenProps, withRouter } from 'react-router';
 import AltinnBreadcrumb from '../../../../shared/src/components/AltinnBreadcrumb';
 import AltinnButton from '../../../../shared/src/components/AltinnButton';
 import AltinnSpinner from '../../../../shared/src/components/AltinnSpinner';
+import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
 
@@ -21,14 +22,19 @@ export interface ICloneServiceComponentProps extends ICloneServiceComponentProvi
 }
 
 export interface ICloneServiceComponentState {
-  createdBy: string;
+  lastChangedBy: string;
   isLoading: boolean;
 }
+const theme = createMuiTheme(altinnTheme);
 
-const styles = {
+const styles = createStyles({
   mainStyle: {
     marginLeft: 120,
     marginTop: '50px',
+    [theme.breakpoints.down('md')]: {
+      marginLeft: '50px',
+      marginRight: '50px',
+    },
   },
   ownerStyle: {
     fontSize: '16px',
@@ -36,7 +42,7 @@ const styles = {
   },
   serviceHeader: {
     maxWidth: 840,
-    overflowWrap: 'break-word',
+    overflowWrap: 'break-word' as 'break-word',
   },
   iconStyling: {
     fontSize: '36px',
@@ -61,17 +67,22 @@ const styles = {
     marginTop: 24,
     marginLeft: 66,
     fontSize: 16,
+    overflowWrap: 'break-word' as 'break-word',
+    [theme.breakpoints.down('md')]: {
+      marginLeft: '50px',
+      marginRight: '50px',
+    },
   },
   fontSize_16: {
     fontSize: 16,
   },
-};
+});
 
 // tslint:disable-next-line:max-line-length
 export class CloneServiceComponent extends React.Component<ICloneServiceComponentProps & RouteChildrenProps, ICloneServiceComponentState> {
   public _isMounted = false;
   public state: ICloneServiceComponentState = {
-    createdBy: '',
+    lastChangedBy: '',
     isLoading: false,
   };
 
@@ -83,7 +94,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     get(url).then((result: any) => {
       if (result && this._isMounted) {
         this.setState({
-          createdBy: result.commit.author.name,
+          lastChangedBy: result.commit.author.name,
         });
       }
     });
@@ -158,11 +169,11 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
             <div className={classes.metadataStyle}>
               <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.created_time', this.props.language)} {this.formatNameAndDate(this.state.createdBy, repoInfo.created_at)}
+                {getLanguageFromKey('dashboard.created_time', this.props.language)} {this.formatNameAndDate('', repoInfo.created_at)}
               </Typography>
               <Typography className={classes.fontSize_16}>
                 {/* tslint:disable-next-line:max-line-length */}
-                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate('', repoInfo.updated_at)}
+                {getLanguageFromKey('dashboard.last_changed_by', this.props.language)} {this.formatNameAndDate(this.state.lastChangedBy, repoInfo.updated_at)}
               </Typography>
             </div>
             <div className={classes.descriptionStyle}>

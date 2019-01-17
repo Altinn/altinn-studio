@@ -27,6 +27,7 @@ const styles = () => createStyles({
     'height': 36,
     'marginTop': '20px',
     'borderRadius': '0',
+    'padding': '8px 24px 8px 24px',
     '&:hover': {
       background: theme.altinnPalette.primary.blueDarker,
       color: theme.altinnPalette.primary.white,
