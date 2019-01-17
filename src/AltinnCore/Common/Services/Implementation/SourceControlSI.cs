@@ -577,7 +577,8 @@ namespace AltinnCore.Common.Services.Implementation
                     HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
                     badRequest.ReasonPhrase = "One or all of the input parameters are null";
                     return badRequest;
-                }                
+                }
+                
                 string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                 using (Repository repo = new Repository(localServiceRepoFolder))
                 {
@@ -590,7 +591,6 @@ namespace AltinnCore.Common.Services.Implementation
                 }
 
                 // To do return custom reposnse message when a file is not found or when a file with no change is sent to stage
-
                 responseMessage.StatusCode = HttpStatusCode.OK;
                 return responseMessage;
             }
