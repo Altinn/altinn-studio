@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Configuration
         public const string RESOURCE_FOLDER_NAME = "Resources/";
 
         /// <summary>
-        /// Constant for the location of resource files
+        /// Constant for the location of dynamics files
         /// </summary>
         public const string DYNAMICS_FOLDER_NAME = "Dynamics/";
 
