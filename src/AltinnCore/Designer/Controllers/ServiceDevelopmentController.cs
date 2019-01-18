@@ -51,7 +51,9 @@ namespace AltinnCore.Designer.Controllers
             switch (fileEditorMode)
             {
                 case FileEditorMode.Implementation:
-                    return GetImplementationFiles(org, service);
+                    return GetImplementationFiles(org, service, false);
+                case FileEditorMode.Calculation:
+                    return GetImplementationFiles(org, service, true);
                 case FileEditorMode.Dynamics:
                     return GetResourceFiles(org, service, true);
                 default:
@@ -74,6 +76,9 @@ namespace AltinnCore.Designer.Controllers
             {
                 case FileEditorMode.Implementation:
                     file = _repository.GetImplementationFile(org, service, fileName);
+                    break;
+                case FileEditorMode.Calculation:
+                    file = _repository.GetImplementationFile(org, service, "Calculation/" + fileName);
                     break;
                 case FileEditorMode.Dynamics:
                     file = _repository.GetResourceFile(org, service, "Dynamics/" + fileName);
@@ -121,6 +126,9 @@ namespace AltinnCore.Designer.Controllers
                 case FileEditorMode.Dynamics:
                     _repository.SaveResourceFile(org, service, "Dynamics/" + fileName, content);
                     break;
+                case FileEditorMode.Calculation:
+                    _repository.SaveImplementationFile(org, service, "Calculation/" + fileName, content);
+                    break;
                 case FileEditorMode.All:
                     _repository.SaveConfiguration(org, service, fileName, content);
                     break;
@@ -132,9 +140,13 @@ namespace AltinnCore.Designer.Controllers
             return StatusCode(200);
         }
 
-        private ActionResult GetImplementationFiles(string org, string service)
+        private ActionResult GetImplementationFiles(string org, string service, bool calculation)
         {
             List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, service);
+            if (calculation)
+            {
+              files = _repository.GetCalculationFiles(org, service);
+            }
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 

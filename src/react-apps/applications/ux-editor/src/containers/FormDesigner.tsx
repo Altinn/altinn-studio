@@ -222,7 +222,12 @@ class FormDesigner extends React.Component<
                 </CollapsableMenuComponent>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_calculations}
-                  listItems={[{name: this.props.language.ux_editor.service_logic_edit_calculations}]}
+                  listItems={[
+                    {
+                      name: this.props.language.ux_editor.service_logic_edit_calculations,
+                      action: this.toggleCodeEditor.bind(this, 'Calculation'),
+                    },
+                  ]}
                   menuIsOpen={true}
                 />
                 <div className={this.props.classes.devider}/>
