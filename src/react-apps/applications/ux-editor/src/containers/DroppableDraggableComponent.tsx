@@ -172,7 +172,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             return;
           }
 
-          if (hoverClientY < hoverMiddleY) {
+          if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
             console.log('jezpoz');
           }

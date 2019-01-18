@@ -5,7 +5,8 @@
     "install-deps": "lerna bootstrap --hoist",
     "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
     "test": "jest",
-    "install-all": "lerna exec -- npm i"
+    "install-all": "lerna exec -- npm i",
+    "clean-all": "lerna exec -- rm -rf node_modules"
   },
   "devDependencies": {
     "@types/jest": "^23.3.10",

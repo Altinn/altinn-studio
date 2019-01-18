@@ -168,10 +168,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       },
     }));
     FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      id,
-      newIndex,
-      destinationContainerId,
-      sourceContainerId,
+      this.state.layoutOrder,
     );
     FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
