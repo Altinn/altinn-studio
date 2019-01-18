@@ -63,35 +63,15 @@ export interface ICollapsableMenuListItem {
   action?: () => void;
 }
 
-<<<<<<< HEAD
-class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsableMenuState> {
-  constructor(_props: ICollapsableMenuProps, _state: ICollapsableMenuState) {
-    super(_props, _state);
-=======
 class CollapsableMenu extends React.Component<ICollapsableMenuProps> {
   constructor(_props: ICollapsableMenuProps) {
     super(_props);
->>>>>>> master
     this.state = {
       showContent: false,
       menuIsOpen: _props.menuIsOpen,
     };
   }
-<<<<<<< HEAD
-  public toggleMenu = () => {
-    this.setState({
-      menuIsOpen: !this.state.menuIsOpen,
-    });
-  }
-  public showContent = () => {
-    this.setState((prevState) => ({
-      showContent: !prevState.showContent,
-    }));
-  }
-  public handleKeyPress = (e: any) => {
-    if (e.key === 'Enter') {
-      this.toggleMenu();
-=======
+
   public toggleMenu = (e: any) => {
     this.setState({
       menuIsOpen: !e.menuIsOpen,
@@ -105,7 +85,6 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps> {
   public handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
       this.toggleMenu(e);
->>>>>>> master
     }
   }
   public render(): JSX.Element {
@@ -115,28 +94,17 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps> {
           className={this.props.classes.listItem + ' ' + this.props.classes.listItemHeader}
         >
           <ListItemIcon
-<<<<<<< HEAD
-            className={this.state.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
-            onClick={this.toggleMenu}
-            tabIndex={0}
-            onKeyPress={this.handleKeyPress}
-=======
             className={this.props.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
             onClick={this.toggleMenu}
             tabIndex={0}
             onKeyPress={this.handleKeyPress}
             key={0}
->>>>>>> master
           >
             <i className={'ai ai-expand ' + this.props.classes.icon} />
           </ListItemIcon>
           <span className={this.props.classes.collapseHeader}>{this.props.header}</span>
         </ListItem>
-<<<<<<< HEAD
-        {this.state.menuIsOpen && this.props.listItems.map((item, index) => {
-=======
         {this.props.menuIsOpen && this.props.listItems.map((item, index) => {
->>>>>>> master
           return (
             <>
             <ListItem key={index} className={this.props.classes.listItem}>
