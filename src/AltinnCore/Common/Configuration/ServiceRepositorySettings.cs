@@ -18,6 +18,11 @@ namespace AltinnCore.Common.Configuration
         public const string RESOURCE_FOLDER_NAME = "Resources/";
 
         /// <summary>
+        /// Constant for the location of dynamics files
+        /// </summary>
+        public const string DYNAMICS_FOLDER_NAME = "Dynamics/";
+
+        /// <summary>
         /// Constant for the location of the testdata for parties folder
         /// </summary>
         public const string TESTDATA_FOR_PARTY_FOLDER_NAME = "Testdataforparty/";
@@ -370,6 +375,18 @@ namespace AltinnCore.Common.Configuration
         public string GetResourcePath(string org, string service, string developer)
         {
             return GetServicePath(org, service, developer) + RESOURCE_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to Dynamics directory (within ResourcesDirecory)
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetDynamicsPath(string org, string service, string developer)
+        {
+            return GetServicePath(org, service, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
         }
 
         /// <summary>

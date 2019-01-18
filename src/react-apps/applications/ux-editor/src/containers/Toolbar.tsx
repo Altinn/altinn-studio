@@ -11,11 +11,9 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
-import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
-import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 import { ToolbarItem } from './ToolbarItem';
@@ -370,12 +368,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
         <div className='d-block'>
           <ExternalApiModalComponent />
-        </div>
-        <div className='d-block'>
-          <RuleModalComponent />
-        </div>
-        <div className='d-block'>
-          <ConditionalRenderingModalComponent />
         </div>
         <Modal
           isOpen={this.state.modalOpen}

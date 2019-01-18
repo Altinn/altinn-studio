@@ -10,9 +10,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="AltinnCore.ServiceLibrary">
-      <HintPath>../app/AltinnCore.ServiceLibrary.dll</HintPath>
-    </Reference>
+	<PackageReference Include="AltinnCore.ServiceLibrary" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
