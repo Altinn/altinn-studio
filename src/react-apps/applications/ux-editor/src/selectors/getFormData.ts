@@ -21,16 +21,21 @@ const formDataForContainerSelector = (state: IAppState, props: any, index?: numb
     if (!component.dataModelBindings) {
       continue;
     }
-    let formDataKey = component.dataModelBindings.simpleBinding;
-    if (!formDataKey) {
-      continue;
-    }
-    if (container.repeating && container.dataModelGroup && index != null) {
-      formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${index}]`);
-    }
-    const formData = state.formFiller.formData;
-    if (formData[formDataKey]) {
-      filteredFormData[component.dataModelBindings.simpleBinding] = formData[formDataKey];
+    for (const dataModelKey in component.dataModelBindings) {
+      if (!dataModelKey) {
+        continue;
+      }
+      let formDataKey = component.dataModelBindings[dataModelKey];
+      if (!formDataKey) {
+        continue;
+      }
+      if (container.repeating && container.dataModelGroup && index != null) {
+        formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${index}]`);
+      }
+      const formData = state.formFiller.formData;
+      if (formData[formDataKey]) {
+        filteredFormData[component.dataModelBindings[dataModelKey]] = formData[formDataKey];
+      }
     }
   }
   return filteredFormData;

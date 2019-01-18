@@ -396,7 +396,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             })}
             {
               renderSelectTextFromResources(
-                'Søk etter ledetekst for Adresse',
+                'modal_configure_address_component_address_text_binding',
                 this.handleTextResourceBindingChange,
                 this.props.textResources,
                 this.props.language,
