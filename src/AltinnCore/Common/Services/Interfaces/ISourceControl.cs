@@ -130,5 +130,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="fileName">the name of the file</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         HttpResponseMessage CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
+
+        /// <summary>
+        /// Stages a specific file changed in working repository.
+        /// </summary>
+        /// <param name="owner">The owner of the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <param name="fileName">the entire file path with filen name</param>
+        /// <returns>Http response message as ok if checkout operation is successful.</returns>
+        HttpResponseMessage StageChange(string owner, string repository, string fileName);
     }
 }

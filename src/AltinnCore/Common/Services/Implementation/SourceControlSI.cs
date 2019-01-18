@@ -569,5 +569,47 @@ namespace AltinnCore.Common.Services.Implementation
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
+
+        /// <summary>
+        /// Stages a specific file changed in working repository.
+        /// </summary>
+        /// <param name="owner">The owner of the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <param name="fileName">the entire file path with filen name</param>
+        /// <returns>Http response message as ok if checkout operation is successful.</returns>
+        public HttpResponseMessage StageChange(string owner, string repository, string fileName)
+        {
+            HttpResponseMessage responseMessage = new HttpResponseMessage();
+            try
+            {
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+                
+                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                using (Repository repo = new Repository(localServiceRepoFolder))
+                {
+                    FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
+
+                    if (fileStatus == FileStatus.ModifiedInWorkdir || fileStatus == FileStatus.NewInWorkdir)
+                    {
+                        Commands.Stage(repo, fileName);
+                    }
+                }
+
+                // To do return custom reposnse message when a file is not found or when a file with no change is sent to stage
+                responseMessage.StatusCode = HttpStatusCode.OK;
+                return responseMessage;
+            }
+            catch (Exception ex)
+            {
+                responseMessage.StatusCode = HttpStatusCode.InternalServerError;
+                responseMessage.ReasonPhrase = ex.Message;
+                return responseMessage;
+            }
+        }
     }
 }
