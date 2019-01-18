@@ -207,8 +207,8 @@ namespace AltinnCore.Common.Services.Implementation
                         throw new Exception("Unable to create service");
                     }
                 }
+                
                 throw new Exception("Something went wrong when fetching service metadata ", ex);
-
             }
         }
 
@@ -1529,7 +1529,6 @@ namespace AltinnCore.Common.Services.Implementation
                     resource.Resources.Add(newKey, string.Empty);
                     Save(resource);
                 }
-
             }
         }
 
