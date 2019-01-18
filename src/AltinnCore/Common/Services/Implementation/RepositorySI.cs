@@ -207,8 +207,8 @@ namespace AltinnCore.Common.Services.Implementation
                         throw new Exception("Unable to create service");
                     }
                 }
+                throw new Exception("Something went wrong when fetching service metadata ", ex);
 
-                throw;
             }
         }
 
@@ -873,7 +873,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
-                bool created = repoCreated;
                 if (!File.Exists(filename))
                 {
                     _sourceControl.CloneRemoteRepository(owner, serviceConfig.RepositoryName);
@@ -889,12 +888,30 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
                     }
-
-                    created = true;
-                    CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
-
-                    _sourceControl.PushChangesForRepository(commitInfo);
                 }
+
+                ServiceMetadata metadata = new ServiceMetadata
+                {
+                    Org = owner,
+                    ServiceName = serviceConfig.ServiceName,
+                    RepositoryName = serviceConfig.RepositoryName,
+                };
+
+                CreateServiceMetadata(metadata);
+
+                if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
+                {
+                    JObject json = JObject.FromObject(new
+                    {
+                        language = "nb-NO",
+                        resources = new[] { new { id = "ServiceName", value = serviceConfig.ServiceName } },
+                    });
+                    SaveResource(owner, serviceConfig.RepositoryName, "nb-NO", json.ToString());
+                }
+
+                CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
+
+                _sourceControl.PushChangesForRepository(commitInfo);
             }
 
             return repository;

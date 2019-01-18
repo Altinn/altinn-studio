@@ -461,6 +461,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else
             {
                 elementMetadata.Type = ElementType.Group;
+
+                elementMetadata.DataBindingName = null;
+                
                 if (!skipRecursive)
                 {
                     BuildJsonRecursive(actualElement, allElements, newTrail, allTexts);
@@ -509,7 +512,32 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
         {          
             elementMetadata.XmlSchemaXPath = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
-            elementMetadata.JsonSchemaPointer = "#/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
+            string type = currentComplexType.AttributeValue("name");
+            if (string.IsNullOrEmpty(type))
+            {
+                if (!string.IsNullOrEmpty(elementMetadata.TypeName))
+                {
+                    type = elementMetadata.TypeName;
+                }
+                else if (elementMetadata.ParentElement != null)
+                {
+                    var fromIndex = elementMetadata.ParentElement.LastIndexOf(".");
+                    if (fromIndex >= 0 && fromIndex < elementMetadata.ParentElement.Length)
+                    {
+                        type = elementMetadata.ParentElement.Substring(fromIndex + 1);
+                    }
+                }
+            }
+
+            if (elementMetadata.Type == ElementType.Group)
+            {
+                elementMetadata.JsonSchemaPointer = "#/definitions/" + type;
+            }
+            else
+            {
+                elementMetadata.JsonSchemaPointer = "#/definitions/" + type + "/properties/" + elementMetadata.Name;
+            }
+
             string cardinality = "[" + elementMetadata.MinOccurs + ".." + (elementMetadata.MaxOccurs < MaxOccursMagicNumber ? elementMetadata.MaxOccurs.AsString() : "*") + "]";
             string typeName = elementMetadata.TypeName ?? elementMetadata.XsdValueType.AsString();
             elementMetadata.DisplayString = elementMetadata.ID + " : " + cardinality + " " + typeName;
@@ -700,7 +728,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             allElements.Add(elementMetadata.ID, elementMetadata);
-            AddSchemaReferenceInformation(simpleContent, elementMetadata);
+            AddSchemaReferenceInformation(actualElement, elementMetadata);
         }
 
         private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements, string parentTrail)

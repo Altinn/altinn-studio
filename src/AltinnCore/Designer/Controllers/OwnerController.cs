@@ -97,13 +97,6 @@ namespace AltinnCore.Designer.Controllers
                 if (!serviceNameAlreadyExists)
                 {
                     _repository.CreateService(org, serviceConfiguration);
-                    var metadata = new ServiceMetadata
-                    {
-                        Org = org,
-                        ServiceName = serviceName,
-                        RepositoryName = serviceName,
-                    };
-                    _repository.CreateServiceMetadata(metadata);
                     return RedirectToAction("Index", "Service", new { org, service = serviceConfiguration.RepositoryName });
                 }
                 else

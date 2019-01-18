@@ -4,45 +4,44 @@
   border: 1px solid #d4d4d5;
   padding: 20px;
 }
-.column1 {
-  width: 25%;
-  padding: 10px;
+
+.main-header {
+  font-size: 36px;
 }
 
-.column2 {
-  width: 75%;
-  padding: 10px;
+.header-spacing {
+  padding-bottom: 52px;
 }
-img {
-  vertical-align: middle;
+
+.sub-header {
+  padding-top: 20px;
+  padding-bottom:43px;
 }
-h2 {
-  font-size: 36px;
-  padding-bottom: 50px;
+
+.altinn-button
+{
+  background-color: #0062BA !important;
+  color: #FFFFFF !important;
 }
+
 </style>
 <div class="user signup{{if .LinkAccountMode}} icon{{end}}">
 	<div class="ui middle very relaxed page grid">
     <div class="row" style="align-items:center">
-      {{if not .LinkAccountMode}}
-        <div class="column1">
-            <img src="{{AppSubUrl}}/img/flower2.svg">
-        </div>
-      {{end}}
-      <div class="{{if .LinkAccountMode}} column {{else}} column2 {{end}}">
+      <div class="column">
         <form class="ui form" action="{{.SignUpLink}}" method="post">
           {{.CsrfTokenHtml}}
-          <h2>
+          <p class="main-header {{if not .LinkAccountMode}}header-spacing{{end}}">
             {{if .LinkAccountMode}}
               {{.i18n.Tr "auth.oauth_signup_tab"}}
             {{else}}
               {{.i18n.Tr "sign_up"}}
             {{end}}
-          </h2>
+          </p>
            {{if .LinkAccountMode}}
-           <h5>
+           <p class="sub-header">
               {{.i18n.Tr "auth.oauth_signup_title"}}
-           </h5>
+           </p>
           {{end}}
           <div>
             {{if or (not .LinkAccountMode) (and .LinkAccountMode .LinkAccountModeRegister)}}
@@ -85,7 +84,7 @@ h2 {
 
               <div class="field">
                 <label></label>
-                <button class="ui green button">
+                <button class="ui button altinn-button">
                   {{if .LinkAccountMode}}
                     {{.i18n.Tr "auth.oauth_signup_submit"}}
                   {{else}}
@@ -103,20 +102,16 @@ h2 {
             {{end}}
           </div>
           {{if not .LinkAccountMode}}
+          {{range $key := .OrderedOAuth2Names}}
+			    {{$provider := index $.OAuth2Providers $key}}
           <div class="field" style="padding-top:100px">
             <a class="link-box"
-              href="{{AppSubUrl}}/user/oauth2/github">{{.i18n.Tr "sign_in_with"}}</a>
+              href="{{AppSubUrl}}/user/oauth2/{{$key}}">{{.i18n.Tr "sign_in_with"}}</a>
           </div>
+          {{end}}
           {{end}}
         </form>
     </div>
   </div>
-  {{if .LinkAccountMode}}
-  <div class="row center" style="padding-top:100px;">
-    <div class="column">
-      <img src="{{AppSubUrl}}/img/flower1.svg">
-    </div>
-  </div>
-  {{end}}
   </div>
 </div>

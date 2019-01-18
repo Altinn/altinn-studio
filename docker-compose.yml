@@ -87,8 +87,10 @@ services:
       - ServiceRepositorySettings:ForceGiteaAuthentication=true
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
+      - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
       - ServiceRepositorySettings:ShouldFetchFromDatabase=false
       - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
+      - TestdataRepositorySettings:DesignerHost=altinn-designer
     ports:
       - "5005:5005"
     build:
