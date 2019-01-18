@@ -13,8 +13,13 @@ createTestCafe()
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: false })
+<<<<<<< Updated upstream
       .reporter('xUnit', stream)
       .src(['./repository_tests/login_create_new_repo.js'])
+=======
+      .reporter('spec')
+      .src(['./designer_tests/navigation-tests.js'])
+>>>>>>> Stashed changes
       .run({
         skipJsErrors: true,
         quarantineMode: false,
