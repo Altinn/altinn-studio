@@ -521,7 +521,7 @@ export function* updateFormComponentOrderSaga({
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
   try {
     yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      { ...updatedOrder },
+      updatedOrder,
     );
     const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
     yield call(

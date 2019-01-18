@@ -162,14 +162,14 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       }
     }
 
+    FormDesignerActionDispatchers.updateFormComponentOrderAction(
+      this.state.layoutOrder,
+    );
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
       },
     }));
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      this.state.layoutOrder,
-    );
     FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
