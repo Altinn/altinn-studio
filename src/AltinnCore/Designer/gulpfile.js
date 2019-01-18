@@ -140,13 +140,12 @@ function copyDashboardJs() {
 function copyServDevJs() {
   setTimeout(function () {
     gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
-    /*gulp.src(jsServDevModuleFile0).pipe(gulp.dest('./wwwroot/designer/js/react'));
+    gulp.src(jsServDevModuleFile0).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevModuleFile1).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevModuleFile2).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevModuleFile3).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest('./wwwroot/designer/js/react'));
     gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest('./wwwroot/designer/js/react'));
-    */
   }, 1000);
   return;
 }
