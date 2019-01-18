@@ -39,7 +39,7 @@ const styles = ((theme: Theme) => createStyles({
   },
   button: {
     'position': 'relative',
-    'zIndex': 9999,
+    'zIndex': 1201,
     'padding': '1.2rem 0.6rem',
     '&:hover': {
       background: 'none',

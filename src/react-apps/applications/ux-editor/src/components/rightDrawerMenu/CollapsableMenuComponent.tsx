@@ -63,27 +63,27 @@ export interface ICollapsableMenuListItem {
   action?: () => void;
 }
 
-class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsableMenuState> {
-  constructor(_props: ICollapsableMenuProps, _state: ICollapsableMenuState) {
-    super(_props, _state);
+class CollapsableMenu extends React.Component<ICollapsableMenuProps> {
+  constructor(_props: ICollapsableMenuProps) {
+    super(_props);
     this.state = {
       showContent: false,
       menuIsOpen: _props.menuIsOpen,
     };
   }
-  public toggleMenu = () => {
+  public toggleMenu = (e: any) => {
     this.setState({
-      menuIsOpen: !this.state.menuIsOpen,
+      menuIsOpen: !e.menuIsOpen,
     });
   }
-  public showContent = () => {
-    this.setState((prevState) => ({
-      showContent: !prevState.showContent,
-    }));
+  public showContent = (e: any) => {
+    this.setState({
+      showContent: !e.showContent,
+    });
   }
   public handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
-      this.toggleMenu();
+      this.toggleMenu(e);
     }
   }
   public render(): JSX.Element {
@@ -93,16 +93,17 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
           className={this.props.classes.listItem + ' ' + this.props.classes.listItemHeader}
         >
           <ListItemIcon
-            className={this.state.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
+            className={this.props.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
             onClick={this.toggleMenu}
             tabIndex={0}
             onKeyPress={this.handleKeyPress}
+            key={0}
           >
             <i className={'ai ai-expand ' + this.props.classes.icon} />
           </ListItemIcon>
           <span className={this.props.classes.collapseHeader}>{this.props.header}</span>
         </ListItem>
-        {this.state.menuIsOpen && this.props.listItems.map((item, index) => {
+        {this.props.menuIsOpen && this.props.listItems.map((item, index) => {
           return (
             <>
             <ListItem key={index} className={this.props.classes.listItem}>
