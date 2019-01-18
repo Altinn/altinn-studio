@@ -62,8 +62,8 @@ const styles = () => createStyles({
 });
 
 export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
-  checkForMergeConflict: () => void;
   language: any;
+  name?: any;
   repoStatus: any;
 }
 
@@ -167,12 +167,15 @@ class HandleMergeConflictContainer extends
                   className={classNames(classes.box)}
                 >
 
-
-                  <HandleMergeConflictFileList
-                    repoStatus={repoStatus}
-                    language={language}
-                    changeSelectedFile={this.changeSelectedFile}
-                  />
+                  {repoStatus.contentStatus ?
+                    <HandleMergeConflictFileList
+                      repoStatus={repoStatus}
+                      language={language}
+                      changeSelectedFile={this.changeSelectedFile}
+                    />
+                    :
+                    null
+                  }
 
                 </Grid>
 
@@ -186,7 +189,7 @@ class HandleMergeConflictContainer extends
                     loadFile={selectedFile}
                     boxShadow={true}
                     showSaveButton={true}
-                    checkForMergeConflict={this.props.checkForMergeConflict}
+                    checkRepoStatusAfterSaveFile={true}
                   />
                 </Grid>
 

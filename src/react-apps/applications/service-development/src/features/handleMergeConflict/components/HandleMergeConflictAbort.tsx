@@ -58,6 +58,16 @@ class HandleMergeConflictAbort extends
     const url = `${altinnWindow.location.origin}/designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
     get(url).then((result: any) => {
       console.log('result', result);
+      if (result.isSuccessStatusCode === true) {
+        window.postMessage('forceRepoStatusCheck', window.location.href);
+        this.setState({
+          anchorEl: null,
+        });
+      } else {
+        console.log('Abort is unsuccessfull', result);
+      }
+
+
     });
   }
 

@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implmentation for source control 
+    /// Implmentation for source control
     /// </summary>
     public class SourceControlSI : ISourceControl
     {
@@ -89,12 +89,12 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
-       /// <summary>
-       /// Pulls remote changes
-       /// </summary>
-       /// <param name="owner">Owner of the repository</param>
-       /// <param name="repository">The repository</param>
-       /// <returns>The repo status</returns>
+        /// <summary>
+        /// Pulls remote changes
+        /// </summary>
+        /// <param name="owner">Owner of the repository</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>The repo status</returns>
         public RepoStatus PullRemoteChanges(string owner, string repository)
         {
             RepoStatus status = new RepoStatus();
@@ -185,7 +185,7 @@ namespace AltinnCore.Common.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                // Restrict users from empty commit 
+                // Restrict users from empty commit
                 if (repo.RetrieveStatus().IsDirty)
                 {
                     string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
@@ -247,29 +247,38 @@ namespace AltinnCore.Common.Services.Implementation
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
-        public void Commit(CommitInfo commitInfo)
+        public HttpResponseMessage Commit(CommitInfo commitInfo)
         {
-            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            using (Repository repo = new Repository(localServiceRepoFolder))
+            try
             {
-                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                Remote remote = repo.Network.Remotes["origin"];
-
-                if (!remote.PushUrl.Equals(remoteUrl))
+                string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                using (Repository repo = new Repository(localServiceRepoFolder))
                 {
-                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                    // Requires adminstrator access to update files.
-                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                    string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
+                    Remote remote = repo.Network.Remotes["origin"];
+
+                    if (!remote.PushUrl.Equals(remoteUrl))
+                    {
+                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                        // Requires adminstrator access to update files.
+                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+                    }
+
+                    Commands.Stage(repo, "*");
+
+                    // Create the committer's signature and commit
+                    LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                    LibGit2Sharp.Signature committer = author;
+
+                    // Commit to the repository
+                    LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
                 }
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
 
-                Commands.Stage(repo, "*");
-
-                // Create the committer's signature and commit
-                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                LibGit2Sharp.Signature committer = author;
-
-                // Commit to the repository
-                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
             }
         }
 
@@ -298,7 +307,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gives the full repository status for 
+        /// Gives the full repository status for
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
         /// <param name="repository">The name of repository</param>
@@ -321,7 +330,7 @@ namespace AltinnCore.Common.Services.Implementation
                         repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
                         repoStatus.HasMergeConflict = true;
                     }
-                     
+
                     repoStatus.ContentStatus.Add(content);
                 }
 

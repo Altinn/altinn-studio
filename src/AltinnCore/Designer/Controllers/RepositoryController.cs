@@ -133,9 +133,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
         [HttpPost]
-        public void Commit([FromBody]CommitInfo commitInfo)
+        public ActionResult<HttpResponseMessage> Commit([FromBody]CommitInfo commitInfo)
         {
-            _sourceControl.Commit(commitInfo);
+            return _sourceControl.Commit(commitInfo);
         }
 
         /// <summary>
@@ -205,9 +205,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repository">The name of repository</param>
         /// <returns>Http response message as ok if reset operation is successful</returns>
         [HttpGet]
-        public HttpResponseMessage DiscardLocalChanges(string owner, string repository)
+        public ActionResult<HttpResponseMessage> DiscardLocalChanges(string owner, string repository)
         {
-           return _sourceControl.ResetCommit(owner, repository);
+            return _sourceControl.ResetCommit(owner, repository);
         }
 
         /// <summary>
@@ -218,9 +218,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="fileName">the name of the file</param>
         /// <returns>Http response message as ok if checkout operation is successful</returns>
         [HttpGet]
-        public HttpResponseMessage DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
+        public ActionResult<HttpResponseMessage> DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
         {
-           return _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+            return _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
         }
 
         /// <summary>

@@ -10,7 +10,7 @@ import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { HashRouter as Router, Redirect, Route, withRouter } from 'react-router-dom';
+import { HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
@@ -24,6 +24,7 @@ import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConfl
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { compose } from 'redux';
+import { RouteChildrenProps } from 'react-router';
 
 
 // import * as networking from '../../../applications/shared/src/utils/networking';
@@ -55,7 +56,7 @@ export interface IServiceDevelopmentAppState {
 
 }
 
-class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState> {
+class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
   constructor(_props: IServiceDevelopmentProps, _state: IServiceDevelopmentAppState) {
     super(_props, _state);
     this.state = {
@@ -72,21 +73,19 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, service);
   }
 
-  public forceRepoStatusCheck = () => {
-    this.setState(
-      {
-        forceRepoStatusCheckComplete: false,
-      },
-    );
-  }
-
   public componentDidMount() {
     const altinnWindow: Window = window;
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
 
     this.checkForMergeConflict();
+    window.addEventListener('message', this.windowEventReceived);
+  }
 
+  public windowEventReceived = (event: any) => {
+    if (event.data === 'forceRepoStatusCheck') {
+      this.checkForMergeConflict();
+    }
   }
 
   public handleDrawerToggle = () => {
@@ -95,10 +94,11 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    const { forceRepoStatusCheckComplete } = this.state;
+    // const { forceRepoStatusCheckComplete } = this.state;
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-
+    console.log('render');
+    console.log('location', this.props.location);
     return (
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
@@ -106,16 +106,20 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
             <div className={classes.container}>
               <Grid container={true} direction='row' id='test'>
                 <Grid item={true} xs={12}>
-                  {redirects.map((route, index) => (
-                    <Route
-                      key={index}
-                      exact={true}
-                      path={route.from}
-                      render={() => (
-                        <Redirect to={route.to} />
-                      )}
-                    />
-                  ))}
+                  {repoStatus.hasMergeConflict === false ?
+                    redirects.map((route, index) => (
+                      <Route
+                        key={index}
+                        exact={true}
+                        path={route.from}
+                        render={() => (
+                          <Redirect to={route.to} />
+                        )}
+                      />
+                    ))
+                    :
+                    null
+                  }
                   {routes.map((route, index) => (
                     <Route
                       key={index}
@@ -123,60 +127,83 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       exact={route.exact}
                       render={(props) => <AppBarComponent
                         {...props}
+                        activeLeftMenuSelection={route.activeLeftMenuSelection}
+                        activeSubHeaderSelection={route.activeSubHeaderSelection}
+                        logoutButton={repoStatus.hasMergeConflict}
                         org={org}
                         service={service}
-                        showBreadcrumbOnTablet={true}
-                        showSubHeader={true}
-                        activeSubHeaderSelection={route.activeSubHeaderSelection}
-                        activeLeftMenuSelection={route.activeLeftMenuSelection}
+                        showBreadcrumbOnTablet={repoStatus.hasMergeConflict ? false : true}
+                        showSubHeader={repoStatus.hasMergeConflict ? false : true}
                       />}
                     />
                   ))}
                 </Grid>
                 <Grid item={true} xs={12}>
-                  <Hidden smDown>
-                    <div style={{ top: 50 }}>
-                      {routes.map((route, index) => (
-                        <Route
-                          key={index}
-                          path={route.path}
-                          exact={route.exact}
-                          render={(props) => <LeftDrawerMenu
-                            {...props}
-                            menuType={route.menu}
-                            activeLeftMenuSelection={route.activeLeftMenuSelection}
-                          />}
-                        />
-                      ))}
-                    </div>
-                  </Hidden>
-                  {forceRepoStatusCheckComplete === true &&
+                  {repoStatus.hasMergeConflict === false ?
+                    <Hidden smDown>
+                      <div style={{ top: 50 }}>
+                        {routes.map((route, index) => (
+                          <Route
+                            key={index}
+                            path={route.path}
+                            exact={route.exact}
+                            render={(props) => <LeftDrawerMenu
+                              {...props}
+                              menuType={route.menu}
+                              activeLeftMenuSelection={route.activeLeftMenuSelection}
+                            />}
+                          />
+                        ))}
+                      </div>
+                    </Hidden>
+                    :
+                    null
+                  }
+
+                  {
                     repoStatus.hasMergeConflict === false ?
-                    <div className={classes.subApp}>
-                      {routes.map((route, index) => (
-                        <Route
-                          key={index}
-                          path={route.path}
-                          exact={route.exact}
-                          render={(props) => <route.subapp
-                            {...props}
-                            name={route.path}
-                          />}
-                        />
-                      ))}
-                    </div>
+                      <div className={classes.subApp}>
+                        {routes.map((route, index) => (
+                          <Route
+                            key={index}
+                            path={route.path}
+                            exact={route.exact}
+                            render={(props) => <route.subapp
+                              {...props}
+                              name={route.path}
+                            />}
+                          />
+                        ))}
+                      </div>
+                      :
+                      null
+                  }
+
+                  {
+                    repoStatus.hasMergeConflict === true ?
+                      <div className={classes.subApp}>
+                        <Switch>
+                          <Route
+                            path='/mergeconflict'
+                            exact={true}
+                            component={HandleMergeConflict}
+                          />
+                          <Redirect to='/mergeconflict' />
+                        </Switch>
+                      </div>
+                      :
+                      null
+                  }
+
+                  {/* {repoStatus.hasMergeConflict === true ?
+                    <Route
+                      path='/mergeconflict'
+                      exact={true}
+                      component={HandleMergeConflict}
+                    />
                     :
                     null
-                  }
-                  {repoStatus.hasMergeConflict === true ?
-                    <div className={classes.subApp}>
-                      <HandleMergeConflict
-                        checkForMergeConflict={this.checkForMergeConflict}
-                      />
-                    </div>
-                    :
-                    null
-                  }
+                  } */}
                 </Grid>
               </Grid>
             </div>

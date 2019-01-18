@@ -7,7 +7,8 @@ import altinnTheme from '../theme/altinnStudioTheme';
 export interface IAltinnIconCompontentProvidedProps {
   classes: any;
   iconClass: string;
-  isActive: boolean;
+  isActive?: boolean;
+  isActiveIconColor?: string;
   iconColor: any;
   iconSize?: number;
 }
@@ -31,7 +32,7 @@ class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAl
             this.props.iconClass,
           )}
         style={{
-          color: this.props.isActive ? styles.activeIcon.color : this.props.iconColor,
+          color: this.props.isActive ? this.props.isActiveIconColor : this.props.iconColor,
           fontSize: this.props.iconSize ? this.props.iconSize : null,
         }}
       />

@@ -1,6 +1,7 @@
 import * as React from 'react';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import uieditorApp from '../../../ux-editor/src/SubApp';
+import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
 const DummySubApp = (name: any) => {
   return (
@@ -129,5 +130,13 @@ export const routes = [
     activeLeftMenuSelection: 'Status',
     menu: 'publish',
     subapp: DummySubApp,
+  },
+  {
+    path: '/mergeconflict',
+    exact: true,
+    activeSubHeaderSelection: 'Om',
+    activeLeftMenuSelection: 'null',
+    menu: 'about',
+    subapp: HandleMergeConflictContainer,
   },
 ];

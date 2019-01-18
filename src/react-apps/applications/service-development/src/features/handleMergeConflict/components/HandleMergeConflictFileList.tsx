@@ -111,10 +111,19 @@ class HandleMergeConflictFileList extends
                   }}
                 >
                   <AltinnIcon
-                    isActive={true}
-                    iconClass='ai ai-circlecancel'
-                    iconColor='#022F51'
-                    iconSize={16}
+                    isActive={selectedIndex === index}
+                    isActiveIconColor={item.fileStatus === 'Conflicted' ?
+                      theme.altinnPalette.primary.blueDark : theme.altinnPalette.primary.green
+                    }
+                    iconClass={item.fileStatus === 'Conflicted' ?
+                      'ai ai-circlecancel' : 'ai ai-check'
+                    }
+                    iconColor={item.fileStatus === 'Conflicted' ?
+                      theme.altinnPalette.primary.blueDarker : theme.altinnPalette.primary.green
+                    }
+                    iconSize={item.fileStatus === 'Conflicted' ?
+                      16 : 24
+                    }
                   />
                 </ListItemIcon>
                 <ListItemText

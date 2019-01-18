@@ -6,7 +6,7 @@ import AltinnButton from '../../../../../shared/src/components/AltinnButton';
 import AltinnInput from '../../../../../shared/src/components/AltinnInput';
 import AltinnPopover from '../../../../../shared/src/components/AltinnPopover';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-import { get } from '../../../../../shared/src/utils/networking';
+import { get, post } from '../../../../../shared/src/utils/networking';
 import HandleMergeConflictAbort from './HandleMergeConflictAbort';
 // import { makeGetApiConnectionsSelector } from '../../../../../ux-editor/src/selectors/getServiceConfigurations';
 
@@ -30,10 +30,10 @@ export interface IHandleMergeConflictValidateChangesProps extends WithStyles<typ
 
 export interface IHandleMergeConflictValidateChangesState {
   anchorEl: any;
-  popoverState: any;
   form: {
     commitMessageInput: string;
   };
+  popoverState: any;
 }
 
 const initialPopoverState = {
@@ -60,37 +60,92 @@ class HandleMergeConflictValidateChanges extends
     };
   }
 
-  public validateChanges = async () => {
-    // const { commitMessageInput } = this.state.form;
+  public validateChanges = async (event: any) => {
+    this.setState({
+      anchorEl: event.currentTarget,
+      popoverState: {
+        header: getLanguageFromKey('sync_header.fetching_latest_version', this.props.language),
+        isLoading: true,
+      },
+    });
+    const { commitMessageInput } = this.state.form;
 
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
 
-    // const options = {
-    //   headers: {
-    //     'Accept': 'application/json',
-    //     'Content-Type': 'application/json',
-    //   },
-    // };
+    const options = {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+    };
 
-    // const commitBody = JSON.stringify({ message: commitMessageInput, org, repository: service });
+    const commitBody = JSON.stringify({ message: commitMessageInput, org, repository: service });
+    const commitUrl = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
+    const commitResult = await post(commitUrl, commitBody, options);
+    console.log('commitResult', commitResult);
 
-    // const commitUrl = `${altinnWindow.location.origin}/designerapi/Repository/Commit`;
     const pullUrl = `${altinnWindow.location.origin}/designerapi/Repository/Pull?owner=${org}&repository=${service}`;
-
-    // const commitResult = await post(commitUrl, commitBody, options);
-    // console.log('commitResult', commitResult);
     const pullResult = await get(pullUrl);
     console.log('pullResult', pullResult);
 
+    if (pullResult.hasMergeConflict === false) {
+      window.postMessage('forceRepoStatusCheck', window.location.href);
+      this.setState({
+        popoverState: {
+          descriptionText:
+            getLanguageFromKey('handle_merge_conflict.validate_ok_message', this.props.language),
+          btnText:
+            getLanguageFromKey('handle_merge_conflict.validate_confirm_share_changes', this.props.language),
+          btnCancelText:
+            getLanguageFromKey('handle_merge_conflict.validate_continue_working_dont_share', this.props.language),
+          btnMethod: this.pushChanges,
+        },
+      });
+
+    } else if (pullResult.hasMergeConflict === true) {
+
+      this.setState({
+        // todo text
+        popoverState: {
+          header: 'merge konflikt',
+          descriptionText:
+            'du har merge conflikt',
+          btnText: 'OK',
+          shouldShowCommitBox: true,
+          btnMethod: this.handleClose,
+        },
+      });
+
+    }
   }
 
-  public validateChangesPopover = (event: any) => {
+  public pushChanges = () => {
     this.setState({
-      anchorEl: event.currentTarget,
+      popoverState: {
+        header: getLanguageFromKey('sync_header.sharing_changes', this.props.language),
+        isLoading: true,
+      },
+    });
+
+    const altinnWindow: any = window as any;
+    const { org, service } = altinnWindow;
+    const url = `${altinnWindow.location.origin}/designerapi/Repository/Push?owner=${org}&repository=${service}`;
+
+    post(url).then((result: any) => {
+      this.setState({
+        popoverState: {
+          header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
+          descriptionText:
+            getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
+          shouldShowDoneIcon: true,
+        },
+      });
     });
   }
 
+
+  // TODO: DISCARD ALL LOCAL CHANGES
   public ValidateChangesConfirmed() {
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
@@ -157,7 +212,8 @@ class HandleMergeConflictValidateChanges extends
             <AltinnButton
               btnText={getLanguageFromKey('general.validate_changes', this.props.language)}
               onClickFunction={this.validateChanges}
-              disabled={repoStatus.hasMergeConflict}
+            // TODO: disabled={repoStatus.hasMergeConflict || repoStatus.contentStatus.length > 0}
+            // disabled={repoStatus.hasMergeConflict}
             />
             <HandleMergeConflictAbort
               language={this.props.language}
@@ -168,7 +224,7 @@ class HandleMergeConflictValidateChanges extends
 
         <AltinnPopover
           anchorEl={this.state.anchorEl}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+          anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
           btnCancelText={popoverState.btnCancelText}
           btnClick={popoverState.btnMethod}
           btnConfirmText={popoverState.btnText}
@@ -178,7 +234,7 @@ class HandleMergeConflictValidateChanges extends
           isLoading={popoverState.isLoading}
           shouldShowCommitBox={popoverState.shouldShowCommitBox}
           shouldShowDoneIcon={popoverState.shouldShowDoneIcon}
-          transformOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+          transformOrigin={{ horizontal: 'right', vertical: 'bottom' }}
         />
 
       </React.Fragment >

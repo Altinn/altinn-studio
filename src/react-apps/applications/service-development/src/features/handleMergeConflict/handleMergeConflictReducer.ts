@@ -9,7 +9,9 @@ export interface IHandleMergeConflictState {
 }
 
 const initialState: IHandleMergeConflictState = {
-  repoStatus: {},
+  repoStatus: {
+    hasMergeConflict: null,
+  },
   foo: 'bar',
 };
 

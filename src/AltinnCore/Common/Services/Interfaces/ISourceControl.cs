@@ -82,9 +82,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The name of the repository</param>
         /// <returns>The latest commit</returns>
         Commit GetLatestCommitForCurrentUser(string owner, string repository);
-        
+
         /// <summary>
-        /// Gives the full repository status for 
+        /// Gives the full repository status for
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
         /// <param name="repository">The name of repository</param>
@@ -110,7 +110,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
-        void Commit(CommitInfo commitInfo);
+        HttpResponseMessage Commit(CommitInfo commitInfo);
 
         /// <summary>
         /// Discards all local changes for the logged in user and the local repository is updated with latest remote commit (origin/master)

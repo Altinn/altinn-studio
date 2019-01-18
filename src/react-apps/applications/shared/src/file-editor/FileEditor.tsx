@@ -44,7 +44,7 @@ const languages: ICodeLanguage = {
 
 export interface IFileEditorProvidedProps {
   boxShadow?: boolean;
-  checkForMergeConflict?: () => void;
+  checkRepoStatusAfterSaveFile?: boolean;
   classes: any;
   closeFileEditor?: () => void;
   loadFile?: string;
@@ -204,13 +204,28 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
-    post(postUrl, this.state.value, { headers: { 'Content-type': 'text/plain;charset=utf-8' } }).then((response) => {
-      // TODO: Handle reponse with error
-      if (this.props.closeFileEditor) {
-        this.props.closeFileEditor();
-      }
-      if (this.props.checkForMergeConflict) {
-        this.props.checkForMergeConflict();
+    post(postUrl, this.state.value, {
+      headers: {
+        'Content-type': 'text/plain;charset=utf-8',
+      },
+    }).then((response: any) => {
+      console.log('saveFile response', response);
+      if (response.isSuccessStatusCode === true) {
+
+        console.log('save file success', response.isSuccessStatusCode);
+
+        // TODO: STAGE FILE
+
+        if (this.props.checkRepoStatusAfterSaveFile === true) {
+          window.postMessage('forceRepoStatusCheck', window.location.href);
+        }
+
+        if (this.props.closeFileEditor) {
+          this.props.closeFileEditor();
+        }
+
+      } else {
+        console.log('save file NOT success', response.isSuccessStatusCode);
       }
     });
   }
