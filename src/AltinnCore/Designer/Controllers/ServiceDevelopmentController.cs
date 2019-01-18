@@ -52,7 +52,8 @@ namespace AltinnCore.Designer.Controllers
             {
                 case FileEditorMode.Implementation:
                     return GetImplementationFiles(org, service);
-
+                case FileEditorMode.Dynamics:
+                    return GetResourceFiles(org, service, true);
                 default:
                     return Content(string.Empty);
             }
@@ -68,17 +69,23 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The content of the file</returns>
         public ActionResult GetServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
         {
+            string file = string.Empty;
             switch (fileEditorMode)
             {
                 case FileEditorMode.Implementation:
-                    return GetImplementationFile(org, service, fileName);
+                    file = _repository.GetImplementationFile(org, service, fileName);
+                    break;
+                case FileEditorMode.Dynamics:
+                    file = _repository.GetResourceFile(org, service, "Dynamics/" + fileName);
+                    break;
                 case FileEditorMode.All:
-                    string file = string.Empty;
                     file = _repository.GetConfiguration(org, service, fileName);
-                    return Content(file, "text/plain", Encoding.UTF8);
+                    break;
                 default:
-                    return Content(string.Empty);
+                    break;
             }
+
+            return Content(file, "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
@@ -111,6 +118,9 @@ namespace AltinnCore.Designer.Controllers
                     }
 
                     break;
+                case FileEditorMode.Dynamics:
+                    _repository.SaveResourceFile(org, service, "Dynamics/" + fileName, content);
+                    break;
                 case FileEditorMode.All:
                     _repository.SaveConfiguration(org, service, fileName, content);
                     break;
@@ -125,30 +135,34 @@ namespace AltinnCore.Designer.Controllers
         private ActionResult GetImplementationFiles(string org, string service)
         {
             List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, service);
+            return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
+        }
+
+        private ActionResult GetResourceFiles(string org, string service, bool dynamics)
+        {
+            List<AltinnCoreFile> files = null;
+
+            if (dynamics)
+            {
+                files = _repository.GetDynamicsFiles(org, service);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+
+            return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
+        }
+
+        private string GetCommaSeparatedFileList(List<AltinnCoreFile> files)
+        {
             string fileList = string.Empty;
             foreach (AltinnCoreFile file in files)
             {
                 fileList += file.FileName + ",";
             }
 
-            fileList = fileList.Substring(0, fileList.Length - 1);
-
-            return Content(fileList, "text/plain", Encoding.UTF8);
-        }
-
-        private ActionResult GetImplementationFile(string org, string service, string fileName)
-        {
-            string file = string.Empty;
-            if (fileName == "RuleHandler.js")
-            {
-                file = _repository.GetResourceFile(org, service, fileName);
-            }
-            else
-            {
-                file = _repository.GetImplementationFile(org, service, fileName);
-            }
-
-            return Content(file, "text/plain", Encoding.UTF8);
+            return fileList.Substring(0, fileList.Length - 1);
         }
     }
 }

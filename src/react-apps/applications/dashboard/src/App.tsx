@@ -1,10 +1,16 @@
+/* tslint:disable:jsx-no-lambda */
+// https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
+// Disabled for React Router rendering
+
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { HashRouter as Router, Route } from 'react-router-dom';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
+import { CloneService } from './dashboardServices/cloneService/cloneServices';
 import fetchServicesActionDispatchers from './dashboardServices/fetchDashboardDispatcher';
 import { ServicesOverview } from './dashboardServices/serviceOverview/servicesOverview';
 import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
@@ -50,18 +56,32 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
   public render() {
     return (
       <MuiThemeProvider theme={theme}>
-        <AppBarComponent
-          org={this.props.user.full_name || this.props.user.login}
-          service=' '
-          logoutButton={true}
-          showSubHeader={false}
-          backgroundColor={theme.altinnPalette.primary.white}
-        />
-        <Grid container={true} justify='center' direction='row' className='block-with-text' >
-          <Grid item={true} xs={10}>
-            <ServicesOverview />
-          </Grid>
-        </Grid>
+        <Router>
+          <div>
+            <AppBarComponent
+              org={this.props.user.full_name || this.props.user.login}
+              service=' '
+              logoutButton={true}
+              showSubHeader={false}
+              backgroundColor={theme.altinnPalette.primary.white}
+            />
+            <Route
+              path={'/'}
+              exact={true}
+              render={() => (
+                <Grid container={true} justify='center' direction='row' className='block-with-text' >
+                  <Grid item={true} xs={10}>
+                    <ServicesOverview />
+                  </Grid>
+                </Grid>)}
+            />
+            <Route
+              path={'/org/:org/servicename/:serviceName'}
+              exact={true}
+              component={CloneService}
+            />
+          </div>
+        </Router>
       </MuiThemeProvider>
     );
   }
