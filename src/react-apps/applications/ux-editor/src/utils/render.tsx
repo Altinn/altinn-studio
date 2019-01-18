@@ -71,7 +71,7 @@ export function renderSelectTextFromResources(
   }
   return (
     <div>
-      {renderPropertyLabel(getTextResource(labelText, textResources))}
+      {renderPropertyLabel(language.ux_editor[labelText])}
       {createNewTextAllowed ?
         <CreatableSelect
           styles={customInput}
