@@ -43,7 +43,7 @@ const languages: ICodeLanguage = {
 
 export interface IFileEditorProvidedProps {
   classes: any;
-  mode: number;
+  mode: string;
   closeFileEditor?: () => void;
 }
 
@@ -136,33 +136,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       });
   }
 
-  public getFolderText(): string {
-    switch (this.props.mode) {
-      case 1: {
-        return 'Deployment';
-      }
-      case 2: {
-        return 'Implementation';
-      }
-      case 3: {
-        return 'Metadata';
-      }
-      case 4: {
-        return 'Model';
-      }
-      case 5: {
-        return 'Resources';
-      }
-      case 6: {
-        return 'Test';
-      }
-      case 0:
-      default: {
-        return 'All';
-      }
-    }
-  }
-
   public switchFile = (e: any) => {
     const fileName = e.target.value;
     this.loadFileContent(fileName);
@@ -227,14 +200,13 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public render() {
-    const {classes} = this.props;
-    const foldertext = this.getFolderText();
+    const {classes, mode} = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
     return (
       <Grid container={true} spacing={0} className={classes.codeEditorContent}>
         <Grid item={true} xs={11}  className={classes.fileHeader}>
           <span>
-            {foldertext}
+            {mode}
             <i className='ai ai-expand' style={{fontSize: '2rem'}}/>
             <Select
               value={this.state.selectedFile}

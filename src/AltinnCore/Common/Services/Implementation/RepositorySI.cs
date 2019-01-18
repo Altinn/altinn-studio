@@ -113,6 +113,16 @@ namespace AltinnCore.Common.Services.Implementation
                 resourceDirectoryInfo.Create();
             }
 
+            string dynamicsDir = _settings.GetDynamicsPath(
+                serviceMetadata.Org,
+                serviceMetadata.RepositoryName,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            DirectoryInfo dynamicsDirectoryInfo = new DirectoryInfo(dynamicsDir);
+            if (!dynamicsDirectoryInfo.Exists)
+            {
+                dynamicsDirectoryInfo.Create();
+            }
+
             string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
@@ -121,7 +131,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
-            CreateInitialRuleHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialDynamicsHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
@@ -432,7 +442,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetRuleHandler(string org, string service)
         {
-            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string filePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -654,11 +664,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 throw new Exception("Resource directory missing.");
             }
-
-            string ruleHandlerPath = resourceDirectory + _settings.RuleHandlerFileName;
-            File.WriteAllText(
-                ruleHandlerPath,
-                File.ReadAllText(ruleHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
             string implementationDirectory = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(implementationDirectory))
@@ -1317,6 +1322,32 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Returns a list over the dynamics files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        public List<AltinnCoreFile> GetDynamicsFiles(string org, string service)
+        {
+            List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
+
+            string[] jsFiles = Directory.GetFiles(_settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in jsFiles)
+            {
+                AltinnCoreFile corefile = new AltinnCoreFile
+                {
+                    FilePath = file,
+                    FileName = Path.GetFileName(file),
+                    LastChanged = File.GetLastWriteTime(file),
+                };
+
+                coreFiles.Add(corefile);
+            }
+
+            return coreFiles;
+        }
+
+        /// <summary>
         /// Returns content of a implementation file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -1521,7 +1552,7 @@ namespace AltinnCore.Common.Services.Implementation
             File.WriteAllText(calculationHandlerFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialRuleHandler(string org, string service)
+        private void CreateInitialDynamicsHandler(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.RuleHandlerTemplate, Encoding.UTF8);
@@ -1530,7 +1561,7 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string ruleHandlerFilePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string ruleHandlerFilePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             File.WriteAllText(ruleHandlerFilePath, textData, Encoding.UTF8);
         }
 
