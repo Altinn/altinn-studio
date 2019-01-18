@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Configuration
         public const string RESOURCE_FOLDER_NAME = "Resources/";
 
         /// <summary>
-        /// Constant for the location of resource files
+        /// Constant for the location of dynamics files
         /// </summary>
         public const string IMPLEMENTATION_FOLDER_NAME = "Implementation/";
 
@@ -388,7 +388,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the full path to ResourceDirectory
+        /// Gets the full path to Dynamics directory (within ResourcesDirecory(
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
