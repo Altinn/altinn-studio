@@ -320,9 +320,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       if (!dataBindingKey) {
         continue;
       }
-      console.log(dataBindingKey);
-      console.log(this.props.components[id].dataModelBindings[dataBindingKey]);
-      console.log(this.props.formData);
       valueArr[dataBindingKey] = this.props.formData[this.props.components[id].dataModelBindings[dataBindingKey]];
     }
     if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
