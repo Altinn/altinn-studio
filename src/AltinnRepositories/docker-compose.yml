@@ -1,34 +1,31 @@
 version: "3"
 
-networks:
-  repositories:
-    external: false
-
-volumes:
-  gitea-data:
-
 services:
-  server:
+  local:
     container_name: altinn-repositories
     image: gitea/gitea:1.7
-   restart: always
-    networks:
-      - repositories
-    volumes:
-      - ./gitea-data:/data
+    restart: always
     ports:
       - "3000:3000"
       - "222:22"
-#   depends_on:
-#     - db
-# db:
-#   image: postgres:10.3
-#   restart: always
-#   environment:
-#     - POSTGRES_USER=postgres
-#     - POSTGRES_PASSWORD=gitea
-#     - POSTGRES_DB=postgres
-#   networks:
-#     - repositories
-#   volumes:
-#      - gitea-data:/var/lib/postgresql/data
+
+
+  dev:
+    container_name: altinn-repositories
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    restart: always
+    ports:
+      - "3000:3000"
+      - "222:22"
+
+  prod:
+    container_name: altinn-repositories
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    restart: always
+    ports:
+      - "3000:3000"
+      - "222:22"

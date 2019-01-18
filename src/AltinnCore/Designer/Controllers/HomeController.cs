@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Api;
@@ -187,8 +188,14 @@ namespace AltinnCore.Designer.Controllers
         /// <returns>The login page</returns>
         public async Task<IActionResult> Login()
         {
-            string userName = "TestUser";
+            string userName = string.Empty;
             string goToUrl = "/";
+
+            // Verify that user is not logged in already.
+            if (!string.IsNullOrEmpty(AuthenticationHelper.GetDeveloperUserName(HttpContext)))
+            {
+                return LocalRedirect(goToUrl);
+            }
 
             // Temporary catch errors until we figure out how to force this.
             try
