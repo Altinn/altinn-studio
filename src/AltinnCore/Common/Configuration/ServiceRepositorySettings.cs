@@ -388,7 +388,7 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the full path to Dynamics directory (within ResourcesDirecory(
+        /// Gets the full path to Dynamics directory (within ResourcesDirecory)
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>

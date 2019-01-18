@@ -1529,7 +1529,7 @@ namespace AltinnCore.Common.Services.Implementation
                     resource.Resources.Add(newKey, string.Empty);
                     Save(resource);
                 }
-                
+
             }
         }
 
