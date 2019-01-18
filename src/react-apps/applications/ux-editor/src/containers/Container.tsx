@@ -324,13 +324,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     }
     if (Object.keys(valueArr).indexOf('simpleBinding') >= 0) {
       // Simple component
-      console.log('Simple');
-      console.log(valueArr.simpleBinding);
       return valueArr.simpleBinding;
     } else {
       // Advanced component
-      console.log('Advanced');
-      console.log(valueArr);
       return valueArr;
     }
   }
