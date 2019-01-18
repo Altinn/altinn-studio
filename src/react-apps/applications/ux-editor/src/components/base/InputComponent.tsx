@@ -18,7 +18,6 @@ export class InputComponent
 
   constructor(_props: IInputProps, _state: IInputState) {
     super(_props, _state);
-    console.log('FormData: ' + _props.formData);
     this.state = {
       value: _props.formData ? _props.formData : '',
     };

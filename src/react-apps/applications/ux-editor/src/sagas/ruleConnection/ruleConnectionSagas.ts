@@ -145,10 +145,6 @@ function* checkIfRuleShouldRunSaga({
               if (!dataBindingKey) {
                 continue;
               }
-              console.log(dataBindingKey);
-              console.log(formDesignerState.layout.components[component].dataModelBindings[dataBindingKey]);
-              console.log(connectionDef.outParam0);
-              console.log(connectionDef);
               if (formDesignerState.layout.components[component].dataModelBindings[dataBindingKey] ===
                 connectionDef.outParams.outParam0) {
                 updatedComponent = component;

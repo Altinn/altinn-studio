@@ -416,7 +416,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public handleDataModelChange = (selectedDataModelElement: string, key: string = DefaultDataModelBindingKey) => {
+  public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
     let { dataModelBindings: dataModelBinding } = (this.state.component as IFormAddressComponent);
     if (!dataModelBinding) {
       dataModelBinding = {};
