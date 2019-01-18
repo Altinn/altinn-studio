@@ -144,7 +144,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleDescriptionChange = (selectedText: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.textResourceBindings.title
+    updatedComponent.textResourceBindings.description
       = selectedText ? selectedText.value : null;
     this.props.handleComponentUpdate(updatedComponent);
   }
