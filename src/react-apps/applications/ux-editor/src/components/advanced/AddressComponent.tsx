@@ -40,11 +40,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     super(_props);
     const formData = this.props.formData ? this.props.formData : {};
     this.state = {
-      address: formData[AddressKeys.address],
-      zipCode: formData[AddressKeys.zipCode],
-      postPlace: formData[AddressKeys.postPlace],
-      careOf: formData[AddressKeys.careOf],
-      houseNumber: formData[AddressKeys.houseNumber],
+      address: formData.address || '',
+      zipCode: formData.zipCode || '',
+      postPlace: formData.postPlace || '',
+      careOf: formData.careOf || '',
+      houseNumber: formData.houseNumber || '',
       validations: {
         zipCode: null,
         houseNumber: null,
@@ -135,7 +135,13 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     if (simplified) {
       return (
         <div className={'address-component'}>
-          <label className={'address-component-label'}>Adresse</label>
+          <label className={'address-component-label'}>
+            {
+              // This has been implemented for the sake of validating new textResource binding POC
+              (!this.props.component.textResourceBindings.address) ? 'Adresse' :
+                this.props.getTextResource(this.props.component.textResourceBindings.address)
+            }
+          </label>
           <input
             className={'form-control'}
             value={address}
@@ -179,7 +185,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     }
     return (
       <div className={'address-component'}>
-        <label className={'address-component-label'}>Adresse</label>
+        <label className={'address-component-label'}>{
+          // This has been implemented for the sake of validating new textResource binding POC
+          (!this.props.component.textResourceBindings.address) ? 'Adresse' :
+            this.props.getTextResource(this.props.component.textResourceBindings.address)
+        }</label>
         <input
           className={'form-control'}
           value={address}

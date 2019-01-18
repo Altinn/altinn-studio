@@ -32,7 +32,7 @@ export function renderSelectDataModelBinding(
   language: any,
   label?: string,
   returnValue?: any,
-  key: string = DefaultDataModelBindingKey,
+  key: string = 'simpleBinding',
 ): JSX.Element {
   return (
     <div>
@@ -71,7 +71,7 @@ export function renderSelectTextFromResources(
   }
   return (
     <div>
-      {renderPropertyLabel(language.ux_editor[labelText])}
+      {renderPropertyLabel(getTextResource(labelText, textResources))}
       {createNewTextAllowed ?
         <CreatableSelect
           styles={customInput}
@@ -106,3 +106,4 @@ export function renderSelectTextFromResources(
     </div>
   );
 }
+

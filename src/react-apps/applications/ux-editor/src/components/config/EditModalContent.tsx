@@ -394,18 +394,16 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 )
               );
             })}
-            {Object.keys(AddressKeys).map((value: AddressKeys) => {
-              return (
-                renderSelectTextFromResources(
-                  this.state.component.textResourceBindings[value],
-                  this.handleTextResourceBindingChange,
-                  this.props.textResources,
-                  this.props.language,
-                  this.state.component.textResourceBindings[value],
-                  value,
-                )
+            {
+              renderSelectTextFromResources(
+                'Søk etter ledetekst for Adresse',
+                this.handleTextResourceBindingChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings[AddressKeys.address],
+                AddressKeys.address,
               )
-            })}
+            }
           </Grid >
         );
       }
