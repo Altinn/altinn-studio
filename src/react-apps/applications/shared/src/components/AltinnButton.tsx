@@ -22,6 +22,9 @@ const styles = () => createStyles({
   borderBottom: {
     borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
   },
+  borderBottomDisabled: {
+    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.greyMedium,
+  },
   button: {
     'color': theme.altinnPalette.primary.white,
     'background': theme.altinnPalette.primary.blueDark,
@@ -78,7 +81,12 @@ class AltinnButton extends
         onClick={this.props.onClickFunction}
         style={{ fontSize: 16 }}
       >
-        <span className={classNames({ [classes.borderBottom]: this.props.secondaryButton === true })}>
+        <span
+          className={classNames({
+            [classes.borderBottom]: this.props.secondaryButton === true && this.props.disabled !== true,
+            [classes.borderBottomDisabled]: this.props.secondaryButton === true && this.props.disabled === true,
+          })}
+        >
           {this.props.btnText}
         </span>
       </Button>

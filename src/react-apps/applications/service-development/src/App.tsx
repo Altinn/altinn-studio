@@ -8,9 +8,12 @@
 import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { RouteChildrenProps } from 'react-router';
 import { HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { compose } from 'redux';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
@@ -18,16 +21,10 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
-import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
-
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
-import { compose } from 'redux';
-import { RouteChildrenProps } from 'react-router';
-
-
-// import * as networking from '../../../applications/shared/src/utils/networking';
+import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -37,10 +34,15 @@ const styles = () => createStyles({
     height: '100%',
     width: '100%',
   },
+  mergeConflictApp: {
+    height: '100%',
+    width: '100%',
+  },
   subApp: {
     [theme.breakpoints.up('md')]: {
       paddingLeft: 73,
     },
+    background: theme.altinnPalette.primary.greyLight,
     height: '100%',
     width: '100%',
   },
@@ -94,18 +96,17 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
   public render() {
     const { classes, repoStatus } = this.props;
-    // const { forceRepoStatusCheckComplete } = this.state;
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    console.log('render');
-    console.log('location', this.props.location);
+
     return (
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <Router>
-            <div className={classes.container}>
+            <div className={classes.container} id='test-container'>
               <Grid container={true} direction='row' id='test'>
-                <Grid item={true} xs={12}>
+                <Grid item={true} xs={12} id='appBarGridItem'>
                   {repoStatus.hasMergeConflict === false ?
                     redirects.map((route, index) => (
                       <Route
@@ -132,13 +133,13 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                         logoutButton={repoStatus.hasMergeConflict}
                         org={org}
                         service={service}
-                        showBreadcrumbOnTablet={repoStatus.hasMergeConflict ? false : true}
+                        showBreadcrumbOnTablet={true}
                         showSubHeader={repoStatus.hasMergeConflict ? false : true}
                       />}
                     />
                   ))}
                 </Grid>
-                <Grid item={true} xs={12}>
+                <Grid item={true} xs={12} id='mainGridItem'>
                   {repoStatus.hasMergeConflict === false ?
                     <Hidden smDown>
                       <div style={{ top: 50 }}>
@@ -181,7 +182,12 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
                   {
                     repoStatus.hasMergeConflict === true ?
-                      <div className={classes.subApp}>
+                      <div
+                        className={classNames({
+                          [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
+                          [classes.subApp]: !repoStatus.hasMergeConflict,
+                        })}
+                      >
                         <Switch>
                           <Route
                             path='/mergeconflict'
@@ -194,16 +200,6 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                       :
                       null
                   }
-
-                  {/* {repoStatus.hasMergeConflict === true ?
-                    <Route
-                      path='/mergeconflict'
-                      exact={true}
-                      component={HandleMergeConflict}
-                    />
-                    :
-                    null
-                  } */}
                 </Grid>
               </Grid>
             </div>

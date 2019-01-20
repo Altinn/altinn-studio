@@ -38,21 +38,22 @@ export interface IAltinnPopoverState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
+  borderBottom: {
+    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+  },
   buttonCancel: {
     'fontSize': '14px',
     'color': theme.altinnPalette.primary.blueDarker,
     'background': theme.altinnPalette.primary.white,
     // 'maxWidth': '150px',
     'textTransform': 'none',
-    'textDecoration': 'underline',
     'fontWeight': 400,
     'marginTop': '20px',
     'borderRadius': '0',
     '&:hover': {
-      background: theme.altinnPalette.primary.greyLight,
+      // background: theme.altinnPalette.primary.greyLight,
       color: theme.altinnPalette.primary.blueDarker,
-      textDecoration: 'underline',
-      fontWeight: 500,
+      // fontWeight: 500,
     },
     '&:focus': {
       background: theme.altinnPalette.primary.blueDarker,
@@ -63,7 +64,6 @@ const styles = createStyles({
     'fontSize': '14px',
     'color': theme.altinnPalette.primary.white,
     'background': theme.altinnPalette.primary.blueDark,
-    // 'maxWidth': '150px',
     'textTransform': 'none',
     'fontWeight': 400,
     'marginTop': '20px',
@@ -224,7 +224,9 @@ class AltinnPopover extends React.Component<IAltinnPopoverProps, IAltinnPopoverS
                 className={classes.buttonCancel}
                 onClick={this.props.handleClose}
               >
-                {this.props.btnCancelText}
+                <span className={classes.borderBottom}>
+                  {this.props.btnCancelText}
+                </span>
               </Button>
             }
           </div>

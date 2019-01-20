@@ -1,12 +1,12 @@
 import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
+import * as diff from 'diff';
 import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
-import { get, post } from '../utils/networking';
-
 import theme from '../../../shared/src/theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
+import { get, post } from '../utils/networking';
 
 const altinnTheme = theme;
 
@@ -50,12 +50,15 @@ export interface IFileEditorProvidedProps {
   loadFile?: string;
   mode?: number;
   showSaveButton?: boolean;
+  stageAfterSaveFile?: boolean;
 }
 
 export interface IFileEditorState {
   availableFiles: string[];
+  valueOriginal: string;
   selectedFile: string;
   value: string;
+  valueDiff: boolean;
 }
 
 const styles = createStyles({
@@ -117,7 +120,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.state = {
       selectedFile: '',
       availableFiles: [],
+      valueOriginal: '',
       value: '',
+      valueDiff: false,
     };
   }
 
@@ -140,6 +145,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
   }
 
+  // TODO: The added '../' is temporary in place until loadfil API for unique file is available
   public componentDidUpdate(prevProps: any) {
     if (this.props.loadFile !== prevProps.loadFile) {
       this.setState({
@@ -159,6 +165,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         this.setState((prevState: IFileEditorState) => {
           return {
             ...prevState,
+            valueOriginal: logicFileContent,
             selectedFile: fileName,
             value: logicFileContent,
           };
@@ -198,36 +205,43 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.loadFileContent(fileName);
   }
 
-  public saveFile = (e: any) => {
+  public saveFile = async (e: any) => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
-    post(postUrl, this.state.value, {
+
+    const saveRes: any = await post(postUrl, this.state.value, {
       headers: {
         'Content-type': 'text/plain;charset=utf-8',
       },
-    }).then((response: any) => {
-      console.log('saveFile response', response);
-      if (response.isSuccessStatusCode === true) {
-
-        console.log('save file success', response.isSuccessStatusCode);
-
-        // TODO: STAGE FILE
-
-        if (this.props.checkRepoStatusAfterSaveFile === true) {
-          window.postMessage('forceRepoStatusCheck', window.location.href);
-        }
-
-        if (this.props.closeFileEditor) {
-          this.props.closeFileEditor();
-        }
-
-      } else {
-        console.log('save file NOT success', response.isSuccessStatusCode);
-      }
     });
+
+    if (saveRes.isSuccessStatusCode === false) {
+      console.log('save error', saveRes);
+
+    } else if (this.props.stageAfterSaveFile === true) {
+
+      const stageUrl = `${altinnWindow.location.origin}` +
+        `/designerapi/Repository/StageChange?` +
+        `owner=${org}&repository=${service}&fileName=${this.state.selectedFile.replace(/^\.{2}\//, '')}`;
+      const stageRes = await get(stageUrl);
+
+      if (stageRes.isSuccessStatusCode === false) {
+        console.log('stage error', stageRes);
+      }
+
+    }
+
+    if (this.props.checkRepoStatusAfterSaveFile === true) {
+      window.postMessage('forceRepoStatusCheck', window.location.href);
+    }
+
+    if (this.props.closeFileEditor) {
+      this.props.closeFileEditor();
+    }
+
   }
 
   public onValueChange = (value: string) => {
@@ -237,6 +251,26 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         value,
       };
     });
+
+    if (diff.diffChars(this.state.value, this.state.valueOriginal).length > 1) {
+
+      // If diff, and valueDiff is changed, change state
+
+      if (this.state.valueDiff === false) {
+        this.setState({
+          valueDiff: true,
+        });
+      }
+
+    } else {
+
+      if (this.state.valueDiff === true) {
+        this.setState({
+          valueDiff: false,
+        });
+      }
+
+    }
   }
 
   public getLanguageFromFileName = (): any => {
@@ -289,6 +323,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         >
           <AltinnButton
             btnText='Lagre fil'
+            disabled={!this.state.valueDiff}
             onClickFunction={this.saveFile}
             secondaryButton={true}
           />

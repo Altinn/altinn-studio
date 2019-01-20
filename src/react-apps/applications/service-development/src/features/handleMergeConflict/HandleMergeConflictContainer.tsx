@@ -1,26 +1,24 @@
-import { Typography } from '@material-ui/core';
+import { Hidden, Typography } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
-import { get } from '../../../../shared/src/utils/networking';
-import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
-import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
-import HandleMergeConflictValidateChanges from './components/HandleMergeConflictValidateChanges';
-
 import FileEditor from '../../../../shared/src/file-editor/FileEditor';
+import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import VersionControlHeader from '../../../../shared/src/version-control/versionControlHeader';
+import { makeGetRepoStatusSelector } from '../handleMergeConflict/handleMergeConflictSelectors';
+import HandleMergeConflictAbort from './components/HandleMergeConflictAbort';
+import HandleMergeConflictDiscardChanges from './components/HandleMergeConflictDiscardChanges';
+import HandleMergeConflictFileList from './components/HandleMergeConflictFileList';
 
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
   root: {
-    display: 'flex',
-    backgroundColor: '#dddddd',
     minHeight: '100%',
-    paddingTop: 60,
+    paddingTop: 10,
     paddingRight: 60,
     paddingBottom: 10,
     paddingLeft: 60,
@@ -33,22 +31,26 @@ const styles = () => createStyles({
   },
   boxTop: {
     [theme.breakpoints.down('sm')]: {
-      height: `calc(75vh)`, // remove 36 when old top menu is removed
+      height: `calc(100vh - 110px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
     },
     [theme.breakpoints.up('md')]: {
-      height: `calc(100vh - 110px - 120px - 130px - 36px)`, // remove 36 when old top menu is removed
+      height: `calc(100vh - 110px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
     },
   },
   boxBottom: {
-    // [theme.breakpoints.down('sm')]: {
-    //   height: `calc(25vh)`,
-    // },
-    // [theme.breakpoints.up('md')]: {
-    //   height: `calc(25vh)`,
-    // },
     height: 130,
-    // marginTop: 20,
-    // backgroundColor: '#cccccc',
+  },
+  containerMessage: {
+    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    marginBottom: '12px',
+    maxWidth: '1000px',
+    padding: '10px',
+  },
+  containerMessageHasConflict: {
+    background: theme.altinnPalette.primary.redLight,
+  },
+  containerMessageNoConflict: {
+    background: theme.altinnPalette.primary.greenLight,
   },
   fileWithMergeConflict: {
     '&:hover': {
@@ -59,6 +61,7 @@ const styles = () => createStyles({
   title: {
     marginBottom: 16,
   },
+
 });
 
 export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
@@ -87,46 +90,6 @@ class HandleMergeConflictContainer extends
     });
   }
 
-  public Abort() {
-    const altinnWindow: any = window as any;
-    const { org, service } = altinnWindow;
-    const url = `${altinnWindow.location.origin}
-      /designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
-    get(url).then((result: any) => {
-      console.log('discard result', result);
-    });
-  }
-
-  public renderFileWithMergeConflict1 = (item: any): JSX.Element => {
-    const { classes } = this.props;
-    return (
-      <Grid
-        container={true}
-      >
-        <Grid
-          item={true}
-          xs={1}
-          className={classes.boxWithIcon}
-        >
-          <AltinnIcon
-            isActive={true}
-            iconClass='ai ai-circlecancel'
-            iconColor='#022F51'
-            iconSize={16}
-          />
-        </Grid>
-        <Grid
-          item={true}
-          xs={6}
-          className={classes.fileWithMergeConflict}
-        >
-          {item.filePath}
-        </Grid>
-
-      </Grid>
-    );
-  }
-
   public render() {
     const { classes, language, repoStatus } = this.props;
     const { selectedFile } = this.state;
@@ -139,6 +102,7 @@ class HandleMergeConflictContainer extends
             <Grid
               container={true}
               justify='flex-start'
+              alignItems='stretch'
               id='grid1'
             >
               <Grid
@@ -146,10 +110,34 @@ class HandleMergeConflictContainer extends
                 xs={12}
                 className={classes.title}
               >
-                <Typography variant='h1'>
-                  Filer med mergekonflikt
-                </Typography>
+                <VersionControlHeader language={language} />
+
+                <Hidden smDown={true}>
+                  <Typography variant='h1'>
+                    Filer med mergekonflikt
+                  </Typography>
+                </Hidden>
+
               </Grid>
+
+              {repoStatus.hasMergeConflict ?
+
+                <span className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
+                  {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
+                </span>
+
+                :
+
+                repoStatus.contentStatus ?
+
+                  <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
+                    {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
+                  </span>
+
+                  :
+
+                  null
+              }
 
               <Grid
                 id='boxtop'
@@ -190,24 +178,32 @@ class HandleMergeConflictContainer extends
                     boxShadow={true}
                     showSaveButton={true}
                     checkRepoStatusAfterSaveFile={true}
+                    stageAfterSaveFile={true}
                   />
                 </Grid>
 
               </Grid>
+
               {/* Bottom grid */}
               <Grid
                 container={true}
                 item={true}
                 xs={12}
                 alignItems='center'
-                justify='flex-end'
+                justify='flex-start'
                 className={classes.boxBottom}
               >
 
                 <Grid item={true}>
-                  <HandleMergeConflictValidateChanges
+                  <HandleMergeConflictDiscardChanges
                     language={language}
-                    repoStatus={this.props.repoStatus}
+                    disabled={!repoStatus.hasMergeConflict}
+                  />
+                </Grid>
+                <Grid item={true}>
+                  <HandleMergeConflictAbort
+                    language={this.props.language}
+                    disabled={!repoStatus.hasMergeConflict}
                   />
                 </Grid>
               </Grid>

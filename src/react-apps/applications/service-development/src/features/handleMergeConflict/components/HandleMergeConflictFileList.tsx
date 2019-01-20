@@ -1,10 +1,9 @@
 import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
-import * as React from 'react';
-import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
-
 import classNames from 'classnames';
+import * as React from 'react';
 import AltinnIcon from '../../../../../shared/src/components/AltinnIcon';
+import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -30,7 +29,6 @@ const styles = () => createStyles({
     'backgroundColor': '#fff',
     '&:hover': {
       'color': theme.altinnPalette.primary.blueDark,
-      'textDecoration': 'underline',
       // Reset on touch devices, it doesn't add specificity
       '@media (hover: none)': {
         backgroundColor: 'transparent',
@@ -77,7 +75,6 @@ class HandleMergeConflictFileList extends
   }
 
   public handleListItemClick = (index: number, item: any) => () => {
-    console.log('handleListItemClick item', item);
     this.setState({ selectedIndex: index });
     this.props.changeSelectedFile(item.filePath);
   }
@@ -121,9 +118,7 @@ class HandleMergeConflictFileList extends
                     iconColor={item.fileStatus === 'Conflicted' ?
                       theme.altinnPalette.primary.blueDarker : theme.altinnPalette.primary.green
                     }
-                    iconSize={item.fileStatus === 'Conflicted' ?
-                      16 : 24
-                    }
+                    iconSize={16}
                   />
                 </ListItemIcon>
                 <ListItemText

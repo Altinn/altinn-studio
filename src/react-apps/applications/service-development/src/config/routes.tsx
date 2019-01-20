@@ -134,8 +134,8 @@ export const routes = [
   {
     path: '/mergeconflict',
     exact: true,
-    activeSubHeaderSelection: 'Om',
-    activeLeftMenuSelection: 'null',
+    activeSubHeaderSelection: '',
+    activeLeftMenuSelection: 'Mergekonflikt',
     menu: 'about',
     subapp: HandleMergeConflictContainer,
   },

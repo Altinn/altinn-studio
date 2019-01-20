@@ -588,13 +588,15 @@ namespace AltinnCore.Common.Services.Implementation
                     badRequest.ReasonPhrase = "One or all of the input parameters are null";
                     return badRequest;
                 }
-                
+
                 string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                 using (Repository repo = new Repository(localServiceRepoFolder))
                 {
                     FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
 
-                    if (fileStatus == FileStatus.ModifiedInWorkdir || fileStatus == FileStatus.NewInWorkdir)
+                    if (fileStatus == FileStatus.ModifiedInWorkdir ||
+                        fileStatus == FileStatus.NewInWorkdir ||
+                        fileStatus == FileStatus.Conflicted )
                     {
                         Commands.Stage(repo, fileName);
                     }
