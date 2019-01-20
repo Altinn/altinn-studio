@@ -48,7 +48,7 @@ export interface IFileEditorProvidedProps {
   classes: any;
   closeFileEditor?: () => void;
   loadFile?: string;
-  mode?: number;
+  mode?: string;
   showSaveButton?: boolean;
   stageAfterSaveFile?: boolean;
 }
