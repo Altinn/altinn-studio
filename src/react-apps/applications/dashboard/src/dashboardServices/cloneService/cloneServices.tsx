@@ -110,7 +110,6 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public redirectToCode = () => {
-    // tslint:disable-next-line:max-line-length
     const repoInfo = this.getCurrentRepositoryInfo();
     window.location.href = `/${repoInfo.full_name}`;
   }
@@ -122,11 +121,18 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
         return service;
       }
     });
+
     return returnService.length === 1 ? returnService[0] : null;
   }
 
   public cloneAndEditService = () => {
     const altinnWindow: any = window as any;
+    const repoInfo = this.getCurrentRepositoryInfo();
+    if (repoInfo && repoInfo.is_cloned_to_local) {
+      // tslint:disable-next-line:max-line-length
+      window.location.href = `${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`;
+    }
+
     // tslint:disable-next-line:max-line-length
     const url = `${altinnWindow.location.origin}/designerapi/Repository/CloneRemoteRepository?owner=${(this.props.match.params as any).org}&repository=${(this.props.match.params as any).serviceName}`;
     this.setState({

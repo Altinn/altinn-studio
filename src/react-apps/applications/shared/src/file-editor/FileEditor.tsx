@@ -173,33 +173,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       });
   }
 
-  public getFolderText(): string {
-    switch (this.props.mode) {
-      case 1: {
-        return 'Deployment';
-      }
-      case 2: {
-        return 'Implementation';
-      }
-      case 3: {
-        return 'Metadata';
-      }
-      case 4: {
-        return 'Model';
-      }
-      case 5: {
-        return 'Resources';
-      }
-      case 6: {
-        return 'Test';
-      }
-      case 0:
-      default: {
-        return 'All';
-      }
-    }
-  }
-
   public switchFile = (e: any) => {
     const fileName = e.target.value;
     this.loadFileContent(fileName);
@@ -333,8 +306,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public render() {
-    const { classes } = this.props;
-    const foldertext = this.getFolderText();
+    const { classes, mode } = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
 
     return (
@@ -385,13 +357,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                 <React.Fragment>
                   <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
                 </React.Fragment>
+
               }
 
               {/* If this.props.mode is present, show select*/}
               {this.props.mode ?
 
                 <React.Fragment>
-                  {foldertext} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
                   <Select
                     value={this.state.selectedFile}
                     classes={
@@ -442,16 +415,18 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             onValueChange={this.onValueChange}
           />
         </Grid>
-        {language.displayName ?
-          <React.Fragment>
-            <Grid item={true} xs={11} />
-            <Grid item={true} xs={1}>
-              <span>{language.displayName}</span>
-            </Grid>
-          </React.Fragment>
-          :
-          null}
-      </Grid>
+        {
+          language.displayName ?
+            <React.Fragment>
+              <Grid item={true} xs={11} />
+              <Grid item={true} xs={1}>
+                <span>{language.displayName}</span>
+              </Grid>
+            </React.Fragment>
+            :
+            null
+        }
+      </Grid >
     );
   }
 }
