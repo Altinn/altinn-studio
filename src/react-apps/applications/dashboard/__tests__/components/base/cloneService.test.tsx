@@ -5,7 +5,7 @@ import * as React from 'react';
 import * as networking from '../../../../shared/src/utils/networking';
 import { CloneServiceComponent } from '../../../src/dashboardServices/cloneService/cloneServices';
 
-describe('>>> components/base/cloneService.tsx --- Snapshot', () => {
+describe('>>> components/base/cloneService.tsx', () => {
   let mockServices: any;
   let mockClasses: any;
   let mockLocation: any;

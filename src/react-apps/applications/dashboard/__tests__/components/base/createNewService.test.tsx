@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as networking from '../../../../shared/src/utils/networking';
 import { CreateNewServiceComponent } from '../../../src/dashboardServices/createService/createNewService';
 
-describe('>>> components/base/cloneService.tsx --- Snapshot', () => {
+describe('>>> components/base/cloneService.tsx', () => {
   let mockSelectableUser: any;
   let mockClasses: any;
   let mockLanguage: any;
