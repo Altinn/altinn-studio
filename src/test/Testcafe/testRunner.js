@@ -12,23 +12,18 @@ createTestCafe()
       .browsers(['chrome:headless'])
       .concurrency(1)
       //.speed(0.75)
-      .screenshots('./screenshots', { takeOnFails: false })
-<<<<<<< Updated upstream
+      .screenshots('./screenshots', { takeOnFails: true })
       .reporter('xUnit', stream)
-      .src(['./repository_tests/login_create_new_repo.js'])
-=======
-      .reporter('spec')
       .src(['./designer_tests/navigation-tests.js'])
->>>>>>> Stashed changes
       .run({
         skipJsErrors: true,
         quarantineMode: false,
-        selectorTimeout: 2000,
-        assertionTimeout: 1000,
-        pageLoadTimeout: 1000,
+        selectorTimeout: 5000,
+        assertionTimeout: 5000,
+        pageLoadTimeout: 5000,
         speed: 1,
-        debugOnFail: false,
-        stopOnFirstFail: true
+        debugOnFail: true,
+        stopOnFirstFail: false
       })
       .then(failedCount => {
         console.log('Total tests failed ' + failedCount);

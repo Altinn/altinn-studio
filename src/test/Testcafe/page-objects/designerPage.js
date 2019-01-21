@@ -20,45 +20,46 @@ export default class DesignerPage {
     this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
 
     //left drawer menu
-    this.leftDrawerMenu = ReactSelector('LeftDrawerMenu');
+    this.leftDrawerMenu = Selector('#root > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
+    this.leftMenuList = Selector('li') //all unordered list elements to be filtered
 
     //"Om" navigation tab selectors
     this.omNavigationTab = Selector('div').withExactText('Om');
     this.omLeftMenuItems = [
-      leftDrawerMenu.child().withExactText('Om tjenesten'),
-      leftDrawerMenu.child().withExactText('Roller og rettigheter'),
-      leftDrawerMenu.child().withExactText('Produksjon'),
-      leftDrawerMenu.child().withExactText('Versjonshistorikk'),
-      leftDrawerMenu.child().withExactText('Om sluttbrukeren'),
-      leftDrawerMenu.child().withExactText('Altinn.no')
+      this.leftMenuList.withExactText('Om tjenesten'),
+      this.leftMenuList.withExactText('Roller og rettigheter'),
+      this.leftMenuList.withExactText('Produksjon'),
+      this.leftMenuList.withExactText('Versjonshistorikk'),
+      this.leftMenuList.withExactText('Om sluttbrukeren'),
+      this.leftMenuList.withExactText('Altinn.no')
     ];
 
     //"Lage" navigation tab selectors
     this.lageNavigationTab = Selector('div').withExactText('Lage');
     this.lageLeftMenuItems = [
-      leftDrawerMenu.child().withExactText('Datamodell'),
-      leftDrawerMenu.child().withExactText('GUI'),
-      leftDrawerMenu.child().withExactText('API')
+      this.leftMenuList.withExactText('Datamodell'),
+      this.leftMenuList.withExactText('GUI'),
+      this.leftMenuList.withExactText('API')
     ];
 
     //"språk" navigation tab selectors
     this.spraakNavigationTab = Selector('div').withExactText('Språk');
     this.spraakLeftMenuItems = [
-      leftDrawerMenu.child().withExactText('Tekst'),
-      leftDrawerMenu.child().withExactText('Flere språk')
+      this.leftMenuList.withExactText('Tekst'),
+      this.leftMenuList.withExactText('Flere språk')
     ];
 
     //"teste" navigation tab selectors
     this.testeNavigationTab = Selector('div').withExactText('Teste');
     this.testeLeftMenuItems = [
-      leftDrawerMenu.child().withExactText('Test')
+      this.leftMenuList.withExactText('Test')
     ];
 
     //"publisere" navigation tab selectors
     this.publisereNavigationTab = Selector('div').withExactText('Publisere');
     this.publisereLeftMenuItems = [
-      leftDrawerMenu.child().withExactText('Produksjonsette'),
-      leftDrawerMenu.child().withExactText('Status')
+      this.leftMenuList.withExactText('Produksjonsette'),
+      this.leftMenuList.withExactText('Status')
     ];
 
     //preview tab
