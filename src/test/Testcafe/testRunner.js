@@ -13,7 +13,7 @@ createTestCafe()
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
-      .reporter('xUnit', stream)
+      .reporter('xunit', stream)
       .src(['./designer_tests/navigation-tests.js'])
       .run({
         skipJsErrors: true,
