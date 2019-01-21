@@ -4,7 +4,7 @@
   "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
   "scripts": {
-    "test": "node .\\testRunner --env=prod"
+    "test": "node .\\testRunner --env=dev"
   },
   "keywords": [],
   "author": "",
