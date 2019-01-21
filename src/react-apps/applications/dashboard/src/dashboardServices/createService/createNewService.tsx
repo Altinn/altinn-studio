@@ -195,7 +195,6 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           isOpen={this.state.isOpen}
           onClose={this.handleModalClose}
           headerText={getLanguageFromKey('dashboard.new_service_header', this.props.language)}
-          closeBtnId={'closeModal'}
         >
           <AltinnDropdown
             id={'service-owner'}
