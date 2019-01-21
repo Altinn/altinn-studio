@@ -12,6 +12,8 @@ export interface IAltinnPopoverProvidedProps {
   btnClick?: any;
   btnConfirmText?: string;
   btnCancelText?: string;
+  btnPrimaryId?: string;
+  btnSecondaryId?: string;
   classes: any;
   descriptionText?: string;
   handleClose: any;
@@ -210,6 +212,7 @@ class AltinnPopover extends React.Component<IAltinnPopoverProps, IAltinnPopoverS
           <div>
             {this.props.btnConfirmText &&
               <Button
+                id={this.props.btnPrimaryId}
                 variant='contained'
                 color='primary'
                 className={classes.buttonConfirm}
@@ -220,6 +223,7 @@ class AltinnPopover extends React.Component<IAltinnPopoverProps, IAltinnPopoverS
             }
             {this.props.btnCancelText &&
               <Button
+                id={this.props.btnSecondaryId}
                 color='primary'
                 className={classes.buttonCancel}
                 onClick={this.props.handleClose}

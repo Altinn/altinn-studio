@@ -87,6 +87,7 @@ export class HandleMergeConflictDiscardChanges extends
       <React.Fragment>
 
         <AltinnButton
+          id='discardMergeChangesBtn'
           btnText={getLanguageFromKey('handle_merge_conflict.discard_changes_button', this.props.language)}
           onClickFunction={this.discardChangesPopover}
           secondaryButton={true}
@@ -99,6 +100,7 @@ export class HandleMergeConflictDiscardChanges extends
           btnCancelText={popoverState.btnCancelText}
           btnClick={popoverState.btnMethod}
           btnConfirmText={popoverState.btnText}
+          btnPrimaryId='discardMergeChangesConfirmBtn'
           descriptionText={popoverState.descriptionText}
           handleClose={this.handleClose}
           header={popoverState.header}
