@@ -668,54 +668,37 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string s = string.Empty;
             foreach (XmlSchemaDocumentation item in annotationItem.Items)
             {
-                JsonSchema textSchema = new JsonSchema();
-
                 foreach (XmlNode markup in item.Markup)
                 {
-                    XmlQualifiedName markupName = new XmlQualifiedName(markup.LocalName, markup.NamespaceURI);
-                    if ("http://www.w3.org/2001/XMLSchema:attribute".Equals(markupName.ToString()))
+                    if (markup is XmlText)
                     {
-                        try
+                        appendToSchema.Description(((XmlText)markup).Value);
+                    }
+                    else
+                    {
+                        XmlQualifiedName markupName = new XmlQualifiedName(markup.LocalName, markup.NamespaceURI);
+                        if ("http://www.w3.org/2001/XMLSchema:attribute".Equals(markupName.ToString()))
                         {
-                            XmlAttribute name = markup.Attributes["name"];
-                            XmlAttribute fixedValue = markup.Attributes["fixed"];
+                            XmlAttribute name = GetAttribute(markup.Attributes, "name", markup.NamespaceURI);
+                            XmlAttribute fixedValue = GetAttribute(markup.Attributes, "fixed", markup.NamespaceURI);
 
                             appendToSchema.Info(name.Value, fixedValue.Value);
                         }
-                        catch (Exception e)
+                        else if ("http://www.brreg.no/or:tekst".Equals(markupName.ToString()))
                         {
-                            int d = 0;
+                            XmlAttribute teksttype = GetAttribute(markup.Attributes, "teksttype", markup.NamespaceURI);
+                            XmlAttribute lang = GetAttribute(markup.Attributes, "lang", markup.NamespaceURI);
+
+                            appendToSchema.Texts(teksttype.Value, lang.Value, markup.InnerText);
+                        }
+                        else if ("http://www.brreg.no/or:info".Equals(markupName.ToString()))
+                        {
+                        }
+                        else
+                        {
+                            throw new NotImplementedException();
                         }
                     }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
-
-                    /*
-                    if (s.Length != 0)
-                    {
-                        s += '\n';
-                    }
-
-                    if (markup.OuterXml != null)
-                    {
-                        s += markup.OuterXml;
-                    }
-                    else if (markup.Value != null)
-                    {
-                        s += markup.Value;
-                    }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
-                    */
-                }
-
-                if (textSchema.Count > 0)
-                {
-                    appendToSchema.Texts(GetItemName(item).Name, textSchema);
                 }
             }
         }
@@ -1396,6 +1379,31 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             return requiredArrayList.ToArray();
+        }
+
+        private XmlAttribute GetAttribute(XmlAttributeCollection attributes, string name, string ns)
+        {
+            XmlAttribute bestMatch = null;
+            foreach (XmlAttribute attribute in attributes)
+            {
+                if (attribute.LocalName.Equals(name))
+                {
+                    if (attribute.NamespaceURI.Equals(ns))
+                    {
+                        bestMatch = attribute;
+                    }
+                    else if (attribute.NamespaceURI == string.Empty && bestMatch == null)
+                    {
+                        bestMatch = attribute;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }
+
+            return bestMatch;
         }
 
         private bool IsTopLevel(XmlSchemaObject item)
