@@ -139,8 +139,10 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
       isLoading: true,
     });
     get(url).then((result: any) => {
-      // tslint:disable-next-line:max-line-length
-      window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
+      if (this._isMounted) {
+        // tslint:disable-next-line:max-line-length
+        window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
+      }
     });
   }
 
