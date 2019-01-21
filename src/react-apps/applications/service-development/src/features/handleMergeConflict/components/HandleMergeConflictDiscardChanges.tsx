@@ -36,7 +36,7 @@ const initialPopoverState = {
   btnCancelText: '',
 };
 
-class HandleMergeConflictDiscardChanges extends
+export class HandleMergeConflictDiscardChanges extends
   React.Component<IHandleMergeConflictDiscardChangesProps, IHandleMergeConflictDiscardChangesState> {
 
   constructor(_props: IHandleMergeConflictDiscardChangesProps) {

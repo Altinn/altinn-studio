@@ -65,7 +65,7 @@ export interface IHandleMergeConflictContainerState {
   selectedFile: string;
 }
 
-class HandleMergeConflictContainer extends
+export class HandleMergeConflictContainer extends
   React.Component<IHandleMergeConflictContainerProps, IHandleMergeConflictContainerState> {
 
   constructor(_props: IHandleMergeConflictContainerProps, _state: IHandleMergeConflictContainerState) {
