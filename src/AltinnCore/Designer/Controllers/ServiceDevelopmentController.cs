@@ -147,6 +147,7 @@ namespace AltinnCore.Designer.Controllers
             {
               files = _repository.GetCalculationFiles(org, service);
             }
+            
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
