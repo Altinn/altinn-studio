@@ -92,7 +92,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           break;
         }
         case 'CONTAINER': {
-          console.log('onDropContainer draggableComponent');
           const draggedContainer = monitor.getItem();
           let hoverOverIndex = props.index;
 
@@ -174,7 +173,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
 
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
-            console.log('jezpoz');
           }
 
           props.onMoveComponent(
@@ -188,7 +186,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
           break;
         }
         case 'CONTAINER': {
-          console.log('hover container');
           const draggedContainer = monitor.getItem();
           let hoverOverIndex = props.index;
 

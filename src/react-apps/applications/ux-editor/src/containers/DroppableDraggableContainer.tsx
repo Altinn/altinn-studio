@@ -45,7 +45,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
           break;
         }
         case 'ITEM': {
-          console.log('drop inside DDContainer');
           const draggedComponent = monitor.getItem();
           let hoverOverIndex = props.index;
           const hoverBoundingRect = (ReactDOM.findDOMNode(Component) as Element).getBoundingClientRect();
@@ -56,8 +55,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
           if (hoverClientY > hoverMiddleY) {
             hoverOverIndex += 1;
           }
-
-          console.log('passed params: ', draggedComponent.id, props.id, draggedComponent.containerId);
 
           props.onDropComponent(
             draggedComponent.id,
@@ -70,17 +67,11 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
         }
         case 'CONTAINER': {
           const draggedContainer = monitor.getItem();
-          console.log('Moving and dropping container');
-          console.log('props.baseContainer: ', props.baseContainer);
-          console.log('draggedContainer.id,: ', draggedContainer.id);
-          console.log('props.id,: ', props.id);
-          console.log('draggedContainer.parentContainerId: ', draggedContainer.parentContainerId);
 
           if (props.baseContainer) {
             // We can't get the index here, so let's not do anything
             props.onDropContainer(
               draggedContainer.id,
-              0,
               props.id,
               draggedContainer.parentContainerId,
             );
@@ -104,7 +95,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
 
             props.onDropContainer(
               draggedContainer.id,
-              hoverOverIndex,
               props.id,
               draggedContainer.containerId,
             );
@@ -115,25 +105,14 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
     }
   },
   hover(props: IDroppableDraggableContainerProps, monitor: DropTargetMonitor, component: any) {
-    console.log('### TEST ###');
     if (!component) {
       return;
     }
 
     if (monitor.isOver({ shallow: true })) {
-      console.log('### isOver ###');
-      console.log('### ', monitor.getItemType(), ' ###');
-
       switch (monitor.getItemType()) {
         case 'CONTAINER': {
           const draggedContainer = monitor.getItem();
-          console.log('### inside container, update internal state');
-          console.log('draggedContainer.id', draggedContainer.id);
-          console.log('props: ', props);
-          console.log('component: ', component);
-          console.log('monitor: ', monitor);
-          // console.log('props.getIndex: ', props.getIndex(draggedContainer.id, props.id));
-
           let hoverOverIndex = props.index;
 
           const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
@@ -148,8 +127,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
           if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
             hoverOverIndex += 1;
           }
-
-          console.log('hoverOverIndex: ', hoverOverIndex);
 
           props.onMoveContainer(
             draggedContainer.id,
