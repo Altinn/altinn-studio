@@ -111,6 +111,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
+        /// <returns>http response message as ok if commit operation is successful</returns>
         HttpResponseMessage Commit(CommitInfo commitInfo);
 
         /// <summary>

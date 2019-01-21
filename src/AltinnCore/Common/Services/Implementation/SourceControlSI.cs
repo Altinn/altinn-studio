@@ -248,6 +248,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
+        /// <returns>http response message as ok if commit operation is successful</returns>
         public HttpResponseMessage Commit(CommitInfo commitInfo)
         {
             try
@@ -274,12 +275,12 @@ namespace AltinnCore.Common.Services.Implementation
                     // Commit to the repository
                     LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
                 }
+
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
             catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
-
             }
         }
 
@@ -596,7 +597,7 @@ namespace AltinnCore.Common.Services.Implementation
 
                     if (fileStatus == FileStatus.ModifiedInWorkdir ||
                         fileStatus == FileStatus.NewInWorkdir ||
-                        fileStatus == FileStatus.Conflicted )
+                        fileStatus == FileStatus.Conflicted)
                     {
                         Commands.Stage(repo, fileName);
                     }
