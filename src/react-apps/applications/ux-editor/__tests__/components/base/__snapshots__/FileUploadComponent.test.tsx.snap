@@ -15,6 +15,7 @@ exports[`>>> components/base/FileUploadComponent.tsx --- Snapshot >>> Capture sn
       type="file"
     />
     Add a file
+    test-fileuploader
     <i
       className="ai ai-upload"
     />

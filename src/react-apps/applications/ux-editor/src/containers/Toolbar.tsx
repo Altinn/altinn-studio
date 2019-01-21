@@ -101,7 +101,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
-          title: c.name,
+          textResourceBindings: {
+            title: c.name,
+          },
+          dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
         },
           position,
@@ -131,12 +134,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
-    FormDesignerActionDispatchers.addFormComponent({
-      component: THIRD_PARTY_COMPONENT,
-      title: `${componentPackage}.${componentName}`,
-    },
-      null,
-    );
+    const textResourceBindings: ITextResourceBindings = {};
+    textResourceBindings.title = `${componentPackage}.${componentName}`,
+      FormDesignerActionDispatchers.addFormComponent({
+        component: THIRD_PARTY_COMPONENT,
+        textResourceBindings,
+      },
+        null,
+      );
   }
 
   public getThirdPartyComponents = (): IToolbarElement[] => {
@@ -147,12 +152,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     const thirdPartyComponentArray: IToolbarElement[] = [];
     for (const packageName of thirdPartyComponents) {
       for (const componentName of thirdPartyComponents[packageName]) {
+        const textResourceBindings: ITextResourceBindings = {};
+        textResourceBindings.title = `${packageName}.${componentName}`;
         thirdPartyComponentArray.push({
           label: `${packageName} - ${componentName}`,
           componentType: null,
           actionMethod: FormDesignerActionDispatchers.addFormComponent({
             component: THIRD_PARTY_COMPONENT,
-            title: `${packageName}.${componentName}`,
+            textResourceBindings,
           },
             null,
           ) as any,

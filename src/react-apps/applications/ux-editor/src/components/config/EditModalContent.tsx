@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import Select from 'react-select';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
 import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
 export const customInput = {
@@ -36,7 +37,6 @@ export interface IEditModalContentState {
 class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
   constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
     super(_props, _state);
-
     this.state = {
       component: _props.component,
     };
@@ -60,9 +60,18 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
   }
 
+  public handleTextResourceBindingChange = (e: any, key: string): void => {
+    const updatedComponent = this.state.component;
+    updatedComponent.textResourceBindings[key] = e ? e.value : null;
+    this.setState({
+      component: updatedComponent,
+    });
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
   public handleTitleChange = (e: any): void => {
-    const updatedComponent = this.props.component;
-    updatedComponent.title = e ? e.value : null;
+    const updatedComponent = this.state.component;
+    updatedComponent.textResourceBindings.title = e ? e.value : null;
     this.setState((state) => {
       return {
         ...state,
@@ -133,15 +142,10 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public handleDataModelChange = (selectedDataModelElement: any): void => {
-    const updatedComponent = this.props.component;
-    updatedComponent.dataModelBinding = selectedDataModelElement;
-    this.props.handleComponentUpdate(updatedComponent);
-  }
-
   public handleDescriptionChange = (selectedText: any): void => {
     const updatedComponent = this.props.component;
-    updatedComponent.description = selectedText ? selectedText.value : null;
+    updatedComponent.textResourceBindings.description
+      = selectedText ? selectedText.value : null;
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -181,7 +185,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.state.component.title, null, false)}
+              this.state.component.textResourceBindings.title)}
             <Grid item={true} xs={12}>
               {renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
               <Select
@@ -200,19 +204,19 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return (
           <Grid item={true} xs={12}>
             {renderSelectDataModelBinding(
-              this.props.component.dataModelBinding,
+              this.props.component.dataModelBindings,
               this.handleDataModelChange,
               this.props.language)}
             {renderSelectTextFromResources('modal_properties_label_helper',
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.title)}
+              this.props.component.textResourceBindings.title)}
             {renderSelectTextFromResources('modal_properties_description_helper',
               this.handleDescriptionChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.description)}
+              this.props.component.textResourceBindings.title)}
           </Grid>
         );
       }
@@ -223,12 +227,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleTitleChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.title,
-              null,
-              false)}
+              this.props.component.textResourceBindings.title,
+            )}
             {false && renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
             {false && <textarea
-              value={getTextResource(this.state.component.title, this.props.textResources)}
+              value={getTextResource(
+                this.state.component.textResourceBindings.title, this.props.textResources)}
               style={{ width: '100%' }}
               rows={4}
               className='form-control'
@@ -353,7 +357,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <input
               type='text'
               disabled={true}
-              value={this.props.component.textResourceId}
+              value={this.props.component.textResourceBindings.title}
               className='form-control'
             />
           </div>
@@ -367,18 +371,39 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             spacing={0}
             direction={'column'}
           >
-            {renderSelectDataModelBinding(
-              this.props.component.dataModelBinding,
-              this.handleDataModelChange,
-              this.props.language,
-            )}
             <Grid item={true} xs={12}>
               {this.props.language.ux_editor.modal_configure_address_component_simplified}
               <Checkbox
                 checked={(this.state.component as IFormAddressComponent).simplified}
-                onChange={this.handleToggleAdressSimple}
+                onChange={this.handleToggleAddressSimple}
               />
             </Grid>
+            {Object.keys(AddressKeys).map((value: AddressKeys) => {
+              const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
+              if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
+                return null;
+              }
+              return (
+                renderSelectDataModelBinding(
+                  this.props.component.dataModelBindings,
+                  this.handleDataModelChange,
+                  this.props.language,
+                  getTextResourceByAddressKey(value, this.props.language),
+                  value,
+                  value,
+                )
+              );
+            })}
+            {
+              renderSelectTextFromResources(
+                'modal_configure_address_component_address_text_binding',
+                this.handleTextResourceBindingChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings[AddressKeys.address],
+                AddressKeys.address,
+              )
+            }
           </Grid >
         );
       }
@@ -389,7 +414,25 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public handleToggleAdressSimple = (event: object, checked: boolean) => {
+  public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
+    let { dataModelBindings: dataModelBinding } = (this.state.component as IFormAddressComponent);
+    if (!dataModelBinding) {
+      dataModelBinding = {};
+    }
+    dataModelBinding[key] = selectedDataModelElement;
+    this.setState({
+      component: {
+        ...this.state.component,
+        dataModelBindings: dataModelBinding,
+      },
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      dataModelBindings: dataModelBinding,
+    });
+  }
+
+  public handleToggleAddressSimple = (event: object, checked: boolean) => {
     this.setState({
       component: {
         ...this.state.component,
