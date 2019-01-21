@@ -132,6 +132,7 @@ namespace AltinnCore.Designer.Controllers
         /// Commit changes
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
+        /// <returns>http response message as ok if commit is successfull</returns>
         [HttpPost]
         public ActionResult<HttpResponseMessage> Commit([FromBody]CommitInfo commitInfo)
         {
