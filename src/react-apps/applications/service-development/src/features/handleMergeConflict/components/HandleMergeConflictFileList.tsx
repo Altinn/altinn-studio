@@ -16,7 +16,7 @@ const styles = () => createStyles({
     boxShadow: theme.sharedStyles.boxShadow,
   },
   listItemFocusVisible: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.altinnPalette.primary.white,
     textDecoration: 'underline',
     color: theme.altinnPalette.primary.blueDark,
     border: theme.accessability.focusVisible.border,
@@ -26,7 +26,7 @@ const styles = () => createStyles({
   },
   listItemButton: {
     'transition': 'none',
-    'backgroundColor': '#fff',
+    'backgroundColor': theme.altinnPalette.primary.white,
     '&:hover': {
       'color': theme.altinnPalette.primary.blueDark,
       // Reset on touch devices, it doesn't add specificity

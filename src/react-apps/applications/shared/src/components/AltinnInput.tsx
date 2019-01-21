@@ -32,11 +32,11 @@ const styles = {
   },
   altinnInput: {
     fontSize: '16px',
-    color: '#000000',
+    color: theme.altinnPalette.primary.black,
     padding: '6px',
   },
   altinnInputIcon: {
-    color: '#000000',
+    color: theme.altinnPalette.primary.black,
     fontSize: '30px',
     marginRight: '10px',
   },

@@ -26,9 +26,6 @@ const styles = () => createStyles({
   box: {
     padding: 1,
   },
-  boxWithIcon: {
-    textAlign: 'center',
-  },
   boxTop: {
     [theme.breakpoints.down('sm')]: {
       height: `calc(100vh - 110px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
@@ -51,12 +48,6 @@ const styles = () => createStyles({
   },
   containerMessageNoConflict: {
     background: theme.altinnPalette.primary.greenLight,
-  },
-  fileWithMergeConflict: {
-    '&:hover': {
-      color: '#0062BA',
-      textDecoration: 'underline',
-    },
   },
   title: {
     marginBottom: 16,
@@ -114,7 +105,7 @@ class HandleMergeConflictContainer extends
 
                 <Hidden smDown={true}>
                   <Typography variant='h1'>
-                    Filer med mergekonflikt
+                    {getLanguageFromKey('handle_merge_conflict.container_title', language)}
                   </Typography>
                 </Hidden>
 
