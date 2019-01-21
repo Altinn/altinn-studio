@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -18,6 +19,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// This is the controller responsible for handling model functionality in AltinnCore
     /// </summary>
+    [Authorize]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
@@ -63,9 +65,13 @@ namespace AltinnCore.Designer.Controllers
             var secondaryXsds = new Dictionary<string, XDocument>();
 
             string mainFileName = ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
-            using (var reader = XmlReader.Create(thefile.OpenReadStream()))
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+
+            using (var reader = XmlReader.Create(thefile.OpenReadStream(), settings))
             {
-                mainXsd = XDocument.Load(reader);
+                mainXsd = XDocument.Load(reader, LoadOptions.None);
             }
 
             secondaryXsds.Clear();

@@ -40,12 +40,14 @@ export interface IContainerProps extends IProvidedContainerProps {
   formData: any;
   index?: number;
   formContainerActive?: boolean;
+  activeList: any[];
   language: any;
 }
 
 export interface IContainerState {
   itemOrder: any;
   currentlyDragging: boolean;
+  activeList: any[];
 }
 
 export class ContainerComponent extends React.Component<IContainerProps, IContainerState> {
@@ -66,6 +68,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     this.state = {
       itemOrder: _props.itemOrder,
       currentlyDragging: false,
+      activeList: [],
     };
   }
 
@@ -149,7 +152,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
 
   public render() {
     return (
-      <div>
+      <div className={'col-12'}>
         {this.renderContent()}
         {this.renderNewGroupButton()}
       </div>
@@ -254,10 +257,17 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
+  public handleActiveListChange = (list: any[]) => {
+    this.setState({
+      activeList: list,
+    });
+  }
+
   public renderFormComponent = (id: string, index: number): JSX.Element => {
     if (this.props.components[id].hidden && !this.props.designMode) {
       return null;
     }
+    const activeListIndex = this.props.activeList.findIndex((listItem: any) => listItem.id === id);
     if (this.props.designMode) {
       const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
       return (
@@ -265,6 +275,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           canDrag={true}
           id={id}
           index={index}
+          key={index}
           containerId={this.props.id}
           onDropComponent={this.props.onDropContainer}
           onMoveComponent={this.props.onMoveComponent}
@@ -274,9 +285,14 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
           <FormComponentWrapper
             key={index}
             id={id}
+            activeList={this.props.activeList}
+            firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
+            lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
             handleDataUpdate={this.handleComponentDataUpdate}
             formData={this.props.formData[this.props.components[id].dataModelBinding] ?
               this.props.formData[this.props.components[id].dataModelBinding] : ''}
+            sendListToParent={this.handleActiveListChange}
+            singleSelected={this.props.activeList.length === 1}
           />
         </DroppableDraggableComponent>
       );
@@ -285,9 +301,14 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       <FormComponentWrapper
         key={index}
         id={id}
+        activeList={this.props.activeList}
+        firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
+        lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
         handleDataUpdate={this.handleComponentDataUpdate}
         formData={this.props.formData[this.props.components[id].dataModelBinding] ?
           this.props.formData[this.props.components[id].dataModelBinding] : ''}
+        sendListToParent={this.handleActiveListChange}
+        singleSelected={this.props.activeList.length === 1}
       />
     );
   }
@@ -317,6 +338,7 @@ const makeMapStateToProps = () => {
     const container = containers[props.id];
     const itemOrder = GetLayoutContainerOrder(state, props.id);
     return {
+      activeList: state.formDesigner.layout.activeList,
       dataModelGroup: container.dataModelGroup,
       repeating: container.repeating,
       formContainerActive: GetActiveFormContainer(state, props),

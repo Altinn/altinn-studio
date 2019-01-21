@@ -13,3 +13,8 @@ export const FETCH_SERVICES_REJECTED: string = `${moduleName}.FETCH_SERVICES_REJ
 export const FETCH_CURRENT_USER: string = `${moduleName}.FETCH_CURRENT_USER`;
 export const FETCH_CURRENT_USER_FULFILLED: string = `${moduleName}.FETCH_CURRENT_USER_FULFILLED`;
 export const FETCH_CURRENT_USER_REJECTED: string = `${moduleName}.FETCH_CURRENT_USER_REJECTED`;
+
+// All fetch organizations actions
+export const FETCH_ORGANIZATIONS: string = `${moduleName}.FETCH_ORGANIZATIONS`;
+export const FETCH_ORGANIZATIONS_FULFILLED: string = `${moduleName}.FETCH_ORGANIZATIONS_FULFILLED`;
+export const FETCH_ORGANIZATIONS_REJECTED: string = `${moduleName}.FETCH_ORGANIZATIONS_REJECTED`;

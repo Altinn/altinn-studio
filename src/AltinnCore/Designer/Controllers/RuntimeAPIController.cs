@@ -3,6 +3,7 @@ using System.IO;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -11,6 +12,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller for file sharing between designer and runtime
     /// </summary>
+    [Authorize]
     public class RuntimeAPIController : Controller
     {
         private readonly ServiceRepositorySettings _settings;

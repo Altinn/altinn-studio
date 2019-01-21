@@ -30,6 +30,8 @@ RUN npm run build --prefix /applications/ux-editor
 FROM alpine
 WORKDIR /dist
 COPY --from=generate-service-development /applications/service-development/dist/service-development.js .
+COPY --from=generate-service-development /applications/service-development/js/react/editor.worker.js .
+COPY --from=generate-service-development /applications/service-development/js/react/typescript.worker.js .
 COPY --from=generate-service-development /applications/service-development/dist/service-development.css .
 COPY --from=generate-service-development /applications/ux-editor/dist/react-app.js .
 COPY --from=generate-service-development /applications/ux-editor/dist/react-app.css .

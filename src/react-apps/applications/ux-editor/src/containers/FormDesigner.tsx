@@ -27,7 +27,6 @@ const styles = ((theme: Theme) => createStyles({
   container: {
     height: 'calc(100vh - 69px)',
     top: '69px',
-    overflow: 'auto',
   },
   item: {
     padding: 0,
@@ -37,6 +36,7 @@ const styles = ((theme: Theme) => createStyles({
     borderLeft: '1px solid #C9C9C9',
     borderRight: '1px solid #C9C9C9',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
+    overflowY: 'auto',
   },
 }));
 export enum LayoutItemType {
@@ -67,8 +67,8 @@ class FormDesigner extends React.Component<
       <div className={classes.root}>
         <Grid
           container={true}
-          spacing={0}
           wrap={'nowrap'}
+          spacing={0}
           classes={{ container: classNames(classes.container) }}
         >
           <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>

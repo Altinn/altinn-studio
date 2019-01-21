@@ -113,6 +113,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             var existingTexts = _repository.GetServiceTexts(org, service);
 
+            if (existingTexts == null)
+            {
+                existingTexts = new Dictionary<string, Dictionary<string, string>>();
+            }
+
             var allTexts = new CultureDictionary();
 
             _complexTypes = new HashSet<string>();
@@ -183,13 +188,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             CultureDictionary allTexts)
         {
             var typeName = currentComplexType.AttributeValue("name");
-            if (_complexTypes.Contains(typeName))
+            if (!string.IsNullOrEmpty(typeName))
             {
-                return;
-            }
-            else
-            {
-                _complexTypes.Add(typeName);
+                if (_complexTypes.Contains(typeName))
+                {
+                    return;
+                }
+                else
+                {
+                    _complexTypes.Add(typeName);
+                }
             }
 
             // Process attributes
@@ -388,13 +396,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 currentElementAnnotations = newElementAnnotations;
             }
 
-            var orid = string.Empty;
-            var xnameParts = elementMetadata.XName.Split('-');
-
-            if ((xnameParts.Length == 3) && ((xnameParts[1] == "grp") || (xnameParts[1] == "datadef")))
-            {
-                orid = xnameParts[2];
-            }
+            string orid = GetOrid(elementMetadata.XName);
 
             foreach (var cultureString in currentElementAnnotations)
             {
@@ -464,6 +466,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else
             {
                 elementMetadata.Type = ElementType.Group;
+
+                elementMetadata.DataBindingName = null;
+                
                 if (!skipRecursive)
                 {
                     BuildJsonRecursive(actualElement, allElements, newTrail, allTexts);
@@ -472,28 +477,86 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (string.IsNullOrEmpty(elementMetadata.TypeName))
             {
-                elementMetadata.TypeName = null; 
+                elementMetadata.TypeName = null;
             }
 
             if (allElements.ContainsKey(elementMetadata.ID))
             {
                 elementMetadata.ID += _randomGen.Next();
             }
-           
-            allElements.Add(elementMetadata.ID, elementMetadata);            
 
+            allElements.Add(elementMetadata.ID, elementMetadata);
             AddSchemaReferenceInformation(currentComplexType, elementMetadata);
         }
 
-        private static string SanitizeName(string name)
+        private static string GetOrid(string xName)
         {
-            return name.Replace("-", string.Empty);
+            if (string.IsNullOrEmpty(xName))
+            {
+                return null;
+            }
+
+            var orid = string.Empty;
+            var xnameParts = xName.Split('-');
+
+            if ((xnameParts.Length == 3) && ((xnameParts[1] == "grp") || (xnameParts[1] == "datadef")))
+            {
+                orid = xnameParts[2];
+            }
+
+            return orid;
+        }
+
+        /// <summary>
+        /// Returns a sanitized name. It removes -, grp-9999 and datadef-9999
+        /// </summary>
+        /// <param name="name">the name to sanitize</param>
+        /// <returns>the santized name</returns>
+        public static string SanitizeName(string name)
+        {
+            if (!string.IsNullOrEmpty(GetOrid(name)))
+            {
+                return name.Split("-")[0]; 
+            }
+            else
+            {
+                return name.Replace("-", string.Empty);
+            }
         }
 
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
         {          
             elementMetadata.XmlSchemaXPath = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
-            elementMetadata.JsonSchemaPointer = "#/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
+            string type = currentComplexType.AttributeValue("name");
+            if (string.IsNullOrEmpty(type))
+            {
+                if (!string.IsNullOrEmpty(elementMetadata.TypeName))
+                {
+                    type = elementMetadata.TypeName;
+                }
+                else if (elementMetadata.ParentElement != null)
+                {
+                    var fromIndex = elementMetadata.ParentElement.LastIndexOf(".");
+                    if (fromIndex >= 0 && fromIndex < elementMetadata.ParentElement.Length)
+                    {
+                        type = elementMetadata.ParentElement.Substring(fromIndex + 1);
+                    }
+                }
+                else
+                {
+                    type = elementMetadata.ParentElement;
+                }
+            }
+
+            if (elementMetadata.Type == ElementType.Group)
+            {
+                elementMetadata.JsonSchemaPointer = "#/definitions/" + type;
+            }
+            else
+            {
+                elementMetadata.JsonSchemaPointer = "#/definitions/" + type + "/properties/" + elementMetadata.Name;
+            }
+
             string cardinality = "[" + elementMetadata.MinOccurs + ".." + (elementMetadata.MaxOccurs < MaxOccursMagicNumber ? elementMetadata.MaxOccurs.AsString() : "*") + "]";
             string typeName = elementMetadata.TypeName ?? elementMetadata.XsdValueType.AsString();
             elementMetadata.DisplayString = elementMetadata.ID + " : " + cardinality + " " + typeName;
@@ -684,6 +747,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             allElements.Add(elementMetadata.ID, elementMetadata);
+            AddSchemaReferenceInformation(actualElement, elementMetadata);
         }
 
         private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements, string parentTrail)
@@ -736,6 +800,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 attributeElementMetadata.XPath = newTrail;
                 attributeElementMetadata.ID = newTrail.Replace("/", ".").Substring(1);
                 attributeElementMetadata.ParentElement = parentTrail.Replace("/", ".").Substring(1);
+                attributeElementMetadata.MaxOccurs = 1;
+
+                if (attribute.AttributeValue("optional") != null)
+                {
+                    attributeElementMetadata.MinOccurs = 0;
+                }
+                else
+                {
+                    attributeElementMetadata.MinOccurs = 1;
+                }
 
                 attributeElementMetadata.Type = ElementType.Attribute;
 
