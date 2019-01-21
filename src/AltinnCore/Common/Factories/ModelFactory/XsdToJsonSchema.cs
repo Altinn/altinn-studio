@@ -406,6 +406,26 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 // Use pattern?
                             }
+                            else if (facet is XmlSchemaMinExclusiveFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.ExclusiveMinimum(Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
+                            else if (facet is XmlSchemaMaxExclusiveFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.ExclusiveMaximum(Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                }
+                            }
                             else
                             {
                                 throw new NotImplementedException();
@@ -528,6 +548,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             isRequired = false;
 
             JsonSchema anySchema = new JsonSchema();
+            anySchema.OtherData.Add("@xsdType", new JsonValue("XmlAny"));
 
             if (item.Annotation != null)
             {
@@ -897,7 +918,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     appendToSchema.Type(JsonSchemaType.Array);
                     var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : anyItem.MinOccurs;
-                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccursString : anyItem.MinOccursString;
+                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : anyItem.MaxOccursString;
                     appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
                     if (!"unbounded".Equals(maxOccursString))
                     {
