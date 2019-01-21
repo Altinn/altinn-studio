@@ -391,13 +391,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 currentElementAnnotations = newElementAnnotations;
             }
 
-            var orid = string.Empty;
-            var xnameParts = elementMetadata.XName.Split('-');
-
-            if ((xnameParts.Length == 3) && ((xnameParts[1] == "grp") || (xnameParts[1] == "datadef")))
-            {
-                orid = xnameParts[2];
-            }
+            string orid = GetOrid(elementMetadata.XName);
 
             foreach (var cultureString in currentElementAnnotations)
             {
@@ -467,6 +461,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else
             {
                 elementMetadata.Type = ElementType.Group;
+
+                elementMetadata.DataBindingName = null;
+                
                 if (!skipRecursive)
                 {
                     BuildJsonRecursive(actualElement, allElements, newTrail, allTexts);
@@ -475,28 +472,72 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (string.IsNullOrEmpty(elementMetadata.TypeName))
             {
-                elementMetadata.TypeName = null; 
+                elementMetadata.TypeName = null;
             }
 
             if (allElements.ContainsKey(elementMetadata.ID))
             {
                 elementMetadata.ID += _randomGen.Next();
             }
-           
-            allElements.Add(elementMetadata.ID, elementMetadata);            
 
+            allElements.Add(elementMetadata.ID, elementMetadata);
             AddSchemaReferenceInformation(currentComplexType, elementMetadata);
+        }
+
+        private static string GetOrid(string xName)
+        {
+            var orid = string.Empty;
+            var xnameParts = xName.Split('-');
+
+            if ((xnameParts.Length == 3) && ((xnameParts[1] == "grp") || (xnameParts[1] == "datadef")))
+            {
+                orid = xnameParts[2];
+            }
+
+            return orid;
         }
 
         private static string SanitizeName(string name)
         {
-            return name.Replace("-", string.Empty);
+            if (!string.IsNullOrEmpty(GetOrid(name)))
+            {
+                return name.Split("-")[0]; 
+            }
+            else
+            {
+                return name.Replace("-", string.Empty);
+            }
         }
 
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
         {          
             elementMetadata.XmlSchemaXPath = GetXPathToNode(currentComplexType) + GetSubXPathToProperty(elementMetadata);
-            elementMetadata.JsonSchemaPointer = "#/definitions/" + currentComplexType.AttributeValue("name") + "/properties/" + elementMetadata.Name;
+            string type = currentComplexType.AttributeValue("name");
+            if (string.IsNullOrEmpty(type))
+            {
+                if (!string.IsNullOrEmpty(elementMetadata.TypeName))
+                {
+                    type = elementMetadata.TypeName;
+                }
+                else if (elementMetadata.ParentElement != null)
+                {
+                    var fromIndex = elementMetadata.ParentElement.LastIndexOf(".");
+                    if (fromIndex >= 0 && fromIndex < elementMetadata.ParentElement.Length)
+                    {
+                        type = elementMetadata.ParentElement.Substring(fromIndex + 1);
+                    }
+                }
+            }
+
+            if (elementMetadata.Type == ElementType.Group)
+            {
+                elementMetadata.JsonSchemaPointer = "#/definitions/" + type;
+            }
+            else
+            {
+                elementMetadata.JsonSchemaPointer = "#/definitions/" + type + "/properties/" + elementMetadata.Name;
+            }
+
             string cardinality = "[" + elementMetadata.MinOccurs + ".." + (elementMetadata.MaxOccurs < MaxOccursMagicNumber ? elementMetadata.MaxOccurs.AsString() : "*") + "]";
             string typeName = elementMetadata.TypeName ?? elementMetadata.XsdValueType.AsString();
             elementMetadata.DisplayString = elementMetadata.ID + " : " + cardinality + " " + typeName;
@@ -687,6 +728,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             allElements.Add(elementMetadata.ID, elementMetadata);
+            AddSchemaReferenceInformation(actualElement, elementMetadata);
         }
 
         private void AddAttributeElements(XElement currentComplexType, Dictionary<string, ElementMetadata> allElements, string parentTrail)

@@ -81,7 +81,7 @@ namespace AltinnCore.Common.Services.Implementation
                 serviceOrgPath = _settings.RepositoryLocation + serviceMetadata.Org;
             }
 
-            string servicePath = serviceOrgPath + "/" + serviceMetadata.Service;
+            string servicePath = serviceOrgPath + "/" + serviceMetadata.RepositoryName;
 
             if (!Directory.Exists(serviceOrgPath))
             {
@@ -95,7 +95,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             string metaDataDir = _settings.GetMetadataPath(
                 serviceMetadata.Org,
-                serviceMetadata.Service,
+                serviceMetadata.RepositoryName,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             DirectoryInfo metaDirectoryInfo = new DirectoryInfo(metaDataDir);
             if (!metaDirectoryInfo.Exists)
@@ -105,7 +105,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             string resourceDir = _settings.GetResourcePath(
                 serviceMetadata.Org,
-                serviceMetadata.Service,
+                serviceMetadata.RepositoryName,
                 AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             DirectoryInfo resourceDirectoryInfo = new DirectoryInfo(resourceDir);
             if (!resourceDirectoryInfo.Exists)
@@ -113,19 +113,29 @@ namespace AltinnCore.Common.Services.Implementation
                 resourceDirectoryInfo.Create();
             }
 
+            string dynamicsDir = _settings.GetDynamicsPath(
+                serviceMetadata.Org,
+                serviceMetadata.RepositoryName,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            DirectoryInfo dynamicsDirectoryInfo = new DirectoryInfo(dynamicsDir);
+            if (!dynamicsDirectoryInfo.Exists)
+            {
+                dynamicsDirectoryInfo.Create();
+            }
+
             string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
-            AddDefaultFiles(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialServiceImplementation(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.Service);
-            CreateInitialRuleHandler(serviceMetadata.Org, serviceMetadata.Service);
+            AddDefaultFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialServiceImplementation(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialCalculationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialValidationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialDynamicsHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
-            CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.Service);
+            CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -171,23 +181,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
-                {
-                    // Create service with already existing repo
-                    bool serviceCreated = CreateService(org, new ServiceConfiguration { Code = service }, true);
-                    if (serviceCreated)
-                    {
-                        CreateServiceMetadata(new ServiceMetadata { Org = org, Service = service });
-                        filedata = File.ReadAllText(filename, Encoding.UTF8);
-                        return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
-                    }
-                    else
-                    {
-                        throw new Exception("Unable to create service");
-                    }
-                }
-
-                throw;
+                throw new Exception("Something went wrong when fetching service metadata ", ex);
             }
         }
 
@@ -448,7 +442,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>Returns the json object as a string</returns>
         public string GetRuleHandler(string org, string service)
         {
-            string filePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string filePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -622,7 +616,7 @@ namespace AltinnCore.Common.Services.Implementation
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
             serviceMetadata.Org = org;
-            serviceMetadata.Service = service;
+            serviceMetadata.RepositoryName = service;
 
             string classes = modelGenerator.CreateModelFromMetadata(serviceMetadata);
 
@@ -670,11 +664,6 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 throw new Exception("Resource directory missing.");
             }
-
-            string ruleHandlerPath = resourceDirectory + _settings.RuleHandlerFileName;
-            File.WriteAllText(
-                ruleHandlerPath,
-                File.ReadAllText(ruleHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
             string implementationDirectory = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             if (!Directory.Exists(implementationDirectory))
@@ -818,48 +807,68 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a new service folder under the given <paramref name="org">service owner</paramref> and saves the
+        /// Creates a new service folder under the given <paramref name="owner">service owner</paramref> and saves the
         /// given <paramref name="serviceConfig"/>
         /// </summary>
-        /// <param name="org">The service owner to create the new service under</param>
+        /// <param name="owner">The service owner to create the new service under</param>
         /// <param name="serviceConfig">The service configuration to save</param>
         /// <param name="repoCreated">whether the repo is created or not</param>
-        /// <returns>Was the service creation successful</returns>
-        public bool CreateService(string org, ServiceConfiguration serviceConfig, bool repoCreated = false)
+        /// <returns>The repository created in gitea</returns>
+        public RepositoryClient.Model.Repository CreateService(string owner, ServiceConfiguration serviceConfig, bool repoCreated = false)
         {
-            string filename = _settings.GetServicePath(org, serviceConfig.Code, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
-
-            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.Code, Readme: "Tjenestedata", Description: "Dette er en test");
+            string filename = _settings.GetServicePath(owner, serviceConfig.RepositoryName, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "config.json";
+            AltinnCore.RepositoryClient.Model.Repository repository = null;
+            RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: serviceConfig.RepositoryName, Readme: "Tjenestedata", Description: string.Empty);
 
             if (!repoCreated)
             {
-                AltinnCore.RepositoryClient.Model.Repository repository = CreateRepository(org, createRepoOption);
+                repository = CreateRepository(owner, createRepoOption);
             }
 
-            bool created = repoCreated;
-            if (!File.Exists(filename))
+            if (repository != null && repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
             {
-                _sourceControl.CloneRemoteRepository(org, serviceConfig.Code);
-            
-                // Verify if directory exist. Should Exist if Cloning of new repository worked
-                if (!new FileInfo(filename).Directory.Exists)
+                if (!File.Exists(filename))
                 {
-                    new FileInfo(filename).Directory.Create();
+                    _sourceControl.CloneRemoteRepository(owner, serviceConfig.RepositoryName);
+
+                    // Verify if directory exist. Should Exist if Cloning of new repository worked
+                    if (!new FileInfo(filename).Directory.Exists)
+                    {
+                        new FileInfo(filename).Directory.Create();
+                    }
+
+                    using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
+                    using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                    {
+                        streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                    }
                 }
 
-                using (Stream fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite))
-                using (StreamWriter streamWriter = new StreamWriter(fileStream))
+                ServiceMetadata metadata = new ServiceMetadata
                 {
-                    streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
+                    Org = owner,
+                    ServiceName = serviceConfig.ServiceName,
+                    RepositoryName = serviceConfig.RepositoryName,
+                };
+
+                CreateServiceMetadata(metadata);
+
+                if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
+                {
+                    JObject json = JObject.FromObject(new
+                    {
+                        language = "nb-NO",
+                        resources = new[] { new { id = "ServiceName", value = serviceConfig.ServiceName } },
+                    });
+                    SaveResource(owner, serviceConfig.RepositoryName, "nb-NO", json.ToString());
                 }
 
-                created = true;
-                CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.Code, Message = "Service Created" };
+                CommitInfo commitInfo = new CommitInfo() { Org = owner, Repository = serviceConfig.RepositoryName, Message = "Service Created" };
 
                 _sourceControl.PushChangesForRepository(commitInfo);
             }
 
-            return created;
+            return repository;
         }
 
         /// <summary>
@@ -1095,12 +1104,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// create a repository in gitea for the given organisation and options
         /// </summary>
-        /// <param name="org">the organisation</param>
+        /// <param name="owner">the owner</param>
         /// <param name="createRepoOption">the options for creating a repository</param>
         /// <returns>The newly created repository</returns>
-        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string org, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
+        public AltinnCore.RepositoryClient.Model.Repository CreateRepository(string owner, AltinnCore.RepositoryClient.Model.CreateRepoOption createRepoOption)
         {
-            return _gitea.CreateRepositoryForOrg(org, createRepoOption).Result;
+            return _gitea.CreateRepository(owner, createRepoOption).Result;
         }
 
         /// <summary>
@@ -1313,6 +1322,32 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Returns a list over the dynamics files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        public List<AltinnCoreFile> GetDynamicsFiles(string org, string service)
+        {
+            List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
+
+            string[] jsFiles = Directory.GetFiles(_settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in jsFiles)
+            {
+                AltinnCoreFile corefile = new AltinnCoreFile
+                {
+                    FilePath = file,
+                    FileName = Path.GetFileName(file),
+                    LastChanged = File.GetLastWriteTime(file),
+                };
+
+                coreFiles.Add(corefile);
+            }
+
+            return coreFiles;
+        }
+
+        /// <summary>
         /// Returns content of a implementation file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -1517,7 +1552,7 @@ namespace AltinnCore.Common.Services.Implementation
             File.WriteAllText(calculationHandlerFilePath, textData, Encoding.UTF8);
         }
 
-        private void CreateInitialRuleHandler(string org, string service)
+        private void CreateInitialDynamicsHandler(string org, string service)
         {
             // Read the serviceImplemenation template
             string textData = File.ReadAllText(_generalSettings.RuleHandlerTemplate, Encoding.UTF8);
@@ -1526,7 +1561,7 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string ruleHandlerFilePath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string ruleHandlerFilePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             File.WriteAllText(ruleHandlerFilePath, textData, Encoding.UTF8);
         }
 

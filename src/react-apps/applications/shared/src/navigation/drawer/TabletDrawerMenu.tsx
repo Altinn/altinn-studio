@@ -46,7 +46,6 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
   public componentDidMount() {
     document.addEventListener('scroll', () => {
       const isTop = window.scrollY < 20;
-      console.log(window.scrollY);
       if (isTop !== this.state.isTop) {
         this.setState({ isTop });
         console.log(this.state.isTop);
@@ -178,7 +177,7 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
                           unmountOnExit={true}
                         >
                           <List
-                            component='div'
+                            component='span'
                             disablePadding={true}
                           >
                             {leftDrawerMenuSettings[menuItem.menuType].map((item: IMenuItem, i: number) => {

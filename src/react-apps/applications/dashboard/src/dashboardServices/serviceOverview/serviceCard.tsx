@@ -5,14 +5,14 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import TruncateMarkup from 'react-truncate-markup';
-import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 
-export interface IServiceCardCompontentProvidedProps {
+export interface IServiceCardComponentProvidedProps {
   classes: any;
   service: any;
 }
 
-export interface IServiceCardCompontentProps extends IServiceCardCompontentProvidedProps {
+export interface IServiceCardComponentProps extends IServiceCardComponentProvidedProps {
   language: any;
 }
 
@@ -58,13 +58,19 @@ const styles = {
   },
 };
 
-class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, IServiceCardComponentState> {
+class ServiceCardComponent extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
   public formatDate(date: any): any {
     return moment(new Date(date)).format('DD.MM.YYYY');
   }
 
   public openService = () => {
-    window.location.href = `/designer/${this.props.service.full_name}`;
+    if (this.props.service.is_cloned_to_local) {
+      window.location.href = `/designer/${this.props.service.full_name}`;
+    } else {
+      // tslint:disable-next-line:max-line-length
+      window.location.href = `/Home/Index#/org/${this.props.service.owner.login}/servicename/${this.props.service.name}`;
+    }
+
   }
 
   public render() {
@@ -155,8 +161,8 @@ class ServiceCardComponent extends React.Component<IServiceCardCompontentProps, 
 
 const mapStateToProps = (
   state: IDashboardAppState,
-  props: IServiceCardCompontentProvidedProps,
-): IServiceCardCompontentProps => {
+  props: IServiceCardComponentProvidedProps,
+): IServiceCardComponentProps => {
   return {
     classes: props.classes,
     service: props.service,

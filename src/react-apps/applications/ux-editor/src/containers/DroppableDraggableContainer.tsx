@@ -13,6 +13,7 @@ import {
   DropTargetSpec,
 } from 'react-dnd';
 import * as ReactDOM from 'react-dom';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 
 const dragSourceSpec: DragSourceSpec<IDroppableDraggableContainerProps, any> = {
   beginDrag(props: IDroppableDraggableContainerProps) {
