@@ -277,9 +277,9 @@ describe('>>> components/base/cloneService.tsx --- Snapshot', () => {
     );
 
     const instance = mountedComponent.instance() as CloneServiceComponent;
-    expect(instance.formatNameAndDate('', mockServices[0].created_at)).toBe('10.01.2019 12:22');
+    expect(instance.formatNameAndDate('', mockServices[0].created_at)).toBe('10.01.2019 11:22');
     expect(instance.formatNameAndDate('', mockServices[0].created_at) === `${mockServices[0].created_at}`).toBe(false);
-    expect(instance.formatNameAndDate('Kari', mockServices[0].created_at)).toBe('Kari 10.01.2019 12:22');
+    expect(instance.formatNameAndDate('Kari', mockServices[0].created_at)).toBe('Kari 10.01.2019 11:22');
     // tslint:disable-next-line:max-line-length
     expect(instance.formatNameAndDate('Kari', mockServices[0].created_at) === `Kari ${mockServices[0].created_at}`).toBe(false);
   });
