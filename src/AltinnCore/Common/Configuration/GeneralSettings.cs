@@ -101,5 +101,16 @@ namespace AltinnCore.Common.Configuration
                 return TemplateLocation + "/Dockerfile";
             }
         }
+
+        /// <summary>
+        /// Gets the path to the default project file
+        /// </summary>
+        public string DefaultProjectFile
+        { 
+            get
+            {
+                return TemplateLocation + "/AltinnService/AltinnService.csproj";
+            }
+        }
     }
 }

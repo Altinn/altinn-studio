@@ -3,7 +3,9 @@
   "private": true,
   "scripts": {
     "install-deps": "lerna bootstrap --hoist",
-    "test": "jest"
+    "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
+    "test": "jest",
+    "install-all": "lerna exec -- npm i"
   },
   "devDependencies": {
     "@types/jest": "^23.3.10",
@@ -14,17 +16,22 @@
     "jest": "^23.6.0",
     "jest-environment-enzyme": "^7.0.1",
     "jest-enzyme": "^7.0.1",
+    "jsdom": "^13.1.0",
+    "jest-junit": "^5.2.0",
     "lerna": "^3.4.3",
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
+    "react": "16.7.0",
+    "react-dom": "16.7.0",
     "ts-jest": "^23.10.5",
-    "typescript": "^3.2.1",
+    "typescript": "3.1.6",
     "webpack-cli": "3.0.3"
   },
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest"
     },
+    "reporters": [
+      "jest-junit"
+    ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"

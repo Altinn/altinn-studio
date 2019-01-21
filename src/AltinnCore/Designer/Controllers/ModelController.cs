@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Primitives;
@@ -16,6 +19,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// This is the controller responsible for handling model functionality in AltinnCore
     /// </summary>
+    [Authorize]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
@@ -52,23 +56,35 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult Upload(string org, string service, IFormFile thefile, IEnumerable<IFormFile> secondaryFiles)
         {
+            if (thefile == null)
+            {
+                throw new ApplicationException("Cannot upload empty file");
+            }
+
             XDocument mainXsd = null;
             var secondaryXsds = new Dictionary<string, XDocument>();
 
             string mainFileName = ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
-            using (var reader = new StreamReader(thefile.OpenReadStream()))
+
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+
+            using (var reader = XmlReader.Create(thefile.OpenReadStream(), settings))
             {
-                mainXsd = XDocument.Parse(reader.ReadToEnd());
+                mainXsd = XDocument.Load(reader, LoadOptions.None);
             }
 
             secondaryXsds.Clear();
 
-            foreach (IFormFile file in secondaryFiles)
+            if (secondaryFiles != null)
             {
-                string filename = ContentDispositionHeaderValue.Parse(new StringSegment(file.ContentDisposition)).FileName.ToString();
-                using (var reader = new StreamReader(file.OpenReadStream()))
+                foreach (IFormFile file in secondaryFiles)
                 {
-                    secondaryXsds.Add(filename, XDocument.Parse(reader.ReadToEnd()));
+                    string filename = ContentDispositionHeaderValue.Parse(new StringSegment(file.ContentDisposition)).FileName.ToString();
+                    using (var reader = XmlReader.Create(file.OpenReadStream()))
+                    {
+                        secondaryXsds.Add(filename, XDocument.Load(reader));
+                    }
                 }
             }
 
@@ -96,7 +112,7 @@ namespace AltinnCore.Designer.Controllers
         public ActionResult GetJson(string org, string service, bool texts = true, bool restrictions = true, bool attributes = true)
         {
             ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
-            return Json(metadata, new JsonSerializerSettings() { Formatting = Formatting.Indented });
+            return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
         }
 
         /// <summary>

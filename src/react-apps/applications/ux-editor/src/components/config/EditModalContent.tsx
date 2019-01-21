@@ -1,17 +1,14 @@
-import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
+import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import { SelectDataModelComponent } from './SelectDataModelComponent';
+import { getTextResource, truncate } from '../../utils/language';
+import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
+import { ICodeListOption, SelectionEdit } from './SelectionEditComponent';
 
-const styles = createStyles({
-  inputHelper: {
-    marginTop: '1em',
-    fontSize: '1.6rem',
-    lineHeight: '3.2rem',
-  },
-});
-const customInput = {
+export const customInput = {
   control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',
@@ -26,10 +23,11 @@ export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
+  codeListResources?: ICodeListListElement[];
   saveEdit?: (updatedComponent: FormComponentType) => void;
   cancelEdit?: () => void;
+  handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
   language: any;
-  classes: any;
 }
 
 export interface IEditModalContentState {
@@ -39,7 +37,6 @@ export interface IEditModalContentState {
 class EditModalContentComponent extends React.Component<IEditModalContentProps, IEditModalContentState> {
   constructor(_props: IEditModalContentProps, _state: IEditModalContentState) {
     super(_props, _state);
-
     this.state = {
       component: _props.component,
     };
@@ -63,77 +60,93 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
   }
 
-  public handleTitleChange = (e: any): void => {
+  public handleTextResourceBindingChange = (e: any, key: string): void => {
+    const updatedComponent = this.state.component;
+    updatedComponent.textResourceBindings[key] = e ? e.value : null;
     this.setState({
-      component: {
-        ...this.state.component,
-        title: e.target.value,
-      },
+      component: updatedComponent,
     });
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public handleDataModelChange = (e: any) => {
-    const dataModelBinding = e.target.value;
-    const title = this.getTextKeyFromDataModel(dataModelBinding);
-    if (title) {
-      this.setState({
-        component: {
-          ...this.state.component,
-          dataModelBinding,
-          title,
-        },
-      });
-    } else {
-      this.setState({
-        component: {
-          ...this.state.component,
-          dataModelBinding,
-        },
-      });
-    }
+  public handleTitleChange = (e: any): void => {
+    const updatedComponent = this.state.component;
+    updatedComponent.textResourceBindings.title = e ? e.value : null;
+    this.setState((state) => {
+      return {
+        ...state,
+        component: updatedComponent,
+      };
+    });
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
+  public handleParagraphChange = (e: any): void => {
+    const textObject: any = e.target;
+    this.handleTitleChange(textObject);
   }
 
   public handleAddOption = () => {
-    const updatedComponent: IFormComponent = this.state.component;
+    const updatedComponent: IFormComponent = (this.state.component);
     updatedComponent.options.push({
       label: this.props.language.general.label,
       value: this.props.language.general.value,
     });
     this.setState({
-      component: updatedComponent,
+      component: {
+        ...this.state.component,
+        options: updatedComponent.options,
+      },
     });
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
   public handleRemoveOption = (index: number) => {
     const updatedComponent: IFormComponent = this.state.component;
     updatedComponent.options.splice(index, 1);
     this.setState({
-      component: updatedComponent,
+      component: {
+        ...this.state.component,
+        options: updatedComponent.options,
+      },
     });
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
   public handleUpdateOptionLabel = (index: number, event: any) => {
     const updatedComponent: IFormComponent = this.state.component;
     updatedComponent.options[index].label = event.target.value;
     this.setState({
-      component: updatedComponent,
+      component: {
+        ...this.state.component,
+        options: updatedComponent.options,
+      },
     });
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
   public handleUpdateOptionValue = (index: number, event: any) => {
     const updatedComponent: IFormComponent = this.state.component;
     updatedComponent.options[index].value = event.target.value;
     this.setState({
-      component: updatedComponent,
+      component: {
+        ...this.state.component,
+        options: updatedComponent.options,
+      },
     });
   }
 
   public handleUpdateHeaderSize = (event: any) => {
-    const updatedComponent: IFormHeaderComponent = this.state.component as IFormHeaderComponent;
+    const updatedComponent: IFormHeaderComponent = this.props.component as IFormHeaderComponent;
     updatedComponent.size = event.value;
-    this.setState({
-      component: updatedComponent,
-    });
+    this.props.handleComponentUpdate(updatedComponent);
+  }
+
+  public handleDescriptionChange = (selectedText: any): void => {
+    const updatedComponent = this.props.component;
+    updatedComponent.textResourceBindings.description
+      = selectedText ? selectedText.value : null;
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
   public getTextKeyFromDataModel = (dataBindingName: string): string => {
@@ -142,140 +155,125 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     return element.Texts.Label;
   }
 
-  public getTextResourceKeys = (): any[] => {
-    if (!this.props.textResources) {
-      return [];
-    }
+  public handleCodeListChange = (option: ICodeListOption): void => {
+    const updatedComponent = this.props.component;
+    updatedComponent.codeListId = option ? option.value.codeListName : undefined;
+    this.props.handleComponentUpdate(updatedComponent);
+  }
 
-    return (this.props.textResources.map((resource) => {
-      return resource.id;
-    }));
+  public handlePreselectedOptionChange = (event: any): void => {
+    const updatedComponent = { ...this.props.component as IFormCheckboxComponent | IFormRadioButtonComponent };
+    updatedComponent.preselectedOptionIndex = event.target.value as number;
+    this.props.handleComponentUpdate(updatedComponent);
   }
 
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.component) {
       case 'Header': {
         const sizes = [
-          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h3 },
-          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h2 },
-          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h1 },
+          { value: 'S', label: this.props.language.ux_editor.modal_header_type_h4 },
+          { value: 'M', label: this.props.language.ux_editor.modal_header_type_h3 },
+          { value: 'L', label: this.props.language.ux_editor.modal_header_type_h2 },
         ];
         return (
-          <Grid item={true} xs={6} container={true} direction={'column'} spacing={0}>
-            <Typography gutterBottom={false} className={this.props.classes.inputHelper}>
-              {this.props.language.ux_editor.modal_header_type_helper}
-            </Typography>
-            <Select
-              styles={customInput}
-              defaultValue={this.state.component.size ?
-                  sizes.find((size) => size.value === this.state.component.size ) :
+          <Grid
+            container={true}
+            spacing={0}
+            direction={'column'}
+          >
+            {renderSelectTextFromResources('modal_properties_header_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.state.component.textResourceBindings.title)}
+            <Grid item={true} xs={12}>
+              {renderPropertyLabel(this.props.language.ux_editor.modal_header_type_helper)}
+              <Select
+                styles={customInput}
+                defaultValue={this.state.component.size ?
+                  sizes.find((size) => size.value === this.state.component.size) :
                   sizes[0]}
-              onChange={this.handleUpdateHeaderSize}
-              options={sizes}
-            />
+                onChange={this.handleUpdateHeaderSize}
+                options={sizes}
+              />
+            </Grid>
           </Grid>
         );
       }
       case 'Input': {
-        const component: IFormInputComponent = this.state.component as IFormInputComponent;
         return (
-          <div className='form-group a-form-group mt-2'>
-            <div className='custom-control custom-control-stacked pl-0 custom-checkbox a-custom-checkbox'>
-              <input
-                type={'checkbox'}
-                value={component.disabled ? 'true' : 'false'}
-                onChange={this.handleDisabledChange}
-                className='custom-control-input'
-                checked={component.disabled ? true : false}
-                name={'InputIsDisabled'}
-                id={'InputIsDisabled'}
-              />
-              <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsDisabled'>
-                {this.props.language.general.disabled}
-              </label>
-            </div>
-            <div className='custom-control custom-control-stacked pl-0 custom-checkbox a-custom-checkbox'>
-              <input
-                type={'checkbox'}
-                value={component.required ? 'true' : 'false'}
-                onChange={this.handleRequiredChange}
-                className='custom-control-input'
-                checked={component.required ? true : false}
-                name={'InputIsRequired'}
-                id={'InputIsRequired'}
-              />
-              <label className='pl-3 custom-control-label a-fontBold' htmlFor='InputIsRequired'>
-                {this.props.language.general.required}
-              </label>
-            </div>
-          </div>
+          <Grid item={true} xs={12}>
+            {renderSelectDataModelBinding(
+              this.props.component.dataModelBindings,
+              this.handleDataModelChange,
+              this.props.language)}
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+            {renderSelectTextFromResources('modal_properties_description_helper',
+              this.handleDescriptionChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+          </Grid>
+        );
+      }
+      case 'Paragraph': {
+        return (
+          <Grid>
+            {renderSelectTextFromResources('modal_properties_paragraph_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title,
+            )}
+            {false && renderPropertyLabel(this.props.language.ux_editor.modal_properties_paragraph_edit_helper)}
+            {false && <textarea
+              value={getTextResource(
+                this.state.component.textResourceBindings.title, this.props.textResources)}
+              style={{ width: '100%' }}
+              rows={4}
+              className='form-control'
+              onChange={this.handleParagraphChange}
+            />
+            }
+          </Grid>
+        );
+      }
+      case 'Checkboxes': {
+        return (
+          <SelectionEdit
+            type={'checkboxes'}
+            component={this.state.component as IFormCheckboxComponent}
+            handleAddOption={this.handleAddOption}
+            handleCodeListChanged={this.handleCodeListChange}
+            handleDescriptionChange={this.handleDescriptionChange}
+            handlePreselectedOptionChange={this.handlePreselectedOptionChange}
+            handleRemoveOption={this.handleRemoveOption}
+            handleTitleChange={this.handleTitleChange}
+            handleUpdateOptionLabel={this.handleUpdateOptionLabel}
+            handleUpdateOptionValue={this.handleUpdateOptionValue}
+            handleDataModelChange={this.handleDataModelChange}
+          />
         );
       }
       case 'RadioButtons': {
-        const component: IFormRadioButtonComponent = this.state.component as IFormRadioButtonComponent;
         return (
-          <div className='form-group a-form-group mt-2'>
-            <h2 className='a-h4'>
-              {this.props.language.ux_editor.modal_options}
-            </h2>
-            <div className='row align-items-center'>
-              <div className='col-5'>
-                <label className='a-form-label'>
-                  {this.props.language.general.label}
-                </label>
-              </div>
-              <div className='col-5'>
-                <label className='a-form-label'>
-                  {this.props.language.general.value}
-                </label>
-              </div>
-            </div>
-            {component.options.map((option, index) => (
-              <div key={index} className='row align-items-center'>
-                <div className='col-5'>
-                  <label htmlFor={'editModal_radiolabel-' + index} className='a-form-label sr-only'>
-                    {this.props.language.ux_editor.modal_text}
-                  </label>
-                  <select
-                    id={'editModal_radiolabel-' + index}
-                    className='custom-select a-custom-select'
-                    onChange={this.handleUpdateOptionLabel.bind(this, index)}
-                    value={option.label}
-                  >}
-                    <option key={'empty'} value={''}>
-                      {this.props.language.general.choose_label}
-                    </option>
-                    {this.renderTextResourceOptions()}
-                  </select>
-                </div>
-                <div className='col-5'>
-                  <input
-                    onChange={this.handleUpdateOptionValue.bind(this, index)}
-                    value={option.value}
-                    className='form-control'
-                    type='text'
-                  />
-                </div>
-                <div className='col-2'>
-                  <button
-                    type='button'
-                    className='a-btn a-btn-icon'
-                    onClick={this.handleRemoveOption.bind(this, index)}
-                  >
-                    <i className='ai ai-circle-exit a-danger ai-left' />
-                  </button>
-                </div>
-              </div>
-            ))}
-            <div className='row align-items-center mb-1'>
-              <div className='col-4 col'>
-                <button type='button' className='a-btn' onClick={this.handleAddOption}>
-                  {this.props.language.ux_editor.modal_new_option}
-                </button>
-              </div>
-              <div />
-            </div>
-          </div>
+          <SelectionEdit
+            type={'radiobuttons'}
+            component={this.state.component as IFormRadioButtonComponent}
+            handleAddOption={this.handleAddOption}
+            handleCodeListChanged={this.handleCodeListChange}
+            handleDescriptionChange={this.handleDescriptionChange}
+            handlePreselectedOptionChange={this.handlePreselectedOptionChange}
+            handleRemoveOption={this.handleRemoveOption}
+            handleTitleChange={this.handleTitleChange}
+            handleUpdateOptionLabel={this.handleUpdateOptionLabel}
+            handleUpdateOptionValue={this.handleUpdateOptionValue}
+            handleDataModelChange={this.handleDataModelChange}
+          />
         );
       }
       case 'Dropdown': {
@@ -359,10 +357,54 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             <input
               type='text'
               disabled={true}
-              value={this.props.component.textResourceId}
+              value={this.props.component.textResourceBindings.title}
               className='form-control'
             />
           </div>
+        );
+      }
+
+      case 'AddressComponent': {
+        return (
+          <Grid
+            container={true}
+            spacing={0}
+            direction={'column'}
+          >
+            <Grid item={true} xs={12}>
+              {this.props.language.ux_editor.modal_configure_address_component_simplified}
+              <Checkbox
+                checked={(this.state.component as IFormAddressComponent).simplified}
+                onChange={this.handleToggleAddressSimple}
+              />
+            </Grid>
+            {Object.keys(AddressKeys).map((value: AddressKeys) => {
+              const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
+              if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
+                return null;
+              }
+              return (
+                renderSelectDataModelBinding(
+                  this.props.component.dataModelBindings,
+                  this.handleDataModelChange,
+                  this.props.language,
+                  getTextResourceByAddressKey(value, this.props.language),
+                  value,
+                  value,
+                )
+              );
+            })}
+            {
+              renderSelectTextFromResources(
+                'modal_configure_address_component_address_text_binding',
+                this.handleTextResourceBindingChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings[AddressKeys.address],
+                AddressKeys.address,
+              )
+            }
+          </Grid >
         );
       }
 
@@ -372,14 +414,35 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     }
   }
 
-  public renderSelectDataBinding = (componentType: string): JSX.Element => {
-    return (this.shouldComponentDataBind(componentType) ?
-      (
-        <SelectDataModelComponent
-          onDataModelChange={this.handleDataModelChange}
-          selectedElement={this.state.component.dataModelBinding}
-          language={this.props.language}
-        />) : null);
+  public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
+    let { dataModelBindings: dataModelBinding } = (this.state.component as IFormAddressComponent);
+    if (!dataModelBinding) {
+      dataModelBinding = {};
+    }
+    dataModelBinding[key] = selectedDataModelElement;
+    this.setState({
+      component: {
+        ...this.state.component,
+        dataModelBindings: dataModelBinding,
+      },
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      dataModelBindings: dataModelBinding,
+    });
+  }
+
+  public handleToggleAddressSimple = (event: object, checked: boolean) => {
+    this.setState({
+      component: {
+        ...this.state.component,
+        simplified: checked,
+      },
+    });
+    this.props.handleComponentUpdate({
+      ...this.props.component,
+      simplified: checked,
+    });
   }
 
   public renderTextResourceOptions = (): JSX.Element[] => {
@@ -389,7 +452,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
     return (
       this.props.textResources.map((resource, index) => {
-        const option = this.truncate(resource.value);
+        const option = truncate(resource.value, 60);
         return (
           <option key={index} value={resource.id} title={resource.value}>
             {option}
@@ -398,37 +461,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       }));
   }
 
-  public truncate = (s: string) => {
-    if (s.length > 60) {
-      return s.substring(0, 60);
-    } else {
-      return s;
-    }
-  }
-
   public render(): JSX.Element {
     return (
       <>
-      {this.renderComponentSpecificContent()}
+        {this.renderComponentSpecificContent()}
       </>
     );
-  }
-
-  private shouldComponentDataBind = (componentType: string): boolean => {
-    switch (componentType) {
-      case ('Input'):
-      case ('Checkboxes'):
-      case ('TextArea'):
-      case ('RadioButtons'):
-      case ('ThirdParty'):
-      case ('Dropdown'): {
-        return true;
-      }
-
-      default: {
-        return false;
-      }
-    }
   }
 }
 
@@ -438,10 +476,10 @@ const mapStateToProps = (
 ): IEditModalContentProps => {
   return {
     language: state.appData.language.language,
-    classes: props.classes,
+    textResources: state.appData.textResources.resources,
+    codeListResources: state.appData.codeLists.codeLists,
     ...props,
   };
 };
 
-export const EditModalContent = withStyles(styles, { withTheme: true })
-  (connect(mapStateToProps)(EditModalContentComponent));
+export const EditModalContent = connect(mapStateToProps)(EditModalContentComponent);

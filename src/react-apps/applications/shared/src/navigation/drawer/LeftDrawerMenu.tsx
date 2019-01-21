@@ -8,23 +8,33 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import Icon from './Icon';
-import { leftDrawerMenuSettings } from './leftDrawerMenuSettings';
+import AltinnIcon from './AltinnIcon';
+import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
-export interface INavMenuProps {
-  classes: any;
-  theme: any;
-  menuType: any;
+import altinnTheme from '../../theme/altinnStudioTheme';
+
+export interface ILeftDrawerMenuProps extends WithStyles<typeof styles> {
+  menuType: string;
+  activeLeftMenuSelection: string;
 }
 
-export interface INavMenuProps extends WithStyles<typeof styles> { }
+export interface ILeftDrawerMenuState {
+  iconColor: any;
+  open: boolean;
+  openSubMenus: number[];
+}
 
-class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
-  public state = {
-    open: false,
-    openSubMenus: [] as number[],
-  };
+class LeftDrawerMenu extends
+  React.Component<ILeftDrawerMenuProps, ILeftDrawerMenuState> {
+  constructor(_props: ILeftDrawerMenuProps) {
+    super(_props);
+    this.state = {
+      iconColor: {},
+      open: false,
+      openSubMenus: [],
+    };
+  }
 
   public handleDrawerOpen = () => {
     this.setState({ open: true });
@@ -48,46 +58,100 @@ class LeftDrawerMenu extends React.Component<INavMenuProps, any> {
     });
   }
 
+  public onMouseEnterListItem = (index: any) => (event: any) => {
+    event.stopPropagation();
+    this.setState((state) => {
+      return {
+        iconColor: {
+          ...state.iconColor,
+          [index]: altinnTheme.altinnPalette.primary.blueDark,
+        },
+      };
+    });
+  }
+
+  public onMouseLeaveListItem = (index: any) => (event: any) => {
+    event.stopPropagation();
+    this.setState((state) => {
+      return {
+        iconColor: {
+          ...state.iconColor,
+          [index]: 'rgba(0, 0, 0, 0.54)',
+        },
+      };
+    });
+  }
+
   public render() {
     const { classes } = this.props;
+    const menuToRender = leftDrawerMenuSettings[this.props.menuType];
 
-    return (
-      <div>
-        <Drawer
-          variant='permanent'
-          onMouseOver={this.handleDrawerOpen}
-          onMouseLeave={this.handleDrawerClose}
-          className={classNames(classes.drawer, {
-            [classes.drawerOpen]: this.state.open,
-            [classes.drawerClose]: !this.state.open,
-          })}
-          classes={{
-            paper: classNames(classes.paper, {
+    if (!this.props.menuType || !menuToRender) {
+      return (
+        <div />
+      );
+    } else {
+      return (
+        <div>
+          <Drawer
+            variant='permanent'
+            onMouseOver={this.handleDrawerOpen}
+            onMouseLeave={this.handleDrawerClose}
+            className={classNames(classes.drawer, {
               [classes.drawerOpen]: this.state.open,
               [classes.drawerClose]: !this.state.open,
-            }),
-          }}
-          open={this.state.open}
-        >
-          <Divider />
+            })}
+            classes={{
+              paper: classNames(classes.paper, {
+                [classes.drawerOpen]: this.state.open,
+                [classes.drawerClose]: !this.state.open,
+              }),
+            }}
+            open={this.state.open}
+          >
+            <Divider />
 
-          <List>
-            {leftDrawerMenuSettings[this.props.menuType].map((menuItem: any, index: any) => (
-              <Link to={menuItem.navLink} style={{ borderBottom: 0 }}>
-                <ListItem
-                  button={true} key={menuItem.displayText}
+            <List>
+              {leftDrawerMenuSettings[this.props.menuType].map((menuItem: IMenuItem, index: number) => (
+                <Link
+                  to={menuItem.navLink}
+                  style={{ borderBottom: 0 }}
+                  key={index}
                 >
-                  <ListItemIcon>
-                    <Icon iconType={menuItem.iconName} />
-                  </ListItemIcon>
-                  <ListItemText primary={menuItem.displayText} />
-                </ListItem>
-              </Link>
-            ))}
-          </List>
-        </Drawer>
-      </div>
-    );
+                  <ListItem
+                    classes={{
+                      root: classNames(classes.listItem,
+                        {
+                          [classes.activeListItem]: this.props.activeLeftMenuSelection ===
+                            menuItem.activeLeftMenuSelection,
+                        },
+                      ),
+                    }}
+                    onMouseEnter={this.onMouseEnterListItem(index)}
+                    onMouseLeave={this.onMouseLeaveListItem(index)}
+                  >
+                    <ListItemIcon>
+                      <AltinnIcon
+                        isActive={this.props.activeLeftMenuSelection ===
+                          menuItem.activeLeftMenuSelection}
+                        iconClass={menuItem.iconClass}
+                        iconColor={this.state.iconColor[index] === undefined
+                          ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}
+                      />
+                    </ListItemIcon>
+                    <ListItemText
+                      disableTypography={true}
+                      primary={menuItem.displayText}
+                      classes={{ root: classNames(classes.listItemText) }}
+                    />
+                  </ListItem>
+                </Link>
+              ))}
+            </List>
+          </Drawer>
+        </div>
+      );
+    }
   }
 }
 

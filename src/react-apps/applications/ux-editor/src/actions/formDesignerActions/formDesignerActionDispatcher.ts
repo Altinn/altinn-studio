@@ -26,6 +26,7 @@ export interface IFormDesignerActionDispatchers
     positionAfterId?: string,
     addToId?: string,
     callback?: (...args: any[]) => any,
+    destinationIndex?: number,
   ) => FormDesignerActions.IAddFormContainerAction;
   addFormContainerFulfilled: (
     container: ICreateFormContainer,
@@ -34,6 +35,7 @@ export interface IFormDesignerActionDispatchers
     addToId?: string,
     baseContainerId?: string,
     callback?: (...args: any[]) => any,
+    destinationIndex?: number,
   ) => FormDesignerActions.IAddFormContainerActionFulfilled;
   addFormContainerRejected: (
     error: Error,
@@ -57,6 +59,13 @@ export interface IFormDesignerActionDispatchers
   createRepeatingGroupRejected: (
     error: Error,
   ) => FormDesignerActions.ICreateRepeatingGroupRejected;
+  deleteActiveListAction: (
+  ) => Action;
+  deleteActionListActionFulfilled: (
+  ) => Action;
+  deleteActionListActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IDeleteActiveListActionRejected;
   deleteFormComponent: (
     id: string,
   ) => FormDesignerActions.IDeleteComponentAction;
@@ -70,9 +79,12 @@ export interface IFormDesignerActionDispatchers
   deleteFormContainer: (
     id: string,
     index?: number,
+    parentContainerId?: string,
   ) => FormDesignerActions.IDeleteContainerAction;
   deleteFormContainerFulfilled: (
     id: string,
+    index?: number,
+    parentContainerId?: string,
   ) => FormDesignerActions.IDeleteContainerActionFulfilled;
   deleteFormContainerRejected: (
     error: Error,
@@ -99,6 +111,26 @@ export interface IFormDesignerActionDispatchers
   selectFormComponentRejected: (
     error: Error,
   ) => FormDesignerActions.ISelectLayoutElementActionRejected;
+  updateActiveList: (
+    listItem: any,
+    containerList: any,
+  ) => FormDesignerActions.IUpdateActiveListAction;
+  updateActiveListActionFulfilled: (
+    containerList: any,
+  ) => FormDesignerActions.IUpdateActiveListActionFulfilled;
+  updateActiveListActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateActiveListActionRejected;
+  updateActiveListOrder: (
+    containerList: any,
+    orderList: any[],
+  ) => FormDesignerActions.IUpdateActiveListOrderAction;
+  updateActiveListOrderActionFulfilled: (
+    containerList: any,
+  ) => FormDesignerActions.IUpdateActiveListOrderActionFulfilled;
+  updateActiveListOrderActionRejected: (
+    error: Error,
+  ) => FormDesignerActions.IUpdateActiveListOrderActionRejected;
   updateDataModelBinding: (
     id: string,
     modelBinding: string,
@@ -138,8 +170,7 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.IToggleFormContainerRepeatAction;
   updateFormComponentOrderAction: (
     id: string,
-    newPosition: number,
-    oldPostion: number,
+    newPositionIndex: number,
     destionationContainerId: string,
     sourceContainerId: string,
   ) => FormDesignerActions.IUpdateFormComponentOrderAction;
@@ -166,6 +197,9 @@ const actions: IFormDesignerActionDispatchers = {
   createRepeatingGroup: FormDesignerActions.createRepeatingGroupAction,
   createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
   createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
+  deleteActiveListAction: FormDesignerActions.deleteActiveListAction,
+  deleteActionListActionFulfilled: FormDesignerActions.deleteActiveListActionFulfilled,
+  deleteActionListActionRejected: FormDesignerActions.deleteActiveListActionRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,
@@ -186,8 +220,13 @@ const actions: IFormDesignerActionDispatchers = {
   selectFormComponent: FormDesignerActions.selectLayoutElementAction,
   selectFormComponentFulfilled:
     FormDesignerActions.selectLayoutElementActionFulfilled,
-  selectFormComponentRejected:
-    FormDesignerActions.selectLayoutElementActionRejected,
+  selectFormComponentRejected: FormDesignerActions.selectLayoutElementActionRejected,
+  updateActiveList: FormDesignerActions.updateActiveListAction,
+  updateActiveListActionFulfilled: FormDesignerActions.updateActiveListActionFulfilled,
+  updateActiveListActionRejected: FormDesignerActions.updateActiveListActionRejected,
+  updateActiveListOrder: FormDesignerActions.updateActiveListOrderAction,
+  updateActiveListOrderActionFulfilled: FormDesignerActions.updateActiveListOrderActionFulfilled,
+  updateActiveListOrderActionRejected: FormDesignerActions.updateActiveListOrderActionRejected,
   updateDataModelBinding: FormDesignerActions.updateDataModelBindingAction,
   updateDataModelBindingFulfilled:
     FormDesignerActions.updateDataModelBindingActionFulfilled,

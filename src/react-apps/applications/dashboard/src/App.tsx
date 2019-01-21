@@ -1,20 +1,52 @@
-import * as React from 'react';
-import NavMenu from '../../shared/src/navigation/NavMenu';
-import './App.css';
+/* tslint:disable:jsx-no-lambda */
+// https://github.com/facebook/create-react-app/issues/4801#issuecomment-409553780
+// Disabled for React Router rendering
 
-export interface IDashboardState {
+import { createMuiTheme, MuiThemeProvider } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import * as React from 'react';
+import { connect } from 'react-redux';
+import { HashRouter as Router, Route } from 'react-router-dom';
+import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
+import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
+import './App.css';
+import { CloneService } from './dashboardServices/cloneService/cloneServices';
+import fetchServicesActionDispatchers from './dashboardServices/fetchDashboardDispatcher';
+import { ServicesOverview } from './dashboardServices/serviceOverview/servicesOverview';
+import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
+
+export interface IMainDashboardState {
   drawerOpen: boolean;
 }
 
-export interface IDashboardProps {}
+export interface IDashboardProps {
+  user: any;
+}
 
-class App extends React.Component<IDashboardProps, IDashboardState> {
-  state: IDashboardState = {
+const theme = createMuiTheme(altinnTheme);
+
+class App extends React.Component<IDashboardProps, IMainDashboardState> {
+  public state: IMainDashboardState = {
     drawerOpen: false,
   };
 
+  public componentDidMount() {
+    const altinnWindow: Window = window;
+    fetchLanguageDispatcher.fetchLanguage(
+      `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+
+    fetchServicesActionDispatchers.fetchServices(
+      `${altinnWindow.location.origin}/designerapi/Repository/Search`);
+
+    fetchServicesActionDispatchers.fetchCurrentUser(
+      `${altinnWindow.location.origin}/designerapi/User/Current`);
+
+    fetchServicesActionDispatchers.fetchOrganizations(
+      `${altinnWindow.location.origin}/designerapi/Repository/Organizations`);
+  }
+
   public handleDrawerToggle = () => {
-    this.setState((state: IDashboardState) => {
+    this.setState((state: IMainDashboardState) => {
       return {
         drawerOpen: !state.drawerOpen,
       };
@@ -23,13 +55,44 @@ class App extends React.Component<IDashboardProps, IDashboardState> {
 
   public render() {
     return (
-      <div style={{display: 'flex', width: '100%', alignItems: 'stretch'}}>
-      <NavMenu handleToggleDrawer={this.handleDrawerToggle} drawerOpen={this.state.drawerOpen}/>
-        <div style={{paddingLeft: 72}}/>
-        {/* Content here */}
-      </div>
+      <MuiThemeProvider theme={theme}>
+        <Router>
+          <div>
+            <AppBarComponent
+              org={this.props.user.full_name || this.props.user.login}
+              service=' '
+              logoutButton={true}
+              showSubHeader={false}
+              backgroundColor={theme.altinnPalette.primary.white}
+            />
+            <Route
+              path={'/'}
+              exact={true}
+              render={() => (
+                <Grid container={true} justify='center' direction='row' className='block-with-text' >
+                  <Grid item={true} xs={10}>
+                    <ServicesOverview />
+                  </Grid>
+                </Grid>)}
+            />
+            <Route
+              path={'/org/:org/servicename/:serviceName'}
+              exact={true}
+              component={CloneService}
+            />
+          </div>
+        </Router>
+      </MuiThemeProvider>
     );
   }
 }
 
-export default App;
+const mapStateToProps = (
+  state: IDashboardAppState,
+): IDashboardProps => {
+  return {
+    user: state.dashboard.user,
+  };
+};
+
+export default connect(mapStateToProps)(App);

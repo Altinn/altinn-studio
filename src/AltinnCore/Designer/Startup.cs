@@ -117,6 +117,7 @@ namespace AltinnCore.Designer
                     options.AccessDeniedPath = "/Home/NotAuthorized/";
                     options.LoginPath = "/Home/Login/";
                     options.LogoutPath = "/Home/Logout/";
+                    options.Cookie.Name = AltinnCore.Common.Constants.General.DesignerCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade

@@ -12,6 +12,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// Controller containing all actions related to basic configuration of a service
     /// </summary>
+    [Authorize]
     public class ServiceController : Controller
     {
         private readonly IRepository _repository;
@@ -38,7 +39,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="org">The current service owner</param>
         /// <param name="service">The current service</param>
         /// <returns>A view with basic information and all available operations</returns>
-        [Authorize]
         public IActionResult Index(string org, string service)
         {
             ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
@@ -69,7 +69,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <returns>Redirect to index</returns>
-        [Authorize]
         [HttpGet]
         public IActionResult CreateServicePackage(string org, string service)
         {
@@ -84,7 +83,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="service">The current service</param>
         /// <returns>The view</returns>
         [HttpGet]
-        [Authorize]
         public IActionResult Status(string org, string service)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
@@ -100,7 +98,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="service">the service</param>
         /// <returns>The service with changes</returns>
         [HttpGet]
-        [Authorize]
         public IActionResult PullRemoteChanges(string org, string service)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();
@@ -114,7 +111,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="commitInfo">The commit info</param>
         /// <returns>Redirects back to the codelist front page</returns>
         [HttpPost]
-        [Authorize]
         public IActionResult PushChanges(CommitInfo commitInfo)
         {
             _sourceControl.PushChangesForRepository(commitInfo);
@@ -127,7 +123,6 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="org">the organisation</param>
         /// <param name="service">the service</param>
         /// <returns>The home app token page or the clone page</returns>
-        [Authorize]
         public IActionResult Clone(string org, string service)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();

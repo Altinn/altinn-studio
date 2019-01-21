@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Designer.Controllers
@@ -10,6 +11,7 @@ namespace AltinnCore.Designer.Controllers
     /// <summary>
     /// The controller for the data source
     /// </summary>
+    [Authorize]
     public class DataSourceController : Controller
     {
         private readonly IDataSourceService _dataSourceService;

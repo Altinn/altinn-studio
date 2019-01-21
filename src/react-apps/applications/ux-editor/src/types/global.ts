@@ -53,17 +53,20 @@ declare global {
     hidden?: boolean;
   }
 
+  export interface ITextResourceBindings {
+    [id: string]: string;
+  }
+
   export interface ICreateFormComponent {
-    title?: string;
     component: string;
     type?: string;
     name?: string;
     size?: string;
     options?: IOptions[];
-    description?: string;
-    dataModelBinding?: string;
-    textResourceId?: string;
+    dataModelBindings?: IDataModelBindings;
+    textResourceBindings?: ITextResourceBindings;
     customType?: string;
+    codeListId?: string;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
     handleUpdateFormData?: (formData: any) => void;
@@ -88,6 +91,7 @@ declare global {
 
   export interface IFormCheckboxComponent extends IFormComponent {
     options: IOptions[];
+    preselectedOptionIndex?: number;
   }
 
   export interface IFormTextAreaComponent extends IFormComponent { }
@@ -98,6 +102,7 @@ declare global {
 
   export interface IFormRadioButtonComponent extends IFormComponent {
     options: IOptions[];
+    preselectedOptionIndex?: number;
   }
 
   export interface IFormDropdownComponent extends IFormComponent {
@@ -108,6 +113,14 @@ declare global {
     description: string;
   }
 
+  export interface IDataModelBindings {
+    [id: string]: string;
+  }
+
+  export interface IFormAddressComponent extends IFormComponent {
+    simplified: boolean;
+  }
+
   export type FormComponentType =
     | IFormHeaderComponent
     | IFormInputComponent
@@ -116,7 +129,8 @@ declare global {
     | IFormButtonComponent
     | IFormRadioButtonComponent
     | IFormDropdownComponent
-    | IFormFileUploaderComponent;
+    | IFormFileUploaderComponent
+    | IFormAddressComponent;
 
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;
@@ -165,6 +179,9 @@ declare global {
     XName?: string;
     XPath: string;
     XsdValueType?: string;
+    DisplayString: string;
+    XmlSchemaXPath: string;
+    JsonSchemaPointer: string;
   }
 
   export interface IDataModelBinding {

@@ -1,0 +1,595 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mock value is invalid menutype should return empty div when the menutype is not valid(doesnt exist in the menu setting) 1`] = `<div />`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about should render left drawer menu for about option in header that matches the snapshot 1`] = `
+<div>
+  <div
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+  >
+    <div
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+    >
+      <hr
+        className="MuiDivider-root-52"
+      />
+      <ul
+        className="MuiList-root-57 MuiList-padding-58"
+      >
+        <a
+          href="/aboutservice"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Om tjenesten
+            </div>
+          </li>
+        </a>
+        <a
+          href="/rolesandrights"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-others"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Roller og rettigheter
+            </div>
+          </li>
+        </a>
+        <a
+          href="/production"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Produksjon
+            </div>
+          </li>
+        </a>
+        <a
+          href="/versionhistory"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-deadline"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Versjonshistorikk
+            </div>
+          </li>
+        </a>
+        <a
+          href="/aboutenduser"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Om sluttbrukeren
+            </div>
+          </li>
+        </a>
+        <a
+          href="/altinn"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Altinn.no
+            </div>
+          </li>
+        </a>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create should render left drawer menu for create option in header that matches the snapshot 1`] = `
+<div>
+  <div
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+  >
+    <div
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+    >
+      <hr
+        className="MuiDivider-root-52"
+      />
+      <ul
+        className="MuiList-root-57 MuiList-padding-58"
+      >
+        <a
+          href="/datamodel"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Datamodell
+            </div>
+          </li>
+        </a>
+        <a
+          href="/uieditor"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              GUI
+            </div>
+          </li>
+        </a>
+        <a
+          href="/api"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              API
+            </div>
+          </li>
+        </a>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is empty string should return an empty div when the menutype is empty string that matches the snapshot 1`] = `<div />`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is language should render left drawer menu for language option in header that matches the snapshot 1`] = `
+<div>
+  <div
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+  >
+    <div
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+    >
+      <hr
+        className="MuiDivider-root-52"
+      />
+      <ul
+        className="MuiList-root-57 MuiList-padding-58"
+      >
+        <a
+          href="/text"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Tekst
+            </div>
+          </li>
+        </a>
+        <a
+          href="/translate"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Flere språk
+            </div>
+          </li>
+        </a>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is null should return an empty div when the menutype is null that matches the snapshot 1`] = `<div />`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish should render left drawer menu for publish option in header that matches the snapshot 1`] = `
+<div>
+  <div
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+  >
+    <div
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+    >
+      <hr
+        className="MuiDivider-root-52"
+      />
+      <ul
+        className="MuiList-root-57 MuiList-padding-58"
+      >
+        <a
+          href="/productionsetting"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-settings"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Produksjonsette
+            </div>
+          </li>
+        </a>
+        <a
+          href="/status"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Status
+            </div>
+          </li>
+        </a>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test should render left drawer menu for test option in header that matches the snapshot 1`] = `
+<div>
+  <div
+    className="MuiDrawer-root-13 MuiDrawer-docked-14 LeftDrawerMenu-drawer-6 LeftDrawerMenu-drawerClose-8"
+    onMouseLeave={[Function]}
+    onMouseOver={[Function]}
+  >
+    <div
+      className="MuiPaper-root-25 MuiPaper-elevation0-27 MuiDrawer-paper-15 LeftDrawerMenu-paper-11 LeftDrawerMenu-drawerClose-8 MuiDrawer-paperAnchorLeft-16 MuiDrawer-paperAnchorDockedLeft-20"
+    >
+      <hr
+        className="MuiDivider-root-52"
+      />
+      <ul
+        className="MuiList-root-57 MuiList-padding-58"
+      >
+        <a
+          href="/test"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="ai ai-info-circle"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Test
+            </div>
+          </li>
+        </a>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is undefined should return an empty div when the menutype is undefined) that matches the snapshot 1`] = `<div />`;

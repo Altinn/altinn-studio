@@ -17,6 +17,7 @@ namespace AltinnCore.Common.Services.Implementation
     public class FormSILocalDev : IForm
     {
         private readonly ServiceRepositorySettings _settings;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string GetFormModelApiMethod = "GetFormModel";
         private const string SaveFormModelApiMethod = "SaveFormModel";
@@ -27,10 +28,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
-        public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
+        /// <param name="testdataRepositorySettings">Test data repository settings</param>
+        public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            this._testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetFormModel(int formID, Type type, string org, string service, int partyId, string developer = null)
         {
             string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormModelApiMethod, org, service, developer, partyId)}&formID={formID}";
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
@@ -85,7 +88,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(GetPrefillApiMethod, org, service, developer, partyId)}&prefillkey={prefillkey}";
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
                 Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
@@ -125,7 +128,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&formId={formId}";
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
                 XmlSerializer serializer = new XmlSerializer(type);

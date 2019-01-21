@@ -6,12 +6,14 @@ import * as ApiActionTypes from '../../actions/apiActions/apiActionTypes';
 import ErrorActionDispatchers from '../../actions/errorActions/errorActionDispatcher';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
+import ServiceConfigActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import appConfig from '../../appConfig';
 import { IApiState } from '../../reducers/apiReducer';
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { checkIfAxiosError, get } from '../../utils/networking';
+import { getSaveServiceConfigurationUrl } from '../../utils/urlHelper';
 
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
@@ -21,6 +23,11 @@ const selectAppData = (state: IAppState): IAppDataState => state.appData;
 function* addApiConnectionSaga({ newConnection }: ApiActions.IAddApiConnection): SagaIterator {
   try {
     yield call(ApiActionDispatchers.addApiConnectionFulfilled, newConnection);
+    const saveServiceConfigurationUrl: string = yield call(getSaveServiceConfigurationUrl);
+    yield call(
+      ServiceConfigActionDispatchers.saveJsonFile,
+      saveServiceConfigurationUrl,
+    );
   } catch (err) {
     yield call(ApiActionDispatchers.addApiConnectionRejected, err);
   }
@@ -51,6 +58,11 @@ function* delApiConnectionSaga({ connectionId }: ApiActions.IDelApiConnection): 
     }, {});
 
     yield call(ApiActionDispatchers.delApiConnectionFulfilled, newConnectionsObj);
+    const saveServiceConfigurationUrl: string = yield call(getSaveServiceConfigurationUrl);
+    yield call(
+      ServiceConfigActionDispatchers.saveJsonFile,
+      saveServiceConfigurationUrl,
+    );
   } catch (err) {
     yield call(ApiActionDispatchers.delApiConnectionRejected, err);
   }
@@ -63,7 +75,14 @@ export function* watchDelApiConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfApisShouldFetchSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeating, dataModelGroup, index }: ApiActions.ICheckIfApiShouldFetchAction): SagaIterator {
+function* checkIfApisShouldFetchSaga({
+  lastUpdatedDataBinding,
+  lastUpdatedDataValue,
+  lastUpdatedComponentId,
+  repeating,
+  dataModelGroup,
+  index,
+}: ApiActions.ICheckIfApiShouldFetchAction): SagaIterator {
   try {
     // get state
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
@@ -125,7 +144,7 @@ export function* watchFetchApiListResponseSaga(): SagaIterator {
   );
 }
 
-function* apiFetchList(connectionDef: any, externalApisById: any, components: any) {
+function* apiFetchList(connectionDef: any, externalApisById: any, components: IFormDesignerComponent) {
   let dataBindingName;
   for (const dataMapping in connectionDef.apiResponseMapping) {
     if (!dataMapping || dataMapping === 'labelKey' || dataMapping === 'valueKey') {
@@ -136,10 +155,15 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
 
   const mappedComponent: any = {};
   for (const component in components) {
-    if (components[component].dataModelBinding === dataBindingName) {
-      mappedComponent.component = components[component];
-      mappedComponent.id = component;
-      break;
+    if (!component) {
+      continue;
+    }
+    for (const dataModelBindingKey in components[component].dataModelBindings) {
+      if (components[component].dataModelBindings[dataModelBindingKey] === dataBindingName) {
+        mappedComponent.component = components[component];
+        mappedComponent.id = component;
+        break;
+      }
     }
   }
 
@@ -166,7 +190,7 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
     if (!responseList) {
       return;
     }
-    const options: IOptions[] = [{ label: '<Select>', value: '' }];
+    const options: IOptions[] = [];
     const valueKey = connectionDef.apiResponseMapping[dataBindingName].valueKey;
     const labelKey = connectionDef.apiResponseMapping[dataBindingName].labelKey;
     responseList.forEach((item) => {
@@ -191,8 +215,18 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
   }
 }
 
-function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFieldElement, lastUpdatedDataValue: any,
-                        formData: any, externalApisById: any, components: IFormDesignerComponent, model: any, repeating: boolean, dataModelGroup?: string, index?: number) {
+function* apiCheckValue(
+  connectionDef: any,
+  lastUpdatedDataBinding: IDataModelFieldElement,
+  lastUpdatedDataValue: any,
+  formData: any,
+  externalApisById: any,
+  components: IFormDesignerComponent,
+  model: any,
+  repeating: boolean,
+  dataModelGroup?: string,
+  index?: number,
+) {
   for (const param in connectionDef.clientParams) {
     if (!param) {
       continue;
@@ -236,8 +270,11 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFi
                 if (!component) {
                   continue;
                 }
-                if (components[component].dataModelBinding === updatedDataBinding.DataBindingName) {
-                  updatedComponent = component;
+                for (const dataBindingKey in components[component].dataModelBindings) {
+                  if (components[component].dataModelBindings[dataBindingKey] === updatedDataBinding.DataBindingName) {
+                    updatedComponent = component;
+                    break;
+                  }
                 }
               }
               if (!updatedDataBinding) {
@@ -248,10 +285,17 @@ function* apiCheckValue(connectionDef: any, lastUpdatedDataBinding: IDataModelFi
                 } else {
                   if (isPartOfRepeatingGroup) {
                     updatedDataBinding = { ...updatedDataBinding };
-                    updatedDataBinding.DataBindingName = updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
+                    updatedDataBinding.DataBindingName = updatedDataBinding.DataBindingName.replace(
+                      dataModelGroup,
+                      dataModelGroupWithIndex,
+                    );
                   }
-                  yield call(FormFillerActionDispatchers.updateFormData, updatedComponent,
-                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey], updatedDataBinding, updatedDataBinding.DataBindingName);
+                  yield call(FormFillerActionDispatchers.updateFormData,
+                    updatedComponent,
+                    response[connectionDef.apiResponseMapping[dataMapping].mappingKey],
+                    updatedDataBinding,
+                    updatedDataBinding.DataBindingName,
+                  );
                 }
               }
             }

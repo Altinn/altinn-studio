@@ -17,12 +17,14 @@ export interface IGenericComponentProps {
 class GenericComponent extends React.Component<IGenericComponentProps> {
 
   public renderThirdPartyComponent = (): JSX.Element => {
-    const [packageName, component] = this.props.component.title.split('.');
+    const [packageName, component] =
+      this.props.component.textResourceBindings.title.split('.');
     if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName]
       || !this.props.thirdPartyComponents[packageName][component]) {
       return null;
     }
-    return thirdPartyComponentWithElementHandler(this.props.thirdPartyComponents[packageName][component], this.props.handleDataChange);
+    return thirdPartyComponentWithElementHandler(this.props.thirdPartyComponents[packageName][component],
+      this.props.handleDataChange);
   }
 
   public render() {
@@ -30,7 +32,8 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
       return this.renderThirdPartyComponent();
     }
 
-    const TagName = formComponentWithHandlers(components.find((c: any) => c.name === this.props.component.component).Tag);
+    const TagName = formComponentWithHandlers(components.find((c: any) => c.name ===
+      this.props.component.component).Tag);
     return (
       <TagName
         id={this.props.id}

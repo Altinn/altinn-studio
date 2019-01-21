@@ -15,8 +15,10 @@ describe('>>> components/base/FileUploadComponent.tsx --- Snapshot', () => {
     mockId = 'mock-id';
     mockComponent = {
       id: mockId,
-      title: 'test-fileuploader',
       component: 'Checkboxes',
+      textResourceBindings: {
+        title: 'test-fileuploader'
+      },
     };
     mockHandleDataChange = (data: any) => null;
     mockIsValid = true;

@@ -27,10 +27,12 @@ namespace AltinnCore.UnitTest.Designer
             // Arrange
             Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
             IGiteaMockHelper.AddSevenReposForOrg1(moqGitea);
+            Moq.Mock<ISourceControl> moqSourceControl = SourceControlMockHelper.GetMock();
 
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = new Mock<IOptions<ServiceRepositorySettings>>();
+            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
 
-            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object);
+            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object, moqSourceControl.Object, moqRepository.Object);
             RepositorySearch repositorySearch = new RepositorySearch();
 
             // Act
@@ -50,9 +52,12 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
             IGiteaMockHelper.AddListWithOneOrganization(moqGitea);
 
-            Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
+            Moq.Mock<ISourceControl> moqSourceControl = SourceControlMockHelper.GetMock();
 
-            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
+            Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
+            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
+
+            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object, moqSourceControl.Object, moqRepository.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
             RepositorySearch repositorySearch = new RepositorySearch();
 
             // Act
@@ -71,10 +76,12 @@ namespace AltinnCore.UnitTest.Designer
             // Arrange
             Moq.Mock<IGitea> moqGitea = IGiteaMockHelper.GetMock();
             IGiteaMockHelper.AddOneOrg(moqGitea);
+            Moq.Mock<ISourceControl> moqSourceControl = SourceControlMockHelper.GetMock();
 
             Moq.Mock<IOptions<ServiceRepositorySettings>> moqServiceRepositorySettings = SettingsHelper.GetMoqServiceRepositorySettings();
+            Moq.Mock<IRepository> moqRepository = new Mock<IRepository>();
 
-            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
+            AltinnCore.Designer.Controllers.RepositoryController controller = new AltinnCore.Designer.Controllers.RepositoryController(moqGitea.Object, moqServiceRepositorySettings.Object, moqSourceControl.Object, moqRepository.Object) { ControllerContext = ControllerContextHelper.GetControllerContextWithValidGiteaSession("234543556", false) };
             RepositorySearch repositorySearch = new RepositorySearch();
 
             // Act
