@@ -68,7 +68,7 @@ namespace AltinnCore.UnitTest.Common
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/schema-w-recursion.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/schema-w-recursion.xsd");
           
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 
@@ -90,7 +90,7 @@ namespace AltinnCore.UnitTest.Common
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>(); 
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/schema.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/schema.xsd");
 
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 
@@ -112,7 +112,7 @@ namespace AltinnCore.UnitTest.Common
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/boligsparingForUngdom_v1_1.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/boligsparingForUngdom_v1_1.xsd");
 
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 
@@ -139,7 +139,7 @@ namespace AltinnCore.UnitTest.Common
                 .Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>())).Returns(textDictionary);
 
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/ServiceModel.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/ServiceModel.xsd");
 
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 
@@ -161,7 +161,7 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void ConvertNæringsoppgave()
         {
-            string xsdFileName = "Common/melding-2-12186.xsd";
+            string xsdFileName = "Common/xsd/melding-2-12186.xsd";
             string outName = "melding-2-12186-output";
 
             Dictionary<string, Dictionary<string, string>> textDictionary = new Dictionary<string, Dictionary<string, string>>();
@@ -199,7 +199,7 @@ namespace AltinnCore.UnitTest.Common
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/motorvognavgift-v4.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/motorvognavgift-v4.xsd");
 
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 
@@ -221,7 +221,7 @@ namespace AltinnCore.UnitTest.Common
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/Skattemelding_v6.25.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/Skattemelding_v6.25.xsd");
 
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);
 

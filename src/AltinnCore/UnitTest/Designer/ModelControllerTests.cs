@@ -70,7 +70,7 @@ namespace AltinnCore.UnitTest.Designer
 
             ModelController controller = new ModelController(moqRepository.Object);
 
-            IFormFile formFile = AsMockIFormFile("Common/ServiceModel.xsd");
+            IFormFile formFile = AsMockIFormFile("Common/xsd/ServiceModel.xsd");
 
             ActionResult result = controller.Upload("Org", "service2", formFile, null);
 

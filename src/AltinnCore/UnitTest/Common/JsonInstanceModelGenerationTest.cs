@@ -25,7 +25,7 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void JsonInstanceModel()
         {
-            var schemaText = File.ReadAllText("Common/edag1.schema.json");
+            var schemaText = File.ReadAllText("Common/jsd/edag1.schema.json");
             var schemaJson = JsonValue.Parse(schemaText);
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
@@ -48,7 +48,7 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void JsonInstanceFromAutogenJson()
         {
-            var schemaText = File.ReadAllText("Common/melding1.schema.json");
+            var schemaText = File.ReadAllText("Common/jsd/melding1.schema.json");
             var schemaJson = JsonValue.Parse(schemaText);
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
@@ -66,7 +66,7 @@ namespace AltinnCore.UnitTest.Common
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/ServiceModel.xsd");
+            XDocument mainXsd = XDocument.Load("Common/xsd/ServiceModel.xsd");
 
             ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);            
 
@@ -79,7 +79,7 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void JsonInstanceModelOfRecursiveSchema()
         {
-            var schemaText = File.ReadAllText("Common/schema-w-recursion.schema.json");
+            var schemaText = File.ReadAllText("Common/jsd/schema-w-recursion.schema.json");
             var schemaJson = JsonValue.Parse(schemaText);
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 
@@ -115,7 +115,7 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void JsonInstanceModelWithWrongPathInput()
         {
-            var schemaText = File.ReadAllText("Common/schema-w-recursion.schema.json");
+            var schemaText = File.ReadAllText("Common/jsd/schema-w-recursion.schema.json");
             var schemaJson = JsonValue.Parse(schemaText);
             var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
 

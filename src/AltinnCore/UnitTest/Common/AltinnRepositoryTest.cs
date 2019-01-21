@@ -19,20 +19,20 @@ namespace AltinnCore.UnitTest.Common
         /// <summary>
         ///  jkjlkjkljlkj
         /// </summary>
-        [Fact]
+        /// [Fact]
         public async void DownloadServicesAsync()
         {
             AltinnServiceRepository repositoryClient = new AltinnServiceRepository();
 
             List<AltinnResource> resources = await AltinnServiceRepository.GetResourcesAsync();
 
-            Assert.Equal(1127, resources.Count);
+            Assert.Equal(1129, resources.Count);
         }
 
         /// <summary>
         ///  read and save
         /// </summary>
-        [Fact]
+        /// [Fact]
         public async void ReadAllAsync()
         {
             List<string> schemaUrls = await AltinnServiceRepository.ReadAllSchemaUrls();

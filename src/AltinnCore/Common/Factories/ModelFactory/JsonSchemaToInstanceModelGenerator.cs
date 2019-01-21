@@ -89,6 +89,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string typeName = startPoint.TryGetString("TypeName");
             string type = startPoint.TryGetString("Type");
 
+            if (typeName == null)
+            {
+                throw new ApplicationException("Path cannot be expanded");
+            }
+
             JsonSchema jsonSchema = definitions.GetValueOrDefault(typeName);
             if (jsonSchema == null || !string.Equals("Group", type))
             {
@@ -160,6 +165,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string SanitizeName(string name)
         {
+            if (string.IsNullOrEmpty(name))
+            {
+                return null;
+            }
+
             return SeresXsdParser.SanitizeName(name);
         }
 

@@ -491,6 +491,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private static string GetOrid(string xName)
         {
+            if (string.IsNullOrEmpty(xName))
+            {
+                return null;
+            }
+
             var orid = string.Empty;
             var xnameParts = xName.Split('-');
 
