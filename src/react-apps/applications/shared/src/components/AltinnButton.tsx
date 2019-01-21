@@ -5,6 +5,7 @@ import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnButtonComponentProvidedProps extends WithStyles<typeof styles> {
+  id?: any;
   classes: any;
   btnText: string;
   onClickFunction?: any;
@@ -69,6 +70,7 @@ class AltinnButton extends
     const { classes } = this.props;
     return (
       <Button
+        id={this.props.id}
         disabled={this.props.disabled}
         variant={this.props.secondaryButton === true ? 'text' : 'contained'}
         color='primary'

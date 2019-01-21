@@ -10,6 +10,7 @@ export interface IAltinnIconButtonComponentProvidedProps {
   className?: string;
   iconClass: string;
   btnText: string;
+  id?: any;
 }
 
 export interface IAltinnIconButtonComponentState {
@@ -52,7 +53,7 @@ class AltinnIconButton extends React.Component<IAltinnIconButtonComponentProvide
   public render() {
     const { classes } = this.props;
     return (
-      <Button variant='contained' className={classes.dottedBtn} onClick={this.props.onclickFunction}>
+      <Button id={this.props.id} variant='contained' className={classes.dottedBtn} onClick={this.props.onclickFunction}>
         <i className={classNames(this.props.iconClass, classes.dottedBtnIcon)} />
         {this.props.btnText}
       </Button>
