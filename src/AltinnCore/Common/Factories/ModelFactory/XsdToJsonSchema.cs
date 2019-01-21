@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.Xml.Schema;
+using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -41,8 +42,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             // Set up Json Schema object
             mainJsonSchema = new JsonSchema();
-            mainJsonSchema.OtherData.Add("$schema", new Manatee.Json.JsonValue("http://json-schema.org/schema#"));
-            mainJsonSchema.OtherData.Add("$id", new Manatee.Json.JsonValue(Guid.NewGuid().ToString()));
+            mainJsonSchema.Schema("http://json-schema.org/schema#");
+            mainJsonSchema.Id(Guid.NewGuid().ToString());
             AddTypeObject(mainJsonSchema);
 
             XmlSchemaObjectEnumerator enumerator = mainXsd.Items.GetEnumerator();
@@ -70,10 +71,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 object parsedObject = Parse(item, out isRequired);
                 if (parsedObject == null)
                 {
-                }
-                else if (parsedObject is string)
-                {
-                    mainJsonSchema.Description((string)parsedObject);
                 }
                 else if (parsedObject is JsonSchema)
                 {
@@ -112,7 +109,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else if (item is XmlSchemaAnnotation)
             {
-                return ParseAnnotation((XmlSchemaAnnotation)item);
+                AppendAnnotation((XmlSchemaAnnotation)item, mainJsonSchema);
+                return null;
             }
             else if (item is XmlSchemaGroup || item is XmlSchemaAttributeGroup || item is XmlSchemaAttribute)
             {
@@ -145,11 +143,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Annotation != null)
             {
-                string annotated = ParseAnnotated(item);
-                if (annotated != null && annotated.Length > 0)
-                {
-                    elementSchema.Description(annotated);
-                }
+                AppendAnnotated(item, elementSchema);
             }
 
             if (item.Constraints.Count > 0)
@@ -252,11 +246,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Annotation != null)
             {
-                string annotation = ParseAnnotated(item);
-                if (annotation != null && annotation.Length > 0)
-                {
-                    complexTypeSchema.Description(annotation);
-                }
+                AppendAnnotated(item, complexTypeSchema);
             }
 
             if (item.Attributes.Count > 0)
@@ -320,11 +310,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             if (item.Annotation != null)
             {
-                string annotation = ParseAnnotated(item);
-                if (annotation != null && annotation.Length > 0)
-                {
-                    appendToSchema.Description(annotation);
-                }
+                AppendAnnotated(item, appendToSchema);
             }
 
             if (item.BaseSchemaType != null)
@@ -447,7 +433,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                     else if (!simpleTypeListItem.ItemTypeName.IsEmpty)
                     {
-                        AppendType(item, appendToSchema);
+                        AppendType(FindObject(simpleTypeListItem.ItemTypeName), item, appendToSchema);
                     }
                     else
                     {
@@ -485,15 +471,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             isRequired = false;
 
-            attributeSchema.OtherData.Add("@xsdType", new Manatee.Json.JsonValue("XmlAttribute"));
+            attributeSchema.OtherData.Add("@xsdType", new JsonValue("XmlAttribute"));
 
             if (attribute.Annotation != null)
             {
-                string annotated = ParseAnnotated(attribute);
-                if (annotated != null && annotated.Length > 0)
-                {
-                    attributeSchema.Description(annotated);
-                }
+                AppendAnnotated(attribute, attributeSchema);
             }
 
             if (attribute.AttributeSchemaType != null)
@@ -508,7 +490,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (attribute.FixedValue != null)
             {
-                attributeSchema.OtherData.Add("const", new Manatee.Json.JsonValue(attribute.FixedValue));
+                attributeSchema.Const(new JsonValue(attribute.FixedValue));
             }
 
             if (!attribute.QualifiedName.IsEmpty)
@@ -542,11 +524,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Annotation != null)
             {
-                string annotated = ParseAnnotated(item);
-                if (annotated != null && annotated.Length > 0)
-                {
-                    anySchema.Description(annotated);
-                }
+                AppendAnnotated(item, anySchema);
             }
 
             if (item.MinOccurs >= 1 ||
@@ -672,23 +650,49 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private string ParseAnnotated(XmlSchemaAnnotated annotatedItem)
+        private void AppendAnnotated(XmlSchemaAnnotated annotatedItem, JsonSchema appendToSchema)
         {
-            return annotatedItem == null ? null : ParseAnnotation(annotatedItem.Annotation);
+            if (annotatedItem != null)
+            {
+                AppendAnnotation(annotatedItem.Annotation, appendToSchema);
+            }
         }
 
-        private string ParseAnnotation(XmlSchemaAnnotation annotationItem)
+        private void AppendAnnotation(XmlSchemaAnnotation annotationItem, JsonSchema appendToSchema)
         {
             if (annotationItem == null)
             {
-                return null;
+                return;
             }
 
             string s = string.Empty;
             foreach (XmlSchemaDocumentation item in annotationItem.Items)
             {
+                JsonSchema textSchema = new JsonSchema();
+
                 foreach (XmlNode markup in item.Markup)
                 {
+                    XmlQualifiedName markupName = new XmlQualifiedName(markup.LocalName, markup.NamespaceURI);
+                    if ("http://www.w3.org/2001/XMLSchema:attribute".Equals(markupName.ToString()))
+                    {
+                        try
+                        {
+                            XmlAttribute name = markup.Attributes["name"];
+                            XmlAttribute fixedValue = markup.Attributes["fixed"];
+
+                            appendToSchema.Info(name.Value, fixedValue.Value);
+                        }
+                        catch (Exception e)
+                        {
+                            int d = 0;
+                        }
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    /*
                     if (s.Length != 0)
                     {
                         s += '\n';
@@ -706,10 +710,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         throw new NotImplementedException();
                     }
+                    */
+                }
+
+                if (textSchema.Count > 0)
+                {
+                    appendToSchema.Texts(GetItemName(item).Name, textSchema);
                 }
             }
-
-            return s;
         }
 
         private string AppendTypeFromSchemaTypeInternal(XmlSchemaType schemaType, XmlQualifiedName schemaTypeName, JsonSchema appendToSchema)
@@ -816,7 +824,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
                 else
                 {
-                    appendToSchema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + name));
+                    appendToSchema.Ref("#/definitions/" + name);
                     return name;
                 }
             }
@@ -974,11 +982,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             if (item.Annotation != null)
             {
-                string annotated = ParseAnnotated(item);
-                if (annotated != null && annotated.Length > 0)
-                {
-                    appendToSchema.Description(annotated);
-                }
+                AppendAnnotated(item, appendToSchema);
             }
 
             if (item.Content != null)
@@ -991,11 +995,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             if (item.Annotation != null)
             {
-                string annotated = ParseAnnotated(item);
-                if (annotated != null && annotated.Length > 0)
-                {
-                    appendToSchema.Description(annotated);
-                }
+                AppendAnnotated(item, appendToSchema);
             }
 
             if (item.Content != null)
@@ -1011,11 +1011,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 XmlSchemaSimpleContentExtension contentExtensionItem = (XmlSchemaSimpleContentExtension)item;
                 if (contentExtensionItem.Annotation != null)
                 {
-                    string annotated = ParseAnnotated(item);
-                    if (annotated != null && annotated.Length > 0)
-                    {
-                        appendToSchema.Description(annotated);
-                    }
+                    AppendAnnotated(item, appendToSchema);
                 }
 
                 if (contentExtensionItem.Attributes.Count > 0)
@@ -1059,11 +1055,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (contentExtensionItem.Annotation != null)
                 {
-                    string annotated = ParseAnnotated(item);
-                    if (annotated != null && annotated.Length > 0)
-                    {
-                        appendToSchema.Description(annotated);
-                    }
+                    AppendAnnotated(item, appendToSchema);
                 }
 
                 if (contentExtensionItem.Attributes.Count > 0)
