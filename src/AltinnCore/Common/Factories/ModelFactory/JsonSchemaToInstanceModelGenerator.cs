@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text.RegularExpressions;
 using Manatee.Json;
 using Manatee.Json.Schema;
 
@@ -256,7 +257,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             result.Add("XPath", "/" + path.Replace(".", "/"));
 
-            result.Add("Restrictions", new JsonObject()); // TODO
+            result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
             result.Add("Choices", null); // ??
             
             result.Add("Type", inputType);
@@ -337,6 +338,69 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             return null;
+        }
+
+        private JsonObject ExtractRestrictions(string typeName, JsonSchema jSchema)
+        {
+            var restriction = new JsonObject();
+
+            if (typeName == null)
+            {
+                return restriction;
+            }
+
+            string reference = GetterExtensions.Ref(jSchema);            
+            if (reference != null)
+            {
+                JsonSchema nextSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
+
+                jSchema = nextSchema;
+            }
+
+            switch (typeName)
+            {
+                case "string":
+                    {                        
+                        AddRestrictionValue(restriction, "minLength", GetterExtensions.MinLength(jSchema));
+                        AddRestrictionValue(restriction, "maxLength", GetterExtensions.MaxLength(jSchema));
+
+                        Regex pattern = GetterExtensions.Pattern(jSchema);
+                        if (pattern != null)
+                        {
+                            var pat = new JsonObject();
+                            pat.Add("Value", pattern.ToString());
+
+                            restriction.Add("pattern", pat);
+                        }
+
+                        break;
+                    }
+
+                case "decimal":
+                case "positiveInteger":
+                case "number":
+                    {
+                        AddRestrictionValue(restriction, "minimum", GetterExtensions.Minimum(jSchema));
+                        AddRestrictionValue(restriction, "maximum", GetterExtensions.Maximum(jSchema));
+                        AddRestrictionValue(restriction, "exclusiveMinimum", GetterExtensions.ExclusiveMinimum(jSchema));
+                        AddRestrictionValue(restriction, "exclusiveMaximum", GetterExtensions.ExclusiveMaximum(jSchema));
+
+                        break;
+                    }
+            }
+
+            return restriction;
+        }
+
+        private static void AddRestrictionValue(JsonObject restriction, string name, double? value)
+        {
+            if (value.HasValue)
+            {
+                JsonObject len = new JsonObject();
+                len.Add("Value", value.ToString());
+
+                restriction.Add(name, len);
+            }
         }
 
         private string RemoveLastStar(string path)
