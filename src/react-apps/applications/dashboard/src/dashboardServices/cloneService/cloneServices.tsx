@@ -105,7 +105,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public formatNameAndDate(name: string, date: string) {
-    const returnDate = date ? moment(new Date(date)).format('DD.MM.YYYY HH:mm') : date;
+    const returnDate = date ? moment.utc(new Date(date)).format('DD.MM.YYYY HH:mm') : date;
     return name ? `${name} ${returnDate}` : returnDate;
   }
 
