@@ -285,5 +285,17 @@ namespace AltinnCore.Designer.Controllers
         {
             return _sourceControl.CloneRemoteRepository(owner, repository);
         }
+
+        /// <summary>
+        /// Halts the merge operation and points the branch back to the last commit (last local commit)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>Http response message as ok if abort merge operation is successful</returns>
+        [HttpGet]
+        public ActionResult<HttpResponseMessage> AbortMerge(string owner, string repository)
+        {
+            return _sourceControl.AbortMerge(owner, repository);
+        }
     }
 }
