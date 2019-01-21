@@ -433,7 +433,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     }
                     else if (!simpleTypeListItem.ItemTypeName.IsEmpty)
                     {
-                        AppendType(FindObject(simpleTypeListItem.ItemTypeName), item, appendToSchema);
+                        appendToSchema.Type(JsonSchemaType.Array);
+                        appendToSchema.OtherData.Add("@xsdType", new JsonValue("XmlList"));
+
+                        JsonSchema[] itemsSchemas = new JsonSchema[1];
+                        itemsSchemas[0] = new JsonSchema();
+
+                        AppendTypeFromSchemaTypeInternal(simpleTypeListItem.ItemType, simpleTypeListItem.ItemTypeName, itemsSchemas[0]);
+                        appendToSchema.Items(itemsSchemas);
                     }
                     else
                     {
