@@ -58,17 +58,17 @@ const styles = {
   },
 };
 
-class ServiceCardComponent extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
+export class ServiceCardComponent extends React.Component<IServiceCardComponentProps, IServiceCardComponentState> {
   public formatDate(date: any): any {
     return moment(new Date(date)).format('DD.MM.YYYY');
   }
 
   public openService = () => {
     if (this.props.service.is_cloned_to_local) {
-      window.location.href = `/designer/${this.props.service.full_name}`;
+      window.location.assign(`/designer/${this.props.service.full_name}`);
     } else {
       // tslint:disable-next-line:max-line-length
-      window.location.href = `/Home/Index#/org/${this.props.service.owner.login}/servicename/${this.props.service.name}`;
+      window.location.assign(`/Home/Index#/cloneservice/${this.props.service.owner.login}/${this.props.service.name}`);
     }
 
   }
