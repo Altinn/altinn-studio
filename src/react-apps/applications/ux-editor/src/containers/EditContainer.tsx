@@ -147,6 +147,9 @@ export interface IEditContainerState {
 class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   constructor(_props: IEditContainerProps, _state: IEditContainerState) {
     super(_props, _state);
+    if (!_props.component.textResourceBindings) {
+      _props.component.textResourceBindings = {};
+    }
     this.state = {
       isEditModalOpen: false,
       isEditMode: false,
@@ -253,14 +256,16 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   public checkForCodeListConnectionChanges = (callbackComponent: FormComponentType): void => {
     const originalComponent: FormComponentType = this.props.components[this.props.id];
     const codeListId = originalComponent.codeListId;
-    const dataModelBinding = originalComponent.dataModelBinding;
+    const dataModelBinding = originalComponent.dataModelBindings.simpleBinding;
     const newCodeListId = callbackComponent.codeListId;
-    const newDataModelBinding = callbackComponent.dataModelBinding;
+    const newDataModelBinding = callbackComponent.dataModelBindings.simpleBinding;
 
     if (!newCodeListId || !newDataModelBinding) {
       if (codeListId && dataModelBinding) {
         // there existed a connection before that should now be removed
-        const oldConnectionId = getCodeListConnectionForDatamodelBinding(dataModelBinding, this.props.connections);
+        const oldConnectionId = getCodeListConnectionForDatamodelBinding(
+          dataModelBinding,
+          this.props.connections);
         if (oldConnectionId) {
           ApiActionDispatchers.delApiConnection(oldConnectionId);
         }
@@ -285,7 +290,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleSaveApiConnection = (callbackComponent: FormComponentType, connectionId: string) => {
-    if (!callbackComponent.dataModelBinding) {
+    if (!callbackComponent.dataModelBindings) {
       return;
     }
     if (!connectionId) {
@@ -295,7 +300,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       [connectionId]: {
         codeListId: callbackComponent.codeListId,
         apiResponseMapping: {
-          [callbackComponent.dataModelBinding]: {
+          [callbackComponent.dataModelBindings.simpleBinding]: {
             mappingKey: 'codes',
             // for now we only support a key-value pair, this could be changed in the future
             valueKey: 'key',
@@ -312,11 +317,11 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
   }
 
   public handleTitleChange = (e: any): void => {
-    this.state.component.title = e.value;
+    this.state.component.textResourceBindings.title = e.value;
   }
 
   public searchForText = (e: any): void => {
-    this.state.component.title = e.target.value;
+    this.state.component.textResourceBindings.title = e.target.value;
   }
 
   public handleKeyPress = (e: any) => {
@@ -375,8 +380,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark}>
-                      {this.state.component.title ?
-                        truncate(getTextResource(this.props.component.title, this.props.textResources), 80)
+                      {this.state.component.textResourceBindings.title ?
+                        truncate(
+                          getTextResource(this.state.component.textResourceBindings.title,
+                            this.props.textResources), 80)
                         : this.props.component.component}
                     </div>
                   }

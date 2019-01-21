@@ -220,8 +220,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
     });
   }
 
-  public handleClientParamsChange = (name: any, e: any): void => {
-    const value = e.target.value;
+  public handleClientParamsChange = (name: any, value: any): void => {
     this.setState({
       connection: {
         ...this.state.connection,

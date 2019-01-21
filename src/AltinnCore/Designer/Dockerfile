@@ -23,6 +23,12 @@ EXPOSE 80
 WORKDIR /app
 COPY --from=build /app_output .
 COPY --from=altinn-studio-service-development /dist/service-development.js ./wwwroot/designer/js/react/service-development.js
+COPY --from=altinn-studio-service-development /dist/0.service-development.js ./wwwroot/designer/js/react/0.service-development.js
+COPY --from=altinn-studio-service-development /dist/1.service-development.js ./wwwroot/designer/js/react/1.service-development.js
+COPY --from=altinn-studio-service-development /dist/2.service-development.js ./wwwroot/designer/js/react/2.service-development.js
+COPY --from=altinn-studio-service-development /dist/3.service-development.js ./wwwroot/designer/js/react/3.service-development.js
+COPY --from=altinn-studio-service-development /dist/editor.worker.js ./wwwroot/designer/js/react/editor.worker.js
+COPY --from=altinn-studio-service-development /dist/typescript.worker.js ./wwwroot/designer/js/react/typescript.worker.js
 COPY --from=altinn-studio-service-development /dist/service-development.css ./wwwroot/designer/css/react/service-development.css
 COPY --from=altinn-studio-service-development /dist/react-app.js ./wwwroot/designer/js/react/react-app.js
 COPY --from=altinn-studio-service-development /dist/react-app.css ./wwwroot/designer/css/react/react-app.css

@@ -27,8 +27,8 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
 
-      const text = this.props.designMode ? this.props.component.title
-        : this.getTextResource(this.props.component.title);
+      const text = this.props.designMode ? this.props.component.textResourceBindings.title
+        : this.getTextResource(this.props.component.textResourceBindings.title);
 
       return (
         <WrappedComponent
