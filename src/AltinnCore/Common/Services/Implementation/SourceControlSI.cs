@@ -614,5 +614,36 @@ namespace AltinnCore.Common.Services.Implementation
                 return responseMessage;
             }
         }
+
+        /// <summary>
+        /// Halts the merge operation and points the branch back to the last commit (last local commit)
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>Http response message as ok if abort merge operation is successful</returns>
+        public HttpResponseMessage AbortMerge(string owner, string repository)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+
+                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                using (Repository repo = new Repository(localServiceRepoFolder))
+                {
+                    repo.Reset(ResetMode.Mixed, repo.Head.Tip);
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
+        }
     }
 }
