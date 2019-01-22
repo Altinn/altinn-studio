@@ -481,12 +481,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private JsonSchema ParseAttribute(XmlSchemaAttribute attribute, out bool isRequired)
         {
+            isRequired = false;
+            JsonSchema attributeSchema = new JsonSchema();
+
             if (attribute != null && !attribute.RefName.IsEmpty)
             {
                 XmlSchemaObject refAttribute = FindObject(attribute.RefName);
                 if (refAttribute is XmlSchemaAttribute)
                 {
-                    return ParseAttribute((XmlSchemaAttribute)refAttribute, out isRequired);
+                    attributeSchema = ParseAttribute((XmlSchemaAttribute)refAttribute, out isRequired);
                 }
                 else
                 {
@@ -494,11 +497,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            JsonSchema attributeSchema = new JsonSchema();
-
-            isRequired = false;
-
-            attributeSchema.OtherData.Add("@xsdType", new JsonValue("XmlAttribute"));
+            SetType(attributeSchema, new JsonValue("XmlAttribute"));
 
             if (attribute.Annotation != null)
             {
@@ -517,7 +516,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (attribute.FixedValue != null)
             {
-                attributeSchema.Const(new JsonValue(attribute.FixedValue));
+                SetConst(attributeSchema, new JsonValue(attribute.FixedValue));
             }
 
             if (!attribute.QualifiedName.IsEmpty)
@@ -535,10 +534,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 AppendTypeFromNameInternal(attribute.SchemaTypeName, attributeSchema);
             }
 
-            if (attribute.Use == XmlSchemaUse.Required)
-            {
-                isRequired = true;
-            }
+            isRequired = attribute.Use == XmlSchemaUse.Required;
 
             return attributeSchema;
         }
@@ -1179,6 +1175,46 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     AppendDefinition(appendToSchema, contentExtensionItem, definitionSchema);
                 }
             }
+            else if (item is XmlSchemaSimpleContentRestriction)
+            {
+                XmlSchemaSimpleContentRestriction contentRestrictionItem = (XmlSchemaSimpleContentRestriction)item;
+
+                if (contentRestrictionItem.BaseType != null)
+                {
+                    throw new NotImplementedException();
+                }
+
+                if (!contentRestrictionItem.BaseTypeName.IsEmpty)
+                {
+                    XmlSchemaObject baseItem = FindObject(contentRestrictionItem.BaseTypeName);
+
+                    // Todo
+                }
+
+                if (contentRestrictionItem.Annotation != null)
+                {
+                    AppendAnnotated(item, appendToSchema);
+                }
+
+                if (contentRestrictionItem.AnyAttribute != null)
+                {
+                    throw new NotImplementedException();
+                }
+
+                if (contentRestrictionItem.Attributes.Count > 0)
+                {
+                    AppendAttributes(contentRestrictionItem.Attributes, appendToSchema, requiredList);
+                }
+
+                if (contentRestrictionItem.Facets.Count > 0)
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            else if (item is XmlSchemaComplexContentRestriction)
+            {
+                throw new NotImplementedException();
+            }
             else
             {
                 throw new NotImplementedException();
@@ -1215,6 +1251,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             appendToSchema.Maximum(value);
+        }
+
+        private void SetType(JsonSchema appendToSchema, JsonValue value)
+        {
+            appendToSchema.OtherData.Remove("@xsdType");
+            appendToSchema.OtherData.Add("@xsdType", value);
+        }
+
+        private void SetConst(JsonSchema appendToSchema, JsonValue value)
+        {
+            appendToSchema.RemoveAll(e => "const".Equals(e.Name));
+            appendToSchema.Const(value);
         }
 
         private XmlSchemaObject FindObject(XmlQualifiedName name)
