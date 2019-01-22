@@ -17,6 +17,7 @@
     "tslint": "^5.11.0"
   },
   "dependencies": {
-    "testcafe-react-selectors": "^3.0.3"
+    "testcafe-react-selectors": "^3.0.3",
+    "testcafe-reporter-junit": "^3.0.0"
   }
 }

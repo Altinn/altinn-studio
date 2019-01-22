@@ -6,14 +6,14 @@ createTestCafe()
   .then(tc => {
     testcafe = tc;
     const runner = testcafe.createRunner();
-    const stream = fs.createWriteStream('testcafe.xml');
+    const stream = fs.createWriteStream('junit.xml');
 
     return runner
       .browsers(['chrome:headless'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
-      .reporter('xunit', stream)
+      .reporter('junit', stream)
       .src(['./designer_tests/navigation-tests.js'])
       .run({
         skipJsErrors: true,
