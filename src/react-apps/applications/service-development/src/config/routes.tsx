@@ -4,8 +4,9 @@ import uieditorApp from '../../../ux-editor/src/SubApp';
 
 const DummySubApp = (name: any) => {
   return (
-    <div>Dummy app for {name.name}
+    <div>
       <VersionControlHeader language={null} />
+      Dummy app for {name.name}
     </div>
   );
 };
@@ -128,6 +129,14 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Status',
     menu: 'publish',
+    subapp: DummySubApp,
+  },
+  {
+    path: '/designSystem',
+    exact: true,
+    activeSubHeaderSelection: 'Lage',
+    activeLeftMenuSelection: 'GUI',
+    menu: 'create',
     subapp: DummySubApp,
   },
 ];

@@ -16,6 +16,7 @@
 .sub-header {
   padding-top: 20px;
   padding-bottom:43px;
+  font-size:16px;
 }
 
 .altinn-button
@@ -31,13 +32,13 @@
       <div class="column">
         <form class="ui form" action="{{.SignUpLink}}" method="post">
           {{.CsrfTokenHtml}}
-          <p class="main-header {{if not .LinkAccountMode}}header-spacing{{end}}">
+          <h1 class="main-header {{if not .LinkAccountMode}}header-spacing{{end}}">
             {{if .LinkAccountMode}}
               {{.i18n.Tr "auth.oauth_signup_tab"}}
             {{else}}
               {{.i18n.Tr "sign_up"}}
             {{end}}
-          </p>
+          </h1>
            {{if .LinkAccountMode}}
            <p class="sub-header">
               {{.i18n.Tr "auth.oauth_signup_title"}}
