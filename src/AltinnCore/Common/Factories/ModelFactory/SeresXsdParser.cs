@@ -21,6 +21,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private Dictionary<string, XDocument> secondaryXsds;
         private XDocument xsd;
         private ISet<string> _complexTypes;
+        private Dictionary<string, string> globalElements = new Dictionary<string, string>();
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="SeresXsdParser" /> class
@@ -61,13 +62,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             this.xsd = xsd;
             this.secondaryXsds = secondaryXsds;
 
-            var imports = xsd.Root.Elements(XDocName.Import);
-            foreach (var import in imports)
+            if (secondaryXsds != null)
             {
-                var schemaLocation = import.AttributeValue("schemaLocation");
-                secondaryXsdsByNamespace.Add(
-                    import.GetPrefixOfNamespace(XNamespace.Get(import.AttributeValue("namespace"))),
-                    secondaryXsds["\"" + schemaLocation + "\""]);
+                var imports = xsd.Root.Elements(XDocName.Import);
+                foreach (var import in imports)
+                {
+                    var schemaLocation = import.AttributeValue("schemaLocation");
+                    secondaryXsdsByNamespace.Add(
+                        import.GetPrefixOfNamespace(XNamespace.Get(import.AttributeValue("namespace"))),
+                        secondaryXsds["\"" + schemaLocation + "\""]);
+                }
             }
 
             var rootElement = xsd.Root.Element(XDocName.Element);
@@ -121,6 +125,25 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var allTexts = new CultureDictionary();
 
             _complexTypes = new HashSet<string>();
+
+            // make sure simplified global element names are unique
+            foreach (XElement element in xsd.Root.Elements())
+            {
+                if (element.Name.Equals(XDocName.Element))
+                {
+                    string elementName = element.AttributeValue("name");
+                    string simplifiedName = SanitizeName(elementName);
+
+                    if (globalElements.ContainsValue(simplifiedName))
+                    {
+                        globalElements.Add(elementName, elementName.Replace("-", string.Empty));
+                    }
+                    else
+                    {
+                        globalElements.Add(elementName, simplifiedName);
+                    }
+                }
+            }
 
             // Build metadata recursively
             BuildJsonRecursive(rootComplexType, serviceMetadata.Elements, "/" + rootName, allTexts);
@@ -262,7 +285,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var actualElement = currentElement;
             var currentIsComplex = false;
             var skipRecursive = false;
-            var typeName = string.Empty;
+            var typeName = string.Empty;   
 
             if (!string.IsNullOrEmpty(childElement.AttributeValue("ref")))
             {
@@ -300,7 +323,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
 
                 typeName = currentElement.AttributeValue("type");
-            }
+            }            
             else
             {
                 if (currentElement.Element(XDocName.SimpleType) != null)
@@ -308,8 +331,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     // Get the direct child simple type
                     typeName = currentElement.AttributeValue("name");
                     actualElement = currentElement.Element(XDocName.SimpleType);
-                    currentIsComplex = false;
-                }
+                    currentIsComplex = false;                    
+                }                
                 else
                 {
                     if (currentElement.Element(XDocName.ComplexType) != null)
@@ -321,15 +344,21 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         if (actualElement.Element(XDocName.SimpleContent) != null)
                         {
                             var simpleContent = actualElement.Element(XDocName.SimpleContent);
+                            string xtraTypeName = SanitizeName(typeName);
+                            var referencedElementName = globalElements.GetValueOrDefault(typeName);
+                            if (!string.IsNullOrEmpty(referencedElementName))
+                            {
+                                xtraTypeName = referencedElementName;
+                            }
 
                             ProcessSimpleContent(
                                 actualElement,
                                 simpleContent,
                                 allElements,
-                                $"{parentTrail}/{SanitizeName(typeName)}",
+                                $"{parentTrail}/{xtraTypeName}",
                                 typeName.Split('.')[0]);
 
-                            AddAttributeElements(currentElement, allElements, $"{parentTrail}/{SanitizeName(typeName)}");
+                            AddAttributeElements(currentElement, allElements, $"{parentTrail}/{xtraTypeName}");
                             currentIsComplex = true;
                             skipRecursive = true;
                         }
@@ -337,8 +366,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         {
                             currentIsComplex = true;
                         }
-                    }
+                    }                   
                 }
+            }
+
+            if (childElement.Name.Equals(XDocName.Any))
+            {                
+                typeName = "Any";
             }
 
             elementMetadata.XName = typeName;
@@ -722,7 +756,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             Dictionary<string, ElementMetadata> allElements,
             string parentTrail,
             string parentName)
-        {
+        {        
             var elementMetadata = new ElementMetadata
             {
                 Restrictions = new Dictionary<string, Restriction>(),
@@ -737,7 +771,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             elementMetadata.ParentElement = parentTrail.Replace("/", ".").Substring(1);
             elementMetadata.MinOccurs = 1;
             elementMetadata.MaxOccurs = 1;
-            elementMetadata.DataBindingName = GetDataBindingName(elementMetadata.ID);
+            elementMetadata.DataBindingName = GetDataBindingName(elementMetadata.ID);            
 
             if (simpleContent.Element(XDocName.Extension) != null)
             {
@@ -882,6 +916,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void WriteRestrictions(Dictionary<string, Restriction> restrictions, XElement restriction, ElementMetadata elementMetadata)
         {
+            if (restriction == null)
+            {
+                return;
+            }
+
             var xsdDataType = restriction.AttributeValue("base");
 
             if (!xsdDataType.StartsWith("xsd:") && !xsdDataType.StartsWith("xs:"))
@@ -890,6 +929,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 var baseRestriction = baseType.Element(XDocName.Restriction);
 
                 WriteRestrictions(restrictions, baseRestriction, elementMetadata);
+
+                // handle xs:list
+                if (baseType.Element(XDocName.List) != null)
+                {
+                    baseType = GetSimpleTypeByNameAttribute(baseType.AttributeValue("itemType"));
+                    baseRestriction = baseType.Element(XDocName.Restriction);
+                    WriteRestrictions(restrictions, baseRestriction, elementMetadata);
+                }
             }
             else
             {
@@ -993,7 +1040,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         var baseComplexType = GetComplexTypeByNameAttribute(extension.AttributeValue("base"));
                         sequenceElements.AddRange(GetSequenceElementsFromComplexType(baseComplexType));
                         var extensionSequence = extension.Element(XDocName.Sequence);
-                        sequenceElements.AddRange(extensionSequence.Elements());
+                        if (extensionSequence != null)
+                        {
+                            sequenceElements.AddRange(extensionSequence.Elements());
+                        }                        
                     }
                 }
 

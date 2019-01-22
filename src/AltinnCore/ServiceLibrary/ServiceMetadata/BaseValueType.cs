@@ -1,7 +1,7 @@
 namespace AltinnCore.ServiceLibrary.ServiceMetadata
 {
     /// <summary>
-    /// Base value type
+    /// Base value type, in XmlSchema
     /// </summary>
     public enum BaseValueType
     {
@@ -124,5 +124,15 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         /// Token type (derived from string)
         /// </summary>
         Token,
+
+        /// <summary>
+        /// Any uri type 
+        /// </summary>
+        AnyURI,
+
+        /// <summary>
+        /// Base64Binary type
+        /// </summary>
+        Base64Binary,
     }
 }
