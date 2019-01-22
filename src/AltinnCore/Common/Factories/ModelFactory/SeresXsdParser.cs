@@ -929,7 +929,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 // handle xs:list
                 if (baseType.Element(XDocName.List) != null)
                 {
-                    baseType = GetSimpleTypeByNameAttribute(baseType.AttributeValue("itemType"));
+                    var listItem = baseType.Element(XDocName.List);
+                    string itemType = listItem.AttributeValue("itemType");
+                    baseType = GetSimpleTypeByNameAttribute(itemType);
                     baseRestriction = baseType.Element(XDocName.Restriction);
                     WriteRestrictions(restrictions, baseRestriction, elementMetadata);
                 }
