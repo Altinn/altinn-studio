@@ -151,7 +151,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
     `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
     post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then(() => {
-      if (this.state.mounted) {
+      if (this.state.mounted && this.props.closeFileEditor) {
         this.props.closeFileEditor();
       }
     });
