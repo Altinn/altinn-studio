@@ -19,7 +19,7 @@ const initialPopoverState = {
   descriptionText: '',
   isLoading: false,
   shouldShowDoneIcon: false,
-  btnText: 'OK',
+  btnConfirmText: 'OK',
   shouldShowCommitBox: false,
   btnMethod: '',
   btnCancelText: '',
@@ -42,7 +42,7 @@ class HandleMergeConflictAbort extends
       popoverState: { // TODO: Immutability-helper
         ...this.state.popoverState,
         btnMethod: this.AbortConfirmed,
-        btnText: getLanguageFromKey('handle_merge_conflict.abort_merge_button_confirm',
+        btnConfirmText: getLanguageFromKey('handle_merge_conflict.abort_merge_button_confirm',
           this.props.language),
         descriptionText: getLanguageFromKey('handle_merge_conflict.abort_merge_message',
           this.props.language),
@@ -52,22 +52,60 @@ class HandleMergeConflictAbort extends
     });
   }
 
-  // TODO: This will Discard Local Changes. Needs to ABORT
-  public AbortConfirmed() {
+  public AbortConfirmed = async () => {
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
-    // tslint:disable-next-line:max-line-length
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
-    get(url).then((result: any) => {
 
-      if (result.isSuccessStatusCode === true) {
+    const abortUrl = `${altinnWindow.location.origin}` +
+      `/designerapi/Repository/AbortMerge?owner=${org}&repository=${service}}`;
+
+    // Try to abort merge and catch error
+    // If successfull merge abort then initiate forceRepoStatusCheck
+    try {
+      this.setState({
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: true,
+          btnConfirmText: null,
+          btnCancelText: null,
+        },
+      });
+
+      const abortRes = await get(abortUrl);
+      if (abortRes.isSuccessStatusCode === true) {
+        this.setState({
+          popoverState: {
+            ...this.state.popoverState,
+            isLoading: false,
+            shouldShowDoneIcon: true,
+          },
+        });
+
         window.postMessage('forceRepoStatusCheck', window.location.href);
         this.handleClose();
+
       } else {
-        console.log('Abort is unsuccessfull', result);
+        this.setState({
+          popoverState: {
+            ...this.state.popoverState,
+            isLoading: false,
+            btnConfirmText: null,
+            btnCancelText: null,
+          },
+        });
+        console.log('Abort is unsuccessfull', abortRes);
       }
 
-    });
+    } catch (err) {
+      this.setState({
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: false,
+        },
+      });
+      console.log('Merge abort error', err);
+    }
+
   }
 
   public handleClose = () => {
@@ -82,8 +120,7 @@ class HandleMergeConflictAbort extends
     return (
       <React.Fragment>
         <AltinnButton
-          btnText={`${getLanguageFromKey('handle_merge_conflict.abort_merge_button', this.props.language)}
-            (Todo: forkaster også)`}
+          btnText={getLanguageFromKey('handle_merge_conflict.abort_merge_button', this.props.language)}
           onClickFunction={this.AbortPopover}
           secondaryButton={true}
           disabled={this.props.disabled}
@@ -94,7 +131,7 @@ class HandleMergeConflictAbort extends
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           btnCancelText={popoverState.btnCancelText}
           btnClick={popoverState.btnMethod}
-          btnConfirmText={popoverState.btnText}
+          btnConfirmText={popoverState.btnConfirmText}
           descriptionText={popoverState.descriptionText}
           handleClose={this.handleClose}
           header={popoverState.header}

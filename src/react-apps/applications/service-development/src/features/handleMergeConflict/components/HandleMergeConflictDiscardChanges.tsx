@@ -30,7 +30,7 @@ const initialPopoverState = {
   descriptionText: '',
   isLoading: false,
   shouldShowDoneIcon: false,
-  btnText: 'OK',
+  btnConfirmText: 'OK',
   shouldShowCommitBox: false,
   btnMethod: '',
   btnCancelText: '',
@@ -53,7 +53,7 @@ export class HandleMergeConflictDiscardChanges extends
       popoverState: { // TODO: Immutability-helper
         ...this.state.popoverState,
         btnMethod: this.discardChangesConfirmed,
-        btnText: getLanguageFromKey('handle_merge_conflict.discard_changes_button_confirm',
+        btnConfirmText: getLanguageFromKey('handle_merge_conflict.discard_changes_button_confirm',
           this.props.language),
         descriptionText: getLanguageFromKey('handle_merge_conflict.discard_changes_message',
           this.props.language),
@@ -64,15 +64,46 @@ export class HandleMergeConflictDiscardChanges extends
   }
 
   // TODO: Add a spinner
-  public discardChangesConfirmed() {
+  public discardChangesConfirmed = async () => {
     const altinnWindow: any = window as any;
     const { org, service } = altinnWindow;
-    // tslint:disable-next-line:max-line-length
-    const url = `${altinnWindow.location.origin}/designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
-    get(url).then((result: any) => {
-      console.log('result', result);
-      this.handleClose();
-    });
+
+    try {
+
+      this.setState({
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: true,
+          btnText: null,
+          btnCancelText: null,
+        },
+      });
+
+      const discardUrl = `${altinnWindow.location.origin}/` +
+        `designerapi/Repository/DiscardLocalChanges?owner=${org}&repository=${service}`;
+      const discardRes = await get(discardUrl);
+
+      if (discardRes.isSuccessStatusCode === true) {
+        this.setState({
+          popoverState: {
+            ...this.state.popoverState,
+            isLoading: false,
+            shouldShowDoneIcon: true,
+          },
+        });
+        window.postMessage('forceRepoStatusCheck', window.location.href);
+      }
+
+    } catch (err) {
+      this.setState({
+        popoverState: {
+          ...this.state.popoverState,
+          isLoading: false,
+        },
+      });
+      console.log('Discard merge error', err);
+    }
+
   }
 
   public handleClose = () => {
@@ -99,7 +130,7 @@ export class HandleMergeConflictDiscardChanges extends
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
           btnCancelText={popoverState.btnCancelText}
           btnClick={popoverState.btnMethod}
-          btnConfirmText={popoverState.btnText}
+          btnConfirmText={popoverState.btnConfirmText}
           btnPrimaryId='discardMergeChangesConfirmBtn'
           descriptionText={popoverState.descriptionText}
           handleClose={this.handleClose}

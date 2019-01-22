@@ -38,16 +38,17 @@ const styles = () => createStyles({
     height: 130,
   },
   containerMessage: {
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
     marginBottom: '12px',
     maxWidth: '1000px',
     padding: '10px',
   },
   containerMessageHasConflict: {
     background: theme.altinnPalette.primary.redLight,
+    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
   },
   containerMessageNoConflict: {
     background: theme.altinnPalette.primary.greenLight,
+    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
   },
   title: {
     marginBottom: 16,
@@ -113,13 +114,13 @@ export class HandleMergeConflictContainer extends
 
               {repoStatus.hasMergeConflict ?
 
-                <span className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
+                <span className={classNames(classes.containerMessage)}>
                   {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
                 </span>
 
                 :
 
-                repoStatus.contentStatus ?
+                repoStatus.contentStatus.length > 0 ?
 
                   <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
                     {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
@@ -127,7 +128,10 @@ export class HandleMergeConflictContainer extends
 
                   :
 
-                  null
+                  <span className={classNames(classes.containerMessage)}>
+                    {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
+                  </span>
+
               }
 
               <Grid
