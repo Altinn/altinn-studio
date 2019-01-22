@@ -123,6 +123,16 @@ namespace AltinnCore.Common.Services.Implementation
                 dynamicsDirectoryInfo.Create();
             }
 
+            string calculationDir = _settings.GetCalculationPath(
+                serviceMetadata.Org,
+                serviceMetadata.RepositoryName,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            DirectoryInfo calculationDirectoryInfo = new DirectoryInfo(calculationDir);
+            if (!calculationDirectoryInfo.Exists)
+            {
+                calculationDirectoryInfo.Create();
+            }
+
             string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
@@ -435,7 +445,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Get the Json form model from disk
+        /// Get the Json form model from disk for Dynamics
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -443,6 +453,25 @@ namespace AltinnCore.Common.Services.Implementation
         public string GetRuleHandler(string org, string service)
         {
             string filePath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
+            string fileData = null;
+
+            if (File.Exists(filePath))
+            {
+                fileData = File.ReadAllText(filePath, Encoding.UTF8);
+            }
+
+            return fileData;
+        }
+
+        /// <summary>
+        /// Get the Json form model from disk for Calculation
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>Returns the json object as a string</returns>
+        public string GetCalculationHandler(string org, string service)
+        {
+            string filePath = _settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.RuleHandlerFileName;
             string fileData = null;
 
             if (File.Exists(filePath))
@@ -1348,6 +1377,32 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Returns a list over the dynamics files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        public List<AltinnCoreFile> GetCalculationFiles(string org, string service)
+        {
+            List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
+
+            string[] jsFiles = Directory.GetFiles(_settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in jsFiles)
+            {
+                AltinnCoreFile corefile = new AltinnCoreFile
+                {
+                    FilePath = file,
+                    FileName = Path.GetFileName(file),
+                    LastChanged = File.GetLastWriteTime(file),
+                };
+
+                coreFiles.Add(corefile);
+            }
+
+            return coreFiles;
+        }
+
+        /// <summary>
         /// Returns content of a implementation file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -1548,7 +1603,7 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string calculationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
+            string calculationHandlerFilePath = _settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
             File.WriteAllText(calculationHandlerFilePath, textData, Encoding.UTF8);
         }
 
