@@ -2,9 +2,9 @@ import { createStyles, Divider, FormControl, InputAdornment, Popover, TextField,
 import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
-import { Link } from 'react-router-dom';
 
 export interface IInformationPanelProvidedProps {
   classes: any;
