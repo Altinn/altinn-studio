@@ -57,7 +57,7 @@ class HandleMergeConflictAbort extends
     const { org, service } = altinnWindow;
 
     const abortUrl = `${altinnWindow.location.origin}` +
-      `/designerapi/Repository/AbortMerge?owner=${org}&repository=${service}}`;
+      `/designerapi/Repository/AbortMerge?owner=${org}&repository=${service}`;
 
     // Try to abort merge and catch error
     // If successfull merge abort then initiate forceRepoStatusCheck

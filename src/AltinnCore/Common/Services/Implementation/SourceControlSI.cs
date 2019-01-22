@@ -616,8 +616,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Halts the merge operation and points the branch back to the last commit (last local commit)
-        /// </summary>
+        /// Halts the merge operation and keeps local changes
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         /// <returns>Http response message as ok if abort merge operation is successful</returns>
@@ -635,12 +634,16 @@ namespace AltinnCore.Common.Services.Implementation
                 string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                 using (Repository repo = new Repository(localServiceRepoFolder))
                 {
-                    repo.Reset(ResetMode.Mixed, repo.Head.Tip);
+
+                    if (repo.RetrieveStatus().IsDirty)
+                    {
+                        repo.Reset(ResetMode.Hard, "heads/master");
+                    }
                 }
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }

@@ -142,7 +142,7 @@ namespace AltinnCore.Common.Services.Interfaces
         HttpResponseMessage StageChange(string owner, string repository, string fileName);
 
         /// <summary>
-        /// Halts the merge operation and points the branch back to the last commit (last local commit)
+        /// Halts the merge operation and keeps local changes
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
