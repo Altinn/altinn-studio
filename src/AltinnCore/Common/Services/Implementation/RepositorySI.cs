@@ -191,23 +191,6 @@ namespace AltinnCore.Common.Services.Implementation
             }
             catch (Exception ex)
             {
-                if (ex is DirectoryNotFoundException || ex is FileNotFoundException)
-                {
-                    // Create service with already existing repo
-                    RepositoryClient.Model.Repository repositoryCreated = CreateService(org, new ServiceConfiguration { RepositoryName = service }, true);
-                    bool serviceCreated = repositoryCreated != null;
-                    if (serviceCreated)
-                    {
-                        CreateServiceMetadata(new ServiceMetadata { Org = org, RepositoryName = service });
-                        filedata = File.ReadAllText(filename, Encoding.UTF8);
-                        return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
-                    }
-                    else
-                    {
-                        throw new Exception("Unable to create service");
-                    }
-                }
-                
                 throw new Exception("Something went wrong when fetching service metadata ", ex);
             }
         }

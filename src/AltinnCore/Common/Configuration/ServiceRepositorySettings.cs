@@ -18,12 +18,12 @@ namespace AltinnCore.Common.Configuration
         public const string RESOURCE_FOLDER_NAME = "Resources/";
 
         /// <summary>
-        /// Constant for the location of dynamics files
+        /// Constant for the location of implementation files
         /// </summary>
         public const string IMPLEMENTATION_FOLDER_NAME = "Implementation/";
 
         /// <summary>
-        /// Constant for the location of resource files
+        /// Constant for the location of dynamics files
         /// </summary>
         public const string DYNAMICS_FOLDER_NAME = "Dynamics/";
 
@@ -400,12 +400,12 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
-        /// Gets the full path to Calculation
+        /// Gets the full path to Calculation directory (within ImplementationDirectory)
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="developer">the developer for the current service</param>
-        /// <returns>The full path, ending with "/"</returns>
+        /// <returns>The full path to the calculation folder, ending with '/'</returns>
         public string GetCalculationPath(string org, string service, string developer)
         {
             return GetServicePath(org, service, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;

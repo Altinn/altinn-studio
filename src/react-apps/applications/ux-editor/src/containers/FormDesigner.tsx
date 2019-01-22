@@ -206,7 +206,6 @@ class FormDesigner extends React.Component<
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_validations}
                   listItems={[{name: this.props.language.ux_editor.service_logic_edit_validations}]}
-                  menuIsOpen={true}
                 />
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_dynamics}
@@ -215,7 +214,6 @@ class FormDesigner extends React.Component<
                         name: this.props.language.ux_editor.service_logic_edit_dynamics,
                         action: this.toggleCodeEditor.bind(this, 'Dynamics'),
                       }]}
-                  menuIsOpen={true}
                 >
                   <RuleModalComponent/>
                   <ConditionalRenderingModalComponent/>
@@ -228,7 +226,6 @@ class FormDesigner extends React.Component<
                       action: this.toggleCodeEditor.bind(this, 'Calculation'),
                     },
                   ]}
-                  menuIsOpen={true}
                 />
                 <div className={this.props.classes.devider}/>
               </div>

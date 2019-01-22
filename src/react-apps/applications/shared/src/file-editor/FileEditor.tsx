@@ -51,6 +51,7 @@ export interface IFileEditorState {
   selectedFile: string;
   availableFiles: string[];
   value: string;
+  mounted: boolean;
 }
 
 const styles = createStyles({
@@ -99,6 +100,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       selectedFile: '',
       availableFiles: [],
       value: '',
+      mounted: false,
     };
   }
 
@@ -114,6 +116,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         return {
           ...prevState,
           availableFiles: files,
+          mounted: true,
         };
       });
     });
@@ -148,7 +151,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
     `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
     post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then(() => {
-      if (this.props.closeFileEditor) {
+      if (this.state.mounted) {
         this.props.closeFileEditor();
       }
     });
