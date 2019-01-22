@@ -344,7 +344,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 try
                                 {
-                                    appendToSchema.Minimum(Convert.ToDouble(facet.Value));
+                                    SetMinimum(appendToSchema, Convert.ToDouble(facet.Value));
                                 }
                                 catch (Exception)
                                 {
@@ -354,7 +354,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 try
                                 {
-                                    appendToSchema.Maximum(Convert.ToDouble(facet.Value));
+                                    SetMaximum(appendToSchema, Convert.ToDouble(facet.Value));
                                 }
                                 catch (Exception)
                                 {
@@ -770,19 +770,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
                      || "http://www.w3.org/2001/XMLSchema:nonNegativeInteger".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
-                appendToSchema.Minimum(0);
+                SetMinimum(appendToSchema, 0);
             }
             else if ("http://www.w3.org/2001/XMLSchema:short".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
-                appendToSchema.Minimum(short.MinValue);
-                appendToSchema.Maximum(short.MaxValue);
+                SetMinimum(appendToSchema, short.MinValue);
+                SetMaximum(appendToSchema, short.MaxValue);
             }
             else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
-                appendToSchema.Minimum(long.MinValue);
-                appendToSchema.Maximum(long.MaxValue);
+                SetMinimum(appendToSchema, long.MinValue);
+                SetMaximum(appendToSchema, long.MaxValue);
             }
             else if ("http://www.w3.org/2001/XMLSchema:double".Equals(type)
                      || "http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
@@ -1135,6 +1135,30 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 appendToSchema.Type(JsonSchemaType.Object);
             }
+        }
+
+        private void SetMinimum(JsonSchema appendToSchema, double value)
+        {
+            IJsonSchemaKeyword existingItem = appendToSchema.Find(e => "minimum".Equals(e.Name));
+            if (existingItem is MinimumKeyword)
+            {
+                value = Math.Max(value, ((MinimumKeyword)existingItem).Value);
+                appendToSchema.RemoveAll(e => "minimum".Equals(e.Name));
+            }
+
+            appendToSchema.Minimum(value);
+        }
+
+        private void SetMaximum(JsonSchema appendToSchema, double value)
+        {
+            IJsonSchemaKeyword existingItem = appendToSchema.Find(e => "maximum".Equals(e.Name));
+            if (existingItem is MaximumKeyword)
+            {
+                value = Math.Min(value, ((MaximumKeyword)existingItem).Value);
+                appendToSchema.RemoveAll(e => "maximum".Equals(e.Name));
+            }
+
+            appendToSchema.Maximum(value);
         }
 
         private XmlSchemaObject FindObject(XmlQualifiedName name)
