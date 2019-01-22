@@ -58,6 +58,7 @@ export interface IFileEditorState {
   valueOriginal: string;
   selectedFile: string;
   value: string;
+  mounted: boolean;
   valueDiff: boolean;
 }
 
@@ -123,6 +124,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       valueOriginal: '',
       value: '',
       valueDiff: false,
+      mounted: false,
     };
   }
 
@@ -138,7 +140,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           this.setState((prevState: IFileEditorState) => {
             return {
               ...prevState,
-              availableFiles: files,
+                availableFiles: files,
+                mounted: true,
             };
           });
         });
@@ -211,7 +214,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       window.postMessage('forceRepoStatusCheck', window.location.href);
     }
 
-    if (this.props.closeFileEditor) {
+      if (this.state.mounted && this.props.closeFileEditor) {
       this.props.closeFileEditor();
     }
 
@@ -247,8 +250,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public getLanguageFromFileName = (): any => {
-    const splitFileName = this.state.selectedFile.split('.');
-    if (splitFileName && splitFileName.length > 1) {
+    if (this.state.selectedFile && this.state.selectedFile.length > 1) {
+      const splitFileName = this.state.selectedFile.split('.');
       const extension = splitFileName[splitFileName.length - 1];
       if (languages[extension]) {
         return languages[extension];

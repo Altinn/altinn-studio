@@ -1,9 +1,9 @@
 {
   "local": {
-    "baseUrl": "http://altinn3.no"
+    "baseUrl": "http://altinn3.no/"
   },
   "dev": {
-    "baseUrl": "https://dev.altinn.studio"
+    "baseUrl": "https://dev.altinn.studio/"
   },
   "uat": {
     "baseUrl": "base for uat"
