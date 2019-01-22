@@ -26,6 +26,20 @@ const PREVIEW = 'preview';
 export class App extends React.Component<IAppComponentProps, IAppCompoentState>  {
 
   public componentDidMount() {
+    window.addEventListener('message', this.shouldRefetchFiles);
+    this.fetchFiles();
+  }
+  public componentWillUnmount() {
+    window.removeEventListener('message', this.shouldRefetchFiles);
+  }
+
+  public shouldRefetchFiles = (event: any) => {
+    if (event.data === 'NEWDATA') {
+      this.fetchFiles();
+    }
+  }
+
+  public fetchFiles() {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;

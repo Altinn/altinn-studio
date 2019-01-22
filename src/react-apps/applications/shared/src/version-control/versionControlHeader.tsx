@@ -33,7 +33,7 @@ const styles = createStyles({
 
 const initialModalState = {
   header: '',
-  descriptionText: '',
+  descriptionText: [] as string[],
   isLoading: '',
   shouldShowDoneIcon: false,
   btnText: '',
@@ -180,20 +180,21 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             changesInLocalRepo: result.contentStatus.length > 0,
             modalState: {
               header: getLanguageFromKey('sync_header.service_updated_to_latest', this.props.language),
-              descriptionText:
-                getLanguageFromKey('sync_header.service_updated_to_latest_submessage', this.props.language),
               isLoading: false,
               shouldShowDoneIcon: true,
             },
           });
+          // force refetch  files
+          window.postMessage('NEWDATA', window.location.href);
         } else if (result.repositoryStatus === 'CheckoutConflict') {
           // if pull gives merge conflict, show user needs to commit message
           this.setState({
             modalState: {
-              header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
+              header: getLanguageFromKey('sync_header.changes_made_samme_place_as_user', this.props.language),
               descriptionText:
-                getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
-              btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
+                [getLanguageFromKey('sync_header.changes_made_samme_place_submessage', this.props.language),
+                getLanguageFromKey('sync_header.changes_made_samme_place_subsubmessage', this.props.language)],
+              btnText: getLanguageFromKey('sync_header.hent_endringer_btn', this.props.language),
               shouldShowCommitBox: true,
               btnMethod: this.commitChanges,
             },
@@ -205,6 +206,13 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
 
   public shareChanges = (currentTarget: any) => {
     if (this.state.hasPushRight) {
+      this.setState({
+        anchorEl: currentTarget,
+        modalState: {
+          header: getLanguageFromKey('sync_header.controlling_service_status', this.props.language),
+          isLoading: true,
+        },
+      });
       this.getStatus((result: any) => {
         if (result) {
           // if user is ahead with no changes to commit, show share changes modal
@@ -215,6 +223,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
                 header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
                 btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                 shouldShowDoneIcon: true,
+                isLoading: false,
                 btnMethod: this.pushChanges,
               },
             });
@@ -225,9 +234,11 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               modalState: {
                 header: getLanguageFromKey('sync_header.describe_and_validate', this.props.language),
                 descriptionText:
-                  getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+                  [getLanguageFromKey('sync_header.describe_and_validate_submessage', this.props.language),
+                  getLanguageFromKey('sync_header.describe_and_validate_subsubmessage', this.props.language)],
                 btnText: getLanguageFromKey('sync_header.describe_and_validate_btnText', this.props.language),
                 shouldShowCommitBox: true,
+                isLoading: false,
                 btnMethod: this.commitChanges,
               },
             });
@@ -241,7 +252,8 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         anchorEl: currentTarget,
         modalState: {
           header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
-          descriptionText: getLanguageFromKey('sync_header.sharing_changes_no_access_submessage', this.props.language),
+          // tslint:disable-next-line:max-line-length
+          descriptionText: [getLanguageFromKey('sync_header.sharing_changes_no_access_submessage', this.props.language)],
         },
       });
     }
@@ -268,7 +280,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           modalState: {
             header: getLanguageFromKey('sync_header.sharing_changes_completed', this.props.language),
             descriptionText:
-              getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language),
+              [getLanguageFromKey('sync_header.sharing_changes_completed_submessage', this.props.language)],
             shouldShowDoneIcon: true,
           },
         });
@@ -280,7 +292,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     this.setState({
       modalState: {
         header: getLanguageFromKey('sync_header.validating_changes', this.props.language),
-        descriptionText: '',
+        descriptionText: [],
         isLoading: true,
       },
     });
@@ -305,7 +317,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             this.setState({
               modalState: {
                 header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
-                descriptionText: '',
+                descriptionText: [],
                 btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                 shouldShowDoneIcon: true,
                 btnMethod: this.pushChanges,
@@ -318,7 +330,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
               modalState: {
                 header: getLanguageFromKey('sync_header.merge_conflict_occured', this.props.language),
                 // tslint:disable-next-line:max-line-length
-                descriptionText: getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language),
+                descriptionText: [getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language)],
                 btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
                 btnMethod: this.redirectToMergeConflictPage,
               },
