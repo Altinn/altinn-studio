@@ -12,7 +12,7 @@ spec:
       containers:
       - name: altinn-repositories
         # Uncomment the image that has the name of the environement you're deploying to
-        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev:1.4.3
+        image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev:1.4.7
         # image: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod:1.4.1
         env:
         - name: USER_UID
