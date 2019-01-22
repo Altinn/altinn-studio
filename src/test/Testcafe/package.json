@@ -4,7 +4,7 @@
   "description": "UI tests for Altinn tjenester 3.0",
   "main": "app.js",
   "scripts": {
-    "start": "cross-env NODE_ENV=test && testcafe chrome ."
+    "test": "node .\\testRunner --env=dev"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +15,9 @@
     "process": "^0.11.10",
     "testcafe": "^0.22.0",
     "tslint": "^5.11.0"
+  },
+  "dependencies": {
+    "testcafe-react-selectors": "^3.0.3",
+    "testcafe-reporter-junit": "^3.0.0"
   }
 }
