@@ -989,6 +989,42 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
+        private void ExpandAndAppendAttributeGroupRef(XmlSchemaAttributeGroupRef groupRefItem, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        {
+            XmlSchemaObject refItem = FindObject(groupRefItem.RefName);
+            if (refItem != null)
+            {
+                if (refItem is XmlSchemaAttributeGroup)
+                {
+                    XmlSchemaAttributeGroup attributeGroup = (XmlSchemaAttributeGroup)refItem;
+
+                    if (attributeGroup.Annotation != null)
+                    {
+                        AppendAnnotated(attributeGroup, appendToSchema);
+                    }
+
+                    if (attributeGroup.AnyAttribute != null)
+                    {
+                        throw new NotImplementedException();
+                    }
+
+                    if (attributeGroup.Attributes.Count > 0)
+                    {
+                        AppendAttributes(attributeGroup.Attributes, appendToSchema, requiredList);
+                    }
+
+                    if (attributeGroup.RedefinedAttributeGroup != null)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+
         private void AppendComplexContent(XmlSchemaComplexContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item.Annotation != null)
@@ -1015,6 +1051,47 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
+        private void AppendAttributes(XmlSchemaObjectCollection attributes, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (attribute is XmlSchemaAttribute)
+                {
+                    XmlSchemaAttribute schemaAttribute = (XmlSchemaAttribute)attribute;
+                    bool isRequired;
+                    JsonSchema attributeSchema = ParseAttribute(schemaAttribute, out isRequired);
+                    if (attributeSchema != null)
+                    {
+                        XmlQualifiedName name = GetItemName(schemaAttribute);
+                        appendToSchema.Property(name.Name, attributeSchema);
+                        if (isRequired)
+                        {
+                            requiredList.Add(name);
+                        }
+                    }
+                }
+                else if (attribute is XmlSchemaAttributeGroupRef)
+                {
+                    ExpandAndAppendAttributeGroupRef((XmlSchemaAttributeGroupRef)attribute, appendToSchema, requiredList);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+
+        private void AppendValueAttribute(XmlQualifiedName baseTypeName, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        {
+            if (!baseTypeName.IsEmpty)
+            {
+                JsonSchema valueAttributeSchema = new JsonSchema();
+                AppendTypeFromNameInternal(baseTypeName, valueAttributeSchema);
+                appendToSchema.Property("value", valueAttributeSchema);
+                requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
+            }
+        }
+
         private void AppendContent(XmlSchemaContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item is XmlSchemaSimpleContentExtension)
@@ -1027,29 +1104,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (contentExtensionItem.Attributes.Count > 0)
                 {
-                    foreach (XmlSchemaAttribute attribute in contentExtensionItem.Attributes)
-                    {
-                        bool isRequired;
-                        JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
-                        if (attributeSchema != null)
-                        {
-                            XmlQualifiedName name = GetItemName(attribute);
-                            appendToSchema.Property(name.Name, attributeSchema);
-                            if (isRequired)
-                            {
-                                requiredList.Add(name);
-                            }
-                        }
-                    }
-
-                    // Create the special Value property?
-                    if (!contentExtensionItem.BaseTypeName.IsEmpty)
-                    {
-                        JsonSchema valueAttributeSchema = new JsonSchema();
-                        AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, valueAttributeSchema);
-                        appendToSchema.Property("value", valueAttributeSchema);
-                        requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
-                    }
+                    AppendAttributes(contentExtensionItem.Attributes, appendToSchema, requiredList);
+                    AppendValueAttribute(contentExtensionItem.BaseTypeName, appendToSchema, requiredList);
                 }
                 else if (!contentExtensionItem.BaseTypeName.IsEmpty)
                 {
@@ -1329,6 +1385,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaGroup groupItem = (XmlSchemaGroup)item;
                 XmlQualifiedName name = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
+                return RegisterItemName(item, name);
+            }
+            else if (item is XmlSchemaAttributeGroup)
+            {
+                XmlSchemaAttributeGroup attributeGroupItem = (XmlSchemaAttributeGroup)item;
+                XmlQualifiedName name = QualifiedNameOrName(attributeGroupItem.QualifiedName, attributeGroupItem.Name, attributeGroupItem);
                 return RegisterItemName(item, name);
             }
             else
