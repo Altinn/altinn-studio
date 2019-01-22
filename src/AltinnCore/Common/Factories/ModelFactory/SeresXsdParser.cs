@@ -799,7 +799,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if ((attribute.AttributeValue("type") != null) && attribute.AttributeValue("type").Contains(":"))
                 {
-                    attributeElementMetadata.XsdValueType = (BaseValueType)Enum.Parse(typeof(BaseValueType), attribute.AttributeValue("type").Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, attribute.AttributeValue("type").Split(':')[1].Skip(1)));
+                    AddXsdDataType(attributeElementMetadata, attribute.AttributeValue("type"));
                 }
                 else
                 {
@@ -810,9 +810,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         if ((attributeType.AttributeValue("type") != null) &&
                             attributeType.AttributeValue("type").Contains(":"))
                         {
-                            attributeElementMetadata.XsdValueType = (BaseValueType)Enum.Parse(
-                                typeof(BaseValueType),
-                                attributeType.AttributeValue("type").Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, attributeType.AttributeValue("type").Split(':')[1].Skip(1)));
+                            AddXsdDataType(attributeElementMetadata, attributeType.AttributeValue("type"));                               
 
                             if (string.IsNullOrEmpty(attributeName))
                             {
@@ -901,9 +899,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if ((element.AttributeValue("type") != null) && element.AttributeValue("type").Contains(":"))
                 {
-                    elementMetadata.XsdValueType = (BaseValueType)Enum.Parse(
-                        typeof(BaseValueType),
-                        element.AttributeValue("type").Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, element.AttributeValue("type").Split(':')[1].Skip(1)));
+                    AddXsdDataType(elementMetadata, element.AttributeValue("type"));                   
                 }
             }
             else
@@ -942,10 +938,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if ((xsdDataType != null) && xsdDataType.Contains(":"))
                 {
-                    elementMetadata.XsdValueType =
-                        (BaseValueType)Enum.Parse(
-                            typeof(BaseValueType),
-                            xsdDataType.Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, xsdDataType.Split(':')[1].Skip(1)));
+                    AddXsdDataType(elementMetadata, xsdDataType);
                 }
             }
 
@@ -1003,6 +996,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 restrictions.Add("enumeration", new Restriction { Value = enums });
             }
+        }
+
+        private static void AddXsdDataType(ElementMetadata elementMetadata, string xsdDataType)
+        {
+            elementMetadata.XsdValueType =
+                (BaseValueType)Enum.Parse(
+                    typeof(BaseValueType),
+                    xsdDataType.Split(':')[1].First().ToString().ToUpper() + string.Join(string.Empty, xsdDataType.Split(':')[1].Skip(1)));
         }
 
         private static void CreateOrUpdateRestriction(Dictionary<string, Restriction> restrictions, string propertyName, string value)

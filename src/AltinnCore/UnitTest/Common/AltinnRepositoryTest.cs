@@ -60,9 +60,9 @@ namespace AltinnCore.UnitTest.Common
         private ILogger _logger = new LoggerFactory().CreateLogger("error");
 
         /// <summary>
-        /// Test converting all provided XSDs with SeresXSdParser
+        /// Test converting all Altinn's XSDs with SeresXSdParser
         /// </summary>
-        [Fact]
+        // [Fact]
         public void ReadAllXsdsWithSeresXSDParser()
         {
             int failCount = 0;
