@@ -91,16 +91,16 @@ namespace AltinnCore.UnitTest.Common
         }
 
         [Fact]
-        private void ReadOneXSD()
+        private void ReadOneXSDWithList()
         {
-            string file = "D:/tmp/altinn-schemas/schema_1121_2_forms_1362_10746.xsd";
+            string file = "Common/xsd/schema_1121_2_forms_1362_10746.xsd";
             XDocument xsd = GetDocument(file);
             SeresXsdParser seresParser = GetParser();
 
             var serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", xsd, null);
-            string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
 
-            File.WriteAllText("test.json", metadataAsJson);
+            // string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
+            // File.WriteAllText("test.json", metadataAsJson);
         }
 
         private XDocument GetDocument(string file)
