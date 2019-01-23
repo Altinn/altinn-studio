@@ -155,6 +155,11 @@ namespace AltinnCore.Common.Configuration
         public string WorkFlowFileName { get; set; } = "workflow.json";
 
         /// <summary>
+        /// Gets or sets the filename for workflow file
+        /// </summary>
+        public string WorkflowFileName { get; set; } = "workflow.bpmn";
+
+        /// <summary>
         /// Gets or sets React file name
         /// </summary>
         public string ReactAppFileName { get; set; } = "react-app.js";
@@ -507,6 +512,18 @@ namespace AltinnCore.Common.Configuration
         public string GetImplementationPath(string org, string service, string developer)
         {
             return GetServicePath(org, service, developer) + "Implementation/";
+        }
+
+        /// <summary>
+        /// Gets the full path to the workflow directory
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
+        /// <returns>The full path to the workflow folder, ending with "/"</returns>
+        public string GetWorkflowPath(string org, string service, string developer)
+        {
+            return GetServicePath(org, service, developer) + "Workflow/";
         }
 
         /// <summary>

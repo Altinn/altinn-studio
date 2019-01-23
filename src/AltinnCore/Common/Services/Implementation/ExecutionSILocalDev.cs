@@ -18,8 +18,11 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     using System.IO.Compression;
+    using System.Text;
+    using System.Xml.Serialization;
     using AltinnCore.Common.Helpers;
     using Microsoft.AspNetCore.Http;
+    using static AltinnCore.ServiceLibrary.Workflow;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
@@ -32,6 +35,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IRepository _repository;
         private readonly Interfaces.ICompilation _compilation;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionSILocalDev"/> class
@@ -41,17 +45,20 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="generalSettings">the current general settings</param>
         public ExecutionSILocalDev(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             Interfaces.ICompilation compilationService,
             ApplicationPartManager partManager,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            GeneralSettings generalSettings)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _compilation = compilationService;
             _httpContextAccessor = httpContextAccessor;
+            _generalSettings = generalSettings;
         }
 
         /// <summary>
@@ -286,6 +293,61 @@ namespace AltinnCore.Common.Services.Implementation
         public FileStream GetFileStream(string path)
         {
             return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
+        private void CheckAndUpdateWorkflowFile(string org, string service, string developer)
+        {
+            string workflowFullFilePath = _settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
+            string textData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+            Definitions workflowModel = null;
+
+            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+            using (TextReader tr = new StringReader(textData))
+            {
+                workflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            if (Directory.Exists(workflowFullFilePath))
+            {
+                //TODO: check version
+            }
+            else
+            {
+                // Create the workflow folder
+                Directory.CreateDirectory(_settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+
+                // Get the file path
+                File.WriteAllText(workflowFullFilePath, textData, Encoding.UTF8);
+            }
+        }
+
+        private bool CheckVersion(string fullPath, string workflowData)
+        {
+            string currentworkflowData = File.ReadAllText(fullPath, Encoding.UTF8);
+            Definitions templateWorkflowModel = null;
+            Definitions currentWorkflowModel = null;
+
+            // Getting template version
+            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+            using (TextReader tr = new StringReader(workflowData))
+            {
+                templateWorkflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            // Getting current version
+            using (TextReader tr = new StringReader(currentworkflowData))
+            {
+                currentWorkflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            if (templateWorkflowModel != null && currentWorkflowModel != null && templateWorkflowModel.Id != currentWorkflowModel.Id)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

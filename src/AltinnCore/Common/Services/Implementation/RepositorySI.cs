@@ -4,7 +4,9 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
+using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Factories.ModelFactory;
@@ -19,6 +21,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static AltinnCore.ServiceLibrary.Workflow;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -136,6 +139,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -1505,7 +1509,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Newtonsoft.Json.Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
@@ -1537,6 +1541,19 @@ namespace AltinnCore.Common.Services.Implementation
             // Get the file path
             string serviceImplemenationFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceImplementationFileName;
             File.WriteAllText(serviceImplemenationFilePath, textData, Encoding.UTF8);
+        }
+
+        private void CreateInitialWorkflow(string org, string service)
+        {
+            // Read the workflow template
+            string textData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+
+            // Create the workflow folder
+            Directory.CreateDirectory(_settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+
+            // Get the file path
+            string workflowFilePath = _settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
+            File.WriteAllText(workflowFilePath, textData, Encoding.UTF8);
         }
 
         private void CreateInitialCalculationHandler(string org, string service)
