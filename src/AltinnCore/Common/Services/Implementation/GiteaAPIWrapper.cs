@@ -176,7 +176,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            if (repository.Data.Any())
+            if (repository != null && repository.Data.Any())
             {
                 foreach (Repository repo in repository.Data)
                 {

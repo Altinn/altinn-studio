@@ -2,28 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
-using AltinnCore.Common.Backend;
+using System.Text;
+using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using static AltinnCore.ServiceLibrary.Workflow;
 
 namespace AltinnCore.Common.Services.Implementation
 {
-    using System.IO.Compression;
-    using System.Text;
-    using System.Xml.Serialization;
-    using AltinnCore.Common.Helpers;
-    using Microsoft.AspNetCore.Http;
-    using static AltinnCore.ServiceLibrary.Workflow;
-
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
     /// </summary>
@@ -52,13 +49,13 @@ namespace AltinnCore.Common.Services.Implementation
             Interfaces.ICompilation compilationService,
             ApplicationPartManager partManager,
             IHttpContextAccessor httpContextAccessor,
-            GeneralSettings generalSettings)
+            IOptions<GeneralSettings> generalSettings)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _compilation = compilationService;
             _httpContextAccessor = httpContextAccessor;
-            _generalSettings = generalSettings;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -274,6 +271,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The zipped file</returns>
         public FileStream ZipAndReturnFile(string org, string service, string developer)
         {
+            CheckAndUpdateWorkflowFile(org, service, developer);
             string startPath = _settings.GetServicePath(org, service, developer);
             string zipPath = $"{_settings.GetOrgPath(org, developer)}{service}.zip";
             if (File.Exists(zipPath))
@@ -295,33 +293,33 @@ namespace AltinnCore.Common.Services.Implementation
             return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
-        private void CheckAndUpdateWorkflowFile(string org, string service, string developer)
+        /// <summary>
+        /// Method that adds the workflow file to the repository if its not there, or replaces it if its an old version of the workflow file
+        /// </summary>
+        /// <param name="owner">The owner of the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The developer of the service</param>
+        private void CheckAndUpdateWorkflowFile(string owner, string service, string developer)
         {
-            string workflowFullFilePath = _settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
-            string textData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
-            Definitions workflowModel = null;
+            string workflowFullFilePath = _settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
+            string templateWorkflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
 
-            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-            using (TextReader tr = new StringReader(textData))
+            if (!File.Exists(workflowFullFilePath))
             {
-                workflowModel = (Definitions)serializer.Deserialize(tr);
-            }
-
-            if (Directory.Exists(workflowFullFilePath))
-            {
-                //TODO: check version
+                // Create the workflow folder
+                Directory.CreateDirectory(_settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
             }
             else
             {
-                // Create the workflow folder
-                Directory.CreateDirectory(_settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-
-                // Get the file path
-                File.WriteAllText(workflowFullFilePath, textData, Encoding.UTF8);
+                if (ShouldUpdateFile(workflowFullFilePath, templateWorkflowData))
+                {
+                    File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
+                }
             }
         }
 
-        private bool CheckVersion(string fullPath, string workflowData)
+        private bool ShouldUpdateFile(string fullPath, string workflowData)
         {
             string currentworkflowData = File.ReadAllText(fullPath, Encoding.UTF8);
             Definitions templateWorkflowModel = null;
