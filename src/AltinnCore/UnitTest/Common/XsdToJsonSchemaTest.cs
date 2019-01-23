@@ -11,6 +11,7 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using NUnit.Framework;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Common
@@ -36,10 +37,12 @@ namespace AltinnCore.UnitTest.Common
             {
                 Debug.WriteLine("Converting file " + file + " to Json Schema");
 
+                XsdToJsonSchema converter;
+                JsonValue schemaText;
                 try
                 {
-                    XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader(file));
-                    var schemaText = converter.AsJsonSchema();
+                    converter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
+                    schemaText = converter.AsJsonValue();
                 }
                 catch (Exception e)
                 {
