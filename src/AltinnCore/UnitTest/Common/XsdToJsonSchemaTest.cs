@@ -26,7 +26,7 @@ namespace AltinnCore.UnitTest.Common
         /// <summary>
         /// Test converting all provided XSDs to Json Schema
         /// </summary>
-        // [Fact]
+        [Fact]
         public void ConvertXSDsToJsonSchema()
         {
             int failCount = 0;

@@ -167,7 +167,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.DefaultValue != null)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Default value \"" + item.DefaultValue + "\"");
             }
 
             if (item.ElementSchemaType != null)
@@ -182,12 +182,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Final != XmlSchemaDerivationMethod.None)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Final value");
             }
 
             if (item.FixedValue != null)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Fixed value \"" + item.FixedValue + "\"");
             }
 
             if (item.IsAbstract)
