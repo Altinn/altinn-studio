@@ -21,7 +21,7 @@ namespace AltinnCore.UnitTest.Common
     /// </summary>
     public class XsdToJsonSchemaTest
     {
-        private ILogger _logger = new LoggerFactory().CreateLogger("error");
+        private ILogger _logger = TestLogger.Create<XsdToJsonSchemaTest>();
 
         /// <summary>
         /// Test converting all provided XSDs to Json Schema
@@ -35,7 +35,7 @@ namespace AltinnCore.UnitTest.Common
 
             foreach (string file in files)
             {
-                Debug.WriteLine("Converting file " + file + " to Json Schema");
+                _logger.LogInformation("Converting file " + file + " to Json Schema");
 
                 XsdToJsonSchema converter;
                 JsonValue schemaText;
@@ -46,7 +46,7 @@ namespace AltinnCore.UnitTest.Common
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Failed converting file " + file + ": " + e.Message);
+                    _logger.LogError("Failed converting file " + file + ": " + e.Message);
                     failCount++;
                 }
             }
