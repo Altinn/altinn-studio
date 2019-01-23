@@ -13,11 +13,11 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.ServiceLibrary.Workflow;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using static AltinnCore.ServiceLibrary.Workflow;
 
 namespace AltinnCore.Common.Services.Implementation
 {
