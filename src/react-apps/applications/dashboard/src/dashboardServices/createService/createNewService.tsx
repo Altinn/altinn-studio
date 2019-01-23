@@ -40,7 +40,8 @@ const styles = createStyles({
   },
 });
 
-class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
+export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
+  public _isMounted = false;
   public state: ICreateNewServiceState = {
     isOpen: false,
     serviceOwnerAnchorEl: null,
@@ -60,6 +61,14 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
       selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0] : '',
       selectedOrgOrUserDisabled: this.props.selectableUser.length === 1,
     });
+  }
+
+  public componentDidMount() {
+    this._isMounted = true;
+  }
+
+  public componentWillUnmount() {
+    this._isMounted = false;
   }
 
   public handleModalClose = () => {
@@ -127,25 +136,32 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
       .replace(/[^0-9a-zA-Z_]+/g, '_').substring(0, 100);
   }
 
-  public createNewService = () => {
+  public validateService = () => {
+    let serviceIsValid = true;
     if (!this.state.selectedOrgOrUser) {
       this.showServiceOwnerPopper(getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language));
+      serviceIsValid = false;
     }
     if (!this.state.repoName) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.field_cannot_be_empty', this.props.language));
+      serviceIsValid = false;
     }
 
-    if (!/^[a-zA-Z]+[a-zA-Z0-9_]*$/.test(this.state.repoName)) {
+    if (this.state.repoName && !/^[a-zA-Z]+[a-zA-Z0-9_]*$/.test(this.state.repoName)) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_has_illegal_characters', this.props.language));
-      return;
+      serviceIsValid = false;
     }
 
     if (this.state.repoName.length > 100) {
       this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_is_too_long', this.props.language));
-      return;
+      serviceIsValid = false;
     }
+    return serviceIsValid;
+  }
 
-    if (this.state.selectedOrgOrUser && this.state.repoName) {
+  public createNewService = () => {
+    const serviceIsValid = this.validateService();
+    if (serviceIsValid) {
       this.setState({
         isLoading: true,
       });
@@ -153,13 +169,13 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
       post(url).then((result: any) => {
-        if (result.repositoryCreatedStatus === 422) {
+        if (this._isMounted && result.repositoryCreatedStatus === 422) {
           this.setState({
             isLoading: false,
           });
           this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_already_exist', this.props.language));
         } else if (result.repositoryCreatedStatus === 201) {
-          window.location.href = `${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`;
+          window.location.assign(`${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`);
         }
       });
     }
@@ -170,6 +186,7 @@ class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, 
     return (
       <div>
         <AltinnIconButton
+          id={'ceateService'}
           onclickFunction={this.handleModalOpen}
           btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
           iconClass='ai ai-circle-plus'

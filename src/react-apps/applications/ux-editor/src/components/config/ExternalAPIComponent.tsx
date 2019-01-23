@@ -188,7 +188,7 @@ export class ExternalApiComponent extends React.Component<IExternalApiComponentP
                 <div className='col-12 col'>
                   <SelectDataModelComponent
                     onDataModelChange={this.props.handleClientParamsChange.bind(null, clientParams[key].name)}
-                    selectedElement={selectedDataModelElement}
+                    selectedElement={selectedDataModelElement[key]}
                     hideRestrictions={true}
                     language={this.props.language}
                   />

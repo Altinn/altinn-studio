@@ -29,10 +29,16 @@ class Draggable extends React.Component<
   public render() {
     const { connectDragSource } = this.props;
     return connectDragSource(
-      <div>
+      <div tabIndex={0} onKeyDown={this.handleKeyDown}>
         {this.props.children}
       </div>,
     );
+  }
+
+  public handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter') {
+      this.props.onDrop();
+    }
   }
 }
 

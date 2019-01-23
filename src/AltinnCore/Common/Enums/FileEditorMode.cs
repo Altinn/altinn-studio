@@ -15,7 +15,7 @@ namespace AltinnCore.Common.Enums
         All = 0,
 
         /// <summary>
-        /// All the files in the Implementation folder
+        /// All the files in the Deployment folder
         /// </summary>
         Deployment = 1,
 
@@ -43,5 +43,20 @@ namespace AltinnCore.Common.Enums
         /// All the files in the Test folder
         /// </summary>
         Test = 6,
+
+        /// <summary>
+        /// All the files in the Calculation folder
+        /// </summary>
+        Calculation = 7,
+
+        /// <summary>
+        /// All the files in the Dynamics folder
+        /// </summary>
+        Dynamics = 8,
+
+        /// <summary>
+        /// All the files in the Validation folder
+        /// </summary>
+        Validation = 9,
     }
 }

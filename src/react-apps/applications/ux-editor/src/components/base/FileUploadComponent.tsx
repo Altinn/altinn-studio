@@ -22,7 +22,7 @@ export class FileUploadComponent
   }
 
   public render() {
-    const { description } = this.props.component;
+    const descriptionKey = this.props.component.textResourceBindings.title;
     return (
       <div className='js-attachmentForm'>
         <label className='a-btn a-btn-action a-iconRight a-custom-fileupload mb-0 mt-1 a-js-uploadAttachment'>
@@ -34,7 +34,9 @@ export class FileUploadComponent
             className={this.props.isValid ? 'a-js-certificateContainer sr-only' : 'a-js-certificateContainer sr-only validation-error'}
           />
           Add a file
-          {description}
+          {// TODO: should fetch text using getTextResource() prop
+            descriptionKey
+          }
           <i className='ai ai-upload' />
         </label>
       </div>

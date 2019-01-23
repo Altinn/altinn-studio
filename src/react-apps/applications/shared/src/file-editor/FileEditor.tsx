@@ -43,7 +43,7 @@ const languages: ICodeLanguage = {
 
 export interface IFileEditorProvidedProps {
   classes: any;
-  mode: number;
+  mode: string;
   closeFileEditor?: () => void;
 }
 
@@ -51,6 +51,7 @@ export interface IFileEditorState {
   selectedFile: string;
   availableFiles: string[];
   value: string;
+  mounted: boolean;
 }
 
 const styles = createStyles({
@@ -78,11 +79,11 @@ const styles = createStyles({
     display: 'none',
   },
   formComponentsBtn: {
-    fontSize: '0.85em',
-    fill: altinnTheme.altinnPalette.primary.blue,
-    paddingLeft: '0',
-    marginTop: '0.1em',
-    outline: 'none !important',
+    'fontSize': '0.85em',
+    'fill': altinnTheme.altinnPalette.primary.blue,
+    'paddingLeft': '0',
+    'marginTop': '0.1em',
+    'outline': 'none !important',
     '&:hover': {
       background: 'none',
     },
@@ -99,6 +100,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       selectedFile: '',
       availableFiles: [],
       value: '',
+      mounted: false,
     };
   }
 
@@ -114,6 +116,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         return {
           ...prevState,
           availableFiles: files,
+          mounted: true,
         };
       });
     });
@@ -136,46 +139,19 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       });
   }
 
-  public getFolderText(): string {
-    switch (this.props.mode) {
-      case 1: {
-        return 'Deployment';
-      }
-      case 2: {
-        return 'Implementation';
-      }
-      case 3: {
-        return 'Metadata';
-      }
-      case 4: {
-        return 'Model';
-      }
-      case 5: {
-        return 'Resources';
-      }
-      case 6: {
-        return 'Test';
-      }
-      case 0:
-      default: {
-        return 'All';
-      }
-    }
-  }
-
   public switchFile = (e: any) => {
     const fileName = e.target.value;
     this.loadFileContent(fileName);
   }
 
-  public saveFile = (e: any) => {
+  public saveFile = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service} = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
     `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
-    post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then((response) => {
-      if (this.props.closeFileEditor) {
+    post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then(() => {
+      if (this.state.mounted && this.props.closeFileEditor) {
         this.props.closeFileEditor();
       }
     });
@@ -191,8 +167,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public getLanguageFromFileName = (): any => {
-    const splitFileName = this.state.selectedFile.split('.');
-    if (splitFileName && splitFileName.length > 1) {
+    if (this.state.selectedFile && this.state.selectedFile.length > 1) {
+      const splitFileName = this.state.selectedFile.split('.');
       const extension = splitFileName[splitFileName.length - 1];
       if (languages[extension]) {
         return languages[extension];
@@ -227,14 +203,13 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public render() {
-    const {classes} = this.props;
-    const foldertext = this.getFolderText();
+    const {classes, mode} = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
     return (
       <Grid container={true} spacing={0} className={classes.codeEditorContent}>
         <Grid item={true} xs={11}  className={classes.fileHeader}>
           <span>
-            {foldertext}
+            {mode}
             <i className='ai ai-expand' style={{fontSize: '2rem'}}/>
             <Select
               value={this.state.selectedFile}

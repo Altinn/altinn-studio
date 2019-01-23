@@ -18,16 +18,24 @@ const formDataForContainerSelector = (state: IAppState, props: any, index?: numb
 
   for (const componentId of componentsInContainer) {
     const component = layout.components[componentId];
-    let formDataKey = component.dataModelBinding;
-    if (!formDataKey) {
+    if (!component.dataModelBindings) {
       continue;
     }
-    if (container.repeating && container.dataModelGroup && index != null) {
-      formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${index}]`);
-    }
-    const formData = state.formFiller.formData;
-    if (formData[formDataKey]) {
-      filteredFormData[component.dataModelBinding] = formData[formDataKey];
+    for (const dataModelKey in component.dataModelBindings) {
+      if (!dataModelKey) {
+        continue;
+      }
+      let formDataKey = component.dataModelBindings[dataModelKey];
+      if (!formDataKey) {
+        continue;
+      }
+      if (container.repeating && container.dataModelGroup && index != null) {
+        formDataKey = formDataKey.replace(container.dataModelGroup, `${container.dataModelGroup}[${index}]`);
+      }
+      const formData = state.formFiller.formData;
+      if (formData[formDataKey]) {
+        filteredFormData[component.dataModelBindings[dataModelKey]] = formData[formDataKey];
+      }
     }
   }
   return filteredFormData;

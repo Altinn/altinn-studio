@@ -11,11 +11,9 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import { advancedComponents, ComponentTypes, IComponent, schemaComponents, textComponents } from '../components';
 import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
-import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
-import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 import { ToolbarItem } from './ToolbarItem';
@@ -103,7 +101,10 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
           itemType: LayoutItemType.Component,
-          title: c.name,
+          textResourceBindings: {
+            title: c.name,
+          },
+          dataModelBindings: {},
           ...JSON.parse(JSON.stringify(customProperties)),
         },
           position,
@@ -133,12 +134,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
   }
 
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
-    FormDesignerActionDispatchers.addFormComponent({
-      component: THIRD_PARTY_COMPONENT,
-      title: `${componentPackage}.${componentName}`,
-    },
-      null,
-    );
+    const textResourceBindings: ITextResourceBindings = {};
+    textResourceBindings.title = `${componentPackage}.${componentName}`,
+      FormDesignerActionDispatchers.addFormComponent({
+        component: THIRD_PARTY_COMPONENT,
+        textResourceBindings,
+      },
+        null,
+      );
   }
 
   public getThirdPartyComponents = (): IToolbarElement[] => {
@@ -149,12 +152,14 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     const thirdPartyComponentArray: IToolbarElement[] = [];
     for (const packageName of thirdPartyComponents) {
       for (const componentName of thirdPartyComponents[packageName]) {
+        const textResourceBindings: ITextResourceBindings = {};
+        textResourceBindings.title = `${packageName}.${componentName}`;
         thirdPartyComponentArray.push({
           label: `${packageName} - ${componentName}`,
           componentType: null,
           actionMethod: FormDesignerActionDispatchers.addFormComponent({
             component: THIRD_PARTY_COMPONENT,
-            title: `${packageName}.${componentName}`,
+            textResourceBindings,
           },
             null,
           ) as any,
@@ -370,12 +375,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
         <div className='d-block'>
           <ExternalApiModalComponent />
-        </div>
-        <div className='d-block'>
-          <RuleModalComponent />
-        </div>
-        <div className='d-block'>
-          <ConditionalRenderingModalComponent />
         </div>
         <Modal
           isOpen={this.state.modalOpen}

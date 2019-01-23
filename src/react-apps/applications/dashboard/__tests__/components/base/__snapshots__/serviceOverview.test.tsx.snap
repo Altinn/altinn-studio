@@ -23,6 +23,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         <button
           className="MuiButtonBase-root-171 MuiButton-root-145 MuiButton-contained-156 MuiButton-raised-159 AltinnIconButton-dottedBtn-143"
           disabled={false}
+          id="ceateService"
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -199,6 +200,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         <button
           className="MuiButtonBase-root-171 MuiButton-root-145 MuiButton-contained-156 MuiButton-raised-159 AltinnIconButton-dottedBtn-143"
           disabled={false}
+          id="ceateService"
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
