@@ -1188,6 +1188,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 XmlSchemaSimpleContentRestriction contentRestrictionItem = (XmlSchemaSimpleContentRestriction)item;
 
+                bool isInherit = !contentRestrictionItem.BaseTypeName.IsEmpty;
+                List<JsonSchema> allOfList = new List<JsonSchema>();
+
                 if (contentRestrictionItem.BaseType != null)
                 {
                     throw new NotImplementedException();
@@ -1195,9 +1198,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (!contentRestrictionItem.BaseTypeName.IsEmpty)
                 {
-                    XmlSchemaObject baseItem = FindObject(contentRestrictionItem.BaseTypeName);
-
-                    // Todo
+                    JsonSchema inheritFromSchema = new JsonSchema();
+                    AppendTypeFromNameInternal(contentRestrictionItem.BaseTypeName, inheritFromSchema);
+                    allOfList.Add(inheritFromSchema);
                 }
 
                 if (contentRestrictionItem.Annotation != null)
@@ -1212,12 +1215,31 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (contentRestrictionItem.Attributes.Count > 0)
                 {
-                    AppendAttributes(contentRestrictionItem.Attributes, appendToSchema, requiredList);
+                    JsonSchema usingSchema = isInherit ? new JsonSchema() : appendToSchema;
+                    List<XmlQualifiedName> usingRequiredList = isInherit ? new List<XmlQualifiedName>() : requiredList;
+
+                    AppendAttributes(contentRestrictionItem.Attributes, usingSchema, usingRequiredList);
+
+                    if (isInherit)
+                    {
+                        if (usingRequiredList.Count > 0)
+                        {
+                            usingSchema.Required(RequiredListToArray(usingRequiredList));
+                        }
+
+                        allOfList.Add(usingSchema);
+                    }
                 }
 
                 if (contentRestrictionItem.Facets.Count > 0)
                 {
                     throw new NotImplementedException();
+                }
+
+                if (allOfList.Count > 0)
+                {
+                    AddTypeObject(appendToSchema);
+                    appendToSchema.AllOf(allOfList.ToArray());
                 }
             }
             else if (item is XmlSchemaComplexContentRestriction)
