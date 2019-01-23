@@ -40,7 +40,9 @@ describe('HandleMergeConflictDiscardChanges', () => {
     const spy = jest.spyOn(instance, 'discardChangesPopover');
 
     expect(wrapper.exists('#discardMergeChangesBtn')).toEqual(true);
-    wrapper.find('button#discardMergeChangesBtn').prop('onClick');
+    // workaround
+    wrapper.find('button#discardMergeChangesBtn').simulate('click');
+    wrapper.find('button#discardMergeChangesBtn').simulate('click');
     expect(spy).toHaveBeenCalled();
 
     expect(wrapper.exists('#discardMergeChangesConfirmBtn')).toEqual(true);
