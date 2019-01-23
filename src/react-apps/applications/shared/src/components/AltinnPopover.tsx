@@ -195,7 +195,6 @@ class AltinnPopover extends React.Component<IAltinnPopoverProps, IAltinnPopoverS
 
           {this.props.shouldShowCommitBox &&
             <TextField
-              id='test'
               multiline={true}
               value={this.state.commitMessage}
               rows={3}

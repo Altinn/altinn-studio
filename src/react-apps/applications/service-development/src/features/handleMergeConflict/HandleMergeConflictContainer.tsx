@@ -95,7 +95,6 @@ export class HandleMergeConflictContainer extends
               container={true}
               justify='flex-start'
               alignItems='stretch'
-              id='grid1'
             >
               <Grid
                 item={true}

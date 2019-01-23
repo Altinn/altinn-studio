@@ -104,9 +104,9 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <Router>
-            <div className={classes.container} id='test-container'>
-              <Grid container={true} direction='row' id='test'>
-                <Grid item={true} xs={12} id='appBarGridItem'>
+            <div className={classes.container}>
+              <Grid container={true} direction='row'>
+                <Grid item={true} xs={12}>
                   {repoStatus.hasMergeConflict === false ?
                     redirects.map((route, index) => (
                       <Route
@@ -139,7 +139,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                     />
                   ))}
                 </Grid>
-                <Grid item={true} xs={12} id='mainGridItem'>
+                <Grid item={true} xs={12}>
                   {repoStatus.hasMergeConflict === false ?
                     <Hidden smDown>
                       <div style={{ top: 50 }}>
