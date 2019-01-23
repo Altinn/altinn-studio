@@ -5,9 +5,9 @@ using System.Xml;
 using System.Xml.Schema;
 using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
-using Manatee.Json.Pointer;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -16,6 +16,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// </summary>
     public class XsdToJsonSchema
     {
+        private ILogger<XsdToJsonSchema> _logger;
+
         private XmlReader xsdReader;
         private XmlSchema mainXsd;
         private JsonSchema mainJsonSchema;
@@ -27,9 +29,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// Initializes a new instance of the <see cref="XsdToJsonSchema"/> class.
         /// </summary>
         /// <param name="xsdReader">Reader for the XSD to convert</param>
-        public XsdToJsonSchema(XmlReader xsdReader)
+        /// <param name="logger">logger</param>
+        public XsdToJsonSchema(XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
         {
             this.xsdReader = xsdReader;
+            this._logger = logger;
         }
 
         /// <summary>
@@ -224,7 +228,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         XmlQualifiedName complexTypeName = GetItemName(item.SchemaType);
                         JsonSchema complexTypeSchema = ParseComplexType((XmlSchemaComplexType)item.SchemaType);
-                        AddDefinition(item.SchemaType, complexTypeSchema);
                         AppendTypeFromNameInternal(complexTypeName, elementSchema);
                     }
                     else if (item.SchemaType is XmlSchemaSimpleType)
@@ -232,7 +235,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         XmlQualifiedName simpleTypeName = GetItemName(item.SchemaType);
                         JsonSchema simpleTypeSchema = new JsonSchema();
                         AppendSimpleType((XmlSchemaSimpleType)item.SchemaType, simpleTypeSchema);
-                        AddDefinition(item.SchemaType, simpleTypeSchema);
                     }
                     else
                     {
@@ -358,6 +360,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("Minimum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMaxInclusiveFacet)
@@ -368,6 +371,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("Maximum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMinLengthFacet)
@@ -378,6 +382,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("MinLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMaxLengthFacet)
@@ -388,6 +393,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("MaxLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaLengthFacet || facet is XmlSchemaTotalDigitsFacet)
@@ -398,6 +404,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("MinLength: Could not convert " + facet.Value + " to number");
                                 }
 
                                 try
@@ -406,6 +413,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("MaxLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaPatternFacet)
@@ -424,6 +432,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("ExclusiveMinimum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMaxExclusiveFacet)
@@ -434,6 +443,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                 }
                                 catch (Exception)
                                 {
+                                    _logger.LogError("ExclusiveMaximum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else
@@ -459,7 +469,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         XmlQualifiedName simpleTypeName = GetItemName(simpleTypeListItem.ItemType);
                         JsonSchema simpleTypeSchema = new JsonSchema();
                         AppendSimpleType((XmlSchemaSimpleType)simpleTypeListItem.ItemType, simpleTypeSchema);
-                        AddDefinition(simpleTypeListItem.ItemType, simpleTypeSchema);
                     }
                     else if (!simpleTypeListItem.ItemTypeName.IsEmpty)
                     {
@@ -1506,7 +1515,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else
             {
-                int d = 0;
+                throw new XmlSchemaException();
             }
 
             return name;
