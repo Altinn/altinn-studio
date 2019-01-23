@@ -5,6 +5,7 @@ using System.Xml;
 using System.Xml.Schema;
 using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
+using Manatee.Json.Pointer;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 
@@ -496,7 +497,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (attribute != null && !attribute.RefName.IsEmpty)
             {
                 XmlSchemaObject refAttribute = FindObject(attribute.RefName);
-                if (refAttribute is XmlSchemaAttribute)
+                if (refAttribute == null)
+                {
+                    AppendTypeFromNameInternal(null, attributeSchema); // Unknown type. (Will default to string)
+                }
+                else if (refAttribute is XmlSchemaAttribute)
                 {
                     attributeSchema = ParseAttribute((XmlSchemaAttribute)refAttribute, out isRequired);
                 }
@@ -1439,6 +1444,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (name.IsEmpty && !attributeItem.RefName.IsEmpty)
                 {
                     XmlSchemaObject refObject = FindObject(attributeItem.RefName);
+                    if (refObject == null)
+                    {
+                        return attributeItem.RefName;
+                    }
+
                     name = GetItemName(refObject);
                 }
 
