@@ -25,11 +25,11 @@ const languages: ICodeLanguage = {
   },
   js: {
     name: 'javascript',
-    displayName: 'Javascript',
+    displayName: 'JavaScript',
   },
   ts: {
     name: 'typescript',
-    displayName: 'Typescript',
+    displayName: 'TypeScript',
   },
   json: {
     name: 'json',
@@ -63,7 +63,7 @@ const styles = createStyles({
     paddingBottom: '1.1rem',
   },
   codeEditorContent: {
-    minHeight: 'calc(100vh - 5.7em)',
+    minHeight: 'calc(100vh - 6.5em)',
   },
   selectFile: {
     borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
@@ -90,6 +90,13 @@ const styles = createStyles({
   },
   specialBtn: {
     fontSize: '0.6em !important',
+  },
+  footerContent: {
+    minHeight: '3em',
+    textAlign: 'end',
+    color: '#6A6A6A',
+    paddingRight: '1.2em',
+    paddingBottom: '1.2em',
   },
 });
 
@@ -245,8 +252,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           onValueChange={this.onValueChange}
         />
         </Grid>
-        <Grid item={true} xs={11}/>
-        <Grid item={true} xs={1}>
+        <Grid className={classes.footerContent} item={true} xs={11}/>
+        <Grid className={classes.footerContent} item={true} xs={1}>
           <span>{language.displayName}</span>
         </Grid>
       </Grid>
