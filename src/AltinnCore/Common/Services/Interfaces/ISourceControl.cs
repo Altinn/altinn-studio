@@ -85,7 +85,7 @@ namespace AltinnCore.Common.Services.Interfaces
         Commit GetLatestCommitForCurrentUser(string owner, string repository);
 
         /// <summary>
-        /// Gives the full repository status for
+        /// Gives the complete repository status
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
         /// <param name="repository">The name of repository</param>

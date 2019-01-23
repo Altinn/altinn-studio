@@ -285,7 +285,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// List the GIT status of a repositor
+        /// List the GIT status of a repository
         /// </summary>
         /// <param name="org">The organization owning the repository</param>
         /// <param name="repository">The name of the repository</param>
@@ -309,11 +309,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gives the full repository status for
+        /// Gives the complete repository status
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
         /// <param name="repository">The name of repository</param>
-        /// <returns>The repo status</returns>
+        /// <returns>The repository status</returns>
         public RepoStatus RepositoryStatus(string owner, string repository)
         {
             RepoStatus repoStatus = new RepoStatus();
