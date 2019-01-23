@@ -32,10 +32,19 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         /// <summary>
-        /// Perform the actual conversion
+        /// Perform the actual conversion (to JsonValue)
         /// </summary>
         /// <returns>JsonValue for root of Json Schema representation of schema</returns>
-        public JsonValue AsJsonSchema()
+        public JsonValue AsJsonValue()
+        {
+            return new JsonSerializer().Serialize<JsonSchema>(AsJsonSchema());
+        }
+
+        /// <summary>
+        /// Perform the actual conversion (to JsonSchema)
+        /// </summary>
+        /// <returns>Json Schema representation of schema</returns>
+        public JsonSchema AsJsonSchema()
         {
             // Read XSD
             mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);
@@ -86,7 +95,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            return new JsonSerializer().Serialize<JsonSchema>(mainJsonSchema);
+            return mainJsonSchema;
         }
 
         private object Parse(XmlSchemaObject item, out bool isRequired)
