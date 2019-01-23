@@ -314,6 +314,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 if (ShouldUpdateFile(workflowFullFilePath, templateWorkflowData))
                 {
+                    // Overwrite existing file
                     File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
                 }
             }

@@ -517,13 +517,13 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets the full path to the workflow directory
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="owner">The owner of the service</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="developer">the developer for the current service</param>
         /// <returns>The full path to the workflow folder, ending with "/"</returns>
-        public string GetWorkflowPath(string org, string service, string developer)
+        public string GetWorkflowPath(string owner, string service, string developer)
         {
-            return GetServicePath(org, service, developer) + "Workflow/";
+            return GetServicePath(owner, service, developer) + "Workflow/";
         }
 
         /// <summary>

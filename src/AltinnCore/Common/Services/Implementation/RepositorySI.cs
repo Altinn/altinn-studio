@@ -1506,7 +1506,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Newtonsoft.Json.Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
