@@ -22,7 +22,6 @@ const handleMergeConflictReducer: Reducer<IHandleMergeConflictState> = (
   if (!action) {
     return state;
   }
-  console.log('action type', action.type);
   switch (action.type) {
     case HandleMergeConflictActionTypes.FETCH_REPO_STATUS_FULFILLED: {
       const { result } = action as HandleMergeConflictActions.IFetchRepoStatusFulfilled;
