@@ -91,6 +91,9 @@
     <None Update="Common\jsd\schema-w-recursion.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Common\xsd\schema_1121_2_forms_1362_10746.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\xsd\ServiceModel.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

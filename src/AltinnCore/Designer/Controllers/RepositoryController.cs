@@ -249,28 +249,7 @@ namespace AltinnCore.Designer.Controllers
 
             if (!serviceNameAlreadyExists)
             {
-                Repository repository = _repository.CreateService(org, serviceConfiguration);
-                if (repository.RepositoryCreatedStatus == System.Net.HttpStatusCode.Created)
-                {
-                    var metadata = new ServiceMetadata
-                    {
-                        Org = org,
-                        ServiceName = serviceName,
-                        RepositoryName = repoName,
-                    };
-                    _repository.CreateServiceMetadata(metadata);
-                    if (!string.IsNullOrEmpty(serviceName))
-                    {
-                        JObject json = JObject.FromObject(new
-                        {
-                            language = "nb-NO",
-                            resources = new[] { new { id = "ServiceName", value = serviceName } },
-                        });
-                        _repository.SaveResource(org, repoName, "nb-NO", json.ToString());
-                    }
-                }
-
-                return repository;
+                return _repository.CreateService(org, serviceConfiguration);
             }
             else
             {
@@ -279,6 +258,18 @@ namespace AltinnCore.Designer.Controllers
                     RepositoryCreatedStatus = System.Net.HttpStatusCode.UnprocessableEntity,
                 };
             }
+        }
+
+        /// <summary>
+        /// Clones the remote repository
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of repository</param>
+        /// <returns>The result of the cloning</returns>
+        [HttpGet]
+        public string CloneRemoteRepository(string owner, string repository)
+        {
+            return _sourceControl.CloneRemoteRepository(owner, repository);
         }
     }
 }

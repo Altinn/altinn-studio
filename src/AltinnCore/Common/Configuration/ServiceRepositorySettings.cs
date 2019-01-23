@@ -18,10 +18,25 @@ namespace AltinnCore.Common.Configuration
         public const string RESOURCE_FOLDER_NAME = "Resources/";
 
         /// <summary>
+        /// Constant for the location of implementation files
+        /// </summary>
+        public const string IMPLEMENTATION_FOLDER_NAME = "Implementation/";
+
+        /// <summary>
+        /// Constant for the location of dynamics files
+        /// </summary>
+        public const string DYNAMICS_FOLDER_NAME = "Dynamics/";
+
+        /// <summary>
+        /// Constant for the location of calculation files
+        /// </summary>
+        public const string CALCULATION_FOLDER_NAME = "Calculation/";
+
+        /// <summary>
         /// Constant for the location of the testdata for parties folder
         /// </summary>
         public const string TESTDATA_FOR_PARTY_FOLDER_NAME = "Testdataforparty/";
-        
+
         /// <summary>
         /// Constant for the location of service tests
         /// </summary>
@@ -373,6 +388,30 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
+        /// Gets the full path to Dynamics directory (within ResourcesDirecory)
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
+        /// <returns>The full path, ending with "/"</returns>
+        public string GetDynamicsPath(string org, string service, string developer)
+        {
+            return GetServicePath(org, service, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to Calculation directory (within ImplementationDirectory)
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
+        /// <returns>The full path to the calculation folder, ending with '/'</returns>
+        public string GetCalculationPath(string org, string service, string developer)
+        {
+            return GetServicePath(org, service, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
+        }
+
+        /// <summary>
         /// Gets the full path to TestDirectory
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -448,6 +487,15 @@ namespace AltinnCore.Common.Configuration
         public string GetResourceFolder()
         {
             return RESOURCE_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Get Implementation Folder name
+        /// </summary>
+        /// <returns>The implementation folder</returns>
+        public string GetImplementationFolder()
+        {
+            return IMPLEMENTATION_FOLDER_NAME;
         }
 
         /// <summary>

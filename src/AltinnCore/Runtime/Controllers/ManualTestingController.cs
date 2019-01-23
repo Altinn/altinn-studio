@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -34,6 +35,7 @@ namespace AltinnCore.Runtime.Controllers
         private IExecution _execution;
         private UserHelper _userHelper;
         private readonly ServiceRepositorySettings _settings;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IGitea _giteaApi;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -48,6 +50,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="giteaWrapper">the gitea wrapper handler</param>
         /// <param name="contextAccessor">The http context accessor</param>
         /// <param name="execution">The executionSI</param>
+        /// <param name="testdataRepositorySettings">The test data settings</param>
         public ManualTestingController(
             ITestdata testdataService,
             IProfile profileService,
@@ -56,7 +59,8 @@ namespace AltinnCore.Runtime.Controllers
             IOptions<ServiceRepositorySettings> repositorySettings,
             IGitea giteaWrapper,
             IExecution execution,
-            IHttpContextAccessor contextAccessor)
+            IHttpContextAccessor contextAccessor,
+            IOptions<TestdataRepositorySettings> testdataRepositorySettings)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -67,6 +71,7 @@ namespace AltinnCore.Runtime.Controllers
             _giteaApi = giteaWrapper;
             _execution = execution;
             _httpContextAccessor = contextAccessor;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <summary>
@@ -82,7 +87,8 @@ namespace AltinnCore.Runtime.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = _settings.GetRuntimeAPIPath("ZipAndSendRepo", org, service, developer);
-            using (HttpClient client = new HttpClient())
+
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
                 HttpResponseMessage response = await client.GetAsync(apiUrl);
@@ -184,8 +190,8 @@ namespace AltinnCore.Runtime.Controllers
                 // Temporary catch errors until we figure out how to force this.
                 try
                 {
-                    AltinnCore.RepositoryClient.Model.User user = _giteaApi.GetCurrentUser().Result;
-                    if (user == null)
+                    string user = _giteaApi.GetUserNameFromUI().Result;
+                    if (string.IsNullOrEmpty(user))
                     {
                         if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
                         {
@@ -195,7 +201,7 @@ namespace AltinnCore.Runtime.Controllers
                         return Redirect(_settings.GiteaLoginUrl);
                     }
 
-                    developer = user.Login;
+                    developer = user;
                 }
                 catch (Exception ex)
                 {

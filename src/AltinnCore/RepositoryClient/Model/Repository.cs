@@ -225,6 +225,7 @@ namespace AltinnCore.RepositoryClient.Model
         /// <summary>
         /// Gets or sets whether the repository is cloned to local
         /// </summary>
+        [DataMember(Name = "is_cloned_to_local", EmitDefaultValue = false)]
         public bool IsClonedToLocal { get; set; }
 
         /// <summary>

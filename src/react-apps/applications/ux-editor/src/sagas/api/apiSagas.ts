@@ -144,7 +144,7 @@ export function* watchFetchApiListResponseSaga(): SagaIterator {
   );
 }
 
-function* apiFetchList(connectionDef: any, externalApisById: any, components: any) {
+function* apiFetchList(connectionDef: any, externalApisById: any, components: IFormDesignerComponent) {
   let dataBindingName;
   for (const dataMapping in connectionDef.apiResponseMapping) {
     if (!dataMapping || dataMapping === 'labelKey' || dataMapping === 'valueKey') {
@@ -155,10 +155,15 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: an
 
   const mappedComponent: any = {};
   for (const component in components) {
-    if (components[component].dataModelBinding === dataBindingName) {
-      mappedComponent.component = components[component];
-      mappedComponent.id = component;
-      break;
+    if (!component) {
+      continue;
+    }
+    for (const dataModelBindingKey in components[component].dataModelBindings) {
+      if (components[component].dataModelBindings[dataModelBindingKey] === dataBindingName) {
+        mappedComponent.component = components[component];
+        mappedComponent.id = component;
+        break;
+      }
     }
   }
 
@@ -265,8 +270,11 @@ function* apiCheckValue(
                 if (!component) {
                   continue;
                 }
-                if (components[component].dataModelBinding === updatedDataBinding.DataBindingName) {
-                  updatedComponent = component;
+                for (const dataBindingKey in components[component].dataModelBindings) {
+                  if (components[component].dataModelBindings[dataBindingKey] === updatedDataBinding.DataBindingName) {
+                    updatedComponent = component;
+                    break;
+                  }
                 }
               }
               if (!updatedDataBinding) {

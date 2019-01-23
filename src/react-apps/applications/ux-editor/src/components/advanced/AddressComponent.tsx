@@ -6,8 +6,9 @@ import '../../styles/AddressComponent.css';
 
 export interface IAddressComponentProps {
   component: IFormAddressComponent;
-  formData: any;
-  handleDataChange: (value: any) => void;
+  formData: { [id: string]: string };
+  handleDataChange: (value: any, key: string) => void;
+  getTextResource: (key: string) => string;
   isValid?: boolean;
   simplified: boolean;
 }
@@ -26,23 +27,24 @@ export interface IAddressComponentState {
   validations: IAddressValidationErrors;
 }
 
-enum AddressKeys {
-  address,
-  zipCode,
-  postPlace,
-  careOf,
-  houseNumber,
+export enum AddressKeys {
+  address = 'address',
+  zipCode = 'zipCode',
+  postPlace = 'postPlace',
+  careOf = 'careOf',
+  houseNumber = 'houseNumber',
 }
 
 export class AddressComponent extends React.Component<IAddressComponentProps, IAddressComponentState> {
   constructor(_props: IAddressComponentProps) {
     super(_props);
+    const formData = this.props.formData ? this.props.formData : {};
     this.state = {
-      address: '',
-      zipCode: '',
-      postPlace: '',
-      careOf: '',
-      houseNumber: '',
+      address: formData.address || '',
+      zipCode: formData.zipCode || '',
+      postPlace: formData.postPlace || '',
+      careOf: formData.careOf || '',
+      houseNumber: formData.houseNumber || '',
       validations: {
         zipCode: null,
         houseNumber: null,
@@ -64,6 +66,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             validations: {
               zipCode: null,
             },
+          }, () => {
+            this.onBlurField(AddressKeys.postPlace);
           });
         } else {
           this.setState({
@@ -71,6 +75,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             validations: {
               zipCode: 'Postnummer er ikke gyldig',
             },
+          }, () => {
+            this.onBlurField(AddressKeys.postPlace);
           });
         }
       });
@@ -107,23 +113,14 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         $set: changedFieldValue,
       },
     }));
-    if (AddressKeys[key] === 'zipCode') {
-      this.fetchPostPlace(changedFieldValue);
-    }
   }
 
-  public onBlurField: () => void = () => {
-    const { address, zipCode, postPlace, careOf, houseNumber } = this.state;
+  public onBlurField: (key: AddressKeys) => void = (key: AddressKeys) => {
     const validationErrors: IAddressValidationErrors = this.validate();
     if (!validationErrors.zipCode && !validationErrors.houseNumber) {
-      if (address !== '' && zipCode !== '' && postPlace !== '') {
-        this.props.handleDataChange({
-          address,
-          zipCode,
-          postPlace,
-          careOf,
-          houseNumber,
-        });
+      this.props.handleDataChange(this.state[key], key);
+      if (AddressKeys[key] === 'zipCode') {
+        this.fetchPostPlace(this.state[key]);
       }
     }
     this.setState({
@@ -138,12 +135,18 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     if (simplified) {
       return (
         <div className={'address-component'}>
-          <label className={'address-component-label'}>Adresse</label>
+          <label className={'address-component-label'}>
+            {
+              // This has been implemented for the sake of validating new textResource binding POC
+              (!this.props.component.textResourceBindings.address) ? 'Adresse' :
+                this.props.getTextResource(this.props.component.textResourceBindings.address)
+            }
+          </label>
           <input
             className={'form-control'}
             value={address}
             onChange={this.updateField.bind(null, AddressKeys.address)}
-            onBlur={this.onBlurField}
+            onBlur={this.onBlurField.bind(null, AddressKeys.address)}
           />
           <div className={'address-component-postplace-zipCode'}>
             <div className={'address-component-zipCode'}>
@@ -156,7 +159,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                 }
                 value={zipCode}
                 onChange={this.updateField.bind(null, AddressKeys.zipCode)}
-                onBlur={this.onBlurField}
+                onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
               />
             </div>
             <div className={'address-component-postplace'}>
@@ -165,7 +168,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
                 className={'form-control'}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AddressKeys.postPlace)}
-                onBlur={this.onBlurField}
+                onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
               />
             </div>
           </div>
@@ -182,19 +185,23 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     }
     return (
       <div className={'address-component'}>
-        <label className={'address-component-label'}>Adresse</label>
+        <label className={'address-component-label'}>{
+          // This has been implemented for the sake of validating new textResource binding POC
+          (!this.props.component.textResourceBindings.address) ? 'Adresse' :
+            this.props.getTextResource(this.props.component.textResourceBindings.address)
+        }</label>
         <input
           className={'form-control'}
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
-          onBlur={this.onBlurField}
+          onBlur={this.onBlurField.bind(null, AddressKeys.address)}
         />
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
           className={'form-control'}
           value={careOf}
           onChange={this.updateField.bind(null, AddressKeys.careOf)}
-          onBlur={this.onBlurField}
+          onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
         />
         <div className={'address-component-postplace-zipCode'}>
           <div className={'address-component-zipCode'}>
@@ -208,7 +215,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               }
               value={zipCode}
               onChange={this.updateField.bind(null, AddressKeys.zipCode)}
-              onBlur={this.onBlurField}
+              onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
             />
           </div>
           <div className={'address-component-postplace'}>
@@ -218,7 +225,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               className={'form-control'}
               value={postPlace}
               onChange={this.updateField.bind(null, AddressKeys.postPlace)}
-              onBlur={this.onBlurField}
+              onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
             />
           </div>
         </div>
@@ -248,7 +255,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           }
           value={houseNumber}
           onChange={this.updateField.bind(null, AddressKeys.houseNumber)}
-          onBlur={this.onBlurField}
+          onBlur={this.onBlurField.bind(null, AddressKeys.houseNumber)}
         />
         {!validations.houseNumber ?
           null :
@@ -260,5 +267,25 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         }
       </div>
     );
+  }
+}
+
+export function getTextResourceByAddressKey(key: AddressKeys, language: any): string {
+  switch (key) {
+    case AddressKeys.address: {
+      return language.ux_editor.modal_configure_address_component_address;
+    }
+    case AddressKeys.zipCode: {
+      return language.ux_editor.modal_configure_address_component_zip_code;
+    }
+    case AddressKeys.houseNumber: {
+      return language.ux_editor.modal_configure_address_component_house_number;
+    }
+    case AddressKeys.careOf: {
+      return language.ux_editor.modal_configure_address_component_care_of;
+    }
+    case AddressKeys.postPlace: {
+      return language.ux_editor.modal_configure_address_component_post_place;
+    }
   }
 }

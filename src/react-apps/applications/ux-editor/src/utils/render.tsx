@@ -27,16 +27,23 @@ export function noOptionsMessage(language: any): string {
 }
 
 export function renderSelectDataModelBinding(
-  selectedElement: any,
+  dataModelBinding: IDataModelBindings = {},
   onDataModelChange: any,
   language: any,
+  label?: string,
+  returnValue?: any,
+  key: string = 'simpleBinding',
 ): JSX.Element {
   return (
     <div>
-      {renderPropertyLabel(language.ux_editor.modal_properties_data_model_helper)}
+      {renderPropertyLabel(label ?
+        language.ux_editor.modal_properties_data_model_helper + ' ' + language.general.for + ' ' + label :
+        language.ux_editor.modal_properties_data_model_helper)
+      }
       <SelectDataModelComponent
-        selectedElement={selectedElement}
-        onDataModelChange={onDataModelChange}
+        selectedElement={dataModelBinding[key]}
+        // tslint:disable-next-line:jsx-no-lambda
+        onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, returnValue)}
         language={language}
         // tslint:disable-next-line:jsx-no-lambda
         noOptionsMessage={() => noOptionsMessage(language)}
@@ -47,10 +54,11 @@ export function renderSelectDataModelBinding(
 
 export function renderSelectTextFromResources(
   labelText: string,
-  onChangeFunction: (e: any) => void,
+  onChangeFunction: (e: any, returnValue?: string) => void,
   textResources: ITextResource[],
   language: any,
   placeholder?: string,
+  returnValue?: string,
   truncateLimit: number = 80,
   createNewTextAllowed: boolean = false,
 ): JSX.Element {
@@ -69,7 +77,8 @@ export function renderSelectTextFromResources(
           styles={customInput}
           options={resources}
           defaultValue={''}
-          onChange={onChangeFunction}
+          // tslint:disable-next-line:jsx-no-lambda
+          onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
@@ -84,7 +93,8 @@ export function renderSelectTextFromResources(
           styles={customInput}
           options={resources}
           defaultValue={''}
-          onChange={onChangeFunction}
+          // tslint:disable-next-line:jsx-no-lambda
+          onChange={(value) => onChangeFunction(value, returnValue)}
           isClearable={true}
           placeholder={placeholder ?
             truncate(getTextResource(placeholder, textResources), 40)
@@ -96,3 +106,4 @@ export function renderSelectTextFromResources(
     </div>
   );
 }
+

@@ -290,7 +290,7 @@
                         <a class="nav-link dropdown-toggle hide-caret" role="button" aria-haspopup="true" aria-expanded="false" asp-route="serviceRoute" asp-route-controller="Service" asp-route-action="Index" asp-route-service="@service" title="Tjeneste">
                             @service
                         </a>
-                    
+
                         @*<div class="dropdown-menu">
                             @foreach (ServiceConfiguration serviceConfig in _repository.GetServices(org))
                             {
@@ -436,13 +436,14 @@
         }
         <ul class="navbar-nav">
             <li class="nav-item dropdown">
-                 <a class="nav-link dropdown-toggle hide-caret" href="@userLink">
-                   <i class="fa fa-fw fa-user-circle" aria-hidden="true"></i> @userName
+                 <a class="nav-link dropdown-toggle hide-caret" href="@userLink"  role="button" aria-expanded="false">
+                   <i class="ai ai-private-circle-big" aria-hidden="true"
+                   style="font-size:24px;"></i> @userName
                 </a>
                 @if (loggedIn) {
                  <div class="dropdown-menu dropdown-menu-right">
                    <a class="dropdown-item" href="/@userName">
-                     <i class="fa fa-fw fa-user-circle" aria-hidden="true"></i>
+                     <i class="fa fa-fw fa-user" aria-hidden="true"></i>
                      Profil
                    </a>
                    <a class="dropdown-item" href="/@userName/?tab=stars">
@@ -463,7 +464,7 @@
         <ul class="navbar-nav">
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle hide-caret" asp-controller="Home" asp-action="Docs" role="button" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa fa-fw fa-ellipsis-h" title="Dokumentasjon" aria-hidden="true"></i>
+                    <i class="ai ai-more" title="Dokumentasjon" aria-hidden="true"></i>
                     <span class="sr-only">Dokumentasjon</span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right">

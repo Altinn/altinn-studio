@@ -139,7 +139,7 @@ export class SelectionEditComponent
       <div>
         <Grid item={true} xs={12}>
           {renderSelectDataModelBinding(
-            this.props.component.dataModelBinding,
+            this.props.component.dataModelBindings,
             this.props.handleDataModelChange,
             this.props.language,
           )}
@@ -147,10 +147,12 @@ export class SelectionEditComponent
             this.props.handleTitleChange,
             this.props.textResources,
             this.props.language,
-            this.props.component.title)}
+            this.props.component.textResourceBindings.title)}
           {renderSelectTextFromResources('modal_properties_description_helper',
-            this.props.handleDescriptionChange, this.props.textResources,
-            this.props.language, this.props.component.description)}
+            this.props.handleDescriptionChange,
+            this.props.textResources,
+            this.props.language,
+            this.props.component.textResourceBindings.description)}
           <Typography classes={{ root: this.props.classes.textWithTopPadding }}>
             {(this.props.type === 'radiobuttons') ?
               this.props.language.ux_editor.modal_properties_add_radio_button_options :

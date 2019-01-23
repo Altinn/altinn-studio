@@ -36,6 +36,7 @@ export interface IFormElementProps extends IProvidedProps {
   connections: any;
   externalApi: any;
   dataModelElement: IDataModelFieldElement;
+  dataModel: IDataModelFieldElement[];
   validationErrors: any[];
   textResources: any[];
   thirdPartyComponents: any;
@@ -71,12 +72,14 @@ class FormComponent extends React.Component<
    * that is sendt to the different Action dispatcher.
    * This event handler is used for all form components rendered from this
    */
-  public handleComponentDataUpdate = (callbackValue: any): void => {
-    if (!this.props.component.dataModelBinding) {
+  public handleComponentDataUpdate = (callbackValue: any, key: string = 'simpleBinding'): void => {
+    if (!this.props.component.dataModelBindings || !this.props.component.dataModelBindings[key]) {
       return;
     }
-
-    this.props.handleDataUpdate(this.props.id, this.props.dataModelElement, callbackValue);
+    const dataModelElement = this.props.dataModel.find(
+      (element) => element.DataBindingName === this.props.component.dataModelBindings[key],
+    );
+    this.props.handleDataUpdate(this.props.id, dataModelElement, callbackValue);
   }
 
   /**
@@ -117,10 +120,14 @@ class FormComponent extends React.Component<
       this.props.component.component === 'AddressComponent') {
       return null;
     }
-
-    if (this.props.component.title) {
+    if (!this.props.component.textResourceBindings) {
+      return null;
+    }
+    if (this.props.component.textResourceBindings.title) {
       const label: string =
-        this.props.designMode ? this.props.component.title : this.getTextResource(this.props.component.title);
+        this.props.designMode ?
+          this.props.component.textResourceBindings.title :
+          this.getTextResource(this.props.component.textResourceBindings.title);
       return (
         <label className='a-form-label title-label' htmlFor={this.props.id}>
           {label}
@@ -136,11 +143,14 @@ class FormComponent extends React.Component<
   }
 
   public renderDescription = (): JSX.Element => {
-    if (this.props.component.description) {
+    if (!this.props.component.textResourceBindings) {
+      return null;
+    }
+    if (this.props.component.textResourceBindings.description) {
       const description: string =
         this.props.designMode ?
-          this.props.component.description :
-          this.getTextResource(this.props.component.description);
+          this.props.component.textResourceBindings.description :
+          this.getTextResource(this.props.component.textResourceBindings.description);
       return (
         <span className='a-form-label description-label'>{description}</span>
       );
@@ -239,7 +249,9 @@ const makeMapStateToProps = () => {
     order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
-      (element) => element.DataBindingName === state.formDesigner.layout.components[props.id].dataModelBinding),
+      (element) =>
+        element.DataBindingName ===
+        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:
@@ -248,6 +260,7 @@ const makeMapStateToProps = () => {
         : null,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,
+    dataModel: state.appData.dataModel.model,
   });
   return mapStateToProps;
 };
