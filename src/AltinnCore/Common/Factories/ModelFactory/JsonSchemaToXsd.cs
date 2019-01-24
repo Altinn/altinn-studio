@@ -14,7 +14,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
     public class JsonSchemaToXsd
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
-        private const int MagicNumberMaxOccurs = 999;
+        private const int MagicNumberMaxOccurs = 99999;
 
         /// <summary>
         ///       Creates a XML schema object from the JSON Schema
@@ -100,7 +100,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void ExtractProperties(XmlSchema xsdSchema, string name, JsonSchema jSchema)
         {
-            if (jSchema.Properties() != null || jSchema.AllOf() != null)
+            if (jSchema == JsonSchema.Empty)
+            {
+                // empty type, 
+                var complexType = new XmlSchemaComplexType();
+                complexType.Name = name;
+
+                xsdSchema.Items.Add(complexType);                
+            }
+            else if (jSchema.Properties() != null || jSchema.AllOf() != null)
             {
                 XmlSchemaComplexType complexType = ExtractComplexType(name, jSchema);
                 xsdSchema.Items.Add(complexType);
@@ -108,7 +116,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else
             {
                 XmlSchemaSimpleType simpleType = ExtractSimpleType(name, jSchema);
-                xsdSchema.Items.Add(simpleType);
+                                
+                xsdSchema.Items.Add(simpleType);               
             }
         }
 
@@ -225,7 +234,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (type == null)
             {
-                throw new ApplicationException("Empty type definition for property named " + name + ". Unable to map it to XSD");
+                // assume string type if type is missing
+                var noTypeSimpleType = ExtractStringFacets(jSchema);
+                noTypeSimpleType.BaseTypeName = null;
+
+                simpleType.Content = noTypeSimpleType;                 
+
+                return simpleType;
             }
 
             if (type.Value == JsonSchemaType.String)

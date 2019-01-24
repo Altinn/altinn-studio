@@ -91,10 +91,9 @@ namespace AltinnCore.UnitTest.Common
         {
             int failCount = 0;
             int equalityCount = 0;
-
-            string[] files = Directory.GetFiles("d:/tmp/altinn-schemas/", "*.xsd", SearchOption.AllDirectories);
-
-            /* string[] files = { "d:/tmp/altinn-schemas/schema_1178_2_forms_3378_35098.xsd" };*/
+            
+            // string[] files = Directory.GetFiles("d:/tmp/altinn-schemas/", "*.xsd", SearchOption.AllDirectories);
+            string[] files = { "d:/tmp/altinn-schemas/schema_1178_2_forms_3378_35098.xsd" };
 
             foreach (string filePath in files)
             {
@@ -158,20 +157,21 @@ namespace AltinnCore.UnitTest.Common
 
         private static XmlSchema ConvertFromJsdToXsd(JsonSchema jsonSchema1, string fileName)
         {
-            try
-            {
+            /*try
+            {*/
                 XmlSchema xmlSchema2;
                 JsonSchemaToXsd jsonConverter1 = new JsonSchemaToXsd();
                 xmlSchema2 = jsonConverter1.CreateXsd(jsonSchema1);
                 SaveXmlSchema(xmlSchema2, fileName);
                 return xmlSchema2;
-            }
+            /*}
             catch (Exception e)
             {
-                Debug.WriteLine("Failed JsdToXsd conversion: " + fileName + " Reason: " + e.Message);
-            }
+                Debug.WriteLine("Failed JsdToXsd conversion of: " + fileName + " Reason: " + e.Message);
+                throw e;
+            } 
 
-            return null;
+            return null;*/
         }
     }       
  }
