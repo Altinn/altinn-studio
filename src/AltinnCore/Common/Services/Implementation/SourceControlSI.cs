@@ -248,39 +248,29 @@ namespace AltinnCore.Common.Services.Implementation
         /// Commit changes for repository
         /// </summary>
         /// <param name="commitInfo">Information about the commit</param>
-        /// <returns>http response message as ok if commit operation is successful</returns>
-        public HttpResponseMessage Commit(CommitInfo commitInfo)
+        public void Commit(CommitInfo commitInfo)
         {
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
+                string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
+                Remote remote = repo.Network.Remotes["origin"];
+
+                if (!remote.PushUrl.Equals(remoteUrl))
                 {
-                    string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
-                    Remote remote = repo.Network.Remotes["origin"];
-
-                    if (!remote.PushUrl.Equals(remoteUrl))
-                    {
-                        // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
-                        // Requires adminstrator access to update files.
-                        repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
-                    }
-
-                    Commands.Stage(repo, "*");
-
-                    // Create the committer's signature and commit
-                    LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
-                    LibGit2Sharp.Signature committer = author;
-
-                    // Commit to the repository
-                    LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
+                    // This is relevant when we switch beteen running designer in local or in docker. The remote URL changes.
+                    // Requires adminstrator access to update files.
+                    repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
                 }
 
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            catch (Exception)
-            {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                Commands.Stage(repo, "*");
+
+                // Create the committer's signature and commit
+                LibGit2Sharp.Signature author = new LibGit2Sharp.Signature(AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext), "@jugglingnutcase", DateTime.Now);
+                LibGit2Sharp.Signature committer = author;
+
+                // Commit to the repository
+                LibGit2Sharp.Commit commit = repo.Commit(commitInfo.Message, author, committer);
             }
         }
 
@@ -503,33 +493,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns>Http response message as ok if reset operation is successful</returns>
-        public HttpResponseMessage ResetCommit(string owner, string repository)
+        public void ResetCommit(string owner, string repository)
         {
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                if (repo.RetrieveStatus().IsDirty)
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    repo.Reset(ResetMode.Hard, "origin/master");
+                    repo.RemoveUntrackedFiles();
                 }
-
-                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
-                {
-                    if (repo.RetrieveStatus().IsDirty)
-                    {
-                        repo.Reset(ResetMode.Hard, "origin/master");
-                        repo.RemoveUntrackedFiles();
-                    }
-                }
-
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            catch (Exception ex)
-            {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
 
@@ -540,34 +513,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
-        /// <returns>Http response message as ok if checkout operation is successful</returns>
-        public HttpResponseMessage CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
         {
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                CheckoutOptions checkoutOptions = new CheckoutOptions
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
-                }
+                    CheckoutModifiers = CheckoutModifiers.Force,
+                };
 
-                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
-                {
-                    CheckoutOptions checkoutOptions = new CheckoutOptions
-                    {
-                        CheckoutModifiers = CheckoutModifiers.Force,
-                    };
-
-                    repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
-                }
-
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            catch (Exception)
-            {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
             }
         }
 
@@ -576,42 +532,20 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="owner">The owner of the repository.</param>
         /// <param name="repository">The name of the repository.</param>
-        /// <param name="fileName">the entire file path with filen name</param>
-        /// <returns>Http response message as ok if checkout operation is successful.</returns>
-        public HttpResponseMessage StageChange(string owner, string repository, string fileName)
+        /// <param name="fileName">the entire file path with filen name</param>        
+        public void StageChange(string owner, string repository, string fileName)
         {
-            HttpResponseMessage responseMessage = new HttpResponseMessage();
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
+
+                if (fileStatus == FileStatus.ModifiedInWorkdir ||
+                    fileStatus == FileStatus.NewInWorkdir ||
+                    fileStatus == FileStatus.Conflicted)
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    Commands.Stage(repo, fileName);
                 }
-
-                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
-                {
-                    FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
-
-                    if (fileStatus == FileStatus.ModifiedInWorkdir ||
-                        fileStatus == FileStatus.NewInWorkdir ||
-                        fileStatus == FileStatus.Conflicted)
-                    {
-                        Commands.Stage(repo, fileName);
-                    }
-                }
-
-                // To do return custom reposnse message when a file is not found or when a file with no change is sent to stage
-                responseMessage.StatusCode = HttpStatusCode.OK;
-                return responseMessage;
-            }
-            catch (Exception ex)
-            {
-                responseMessage.StatusCode = HttpStatusCode.InternalServerError;
-                responseMessage.ReasonPhrase = ex.Message;
-                return responseMessage;
             }
         }
 
@@ -620,32 +554,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns>Http response message as ok if abort merge operation is successful</returns>
-        public HttpResponseMessage AbortMerge(string owner, string repository)
+        public void AbortMerge(string owner, string repository)
         {
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                if (repo.RetrieveStatus().IsDirty)
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    repo.Reset(ResetMode.Hard, "heads/master");
                 }
-
-                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
-                {
-                    if (repo.RetrieveStatus().IsDirty)
-                    {
-                        repo.Reset(ResetMode.Hard, "heads/master");
-                    }
-                }
-
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            catch (Exception ex)
-            {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
@@ -136,7 +137,15 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public ActionResult<HttpResponseMessage> Commit([FromBody]CommitInfo commitInfo)
         {
-            return _sourceControl.Commit(commitInfo);
+            try
+            {
+                _sourceControl.Commit(commitInfo);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -208,7 +217,22 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult<HttpResponseMessage> DiscardLocalChanges(string owner, string repository)
         {
-            return _sourceControl.ResetCommit(owner, repository);
+            try
+            {
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+
+                _sourceControl.ResetCommit(owner, repository);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -221,7 +245,22 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult<HttpResponseMessage> DiscardLocalChangesForSpecificFile(string owner, string repository, string fileName)
         {
-            return _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+            try
+            {
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+
+                _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -234,7 +273,22 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult<HttpResponseMessage> StageChange(string owner, string repository, string fileName)
         {
-            return _sourceControl.StageChange(owner, repository, fileName);
+            try
+            {
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+
+                _sourceControl.StageChange(owner, repository, fileName);
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
 
         /// <summary>
@@ -295,7 +349,23 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ActionResult<HttpResponseMessage> AbortMerge(string owner, string repository)
         {
-            return _sourceControl.AbortMerge(owner, repository);
+            try
+            {
+                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                {
+                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
+                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
+                    return badRequest;
+                }
+
+                _sourceControl.AbortMerge(owner, repository);
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
         }
     }
 }
