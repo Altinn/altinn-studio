@@ -21,7 +21,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private Dictionary<string, XDocument> secondaryXsds;
         private XDocument xsd;
         private ISet<string> _complexTypes;
-        private Dictionary<string, string> globalElements = new Dictionary<string, string>();
 
         /// <summary>
         ///     Initializes a new instance of the <see cref="SeresXsdParser" /> class
@@ -125,25 +124,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var allTexts = new CultureDictionary();
 
             _complexTypes = new HashSet<string>();
-
-            // make sure simplified global element names are unique
-            foreach (XElement element in xsd.Root.Elements())
-            {
-                if (element.Name.Equals(XDocName.Element))
-                {
-                    string elementName = element.AttributeValue("name");
-                    string simplifiedName = SanitizeName(elementName);
-
-                    if (globalElements.ContainsValue(simplifiedName))
-                    {
-                        globalElements.Add(elementName, elementName.Replace("-", string.Empty));
-                    }
-                    else
-                    {
-                        globalElements.Add(elementName, simplifiedName);
-                    }
-                }
-            }
 
             // Build metadata recursively
             BuildJsonRecursive(rootComplexType, serviceMetadata.Elements, "/" + rootName, allTexts);
@@ -344,12 +324,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         if (actualElement.Element(XDocName.SimpleContent) != null)
                         {
                             var simpleContent = actualElement.Element(XDocName.SimpleContent);
-                            string xtraTypeName = SanitizeName(typeName);
-                            var referencedElementName = globalElements.GetValueOrDefault(typeName);
-                            if (!string.IsNullOrEmpty(referencedElementName))
-                            {
-                                xtraTypeName = referencedElementName;
-                            }
+                            string xtraTypeName = SanitizeName(typeName);              
 
                             ProcessSimpleContent(
                                 actualElement,
@@ -542,20 +517,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         /// <summary>
-        /// Returns a sanitized name. It removes -, grp-9999 and datadef-9999
+        /// Returns a sanitized name. It removes - in names since these are not allowed in C#. Hence,
+        /// Inntekt-grp-22384 will become Inntektgrp22384
         /// </summary>
         /// <param name="name">the name to sanitize</param>
         /// <returns>the santized name</returns>
         public static string SanitizeName(string name)
         {
-            if (!string.IsNullOrEmpty(GetOrid(name)))
-            {
-                return name.Split("-")[0]; 
-            }
-            else
-            {
-                return name.Replace("-", string.Empty);
-            }
+            return name.Replace("-", string.Empty);
         }
 
         private static void AddSchemaReferenceInformation(XElement currentComplexType, ElementMetadata elementMetadata)
