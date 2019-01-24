@@ -11,6 +11,7 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Microsoft.Extensions.Logging;
+using NUnit.Framework;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Common
@@ -20,12 +21,12 @@ namespace AltinnCore.UnitTest.Common
     /// </summary>
     public class XsdToJsonSchemaTest
     {
-        private ILogger _logger = new LoggerFactory().CreateLogger("error");
+        private ILogger _logger = TestLogger.Create<XsdToJsonSchemaTest>();
 
         /// <summary>
         /// Test converting all provided XSDs to Json Schema
         /// </summary>
-        // [Fact]
+        [Fact]
         public void ConvertXSDsToJsonSchema()
         {
             int failCount = 0;
@@ -34,16 +35,18 @@ namespace AltinnCore.UnitTest.Common
 
             foreach (string file in files)
             {
-                Debug.WriteLine("Converting file " + file + " to Json Schema");
+                _logger.LogInformation("Converting file " + file + " to Json Schema");
 
+                XsdToJsonSchema converter;
+                JsonValue schemaText;
                 try
                 {
-                    XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader(file));
-                    var schemaText = converter.AsJsonSchema();
+                    converter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
+                    schemaText = converter.AsJsonValue();
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Failed converting file " + file + ": " + e.Message);
+                    _logger.LogError("Failed converting file " + file + ": " + e.Message);
                     failCount++;
                 }
             }

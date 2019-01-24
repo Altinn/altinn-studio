@@ -85,7 +85,7 @@ namespace AltinnCore.UnitTest.Common
             return jsonSchema1 == jsonSchema2;            
         }
 
-        // [Fact]
+        [Fact]
         private void FromXsdToJsdAndBack()
         {
             int failCount = 0;
