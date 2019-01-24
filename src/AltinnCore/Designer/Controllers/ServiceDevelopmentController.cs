@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Enums;
@@ -102,7 +104,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="fileName">The name of the file to save.</param>
         /// <returns>The content of the file.</returns>
         [HttpPost]
-        public IActionResult SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
+        public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
         {
             string content = string.Empty;
             using (var reader = new StreamReader(Request.Body))
@@ -134,10 +136,10 @@ namespace AltinnCore.Designer.Controllers
                     break;
                 default:
                     // Return 501 Not Implemented
-                    return StatusCode(501);
+                    return new HttpResponseMessage(HttpStatusCode.NotImplemented);
             }
 
-            return StatusCode(200);
+            return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
         private ActionResult GetImplementationFiles(string org, string service)

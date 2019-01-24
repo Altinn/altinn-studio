@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Implmentation for source control 
+    /// Implmentation for source control
     /// </summary>
     public class SourceControlSI : ISourceControl
     {
@@ -90,12 +90,12 @@ namespace AltinnCore.Common.Services.Implementation
             return false;
         }
 
-       /// <summary>
-       /// Pulls remote changes
-       /// </summary>
-       /// <param name="owner">Owner of the repository</param>
-       /// <param name="repository">The repository</param>
-       /// <returns>The repo status</returns>
+        /// <summary>
+        /// Pulls remote changes
+        /// </summary>
+        /// <param name="owner">Owner of the repository</param>
+        /// <param name="repository">The repository</param>
+        /// <returns>The repo status</returns>
         public RepoStatus PullRemoteChanges(string owner, string repository)
         {
             RepoStatus status = new RepoStatus();
@@ -186,7 +186,7 @@ namespace AltinnCore.Common.Services.Implementation
             string localServiceRepoFolder = _settings.GetServicePath(commitInfo.Org, commitInfo.Repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                // Restrict users from empty commit 
+                // Restrict users from empty commit
                 if (repo.RetrieveStatus().IsDirty)
                 {
                     string remoteUrl = FindRemoteRepoLocation(commitInfo.Org, commitInfo.Repository);
@@ -275,7 +275,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// List the GIT status of a repositor
+        /// List the GIT status of a repository
         /// </summary>
         /// <param name="org">The organization owning the repository</param>
         /// <param name="repository">The name of the repository</param>
@@ -299,11 +299,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gives the full repository status for 
+        /// Gives the complete repository status
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
         /// <param name="repository">The name of repository</param>
-        /// <returns>The repo status</returns>
+        /// <returns>The repository status</returns>
         public RepoStatus RepositoryStatus(string owner, string repository)
         {
             RepoStatus repoStatus = new RepoStatus();
@@ -322,7 +322,7 @@ namespace AltinnCore.Common.Services.Implementation
                         repoStatus.RepositoryStatus = Enums.RepositoryStatus.MergeConflict;
                         repoStatus.HasMergeConflict = true;
                     }
-                     
+
                     repoStatus.ContentStatus.Add(content);
                 }
 
@@ -493,33 +493,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns>Http response message as ok if reset operation is successful</returns>
-        public HttpResponseMessage ResetCommit(string owner, string repository)
+        public void ResetCommit(string owner, string repository)
         {
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository))
+                if (repo.RetrieveStatus().IsDirty)
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
+                    repo.Reset(ResetMode.Hard, "origin/master");
+                    repo.RemoveUntrackedFiles();
                 }
-
-                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
-                {
-                    if (repo.RetrieveStatus().IsDirty)
-                    {
-                        repo.Reset(ResetMode.Hard, "origin/master");
-                        repo.RemoveUntrackedFiles();
-                    }
-                }
-
-                return new HttpResponseMessage(HttpStatusCode.OK);
-            }
-            catch (Exception ex)
-            {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
         }
 
@@ -530,34 +513,56 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
-        /// <returns>Http response message as ok if checkout operation is successful</returns>
-        public HttpResponseMessage CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
+        public void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName)
         {
-            try
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                if (string.IsNullOrEmpty(owner) || string.IsNullOrEmpty(repository) || string.IsNullOrEmpty(fileName))
+                CheckoutOptions checkoutOptions = new CheckoutOptions
                 {
-                    HttpResponseMessage badRequest = new HttpResponseMessage(HttpStatusCode.BadRequest);
-                    badRequest.ReasonPhrase = "One or all of the input parameters are null";
-                    return badRequest;
-                }
+                    CheckoutModifiers = CheckoutModifiers.Force,
+                };
 
-                string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-                using (Repository repo = new Repository(localServiceRepoFolder))
-                {
-                    CheckoutOptions checkoutOptions = new CheckoutOptions
-                    {
-                        CheckoutModifiers = CheckoutModifiers.Force,
-                    };
-
-                    repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
-                }
-
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                repo.CheckoutPaths("origin/master", new[] { fileName }, checkoutOptions);
             }
-            catch (Exception)
+        }
+
+        /// <summary>
+        /// Stages a specific file changed in working repository.
+        /// </summary>
+        /// <param name="owner">The owner of the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <param name="fileName">the entire file path with filen name</param>        
+        public void StageChange(string owner, string repository, string fileName)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                FileStatus fileStatus = repo.RetrieveStatus().SingleOrDefault(file => file.FilePath == fileName).State;
+
+                if (fileStatus == FileStatus.ModifiedInWorkdir ||
+                    fileStatus == FileStatus.NewInWorkdir ||
+                    fileStatus == FileStatus.Conflicted)
+                {
+                    Commands.Stage(repo, fileName);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Halts the merge operation and keeps local changes.
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        public void AbortMerge(string owner, string repository)
+        {
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (Repository repo = new Repository(localServiceRepoFolder))
+            {
+                if (repo.RetrieveStatus().IsDirty)
+                {
+                    repo.Reset(ResetMode.Hard, "heads/master");
+                }
             }
         }
     }

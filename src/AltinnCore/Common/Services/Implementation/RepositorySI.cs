@@ -706,7 +706,7 @@ namespace AltinnCore.Common.Services.Implementation
                 serviceImplementationPath,
                 File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
-            string calculationHandlerPath = implementationDirectory + _settings.CalculationHandlerFileName;
+            string calculationHandlerPath = _settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
             File.WriteAllText(
                 calculationHandlerPath,
                 File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));

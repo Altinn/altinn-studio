@@ -38,6 +38,6 @@ const FetchLanguageActionDispatchers: IFetchLanguageDispatchers = bindActionCrea
 >(actions, store.dispatch);
 
 /**
- * Export the App Config dispatcher to be used from REACT components
+ * Export the dispatcher to be used from REACT components
  */
 export default FetchLanguageActionDispatchers;
