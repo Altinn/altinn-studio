@@ -26,11 +26,11 @@ const languages: ICodeLanguage = {
   },
   js: {
     name: 'javascript',
-    displayName: 'Javascript',
+    displayName: 'JavaScript',
   },
   ts: {
     name: 'typescript',
-    displayName: 'Typescript',
+    displayName: 'TypeScript',
   },
   json: {
     name: 'json',
@@ -110,6 +110,13 @@ const styles = createStyles({
   },
   specialBtn: {
     fontSize: '0.6em !important',
+  },
+  footerContent: {
+    minHeight: '3em',
+    textAlign: 'end',
+    color: '#6A6A6A',
+    paddingRight: '1.2em',
+    paddingBottom: '1.2em',
   },
 });
 
@@ -398,11 +405,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             </span>
           </Grid>
 
-          {this.props.closeFileEditor ? this.renderCloseButton() : null}
+          {/* Contains grid items */}
           {this.props.showSaveButton ? this.renderSaveButton() : null}
+          {/* Contains grid items */}
+          {this.props.closeFileEditor ? this.renderCloseButton() : null}
 
         </Grid>
-
         <Grid
           item={true}
           xs={12}
@@ -416,17 +424,10 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             onValueChange={this.onValueChange}
           />
         </Grid>
-        {
-          language.displayName ?
-            <React.Fragment>
-              <Grid item={true} xs={11} />
-              <Grid item={true} xs={1}>
-                <span>{language.displayName}</span>
-              </Grid>
-            </React.Fragment>
-            :
-            null
-        }
+        <Grid className={classes.footerContent} item={true} xs={11} />
+        <Grid className={classes.footerContent} item={true} xs={1}>
+          <span>{language.displayName}</span>
+        </Grid>
       </Grid >
     );
   }
