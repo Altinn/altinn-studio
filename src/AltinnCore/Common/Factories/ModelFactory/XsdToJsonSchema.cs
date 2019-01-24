@@ -128,7 +128,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else if (item is XmlSchemaGroup || item is XmlSchemaAttributeGroup || item is XmlSchemaAttribute)
             {
-                // Do nothing. xsd:group and top-level xsd:attribute is expanded in place
+                // Do nothing. xsd:group and top-level xsd:attribute are expanded in place
                 return null;
             }
             else
@@ -192,7 +192,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.IsAbstract)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Abstract");
             }
 
             if (!item.IsNillable)
@@ -768,7 +768,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string name = (qname == null || qname.IsEmpty) ? null : qname.Name;
             if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
             {
-                // xs:anyType
+                _logger.LogInformation("null type requested. Using string");
                 appendToSchema.Type(JsonSchemaType.String);
             }
             else if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
@@ -1358,6 +1358,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
+            _logger.LogInformation("FindObject: Couldn't find \"" + name.ToString() + "\"");
             return null;
         }
 
