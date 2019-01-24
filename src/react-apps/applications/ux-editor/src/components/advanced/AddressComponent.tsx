@@ -25,6 +25,7 @@ export interface IAddressComponentState {
   careOf: string;
   houseNumber: string;
   validations: IAddressValidationErrors;
+  mounted: boolean;
 }
 
 export enum AddressKeys {
@@ -49,7 +50,23 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         zipCode: null,
         houseNumber: null,
       },
+      mounted: false,
     };
+    if (this.state.zipCode) {
+      this.fetchPostPlace(this.state.zipCode);
+    }
+  }
+
+  public componentWillUnmount: () => void = () => {
+    this.setState({
+      mounted: false,
+    });
+  }
+
+  public componentDidMount: () => void = () => {
+    this.setState({
+      mounted: true,
+    });
   }
 
   public fetchPostPlace: (zipCode: string) => void = (zipCode: string) => {
@@ -60,7 +77,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           pnr: zipCode,
         },
       }).then((response: AxiosResponse) => {
-        if (response.data.valid) {
+        if (response.data.valid && this.state.mounted) {
           this.setState({
             postPlace: response.data.result,
             validations: {
@@ -69,7 +86,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           }, () => {
             this.onBlurField(AddressKeys.postPlace);
           });
-        } else {
+        } else if (this.state.mounted) {
           this.setState({
             postPlace: '',
             validations: {

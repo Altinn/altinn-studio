@@ -102,12 +102,14 @@ namespace AltinnCore.UnitTest.Common
 
                 JsonSchema jsonSchema1 = null, jsonSchema2 = null;
                 XmlSchema xmlSchema2 = null, xmlSchema3 = null;
-                string fileName = filePath.Substring(filePath.LastIndexOf("/") + 1).Split(".")[0];                
+
+                string fileName = filePath.Substring(filePath.LastIndexOf("/") + 1).Split(".")[0];                            
 
                 try
                 {                
                     XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader(filePath), TestLogger.Create<XsdToJsonSchema>());
                     jsonSchema1 = converter.AsJsonSchema();
+
                     SaveJsonSchema(jsonSchema1,  "jsd1_" + fileName + ".schema.json");
                 }
                 catch (Exception e)

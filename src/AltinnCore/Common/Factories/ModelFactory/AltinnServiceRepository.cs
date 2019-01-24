@@ -79,21 +79,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public static async Task<JsonArray> ReadAllSchemaUrls()
         {
             List<AltinnResource> resources = await GetResourcesAsync();
-            JsonArray result = new JsonArray();
+            var result = new JsonArray();
 
             foreach (AltinnResource resource in resources)
             {
                 System.Diagnostics.Debug.WriteLine(resource.ServiceName);
-                JsonObject service = new JsonObject();
 
-                service.Add("ownerCode", resource.ServiceOwnerCode);
-                service.Add("ownerName", resource.ServiceOwnerName);
-                service.Add("code", resource.ServiceCode);
-                service.Add("name", resource.ServiceName);
-                service.Add("edition", resource.ServiceEditionCode);
-                service.Add("type", resource.ServiceType);
-                service.Add("validFrom", resource.ValidFrom.ToString());
-                service.Add("validTo", resource.ValidTo.ToString());
+                JsonObject service = new JsonObject
+                {
+                    { "ownerCode", resource.ServiceOwnerCode },
+                    { "ownerName", resource.ServiceOwnerName },
+                    { "code", resource.ServiceCode },
+                    { "name", resource.ServiceName },
+                    { "edition", resource.ServiceEditionCode },
+                    { "type", resource.ServiceType },
+                    { "validFrom", resource.ValidFrom.ToString() },
+                    { "validTo", resource.ValidTo.ToString() },
+                };
 
                 JsonArray forms = new JsonArray();
                 service.Add("forms", forms);

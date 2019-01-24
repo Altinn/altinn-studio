@@ -1,3 +1,4 @@
+import 'jest';
 import * as React from 'react';
 import { MemoryRouter } from 'react-router';
 import * as renderer from 'react-test-renderer';
