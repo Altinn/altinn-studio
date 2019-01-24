@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Manatee.Json;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
@@ -37,23 +38,27 @@ namespace AltinnCore.UnitTest.Common
         /// <summary>
         ///  read and save
         /// </summary>
-        /// [Fact]
+        [Fact]
         public async void ReadAllAsync()
         {
-            List<string> schemaUrls = await AltinnServiceRepository.ReadAllSchemaUrls();
+            var services = await AltinnServiceRepository.ReadAllSchemaUrls();            
+            
+            File.WriteAllText("altinn-xsds.json", services.ToString());
 
-            var json = JsonConvert.SerializeObject(schemaUrls);
-
-            File.WriteAllText("altinn-xsds.json", json);
-
-            foreach (string schemaUrl in schemaUrls)
+            foreach (JsonValue service in services)
             {
-                var webClient = new WebClient();
-                string fileName = schemaUrl.Replace("https://www.altinn.no/api/metadata/formtask", "schema");
-                fileName = fileName.Replace("/", "_");
-                fileName = fileName.Replace("_xsd", ".xsd");
-                
-                webClient.DownloadFile(schemaUrl, fileName);
+                JsonArray formArray = service.Object.TryGetArray("forms");
+
+                foreach (JsonValue form in formArray)
+                {
+                    var webClient = new WebClient();
+                    string schemaUrl = form.Object.TryGetString("schemaUrl");
+                    string fileName = schemaUrl.Replace("https://www.altinn.no/api/metadata/formtask", "schema");
+                    fileName = fileName.Replace("/", "_");
+                    fileName = fileName.Replace("_xsd", ".xsd");
+
+                    webClient.DownloadFile(schemaUrl, fileName);
+                }
             }
         }
 

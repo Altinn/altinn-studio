@@ -246,7 +246,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else if (type.Value == JsonSchemaType.Array)
             {
-                /* Todo - logic here */
+                string xlist = jSchema.OtherData.TryGetString("@xsdType");
+                if (xlist.Equals("XmlList"))
+                {
+                    XmlSchemaSimpleTypeList theList = new XmlSchemaSimpleTypeList();
+                    List<JsonSchema> items = GetterExtensions.Items(jSchema);
+                    string typeRef = GetterExtensions.Ref(items[0]);                    
+                    theList.ItemTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));
+
+                    simpleType.Content = theList;
+                }                
             }           
 
             return simpleType;
@@ -450,7 +459,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 foreach (JsonSchema schema in items)
                 {
                     string typeRef = GetterExtensions.Ref(schema);
-                    element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));
+                    element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));             
                 }
             }
 

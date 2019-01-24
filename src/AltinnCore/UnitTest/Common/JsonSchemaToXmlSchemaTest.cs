@@ -86,7 +86,7 @@ namespace AltinnCore.UnitTest.Common
             return jsonSchema1 == jsonSchema2;            
         }
 
-        // [Fact]
+        [Fact]
         private void FromXsdToJsdAndBack()
         {
             int failCount = 0;
@@ -94,7 +94,7 @@ namespace AltinnCore.UnitTest.Common
 
             string[] files = Directory.GetFiles("d:/tmp/altinn-schemas/", "*.xsd", SearchOption.AllDirectories);
 
-            /*string[] files = { "d:/tmp/altinn-schemas/schema_1162_140411_forms_1482_10868.xsd" };*/
+            /* string[] files = { "d:/tmp/altinn-schemas/schema_1178_2_forms_3378_35098.xsd" };*/
 
             foreach (string filePath in files)
             {
@@ -102,37 +102,38 @@ namespace AltinnCore.UnitTest.Common
 
                 JsonSchema jsonSchema1 = null, jsonSchema2 = null;
                 XmlSchema xmlSchema2 = null, xmlSchema3 = null;
-                string fileName = filePath.Substring(filePath.LastIndexOf("/") + 1);
+                string fileName = filePath.Substring(filePath.LastIndexOf("/") + 1).Split(".")[0];                
 
                 try
                 {                
                     XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader(filePath), TestLogger.Create<XsdToJsonSchema>());
                     jsonSchema1 = converter.AsJsonSchema();
-                    SaveJsonSchema(jsonSchema1, "jsd1_" + fileName);
+                    SaveJsonSchema(jsonSchema1,  "jsd1_" + fileName + ".schema.json");
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine("Failed XsdToJsd conversion: " + filePath + " Reason: " + e.Message);
                     failCount++;
-                }
+                }                
 
-                xmlSchema2 = ConvertFromJsdToXsd(jsonSchema1, "xsd2_" + fileName);
-                jsonSchema2 = ConvertFromXsdToJsd(xmlSchema2, "jsd2_" + fileName);
-                xmlSchema3 = ConvertFromJsdToXsd(jsonSchema2, "xsd3_" + fileName);
+                xmlSchema2 = ConvertFromJsdToXsd(jsonSchema1, "xsd2_" + fileName + ".xsd");
+                jsonSchema2 = ConvertFromXsdToJsd(xmlSchema2, "jsd2_" + fileName + ".schema.json");
+                xmlSchema3 = ConvertFromJsdToXsd(jsonSchema2, "xsd3_" + fileName + ".xsd");
                      
                 try
                 {
-                    // Assert.True(XmlDiff(xmlSchema2, xmlSchema3), "xsd1 != xsd2");
+                    // Assert.True(XmlDiff(xmlSchema2, xmlSchema3), "xsd2 != xsd3");
                     Assert.True(JsonDiff(jsonSchema1, jsonSchema2), "jsd1 != jsd2");
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine("Failed equality test " + e.Message);
                     equalityCount++;
-                }
+                }                
+            }
 
-                Assert.Equal(0, equalityCount);
-            }           
+            Assert.Equal(0, equalityCount);
+            Assert.Equal(0, failCount);
         }
 
         private static JsonSchema ConvertFromXsdToJsd(XmlSchema xmlSchema2, string fileName)
