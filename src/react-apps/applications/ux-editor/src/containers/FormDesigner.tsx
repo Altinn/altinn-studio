@@ -37,6 +37,9 @@ const styles = ((theme: Theme) => createStyles({
     flexGrow: 1,
     minHeight: 'calc(100vh - 69px)',
   },
+  drawerRoot: {
+    overflow: 'hidden',
+  },
   button: {
     'position': 'relative',
     'zIndex': 1201,
@@ -75,7 +78,6 @@ const styles = ((theme: Theme) => createStyles({
   },
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
-    borderRight: '1px solid #C9C9C9',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
     overflowY: 'auto',
   },
@@ -138,6 +140,7 @@ class FormDesigner extends React.Component<
       <Drawer
         anchor='bottom'
         open={this.state.codeEditorOpen}
+        classes={{paper: classNames(this.props.classes.drawerRoot)}}
       >
         <FileEditor
           mode={this.state.codeEditorMode.toString()}
