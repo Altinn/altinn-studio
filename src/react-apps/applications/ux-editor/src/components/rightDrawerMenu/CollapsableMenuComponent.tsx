@@ -46,7 +46,6 @@ export interface ICollapsableMenuProvidedProps {
   classes: any;
   header: string;
   listItems: ICollapsableMenuListItem[];
-  menuIsOpen: boolean;
 }
 
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
@@ -54,7 +53,6 @@ export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
 }
 
 export interface ICollapsableMenuState {
-  showContent: boolean;
   menuIsOpen: boolean;
 }
 
@@ -63,27 +61,22 @@ export interface ICollapsableMenuListItem {
   action?: () => void;
 }
 
-class CollapsableMenu extends React.Component<ICollapsableMenuProps> {
+class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsableMenuState> {
   constructor(_props: ICollapsableMenuProps) {
     super(_props);
     this.state = {
-      showContent: false,
-      menuIsOpen: _props.menuIsOpen,
+      menuIsOpen: true,
     };
   }
-  public toggleMenu = (e: any) => {
+
+  public toggleMenu = () => {
     this.setState({
-      menuIsOpen: !e.menuIsOpen,
-    });
-  }
-  public showContent = (e: any) => {
-    this.setState({
-      showContent: !e.showContent,
+      menuIsOpen: !this.state.menuIsOpen,
     });
   }
   public handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
-      this.toggleMenu(e);
+      this.toggleMenu();
     }
   }
   public render(): JSX.Element {
@@ -93,31 +86,32 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps> {
           className={this.props.classes.listItem + ' ' + this.props.classes.listItemHeader}
         >
           <ListItemIcon
-            className={this.props.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
+            className={this.state.menuIsOpen ? this.props.classes.rotateDown : this.props.classes.rotateRight}
             onClick={this.toggleMenu}
             tabIndex={0}
             onKeyPress={this.handleKeyPress}
-            key={0}
           >
             <i className={'ai ai-expand ' + this.props.classes.icon} />
           </ListItemIcon>
           <span className={this.props.classes.collapseHeader}>{this.props.header}</span>
         </ListItem>
-        {this.props.menuIsOpen && this.props.listItems.map((item, index) => {
+        {this.state.menuIsOpen && typeof(this.props.listItems[0].name) !== 'undefined'
+          && this.props.listItems.map((item, index) => {
           return (
-            <>
-            <ListItem key={index} className={this.props.classes.listItem}>
-              <span
-                className={this.props.classes.link}
-                onClick={item.action}
-              >
-                {item.name}
-              </span>
-            </ListItem>
-            {this.props.children}
-            </>
+            <div key={item.name}>
+              <ListItem  className={this.props.classes.listItem}>
+                <span
+                  className={this.props.classes.link}
+                  onClick={item.action}
+                >
+                  {item.name}
+                </span>
+              </ListItem>
+              {this.props.children}
+            </div>
           );
-        })}
+        })
+      }
       </List>
     );
   }
@@ -131,7 +125,6 @@ const mapStateToProps: (
   header: props.header,
   language: state.appData.language.language,
   listItems: props.listItems,
-  menuIsOpen: props.menuIsOpen,
 });
 
 export const CollapsableMenuComponent =

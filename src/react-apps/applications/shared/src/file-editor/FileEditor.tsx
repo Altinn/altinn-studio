@@ -51,6 +51,7 @@ export interface IFileEditorState {
   selectedFile: string;
   availableFiles: string[];
   value: string;
+  mounted: boolean;
 }
 
 const styles = createStyles({
@@ -78,11 +79,11 @@ const styles = createStyles({
     display: 'none',
   },
   formComponentsBtn: {
-    fontSize: '0.85em',
-    fill: altinnTheme.altinnPalette.primary.blue,
-    paddingLeft: '0',
-    marginTop: '0.1em',
-    outline: 'none !important',
+    'fontSize': '0.85em',
+    'fill': altinnTheme.altinnPalette.primary.blue,
+    'paddingLeft': '0',
+    'marginTop': '0.1em',
+    'outline': 'none !important',
     '&:hover': {
       background: 'none',
     },
@@ -99,6 +100,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       selectedFile: '',
       availableFiles: [],
       value: '',
+      mounted: false,
     };
   }
 
@@ -114,6 +116,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         return {
           ...prevState,
           availableFiles: files,
+          mounted: true,
         };
       });
     });
@@ -141,14 +144,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.loadFileContent(fileName);
   }
 
-  public saveFile = (e: any) => {
+  public saveFile = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service} = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
     `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
-    post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then((response) => {
-      if (this.props.closeFileEditor) {
+    post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then(() => {
+      if (this.state.mounted && this.props.closeFileEditor) {
         this.props.closeFileEditor();
       }
     });
@@ -164,8 +167,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public getLanguageFromFileName = (): any => {
-    const splitFileName = this.state.selectedFile.split('.');
-    if (splitFileName && splitFileName.length > 1) {
+    if (this.state.selectedFile && this.state.selectedFile.length > 1) {
+      const splitFileName = this.state.selectedFile.split('.');
       const extension = splitFileName[splitFileName.length - 1];
       if (languages[extension]) {
         return languages[extension];
