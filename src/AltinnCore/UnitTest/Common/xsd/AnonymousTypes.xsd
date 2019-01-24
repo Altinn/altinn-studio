@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <xsd:element name="a">
+      <xsd:complexType>
+          <xsd:sequence>
+              <xsd:element name="a">
+                <xsd:complexType>
+                  <xsd:sequence>
+                    <xsd:element name="b" type="xsd:string"/>
+                  </xsd:sequence>
+                </xsd:complexType>
+              </xsd:element>
+              <xsd:element name="c" type="xsd:string"/>
+              <xsd:element name="test" default="sdfg" form="unqualified" block="extension"/>
+              <xsd:element name="test2" fixed="sdfg" form="unqualified" block="extension"/>
+          </xsd:sequence>
+      </xsd:complexType>
+    </xsd:element>
+    <xsd:element name="b" type="xsd:string"/>
+  <xsd:element name="test2" substitutionGroup="a" abstract="false" block="#all" final="#all"/>
+</xsd:schema>

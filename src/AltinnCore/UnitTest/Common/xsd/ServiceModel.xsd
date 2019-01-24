@@ -24,6 +24,7 @@
       </xs:documentation>
     </xs:annotation>
     <xs:complexType>
+      <xs:annotation><xs:documentation>annotation on complextype inside element</xs:documentation></xs:annotation>
       <xs:sequence>
         <xs:element minOccurs="0" ref="Skattyterinfor-grp-5801" />
         <xs:element minOccurs="0" ref="klage-grp-5805" />
