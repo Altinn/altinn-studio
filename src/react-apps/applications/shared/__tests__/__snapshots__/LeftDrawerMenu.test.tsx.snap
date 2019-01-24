@@ -41,6 +41,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -75,6 +76,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -109,6 +111,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -143,6 +146,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -177,6 +181,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -211,6 +216,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -267,6 +273,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -301,6 +308,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -335,6 +343,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -393,6 +402,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -427,6 +437,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -485,6 +496,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -519,6 +531,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
@@ -575,6 +588,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
                   }
                 }
               />
