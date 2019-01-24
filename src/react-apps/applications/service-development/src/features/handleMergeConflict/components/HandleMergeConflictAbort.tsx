@@ -93,7 +93,7 @@ class HandleMergeConflictAbort extends
             btnCancelText: null,
           },
         });
-        console.log('Abort is unsuccessfull', abortRes);
+        console.error('Abort is unsuccessfull', abortRes);
       }
 
     } catch (err) {
@@ -103,7 +103,7 @@ class HandleMergeConflictAbort extends
           isLoading: false,
         },
       });
-      console.log('Merge abort error', err);
+      console.error('Merge abort error', err);
     }
 
   }

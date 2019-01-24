@@ -32,7 +32,6 @@ const styles = () => createStyles({
     'textTransform': 'none' as 'none',
     'fontWeight': 400,
     'height': 36,
-    // 'marginTop': '20px',
     'borderRadius': '0',
     'padding': '8px 24px 8px 24px',
     '&:hover': {
@@ -49,10 +48,8 @@ const styles = () => createStyles({
     'color': theme.altinnPalette.primary.blueDarker,
     'background': 'transparent',
     'height': 36,
-    // 'maxWidth': '150px',
     'textTransform': 'none',
     'fontWeight': 400,
-    // 'marginTop': '20px',
     'borderRadius': '0',
     '&:hover': {
       background: theme.altinnPalette.primary.greyLight,

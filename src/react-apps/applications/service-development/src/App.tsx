@@ -140,48 +140,30 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                   ))}
                 </Grid>
                 <Grid item={true} xs={12}>
-                  {repoStatus.hasMergeConflict === false ?
-                    <Hidden smDown>
-                      <div style={{ top: 50 }}>
-                        {routes.map((route, index) => (
-                          <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            render={(props) => <LeftDrawerMenu
-                              {...props}
-                              menuType={route.menu}
-                              activeLeftMenuSelection={route.activeLeftMenuSelection}
-                            />}
-                          />
-                        ))}
-                      </div>
-                    </Hidden>
-                    :
-                    null
-                  }
-
                   {
-                    repoStatus.hasMergeConflict === false ?
-                      <div className={classes.subApp}>
-                        {routes.map((route, index) => (
-                          <Route
-                            key={index}
-                            path={route.path}
-                            exact={route.exact}
-                            render={(props) => <route.subapp
-                              {...props}
-                              name={route.path}
-                            />}
-                          />
-                        ))}
-                      </div>
+                    !repoStatus.hasMergeConflict ?
+                      <Hidden smDown>
+                        <div style={{ top: 50 }}>
+                          {routes.map((route, index) => (
+                            <Route
+                              key={index}
+                              path={route.path}
+                              exact={route.exact}
+                              render={(props) => <LeftDrawerMenu
+                                {...props}
+                                menuType={route.menu}
+                                activeLeftMenuSelection={route.activeLeftMenuSelection}
+                              />}
+                            />
+                          ))}
+                        </div>
+                      </Hidden>
                       :
                       null
                   }
 
                   {
-                    repoStatus.hasMergeConflict === true ?
+                    repoStatus.hasMergeConflict ?
                       <div
                         className={classNames({
                           [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
@@ -198,7 +180,19 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                         </Switch>
                       </div>
                       :
-                      null
+                      <div className={classes.subApp}>
+                        {routes.map((route, index) => (
+                          <Route
+                            key={index}
+                            path={route.path}
+                            exact={route.exact}
+                            render={(props) => <route.subapp
+                              {...props}
+                              name={route.path}
+                            />}
+                          />
+                        ))}
+                      </div>
                   }
                 </Grid>
               </Grid>

@@ -101,7 +101,7 @@ export class HandleMergeConflictDiscardChanges extends
           isLoading: false,
         },
       });
-      console.log('Discard merge error', err);
+      console.error('Discard merge error', err);
     }
 
   }

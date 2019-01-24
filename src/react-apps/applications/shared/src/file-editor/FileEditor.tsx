@@ -70,9 +70,7 @@ const styles = createStyles({
     background: altinnTheme.altinnPalette.primary.white,
     borderBottom: '1px solid #C9C9C9',
     marginBottom: '0.1rem',
-    // paddingTop: '1.2rem',
     paddingLeft: '1.3rem',
-    // paddingBottom: '1.1rem',
     minHeight: '4.4rem',
   },
   boxShadow: {
@@ -140,8 +138,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           this.setState((prevState: IFileEditorState) => {
             return {
               ...prevState,
-                availableFiles: files,
-                mounted: true,
+              availableFiles: files,
+              mounted: true,
             };
           });
         });
@@ -195,7 +193,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     });
 
     if (saveRes.isSuccessStatusCode === false) {
-      console.log('save error', saveRes);
+      console.error('save error', saveRes);
 
     } else if (this.props.stageAfterSaveFile === true) {
 
@@ -205,7 +203,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       const stageRes = await get(stageUrl);
 
       if (stageRes.isSuccessStatusCode === false) {
-        console.log('stage error', stageRes);
+        console.error('stage error', stageRes);
       }
 
     }
@@ -214,7 +212,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       window.postMessage('forceRepoStatusCheck', window.location.href);
     }
 
-      if (this.state.mounted && this.props.closeFileEditor) {
+    if (this.state.mounted && this.props.closeFileEditor) {
       this.props.closeFileEditor();
     }
 

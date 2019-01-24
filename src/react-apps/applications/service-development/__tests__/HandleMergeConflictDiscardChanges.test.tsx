@@ -1,3 +1,5 @@
+/* The test is not completed yet and will have commented code */
+
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';

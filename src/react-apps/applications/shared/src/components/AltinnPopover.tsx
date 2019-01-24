@@ -47,15 +47,12 @@ const styles = createStyles({
     'fontSize': '14px',
     'color': theme.altinnPalette.primary.blueDarker,
     'background': theme.altinnPalette.primary.white,
-    // 'maxWidth': '150px',
     'textTransform': 'none',
     'fontWeight': 400,
     'marginTop': '20px',
     'borderRadius': '0',
     '&:hover': {
-      // background: theme.altinnPalette.primary.greyLight,
       color: theme.altinnPalette.primary.blueDarker,
-      // fontWeight: 500,
     },
     '&:focus': {
       background: theme.altinnPalette.primary.blueDarker,

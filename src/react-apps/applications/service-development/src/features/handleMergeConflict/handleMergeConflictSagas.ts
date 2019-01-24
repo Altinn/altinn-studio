@@ -5,34 +5,12 @@ import * as HandleMergeConflictActions from './handleMergeConflictActions';
 import * as HandleMergeConclictActionTypes from './handleMergeConflictActionTypes';
 import HandleMergeConflictDispatchers from './handleMergeConflictDispatcher';
 
-// const mockResult = {
-//   behindBy: 1,
-//   aheadBy: 3,
-//   contentStatus: [
-//     {
-//       filePath: 'Model/ServiceModel.cs',
-//       fileStatus: 'ModifiedInWorkdir',
-//     },
-//     {
-//       filePath: 'Resources/FormLayout.json',
-//       fileStatus: 'Conflicted',
-//     },
-//     {
-//       filePath: 'Resources/react-app.css',
-//       fileStatus: 'ModifiedInWorkdir',
-//     },
-//   ],
-//   repositoryStatus: 'MergeConflict',
-//   hasMergeConflict: true,
-// };
-
 export function* handleMergeConflictSaga({
   url,
   org,
   repo,
 }: HandleMergeConflictActions.IFetchRepoStatusAction): SagaIterator {
   try {
-    // let result = mockResult;
     const result = yield call(get, url);
 
     yield call(HandleMergeConflictDispatchers.fetchRepoStatusFulfilled, result);
