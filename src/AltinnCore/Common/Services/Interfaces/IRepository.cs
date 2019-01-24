@@ -257,6 +257,14 @@ namespace AltinnCore.Common.Services.Interfaces
         List<AltinnCoreFile> GetDynamicsFiles(string org, string service);
 
         /// <summary>
+        /// Returns the list over files in the Calculation directory
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        List<AltinnCoreFile> GetCalculationFiles(string org, string service);
+
+        /// <summary>
         /// Returns the file Content of a
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
