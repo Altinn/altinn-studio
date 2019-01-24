@@ -48,7 +48,6 @@ class TabletDrawerMenu extends React.Component<ITabletDrawerMenuProps & WithStyl
       const isTop = window.scrollY < 20;
       if (isTop !== this.state.isTop) {
         this.setState({ isTop });
-        console.log(this.state.isTop);
       }
     });
   }

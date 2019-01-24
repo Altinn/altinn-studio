@@ -1,11 +1,12 @@
-import {Grid, IconButton, MenuItem, Select} from '@material-ui/core';
+import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
 import classNames = require('classnames');
+import * as diff from 'diff';
 import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
-import { get, post } from '../utils/networking';
-
 import theme from '../../../shared/src/theme/altinnStudioTheme';
+import AltinnButton from '../components/AltinnButton';
+import { get, post } from '../utils/networking';
 
 const altinnTheme = theme;
 
@@ -42,31 +43,50 @@ const languages: ICodeLanguage = {
 };
 
 export interface IFileEditorProvidedProps {
+  boxShadow?: boolean;
+  checkRepoStatusAfterSaveFile?: boolean;
   classes: any;
-  mode: string;
   closeFileEditor?: () => void;
+  loadFile?: string;
+  mode?: string;
+  showSaveButton?: boolean;
+  stageAfterSaveFile?: boolean;
 }
 
 export interface IFileEditorState {
-  selectedFile: string;
   availableFiles: string[];
+  valueOriginal: string;
+  selectedFile: string;
   value: string;
   mounted: boolean;
+  valueDiff: boolean;
 }
 
 const styles = createStyles({
+  temp: {
+    background: 'blue',
+  },
   fileHeader: {
+    background: altinnTheme.altinnPalette.primary.white,
     borderBottom: '1px solid #C9C9C9',
-    marginBottom: '1.6rem',
-    paddingTop: '1.2rem',
+    marginBottom: '0.1rem',
     paddingLeft: '1.3rem',
-    paddingBottom: '1.1rem',
+    minHeight: '4.4rem',
+  },
+  boxShadow: {
+    background: theme.altinnPalette.primary.white,
+    boxShadow: theme.sharedStyles.boxShadow,
   },
   codeEditorContent: {
-    minHeight: 'calc(100vh - 6.5em)',
+    minHeight: '100%',
   },
   selectFile: {
     borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+    color: altinnTheme.altinnPalette.primary.blueDarker,
+    fontSize: '1.6rem',
+  },
+  file: {
+    color: altinnTheme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
   fileMenuItem: {
@@ -106,32 +126,46 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.state = {
       selectedFile: '',
       availableFiles: [],
+      valueOriginal: '',
       value: '',
+      valueDiff: false,
       mounted: false,
     };
   }
 
   public componentDidMount() {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service} = altinnWindow;
-    const servicePath = `${org}/${service}`;
-    get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
-    `/GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
-      const files = response.split(',');
-      this.loadFileContent(files[0]);
-      this.setState((prevState: IFileEditorState) => {
-        return {
-          ...prevState,
-          availableFiles: files,
-          mounted: true,
-        };
+    if (this.props.mode) {
+      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const { org, service } = altinnWindow;
+      const servicePath = `${org}/${service}`;
+      get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
+        `/GetServiceFiles?fileEditorMode=${this.props.mode}`).then((response) => {
+          const files = response.split(',');
+          this.loadFileContent(files[0]);
+          this.setState((prevState: IFileEditorState) => {
+            return {
+              ...prevState,
+              availableFiles: files,
+              mounted: true,
+            };
+          });
+        });
+    }
+  }
+
+  // TODO: The added '../' is temporary in place until loadfil API for unique file is available
+  public componentDidUpdate(prevProps: any) {
+    if (this.props.loadFile !== prevProps.loadFile) {
+      this.setState({
+        selectedFile: `../${this.props.loadFile}`,
       });
-    });
+      this.loadFileContent(`../${this.props.loadFile}`);
+    }
   }
 
   public loadFileContent = (fileName: string) => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service} = altinnWindow;
+    const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
@@ -139,6 +173,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         this.setState((prevState: IFileEditorState) => {
           return {
             ...prevState,
+            valueOriginal: logicFileContent,
             selectedFile: fileName,
             value: logicFileContent,
           };
@@ -151,17 +186,43 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     this.loadFileContent(fileName);
   }
 
-  public saveFile = () => {
+  public saveFile = async (e: any) => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service} = altinnWindow;
+    const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
-    `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
-    post(postUrl, this.state.value, {headers: {'Content-type': 'text/plain;charset=utf-8'}}).then(() => {
-      if (this.state.mounted && this.props.closeFileEditor) {
-        this.props.closeFileEditor();
-      }
+      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
+
+    const saveRes: any = await post(postUrl, this.state.value, {
+      headers: {
+        'Content-type': 'text/plain;charset=utf-8',
+      },
     });
+
+    if (saveRes.isSuccessStatusCode === false) {
+      console.error('save error', saveRes);
+
+    } else if (this.props.stageAfterSaveFile === true) {
+
+      const stageUrl = `${altinnWindow.location.origin}` +
+        `/designerapi/Repository/StageChange?` +
+        `owner=${org}&repository=${service}&fileName=${this.state.selectedFile.replace(/^\.{2}\//, '')}`;
+      const stageRes = await get(stageUrl);
+
+      if (stageRes.isSuccessStatusCode === false) {
+        console.error('stage error', stageRes);
+      }
+
+    }
+
+    if (this.props.checkRepoStatusAfterSaveFile === true) {
+      window.postMessage('forceRepoStatusCheck', window.location.href);
+    }
+
+    if (this.state.mounted && this.props.closeFileEditor) {
+      this.props.closeFileEditor();
+    }
+
   }
 
   public onValueChange = (value: string) => {
@@ -171,6 +232,26 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         value,
       };
     });
+
+    if (diff.diffChars(this.state.value, this.state.valueOriginal).length > 1) {
+
+      // If diff, and valueDiff is changed, change state
+
+      if (this.state.valueDiff === false) {
+        this.setState({
+          valueDiff: true,
+        });
+      }
+
+    } else {
+
+      if (this.state.valueDiff === true) {
+        this.setState({
+          valueDiff: false,
+        });
+      }
+
+    }
   }
 
   public getLanguageFromFileName = (): any => {
@@ -181,15 +262,15 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         return languages[extension];
       }
     }
-    return { name: '', displayName: ''};
+    return { name: null, displayName: null };
   }
 
   public renderCloseButton = (): JSX.Element => {
     return (
       <Grid
-          item={true}
-          xs={1}
-          className={this.props.classes.fileHeader}
+        item={true}
+        xs={1}
+        className={this.props.classes.fileHeader}
       >
         <IconButton
           type='button'
@@ -209,56 +290,147 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     );
   }
 
-  public render() {
-    const {classes, mode} = this.props;
-    const language: ICodeLanguageItem = this.getLanguageFromFileName();
+  public renderSaveButton = (): JSX.Element => {
     return (
-      <Grid container={true} spacing={0} className={classes.codeEditorContent}>
-        <Grid item={true} xs={11}  className={classes.fileHeader}>
-          <span>
-            {mode}
-            <i className='ai ai-expand' style={{fontSize: '2rem'}}/>
-            <Select
-              value={this.state.selectedFile}
-              classes={
-                {
-                  root: classNames(classes.selectFile),
-                  icon: classNames(classes.hideIcon),
-                  selectMenu: classNames(classes.selectMenu)}
-              }
-              onChange={this.switchFile}
-            >
-              {this.state.availableFiles.map((file: string) => {
-                return (
-                  <MenuItem
-                    value={file}
-                    key={file}
-                    className={classes.fileMenuItem}
-                  >
-                    {file}
-                  </MenuItem>
-                );
-              })}
-            </Select>
-          </span>
-
-        </Grid>
-        {this.props.closeFileEditor ? this.renderCloseButton() : null}
-
-        <Grid item={true} xs={12} className={classes.codeEditorContent}>
-        <MonacoEditorComponent
-          language={language.name}
-          value={this.state.value}
-          onValueChange={this.onValueChange}
-        />
-        </Grid>
-        <Grid className={classes.footerContent} item={true} xs={11}/>
-        <Grid className={classes.footerContent} item={true} xs={1}>
-          <span>{language.displayName}</span>
+      <Grid
+        item={true}
+        xs={true}
+        container={true}
+        justify='flex-end'
+        alignItems='center'
+      >
+        <Grid
+          item={true}
+        >
+          <AltinnButton
+            btnText='Lagre fil'
+            disabled={!this.state.valueDiff}
+            onClickFunction={this.saveFile}
+            secondaryButton={true}
+          />
         </Grid>
       </Grid>
     );
   }
+
+  public render() {
+    const { classes, mode } = this.props;
+    const language: ICodeLanguageItem = this.getLanguageFromFileName();
+
+    return (
+      <Grid container={true} spacing={0} className={classes.codeEditorContent}>
+        <Grid
+          item={true}
+          xs={true}
+          container={true}
+          justify='flex-start'
+          alignItems='center'
+          className={
+            classNames(classes.fileHeader, {
+              [classes.boxShadow]: this.props.boxShadow,
+            })
+          }
+        >
+          <Grid
+            item={true}
+            xs={true}
+          >
+            <span>
+              {/* If this.props.loadFile is present,
+              * if loadFile contains directories then split and show,
+              * else show the 'mode' location from 'foldertext'.
+              */}
+              {this.props.loadFile ?
+                this.props.loadFile.split('/').map((folder, index) => {
+                  {/* If one or last element, return without expand icon */ }
+                  if (this.props.loadFile.split('/').length === index + 1) {
+                    return (
+                      <React.Fragment key={index}>
+                        <span className={classes.file}>
+                          {folder}
+                        </span>
+                      </React.Fragment>
+                    );
+                  }
+                  {/* Return folder with expand icon */ }
+                  return (
+                    <React.Fragment key={index}>
+                      {folder} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                    </React.Fragment>
+                  );
+                })
+
+                :
+
+                <React.Fragment>
+                  <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                </React.Fragment>
+
+              }
+
+              {/* If this.props.mode is present, show select*/}
+              {this.props.mode ?
+
+                <React.Fragment>
+                  {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  <Select
+                    value={this.state.selectedFile}
+                    classes={
+                      {
+                        root: classNames(classes.selectFile),
+                        icon: classNames(classes.hideIcon),
+                        selectMenu: classNames(classes.selectMenu),
+                      }
+                    }
+                    onChange={this.switchFile}
+                  >
+                    {this.state.availableFiles.map((file: string) => {
+                      return (
+                        <MenuItem
+                          value={file}
+                          key={file}
+                          className={classes.fileMenuItem}
+                        >
+                          {file}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </React.Fragment>
+
+                :
+
+                null
+              }
+            </span>
+          </Grid>
+
+          {/* Contains grid items */}
+          {this.props.showSaveButton ? this.renderSaveButton() : null}
+          {/* Contains grid items */}
+          {this.props.closeFileEditor ? this.renderCloseButton() : null}
+
+        </Grid>
+        <Grid
+          item={true}
+          xs={12}
+          className={classNames(classes.codeEditorContent, {
+            [classes.boxShadow]: this.props.boxShadow,
+          })}
+        >
+          <MonacoEditorComponent
+            language={language.name}
+            value={this.state.value}
+            onValueChange={this.onValueChange}
+          />
+        </Grid>
+        <Grid className={classes.footerContent} item={true} xs={11} />
+        <Grid className={classes.footerContent} item={true} xs={1}>
+          <span>{language.displayName}</span>
+        </Grid>
+      </Grid >
+    );
+  }
 }
 
-export default withStyles(styles, {withTheme: true})(FileEditor);
+export default withStyles(styles, { withTheme: true })(FileEditor);

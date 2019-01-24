@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -8,6 +10,8 @@ using AltinnCore.Common.Factories.ModelFactory;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+using Microsoft.Extensions.Logging;
+using NUnit.Framework;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Common
@@ -17,70 +21,37 @@ namespace AltinnCore.UnitTest.Common
     /// </summary>
     public class XsdToJsonSchemaTest
     {
-        /// <summary>
-        /// Test converting edag XSD to Json Schema
-        /// </summary>
-        [Fact]
-        public void EdagConvertToJsonSchema()
-        {
-            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/Edag.xsd"));
-            var schemaText = converter.AsJsonSchema();
-            int d = 0;
-        }
+        private ILogger _logger = TestLogger.Create<XsdToJsonSchemaTest>();
 
         /// <summary>
-        /// Test converting ServiceModel XSD to Json Schema
+        /// Test converting all provided XSDs to Json Schema
         /// </summary>
         [Fact]
-        public void ServicemodelConvertToJsonSchema()
+        public void ConvertXSDsToJsonSchema()
         {
-            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/ServiceModel.xsd"));
-            var schemaText = converter.AsJsonSchema();
-            int d = 0;
-        }
+            int failCount = 0;
 
-        /// <summary>
-        /// Test converting BoligsparingForUngdom XSD to Json Schema
-        /// </summary>
-        [Fact]
-        public void BoligsparingForUngdomConvertToJsonSchema()
-        {
-            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/boligsparingForUngdom_v1_1.xsd"));
-            var schemaText = converter.AsJsonSchema();
-            int d = 0;
-        }
+            string[] files = Directory.GetFiles("Common/xsd", "*.xsd", SearchOption.AllDirectories);
 
-        /// <summary>
-        /// Test converting Motorvognavgift XSD to Json Schema
-        /// </summary>
-        [Fact]
-        public void MotorvognavgiftConvertToJsonSchema()
-        {
-            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/motorvognavgift-v4.xsd"));
-            var schemaText = converter.AsJsonSchema();
-            int d = 0;
-        }
+            foreach (string file in files)
+            {
+                _logger.LogInformation("Converting file " + file + " to Json Schema");
 
-        /// <summary>
-        /// Test converting Skattemelding XSD to Json Schema
-        /// </summary>
-        [Fact]
-        public void SkattemeldingConvertToJsonSchema()
-        {
-            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/Skattemelding_v6.25.xsd"));
-            var schemaText = converter.AsJsonSchema();
-            int d = 0;
-        }
+                XsdToJsonSchema converter;
+                JsonValue schemaText;
+                try
+                {
+                    converter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
+                    schemaText = converter.AsJsonValue();
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError("Failed converting file " + file + ": " + e.Message);
+                    failCount++;
+                }
+            }
 
-        /// <summary>
-        /// Test converting Recursion XSD to Json Schema
-        /// </summary>
-        [Fact]
-        public void RecursionConvertToJsonSchema()
-        {
-            XsdToJsonSchema converter = new XsdToJsonSchema(new XmlTextReader("Common/schema-w-recursion.xsd"));
-            var schemaText = converter.AsJsonSchema();
-            int d = 0;
+            Assert.Equal(0, failCount);
         }
     }
 }

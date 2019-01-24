@@ -11,7 +11,7 @@ export interface IMonacoEditorComponentProps {
 
 export interface IMonacoEditorComponentState {
   code: string;
- }
+}
 
 export interface IMonacoEditorComponentWindow extends Window {
   MonacoEnvironment: any;
@@ -24,13 +24,40 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       code: props.value,
     };
   }
-  
+
+  public editorWillMount(monaco: any) {
+
+    monaco.languages.setMonarchTokensProvider('plaintext', {
+      tokenizer: {
+        root: [
+          [/<<<<<<<.*/, 'outgoing'],
+          [/=======.*/, 'split'],
+          [/>>>>>>>.*/, 'incoming'],
+        ],
+      },
+    });
+
+    monaco.editor.defineTheme('editorTheme', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'outgoing', foreground: 'ee0000', fontStyle: 'bold' },
+        { token: 'split', foreground: 'ee0000', fontStyle: 'bold' },
+        { token: 'incoming', foreground: 'ee0000', fontStyle: 'bold' },
+      ],
+      colors: {
+        'merge.incomingHeaderBackground': '#00ff00',
+      },
+    });
+  }
+
   public render() {
-    let {height, width} = this.props;
+    let { height, width } = this.props;
     height = height ? height : '100%';
     width = width ? width : '100%';
     return (
       <MonacoEditor
+        theme={'editorTheme'}
         width={width}
         height={height}
         value={this.props.value}
@@ -52,6 +79,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
           }
         }
         onChange={this.props.onValueChange}
+        editorWillMount={this.editorWillMount}
       />
     );
   }
