@@ -33,30 +33,26 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public XsdToJsonSchema(XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
         {
             this.xsdReader = xsdReader;
-<<<<<<< HEAD
+            this._logger = logger;
 
-            // Read XSD
-            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);
+            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);            
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XsdToJsonSchema"/> class.
         /// </summary>
-        /// <param name="schema">vvd</param>
-        public XsdToJsonSchema(XmlSchema schema)
+        /// <param name="schema">the schema</param>
+        /// <param name="logger">the logger</param>
+        public XsdToJsonSchema(XmlSchema schema, ILogger<XsdToJsonSchema> logger)
         {
             mainXsd = schema;
-=======
             this._logger = logger;
->>>>>>> 501-xsd-to-jsonschema
         }
 
         /// <summary>
         /// Perform the actual conversion (to JsonValue)
         /// </summary>
         /// <returns>JsonValue for root of Json Schema representation of schema</returns>
-<<<<<<< HEAD
-=======
         public JsonValue AsJsonValue()
         {
             return new JsonSerializer().Serialize<JsonSchema>(AsJsonSchema());
@@ -66,7 +62,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// Perform the actual conversion (to JsonSchema)
         /// </summary>
         /// <returns>Json Schema representation of schema</returns>
->>>>>>> 501-xsd-to-jsonschema
         public JsonSchema AsJsonSchema()
         {
             // Set up Json Schema object
