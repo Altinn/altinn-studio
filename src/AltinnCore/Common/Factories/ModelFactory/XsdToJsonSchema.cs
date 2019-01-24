@@ -29,21 +29,30 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public XsdToJsonSchema(XmlReader xsdReader)
         {
             this.xsdReader = xsdReader;
+
+            // Read XSD
+            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="XsdToJsonSchema"/> class.
+        /// </summary>
+        /// <param name="schema">vvd</param>
+        public XsdToJsonSchema(XmlSchema schema)
+        {
+            mainXsd = schema;
         }
 
         /// <summary>
         /// Perform the actual conversion
         /// </summary>
         /// <returns>JsonValue for root of Json Schema representation of schema</returns>
-        public JsonValue AsJsonSchema()
+        public JsonSchema AsJsonSchema()
         {
-            // Read XSD
-            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);
-
             // Set up Json Schema object
             mainJsonSchema = new JsonSchema();
             mainJsonSchema.Schema("http://json-schema.org/schema#");
-            mainJsonSchema.Id(Guid.NewGuid().ToString());
+            mainJsonSchema.Id("schema.json"); // Guid.NewGuid().ToString());
             AddTypeObject(mainJsonSchema);
 
             XmlSchemaObjectEnumerator enumerator = mainXsd.Items.GetEnumerator();
@@ -86,7 +95,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            return new JsonSerializer().Serialize<JsonSchema>(mainJsonSchema);
+            return mainJsonSchema;
         }
 
         private object Parse(XmlSchemaObject item, out bool isRequired)

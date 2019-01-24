@@ -243,6 +243,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     BaseTypeName = new XmlQualifiedName("boolean", XmlSchemaNamespace),
                 };
                 simpleType.Content = content;
+            }
+            else if (type.Value == JsonSchemaType.Array)
+            {
+                /* Todo - logic here */
             }           
 
             return simpleType;
