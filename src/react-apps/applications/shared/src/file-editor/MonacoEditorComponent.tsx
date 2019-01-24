@@ -48,6 +48,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
             scrollbar: {
               vertical: 'auto',
             },
+            scrollBeyondLastLine: false,
           }
         }
         onChange={this.props.onValueChange}
