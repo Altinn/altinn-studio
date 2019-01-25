@@ -78,21 +78,6 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
             );
             break;
           } else {
-            let hoverOverIndex: number;
-            if (!props.getIndex) {
-              hoverOverIndex = props.index;
-            } else {
-              hoverOverIndex = props.getIndex(props.id);
-            }
-
-            const hoverBoundingRect = (ReactDOM.findDOMNode(Component) as Element).getBoundingClientRect();
-            const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-            const clientOffset = monitor.getClientOffset();
-            const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-            if (hoverClientY > hoverMiddleY && props.id !== 'placeholder') {
-              hoverOverIndex += 1;
-            }
 
             props.onDropContainer(
               draggedContainer.id,
@@ -184,7 +169,7 @@ class DroppableDraggableContainer extends React.Component<IDroppableDraggableCon
           border: '1px solid #ccc',
           padding: '1em',
           marginBottom: 20,
-          backgroundColor: isOver ? 'lightgrey' : 'white',
+          backgroundColor: isOver ? 'white' : altinnTheme.altinnPalette.primary.greyLight,
         }}
       >
         {this.props.children}
