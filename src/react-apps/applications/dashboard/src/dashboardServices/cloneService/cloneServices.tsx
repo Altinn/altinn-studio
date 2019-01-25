@@ -105,13 +105,13 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
   }
 
   public formatNameAndDate(name: string, date: string) {
-    const returnDate = date ? moment(new Date(date)).format('DD.MM.YYYY HH:mm') : date;
+    const returnDate = date ? moment.utc(new Date(date)).format('DD.MM.YYYY HH:mm') : date;
     return name ? `${name} ${returnDate}` : returnDate;
   }
 
   public redirectToCode = () => {
     const repoInfo = this.getCurrentRepositoryInfo();
-    window.location.href = `/${repoInfo.full_name}`;
+    window.location.assign(`/${repoInfo.full_name}`);
   }
 
   public getCurrentRepositoryInfo = () => {
@@ -130,7 +130,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
     const repoInfo = this.getCurrentRepositoryInfo();
     if (repoInfo && repoInfo.is_cloned_to_local) {
       // tslint:disable-next-line:max-line-length
-      window.location.href = `${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`;
+      window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
     }
 
     // tslint:disable-next-line:max-line-length
@@ -139,8 +139,10 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
       isLoading: true,
     });
     get(url).then((result: any) => {
-      // tslint:disable-next-line:max-line-length
-      window.location.href = `${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`;
+      if (this._isMounted) {
+        // tslint:disable-next-line:max-line-length
+        window.location.assign(`${altinnWindow.location.origin}/designer/${(this.props.match.params as any).org}/${(this.props.match.params as any).serviceName}`);
+      }
     });
   }
 
@@ -199,11 +201,13 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
                 :
                 <>
                   <AltinnButton
+                    id={'editService'}
                     btnText={getLanguageFromKey('dashboard.edit_service', this.props.language)}
                     className={classes.editService}
                     onClickFunction={this.cloneAndEditService}
                   />
                   <AltinnButton
+                    id={'seeSourceCode'}
                     btnText={getLanguageFromKey('dashboard.see_source_code', this.props.language)}
                     onClickFunction={this.redirectToCode}
                   />

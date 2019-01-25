@@ -1,4 +1,4 @@
-﻿<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:brreg="http://www.brreg.no/or" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:brreg="http://www.brreg.no/or" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <!--title='RF-1117: Klage på likningen' lang='NOB'-->
   <xs:element name="Skjema">
     <xs:annotation>

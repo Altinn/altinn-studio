@@ -2,6 +2,7 @@ import { createStyles, Divider, FormControl, InputAdornment, Popover, TextField,
 import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
 
@@ -78,7 +79,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           }
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelLink) }}>
-          <a href={'#'}>{this.props.language.ux_editor.information_more_info_link}</a>
+          <Link to={'/designSystem'}>{this.props.language.ux_editor.information_more_info_link}</Link>
         </Typography>
       </Popover>
     );

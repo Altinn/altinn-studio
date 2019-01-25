@@ -1,12 +1,18 @@
 declare module '@material-ui/core/styles/createMuiTheme' {
   // tslint:disable-next-line:interface-name
   interface Theme {
+    accessability: {
+      focusVisible: {
+        border: string,
+      },
+    };
     altinnPalette: {
       primary: {
         blueDarker: string,
         blueDark: string,
         blue: string,
         blueLight: string,
+        blueLighter: string,
         green: string,
         greenLight: string,
         red: string,
@@ -22,10 +28,18 @@ declare module '@material-ui/core/styles/createMuiTheme' {
         white: string,
       },
     };
+    sharedStyles: {
+      boxShadow: string,
+    };
   }
 }
 
 const theme = {
+  accessability: {
+    focusVisible: {
+      border: '2px solid #1eaef7',
+    },
+  },
   altinnPalette: {
     // tslint:disable-next-line:max-line-length
     // These are the primary colors used in altinn: https://altinn.github.io/designsystem-styleguide/retningslinjer-altinn/farger.html
@@ -34,6 +48,7 @@ const theme = {
       blueDark: '#0062BA',
       blue: '#1EAEF7',
       blueLight: '#CFF0FF',
+      blueLighter: '#E3F7FF',
       green: '#17C96B',
       greenLight: '#D4F9E4',
       red: '#E23B53',
@@ -87,6 +102,9 @@ const theme = {
       disableRipple: true,
       disableTouchRipple: true,
     },
+  },
+  sharedStyles: {
+    boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
   },
   typography: {
     htmlFontSize: 16,

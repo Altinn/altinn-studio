@@ -8,9 +8,12 @@
 import Grid from '@material-ui/core/Grid';
 import Hidden from '@material-ui/core/Hidden';
 import { createMuiTheme, createStyles, MuiThemeProvider, withStyles, WithStyles } from '@material-ui/core/styles';
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { HashRouter as Router, Redirect, Route } from 'react-router-dom';
+import { RouteChildrenProps } from 'react-router';
+import { HashRouter as Router, Redirect, Route, Switch, withRouter } from 'react-router-dom';
+import { compose } from 'redux';
 import LeftDrawerMenu from '../../shared/src/navigation/drawer/LeftDrawerMenu';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
@@ -18,25 +21,73 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
-import { IServiceDevelopmentState } from './reducers/serviceDevelopmentReducer';
+import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
+import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
+import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
+  container: {
+    backgroundColor: theme.altinnPalette.primary.greyLight,
+    height: '100%',
+    width: '100%',
+  },
+  mergeConflictApp: {
+    height: '100%',
+    width: '100%',
+  },
   subApp: {
     [theme.breakpoints.up('md')]: {
       paddingLeft: 73,
     },
+    background: theme.altinnPalette.primary.greyLight,
+    height: '100%',
+    width: '100%',
   },
 });
 
-class App extends React.Component<WithStyles<typeof styles>, any> {
+export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
+  language: any;
+  location: any;
+  repoStatus: any;
+}
+export interface IServiceDevelopmentAppState {
+  forceRepoStatusCheckComplete: boolean;
+
+}
+
+class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
+  constructor(_props: IServiceDevelopmentProps, _state: IServiceDevelopmentAppState) {
+    super(_props, _state);
+    this.state = {
+      forceRepoStatusCheckComplete: true,
+    };
+  }
+
+  public checkForMergeConflict = () => {
+    const altinnWindow: any = window;
+    const { org, service } = altinnWindow;
+    // tslint:disable-next-line:max-line-length
+    const repoStatusUrl = `${altinnWindow.location.origin}/designerapi/Repository/RepoStatus?owner=${org}&repository=${service}`;
+
+    HandleMergeConflictDispatchers.fetchRepoStatus(repoStatusUrl, org, service);
+  }
 
   public componentDidMount() {
     const altinnWindow: Window = window;
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+
+    this.checkForMergeConflict();
+    window.addEventListener('message', this.windowEventReceived);
+  }
+
+  public windowEventReceived = (event: any) => {
+    if (event.data === 'forceRepoStatusCheck') {
+      this.checkForMergeConflict();
+    }
   }
 
   public handleDrawerToggle = () => {
@@ -44,7 +95,8 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
   }
 
   public render() {
-    const { classes } = this.props;
+    const { classes, repoStatus } = this.props;
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
 
@@ -52,67 +104,99 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <Router>
-            <Grid container={true} direction='row'>
-              <Grid item={true} xs={12}>
-                {redirects.map((route, index) => (
-                  <Route
-                    key={index}
-                    exact={true}
-                    path={route.from}
-                    render={() => (
-                      <Redirect to={route.to} />
-                    )}
-                  />
-                ))}
-                {routes.map((route, index) => (
-                  <Route
-                    key={index}
-                    path={route.path}
-                    exact={route.exact}
-                    render={(props) => <AppBarComponent
-                      {...props}
-                      org={org}
-                      service={service}
-                      showBreadcrumbOnTablet={true}
-                      showSubHeader={true}
-                      activeSubHeaderSelection={route.activeSubHeaderSelection}
-                      activeLeftMenuSelection={route.activeLeftMenuSelection}
-                    />}
-                  />
-                ))}
-              </Grid>
-              <Grid item={true} xs={12}>
-                <Hidden smDown>
-                  <div style={{ top: 50 }}>
-                    {routes.map((route, index) => (
+            <div className={classes.container}>
+              <Grid container={true} direction='row'>
+                <Grid item={true} xs={12}>
+                  {repoStatus.hasMergeConflict === false ?
+                    redirects.map((route, index) => (
                       <Route
                         key={index}
-                        path={route.path}
-                        exact={route.exact}
-                        render={(props) => <LeftDrawerMenu
-                          {...props}
-                          menuType={route.menu}
-                          activeLeftMenuSelection={route.activeLeftMenuSelection}
-                        />}
+                        exact={true}
+                        path={route.from}
+                        render={() => (
+                          <Redirect to={route.to} />
+                        )}
                       />
-                    ))}
-                  </div>
-                </Hidden>
-                <div className={classes.subApp}>
+                    ))
+                    :
+                    null
+                  }
                   {routes.map((route, index) => (
                     <Route
                       key={index}
                       path={route.path}
                       exact={route.exact}
-                      render={(props) => <route.subapp
+                      render={(props) => <AppBarComponent
                         {...props}
-                        name={route.path}
+                        activeLeftMenuSelection={route.activeLeftMenuSelection}
+                        activeSubHeaderSelection={route.activeSubHeaderSelection}
+                        logoutButton={repoStatus.hasMergeConflict}
+                        org={org}
+                        service={service}
+                        showBreadcrumbOnTablet={true}
+                        showSubHeader={repoStatus.hasMergeConflict ? false : true}
                       />}
                     />
                   ))}
-                </div>
+                </Grid>
+                <Grid item={true} xs={12}>
+                  {
+                    !repoStatus.hasMergeConflict ?
+                      <Hidden smDown>
+                        <div style={{ top: 50 }}>
+                          {routes.map((route, index) => (
+                            <Route
+                              key={index}
+                              path={route.path}
+                              exact={route.exact}
+                              render={(props) => <LeftDrawerMenu
+                                {...props}
+                                menuType={route.menu}
+                                activeLeftMenuSelection={route.activeLeftMenuSelection}
+                              />}
+                            />
+                          ))}
+                        </div>
+                      </Hidden>
+                      :
+                      null
+                  }
+
+                  {
+                    repoStatus.hasMergeConflict ?
+                      <div
+                        className={classNames({
+                          [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
+                          [classes.subApp]: !repoStatus.hasMergeConflict,
+                        })}
+                      >
+                        <Switch>
+                          <Route
+                            path='/mergeconflict'
+                            exact={true}
+                            component={HandleMergeConflict}
+                          />
+                          <Redirect to='/mergeconflict' />
+                        </Switch>
+                      </div>
+                      :
+                      <div className={classes.subApp}>
+                        {routes.map((route, index) => (
+                          <Route
+                            key={index}
+                            path={route.path}
+                            exact={route.exact}
+                            render={(props) => <route.subapp
+                              {...props}
+                              name={route.path}
+                            />}
+                          />
+                        ))}
+                      </div>
+                  }
+                </Grid>
               </Grid>
-            </Grid>
+            </div>
           </Router>
         </MuiThemeProvider>
       </React.Fragment>
@@ -120,11 +204,21 @@ class App extends React.Component<WithStyles<typeof styles>, any> {
   }
 }
 
-const mapStateToProps = (
-  state: IServiceDevelopmentState,
-) => {
-  return {
+const makeMapStateToProps = () => {
+  const GetRepoStatusSelector = makeGetRepoStatusSelector();
+  const mapStateToProps = (
+    state: IServiceDevelopmentState,
+  ) => {
+    return {
+      repoStatus: GetRepoStatusSelector(state),
+      language: state.language,
+    };
   };
+  return mapStateToProps;
 };
 
-export default withStyles(styles)(connect(mapStateToProps)(App));
+export default compose(
+  withRouter,
+  withStyles(styles),
+  connect(makeMapStateToProps),
+)(App);

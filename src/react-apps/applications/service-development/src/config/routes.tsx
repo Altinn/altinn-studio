@@ -1,11 +1,13 @@
 import * as React from 'react';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import uieditorApp from '../../../ux-editor/src/SubApp';
+import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
 const DummySubApp = (name: any) => {
   return (
-    <div>Dummy app for {name.name}
+    <div>
       <VersionControlHeader language={null} />
+      Dummy app for {name.name}
     </div>
   );
 };
@@ -129,5 +131,21 @@ export const routes = [
     activeLeftMenuSelection: 'Status',
     menu: 'publish',
     subapp: DummySubApp,
+  },
+  {
+    path: '/designSystem',
+    exact: true,
+    activeSubHeaderSelection: 'Lage',
+    activeLeftMenuSelection: 'GUI',
+    menu: 'create',
+    subapp: DummySubApp,
+  },
+  {
+    path: '/mergeconflict',
+    exact: true,
+    activeSubHeaderSelection: '',
+    activeLeftMenuSelection: 'Mergekonflikt',
+    menu: 'about',
+    subapp: HandleMergeConflictContainer,
   },
 ];

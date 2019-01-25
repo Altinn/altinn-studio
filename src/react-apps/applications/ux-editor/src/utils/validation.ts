@@ -76,9 +76,21 @@ export function validateFormData(
     if (!dataModelFieldElement) {
       return;
     }
-
     const layoutModelKey = Object.keys(layoutModelElements).find(
-      (e) => layoutModelElements[e].dataModelBinding === dataBindingName);
+      (e) => {
+        if (!layoutModelElements[e].dataModelBindings) {
+          return false;
+        }
+        for (const key in layoutModelElements[e].dataModelBindings) {
+          if (!key) {
+            continue;
+          }
+          if (layoutModelElements[e].dataModelBindings[key] === dataBindingName) {
+            return true;
+          }
+        }
+        return false;
+      });
 
     const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
 

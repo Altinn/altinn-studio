@@ -7,7 +7,7 @@ export interface ISyncModalComponentProvidedProps {
   classes: any;
   anchorEl: any;
   header?: string;
-  descriptionText?: string;
+  descriptionText?: string[];
   isLoading?: boolean;
   shouldShowDoneIcon?: boolean;
   btnText?: string;
@@ -56,6 +56,7 @@ const styles = createStyles({
   subHeader: {
     fontSize: '16px',
     marginTop: '10px',
+    whiteSpace: 'pre-line',
   },
   spinner: {
     marginTop: '20px',
@@ -147,7 +148,10 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
 
           {this.props.descriptionText &&
             <Typography className={classNames(classes.subHeader)}>
-              {this.props.descriptionText}
+              {this.props.descriptionText.map((text: any, index: any) => {
+                // tslint:disable-next-line:max-line-length
+                return this.props.descriptionText.length - 1 !== index ? (<span key={index}> {`${text}\n\n`} </span>) : <span key={index}>{text}</span>;
+              })}
             </Typography>
           }
 

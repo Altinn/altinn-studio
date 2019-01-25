@@ -64,7 +64,8 @@ export function* watchDelRuleConnectionSaga(): SagaIterator {
   );
 }
 
-function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeatingContainerId }:
+function* checkIfRuleShouldRunSaga({
+  lastUpdatedDataBinding, lastUpdatedDataValue, lastUpdatedComponentId, repeatingContainerId }:
   RuleConnetionActions.ICheckIfRuleShouldRun): SagaIterator {
   try {
     // get state
@@ -140,8 +141,15 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
                 continue;
               }
             }
-            if (formDesignerState.layout.components[component].dataModelBinding === connectionDef.outParams.outParam0) {
-              updatedComponent = component;
+            for (const dataBindingKey in formDesignerState.layout.components[component].dataModelBindings) {
+              if (!dataBindingKey) {
+                continue;
+              }
+              if (formDesignerState.layout.components[component].dataModelBindings[dataBindingKey] ===
+                connectionDef.outParams.outParam0) {
+                updatedComponent = component;
+                break;
+              }
             }
           }
           if (!updatedDataBinding) {
@@ -152,10 +160,12 @@ function* checkIfRuleShouldRunSaga({ lastUpdatedDataBinding, lastUpdatedDataValu
             } else {
               if (isPartOfRepeatingGroup) {
                 updatedDataBinding = { ...updatedDataBinding };
-                updatedDataBinding.DataBindingName = updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
+                updatedDataBinding.DataBindingName =
+                  updatedDataBinding.DataBindingName.replace(dataModelGroup, dataModelGroupWithIndex);
               }
               yield call(
-                FormFillerActionDispatchers.updateFormData, updatedComponent, result, updatedDataBinding, updatedDataBinding.DataBindingName);
+                FormFillerActionDispatchers.updateFormData,
+                updatedComponent, result, updatedDataBinding, updatedDataBinding.DataBindingName);
             }
           }
         }
