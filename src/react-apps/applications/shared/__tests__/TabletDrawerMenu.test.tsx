@@ -1,6 +1,5 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import { mount } from 'enzyme';
-import { shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
@@ -49,13 +48,13 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
     });
 
     it('should render tablet menu and menu items must match the snapshot ', () => {
-
-      const tabletDrawerMenu = renderer.create(
+      const shallowWrapper = shallow(
         <TabletDrawerMenu
           tabletDrawerOpen={mockTabletDrawerOpen}
           handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
         />,
       );
+      const tabletDrawerMenu = renderer.create(shallowWrapper.getElement());
       expect(tabletDrawerMenu).toMatchSnapshot();
     });
   });
@@ -69,16 +68,15 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
       mockHandleTabletDrawerMenu = jest.fn();
     });
 
-    it(`should render menu button and the tablet menu must not be visible
-        and menu items must match the snapshot`, () => {
-
-        const tabletDrawerMenu = shallow(
-          <TabletDrawerMenu
-            tabletDrawerOpen={mockTabletDrawerOpen}
-            handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
-          />,
-        );
-        expect(tabletDrawerMenu).toMatchSnapshot();
-      });
+    it(`should render menu button and the tablet menu must not be visible and menu items must match the snapshot`, () => {
+      const shallowWrapper = shallow(
+        <TabletDrawerMenu
+          tabletDrawerOpen={mockTabletDrawerOpen}
+          handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
+        />,
+      );
+      const rendered = renderer.create(shallowWrapper.getElement());
+      expect(rendered).toMatchSnapshot();
+    });
   });
 });
