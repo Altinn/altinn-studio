@@ -6,7 +6,7 @@
     "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
     "test": "lerna exec -- npm test",
     "install-all": "lerna exec -- npm i",
-    "clean-all": "lerna exec -- rm -rf node_modules"
+    "clean-all": "lerna exec -- rm package-lock.json"
   },
   "devDependencies": {
     "lerna": "3.10.7"
