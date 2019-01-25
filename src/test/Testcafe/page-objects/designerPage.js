@@ -20,8 +20,8 @@ export default class DesignerPage {
     this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
 
     //left drawer menu
-    this.leftDrawerMenu = Selector('#root > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
-    this.leftMenuList = Selector('li') //all unordered list elements to be filtered
+    this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
+    this.leftMenuList = Selector('li'); //all unordered list elements to be filtered
 
     //"Om" navigation tab selectors
     this.omNavigationTab = Selector('div').withExactText('Om');

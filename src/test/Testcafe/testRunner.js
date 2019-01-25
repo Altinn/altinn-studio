@@ -22,7 +22,7 @@ createTestCafe()
         assertionTimeout: 5000,
         pageLoadTimeout: 5000,
         speed: 1,
-        debugOnFail: true,
+        debugOnFail: false,
         stopOnFirstFail: false
       })
       .then(failedCount => {

@@ -16,9 +16,10 @@ fixture('Navigating the Service designer')
   .page(app.baseUrl)
   .before(async () => {
   })
-  .beforeEach(async () => {
+  .beforeEach(async t => {
     await common.login(testUser.userEmail, testUser.password, loginPage);
     await waitForReact();
+    await t.navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
     //app.before();
   })
   .after(async () => {
@@ -27,7 +28,6 @@ fixture('Navigating the Service designer')
 
 test('Om tab navigation', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice') //navigate to the designer on test user repo
     .click(designerPage.omNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.omLeftMenuItems[0].visible).ok()
@@ -40,7 +40,6 @@ test('Om tab navigation', async () => {
 
 test('Lage tab navigation', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
     .click(designerPage.lageNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.lageLeftMenuItems[0].visible).ok()
@@ -50,7 +49,6 @@ test('Lage tab navigation', async () => {
 
 test('Språk tab navigation', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
     .click(designerPage.spraakNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.spraakLeftMenuItems[0].visible).ok()
@@ -59,7 +57,6 @@ test('Språk tab navigation', async () => {
 
 test('Teste tab navigation', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
     .click(designerPage.testeNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.testeLeftMenuItems[0].visible).ok()
@@ -67,7 +64,6 @@ test('Teste tab navigation', async () => {
 
 test('Publisere tab navigation', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
     .click(designerPage.publisereNavigationTab)
     .hover(designerPage.leftDrawerMenu)
     .expect(designerPage.publisereLeftMenuItems[0].visible).ok()
