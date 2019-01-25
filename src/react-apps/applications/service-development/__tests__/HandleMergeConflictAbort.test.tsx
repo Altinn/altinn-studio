@@ -35,12 +35,12 @@ describe('HandleMergeConflictAbort', () => {
     const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
 
     // Mocks
-    const mockGetResult = {
+    const mockData = {
       isSuccessStatusCode: true,
     };
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(() => {
-      return mockGetResult;
-    });
+    const getStub = jest.fn();
+    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockData));
 
     // Expected no result from networking yet
     expect(instance.state.networkingRes).toEqual(null);
@@ -92,12 +92,12 @@ describe('HandleMergeConflictAbort', () => {
     const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
 
     // Mocks
-    const mockGetResult = {
+    const mockData = {
       isSuccessStatusCode: false,
     };
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(() => {
-      return mockGetResult;
-    });
+    const getStub = jest.fn();
+    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.resolve(mockData));
 
     // Expected no result from networking yet
     expect(instance.state.networkingRes).toEqual(null);
@@ -150,9 +150,10 @@ describe('HandleMergeConflictAbort', () => {
     const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
 
     // Mocks
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(() => {
-      return Promise.reject(Error('mocked error'))
-    });
+    const mockError = Error('mocked error');
+    const getStub = jest.fn();
+    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.reject(mockError));
 
     // Expected no result from networking yet
     expect(instance.state.networkingRes).toEqual(null);
