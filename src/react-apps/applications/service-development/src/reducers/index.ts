@@ -1,17 +1,17 @@
 import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import serviceDevelopmentReducer, { IServiceDevelopmentState } from '../reducers/serviceDevelopmentReducer';
+import handleMergeConflictReducer, { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import languageReducer, { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 export interface IServiceDevelopmentReducers
   extends IServiceDevelopmentNameSpace<
   Reducer<IFetchedLanguageState>,
-  Reducer<IServiceDevelopmentState>
+  Reducer<IHandleMergeConflictState>
   >,
   ReducersMapObject { }
 
 const reducers: IServiceDevelopmentReducers = {
   language: languageReducer,
-  serviceDevelopment: serviceDevelopmentReducer,
+  handleMergeConflict: handleMergeConflictReducer,
 };
 
 export default combineReducers(reducers);

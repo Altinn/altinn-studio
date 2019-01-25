@@ -20,13 +20,18 @@ export interface IAltinnButtonComponentState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
+  borderBottom: {
+    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
+  },
+  borderBottomDisabled: {
+    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.greyMedium,
+  },
   button: {
     'color': theme.altinnPalette.primary.white,
     'background': theme.altinnPalette.primary.blueDark,
     'textTransform': 'none' as 'none',
     'fontWeight': 400,
     'height': 36,
-    'marginTop': '20px',
     'borderRadius': '0',
     'padding': '8px 24px 8px 24px',
     '&:hover': {
@@ -43,22 +48,16 @@ const styles = () => createStyles({
     'color': theme.altinnPalette.primary.blueDarker,
     'background': 'transparent',
     'height': 36,
-    // 'maxWidth': '150px',
     'textTransform': 'none',
-    'textDecoration': 'underline',
     'fontWeight': 400,
-    'marginTop': '20px',
     'borderRadius': '0',
     '&:hover': {
-      // background: theme.altinnPalette.primary.greyLight,
-      background: 'transparent',
+      background: theme.altinnPalette.primary.greyLight,
       color: theme.altinnPalette.primary.blueDarker,
-      textDecoration: 'underline',
-      fontWeight: 500,
     },
     '&:focus': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
+      background: theme.altinnPalette.primary.greyLight,
+      color: theme.altinnPalette.primary.black,
     },
   },
 });
@@ -81,7 +80,14 @@ class AltinnButton extends
         onClick={this.props.onClickFunction}
         style={{ fontSize: 16 }}
       >
-        {this.props.btnText}
+        <span
+          className={classNames({
+            [classes.borderBottom]: this.props.secondaryButton === true && this.props.disabled !== true,
+            [classes.borderBottomDisabled]: this.props.secondaryButton === true && this.props.disabled === true,
+          })}
+        >
+          {this.props.btnText}
+        </span>
       </Button>
     );
   }

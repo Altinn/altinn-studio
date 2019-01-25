@@ -329,43 +329,45 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public redirectToMergeConflictPage() {
-    // TODO: redirect to merge page
+  public redirectToMergeConflictPage = () => {
+    window.postMessage('forceRepoStatusCheck', window.location.href);
   }
 
   public render() {
     const { classes } = this.props;
     return (
-      <Grid container={true} direction='row' className={classes.headerStyling}>
-        <Grid item={true} xs={5}>
-          <FetchChangesComponent
-            language={this.props.language}
-            fetchChanges={this.fetchChanges}
-            changesInMaster={this.state.changesInMaster}
+      <React.Fragment>
+        <Grid container={true} direction='row' className={classes.headerStyling}>
+          <Grid item={true} xs={5}>
+            <FetchChangesComponent
+              language={this.props.language}
+              fetchChanges={this.fetchChanges}
+              changesInMaster={this.state.changesInMaster}
+            />
+          </Grid>
+          <Grid item={true} xs={7}>
+            <ShareChangesComponent
+              language={this.props.language}
+              shareChanges={this.shareChanges}
+              changesInLocalRepo={this.state.changesInLocalRepo}
+              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+              hasPushRight={this.state.hasPushRight}
+              hasMergeConflict={this.state.mergeConflict}
+            />
+          </Grid>
+          <SyncModalComponent
+            anchorEl={this.state.anchorEl}
+            header={this.state.modalState.header}
+            descriptionText={this.state.modalState.descriptionText}
+            isLoading={this.state.modalState.isLoading}
+            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+            btnText={this.state.modalState.btnText}
+            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+            handleClose={this.handleClose}
+            btnClick={this.state.modalState.btnMethod}
           />
         </Grid>
-        <Grid item={true} xs={7}>
-          <ShareChangesComponent
-            language={this.props.language}
-            shareChanges={this.shareChanges}
-            changesInLocalRepo={this.state.changesInLocalRepo}
-            moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
-            hasPushRight={this.state.hasPushRight}
-            hasMergeConflict={this.state.mergeConflict}
-          />
-        </Grid>
-        <SyncModalComponent
-          anchorEl={this.state.anchorEl}
-          header={this.state.modalState.header}
-          descriptionText={this.state.modalState.descriptionText}
-          isLoading={this.state.modalState.isLoading}
-          shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
-          btnText={this.state.modalState.btnText}
-          shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-          handleClose={this.handleClose}
-          btnClick={this.state.modalState.btnMethod}
-        />
-      </Grid>
+      </React.Fragment>
     );
   }
 }
