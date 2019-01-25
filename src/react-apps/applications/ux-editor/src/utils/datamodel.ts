@@ -23,3 +23,14 @@ export function getParentGroup(
 
   return repeatingParentGroup;
 }
+
+export function filterDataModelForIntellisense(
+  dataModelElements: IDataModelFieldElement[],
+  parentElement: string,
+  ): IDataModelFieldElement[] {
+  if (!dataModelElements) {
+    return [];
+  }
+  return dataModelElements.filter(
+    (element: IDataModelFieldElement) => (element.Type === 'Field' || element.Type === 'Group') && element.ParentElement === parentElement);
+}

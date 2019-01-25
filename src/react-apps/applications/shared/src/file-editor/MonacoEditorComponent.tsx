@@ -7,6 +7,7 @@ export interface IMonacoEditorComponentProps {
   language: string;
   value: string;
   onValueChange: (value: string) => void;
+  createCompletionSuggestions?: (monaco: any, parentElement: string) => any[];
 }
 
 export interface IMonacoEditorComponentState {
@@ -25,8 +26,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     };
   }
 
-  public editorWillMount(monaco: any) {
-
+  public editorWillMount = (monaco: any) => {
     monaco.languages.setMonarchTokensProvider('plaintext', {
       tokenizer: {
         root: [
@@ -47,6 +47,50 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       ],
       colors: {
         'merge.incomingHeaderBackground': '#00ff00',
+      },
+    });
+
+    monaco.languages.registerCompletionItemProvider('csharp', {
+      provideCompletionItems: (model: any, position: any) => {
+        let textUntilPosition: string = model.getValueInRange(
+          {
+            startLineNumber: position.lineNumber,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          },
+        );
+
+        const match = textUntilPosition.match(/.*\./);
+        console.log('match:', match);
+
+        console.log('textUntilPosition', textUntilPosition);
+        // const suggestions = match ? [
+        //   {
+        //     label: 'doStuff',
+        //     kind: monaco.languages.CompletionItemKind.Field,
+        //     documentation: 'Does all kinds of awesome stuff',
+        //     insertText: 'doStuff',
+        //   },
+        //   {
+        //     label: 'otherStuff',
+        //     kind: monaco.languages.CompletionItemKind.Property,
+        //     documentation: 'Does all kinds of awesome stuff',
+        //     insertText: 'otherStuff',
+        //   },
+        // ] : [];
+        textUntilPosition = textUntilPosition.trim();
+        if (textUntilPosition.endsWith('.')) {
+          textUntilPosition = textUntilPosition.substr(0, textUntilPosition.length - 1);
+        }
+        const suggestions = match ? this.props.createCompletionSuggestions(monaco, textUntilPosition) : [];
+
+        console.log('suggestions:', suggestions);
+
+        return {
+          suggestions,
+          incomplete: true,
+        };
       },
     });
   }
