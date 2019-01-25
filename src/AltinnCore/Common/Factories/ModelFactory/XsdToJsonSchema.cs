@@ -532,7 +532,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            SetType(attributeSchema, new JsonValue("XmlAttribute"));
+            TagType(attributeSchema, new JsonValue("XmlAttribute"));
 
             if (attribute.Annotation != null)
             {
@@ -1112,14 +1112,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AppendValueAttribute(XmlQualifiedName baseTypeName, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        private void AppendValueAttribute(XmlSchemaObject item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
-            if (!baseTypeName.IsEmpty)
+            if (item is XmlSchemaSimpleContentExtension)
             {
-                JsonSchema valueAttributeSchema = new JsonSchema();
-                AppendTypeFromNameInternal(baseTypeName, valueAttributeSchema);
-                appendToSchema.Property("value", valueAttributeSchema);
-                requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
+                XmlSchemaSimpleContentExtension simpleContentExtension = (XmlSchemaSimpleContentExtension)item;
+                if (!simpleContentExtension.BaseTypeName.IsEmpty)
+                {
+                    JsonSchema valueAttributeSchema = new JsonSchema();
+                    AppendTypeFromNameInternal(simpleContentExtension.BaseTypeName, valueAttributeSchema);
+                    appendToSchema.Property("value", valueAttributeSchema);
+                    TagType(appendToSchema, new JsonValue("XmlSimpleContentExtension"));
+                    requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -1136,7 +1145,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (contentExtensionItem.Attributes.Count > 0)
                 {
                     AppendAttributes(contentExtensionItem.Attributes, appendToSchema, requiredList);
-                    AppendValueAttribute(contentExtensionItem.BaseTypeName, appendToSchema, requiredList);
+                    AppendValueAttribute(contentExtensionItem, appendToSchema, requiredList);
                 }
                 else if (!contentExtensionItem.BaseTypeName.IsEmpty)
                 {
@@ -1310,7 +1319,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             appendToSchema.Maximum(value);
         }
 
-        private void SetType(JsonSchema appendToSchema, JsonValue value)
+        private void TagType(JsonSchema appendToSchema, JsonValue value)
         {
             appendToSchema.OtherData.Remove("@xsdType");
             appendToSchema.OtherData.Add("@xsdType", value);
