@@ -273,6 +273,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 AppendAnnotated(item, complexTypeSchema);
             }
 
+            if (item.AnyAttribute != null)
+            {
+                TagAnyAttribute(complexTypeSchema);
+            }
+
             if (item.Attributes.Count > 0)
             {
                 foreach (XmlSchemaAttribute attribute in item.Attributes)
@@ -532,7 +537,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            TagType(attributeSchema, new JsonValue("XmlAttribute"));
+            TagType(attributeSchema, "XmlAttribute");
 
             if (attribute.Annotation != null)
             {
@@ -1036,7 +1041,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                     if (attributeGroup.AnyAttribute != null)
                     {
-                        throw new NotImplementedException();
+                        TagAnyAttribute(appendToSchema);
                     }
 
                     if (attributeGroup.Attributes.Count > 0)
@@ -1122,7 +1127,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     JsonSchema valueAttributeSchema = new JsonSchema();
                     AppendTypeFromNameInternal(simpleContentExtension.BaseTypeName, valueAttributeSchema);
                     appendToSchema.Property("value", valueAttributeSchema);
-                    TagType(appendToSchema, new JsonValue("XmlSimpleContentExtension"));
+                    TagType(appendToSchema, "XmlSimpleContentExtension");
                     requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
                 }
             }
@@ -1245,7 +1250,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (contentRestrictionItem.AnyAttribute != null)
                 {
-                    throw new NotImplementedException();
+                    TagAnyAttribute(appendToSchema);
                 }
 
                 if (contentRestrictionItem.Attributes.Count > 0)
@@ -1319,10 +1324,32 @@ namespace AltinnCore.Common.Factories.ModelFactory
             appendToSchema.Maximum(value);
         }
 
-        private void TagType(JsonSchema appendToSchema, JsonValue value)
+        private void TagType(JsonSchema appendToSchema, string value)
         {
-            appendToSchema.OtherData.Remove("@xsdType");
-            appendToSchema.OtherData.Add("@xsdType", value);
+            Tag(appendToSchema, "@xsdType", value);
+        }
+
+        private void TagAnyAttribute(JsonSchema appendToSchema)
+        {
+            Tag(appendToSchema, "@xsdAnyAttribute", true);
+        }
+
+        private void Tag(JsonSchema appendToSchema, string type, object value)
+        {
+            appendToSchema.OtherData.Remove(type);
+
+            if (value is string)
+            {
+                appendToSchema.OtherData.Add(type, new JsonValue((string)value));
+            }
+            else if (value is bool)
+            {
+                appendToSchema.OtherData.Add(type, new JsonValue((bool)value));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private void SetConst(JsonSchema appendToSchema, JsonValue value)
