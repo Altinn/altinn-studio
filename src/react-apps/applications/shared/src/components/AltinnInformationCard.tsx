@@ -17,7 +17,7 @@ export interface IAltinnInformationCardComponentProvidedProps {
   linkTextKey?: string;
   urlKey?: string;
   imageSource?: string;
-  language: any;
+  language?: any;
   shadow?: boolean;
 }
 

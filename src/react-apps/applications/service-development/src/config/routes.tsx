@@ -8,7 +8,7 @@ const DummySubApp = (name: any) => {
   return (
     <div>
       <VersionControlHeader language={null} />
-      <AltinnInformationCard language={'nb'} />
+      <AltinnInformationCard />
     </div>
   );
 };
