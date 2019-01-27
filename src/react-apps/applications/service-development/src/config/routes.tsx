@@ -1,4 +1,5 @@
 import * as React from 'react';
+import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
@@ -7,7 +8,7 @@ const DummySubApp = (name: any) => {
   return (
     <div>
       <VersionControlHeader language={null} />
-      Dummy app for {name.name}
+      <AltinnInformationCard language={'nb'} />
     </div>
   );
 };

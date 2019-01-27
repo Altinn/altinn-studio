@@ -55,7 +55,7 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
 }
 export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
-
+  language: string;
 }
 
 class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
@@ -63,7 +63,8 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     super(_props, _state);
     this.state = {
       forceRepoStatusCheckComplete: true,
-    };
+      language: 'nb'
+,    };
   }
 
   public checkForMergeConflict = () => {
