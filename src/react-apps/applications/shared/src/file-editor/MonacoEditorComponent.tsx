@@ -62,31 +62,8 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
         );
 
         const match = textUntilPosition.match(/.*\./);
-        console.log('match:', match);
-
-        console.log('textUntilPosition', textUntilPosition);
-        // const suggestions = match ? [
-        //   {
-        //     label: 'doStuff',
-        //     kind: monaco.languages.CompletionItemKind.Field,
-        //     documentation: 'Does all kinds of awesome stuff',
-        //     insertText: 'doStuff',
-        //   },
-        //   {
-        //     label: 'otherStuff',
-        //     kind: monaco.languages.CompletionItemKind.Property,
-        //     documentation: 'Does all kinds of awesome stuff',
-        //     insertText: 'otherStuff',
-        //   },
-        // ] : [];
         textUntilPosition = textUntilPosition.trim();
-        if (textUntilPosition.endsWith('.')) {
-          textUntilPosition = textUntilPosition.substr(0, textUntilPosition.length - 1);
-        }
         const suggestions = match ? this.props.createCompletionSuggestions(monaco, textUntilPosition) : [];
-
-        console.log('suggestions:', suggestions);
-
         return {
           suggestions,
           incomplete: true,

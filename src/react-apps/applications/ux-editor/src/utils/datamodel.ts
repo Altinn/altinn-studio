@@ -26,11 +26,30 @@ export function getParentGroup(
 
 export function filterDataModelForIntellisense(
   dataModelElements: IDataModelFieldElement[],
-  parentElement: string,
+  filterText: string,
   ): IDataModelFieldElement[] {
   if (!dataModelElements) {
     return [];
   }
+  const parentElement = filterText.substr(0, filterText.lastIndexOf('.')).toLowerCase();
+  const currentElement = filterText.endsWith('.') ? null :
+    filterText.substr(filterText.lastIndexOf('.') + 1, filterText.length).toLowerCase();
+
+  if (currentElement) {
+    return dataModelElements.filter(
+      (element: IDataModelFieldElement) =>
+        (element.Type === 'Field'
+        || element.Type === 'Group')
+        && element.ParentElement
+        && element.ParentElement.toLowerCase() === parentElement
+        && element.Name.toLowerCase().startsWith(currentElement),
+      );
+  }
+
   return dataModelElements.filter(
-    (element: IDataModelFieldElement) => (element.Type === 'Field' || element.Type === 'Group') && element.ParentElement === parentElement);
+    (element: IDataModelFieldElement) =>
+      (element.Type === 'Field' || element.Type === 'Group')
+        && element.ParentElement
+        && element.ParentElement.toLowerCase() === parentElement,
+      );
 }
