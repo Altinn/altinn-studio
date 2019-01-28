@@ -207,6 +207,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
+            bool? xsdAnyAttribute = jSchema.OtherData.TryGetBoolean("@xsdAnyAttribute");
+            if (xsdAnyAttribute == true)
+            {
+                complexType.AnyAttribute = new XmlSchemaAnyAttribute();
+            }
+
             return sequence;
         }        
 

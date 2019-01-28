@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Xml;
 using System.Xml.Schema;
@@ -177,7 +179,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.DefaultValue != null)
             {
-                _logger.LogInformation(elementName.ToString() + ": Ignoring Default value \"" + item.DefaultValue + "\"");
+                LogInfo(elementName.ToString() + ": Ignoring Default value \"" + item.DefaultValue + "\"");
             }
 
             if (item.ElementSchemaType != null)
@@ -192,17 +194,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Final != XmlSchemaDerivationMethod.None)
             {
-                _logger.LogInformation(elementName.ToString() + ": Ignoring Final value");
+                LogInfo(elementName.ToString() + ": Ignoring Final value");
             }
 
             if (item.FixedValue != null)
             {
-                _logger.LogInformation(elementName.ToString() + ": Ignoring Fixed value \"" + item.FixedValue + "\"");
+                LogInfo(elementName.ToString() + ": Ignoring Fixed value \"" + item.FixedValue + "\"");
             }
 
             if (item.IsAbstract)
             {
-                _logger.LogInformation(elementName.ToString() + ": Ignoring Abstract");
+                LogInfo(elementName.ToString() + ": Ignoring Abstract");
             }
 
             if (!item.IsNillable)
@@ -211,7 +213,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             if (item.MinOccurs >= 1 ||
-                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString) >= 1))
+                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString, CultureInfo.InvariantCulture) >= 1))
             {
                 isRequired = true;
             }
@@ -269,6 +271,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (item.Annotation != null)
             {
                 AppendAnnotated(item, complexTypeSchema);
+            }
+
+            if (item.AnyAttribute != null)
+            {
+                TagAnyAttribute(complexTypeSchema);
             }
 
             if (item.Attributes.Count > 0)
@@ -366,64 +373,64 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 try
                                 {
-                                    SetMinimum(appendToSchema, Convert.ToDouble(facet.Value));
+                                    SetMinimum(appendToSchema, Convert.ToDouble(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("Minimum: Could not convert " + facet.Value + " to number");
+                                    LogError("Minimum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMaxInclusiveFacet)
                             {
                                 try
                                 {
-                                    SetMaximum(appendToSchema, Convert.ToDouble(facet.Value));
+                                    SetMaximum(appendToSchema, Convert.ToDouble(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("Maximum: Could not convert " + facet.Value + " to number");
+                                    LogError("Maximum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMinLengthFacet)
                             {
                                 try
                                 {
-                                    appendToSchema.MinLength(Convert.ToUInt32(facet.Value));
+                                    appendToSchema.MinLength(Convert.ToUInt32(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("MinLength: Could not convert " + facet.Value + " to number");
+                                    LogError("MinLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMaxLengthFacet)
                             {
                                 try
                                 {
-                                    appendToSchema.MaxLength(Convert.ToUInt32(facet.Value));
+                                    appendToSchema.MaxLength(Convert.ToUInt32(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("MaxLength: Could not convert " + facet.Value + " to number");
+                                    LogError("MaxLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaLengthFacet || facet is XmlSchemaTotalDigitsFacet)
                             {
                                 try
                                 {
-                                    appendToSchema.MinLength(Convert.ToUInt32(facet.Value));
+                                    appendToSchema.MinLength(Convert.ToUInt32(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("MinLength: Could not convert " + facet.Value + " to number");
+                                    LogError("MinLength: Could not convert " + facet.Value + " to number");
                                 }
 
                                 try
                                 {
-                                    appendToSchema.MaxLength(Convert.ToUInt32(facet.Value));
+                                    appendToSchema.MaxLength(Convert.ToUInt32(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("MaxLength: Could not convert " + facet.Value + " to number");
+                                    LogError("MaxLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaPatternFacet)
@@ -438,22 +445,22 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 try
                                 {
-                                    appendToSchema.ExclusiveMinimum(Convert.ToDouble(facet.Value));
+                                    appendToSchema.ExclusiveMinimum(Convert.ToDouble(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("ExclusiveMinimum: Could not convert " + facet.Value + " to number");
+                                    LogError("ExclusiveMinimum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else if (facet is XmlSchemaMaxExclusiveFacet)
                             {
                                 try
                                 {
-                                    appendToSchema.ExclusiveMaximum(Convert.ToDouble(facet.Value));
+                                    appendToSchema.ExclusiveMaximum(Convert.ToDouble(facet.Value, CultureInfo.InvariantCulture));
                                 }
                                 catch (Exception)
                                 {
-                                    _logger.LogError("ExclusiveMaximum: Could not convert " + facet.Value + " to number");
+                                    LogError("ExclusiveMaximum: Could not convert " + facet.Value + " to number");
                                 }
                             }
                             else
@@ -530,7 +537,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            SetType(attributeSchema, new JsonValue("XmlAttribute"));
+            TagType(attributeSchema, "XmlAttribute");
 
             if (attribute.Annotation != null)
             {
@@ -585,7 +592,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             if (item.MinOccurs >= 1 ||
-                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString) >= 1))
+                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString, CultureInfo.InvariantCulture) >= 1))
             {
                 isRequired = true;
             }
@@ -778,7 +785,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string name = (qname == null || qname.IsEmpty) ? null : qname.Name;
             if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
             {
-                _logger.LogInformation("null type requested. Using string");
+                LogInfo("null type requested. Using string");
                 appendToSchema.Type(JsonSchemaType.String);
             }
             else if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
@@ -888,10 +895,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     appendToSchema.Type(JsonSchemaType.Array);
                     var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : elementItem.MinOccurs;
                     var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : elementItem.MaxOccursString;
-                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
+                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs, CultureInfo.InvariantCulture));
                     if (!"unbounded".Equals(maxOccursString))
                     {
-                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs));
+                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs, CultureInfo.InvariantCulture));
                     }
 
                     JsonSchema[] itemsSchemas = new JsonSchema[1];
@@ -948,10 +955,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     appendToSchema.Type(JsonSchemaType.Array);
                     var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : anyItem.MinOccurs;
                     var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : anyItem.MaxOccursString;
-                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
+                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs, CultureInfo.InvariantCulture));
                     if (!"unbounded".Equals(maxOccursString))
                     {
-                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs));
+                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs, CultureInfo.InvariantCulture));
                     }
 
                     JsonSchema[] itemsSchemas = new JsonSchema[1];
@@ -1034,7 +1041,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                     if (attributeGroup.AnyAttribute != null)
                     {
-                        throw new NotImplementedException();
+                        TagAnyAttribute(appendToSchema);
                     }
 
                     if (attributeGroup.Attributes.Count > 0)
@@ -1110,14 +1117,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AppendValueAttribute(XmlQualifiedName baseTypeName, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        private void AppendValueAttribute(XmlSchemaObject item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
-            if (!baseTypeName.IsEmpty)
+            if (item is XmlSchemaSimpleContentExtension)
             {
-                JsonSchema valueAttributeSchema = new JsonSchema();
-                AppendTypeFromNameInternal(baseTypeName, valueAttributeSchema);
-                appendToSchema.Property("value", valueAttributeSchema);
-                requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
+                XmlSchemaSimpleContentExtension simpleContentExtension = (XmlSchemaSimpleContentExtension)item;
+                if (!simpleContentExtension.BaseTypeName.IsEmpty)
+                {
+                    JsonSchema valueAttributeSchema = new JsonSchema();
+                    AppendTypeFromNameInternal(simpleContentExtension.BaseTypeName, valueAttributeSchema);
+                    appendToSchema.Property("value", valueAttributeSchema);
+                    TagType(appendToSchema, "XmlSimpleContentExtension");
+                    requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -1134,7 +1150,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (contentExtensionItem.Attributes.Count > 0)
                 {
                     AppendAttributes(contentExtensionItem.Attributes, appendToSchema, requiredList);
-                    AppendValueAttribute(contentExtensionItem.BaseTypeName, appendToSchema, requiredList);
+                    AppendValueAttribute(contentExtensionItem, appendToSchema, requiredList);
                 }
                 else if (!contentExtensionItem.BaseTypeName.IsEmpty)
                 {
@@ -1234,7 +1250,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (contentRestrictionItem.AnyAttribute != null)
                 {
-                    throw new NotImplementedException();
+                    TagAnyAttribute(appendToSchema);
                 }
 
                 if (contentRestrictionItem.Attributes.Count > 0)
@@ -1308,10 +1324,32 @@ namespace AltinnCore.Common.Factories.ModelFactory
             appendToSchema.Maximum(value);
         }
 
-        private void SetType(JsonSchema appendToSchema, JsonValue value)
+        private void TagType(JsonSchema appendToSchema, string value)
         {
-            appendToSchema.OtherData.Remove("@xsdType");
-            appendToSchema.OtherData.Add("@xsdType", value);
+            Tag(appendToSchema, "@xsdType", value);
+        }
+
+        private void TagAnyAttribute(JsonSchema appendToSchema)
+        {
+            Tag(appendToSchema, "@xsdAnyAttribute", true);
+        }
+
+        private void Tag(JsonSchema appendToSchema, string type, object value)
+        {
+            appendToSchema.OtherData.Remove(type);
+
+            if (value is string)
+            {
+                appendToSchema.OtherData.Add(type, new JsonValue((string)value));
+            }
+            else if (value is bool)
+            {
+                appendToSchema.OtherData.Add(type, new JsonValue((bool)value));
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private void SetConst(JsonSchema appendToSchema, JsonValue value)
@@ -1368,7 +1406,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            _logger.LogInformation("FindObject: Couldn't find \"" + name.ToString() + "\"");
+            LogInfo("FindObject: Couldn't find \"" + name.ToString() + "\"");
             return null;
         }
 
@@ -1632,6 +1670,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private bool IsTopLevel(XmlSchemaObject item)
         {
             return item.Parent == mainXsd;
+        }
+
+        private void LogInfo(string msg)
+        {
+            _logger.LogInformation(msg);
+            Trace.WriteLine("Info: " + msg);
+        }
+
+        private void LogError(string msg)
+        {
+            _logger.LogError(msg);
+            Trace.WriteLine("Error: " + msg);
         }
 
         private static void ValidationCallback(object sender, ValidationEventArgs args)
