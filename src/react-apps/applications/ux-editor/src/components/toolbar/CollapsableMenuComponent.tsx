@@ -1,5 +1,5 @@
 import { createStyles, ListItem, ListItemIcon, ListItemText, Theme, withStyles } from '@material-ui/core';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { CollapsableMenus } from '../../containers/Toolbar';
