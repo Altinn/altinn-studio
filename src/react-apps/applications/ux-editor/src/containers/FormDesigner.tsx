@@ -14,6 +14,7 @@ import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfi
 import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+import { filterDataModelForIntellisense } from '../utils/datamodel';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
@@ -22,6 +23,7 @@ export interface IFormDesignerProvidedProps {
 }
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
+  dataModel: IDataModelFieldElement[];
 }
 
 type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
@@ -136,6 +138,10 @@ class FormDesigner extends React.Component<
     });
   }
 
+  public getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
+    return filterDataModelForIntellisense(this.props.dataModel, filterText);
+  }
+
   public renderLogicMenu = () => {
     return (
       <Drawer
@@ -146,6 +152,7 @@ class FormDesigner extends React.Component<
         <FileEditor
           mode={this.state.codeEditorMode.toString()}
           closeFileEditor={this.toggleCodeEditor}
+          getDataModelSuggestions={this.getDataModelSuggestions}
         />
       </Drawer>
     );
@@ -248,6 +255,7 @@ const mapsStateToProps = (
   return {
     classes: props.classes,
     language: state.appData.language.language,
+    dataModel: state.appData.dataModel.model,
   };
 };
 

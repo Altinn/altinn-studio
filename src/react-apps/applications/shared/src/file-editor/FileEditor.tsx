@@ -47,6 +47,7 @@ export interface IFileEditorProvidedProps {
   checkRepoStatusAfterSaveFile?: boolean;
   classes: any;
   closeFileEditor?: () => void;
+  getDataModelSuggestions?: (filterText: string) => any[];
   loadFile?: string;
   mode?: string;
   showSaveButton?: boolean;
@@ -223,6 +224,20 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       this.props.closeFileEditor();
     }
 
+  }
+  public createCompletionSuggestions = (monaco: any, filterText: string): any[] => {
+    const dataModelSuggestions = this.props.getDataModelSuggestions ?
+      this.props.getDataModelSuggestions(filterText) : [];
+    const suggestions = dataModelSuggestions.map((item: any) => {
+      return {
+        label: item.Name,
+        kind: monaco.languages.CompletionItemKind.Field,
+        description: item.DisplayString,
+        insertText: item.Name,
+      };
+    });
+
+    return suggestions;
   }
 
   public onValueChange = (value: string) => {
@@ -422,6 +437,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             language={language.name}
             value={this.state.value}
             onValueChange={this.onValueChange}
+            createCompletionSuggestions={this.createCompletionSuggestions}
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />
