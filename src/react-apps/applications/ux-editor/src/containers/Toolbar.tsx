@@ -3,7 +3,7 @@ import FormControl from '@material-ui/core/FormControl';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import TextField from '@material-ui/core/TextField';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';

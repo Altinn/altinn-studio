@@ -1,31 +1,28 @@
 import { shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
+import * as render from 'react-test-renderer';
 import ProfileMenuComponent from '../src/navigation/main-header/profileMenu';
 
 describe('ProfileMenu', () => {
-  let profileMenu: any;
   let rendered: any;
 
   afterEach(() => {
-    profileMenu = null;
     rendered = null;
   });
 
   it('should match snapshot', () => {
-    rendered = shallow(<ProfileMenuComponent />);
-    profileMenu = rendered.shallow();
-    expect(profileMenu).toMatchSnapshot();
+    rendered = render.create(<ProfileMenuComponent />);
+    expect(rendered).toMatchSnapshot();
   });
 
   it('should match snapshot with logout text', () => {
-    rendered = shallow(
+    rendered = render.create(
       <ProfileMenuComponent
         showlogout={true}
       />,
     );
-    profileMenu = rendered.shallow();
-    expect(profileMenu).toMatchSnapshot();
+    expect(rendered).toMatchSnapshot();
   });
 });
 
