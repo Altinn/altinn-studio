@@ -2,6 +2,7 @@ import { createMuiTheme } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/core/styles';
+import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
@@ -9,14 +10,14 @@ import AltinnIcon from './AltinnIcon';
 
 export interface IAltinnInformationCardComponentProvidedProps {
   classes: any;
-  headerTextKey?: string;
-  subtext1TextKey?: string;
-  subtext2TextKey?: string;
-  linkTextKey?: string;
-  urlKey?: string;
-  imageSource?: string;
+  headerTextKey: string;
+  subtext1TextKey: string;
+  subtext2TextKey: string;
+  linkTextKey: string;
+  urlKey: string;
+  imageSource: string;
   language?: any;
-  shadow?: boolean;
+  shadow: boolean;
 }
 
 export interface IAltinnInformationCardComponentState {
@@ -69,6 +70,8 @@ const styles = () => createStyles({
       height: 623,
     },
     background: theme.altinnPalette.primary.white,
+  },
+  shadowBox: {
     boxShadow: '0px 4px 7px rgba(0, 0, 0, 0.14)',
   },
   header: {
@@ -99,26 +102,26 @@ class AltinnInformationCard extends
     return (
       <Grid container={true} className={classes.root} spacing={0} justify={'center'} alignContent={'center'} >
         <Grid
-          className={classes.paper}
+          className={classNames(classes.paper, { [classes.shadowBox]: this.props.shadow })}
           container={true}
         >
           <Grid container={true} item={true}>
             <Grid sm={12} md={7} item={true} container={true}>
               <Grid item={true}>
                 <h1 className={classes.header}>
-                  {getLanguageFromKey('shared.wip_title', this.props.language)}
+                  {getLanguageFromKey(this.props.headerTextKey, this.props.language)}
                 </h1>
                 <p className={classes.subText1}>
-                  {getLanguageFromKey('shared.wip_subtext_1', this.props.language)}
+                  {getLanguageFromKey(this.props.subtext1TextKey, this.props.language)}
                 </p>
                 <p className={classes.subText2}>
-                  {getLanguageFromKey('shared.wip_subtext_2', this.props.language)}
+                  {getLanguageFromKey(this.props.subtext2TextKey, this.props.language)}
                 </p>
                 <div className={classes.smSpacing}>
                   <a
-                    href={getLanguageFromKey('shared.wip_link_github_url', this.props.language)}
+                    href={getLanguageFromKey(this.props.urlKey, this.props.language)}
                     className={classes.link}>
-                    {getLanguageFromKey('shared.wip_link_text', this.props.language)}
+                    {getLanguageFromKey(this.props.linkTextKey, this.props.language)}
                     <AltinnIcon
                       isActive={true}
                       iconClass='ai ai-arrowrightup'
@@ -129,7 +132,7 @@ class AltinnInformationCard extends
               </Grid>
             </Grid>
             <Grid container={true} sm={12} md={5} item={true} spacing={0} justify={'center'} alignContent={'center'}>
-              <img alt='complex' src='../../designer/img/illustration-help-circle.svg' />
+              <img alt='information' src={this.props.imageSource} />
             </Grid>
           </Grid>
         </Grid>
