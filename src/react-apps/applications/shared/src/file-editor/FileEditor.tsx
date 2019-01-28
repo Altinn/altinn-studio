@@ -47,7 +47,7 @@ export interface IFileEditorProvidedProps {
   checkRepoStatusAfterSaveFile?: boolean;
   classes: any;
   closeFileEditor?: () => void;
-  getDataModelSuggestions?: (parentElement: string) => any[];
+  getDataModelSuggestions?: (filterText: string) => any[];
   loadFile?: string;
   mode?: string;
   showSaveButton?: boolean;
@@ -225,8 +225,9 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
 
   }
-  public createCompletionSuggestions = (monaco: any, parentElement: string): any[] => {
-    const dataModelSuggestions = this.props.getDataModelSuggestions ? this.props.getDataModelSuggestions(parentElement) : [];
+  public createCompletionSuggestions = (monaco: any, filterText: string): any[] => {
+    const dataModelSuggestions = this.props.getDataModelSuggestions ?
+      this.props.getDataModelSuggestions(filterText) : [];
     const suggestions = dataModelSuggestions.map((item: any) => {
       return {
         label: item.Name,
@@ -235,7 +236,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         insertText: item.Name,
       };
     });
-  
+
     return suggestions;
   }
 

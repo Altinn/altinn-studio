@@ -7,7 +7,7 @@ export interface IMonacoEditorComponentProps {
   language: string;
   value: string;
   onValueChange: (value: string) => void;
-  createCompletionSuggestions?: (monaco: any, parentElement: string) => any[];
+  createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
 }
 
 export interface IMonacoEditorComponentState {

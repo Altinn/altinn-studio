@@ -138,8 +138,8 @@ class FormDesigner extends React.Component<
     });
   }
 
-  public getDataModelSuggestions = (parentElement: string): IDataModelFieldElement[] => {
-    return filterDataModelForIntellisense(this.props.dataModel, parentElement);
+  public getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
+    return filterDataModelForIntellisense(this.props.dataModel, filterText);
   }
 
   public renderLogicMenu = () => {
