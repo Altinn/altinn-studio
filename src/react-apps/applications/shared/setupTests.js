@@ -1,6 +1,7 @@
-const {
-  JSDOM
-} = require('jsdom');
+import { JSDOM } from 'jsdom';
+const Enzyme = require('enzyme');
+const EnzymeAdapter = require('enzyme-adapter-react-16');
+import 'jest';
 
 const {
   document
@@ -14,11 +15,6 @@ global.window.resizeTo = (width, height) => {
   global.window.innerHeight = height || global.window.innerHeight;
   global.window.dispatchEvent(new Event('resize'));
 };
-
-const Enzyme = require('enzyme');
-const EnzymeAdapter = require('enzyme-adapter-react-16');
-
-require('jest');
 
 Enzyme.configure({
   adapter: new EnzymeAdapter(),

@@ -1,5 +1,5 @@
 import { Button, createMuiTheme, createStyles, withStyles } from '@material-ui/core';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
