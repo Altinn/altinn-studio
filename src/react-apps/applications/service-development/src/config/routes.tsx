@@ -1,17 +1,6 @@
-import * as React from 'react';
 import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
-import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
-
-const DummySubApp = (name: any) => {
-  return (
-    <div>
-      <VersionControlHeader language={null} />
-      <AltinnInformationCard />
-    </div>
-  );
-};
 
 export const routes = [
   {
@@ -35,7 +24,7 @@ export const routes = [
     activeSubHeaderSelection: 'Språk',
     activeLeftMenuSelection: 'Tekst',
     menu: 'language',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/test',
@@ -43,7 +32,7 @@ export const routes = [
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test',
     menu: 'test',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/aboutservice',
@@ -51,7 +40,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om tjenesten',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/rolesandrights',
@@ -59,7 +48,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Roller og rettigheter',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/production',
@@ -67,7 +56,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Produksjon',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/versionhistory',
@@ -75,7 +64,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Versjonshistorikk',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/aboutenduser',
@@ -83,7 +72,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om sluttbrukeren',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/altinn',
@@ -91,7 +80,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Altinn',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/datamodel',
@@ -99,7 +88,7 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'Datamodell',
     menu: 'create',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/api',
@@ -107,7 +96,7 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'API',
     menu: 'create',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/translate',
@@ -115,7 +104,7 @@ export const routes = [
     activeSubHeaderSelection: 'Språk',
     activeLeftMenuSelection: 'Flere språk',
     menu: 'language',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/productionsetting',
@@ -123,7 +112,7 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Produksjonsette',
     menu: 'publish',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/status',
@@ -131,7 +120,7 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Status',
     menu: 'publish',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/designSystem',
@@ -139,7 +128,7 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'GUI',
     menu: 'create',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
   },
   {
     path: '/mergeconflict',

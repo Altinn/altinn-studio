@@ -3,8 +3,6 @@ import Grid from '@material-ui/core/Grid';
 import { withStyles } from '@material-ui/core/styles';
 import { createStyles } from '@material-ui/core/styles';
 import * as React from 'react';
-import { connect } from 'react-redux';
-import { IServiceDevelopmentAppState } from '../../../service-development/src/App';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import AltinnIcon from './AltinnIcon';
@@ -28,15 +26,48 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
   root: {
-    justifyContent: 'center',
+    [theme.breakpoints.up('xl')]: {
+      paddingTop: 239,
+    },
+    [theme.breakpoints.down('lg')]: {
+      paddingTop: 249,
+    },
+    [theme.breakpoints.down('md')]: {
+      paddingTop: 148,
+    },
+    [theme.breakpoints.only('sm')]: {
+      paddingTop: 97,
+    },
   },
   paper: {
-    paddingLeft: '5%',
-    paddingTop: 100,
-    paddingBottom: 100,
-    margin: 150,
-    maxWidth: 1088,
-    height: 446,
+    [theme.breakpoints.up('xl')]: {
+      paddingLeft: 99,
+      paddingTop: 92,
+      paddingBottom: 87,
+      maxWidth: 1088,
+      height: 446,
+    },
+    [theme.breakpoints.down('lg')]: {
+      paddingLeft: 101,
+      paddingTop: 82,
+      paddingBottom: 97,
+      maxWidth: 1088,
+      height: 446,
+    },
+    [theme.breakpoints.down('md')]: {
+      paddingLeft: 45,
+      paddingTop: 78,
+      paddingBottom: 100,
+      maxWidth: 944,
+      height: 446,
+    },
+    [theme.breakpoints.only('sm')]: {
+      paddingLeft: 56,
+      paddingTop: 68,
+      paddingBottom: 97,
+      maxWidth: 554,
+      height: 623,
+    },
     background: theme.altinnPalette.primary.white,
     boxShadow: '0px 4px 7px rgba(0, 0, 0, 0.14)',
   },
@@ -52,7 +83,12 @@ const styles = () => createStyles({
   },
   link: {
     fontSize: 16,
-  }
+  },
+  smSpacing: {
+    [theme.breakpoints.only('sm')]: {
+      paddingBottom: 53,
+    },
+  },
 });
 
 class AltinnInformationCard extends
@@ -61,10 +97,13 @@ class AltinnInformationCard extends
   public render() {
     const { classes } = this.props;
     return (
-      <div className={classes.root}>
-        <Grid className={classes.paper} container={true} item={true} xs={12}>
+      <Grid container={true} className={classes.root} spacing={0} justify={'center'} alignContent={'center'} >
+        <Grid
+          className={classes.paper}
+          container={true}
+        >
           <Grid container={true} item={true}>
-            <Grid xs={7} item={true} container={true}>
+            <Grid sm={12} md={7} item={true} container={true}>
               <Grid item={true}>
                 <h1 className={classes.header}>
                   {getLanguageFromKey('shared.wip_title', this.props.language)}
@@ -75,34 +114,28 @@ class AltinnInformationCard extends
                 <p className={classes.subText2}>
                   {getLanguageFromKey('shared.wip_subtext_2', this.props.language)}
                 </p>
-                <a
-                  href={getLanguageFromKey('shared.wip_link_github_url', this.props.language)}
-                  className={classes.link}>
-                  {getLanguageFromKey('shared.wip_link_text', this.props.language)}
-                  <AltinnIcon
-                    isActive={true}
-                    iconClass='ai ai-arrowrightup'
-                    iconColor={theme.altinnPalette.primary.black}
-                  />
-                </a>
+                <div className={classes.smSpacing}>
+                  <a
+                    href={getLanguageFromKey('shared.wip_link_github_url', this.props.language)}
+                    className={classes.link}>
+                    {getLanguageFromKey('shared.wip_link_text', this.props.language)}
+                    <AltinnIcon
+                      isActive={true}
+                      iconClass='ai ai-arrowrightup'
+                      iconColor={theme.altinnPalette.primary.black}
+                    />
+                  </a>
+                </div>
               </Grid>
             </Grid>
-            <Grid container={true} xs={5} item={true} spacing={0} justify={'center'} alignContent={'center'}>
+            <Grid container={true} sm={12} md={5} item={true} spacing={0} justify={'center'} alignContent={'center'}>
               <img alt='complex' src='../../designer/img/illustration-help-circle.svg' />
             </Grid>
           </Grid>
         </Grid>
-      </div >
+      </Grid >
     );
   }
 }
 
-const mapStateToProps: (
-  state: IServiceDevelopmentAppState,
-  props: IAltinnInformationCardComponentProvidedProps,
-) => IAltinnInformationCardComponentProvidedProps = (state: IServiceDevelopmentAppState, props: IAltinnInformationCardComponentProvidedProps) => ({
-  language: state.language,
-  classes: props.classes,
-});
-
-export default withStyles(styles)(connect(mapStateToProps)(AltinnInformationCard));
+export default withStyles(styles)(AltinnInformationCard);
