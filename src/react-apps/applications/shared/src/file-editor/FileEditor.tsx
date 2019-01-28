@@ -1,6 +1,6 @@
 import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
 import { createStyles, withStyles } from '@material-ui/core/styles';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import * as diff from 'diff';
 import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
