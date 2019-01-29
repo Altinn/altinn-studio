@@ -8,7 +8,7 @@ jest.mock('react-truncate-markup');
 describe('>>> components/base/syncModal.tsx --- Snapshot', () => {
   let mockAnchorEl: any;
   let mockHeader: string;
-  let mockDescriptionText: string;
+  let mockDescriptionText: string[];
   let mockIsLoading: boolean;
   let mockShouldShowDoneIcon: boolean;
   let mockBtnText: string;
@@ -19,7 +19,7 @@ describe('>>> components/base/syncModal.tsx --- Snapshot', () => {
   beforeEach(() => {
     mockAnchorEl = null;
     mockHeader = 'Header text';
-    mockDescriptionText = 'Description text';
+    mockDescriptionText = ['Description text'];
     mockIsLoading = false;
     mockShouldShowDoneIcon = false;
     mockBtnText = 'Btn text';
