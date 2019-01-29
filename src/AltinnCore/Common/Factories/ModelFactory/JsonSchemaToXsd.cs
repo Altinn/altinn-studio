@@ -372,13 +372,30 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string reference = GetterExtensions.Ref(jSchema);
             if (reference != null)
             {
-                XmlSchemaSimpleTypeRestriction content = new XmlSchemaSimpleTypeRestriction
-                {
-                    BaseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference)),
-                };
-                
-                simpleType.Content = content;
+                var baseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference));
+                XmlSchemaSimpleTypeRestriction simpleTypeRestriction = new XmlSchemaSimpleTypeRestriction();
+                simpleTypeRestriction.BaseTypeName = baseTypeName;
 
+                var stringFacets = ExtractStringFacets(jSchema);
+                if (stringFacets.Facets.Count > 0)
+                {
+                    foreach (var facet in stringFacets.Facets)
+                    {
+                        simpleTypeRestriction.Facets.Add(facet);
+                    }
+                }
+                
+                var numberFacets = ExtractNumberAndIntegerFacets(jSchema, new TypeKeyword(JsonSchemaType.Number));
+                if (numberFacets.Facets.Count > 0)
+                {
+                    foreach (var facet in numberFacets.Facets)
+                    {
+                        simpleTypeRestriction.Facets.Add(facet);
+                    }
+                }
+
+                simpleType.Content = simpleTypeRestriction;
+                
                 return simpleType;
             }
 

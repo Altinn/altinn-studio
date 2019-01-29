@@ -100,9 +100,11 @@ namespace AltinnCore.UnitTest.Common
         private static bool JsonDiff(JsonSchema schema1, JsonSchema schema2)
         {
             var jsonSchema1 = new JsonSerializer().Serialize(schema1);
-            var jsonSchema2 = new JsonSerializer().Serialize(schema1);
+            var jsonSchema2 = new JsonSerializer().Serialize(schema2);
 
-            return jsonSchema1 == jsonSchema2;
+            bool difference = jsonSchema1.Object.Equals(jsonSchema2.Object);
+
+            return difference;
         }
 
         [Fact]
@@ -111,8 +113,7 @@ namespace AltinnCore.UnitTest.Common
             int failCount = 0;
             int equalityCount = 0;
             
-            string[] files = Directory.GetFiles("Common/xsd/", "*.xsd", SearchOption.AllDirectories);
-            /*string[] files = { "Commons/schema-w-recursion.xsd" };*/
+            string[] files = Directory.GetFiles("Common/xsd/", "*.xsd", SearchOption.AllDirectories);            
 
             foreach (string filePath in files)
             {
