@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-designer
+  labels:
+    app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
+    helm.sh/chart: {{ include "altinn-designer.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
+          ports:
+            - containerPort: {{ .Values.service.internalPort }}
+          {{- if eq (required "evironment not set" .Values.environment) "development"}}
+          env:
+            {{- range $variable := .Values.environmentVariables.development }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $varible.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if eq (required "evironment not set" .Values.environment) "production"}}
+          env:
+            {{- range $variable := .Values.environmentVariables.production }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $varible.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.volumeMounts}}
+          volumeMounts:
+            {{- range $mount := .Values.volumeMounts}}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+            {{- end }}
+          {{- end }}
+        {{- if .Values.volumes }}
+        volumes:
+        {{- range $volume := .Values.volumes }}
+          - name: {{ $volume.name }}
+            {{- if $volume.persistantVolumeClaim }}
+            persistantVolumeClaim:
+              claimName: {{ $volume.persistantVolumeClaim.claimName }}
+            {{- end }}
+            {{- if $volume.secret }}
+            secret:
+              secretName: {{ $volume.secret.secretName }}
+            {{- end }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.image.imagePullSecret }}
+        imagePullSecrets:
+          - name: {{ .Values.image.imagePullSecret }}
+        {{- end }}

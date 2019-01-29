@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-repositories
+  labels:
+    app.kubernetes.io/name: {{ include "altinn-repositories.name" . }}
+    helm.sh/chart: {{ include "altinn-repositories.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: altinn-repositories
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "development" }}
+          image: "{{ .Values.image.repositoryDev }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if eq (required ".Values.environment not set" .Values.environment) "production" }}
+          image: "{{ .Values.image.repositoryProd }}:{{ .Values.image.tag }}"
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.image.containerPorts.port }}
+          {{- if .Values.environmentVariables }}
+          env:
+            {{- range $variable := .Values.environmentVariables}}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value }}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $variable.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+              {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range $mount := .Values.volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+          {{- end }}
+          {{- end }}
+      {{- if .Values.volumes }}
+      volumes:
+      {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+          {{- if $volume.persistentVolumeClaim }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.persistentVolumeClaim.claimName }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.image.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecret }}
+      {{- end }}
+
