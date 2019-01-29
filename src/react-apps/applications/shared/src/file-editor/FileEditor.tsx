@@ -333,18 +333,21 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
 
     return (
-      <Grid container={true} spacing={0} className={classes.codeEditorContent}>
+      <Grid
+        container={true}
+        className={
+          classNames(classes.codeEditorContent, {
+            [classes.boxShadow]: this.props.boxShadow,
+          })
+        }
+      >
         <Grid
           item={true}
           xs={true}
           container={true}
           justify='flex-start'
           alignItems='center'
-          className={
-            classNames(classes.fileHeader, {
-              [classes.boxShadow]: this.props.boxShadow,
-            })
-          }
+          className={classes.fileHeader}
         >
           <Grid
             item={true}
@@ -429,9 +432,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <Grid
           item={true}
           xs={12}
-          className={classNames(classes.codeEditorContent, {
-            [classes.boxShadow]: this.props.boxShadow,
-          })}
+          className={classes.codeEditorContent}
         >
           <MonacoEditorComponent
             language={language.name}
