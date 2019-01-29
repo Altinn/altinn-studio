@@ -18,15 +18,25 @@ export interface IFormFillerProps {
   designMode: boolean;
   formDataCount: number;
   language: any;
+  workflowStep: string;
 }
 
-export interface IFormFillerState { }
+export interface IFormFillerState {
+  workflowStep: string;
+}
 
 /**
  * Component responsible for rendering the layout around the
  * form itself.
  */
 export class FormFillerComponent extends React.Component<IFormFillerProps, IFormFillerState> {
+
+  constructor(props: IFormFillerProps, state: IFormFillerState) {
+    super(props, state);
+    this.state = {
+      workflowStep: props.workflowStep,
+    };
+  }
 
   public componentDidMount() {
     AppConfigActionDispatcher.setDesignMode(false);
@@ -46,6 +56,9 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
       FormFillerActionDispatchers.submitFormData(`
         ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
     }
+    this.setState({
+      workflowStep: 'archived',
+    });
   }
 
   public submitForm = () => {
@@ -88,19 +101,17 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     const altinnWindow = window as IAltinnWindow;
     const { service } = altinnWindow;
     return (
-      <>
-        <WorkflowStep header={service}>
-          <div className='row'>
-            <Preview />
+      <WorkflowStep header={service} step={this.state.workflowStep}>
+        <div className='row'>
+          <Preview />
+        </div>
+        <div className='row mt-3'>
+          <div className='a-btn-group'>
+            {this.renderSaveButton()}
+            {this.renderSubmitButton()}
           </div>
-          <div className='row mt-3'>
-            <div className='a-btn-group'>
-              {this.renderSaveButton()}
-              {this.renderSubmitButton()}
-            </div>
-          </div>
-        </WorkflowStep>
-      </>
+        </div>
+      </WorkflowStep>
     );
   }
 }
@@ -121,6 +132,7 @@ const makeMapStateToProps = () => {
       designMode: GetDesignMode(state),
       formDataCount: GetFormDataCount(state),
       language: state.appData.language.language,
+      workflowStep: 'formfiller', // TODO: Fetch state from redux store when back end for workflow is implemented
     };
   };
   return mapStateToProps;
