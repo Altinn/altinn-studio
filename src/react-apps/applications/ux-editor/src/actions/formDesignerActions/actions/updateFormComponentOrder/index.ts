@@ -6,23 +6,18 @@ export interface IUpdateFormComponentOrderActionRejected extends Action {
 }
 
 export interface IUpdateFormComponentOrderAction extends Action {
-  id: string;
-  newPositionIndex: number;
-  sourceContainerId: string;
-  destinationContainerId: string;
+  updatedOrder: any;
 }
 
 export interface IUpdateFormComponentOrderActionFulfilled extends Action {
   updatedOrder: any;
-  containerId?: string;
 }
 
-export function updateFormComponentOrderActionFulfilled(updatedOrder: any, containerId?: string):
+export function updateFormComponentOrderActionFulfilled(updatedOrder: any):
   IUpdateFormComponentOrderActionFulfilled {
   return {
     type: ActionTypes.UPDATE_FORM_COMPONENT_ORDER_FULFILLED,
     updatedOrder,
-    containerId,
   };
 }
 
@@ -34,17 +29,11 @@ export function updateFormComponentOrderActionRejected(error: Error): IUpdateFor
 }
 
 export function updateFormComponentOrderAction(
-  id: string,
-  newPositionIndex: number,
-  destinationContainerId: string,
-  sourceContainerId: string,
+  updatedOrder: any,
 ):
   IUpdateFormComponentOrderAction {
   return {
     type: ActionTypes.UPDATE_FORM_COMPONENT_ORDER,
-    id,
-    newPositionIndex,
-    destinationContainerId,
-    sourceContainerId,
-  }
+    updatedOrder,
+  };
 }

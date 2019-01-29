@@ -4,44 +4,11 @@
   "scripts": {
     "install-deps": "lerna bootstrap --hoist",
     "no-ci-hoist": "lerna bootstrap --hoist --no-ci",
-    "test": "jest",
-    "install-all": "lerna exec -- npm i"
+    "test": "lerna exec -- npm test",
+    "install-all": "lerna exec -- npm i",
+    "clean-lock": "lerna exec -- rm package-lock.json"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.10",
-    "babel-jest": "^23.6.0",
-    "cross-env": "5.1.6",
-    "enzyme": "^3.7.0",
-    "enzyme-adapter-react-16": "^1.7.0",
-    "jest": "^23.6.0",
-    "jest-environment-enzyme": "^7.0.1",
-    "jest-enzyme": "^7.0.1",
-    "jsdom": "^13.1.0",
-    "jest-junit": "^5.2.0",
-    "lerna": "^3.4.3",
-    "react": "16.7.0",
-    "react-dom": "16.7.0",
-    "ts-jest": "^23.10.5",
-    "typescript": "3.1.6",
-    "webpack-cli": "3.0.3"
-  },
-  "jest": {
-    "transform": {
-      ".(ts|tsx)": "ts-jest"
-    },
-    "reporters": [
-      "jest-junit"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
-      "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
-    },
-    "testRegex": "applications/*/__tests__/.*|(\\.|/)(test|spec)\\.(tsx|ts)?$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "setupTestFrameworkScriptFile": "<rootDir>/setupTests.js"
+    "lerna": "3.10.7"
   }
 }

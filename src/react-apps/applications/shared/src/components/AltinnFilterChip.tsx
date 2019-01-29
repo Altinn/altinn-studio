@@ -53,6 +53,7 @@ const styles = {
     '&:focus': {
       backgroundColor: theme.altinnPalette.primary.blueLighter + ' !Important',
       border: '1px solid ' + theme.altinnPalette.primary.blueDark,
+      boxShadow: '0px 0px 6px ' + theme.altinnPalette.primary.blueDark,
     },
   },
   down: {

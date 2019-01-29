@@ -7,6 +7,7 @@ export interface IMonacoEditorComponentProps {
   language: string;
   value: string;
   onValueChange: (value: string) => void;
+  createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
 }
 
 export interface IMonacoEditorComponentState {
@@ -25,8 +26,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     };
   }
 
-  public editorWillMount(monaco: any) {
-
+  public editorWillMount = (monaco: any) => {
     monaco.languages.setMonarchTokensProvider('plaintext', {
       tokenizer: {
         root: [
@@ -47,6 +47,27 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       ],
       colors: {
         'merge.incomingHeaderBackground': '#00ff00',
+      },
+    });
+
+    monaco.languages.registerCompletionItemProvider('csharp', {
+      provideCompletionItems: (model: any, position: any) => {
+        let textUntilPosition: string = model.getValueInRange(
+          {
+            startLineNumber: position.lineNumber,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          },
+        );
+
+        const match = textUntilPosition.match(/.*\./);
+        textUntilPosition = textUntilPosition.trim();
+        const suggestions = match ? this.props.createCompletionSuggestions(monaco, textUntilPosition) : [];
+        return {
+          suggestions,
+          incomplete: true,
+        };
       },
     });
   }

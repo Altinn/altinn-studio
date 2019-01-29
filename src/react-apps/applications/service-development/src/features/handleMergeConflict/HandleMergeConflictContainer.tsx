@@ -111,25 +111,31 @@ export class HandleMergeConflictContainer extends
 
               </Grid>
 
-              {repoStatus.hasMergeConflict ?
+              {
+                repoStatus.hasMergeConflict ?
 
-                <span className={classNames(classes.containerMessage)}>
-                  {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
-                </span>
-
-                :
-
-                repoStatus.contentStatus.length > 0 ?
-
-                  <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
-                    {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
+                  <span className={classNames(classes.containerMessage)}>
+                    {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
                   </span>
 
                   :
 
-                  <span className={classNames(classes.containerMessage)}>
-                    {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
-                  </span>
+                  repoStatus.contentStatus ?
+
+                    repoStatus.contentStatus.length > 0 ?
+
+                      <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
+                        {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
+                      </span>
+
+                      :
+
+                      <span className={classNames(classes.containerMessage)}>
+                        {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
+                      </span>
+
+                    :
+                    null
 
               }
 
