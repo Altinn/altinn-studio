@@ -5,6 +5,7 @@ import App from '../app';
 
 export default class DesignerPage {
   constructor() {
+    //editor elements
     this.header = Selector("#schema-components").withText("Header");
     this.inputBtn = Selector("#schema-components").withText("Input");
     this.dropDown = Selector("#schema-components").withText("Dropdown");
@@ -18,6 +19,9 @@ export default class DesignerPage {
     this.addApiConnection = Selector(".d-block").withText("Api connections").child(0);
     this.addRuleConnection = Selector(".d-block").withText("Rule connections").child(0);
     this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
+
+    //editor canvas
+    this.canvas = ReactSelector("DesignView") //Selector('.div').withAttribute('draggable');
 
     //left drawer menu
     this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
@@ -69,6 +73,12 @@ export default class DesignerPage {
     //tekst tab
     this.nyTittelButton = Selector("#schema-texts").withText("Tittel");
     this.addNewLanguage = Selector("#newtab > a");
+
+    //syncing elements
+    this.delEndringer = Selector(".button").withExactText("Del endringer");
+    this.validerEndringer = Selector(".button").withExactText("Valider endringer");
+    this.hentEndringer = Selector(".button").withExactText("Hent endringer");
+    this.commitMessageBox = Selector("#test");
   }
 
   async deleteDataModelTexts(numberToDelete) {

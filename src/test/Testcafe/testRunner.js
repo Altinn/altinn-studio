@@ -9,12 +9,12 @@ createTestCafe()
     const stream = fs.createWriteStream('junit.xml');
 
     return runner
-      .browsers(['chrome:headless'])
+      .browsers(['chrome'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
       .reporter('junit', stream)
-      .src(['./designer_tests/navigation-tests.js'])
+      .src(['./dashboard_tests/service-tests.js'])
       .run({
         skipJsErrors: true,
         quarantineMode: false,
