@@ -101,7 +101,7 @@ export class HandleMergeConflictContainer extends
                 xs={12}
                 className={classes.title}
               >
-                <VersionControlHeader language={language} />
+                {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
 
                 <Hidden smDown={true}>
                   <Typography variant='h1'>
