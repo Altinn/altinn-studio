@@ -23,7 +23,7 @@ namespace AltinnCore.UnitTest.Common
     {
         private ILogger _logger = TestLogger.Create<XsdToJsonSchemaTest>();
 
-        private static bool writeDifferXsdFiles = true;
+        private static bool writeDifferXsdFiles = false;
 
         /// <summary>
         /// Test converting all provided XSDs to Json Schema
@@ -66,6 +66,7 @@ namespace AltinnCore.UnitTest.Common
                     if (!xsdsAreEqual && writeDifferXsdFiles)
                     {
                         File.Copy(file, "c:\\temp\\original.xsd", true);
+                        SaveJsonSchema(schemaJsonSchema, "c:\\temp\\converted.schema.json");
                         SaveXmlSchema(xmlSchema, "c:\\temp\\converted.xsd");
                     }
 
@@ -88,6 +89,11 @@ namespace AltinnCore.UnitTest.Common
             {
                 xmlSchema.Write(xwriter);
             }
+        }
+
+        private void SaveJsonSchema(JsonSchema jsonSchema, string fileName)
+        {
+            File.WriteAllText(fileName, new JsonSerializer().Serialize<JsonSchema>(jsonSchema).ToString(), Encoding.UTF8);
         }
     }
 }
