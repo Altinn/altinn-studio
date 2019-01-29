@@ -63,6 +63,7 @@ export interface IHandleMergeConflictContainerProps extends WithStyles<typeof st
 }
 
 export interface IHandleMergeConflictContainerState {
+  editorHeight: string;
   selectedFile: string;
 }
 
@@ -71,7 +72,9 @@ export class HandleMergeConflictContainer extends
 
   constructor(_props: IHandleMergeConflictContainerProps, _state: IHandleMergeConflictContainerState) {
     super(_props, _state);
+    this.setEditorHeight = this.setEditorHeight.bind(this);
     this.state = {
+      editorHeight: null,
       selectedFile: null,
     };
   }
@@ -79,6 +82,23 @@ export class HandleMergeConflictContainer extends
   public changeSelectedFile = (file: string) => {
     this.setState({
       selectedFile: file,
+    });
+  }
+
+  public componentDidMount() {
+    this.setEditorHeight();
+    window.addEventListener('resize', this.setEditorHeight);
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('resize', this.setEditorHeight);
+  }
+
+  public setEditorHeight = () => {
+    const height = document.getElementById('mergeConflictFileList').clientHeight;
+    const editorHeight = height - 47 - 48;
+    this.setState({
+      editorHeight: editorHeight.toString(),
     });
   }
 
@@ -174,6 +194,7 @@ export class HandleMergeConflictContainer extends
                   className={classNames(classes.box)}
                 >
                   <FileEditor
+                    editorHeight={this.state.editorHeight}
                     loadFile={selectedFile}
                     boxShadow={true}
                     showSaveButton={true}

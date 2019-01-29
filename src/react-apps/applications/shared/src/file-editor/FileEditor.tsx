@@ -47,6 +47,7 @@ export interface IFileEditorProvidedProps {
   checkRepoStatusAfterSaveFile?: boolean;
   classes: any;
   closeFileEditor?: () => void;
+  editorHeight?: string;
   getDataModelSuggestions?: (filterText: string) => any[];
   loadFile?: string;
   mode?: string;
@@ -435,6 +436,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={classes.codeEditorContent}
         >
           <MonacoEditorComponent
+            height={this.props.editorHeight}
             language={language.name}
             value={this.state.value}
             onValueChange={this.onValueChange}
