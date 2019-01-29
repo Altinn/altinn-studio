@@ -76,6 +76,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             while (enumerator.MoveNext())
             {
                 XmlSchemaObject item = enumerator.Current;
+                GetItemName(item); // Will register name for top-level item first, so other items with conflicting name will not become duplicates
 
                 if (item is XmlSchemaElement)
                 {
@@ -240,6 +241,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         XmlQualifiedName complexTypeName = GetItemName(item.SchemaType);
                         JsonSchema complexTypeSchema = ParseComplexType((XmlSchemaComplexType)item.SchemaType);
+                        AddDefinition(item.SchemaType, complexTypeSchema);
                         AppendTypeFromNameInternal(complexTypeName, elementSchema);
                     }
                     else if (item.SchemaType is XmlSchemaSimpleType)
@@ -247,6 +249,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         XmlQualifiedName simpleTypeName = GetItemName(item.SchemaType);
                         JsonSchema simpleTypeSchema = new JsonSchema();
                         AppendSimpleType((XmlSchemaSimpleType)item.SchemaType, simpleTypeSchema);
+                        AddDefinition(item.SchemaType, simpleTypeSchema);
                     }
                     else
                     {
@@ -834,8 +837,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
             {
                 appendToSchema.Type(JsonSchemaType.Integer);
-                SetMinimum(appendToSchema, long.MinValue);
-                SetMaximum(appendToSchema, long.MaxValue);
             }
             else if ("http://www.w3.org/2001/XMLSchema:double".Equals(type)
                      || "http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
@@ -1143,8 +1144,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     JsonSchema valueAttributeSchema = new JsonSchema();
                     AppendTypeFromNameInternal(simpleContentExtension.BaseTypeName, valueAttributeSchema);
+                    TagType(valueAttributeSchema, "XmlSimpleContentExtension");
                     appendToSchema.Property("value", valueAttributeSchema);
-                    TagType(appendToSchema, "XmlSimpleContentExtension");
                     requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
                 }
             }
@@ -1565,12 +1566,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private XmlQualifiedName RegisterItemName(XmlSchemaObject item, XmlQualifiedName name)
         {
+            if (item == null)
+            {
+                return null;
+            }
+
             if (name.IsEmpty)
             {
                 name = GetItemName(item.Parent);
             }
 
-            if (!name.IsEmpty)
+            if (name != null && !name.IsEmpty)
             {
                 itemNames[item] = name;
 
@@ -1578,10 +1584,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 {
                     typeNames[item] = name;
                 }
-            }
-            else
-            {
-                throw new XmlSchemaException();
             }
 
             return name;
