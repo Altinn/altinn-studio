@@ -1,4 +1,4 @@
-import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as formFillerActions from './actions/index';
 
@@ -18,8 +18,8 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   updateFormDataRejected: (
     error: Error,
   ) => formFillerActions.IUpdateFormDataActionRejected;
-  submitFormData: (url: string) => formFillerActions.ISubmitFormDataAction;
-  submitFormDataFulfilled: () => Action;
+  submitFormData: (url: string, apiMode?: string) => formFillerActions.ISubmitFormDataAction;
+  submitFormDataFulfilled: (apiResult: any) => formFillerActions.ISubmitFormDataActionFulfilled;
   submitFormDataRejected: (error: Error) => formFillerActions.ISubmitFormDataActionRejected;
   fetchFormData: (url: string) => formFillerActions.IFetchFormDataAction;
   fetchFormDataFulfilled: (formData: any) => formFillerActions.IFetchFormDataActionFulfilled;
@@ -47,5 +47,5 @@ const actions: IFormFillerActionDispatchers = {
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<
   any,
   IFormFillerActionDispatchers
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 export default FormFillerActionDispatchers;
