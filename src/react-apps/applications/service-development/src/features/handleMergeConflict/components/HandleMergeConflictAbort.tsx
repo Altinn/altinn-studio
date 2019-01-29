@@ -12,6 +12,8 @@ export interface IHandleMergeConflictAbortProps {
 
 export interface IHandleMergeConflictAbortState {
   anchorEl: any;
+  errorObj: null,
+  networkingRes: any;
   popoverState: any;
 }
 
@@ -25,13 +27,15 @@ const initialPopoverState = {
   btnCancelText: '',
 };
 
-class HandleMergeConflictAbort extends
+export class HandleMergeConflictAbort extends
   React.Component<IHandleMergeConflictAbortProps, IHandleMergeConflictAbortState> {
 
   constructor(_props: IHandleMergeConflictAbortProps) {
     super(_props);
     this.state = {
       anchorEl: null,
+      errorObj: null,
+      networkingRes: null,
       popoverState: initialPopoverState,
     };
   }
@@ -74,6 +78,7 @@ class HandleMergeConflictAbort extends
       const abortRes = await get(abortUrl);
       if (abortRes.isSuccessStatusCode === true) {
         this.setState({
+          networkingRes: abortRes,
           popoverState: {
             ...this.state.popoverState,
             isLoading: false,
@@ -86,6 +91,7 @@ class HandleMergeConflictAbort extends
 
       } else {
         this.setState({
+          networkingRes: abortRes,
           popoverState: {
             ...this.state.popoverState,
             isLoading: false,
@@ -98,6 +104,8 @@ class HandleMergeConflictAbort extends
 
     } catch (err) {
       this.setState({
+        errorObj: err,
+        networkingRes: 'error',
         popoverState: {
           ...this.state.popoverState,
           isLoading: false,
@@ -121,6 +129,7 @@ class HandleMergeConflictAbort extends
       <React.Fragment>
         <AltinnButton
           btnText={getLanguageFromKey('handle_merge_conflict.abort_merge_button', this.props.language)}
+          id='abortMergeBtn'
           onClickFunction={this.AbortPopover}
           secondaryButton={true}
           disabled={this.props.disabled}
@@ -132,6 +141,7 @@ class HandleMergeConflictAbort extends
           btnCancelText={popoverState.btnCancelText}
           btnClick={popoverState.btnMethod}
           btnConfirmText={popoverState.btnConfirmText}
+          btnPrimaryId='abortMergeConfirmBtn'
           descriptionText={popoverState.descriptionText}
           handleClose={this.handleClose}
           header={popoverState.header}
