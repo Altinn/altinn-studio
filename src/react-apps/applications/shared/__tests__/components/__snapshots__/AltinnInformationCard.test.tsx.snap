@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with all the properties 1`] = `
+<div
+  className="MuiGrid-container-9 MuiGrid-align-content-xs-center-21 MuiGrid-justify-xs-center-26 AltinnInformationCard-root-1"
+>
+  <div
+    className="MuiGrid-container-9 AltinnInformationCard-paper-2 AltinnInformationCard-shadowBox-3"
+  >
+    <div
+      className="MuiGrid-container-9 MuiGrid-item-10"
+    >
+      <div
+        className="MuiGrid-container-9 MuiGrid-item-10 MuiGrid-grid-sm-12-63 MuiGrid-grid-md-7-72"
+      >
+        <div
+          className="MuiGrid-item-10"
+        >
+          <h1
+            className="AltinnInformationCard-header-4"
+          >
+            header
+          </h1>
+          <p
+            className="AltinnInformationCard-subText1-5"
+          >
+            subtext1
+          </p>
+          <p
+            className="AltinnInformationCard-subText2-6"
+          >
+            subtext2
+          </p>
+          <div
+            className="AltinnInformationCard-smSpacing-8"
+          >
+            <a
+              className="AltinnInformationCard-link-7"
+              href="github.com"
+            >
+              linktext
+              <i
+                className="ai ai-arrowrightup"
+                style={
+                  Object {
+                    "color": undefined,
+                    "fontSize": null,
+                  }
+                }
+              />
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        className="MuiGrid-container-9 MuiGrid-item-10 MuiGrid-align-content-xs-center-21 MuiGrid-justify-xs-center-26 MuiGrid-grid-sm-12-63 MuiGrid-grid-md-5-70"
+      >
+        <img
+          alt="information"
+          src="string"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+`;
