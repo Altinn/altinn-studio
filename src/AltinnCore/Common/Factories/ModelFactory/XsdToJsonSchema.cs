@@ -686,7 +686,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 foreach (XmlSchemaObject choiceItem in ((XmlSchemaChoice)item).Items)
                 {
                     JsonSchema oneOfSchema = new JsonSchema();
-                    AppendType(choiceItem, oneOfSchema);
+                    XmlQualifiedName itemQName = GetItemName(choiceItem);
+                    JsonSchema refSchema = new JsonSchema();
+                    oneOfSchema.Property(itemQName.Name, refSchema);
+                    AppendType(choiceItem, refSchema);
+
                     oneOfSchemaList.Add(oneOfSchema);
                 }
 
