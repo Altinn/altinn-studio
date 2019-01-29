@@ -1,8 +1,7 @@
----
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "altinn-designer.fullname" . }}
+  name: altinn-designer
   labels:
     app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
     helm.sh/chart: {{ include "altinn-designer.chart" . }}
@@ -18,39 +17,48 @@ spec:
     spec:
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
           ports:
             - containerPort: {{ .Values.service.internalPort }}
-          {{- if eq .Values.environment "development" }}
+          {{- if eq (required "evironment not set" .Values.environment) "development"}}
           env:
             {{- range $variable := .Values.environmentVariables.development }}
-            name: {{ $variable.name }}
-            {{- if $variable.valueFrom }}
-            valueFrom:
-              secretKeyRef:
-                name: {{ $variable.valueFrom.secretKeyRef.name }}
-                key: {{ $variable.valueFrom.secretKeyRef.key }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $varible.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
             {{- end }}
-            value: {{ $variable.value }}
-            {{- end }}
-          {{- else if eq .Values.environment "production" }}
+          {{- end }}
+          {{- if eq (required "evironment not set" .Values.environment) "production"}}
           env:
             {{- range $variable := .Values.environmentVariables.production }}
-            name: {{ $variable.name }}
-            {{- if $variable.valueFrom }}
-            valueFrom:
-              secretKeyRef:
-                name: {{ $variable.valueFrom.secretKeyRef.name }}
-                key: {{ $variable.valueFrom.secretKeyRef.key }}
-            {{- end }}
-            value: {{ $variable.value }}
+            - name: {{ $variable.name }}
+              {{- if $variable.value }}
+              value: {{ $variable.value}}
+              {{- end }}
+              {{- if $variable.valueFrom }}
+              valueFrom:
+                {{- if $variable.valueFrom.secretKeyRef}}
+                secretKeyRef:
+                  name: {{ $varible.valueFrom.secretKeyRef.name }}
+                  key: {{ $variable.valueFrom.secretKeyRef.key }}
+                {{- end }}
+              {{- end }}
             {{- end }}
           {{- end }}
           {{- if .Values.volumeMounts}}
           volumeMounts:
             {{- range $mount := .Values.volumeMounts}}
-              - name: {{ $mount.name }}
-                mountPath: {{ $mount.mountPath }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
             {{- end }}
           {{- end }}
         {{- if .Values.volumes }}
@@ -67,7 +75,7 @@ spec:
             {{- end }}
         {{- end }}
         {{- end }}
-        {{- if .Values.image.imagePullSecrets }}
+        {{- if .Values.image.imagePullSecret }}
         imagePullSecrets:
-          - name: {{ .Values.image.imagePullSecrets.name }}
+          - name: {{ .Values.image.imagePullSecret }}
         {{- end }}

@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: "{{ include "altinn-designer.fullname" . }}-test-connection"
+  name: altinn-designer-test-connection
   labels:
     app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
     helm.sh/chart: {{ include "altinn-designer.chart" . }}
@@ -14,5 +14,5 @@ spec:
     - name: wget
       image: busybox
       command: ['wget']
-      args:  ['{{ include "altinn-designer.fullname" . }}:{{ .Values.service.port }}']
+      args:  ['altinn-designer:{{ .Values.service.internalPort }}']
   restartPolicy: Never

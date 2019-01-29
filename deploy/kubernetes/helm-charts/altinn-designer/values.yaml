@@ -4,10 +4,8 @@ environment: development
 
 image:
   repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
-  tag: 4167
   containerPort: 5000
-  imagePullSecrets:
-    name: acrsecret
+  imagePullSecret: acrsecret
 
 environmentVariables:
   development:

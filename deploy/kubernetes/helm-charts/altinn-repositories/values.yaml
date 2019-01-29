@@ -1,48 +1,69 @@
-# Default values for altinn-repositories.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 
 image:
-  repository: nginx
-  tag: stable
+  repositoryDev: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-dev
+  repositoryProd: altinntjenestercontainerregistry.azurecr.io/altinn-repositories-prod
+  tag: 1.4.7
   pullPolicy: IfNotPresent
+  containerPorts:
+    port: 3000
+  imagePullSecret: acrsecret
 
-nameOverride: ""
-fullnameOverride: ""
+environmentVariables:
+  - name: USER_UID
+    value: "1000"
+  - name: USER_GID
+    value: "1000"
+  - name: DB_TYPE
+    value: "postgres"
+  - name: INSTALL_LOCK
+    value: "true"
+  - name: DB_SSL_MODE
+    value: require
+  - name: DB_HOST
+    valueFrom:
+      secretKeyRef:
+        name: gitea-db-secret
+        key: host
+  - name: DB_NAME
+    valueFrom:
+      secretKeyRef:
+        name: gitea-db-secret
+        key: db-name
+  - name: DB_USER
+    valueFrom:
+      secretKeyRef:
+        name: gitea-db-secret
+        key: username
+  - name: DB_PASSWD
+    valueFrom:
+      secretKeyRef:
+        name: gitea-db-secret
+        key: password
+  - name: SECRET_KEY
+    valueFrom:
+      secretKeyRef:
+        name: gitea-security
+        key: secretkey
+  - name: INTERNAL_TOKEN
+    valueFrom:
+      secretKeyRef:
+        name: gitea-security
+        key: internaltoken
+  - name: LFS_JWT_SECRET
+    valueFrom:
+      secretKeyRef:
+        name: gitea-server-jwt-secret
+        key: lfsjwtsecret
+
+volumeMounts:
+  - name: altinn-gitea-storage
+    mountPath: "/data/git"
+
+volumes:
+  - name: altinn-gitea-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-gitea-volume-claim
 
 service:
-  type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  paths: []
-  hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 128Mi
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
+  internalPort: 3000

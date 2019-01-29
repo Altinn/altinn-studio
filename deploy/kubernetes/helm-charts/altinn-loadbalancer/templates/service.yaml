@@ -1,19 +1,24 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "altinn-loadbalancer.fullname" . }}
+  name: altinn-loadbalancer
   labels:
     app.kubernetes.io/name: {{ include "altinn-loadbalancer.name" . }}
     helm.sh/chart: {{ include "altinn-loadbalancer.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
+    - port: {{ .Values.service.ports.http }}
       name: http
+    - port: {{ .Values.service.ports.https }}
+      name: https
   selector:
-    app.kubernetes.io/name: {{ include "altinn-loadbalancer.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app: altinn-loadbalancer
+  type: {{ .Values.service.type }}
+  {{- if eq (required ".Values.environment must be set" .Values.environment) "development" }}
+  loadBalancerIP: "40.113.5.36"
+  {{- end }}
+  {{- if eq (required ".Values.environment must be set" .Values.environment) "production" }}
+  loadBalancerIP: "168.63.50.135"
+  {{- end }}

@@ -1,48 +1,30 @@
-# Default values for altinn-loadbalancer.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 replicaCount: 1
 
 image:
   repository: nginx
-  tag: stable
+  tag: latest
   pullPolicy: IfNotPresent
+  containerPorts:
+    http: 80
+    https: 443
 
-nameOverride: ""
-fullnameOverride: ""
+volumeMounts:
+  - name: altinn-loadbalancer-conf
+    mountPath: "/etc/nginx"
+  - name: altinn-loadbalancer-ssl
+    mountPath: "/etc/nginx/ssl/altinn_studio"
+
+volumes:
+  - name: altinn-loadblancer-conf
+    configMap:
+      name: loadbalancer-config
+  - name: altinn-loadbalancer-ssl
+    secret:
+      secretName: ssl-key-secret
 
 service:
-  type: ClusterIP
-  port: 80
-
-ingress:
-  enabled: false
-  annotations: {}
-    # kubernetes.io/ingress.class: nginx
-    # kubernetes.io/tls-acme: "true"
-  paths: []
-  hosts:
-    - chart-example.local
-  tls: []
-  #  - secretName: chart-example-tls
-  #    hosts:
-  #      - chart-example.local
-
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #  cpu: 100m
-  #  memory: 128Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 128Mi
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
+  type: LoadBalancer
+  loadBalancerIp:
+  ports:
+    http: 80
+    https: 443
