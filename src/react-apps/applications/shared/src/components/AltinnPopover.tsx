@@ -1,5 +1,5 @@
 import { Button, CircularProgress, createMuiTheme, createStyles, Grid, Popover, TextField, Typography, withStyles } from '@material-ui/core';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 

@@ -68,6 +68,7 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
       const { layoutOrder } = this.state;
       const updatedSource: string[] = layoutOrder[sourceContainerId];
       const updatedDestination: string[] = layoutOrder[destinationContainerId];
+
       if (updatedDestination.indexOf('placeholder') > -1) {
         // remove the placeholder in the destination
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
@@ -141,18 +142,15 @@ class DesignView extends React.Component<IDesignerPreviewProps, IDesignerPreview
     }
   }
 
-  public dropItem = (id: string, index: number, sourceContainerId: string, destinationContainerId: string) => {
+  public dropItem = (id: string, sourceContainerId: string, destinationContainerId: string) => {
+    FormDesignerActionDispatchers.updateFormComponentOrderAction(
+      this.state.layoutOrder,
+    );
     this.setState((state: IDesignerPreviewState) => update<IDesignerPreviewState>(state, {
       isDragging: {
         $set: false,
       },
     }));
-    FormDesignerActionDispatchers.updateFormComponentOrderAction(
-      id,
-      index,
-      destinationContainerId,
-      sourceContainerId,
-    );
     FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
@@ -194,9 +192,9 @@ const mapsStateToProps = (
 ): IDesignerPreviewProps => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   return {
-  layoutOrder: state.formDesigner.layout.order,
-  order: GetLayoutOrderSelector(state),
-  activeList: state.formDesigner.layout.activeList,
+    layoutOrder: state.formDesigner.layout.order,
+    order: GetLayoutOrderSelector(state),
+    activeList: state.formDesigner.layout.activeList,
   };
 };
 

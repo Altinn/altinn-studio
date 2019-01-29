@@ -146,6 +146,7 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
+            CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
             return true;
         }
@@ -1592,6 +1593,19 @@ namespace AltinnCore.Common.Services.Implementation
             // Get the file path
             string serviceImplemenationFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceImplementationFileName;
             File.WriteAllText(serviceImplemenationFilePath, textData, Encoding.UTF8);
+        }
+
+        private void CreateInitialWorkflow(string org, string service)
+        {
+            // Read the workflow template
+            string textData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+
+            // Create the workflow folder
+            Directory.CreateDirectory(_settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+
+            // Get the file path
+            string workflowFilePath = _settings.GetWorkflowPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
+            File.WriteAllText(workflowFilePath, textData, Encoding.UTF8);
         }
 
         private void CreateInitialCalculationHandler(string org, string service)

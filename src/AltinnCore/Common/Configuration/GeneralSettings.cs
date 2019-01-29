@@ -37,6 +37,17 @@ namespace AltinnCore.Common.Configuration
         }
 
         /// <summary>
+        /// Gets the path to the workflow template
+        /// </summary>
+        public string WorkflowTemplate
+        {
+            get
+            {
+                return TemplateLocation + "/workflow.bpmn";
+            }
+        }
+
+        /// <summary>
         /// Gets the path to the calculation handler template
         /// </summary>
         public string CalculateHandlerTemplate

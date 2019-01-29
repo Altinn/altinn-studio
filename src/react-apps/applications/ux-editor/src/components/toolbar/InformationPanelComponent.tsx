@@ -1,5 +1,5 @@
 import { createStyles, Divider, FormControl, InputAdornment, Popover, TextField, Theme, Typography, withStyles } from '@material-ui/core';
-import classNames = require('classnames');
+import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router-dom';
