@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Xml;
 using System.Xml.Schema;
+using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -14,59 +16,93 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// </summary>
     public class XsdToJsonSchema
     {
+        private ILogger<XsdToJsonSchema> _logger;
+
         private XmlReader xsdReader;
         private XmlSchema mainXsd;
         private JsonSchema mainJsonSchema;
 
-        private List<string> anonymousTypes = new List<string>();
+        private IDictionary<XmlSchemaObject, XmlQualifiedName> itemNames = new Dictionary<XmlSchemaObject, XmlQualifiedName>();
+        private IDictionary<XmlSchemaObject, XmlQualifiedName> typeNames = new Dictionary<XmlSchemaObject, XmlQualifiedName>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="XsdToJsonSchema"/> class.
         /// </summary>
         /// <param name="xsdReader">Reader for the XSD to convert</param>
-        public XsdToJsonSchema(XmlReader xsdReader)
+        /// <param name="logger">logger</param>
+        public XsdToJsonSchema(XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
         {
             this.xsdReader = xsdReader;
+            this._logger = logger;
+
+            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);            
         }
 
         /// <summary>
-        /// Perform the actual conversion
+        /// Initializes a new instance of the <see cref="XsdToJsonSchema"/> class.
+        /// </summary>
+        /// <param name="schema">the schema</param>
+        /// <param name="logger">the logger</param>
+        public XsdToJsonSchema(XmlSchema schema, ILogger<XsdToJsonSchema> logger)
+        {
+            mainXsd = schema;
+            this._logger = logger;
+        }
+
+        /// <summary>
+        /// Perform the actual conversion (to JsonValue)
         /// </summary>
         /// <returns>JsonValue for root of Json Schema representation of schema</returns>
-        public JsonValue AsJsonSchema()
+        public JsonValue AsJsonValue()
         {
-            // Read XSD
-            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);
+            return new JsonSerializer().Serialize<JsonSchema>(AsJsonSchema());
+        }
 
+        /// <summary>
+        /// Perform the actual conversion (to JsonSchema)
+        /// </summary>
+        /// <returns>Json Schema representation of schema</returns>
+        public JsonSchema AsJsonSchema()
+        {
             // Set up Json Schema object
             mainJsonSchema = new JsonSchema();
-            mainJsonSchema.OtherData.Add("$schema", new Manatee.Json.JsonValue("http://json-schema.org/schema#"));
-            mainJsonSchema.OtherData.Add("$id", new Manatee.Json.JsonValue(Guid.NewGuid().ToString()));
+            mainJsonSchema.Schema("http://json-schema.org/schema#");
+            mainJsonSchema.Id("schema.json"); // Guid.NewGuid().ToString());
             AddTypeObject(mainJsonSchema);
 
-            // Iterate XSD, converting all top-level xsd:element and their dependencies
             XmlSchemaObjectEnumerator enumerator = mainXsd.Items.GetEnumerator();
             while (enumerator.MoveNext())
             {
-                if (enumerator.Current is XmlSchemaElement)
+                XmlSchemaObject item = enumerator.Current;
+
+                if (item is XmlSchemaElement)
                 {
-                    ParseRootElement((XmlSchemaElement)enumerator.Current);
+                    bool isRequired;
+                    JsonSchema itemSchema = ParseTopLevelElement((XmlSchemaElement)item, out isRequired);
+                    if (itemSchema != null)
+                    {
+                        mainJsonSchema.Property(GetItemName(item).Name, itemSchema);
+                    }
                 }
-                else if (enumerator.Current is XmlSchemaGroup)
+            }
+
+            enumerator = mainXsd.Items.GetEnumerator();
+            while (enumerator.MoveNext())
+            {
+                XmlSchemaObject item = enumerator.Current;
+
+                bool isRequired;
+                object parsedObject = Parse(item, out isRequired);
+                if (parsedObject == null)
                 {
-// ParseRootGroup((XmlSchemaGroup)enumerator.Current);
                 }
-                else if (enumerator.Current is XmlSchemaSimpleType)
+                else if (parsedObject is JsonSchema)
                 {
-                    ParseRootSimpleType((XmlSchemaSimpleType)enumerator.Current);
-                }
-                else if (enumerator.Current is XmlSchemaComplexType)
-                {
-                    ParseRootComplexType((XmlSchemaComplexType)enumerator.Current);
-                }
-                else if (enumerator.Current is XmlSchemaAnnotation)
-                {
-                    ParseRootAnnotation((XmlSchemaAnnotation)enumerator.Current);
+                    JsonSchema parsedSchema = (JsonSchema)parsedObject;
+                    if (!(item is XmlSchemaElement) && parsedSchema != null)
+                    {
+                        AddDefinition(item, parsedSchema);
+                    }
                 }
                 else
                 {
@@ -74,26 +110,64 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            return new JsonSerializer().Serialize<JsonSchema>(mainJsonSchema);
+            return mainJsonSchema;
         }
 
-        private void ParseRootElement(XmlSchemaElement item)
+        private object Parse(XmlSchemaObject item, out bool isRequired)
         {
-            ParseElement(item, mainJsonSchema);
-        }
+            isRequired = false;
 
-        private void ParseElement(XmlSchemaElement item, JsonSchema resultSchema)
-        {
-            /*if (item.Parent != mainXsd)
+            if (item is XmlSchemaElement)
+            {
+                return ParseElement((XmlSchemaElement)item, out isRequired);
+            }
+            else if (item is XmlSchemaComplexType)
+            {
+                return ParseComplexType((XmlSchemaComplexType)item);
+            }
+            else if (item is XmlSchemaSimpleType)
+            {
+                JsonSchema simpleTypeSchema = new JsonSchema();
+                AppendSimpleType((XmlSchemaSimpleType)item, simpleTypeSchema);
+                return simpleTypeSchema;
+            }
+            else if (item is XmlSchemaAnnotation)
+            {
+                AppendAnnotation((XmlSchemaAnnotation)item, mainJsonSchema);
+                return null;
+            }
+            else if (item is XmlSchemaGroup || item is XmlSchemaAttributeGroup || item is XmlSchemaAttribute)
+            {
+                // Do nothing. xsd:group and top-level xsd:attribute are expanded in place
+                return null;
+            }
+            else
             {
                 throw new NotImplementedException();
-            }*/
+            }
+        }
 
-            JsonSchema definitionSchema = new JsonSchema();
+        private JsonSchema ParseTopLevelElement(XmlSchemaElement item, out bool isRequired)
+        {
+            return ParseElement(item, true, out isRequired);
+        }
+
+        private JsonSchema ParseElement(XmlSchemaElement item, out bool isRequired)
+        {
+            return ParseElement(item, false, out isRequired);
+        }
+
+        private JsonSchema ParseElement(XmlSchemaElement item, bool isFirstPass, out bool isRequired)
+        {
+            XmlQualifiedName elementName = GetItemName(item); // This will become either .Name of .RefName.Name
+
+            isRequired = false;
+
+            JsonSchema elementSchema = new JsonSchema();
 
             if (item.Annotation != null)
             {
-                AddAnnotated(item, definitionSchema);
+                AppendAnnotated(item, elementSchema);
             }
 
             if (item.Constraints.Count > 0)
@@ -103,7 +177,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.DefaultValue != null)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Default value \"" + item.DefaultValue + "\"");
             }
 
             if (item.ElementSchemaType != null)
@@ -118,17 +192,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Final != XmlSchemaDerivationMethod.None)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Final value");
             }
 
             if (item.FixedValue != null)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Fixed value \"" + item.FixedValue + "\"");
             }
 
             if (item.IsAbstract)
             {
-                throw new NotImplementedException();
+                _logger.LogInformation(elementName.ToString() + ": Ignoring Abstract");
             }
 
             if (!item.IsNillable)
@@ -136,106 +210,83 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 // ToDo
             }
 
-            // if (item.MinOccursString != null) {} //MinOccurs is handled elsewhere (search for .Required )
+            if (item.MinOccurs >= 1 ||
+                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString) >= 1))
+            {
+                isRequired = true;
+            }
+
             if (item.MaxOccursString != null)
             {
-                int d = 0;
+                // This is handled when appending type info
             }
 
             if (!item.RefName.IsEmpty)
             {
-                XmlSchemaObject refObject = FindObject(item.RefName.ToString());
-                definitionSchema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + ObjectName(refObject)));
+                AppendType(FindObject(elementName), item, elementSchema); // Elementname is already set to refName here
             }
 
             if (item.SchemaType != null)
             {
-                // definitionName = item.Name;
-                if (item.SchemaType is XmlSchemaComplexType)
+                if (isFirstPass)
                 {
-                    XmlSchemaComplexType complexType = (XmlSchemaComplexType)item.SchemaType;
-                    string anonymousName = ObjectNameOrAnonymous(item);
-                    AddType(item.SchemaType, definitionSchema);
-
-                    // AddNamedComplexType(mainJsonSchema, complexType, anonymousName);
-                    // anonymousTypes.Add(anonymousName);
+                    AppendType(item, elementSchema);
                 }
                 else
                 {
-                    throw new NotImplementedException();
+                    if (item.SchemaType is XmlSchemaComplexType)
+                    {
+                        XmlQualifiedName complexTypeName = GetItemName(item.SchemaType);
+                        JsonSchema complexTypeSchema = ParseComplexType((XmlSchemaComplexType)item.SchemaType);
+                        AppendTypeFromNameInternal(complexTypeName, elementSchema);
+                    }
+                    else if (item.SchemaType is XmlSchemaSimpleType)
+                    {
+                        XmlQualifiedName simpleTypeName = GetItemName(item.SchemaType);
+                        JsonSchema simpleTypeSchema = new JsonSchema();
+                        AppendSimpleType((XmlSchemaSimpleType)item.SchemaType, simpleTypeSchema);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
             }
 
             if (!item.SchemaTypeName.IsEmpty)
             {
-                AddType(item, definitionSchema);
+                AppendType(item, elementSchema);
             }
 
-            /*
-            if (isTopLevelElement)
-            {*/
-            /*
-                string name = ObjectName(item);
-                if (!convertedTypes.Contains(name))
-                {
-                    convertedTypes.Add(name);
-                }
-                */
-
-            AddDefinition(resultSchema, ObjectName(item), definitionSchema);
-
-            if (item.Parent == mainXsd)
-            {
-                AddElementAsRootProperty(item);
-            }
-
-            /*}
-            else
-            {
-                resultSchema.Property(ObjectNameOrAnonymous(item), definitionSchema);
-            }*/
+            return elementSchema;
         }
 
-        private void ParseSchemaType(XmlSchemaType item, JsonSchema resultSchema)
+        private JsonSchema ParseComplexType(XmlSchemaComplexType item)
         {
-            if (item is XmlSchemaComplexType)
-            {
-                ParseComplexType((XmlSchemaComplexType)item, resultSchema);
-            }
-            else if (item is XmlSchemaSimpleType)
-            {
-                ParseSimpleType((XmlSchemaSimpleType)item, resultSchema);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private void ParseRootComplexType(XmlSchemaComplexType item)
-        {
-            ParseComplexType(item, mainJsonSchema);
-        }
-
-        private void ParseComplexType(XmlSchemaComplexType item, JsonSchema resultSchema)
-        {
-            /*
-            if (item.Parent != mainXsd)
-            {
-                throw new NotImplementedException();
-            }
-            */
-            JsonSchema definitionSchema = new JsonSchema();
-            List<string> requiredList = new List<string>();
+            JsonSchema complexTypeSchema = new JsonSchema();
+            List<XmlQualifiedName> requiredList = new List<XmlQualifiedName>();
 
             if (item.Annotation != null)
             {
-                AddAnnotated(item, definitionSchema);
+                AppendAnnotated(item, complexTypeSchema);
             }
 
             if (item.Attributes.Count > 0)
             {
-                AddAttributes(item.Attributes, definitionSchema, requiredList);
+                foreach (XmlSchemaAttribute attribute in item.Attributes)
+                {
+                    bool isRequired;
+                    JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
+                    if (attributeSchema != null)
+                    {
+                        XmlQualifiedName name = GetItemName(attribute);
+                        complexTypeSchema.Property(name.Name, attributeSchema);
+                        if (isRequired)
+                        {
+                            requiredList.Add(name);
+                        }
+                    }
+                }
             }
 
             if (item.BaseSchemaType != null)
@@ -250,42 +301,38 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.ContentModel != null)
             {
-                AddContentModel(item.ContentModel, definitionSchema);
+                if (item.ContentModel is XmlSchemaComplexContent)
+                {
+                    AppendComplexContent((XmlSchemaComplexContent)item.ContentModel, complexTypeSchema, requiredList);
+                }
+                else if (item.ContentModel is XmlSchemaSimpleContent)
+                {
+                    AppendSimpleContent((XmlSchemaSimpleContent)item.ContentModel, complexTypeSchema, requiredList);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
 
             if (item.Particle != null)
             {
-                AddParticle(item.Particle, definitionSchema, requiredList);
+                AppendParticle(item.Particle, complexTypeSchema, requiredList);
             }
 
             if (requiredList.Count > 0)
             {
-                definitionSchema.Required(requiredList.ToArray());
+                complexTypeSchema.Required(RequiredListToArray(requiredList));
             }
 
-            string name = ObjectName(item);
-            AddDefinition(resultSchema, ObjectName(item), definitionSchema);
+            return complexTypeSchema;
         }
 
-        private void ParseRootSimpleType(XmlSchemaSimpleType item)
+        private void AppendSimpleType(XmlSchemaSimpleType item, JsonSchema appendToSchema)
         {
-            ParseSimpleType(item, mainJsonSchema);
-        }
-
-        private void ParseSimpleType(XmlSchemaSimpleType item, JsonSchema resultSchema)
-        {
-            /*
-            if (item.Parent != mainXsd)
-            {
-                throw new NotImplementedException();
-            }
-            */
-
-            JsonSchema definitionSchema = new JsonSchema();
-
             if (item.Annotation != null)
             {
-                AddAnnotated(item, definitionSchema);
+                AppendAnnotated(item, appendToSchema);
             }
 
             if (item.BaseSchemaType != null)
@@ -300,141 +347,273 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (item.Content != null)
             {
-                AddSimpleType(item, definitionSchema);
+                XmlSchemaSimpleTypeContent simpleTypeContent = item.Content;
+                if (simpleTypeContent is XmlSchemaSimpleTypeRestriction)
+                {
+                    XmlSchemaSimpleTypeRestriction simpleTypeRestriction = (XmlSchemaSimpleTypeRestriction)simpleTypeContent;
+
+                    if (simpleTypeRestriction.Facets != null && simpleTypeRestriction.Facets.Count > 0)
+                    {
+                        List<JsonValue> enumList = new List<JsonValue>();
+
+                        foreach (XmlSchemaFacet facet in simpleTypeRestriction.Facets)
+                        {
+                            if (facet is XmlSchemaEnumerationFacet)
+                            {
+                                enumList.Add(new JsonValue(facet.Value));
+                            }
+                            else if (facet is XmlSchemaMinInclusiveFacet)
+                            {
+                                try
+                                {
+                                    SetMinimum(appendToSchema, Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("Minimum: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else if (facet is XmlSchemaMaxInclusiveFacet)
+                            {
+                                try
+                                {
+                                    SetMaximum(appendToSchema, Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("Maximum: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else if (facet is XmlSchemaMinLengthFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.MinLength(Convert.ToUInt32(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("MinLength: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else if (facet is XmlSchemaMaxLengthFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.MaxLength(Convert.ToUInt32(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("MaxLength: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else if (facet is XmlSchemaLengthFacet || facet is XmlSchemaTotalDigitsFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.MinLength(Convert.ToUInt32(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("MinLength: Could not convert " + facet.Value + " to number");
+                                }
+
+                                try
+                                {
+                                    appendToSchema.MaxLength(Convert.ToUInt32(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("MaxLength: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else if (facet is XmlSchemaPatternFacet)
+                            {
+                                appendToSchema.Pattern(facet.Value);
+                            }
+                            else if (facet is XmlSchemaFractionDigitsFacet)
+                            {
+                                // Use pattern?
+                            }
+                            else if (facet is XmlSchemaMinExclusiveFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.ExclusiveMinimum(Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("ExclusiveMinimum: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else if (facet is XmlSchemaMaxExclusiveFacet)
+                            {
+                                try
+                                {
+                                    appendToSchema.ExclusiveMaximum(Convert.ToDouble(facet.Value));
+                                }
+                                catch (Exception)
+                                {
+                                    _logger.LogError("ExclusiveMaximum: Could not convert " + facet.Value + " to number");
+                                }
+                            }
+                            else
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+
+                        if (enumList.Count > 0)
+                        {
+                            appendToSchema.Enum(enumList.ToArray());
+                        }
+                    }
+
+                    AppendTypeFromSchemaTypeInternal(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, appendToSchema);
+                }
+                else if (simpleTypeContent is XmlSchemaSimpleTypeList)
+                {
+                    XmlSchemaSimpleTypeList simpleTypeListItem = (XmlSchemaSimpleTypeList)simpleTypeContent;
+
+                    if (simpleTypeListItem.ItemType != null)
+                    {
+                        XmlQualifiedName simpleTypeName = GetItemName(simpleTypeListItem.ItemType);
+                        JsonSchema simpleTypeSchema = new JsonSchema();
+                        AppendSimpleType((XmlSchemaSimpleType)simpleTypeListItem.ItemType, simpleTypeSchema);
+                    }
+                    else if (!simpleTypeListItem.ItemTypeName.IsEmpty)
+                    {
+                        appendToSchema.Type(JsonSchemaType.Array);
+                        appendToSchema.OtherData.Add("@xsdType", new JsonValue("XmlList"));
+
+                        JsonSchema[] itemsSchemas = new JsonSchema[1];
+                        itemsSchemas[0] = new JsonSchema();
+
+                        AppendTypeFromSchemaTypeInternal(simpleTypeListItem.ItemType, simpleTypeListItem.ItemTypeName, itemsSchemas[0]);
+                        appendToSchema.Items(itemsSchemas);
+                    }
+                    else
+                    {
+                        throw new ArgumentException();
+                    }
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
 
             if (item.Datatype != null)
             {
                 throw new NotImplementedException();
             }
-
-            string name = ObjectName(item);
-            AddDefinition(resultSchema, ObjectName(item), definitionSchema);
         }
 
-        private void ParseRootAnnotation(XmlSchemaAnnotation item)
+        private JsonSchema ParseAttribute(XmlSchemaAttribute attribute, out bool isRequired)
         {
-            AddAnnotation(item, mainJsonSchema);
-        }
+            isRequired = false;
+            JsonSchema attributeSchema = new JsonSchema();
 
-        private void ExpandGroup(XmlSchemaGroup item, JsonSchema resultSchema)
-        {
-            if (item.Parent != mainXsd)
+            if (attribute != null && !attribute.RefName.IsEmpty)
+            {
+                XmlSchemaObject refAttribute = FindObject(attribute.RefName);
+                if (refAttribute == null)
+                {
+                    AppendTypeFromNameInternal(null, attributeSchema); // Unknown type. (Will default to string)
+                }
+                else if (refAttribute is XmlSchemaAttribute)
+                {
+                    attributeSchema = ParseAttribute((XmlSchemaAttribute)refAttribute, out isRequired);
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+            }
+
+            SetType(attributeSchema, new JsonValue("XmlAttribute"));
+
+            if (attribute.Annotation != null)
+            {
+                AppendAnnotated(attribute, attributeSchema);
+            }
+
+            if (attribute.AttributeSchemaType != null)
             {
                 throw new NotImplementedException();
             }
 
-            // throw new NotImplementedException();
-            int d = 0;
-        }
-
-        private void AddElementAsRootProperty(XmlSchemaElement item)
-        {
-            XmlSchemaElement itemElement = (XmlSchemaElement)item;
-            JsonSchema propertySchema = new JsonSchema();
-            string propertyName = NameOrQualifiedName(null, itemElement.SchemaTypeName);
-            propertySchema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + propertyName));
-            mainJsonSchema.Property(itemElement.Name, propertySchema);
-        }
-
-        private void AddAttributes(XmlSchemaObjectCollection attributes, JsonSchema resultSchema, List<string> requiredList)
-        {
-            foreach (XmlSchemaAttribute attribute in attributes)
-            {
-                JsonSchema propertySchema = new JsonSchema();
-                propertySchema.OtherData.Add("@xsdType", new Manatee.Json.JsonValue("XmlAttribute"));
-
-                if (attribute.Annotation != null)
-                {
-                    AddAnnotated(attribute, propertySchema);
-                }
-
-                if (attribute.AttributeSchemaType != null)
-                {
-                    throw new NotImplementedException();
-                }
-
-                if (attribute.AttributeType != null)
-                {
-                    throw new NotImplementedException();
-                }
-
-                if (attribute.FixedValue != null)
-                {
-                    propertySchema.OtherData.Add("const", new Manatee.Json.JsonValue(attribute.FixedValue));
-                }
-
-                if (!attribute.QualifiedName.IsEmpty)
-                {
-                    throw new NotImplementedException();
-                }
-
-                if (!attribute.RefName.IsEmpty)
-                {
-                    throw new NotImplementedException();
-                }
-
-                if (attribute.SchemaType != null)
-                {
-                    ParseSimpleType(attribute.SchemaType, propertySchema);
-                }
-
-                if (!attribute.SchemaTypeName.IsEmpty)
-                {
-                    if (propertySchema.Exists(e => "type".Equals(e.Name)))
-                    {
-                        int d = 0;
-                    }
-
-                    propertySchema.Type(JsonSchemaTypeFromString(attribute.SchemaTypeName.Name));
-                }
-
-                string name = ObjectName(attribute);
-                resultSchema.Property(name, propertySchema);
-
-                if (attribute.Use == XmlSchemaUse.Required)
-                {
-                    requiredList.Add(name);
-                }
-            }
-        }
-
-        private void AddParticle(XmlSchemaParticle particle, JsonSchema resultSchema, List<string> requiredList)
-        {
-            if (particle == null)
-            {
-            }
-            else if (particle is XmlSchemaSequence)
-            {
-                foreach (XmlSchemaParticle item in ((XmlSchemaSequence)particle).Items)
-                {
-                    AddParticleProperty(item, resultSchema, requiredList);
-                }
-            }
-            else if (particle is XmlSchemaGroupRef)
-            {
-                ExpandAndCopyGroupRef((XmlSchemaGroupRef)particle, resultSchema, requiredList);
-            }
-            else
+            if (attribute.AttributeType != null)
             {
                 throw new NotImplementedException();
             }
+
+            if (attribute.FixedValue != null)
+            {
+                SetConst(attributeSchema, new JsonValue(attribute.FixedValue));
+            }
+
+            if (!attribute.QualifiedName.IsEmpty)
+            {
+                throw new NotImplementedException();
+            }
+
+            if (attribute.SchemaType != null)
+            {
+                AppendSimpleType(attribute.SchemaType, attributeSchema);
+            }
+
+            if (!attribute.SchemaTypeName.IsEmpty)
+            {
+                AppendTypeFromNameInternal(attribute.SchemaTypeName, attributeSchema);
+            }
+
+            isRequired = attribute.Use == XmlSchemaUse.Required;
+
+            return attributeSchema;
         }
 
-        private void AddParticleProperty(XmlSchemaParticle item, JsonSchema resultSchema, List<string> requiredList)
+        private JsonSchema ParseAny(XmlSchemaAny item, out bool isRequired)
         {
+            isRequired = false;
+
+            JsonSchema anySchema = new JsonSchema();
+            anySchema.OtherData.Add("@xsdType", new JsonValue("XmlAny"));
+
+            if (item.Annotation != null)
+            {
+                AppendAnnotated(item, anySchema);
+            }
+
+            if (item.MinOccurs >= 1 ||
+                (item.MinOccursString != null && Convert.ToUInt32(item.MinOccursString) >= 1))
+            {
+                isRequired = true;
+            }
+
+            if (item.MaxOccursString != null)
+            {
+                // This is handled when appending type info
+            }
+
+            AppendType(item, anySchema);
+
+            return anySchema;
+        }
+
+        private JsonSchema ParseParticle(XmlSchemaParticle item, out bool isRequired)
+        {
+            JsonSchema particleSchema = new JsonSchema();
+
+            isRequired = false;
+
             if (item is XmlSchemaElement)
             {
-                XmlSchemaElement elementItem = (XmlSchemaElement)item;
-                ParseElement(elementItem, resultSchema);
-
-                if (item.MinOccurs >= 1)
-                {
-                    requiredList.Add(ObjectName(elementItem));
-                }
+                return ParseElement((XmlSchemaElement)item, out isRequired);
             }
             else if (item is XmlSchemaChoice)
             {
+                throw new NotImplementedException();
+                /*
                 List<JsonSchema> oneOfSchemaList = new List<JsonSchema>();
                 foreach (XmlSchemaObject choiceItem in ((XmlSchemaChoice)item).Items)
                 {
@@ -444,10 +623,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
 
                 resultSchema.OneOf(oneOfSchemaList.ToArray());
+                */
             }
             else if (item is XmlSchemaGroupRef)
             {
-                ExpandAndCopyGroupRef((XmlSchemaGroupRef)item, resultSchema, requiredList);
+                throw new NotImplementedException();
+
+                // ExpandAndCopyGroupRef((XmlSchemaGroupRef)item, resultSchema, requiredList);
             }
             else
             {
@@ -455,81 +637,279 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void ExpandAndCopyGroupRef(XmlSchemaGroupRef groupRefItem, JsonSchema resultSchema, List<string> requiredList)
+        private void AppendParticle(XmlSchemaParticle particle, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
-            XmlSchemaObject groupObject = FindObject(groupRefItem.RefName.ToString());
-            if (groupObject != null)
+            if (particle == null)
             {
-                if (groupObject is XmlSchemaGroup)
+            }
+            else if (particle is XmlSchemaSequence)
+            {
+                foreach (XmlSchemaParticle item in ((XmlSchemaSequence)particle).Items)
                 {
-                    AddParticle(((XmlSchemaGroup)groupObject).Particle, resultSchema, requiredList);
+                    AppendParticleProperty(item, appendToSchema, requiredList);
                 }
-                else
-                {
-                    throw new NotImplementedException();
-                }
+            }
+            else if (particle is XmlSchemaGroupRef)
+            {
+                ExpandAndAppendGroupRef((XmlSchemaGroupRef)particle, appendToSchema, requiredList);
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 
-        private void AddType(XmlSchemaObject item, JsonSchema resultSchema)
+        private void AppendParticleProperty(XmlSchemaParticle item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item is XmlSchemaElement)
             {
-                XmlSchemaElement elementItem = (XmlSchemaElement)item;
-                if (elementItem.MaxOccurs > 1)
+                XmlQualifiedName elementName = GetItemName(item);
+                bool isRequired;
+                JsonSchema elementSchema = ParseElement((XmlSchemaElement)item, out isRequired);
+                appendToSchema.Property(elementName.Name, elementSchema);
+
+                if (isRequired)
                 {
-                    if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                    {
-                        int d = 0;
-                    }
-
-                    resultSchema.Type(JsonSchemaType.Array);
-                    resultSchema.MinItems(Convert.ToUInt32(elementItem.MinOccurs));
-                    if (!"unbounded".Equals(elementItem.MaxOccursString))
-                    {
-                        resultSchema.MaxItems(Convert.ToUInt32(elementItem.MaxOccurs));
-                    }
-
-                    JsonSchema[] itemsSchemas = new JsonSchema[1];
-                    itemsSchemas[0] = new JsonSchema();
-
-                    // AddAnnotation(particle, itemsSchemas[0]);
-                    // AddTypeToSchema(schemaType, schemaTypeName, elementName, itemsSchemas[0]);
-                    AddTypeFromNameInternal(elementItem.SchemaTypeName, itemsSchemas[0]);
-                    resultSchema.Items(itemsSchemas);
+                    requiredList.Add(elementName);
                 }
-                else
+            }
+            else if (item is XmlSchemaChoice)
+            {
+                List<JsonSchema> oneOfSchemaList = new List<JsonSchema>();
+                foreach (XmlSchemaObject choiceItem in ((XmlSchemaChoice)item).Items)
                 {
-                    // AddTypeToSchema(schemaType, schemaTypeName, elementName, propertySchema);
-                    AddTypeFromNameInternal(elementItem.SchemaTypeName, resultSchema);
+                    JsonSchema oneOfSchema = new JsonSchema();
+                    AppendType(choiceItem, oneOfSchema);
+                    oneOfSchemaList.Add(oneOfSchema);
                 }
 
-                // string referencedType =
-                // AddTypeFromNameInternal(((XmlSchemaElement)item).SchemaTypeName, resultSchema);
-                /*
-                if (referencedType != null)
+                appendToSchema.OneOf(oneOfSchemaList.ToArray());
+            }
+            else if (item is XmlSchemaAny)
+            {
+                XmlQualifiedName anyName = GetItemName(item);
+                bool isRequired;
+                JsonSchema anySchema = ParseAny((XmlSchemaAny)item, out isRequired);
+                appendToSchema.Property(anyName.Name, anySchema);
+
+                if (isRequired)
                 {
-                    if (!convertedTypes.Contains(referencedType))
+                    requiredList.Add(anyName);
+                }
+            }
+            else if (item is XmlSchemaGroupRef)
+            {
+                ExpandAndAppendGroupRef((XmlSchemaGroupRef)item, appendToSchema, requiredList);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private void AppendAnnotated(XmlSchemaAnnotated annotatedItem, JsonSchema appendToSchema)
+        {
+            if (annotatedItem != null)
+            {
+                AppendAnnotation(annotatedItem.Annotation, appendToSchema);
+            }
+        }
+
+        private void AppendAnnotation(XmlSchemaAnnotation annotationItem, JsonSchema appendToSchema)
+        {
+            if (annotationItem == null)
+            {
+                return;
+            }
+
+            string s = string.Empty;
+            foreach (XmlSchemaDocumentation item in annotationItem.Items)
+            {
+                foreach (XmlNode markup in item.Markup)
+                {
+                    if (markup is XmlText)
                     {
-                        XmlSchemaObject referencedObject = FindObject(referencedType);
-                        if (referencedObject is XmlSchemaComplexType)
+                        appendToSchema.Description(((XmlText)markup).Value);
+                    }
+                    else
+                    {
+                        XmlQualifiedName markupName = new XmlQualifiedName(markup.LocalName, markup.NamespaceURI);
+                        if ("http://www.w3.org/2001/XMLSchema:attribute".Equals(markupName.ToString()))
                         {
-                            ParseRootComplexType((XmlSchemaComplexType)referencedObject, resultSchema);
+                            XmlAttribute name = GetAttribute(markup.Attributes, "name", markup.NamespaceURI);
+                            XmlAttribute fixedValue = GetAttribute(markup.Attributes, "fixed", markup.NamespaceURI);
+
+                            appendToSchema.Info(name.Value, fixedValue.Value);
                         }
-                        else if (referencedObject is XmlSchemaSimpleType)
+                        else if ("http://www.brreg.no/or:tekst".Equals(markupName.ToString()))
                         {
-                            ParseRootSimpleType((XmlSchemaSimpleType)referencedObject, resultSchema);
+                            XmlAttribute teksttype = GetAttribute(markup.Attributes, "teksttype", markup.NamespaceURI);
+                            XmlAttribute lang = GetAttribute(markup.Attributes, "lang", markup.NamespaceURI);
+
+                            appendToSchema.Texts(teksttype.Value, lang.Value, markup.InnerText);
+                        }
+                        else if ("http://www.brreg.no/or:info".Equals(markupName.ToString()))
+                        {
                         }
                         else
                         {
                             throw new NotImplementedException();
                         }
                     }
-                }*/
+                }
+            }
+        }
+
+        private string AppendTypeFromSchemaTypeInternal(XmlSchemaType schemaType, XmlQualifiedName schemaTypeName, JsonSchema appendToSchema)
+        {
+            if (!schemaTypeName.IsEmpty)
+            {
+                return AppendTypeFromNameInternal(schemaTypeName, appendToSchema);
+            }
+            else
+            {
+                return AppendTypeFromNameInternal(GetItemName(schemaType), appendToSchema);
+            }
+        }
+
+        private string AppendTypeFromNameInternal(XmlQualifiedName qname, JsonSchema appendToSchema)
+        {
+            string type = (qname == null || qname.IsEmpty) ? null : qname.ToString();
+            string name = (qname == null || qname.IsEmpty) ? null : qname.Name;
+            if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
+            {
+                _logger.LogInformation("null type requested. Using string");
+                appendToSchema.Type(JsonSchemaType.String);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:string".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:normalizedString".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:token".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:boolean".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Boolean);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:integer".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:positiveInteger".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:nonNegativeInteger".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                SetMinimum(appendToSchema, 0);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:short".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                SetMinimum(appendToSchema, short.MinValue);
+                SetMaximum(appendToSchema, short.MaxValue);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:long".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Integer);
+                SetMinimum(appendToSchema, long.MinValue);
+                SetMaximum(appendToSchema, long.MaxValue);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:double".Equals(type)
+                     || "http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.Number);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.Format(StringFormat.GetFormat("date"));
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:time".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.Format(StringFormat.GetFormat("time"));
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.Format(StringFormat.DateTime);
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.Format(StringFormat.GetFormat("year"));
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.Format(StringFormat.GetFormat("year-month"));
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:base64Binary".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+                appendToSchema.ContentEncoding("base64");
+            }
+            else if ("http://www.w3.org/2001/XMLSchema:anyURI".Equals(type))
+            {
+                appendToSchema.Type(JsonSchemaType.String);
+            }
+            else if (type.StartsWith("http://www.w3.org/2001/XMLSchema:"))
+            {
+                throw new NotImplementedException();
+            }
+            else
+            {
+                if (name == null)
+                {
+                    AddTypeObject(appendToSchema);
+                }
+                else
+                {
+                    appendToSchema.Ref("#/definitions/" + name);
+                    return name;
+                }
+            }
+
+            return null;
+        }
+
+        private void AppendType(XmlSchemaObject item, JsonSchema appendToSchema)
+        {
+            AppendType(item, null, appendToSchema);
+        }
+
+        private void AppendType(XmlSchemaObject item, XmlSchemaObject referencedFromItem, JsonSchema appendToSchema)
+        {
+            if (item is XmlSchemaElement)
+            {
+                XmlSchemaElement elementItem = (XmlSchemaElement)item;
+                var maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : elementItem.MaxOccurs;
+                if (maxOccurs > 1)
+                {
+                    appendToSchema.Type(JsonSchemaType.Array);
+                    var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : elementItem.MinOccurs;
+                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : elementItem.MaxOccursString;
+                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
+                    if (!"unbounded".Equals(maxOccursString))
+                    {
+                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs));
+                    }
+
+                    JsonSchema[] itemsSchemas = new JsonSchema[1];
+                    itemsSchemas[0] = new JsonSchema();
+
+                    AppendTypeFromSchemaTypeInternal(elementItem.SchemaType, elementItem.SchemaTypeName, itemsSchemas[0]);
+                    appendToSchema.Items(itemsSchemas);
+                }
+                else
+                {
+                    AppendTypeFromSchemaTypeInternal(elementItem.SchemaType, elementItem.SchemaTypeName, appendToSchema);
+                }
             }
             else if (item is XmlSchemaType)
             {
-                ParseSchemaType((XmlSchemaType)item, resultSchema);
+                throw new NotImplementedException();
+
+                // AddDefinition(resultSchema, ObjectName(item), GenerateSchemaType((XmlSchemaType)item));
                 /*
                 XmlSchemaType itemSchemaType = (XmlSchemaType)item;
                 if (itemSchemaType.BaseSchemaType != null)
@@ -544,18 +924,46 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
                 */
             }
-            else if (item is XmlSchemaGroup)
-            {
-                throw new NotImplementedException();
-            }
             else if (item is XmlSchemaSimpleTypeRestriction)
             {
-                AddTypeFromNameInternal(((XmlSchemaSimpleTypeRestriction)item).BaseTypeName, resultSchema);
+                XmlSchemaSimpleTypeRestriction simpleTypeRestriction = (XmlSchemaSimpleTypeRestriction)item;
+                AppendTypeFromSchemaTypeInternal(simpleTypeRestriction.BaseType, simpleTypeRestriction.BaseTypeName, appendToSchema);
             }
             else if (item is XmlSchemaSequence)
             {
-                List<string> requiredList = new List<string>();
-                AddParticle((XmlSchemaSequence)item, resultSchema, requiredList);
+                List<XmlQualifiedName> requiredList = new List<XmlQualifiedName>();
+                AppendParticle((XmlSchemaSequence)item, appendToSchema, requiredList);
+
+                if (requiredList.Count > 0)
+                {
+                    appendToSchema.Required(RequiredListToArray(requiredList));
+                }
+            }
+            else if (item is XmlSchemaAny)
+            {
+                XmlSchemaAny anyItem = (XmlSchemaAny)item;
+                var maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : anyItem.MaxOccurs;
+                if (maxOccurs > 1)
+                {
+                    appendToSchema.Type(JsonSchemaType.Array);
+                    var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : anyItem.MinOccurs;
+                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : anyItem.MaxOccursString;
+                    appendToSchema.MinItems(Convert.ToUInt32(minOccurs));
+                    if (!"unbounded".Equals(maxOccursString))
+                    {
+                        appendToSchema.MaxItems(Convert.ToUInt32(maxOccurs));
+                    }
+
+                    JsonSchema[] itemsSchemas = new JsonSchema[1];
+                    itemsSchemas[0] = new JsonSchema();
+
+                    AppendTypeFromSchemaTypeInternal(null, XmlQualifiedName.Empty, itemsSchemas[0]);
+                    appendToSchema.Items(itemsSchemas);
+                }
+                else
+                {
+                    AppendTypeFromSchemaTypeInternal(null, XmlQualifiedName.Empty, appendToSchema);
+                }
             }
             else
             {
@@ -563,356 +971,174 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AddTypeFromSchemaTypeInternal(XmlSchemaType schemaType, XmlQualifiedName qname, string elementName, JsonSchema resultSchema)
+        private bool HasDefinition(XmlQualifiedName name)
         {
-            /*
-            if (schemaType != null)
-            {
-                if (schemaType is XmlSchemaComplexType)
-                {
-                    string definitionName = (qname != null && qname.ToString().Length > 0) ? qname.ToString() : elementName;
-                    resultSchema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + definitionName));
-                    if (schemaType is XmlSchemaComplexType)
-                    {
-                        AddNamedComplexType(mainJsonSchema, (XmlSchemaComplexType)schemaType, definitionName);
-                    }
+            return mainJsonSchema.Definitions() != null && mainJsonSchema.Definitions().ContainsKey(name.Name);
+        }
 
-                    anonymousTypes.Add(definitionName);
+        private void AddDefinition(XmlSchemaObject item, JsonSchema definition)
+        {
+            XmlQualifiedName name = GetItemName(item);
+            if (!HasDefinition(name))
+            {
+                mainJsonSchema.Definition(name.Name, definition);
+            }
+            else
+            {
+                throw new XmlSchemaException();
+            }
+        }
+
+        private void AppendDefinition(JsonSchema appendToSchema, XmlSchemaObject item, JsonSchema definitionSchema)
+        {
+            if (appendToSchema == mainJsonSchema)
+            {
+                AddDefinition(item, definitionSchema);
+            }
+            else
+            {
+                AddTypeObject(appendToSchema);
+                appendToSchema.Property(GetItemName(item).Name, definitionSchema);
+            }
+        }
+
+        private void ExpandAndAppendGroupRef(XmlSchemaGroupRef groupRefItem, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        {
+            XmlSchemaObject groupObject = FindObject(groupRefItem.RefName);
+            if (groupObject != null)
+            {
+                if (groupObject is XmlSchemaGroup)
+                {
+                    AppendParticle(((XmlSchemaGroup)groupObject).Particle, appendToSchema, requiredList);
                 }
                 else
                 {
                     throw new NotImplementedException();
                 }
             }
-            */
         }
 
-        private string AddTypeFromNameInternal(XmlQualifiedName qname, JsonSchema resultSchema)
+        private void ExpandAndAppendAttributeGroupRef(XmlSchemaAttributeGroupRef groupRefItem, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
-            string type = (qname == null) ? null : qname.ToString();
-            string name = (qname == null) ? null : qname.Name;
-            if ((type == null || type.Length == 0) && (name == null || name.Length == 0))
+            XmlSchemaObject refItem = FindObject(groupRefItem.RefName);
+            if (refItem != null)
             {
-                throw new ArgumentException();
-            }
-
-            if ("http://www.w3.org/2001/XMLSchema:string".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
+                if (refItem is XmlSchemaAttributeGroup)
                 {
-                    int d = 0;
-                }
+                    XmlSchemaAttributeGroup attributeGroup = (XmlSchemaAttributeGroup)refItem;
 
-                resultSchema.Type(JsonSchemaType.String);
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:boolean".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
+                    if (attributeGroup.Annotation != null)
+                    {
+                        AppendAnnotated(attributeGroup, appendToSchema);
+                    }
 
-                resultSchema.Type(JsonSchemaType.Boolean);
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:integer".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
+                    if (attributeGroup.AnyAttribute != null)
+                    {
+                        throw new NotImplementedException();
+                    }
 
-                resultSchema.Type(JsonSchemaType.Integer);
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:decimal".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
+                    if (attributeGroup.Attributes.Count > 0)
+                    {
+                        AppendAttributes(attributeGroup.Attributes, appendToSchema, requiredList);
+                    }
 
-                resultSchema.Type(JsonSchemaType.Number);
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:date".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
-
-                resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(StringFormat.GetFormat("date"));
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:dateTime".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
-
-                resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(StringFormat.DateTime);
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:gYear".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
-
-                resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(StringFormat.GetFormat("year"));
-            }
-            else if ("http://www.w3.org/2001/XMLSchema:gYearMonth".Equals(type))
-            {
-                if (resultSchema.Exists(e => "type".Equals(e.Name)))
-                {
-                    int d = 0;
-                }
-
-                resultSchema.Type(JsonSchemaType.String);
-                resultSchema.Format(StringFormat.GetFormat("year-month"));
-            }
-            else
-            {
-                if (name == null)
-                {
-                    AddTypeObject(resultSchema);
+                    if (attributeGroup.RedefinedAttributeGroup != null)
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
                 else
                 {
-                    resultSchema.OtherData.Add("$ref", new Manatee.Json.JsonValue("#/definitions/" + name));
-                    return name;
-                }
-            }
-
-            return null;
-        }
-
-        private void AddSimpleType(XmlSchemaSimpleType simpleType, JsonSchema resultSchema)
-        {
-            XmlSchemaSimpleTypeContent simpleTypeContent = simpleType.Content;
-            if (simpleTypeContent is XmlSchemaSimpleTypeRestriction)
-            {
-                XmlSchemaSimpleTypeRestriction simpleTypeRestriction = (XmlSchemaSimpleTypeRestriction)simpleTypeContent;
-
-                if (simpleTypeRestriction.Facets != null && simpleTypeRestriction.Facets.Count > 0)
-                {
-                    List<JsonValue> enumList = new List<JsonValue>();
-
-                    foreach (XmlSchemaFacet facet in simpleTypeRestriction.Facets)
-                    {
-                        if (facet is XmlSchemaEnumerationFacet)
-                        {
-                            enumList.Add(new JsonValue(facet.Value));
-                        }
-                        else if (facet is XmlSchemaMinLengthFacet || facet is XmlSchemaMinInclusiveFacet)
-                        {
-                            try
-                            {
-                                resultSchema.MinLength(Convert.ToUInt32(facet.Value));
-                            }
-                            catch (OverflowException)
-                            {
-                                resultSchema.MinLength(uint.MinValue);
-                            }
-                        }
-                        else if (facet is XmlSchemaMaxLengthFacet || facet is XmlSchemaMaxInclusiveFacet)
-                        {
-                            try
-                            {
-                                resultSchema.MaxLength(Convert.ToUInt32(facet.Value));
-                            }
-                            catch (OverflowException)
-                            {
-                                resultSchema.MaxLength(uint.MaxValue);
-                            }
-                        }
-                        else if (facet is XmlSchemaLengthFacet || facet is XmlSchemaTotalDigitsFacet)
-                        {
-                            try
-                            {
-                                resultSchema.MinLength(Convert.ToUInt32(facet.Value));
-                            }
-                            catch (OverflowException)
-                            {
-                                resultSchema.MinLength(uint.MinValue);
-                            }
-
-                            try
-                            {
-                                resultSchema.MaxLength(Convert.ToUInt32(facet.Value));
-                            }
-                            catch (OverflowException)
-                            {
-                                resultSchema.MaxLength(uint.MaxValue);
-                            }
-                        }
-                        else if (facet is XmlSchemaPatternFacet)
-                        {
-                            resultSchema.Pattern(facet.Value);
-                        }
-                        else if (facet is XmlSchemaFractionDigitsFacet)
-                        {
-                            // Use pattern?
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-
-                    if (enumList.Count > 0)
-                    {
-                        resultSchema.Enum(enumList.ToArray());
-                    }
-                }
-
-                AddType(simpleTypeRestriction, resultSchema);
-            }
-        }
-
-        private void AddAnnotated(XmlSchemaAnnotated annotatedItem, JsonSchema resultSchema)
-        {
-            if (annotatedItem != null)
-            {
-                AddAnnotation(annotatedItem.Annotation, resultSchema);
-            }
-        }
-
-        private void AddAnnotation(XmlSchemaAnnotation annotationItem, JsonSchema resultSchema)
-        {
-            if (annotationItem != null)
-            {
-                string s = string.Empty;
-                foreach (XmlSchemaDocumentation item in annotationItem.Items)
-                {
-                    foreach (XmlNode markup in item.Markup)
-                    {
-                        if (s.Length != 0)
-                        {
-                            s += '\n';
-                        }
-
-                        if (markup.OuterXml != null)
-                        {
-                            s += markup.OuterXml;
-                        }
-                        else if (markup.Value != null)
-                        {
-                            s += markup.Value;
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-
-                if (s.Length != 0)
-                {
-                    resultSchema.Description(s);
+                    throw new NotImplementedException();
                 }
             }
         }
 
-/*
-        private void AddDocumentation(XmlSchemaDocumentation item, JsonSchema resultSchema)
-        {
-            if (annotatedItem != null && annotatedItem.Annotation != null)
-            {
-                string s = string.Empty;
-                foreach (XmlSchemaDocumentation item in annotatedItem.Annotation.Items)
-                {
-                    foreach (XmlNode markup in item.Markup)
-                    {
-                        if (s.Length != 0)
-                        {
-                            s += '\n';
-                        }
-
-                        if (markup.OuterXml != null)
-                        {
-                            s += markup.OuterXml;
-                        }
-                        else if (markup.Value != null)
-                        {
-                            s += markup.Value;
-                        }
-                        else
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-
-                if (s.Length != 0)
-                {
-                    resultSchema.Description(s);
-                }
-            }
-        }
-*/
-        private void AddContentModel(XmlSchemaContentModel item, JsonSchema resultSchema)
-        {
-            if (item is XmlSchemaComplexContent)
-            {
-                AddComplexContent((XmlSchemaComplexContent)item, resultSchema);
-            }
-            else if (item is XmlSchemaSimpleContent)
-            {
-                AddSimpleContent((XmlSchemaSimpleContent)item, resultSchema);
-            }
-            else
-            {
-                throw new NotImplementedException();
-            }
-        }
-
-        private void AddComplexContent(XmlSchemaComplexContent item, JsonSchema resultSchema)
+        private void AppendComplexContent(XmlSchemaComplexContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item.Annotation != null)
             {
-                AddAnnotated(item, resultSchema);
+                AppendAnnotated(item, appendToSchema);
             }
 
             if (item.Content != null)
             {
-                AddContent(item.Content, resultSchema);
+                AppendContent(item.Content, appendToSchema, requiredList);
             }
         }
 
-        private void AddSimpleContent(XmlSchemaSimpleContent item, JsonSchema resultSchema)
+        private void AppendSimpleContent(XmlSchemaSimpleContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item.Annotation != null)
             {
-                AddAnnotated(item, resultSchema);
+                AppendAnnotated(item, appendToSchema);
             }
 
             if (item.Content != null)
             {
-                AddContent(item.Content, resultSchema);
+                AppendContent(item.Content, appendToSchema, requiredList);
             }
         }
 
-        private void AddContent(XmlSchemaContent item, JsonSchema resultSchema)
+        private void AppendAttributes(XmlSchemaObjectCollection attributes, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        {
+            foreach (var attribute in attributes)
+            {
+                if (attribute is XmlSchemaAttribute)
+                {
+                    XmlSchemaAttribute schemaAttribute = (XmlSchemaAttribute)attribute;
+                    bool isRequired;
+                    JsonSchema attributeSchema = ParseAttribute(schemaAttribute, out isRequired);
+                    if (attributeSchema != null)
+                    {
+                        XmlQualifiedName name = GetItemName(schemaAttribute);
+                        appendToSchema.Property(name.Name, attributeSchema);
+                        if (isRequired)
+                        {
+                            requiredList.Add(name);
+                        }
+                    }
+                }
+                else if (attribute is XmlSchemaAttributeGroupRef)
+                {
+                    ExpandAndAppendAttributeGroupRef((XmlSchemaAttributeGroupRef)attribute, appendToSchema, requiredList);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+        }
+
+        private void AppendValueAttribute(XmlQualifiedName baseTypeName, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
+        {
+            if (!baseTypeName.IsEmpty)
+            {
+                JsonSchema valueAttributeSchema = new JsonSchema();
+                AppendTypeFromNameInternal(baseTypeName, valueAttributeSchema);
+                appendToSchema.Property("value", valueAttributeSchema);
+                requiredList.Add(new XmlQualifiedName("value", mainXsd.TargetNamespace));
+            }
+        }
+
+        private void AppendContent(XmlSchemaContent item, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
             if (item is XmlSchemaSimpleContentExtension)
             {
                 XmlSchemaSimpleContentExtension contentExtensionItem = (XmlSchemaSimpleContentExtension)item;
                 if (contentExtensionItem.Annotation != null)
                 {
-                    AddAnnotated(item, resultSchema);
+                    AppendAnnotated(item, appendToSchema);
                 }
 
                 if (contentExtensionItem.Attributes.Count > 0)
                 {
-                    List<string> requiredList = new List<string>();
-                    AddAttributes(contentExtensionItem.Attributes, resultSchema, requiredList);
+                    AppendAttributes(contentExtensionItem.Attributes, appendToSchema, requiredList);
+                    AppendValueAttribute(contentExtensionItem.BaseTypeName, appendToSchema, requiredList);
                 }
-
-                if (!contentExtensionItem.BaseTypeName.IsEmpty)
+                else if (!contentExtensionItem.BaseTypeName.IsEmpty)
                 {
-                    AddTypeFromNameInternal(contentExtensionItem.BaseTypeName, resultSchema);
+                    AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, appendToSchema);
                 }
             }
             else if (item is XmlSchemaComplexContentExtension)
@@ -925,32 +1151,44 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (contentExtensionItem.Annotation != null)
                 {
-                    AddAnnotated(item, resultSchema);
+                    AppendAnnotated(item, appendToSchema);
                 }
 
                 if (contentExtensionItem.Attributes.Count > 0)
                 {
-                    List<string> requiredList = new List<string>();
-                    AddAttributes(contentExtensionItem.Attributes, resultSchema, requiredList);
+                    foreach (XmlSchemaAttribute attribute in contentExtensionItem.Attributes)
+                    {
+                        bool isRequired;
+                        JsonSchema attributeSchema = ParseAttribute(attribute, out isRequired);
+                        if (attributeSchema != null)
+                        {
+                            XmlQualifiedName name = GetItemName(attribute);
+                            appendToSchema.Property(name.Name, attributeSchema);
+                            if (isRequired)
+                            {
+                                requiredList.Add(name);
+                            }
+                        }
+                    }
                 }
 
                 if (!contentExtensionItem.BaseTypeName.IsEmpty)
                 {
                     JsonSchema inheritFromSchema = new JsonSchema();
-                    AddTypeFromNameInternal(contentExtensionItem.BaseTypeName, inheritFromSchema);
+                    AppendTypeFromNameInternal(contentExtensionItem.BaseTypeName, inheritFromSchema);
                     allOfList.Add(inheritFromSchema);
                 }
 
                 if (contentExtensionItem.Particle != null)
                 {
                     JsonSchema usingSchema = isInherit ? new JsonSchema() : definitionSchema;
-                    List<string> requiredList = new List<string>();
+                    List<XmlQualifiedName> particleRequiredList = new List<XmlQualifiedName>();
 
-                    AddParticle(contentExtensionItem.Particle, usingSchema, requiredList);
+                    AppendParticle(contentExtensionItem.Particle, usingSchema, particleRequiredList);
 
-                    if (requiredList.Count > 0)
+                    if (particleRequiredList.Count > 0)
                     {
-                        usingSchema.Required(requiredList.ToArray());
+                        usingSchema.Required(RequiredListToArray(particleRequiredList));
                     }
 
                     if (isInherit)
@@ -961,15 +1199,76 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 if (allOfList.Count > 0)
                 {
-                    AddTypeObject(resultSchema);
-                    resultSchema.AllOf(allOfList.ToArray());
+                    AddTypeObject(appendToSchema);
+                    appendToSchema.AllOf(allOfList.ToArray());
                 }
 
                 if (definitionSchema.Count > 0)
                 {
-                    string name = ObjectName(contentExtensionItem);
-                    AddDefinition(resultSchema, ObjectName(contentExtensionItem), definitionSchema);
+                    AppendDefinition(appendToSchema, contentExtensionItem, definitionSchema);
                 }
+            }
+            else if (item is XmlSchemaSimpleContentRestriction)
+            {
+                XmlSchemaSimpleContentRestriction contentRestrictionItem = (XmlSchemaSimpleContentRestriction)item;
+
+                bool isInherit = !contentRestrictionItem.BaseTypeName.IsEmpty;
+                List<JsonSchema> allOfList = new List<JsonSchema>();
+
+                if (contentRestrictionItem.BaseType != null)
+                {
+                    throw new NotImplementedException();
+                }
+
+                if (!contentRestrictionItem.BaseTypeName.IsEmpty)
+                {
+                    JsonSchema inheritFromSchema = new JsonSchema();
+                    AppendTypeFromNameInternal(contentRestrictionItem.BaseTypeName, inheritFromSchema);
+                    allOfList.Add(inheritFromSchema);
+                }
+
+                if (contentRestrictionItem.Annotation != null)
+                {
+                    AppendAnnotated(item, appendToSchema);
+                }
+
+                if (contentRestrictionItem.AnyAttribute != null)
+                {
+                    throw new NotImplementedException();
+                }
+
+                if (contentRestrictionItem.Attributes.Count > 0)
+                {
+                    JsonSchema usingSchema = isInherit ? new JsonSchema() : appendToSchema;
+                    List<XmlQualifiedName> usingRequiredList = isInherit ? new List<XmlQualifiedName>() : requiredList;
+
+                    AppendAttributes(contentRestrictionItem.Attributes, usingSchema, usingRequiredList);
+
+                    if (isInherit)
+                    {
+                        if (usingRequiredList.Count > 0)
+                        {
+                            usingSchema.Required(RequiredListToArray(usingRequiredList));
+                        }
+
+                        allOfList.Add(usingSchema);
+                    }
+                }
+
+                if (contentRestrictionItem.Facets.Count > 0)
+                {
+                    throw new NotImplementedException();
+                }
+
+                if (allOfList.Count > 0)
+                {
+                    AddTypeObject(appendToSchema);
+                    appendToSchema.AllOf(allOfList.ToArray());
+                }
+            }
+            else if (item is XmlSchemaComplexContentRestriction)
+            {
+                throw new NotImplementedException();
             }
             else
             {
@@ -977,59 +1276,306 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private void AddDefinition(JsonSchema resultSchema, string name, JsonSchema definitionSchema)
+        private void AddTypeObject(JsonSchema appendToSchema)
         {
-            if (resultSchema == mainJsonSchema)
+            if (!appendToSchema.Exists(e => "type".Equals(e.Name)))
             {
-                mainJsonSchema.Definition(name, definitionSchema);
-            }
-            else
-            {
-                AddTypeObject(resultSchema);
-                resultSchema.Property(name, definitionSchema);
+                appendToSchema.Type(JsonSchemaType.Object);
             }
         }
 
-        private void AddTypeObject(JsonSchema resultSchema)
+        private void SetMinimum(JsonSchema appendToSchema, double value)
         {
-            if (!resultSchema.Exists(e => "type".Equals(e.Name)))
+            IJsonSchemaKeyword existingItem = appendToSchema.Find(e => "minimum".Equals(e.Name));
+            if (existingItem is MinimumKeyword)
             {
-                resultSchema.Type(JsonSchemaType.Object);
+                value = Math.Max(value, ((MinimumKeyword)existingItem).Value);
+                appendToSchema.RemoveAll(e => "minimum".Equals(e.Name));
             }
+
+            appendToSchema.Minimum(value);
         }
 
-        private XmlSchemaObject FindObject(string name)
+        private void SetMaximum(JsonSchema appendToSchema, double value)
+        {
+            IJsonSchemaKeyword existingItem = appendToSchema.Find(e => "maximum".Equals(e.Name));
+            if (existingItem is MaximumKeyword)
+            {
+                value = Math.Min(value, ((MaximumKeyword)existingItem).Value);
+                appendToSchema.RemoveAll(e => "maximum".Equals(e.Name));
+            }
+
+            appendToSchema.Maximum(value);
+        }
+
+        private void SetType(JsonSchema appendToSchema, JsonValue value)
+        {
+            appendToSchema.OtherData.Remove("@xsdType");
+            appendToSchema.OtherData.Add("@xsdType", value);
+        }
+
+        private void SetConst(JsonSchema appendToSchema, JsonValue value)
+        {
+            appendToSchema.RemoveAll(e => "const".Equals(e.Name));
+            appendToSchema.Const(value);
+        }
+
+        private XmlSchemaObject FindObject(XmlQualifiedName name)
         {
             XmlSchemaObjectEnumerator enumerator = mainXsd.Items.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 XmlSchemaObject xmlSchemaObject = enumerator.Current;
 
-                string objectName = null;
+                XmlQualifiedName objectName = XmlQualifiedName.Empty;
                 if (xmlSchemaObject is XmlSchemaGroup)
                 {
-                    objectName = ((XmlSchemaGroup)xmlSchemaObject).Name;
+                    XmlSchemaGroup groupItem = (XmlSchemaGroup)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
                 }
                 else if (xmlSchemaObject is XmlSchemaElement)
                 {
-                    objectName = ((XmlSchemaElement)xmlSchemaObject).Name;
+                    XmlSchemaElement elementItem = (XmlSchemaElement)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(elementItem.QualifiedName, elementItem.Name, elementItem);
                 }
                 else if (xmlSchemaObject is XmlSchemaType)
                 {
-                    objectName = ((XmlSchemaType)xmlSchemaObject).Name;
+                    XmlSchemaType typeItem = (XmlSchemaType)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(typeItem.QualifiedName, typeItem.Name, typeItem);
+                }
+                else if (xmlSchemaObject is XmlSchemaAttribute)
+                {
+                    XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(attributeItem.QualifiedName, attributeItem.Name, attributeItem);
+                }
+                else if (xmlSchemaObject is XmlSchemaAttributeGroup)
+                {
+                    XmlSchemaAttributeGroup groupItem = (XmlSchemaAttributeGroup)xmlSchemaObject;
+                    objectName = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
+                }
+                else if (xmlSchemaObject is XmlSchemaAnnotation)
+                {
+                    // No name
                 }
                 else
                 {
                     throw new NotImplementedException();
                 }
 
-                if (name.Equals(objectName))
+                if (name == objectName)
                 {
                     return xmlSchemaObject;
                 }
             }
 
+            _logger.LogInformation("FindObject: Couldn't find \"" + name.ToString() + "\"");
             return null;
+        }
+
+        private string GetNamespaceForItem(XmlSchemaObject item)
+        {
+            if (item == null)
+            {
+                return null;
+            }
+
+            if (itemNames.ContainsKey(item))
+            {
+                return itemNames[item].Namespace;
+            }
+
+            XmlQualifiedName xmlQualifiedName = XmlQualifiedName.Empty;
+
+            if (item is XmlSchemaElement)
+            {
+                xmlQualifiedName = ((XmlSchemaElement)item).QualifiedName;
+            }
+            else if (item is XmlSchemaAttribute)
+            {
+                xmlQualifiedName = ((XmlSchemaAttribute)item).QualifiedName;
+            }
+            else if (item is XmlSchemaType)
+            {
+                xmlQualifiedName = ((XmlSchemaType)item).QualifiedName;
+            }
+            else if (item is XmlSchemaGroup)
+            {
+                xmlQualifiedName = ((XmlSchemaGroup)item).QualifiedName;
+            }
+
+            if (!xmlQualifiedName.IsEmpty)
+            {
+                return xmlQualifiedName.Namespace;
+            }
+            else if (item.Parent != mainXsd)
+            {
+                return GetNamespaceForItem(item.Parent);
+            }
+            else
+            {
+                return mainXsd.TargetNamespace;
+            }
+        }
+
+        private XmlQualifiedName QualifiedNameOrName(XmlQualifiedName qualifiedName, string name, XmlSchemaObject item)
+        {
+            if (!qualifiedName.IsEmpty)
+            {
+                return qualifiedName;
+            }
+            else if (name != null)
+            {
+                return new XmlQualifiedName(name, GetNamespaceForItem(item));
+            }
+            else
+            {
+                return XmlQualifiedName.Empty;
+            }
+        }
+
+        private XmlQualifiedName GetItemName(XmlSchemaObject item)
+        {
+            if (item == null)
+            {
+                return XmlQualifiedName.Empty;
+            }
+
+            if (itemNames.ContainsKey(item))
+            {
+                return itemNames[item];
+            }
+
+            if (item is XmlSchemaElement)
+            {
+                XmlSchemaElement elementItem = (XmlSchemaElement)item;
+                XmlQualifiedName name = QualifiedNameOrName(elementItem.QualifiedName, elementItem.Name, elementItem);
+                if (name.IsEmpty && !elementItem.RefName.IsEmpty)
+                {
+                    XmlSchemaObject refObject = FindObject(elementItem.RefName);
+                    name = GetItemName(refObject);
+                }
+
+                return RegisterItemName(item, name);
+            }
+            else if (item is XmlSchemaAttribute)
+            {
+                XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)item;
+                XmlQualifiedName name = QualifiedNameOrName(attributeItem.QualifiedName, attributeItem.Name, attributeItem);
+                if (name.IsEmpty && !attributeItem.RefName.IsEmpty)
+                {
+                    XmlSchemaObject refObject = FindObject(attributeItem.RefName);
+                    if (refObject == null)
+                    {
+                        return attributeItem.RefName;
+                    }
+
+                    name = GetItemName(refObject);
+                }
+
+                return RegisterItemName(item, name);
+            }
+            else if (item is XmlSchemaType)
+            {
+                XmlSchemaType typeItem = (XmlSchemaType)item;
+                XmlQualifiedName name = QualifiedNameOrName(typeItem.QualifiedName, typeItem.Name, typeItem);
+                if (name.IsEmpty)
+                {
+                    name = GetItemName(item.Parent);
+
+                    if (typeNames.Values.Contains(name))
+                    {
+                        name = GenerateAnonymousTypeName((XmlSchemaType)item);
+                    }
+                }
+
+                return RegisterItemName(item, name);
+            }
+            else if (item is XmlSchemaGroup)
+            {
+                XmlSchemaGroup groupItem = (XmlSchemaGroup)item;
+                XmlQualifiedName name = QualifiedNameOrName(groupItem.QualifiedName, groupItem.Name, groupItem);
+                return RegisterItemName(item, name);
+            }
+            else if (item is XmlSchemaAttributeGroup)
+            {
+                XmlSchemaAttributeGroup attributeGroupItem = (XmlSchemaAttributeGroup)item;
+                XmlQualifiedName name = QualifiedNameOrName(attributeGroupItem.QualifiedName, attributeGroupItem.Name, attributeGroupItem);
+                return RegisterItemName(item, name);
+            }
+            else
+            {
+                return RegisterItemName(item, XmlQualifiedName.Empty);
+            }
+        }
+
+        private XmlQualifiedName RegisterItemName(XmlSchemaObject item, XmlQualifiedName name)
+        {
+            if (name.IsEmpty)
+            {
+                name = GetItemName(item.Parent);
+            }
+
+            if (!name.IsEmpty)
+            {
+                itemNames[item] = name;
+
+                if (item is XmlSchemaType)
+                {
+                    typeNames[item] = name;
+                }
+            }
+            else
+            {
+                throw new XmlSchemaException();
+            }
+
+            return name;
+        }
+
+        private XmlQualifiedName GenerateAnonymousTypeName(XmlSchemaType item)
+        {
+            if (itemNames.ContainsKey(item))
+            {
+                return itemNames[item];
+            }
+
+            XmlQualifiedName tmpName = QualifiedNameOrName(item.QualifiedName, item.Name, item);
+            if (tmpName.IsEmpty)
+            {
+                tmpName = GetItemName(item.Parent);
+
+                if (tmpName.IsEmpty)
+                {
+                    throw new XmlSchemaException();
+                }
+            }
+
+            XmlQualifiedName newName;
+
+            // string typeNamePart = tmpName.Substring(0, 1).ToUpper() + tmpName.Substring(1); //Use this to force first letter uppercase
+            string typeNamePart = tmpName.Name;
+
+            int i = 0;
+            while (true)
+            {
+                i++;
+
+                string typeName = typeNamePart;
+                if (i > 1)
+                {
+                    typeName += i.ToString();
+                }
+
+                // Is name unused?
+                newName = new XmlQualifiedName(typeName, tmpName.Namespace);
+                if (!itemNames.Values.Contains(newName) &&
+                    !HasDefinition(newName))
+                {
+                    break;
+                }
+            }
+
+            return RegisterItemName(item, newName);
         }
 
         private JsonSchemaType JsonSchemaTypeFromString(string type)
@@ -1047,103 +1593,45 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
         }
 
-        private string NameOrQualifiedName(string name, XmlQualifiedName qname)
+        private string[] RequiredListToArray(List<XmlQualifiedName> requiredList)
         {
-            if (name != null && name.Length > 0)
+            List<string> requiredArrayList = new List<string>();
+            foreach (XmlQualifiedName name in requiredList)
             {
-                return name;
+                requiredArrayList.Add(name.Name);
             }
 
-            if (qname != null && !qname.IsEmpty)
-            {
-                return qname.ToString();
-            }
-
-            return null;
+            return requiredArrayList.ToArray();
         }
 
-        private string ObjectName(XmlSchemaObject item)
+        private XmlAttribute GetAttribute(XmlAttributeCollection attributes, string name, string ns)
         {
-            if (item == null)
+            XmlAttribute bestMatch = null;
+            foreach (XmlAttribute attribute in attributes)
             {
-                return null;
-            }
-
-            if (item is XmlSchemaElement)
-            {
-                XmlSchemaElement elementItem = (XmlSchemaElement)item;
-                string name = elementItem.Name;
-                if (name == null && elementItem.RefName != null)
+                if (attribute.LocalName.Equals(name))
                 {
-                    XmlSchemaObject refObject = FindObject(elementItem.RefName.ToString());
-                    name = ObjectName(refObject);
+                    if (attribute.NamespaceURI.Equals(ns))
+                    {
+                        bestMatch = attribute;
+                    }
+                    else if (attribute.NamespaceURI == string.Empty && bestMatch == null)
+                    {
+                        bestMatch = attribute;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
+            }
 
-                return name == null ? ObjectName(item.Parent) : name;
-            }
-            else if (item is XmlSchemaAttribute)
-            {
-                XmlSchemaAttribute attributeItem = (XmlSchemaAttribute)item;
-                string name = attributeItem.Name;
-                if (name == null && attributeItem.RefName != null)
-                {
-                    XmlSchemaObject refObject = FindObject(attributeItem.RefName.ToString());
-                    name = ObjectName(refObject);
-                }
-
-                return name == null ? ObjectName(item.Parent) : name;
-            }
-            else if (item is XmlSchemaType)
-            {
-                string name = ((XmlSchemaType)item).Name;
-                return name == null ? ObjectName(item.Parent) : name;
-            }
-            else if (item is XmlSchemaGroup)
-            {
-                string name = ((XmlSchemaGroup)item).Name;
-                return name == null ? ObjectName(item.Parent) : name;
-            }
-            else
-            {
-                return ObjectName(item.Parent);
-            }
+            return bestMatch;
         }
 
-        private string ObjectNameOrAnonymous(XmlSchemaObject item)
+        private bool IsTopLevel(XmlSchemaObject item)
         {
-            string anonymousName;
-            string tmpName = ObjectName(item);
-            if (tmpName == null)
-            {
-                throw new XmlSchemaException();
-            }
-
-            string anonymousNamePart = tmpName.Substring(0, 1).ToUpper() + tmpName.Substring(1);
-
-            int i = 0;
-            while (true)
-            {
-                i++;
-
-                anonymousName = anonymousNamePart;
-                if (i > 1)
-                {
-                    anonymousName += i.ToString();
-                }
-
-                // Is name unused?
-                if (FindObject(anonymousName) == null && !anonymousTypes.Contains(anonymousName))
-                {
-                    break;
-                }
-            }
-
-            if (i != 0)
-            {
-                anonymousTypes.Add(anonymousName);
-            }
-
-            return anonymousName;
+            return item.Parent == mainXsd;
         }
 
         private static void ValidationCallback(object sender, ValidationEventArgs args)

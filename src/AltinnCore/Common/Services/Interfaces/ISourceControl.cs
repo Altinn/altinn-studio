@@ -83,9 +83,9 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="repository">The name of the repository</param>
         /// <returns>The latest commit</returns>
         Commit GetLatestCommitForCurrentUser(string owner, string repository);
-        
+
         /// <summary>
-        /// Gives the full repository status for 
+        /// Gives the complete repository status
         /// </summary>
         /// <param name="owner">The owner of the repo, org or user</param>
         /// <param name="repository">The name of repository</param>
@@ -118,8 +118,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
-        /// <returns>Http response message as ok if reset operation is successful</returns>
-        HttpResponseMessage ResetCommit(string owner, string repository);
+        void ResetCommit(string owner, string repository);
 
         /// <summary>
         /// Discards local changes to a specific file and the files is updated with latest remote commit (origin/master)
@@ -128,7 +127,21 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The name of the repository</param>
         /// <param name="fileName">the name of the file</param>
-        /// <returns>Http response message as ok if checkout operation is successful</returns>
-        HttpResponseMessage CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
+        void CheckoutLatestCommitForSpecificFile(string owner, string repository, string fileName);
+
+        /// <summary>
+        /// Stages a specific file changed in working repository.
+        /// </summary>
+        /// <param name="owner">The owner of the repository.</param>
+        /// <param name="repository">The name of the repository.</param>
+        /// <param name="fileName">the entire file path with filen name</param>
+        void StageChange(string owner, string repository, string fileName);
+
+        /// <summary>
+        /// Halts the merge operation and keeps local changes
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        void AbortMerge(string owner, string repository);
     }
 }

@@ -1,0 +1,30 @@
+replicaCount: 1
+
+image:
+  repository: nginx
+  tag: latest
+  pullPolicy: IfNotPresent
+  containerPorts:
+    http: 80
+    https: 443
+
+volumeMounts:
+  - name: altinn-loadbalancer-conf
+    mountPath: "/etc/nginx"
+  - name: altinn-loadbalancer-ssl
+    mountPath: "/etc/nginx/ssl/altinn_studio"
+
+volumes:
+  - name: altinn-loadblancer-conf
+    configMap:
+      name: loadbalancer-config
+  - name: altinn-loadbalancer-ssl
+    secret:
+      secretName: ssl-key-secret
+
+service:
+  type: LoadBalancer
+  loadBalancerIp:
+  ports:
+    http: 80
+    https: 443

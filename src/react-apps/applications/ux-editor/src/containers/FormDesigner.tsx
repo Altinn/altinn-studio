@@ -1,5 +1,5 @@
-import { createStyles, Drawer, Grid, IconButton, Theme, withStyles} from '@material-ui/core';
-import classNames = require('classnames');
+import { createStyles, Drawer, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
+import classNames from 'classnames';
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
 import HTML5Backend from 'react-dnd-html5-backend';
@@ -14,6 +14,7 @@ import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfi
 import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
+import { filterDataModelForIntellisense } from '../utils/datamodel';
 import DesignView from './DesignView';
 import { Toolbar } from './Toolbar';
 
@@ -22,6 +23,7 @@ export interface IFormDesignerProvidedProps {
 }
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
+  dataModel: IDataModelFieldElement[];
 }
 
 type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
@@ -36,6 +38,10 @@ const styles = ((theme: Theme) => createStyles({
   root: {
     flexGrow: 1,
     minHeight: 'calc(100vh - 69px)',
+  },
+  drawerRoot: {
+    height: 'calc(100vh - 6.5em)',
+    overflow: 'hidden',
   },
   button: {
     'position': 'relative',
@@ -75,7 +81,6 @@ const styles = ((theme: Theme) => createStyles({
   },
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
-    borderRight: '1px solid #C9C9C9',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
     overflowY: 'auto',
   },
@@ -133,15 +138,21 @@ class FormDesigner extends React.Component<
     });
   }
 
+  public getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
+    return filterDataModelForIntellisense(this.props.dataModel, filterText);
+  }
+
   public renderLogicMenu = () => {
     return (
       <Drawer
         anchor='bottom'
         open={this.state.codeEditorOpen}
+        classes={{ paper: classNames(this.props.classes.drawerRoot) }}
       >
         <FileEditor
           mode={this.state.codeEditorMode.toString()}
           closeFileEditor={this.toggleCodeEditor}
+          getDataModelSuggestions={this.getDataModelSuggestions}
         />
       </Drawer>
     );
@@ -172,7 +183,7 @@ class FormDesigner extends React.Component<
               <DesignView />
               {this.state.codeEditorOpen ?
                 this.renderLogicMenu()
-              : null}
+                : null}
             </div>
           </Grid>
           <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
@@ -186,17 +197,17 @@ class FormDesigner extends React.Component<
                   justify={'center'}
                   alignItems={'flex-end'}
                 >
-                <IconButton
-                  type='button'
-                  className={this.props.classes.button}
-                >
-                  <i
-                    className={
-                      (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
-                        this.props.classes.icon) + ' fa fa-logikkutensirkel'
-                    }
-                  />
-                </IconButton>
+                  <IconButton
+                    type='button'
+                    className={this.props.classes.button}
+                  >
+                    <i
+                      className={
+                        (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
+                          this.props.classes.icon) + ' fa fa-logikkutensirkel'
+                      }
+                    />
+                  </IconButton>
                 </Grid>}
             >
               <div className={this.props.classes.fullWidth}>
@@ -205,18 +216,18 @@ class FormDesigner extends React.Component<
                 </h3>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_validations}
-                  listItems={[{name: this.props.language.ux_editor.service_logic_edit_validations}]}
+                  listItems={[{ name: this.props.language.ux_editor.service_logic_edit_validations }]}
                 />
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_dynamics}
                   listItems={[
-                      {
-                        name: this.props.language.ux_editor.service_logic_edit_dynamics,
-                        action: this.toggleCodeEditor.bind(this, 'Dynamics'),
-                      }]}
+                    {
+                      name: this.props.language.ux_editor.service_logic_edit_dynamics,
+                      action: this.toggleCodeEditor.bind(this, 'Dynamics'),
+                    }]}
                 >
-                  <RuleModalComponent/>
-                  <ConditionalRenderingModalComponent/>
+                  <RuleModalComponent />
+                  <ConditionalRenderingModalComponent />
                 </CollapsableMenuComponent>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_calculations}
@@ -227,7 +238,7 @@ class FormDesigner extends React.Component<
                     },
                   ]}
                 />
-                <div className={this.props.classes.devider}/>
+                <div className={this.props.classes.devider} />
               </div>
             </ServiceLogicMenu >
           </Grid>
@@ -244,6 +255,7 @@ const mapsStateToProps = (
   return {
     classes: props.classes,
     language: state.appData.language.language,
+    dataModel: state.appData.dataModel.model,
   };
 };
 

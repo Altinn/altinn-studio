@@ -7,11 +7,12 @@ export interface IMonacoEditorComponentProps {
   language: string;
   value: string;
   onValueChange: (value: string) => void;
+  createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
 }
 
 export interface IMonacoEditorComponentState {
   code: string;
- }
+}
 
 export interface IMonacoEditorComponentWindow extends Window {
   MonacoEnvironment: any;
@@ -24,13 +25,60 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       code: props.value,
     };
   }
-  
+
+  public editorWillMount = (monaco: any) => {
+    monaco.languages.setMonarchTokensProvider('plaintext', {
+      tokenizer: {
+        root: [
+          [/<<<<<<<.*/, 'outgoing'],
+          [/=======.*/, 'split'],
+          [/>>>>>>>.*/, 'incoming'],
+        ],
+      },
+    });
+
+    monaco.editor.defineTheme('editorTheme', {
+      base: 'vs',
+      inherit: true,
+      rules: [
+        { token: 'outgoing', foreground: 'ee0000', fontStyle: 'bold' },
+        { token: 'split', foreground: 'ee0000', fontStyle: 'bold' },
+        { token: 'incoming', foreground: 'ee0000', fontStyle: 'bold' },
+      ],
+      colors: {
+        'merge.incomingHeaderBackground': '#00ff00',
+      },
+    });
+
+    monaco.languages.registerCompletionItemProvider('csharp', {
+      provideCompletionItems: (model: any, position: any) => {
+        let textUntilPosition: string = model.getValueInRange(
+          {
+            startLineNumber: position.lineNumber,
+            startColumn: 1,
+            endLineNumber: position.lineNumber,
+            endColumn: position.column,
+          },
+        );
+
+        const match = textUntilPosition.match(/.*\./);
+        textUntilPosition = textUntilPosition.trim();
+        const suggestions = match ? this.props.createCompletionSuggestions(monaco, textUntilPosition) : [];
+        return {
+          suggestions,
+          incomplete: true,
+        };
+      },
+    });
+  }
+
   public render() {
-    let {height, width} = this.props;
+    let { height, width } = this.props;
     height = height ? height : '100%';
     width = width ? width : '100%';
     return (
       <MonacoEditor
+        theme={'editorTheme'}
         width={width}
         height={height}
         value={this.props.value}
@@ -48,9 +96,11 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
             scrollbar: {
               vertical: 'auto',
             },
+            scrollBeyondLastLine: false,
           }
         }
         onChange={this.props.onValueChange}
+        editorWillMount={this.editorWillMount}
       />
     );
   }

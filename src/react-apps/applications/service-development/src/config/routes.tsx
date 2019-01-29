@@ -1,15 +1,6 @@
-import * as React from 'react';
-import VersionControlHeader from '../../../shared/src/version-control/versionControlHeader';
+import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import uieditorApp from '../../../ux-editor/src/SubApp';
-
-const DummySubApp = (name: any) => {
-  return (
-    <div>
-      <VersionControlHeader language={null} />
-      Dummy app for {name.name}
-    </div>
-  );
-};
+import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
 export const routes = [
   {
@@ -33,7 +24,16 @@ export const routes = [
     activeSubHeaderSelection: 'Språk',
     activeLeftMenuSelection: 'Tekst',
     menu: 'language',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/test',
@@ -41,7 +41,16 @@ export const routes = [
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test',
     menu: 'test',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/aboutservice',
@@ -49,7 +58,16 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om tjenesten',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/rolesandrights',
@@ -57,7 +75,16 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Roller og rettigheter',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/production',
@@ -65,7 +92,16 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Produksjon',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/versionhistory',
@@ -73,7 +109,16 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Versjonshistorikk',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/aboutenduser',
@@ -81,7 +126,16 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om sluttbrukeren',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/altinn',
@@ -89,7 +143,16 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Altinn',
     menu: 'about',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/datamodel',
@@ -97,7 +160,16 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'Datamodell',
     menu: 'create',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/api',
@@ -105,7 +177,16 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'API',
     menu: 'create',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/translate',
@@ -113,7 +194,16 @@ export const routes = [
     activeSubHeaderSelection: 'Språk',
     activeLeftMenuSelection: 'Flere språk',
     menu: 'language',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/productionsetting',
@@ -121,7 +211,16 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Produksjonsette',
     menu: 'publish',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/status',
@@ -129,7 +228,16 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Status',
     menu: 'publish',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
   {
     path: '/designSystem',
@@ -137,6 +245,32 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'GUI',
     menu: 'create',
-    subapp: DummySubApp,
+    subapp: AltinnInformationCard,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
+  },
+  {
+    path: '/mergeconflict',
+    exact: true,
+    activeSubHeaderSelection: '',
+    activeLeftMenuSelection: 'Mergekonflikt',
+    menu: 'about',
+    subapp: HandleMergeConflictContainer,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'urlKey',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+    },
   },
 ];

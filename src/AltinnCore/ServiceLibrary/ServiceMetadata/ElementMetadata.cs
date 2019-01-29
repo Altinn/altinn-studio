@@ -25,7 +25,7 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     public string ID { get; set; }
 
     /// <summary>
-    /// Gets or sets the ID of the parent element
+    /// Gets or sets the ID of the parent element. If a 
     /// </summary>
     public string ParentElement { get; set; }
 
@@ -35,12 +35,13 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     public string TypeName { get; set; }
 
     /// <summary>
-    /// Gets or sets the element name
+    /// Gets or sets the element name. The Name should not contain '-' 
     /// </summary>
     public string Name { get; set; }
 
     /// <summary>
-    /// Gets or sets the data binding name for the element (to be used in front end)
+    /// Gets or sets the data binding name for the element. If an DataBindingName is null it cannot be used for a data-field.
+    /// It is used by the frontend to filter elements that can be used in single-field ux-components.
     /// </summary>
     public string DataBindingName { get; set; }
 
@@ -92,12 +93,12 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     public int MinOccurs { get; set; }
 
     /// <summary>
-    /// Gets or sets the XName for this element
+    /// Gets or sets the XName for this element. The XML name. 
     /// </summary>
     public string XName { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this element is the content of the parent tag
+    /// Gets or sets a value indicating whether this element is the content of the parent tag. Special case of SimpleContent.
     /// </summary>
     public bool IsTagContent { get; set; }
 
@@ -117,12 +118,12 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
     public string XmlSchemaXPath { get; set; }
 
     /// <summary>
-    /// The reference to the Json Schema declaration
+    /// Used to point to the reference to the Json Schema declaration
     /// </summary>
     public string JsonSchemaPointer { get; set; }
 
     /// <summary>
-    /// Used to display the property in a view. Contains name, cardinality and type
+    /// Used to display the property in a view. Contains name, cardinality and type. Example: melding.person.name: [0..1] string
     /// </summary>
     public string DisplayString { get; set; }
     }

@@ -8,7 +8,7 @@ import { withStyles, WithStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
-import AltinnIcon from './AltinnIcon';
+import AltinnIcon from '../../components/AltinnIcon';
 import { IMenuItem, leftDrawerMenuSettings } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
@@ -134,6 +134,7 @@ class LeftDrawerMenu extends
                       <AltinnIcon
                         isActive={this.props.activeLeftMenuSelection ===
                           menuItem.activeLeftMenuSelection}
+                        isActiveIconColor={altinnTheme.altinnPalette.primary.blueDark}
                         iconClass={menuItem.iconClass}
                         iconColor={this.state.iconColor[index] === undefined
                           ? 'rgba(0, 0, 0, 0.54)' : this.state.iconColor[index]}

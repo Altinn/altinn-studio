@@ -1,14 +1,14 @@
-import { IServiceDevelopmentState } from '../reducers/serviceDevelopmentReducer';
+import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 declare global {
   export interface IServiceDevelopmentNameSpace<T1, T2> {
     language: T1;
-    serviceDevelopment: T2;
+    handleMergeConflict: T2;
   }
 
-  export interface IServiceDevelopmentAppState
+  export interface IServiceDevelopmentState
     extends IServiceDevelopmentNameSpace
     <IFetchedLanguageState,
-    IServiceDevelopmentState> { }
+    IHandleMergeConflictState> { }
 }

@@ -70,13 +70,13 @@ namespace AltinnCore.UnitTest.Designer
 
             ModelController controller = new ModelController(moqRepository.Object);
 
-            IFormFile formFile = AsMockIFormFile("Common/ServiceModel.xsd");
+            IFormFile formFile = AsMockIFormFile("Common/xsd/ServiceModel.xsd");
 
             ActionResult result = controller.Upload("Org", "service2", formFile, null);
 
             Assert.NotNull(dictionary);
 
-            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinfor.Label").GetValueOrDefault("nb-NO");
+            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinforgrp5801.Label").GetValueOrDefault("nb-NO");
 
             // Text should be without extra withespaces
             Assert.Equal("Informasjon om skattyter", lookupValue);           

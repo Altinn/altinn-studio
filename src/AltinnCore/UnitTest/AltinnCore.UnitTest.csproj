@@ -52,16 +52,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Common\boligsparingForUngdom_v1_1.xsd">
+    <None Update="Common\xsd\boligsparingForUngdom_v1_1.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\xsd\AnonymousTypes.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\xsd\Edag-latin1.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Common\edag.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\Edag.xsd">
+    <None Update="Common\xsd\Edag.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\edag1.schema.json">
+    <None Update="Common\jsd\edag1.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Common\example.json">
@@ -70,25 +76,34 @@
     <None Update="Common\example.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\melding-2-12186.xsd">
+    <None Update="Common\xsd\melding-2-12186.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\motorvognavgift-v4.xsd">
+    <None Update="Common\melding.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\schema-w-recursion.schema.json">
+    <None Update="Common\jsd\melding1.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\ServiceModel.xsd">
+    <None Update="Common\xsd\motorvognavgift-v4.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-	  <None Update="Common\schema-w-recursion.xsd">
+    <None Update="Common\jsd\schema-w-recursion.schema.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\schema.xsd">
+    <None Update="Common\xsd\schema_1121_2_forms_1362_10746.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Common\Skattemelding_v6.25.xsd">
+    <None Update="Common\xsd\ServiceModel.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+	  <None Update="Common\xsd\schema-w-recursion.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\xsd\schema.xsd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Common\xsd\Skattemelding_v6.25.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Designer\Edag-latin1.xsd">

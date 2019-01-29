@@ -15,7 +15,6 @@ const uuid = require('uuid/v4');
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
 const selectServiceConfiguration = (state: IAppState): IServiceConfiguration => state.serviceConfigurations;
-const selectFormDesignerOrder = (state: IAppState): any => state.formDesigner.layout.order;
 
 function* addActiveFormContainerSaga({ containerId }: FormDesignerActions.IAddActiveFormContainerAction): SagaIterator {
   try {
@@ -517,41 +516,22 @@ export function* watchCreateRepeatingGroupSaga(): SagaIterator {
 }
 
 export function* updateFormComponentOrderSaga({
-  id,
-  newPositionIndex,
-  destinationContainerId,
-  sourceContainerId,
+  updatedOrder,
 }: FormDesignerActions.IUpdateFormComponentOrderAction): SagaIterator {
-  const ComponentOrder: any = yield select(selectFormDesignerOrder);
-  if (destinationContainerId === sourceContainerId) {
-    const newOrder = ComponentOrder[destinationContainerId];
-    const [moved] = newOrder.splice(newOrder.indexOf(id), 1);
-    newOrder.splice(newPositionIndex, 0, moved);
+  try {
     yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      [...newOrder],
-      destinationContainerId,
+      updatedOrder,
     );
-  } else {
-    const newOrderSource = ComponentOrder[sourceContainerId];
-    const newOrderDestination = ComponentOrder[destinationContainerId];
-
-    const [moved] = newOrderSource.splice(newOrderSource.indexOf(id), 1);
-    newOrderDestination.splice(newPositionIndex, 0, moved);
-
-    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      [...newOrderSource],
-      sourceContainerId,
+    const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
+    yield call(
+      FormDesignerActionDispatchers.saveFormLayout,
+      saveFormLayoutUrl,
     );
-    yield call(FormDesignerActionDispatchers.updateFormComponentOrderActionFulfilled,
-      [...newOrderDestination],
-      destinationContainerId,
+  } catch (err) {
+    yield call(FormDesignerActionDispatchers.updatedFormComponentOrderActionRejected,
+      err,
     );
   }
-  const saveFormLayoutUrl: string = yield call(getSaveFormLayoutUrl);
-  yield call(
-    FormDesignerActionDispatchers.saveFormLayout,
-    saveFormLayoutUrl,
-  );
 }
 
 export function* watchUpdateFormComponentOrderSaga(): SagaIterator {

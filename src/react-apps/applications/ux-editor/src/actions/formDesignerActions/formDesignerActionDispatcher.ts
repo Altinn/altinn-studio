@@ -169,14 +169,10 @@ export interface IFormDesignerActionDispatchers
     id: string,
   ) => FormDesignerActions.IToggleFormContainerRepeatAction;
   updateFormComponentOrderAction: (
-    id: string,
-    newPositionIndex: number,
-    destionationContainerId: string,
-    sourceContainerId: string,
+    updatedOrder: any,
   ) => FormDesignerActions.IUpdateFormComponentOrderAction;
   updateFormComponentOrderActionFulfilled: (
     updatedOrder: any,
-    containerId?: string,
   ) => FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
   updateFormComponentOrderActionRejected: (
     error: Error,
@@ -249,5 +245,5 @@ const actions: IFormDesignerActionDispatchers = {
 const FormDesignerActionDispatchers: IFormDesignerActionDispatchers = bindActionCreators<
   any,
   IFormDesignerActionDispatchers
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 export default FormDesignerActionDispatchers;
