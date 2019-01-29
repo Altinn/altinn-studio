@@ -685,13 +685,26 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 List<JsonSchema> oneOfSchemaList = new List<JsonSchema>();
                 foreach (XmlSchemaObject choiceItem in ((XmlSchemaChoice)item).Items)
                 {
-                    JsonSchema oneOfSchema = new JsonSchema();
+                    JsonSchema choiceSchema = new JsonSchema();
                     XmlQualifiedName itemQName = GetItemName(choiceItem);
                     JsonSchema refSchema = new JsonSchema();
-                    oneOfSchema.Property(itemQName.Name, refSchema);
-                    AppendType(choiceItem, refSchema);
+                 
+                    if (choiceItem is XmlSchemaSequence)
+                    {
+                        // special case handling SKD <choice><sequence><element> ...</sequence><sequence><element ...
+                        XmlSchemaSequence sequence = (XmlSchemaSequence)choiceItem;
+                        var choiceItemInSequence = sequence.Items[0];
+                        itemQName = GetItemName(choiceItemInSequence);
+                        
+                        AppendType(choiceItemInSequence, refSchema);
+                    }
+                    else
+                    {
+                        AppendType(choiceItem, refSchema);
+                    }
 
-                    oneOfSchemaList.Add(oneOfSchema);
+                    choiceSchema.Property(itemQName.Name, refSchema);
+                    oneOfSchemaList.Add(choiceSchema);
                 }
 
                 appendToSchema.OneOf(oneOfSchemaList.ToArray());

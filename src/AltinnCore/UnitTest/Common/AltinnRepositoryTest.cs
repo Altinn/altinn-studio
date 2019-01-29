@@ -38,7 +38,7 @@ namespace AltinnCore.UnitTest.Common
         /// <summary>
         ///  read and save
         /// </summary>
-        [Fact]
+        /// [Fact]
         public async void ReadAllAsync()
         {
             var services = await AltinnServiceRepository.ReadAllSchemaUrls();            

@@ -17,10 +17,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private const int MagicNumberMaxOccurs = 99999;
 
         /// <summary>
-        ///       Creates a XML schema object from the JSON Schema
+        ///       Creates a XmlSchema object from a JSON Schema object
         /// </summary>
-        /// <param name="jSchema">bla bla</param>
-        /// <returns>xmlschema</returns>
+        /// <param name="jSchema">The Json Schema to convert</param>
+        /// <returns>The converted XmlSchema object</returns>
         public XmlSchema CreateXsd(JsonSchema jSchema)
         {
             if (jSchema == null)
@@ -35,6 +35,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             };
 
             string title = GetterExtensions.Title(jSchema);
+            if (!string.IsNullOrEmpty(title))
+            {
+                XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+                XmlSchemaDocumentation titleDocumentation = new XmlSchemaDocumentation();
+                titleDocumentation.Source = title;
+
+                xsdSchema.Items.Add(annotation);
+            }
 
             // Handle global element declarations
             Dictionary<string, JsonSchema> globalProperties = jSchema.Properties();
@@ -79,7 +87,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 switch (type.Value)
                 {
                     case JsonSchemaType.String:
-                        return new XmlQualifiedName("string", XmlSchemaNamespace);
+                        {
+                            StringFormat format = GetterExtensions.Format(jSchema);
+                            if (format != null)
+                            {
+                                return ExtractBaseTypeNameFromFormat(format.Key);
+                            }
+                            
+                            return new XmlQualifiedName("string", XmlSchemaNamespace);
+                        }                        
 
                     case JsonSchemaType.Integer:
                         return new XmlQualifiedName("integer", XmlSchemaNamespace);
@@ -612,6 +628,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     string typeRef = GetterExtensions.Ref(schema);
                     element.SchemaTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(typeRef));             
                 }
+            }
+
+            XmlQualifiedName typeName = GetTypeName(propertyType);
+            if (typeName != null)
+            {
+                element.SchemaTypeName = typeName;
             }
 
             List<string> requiredFields = GetterExtensions.Required(parentSchema);

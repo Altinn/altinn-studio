@@ -23,7 +23,7 @@ namespace AltinnCore.UnitTest.Common
     {
         private ILogger _logger = TestLogger.Create<XsdToJsonSchemaTest>();
 
-        private static bool writeDifferXsdFiles = false;
+        private static bool writeDifferXsdFiles = true;
 
         /// <summary>
         /// Test converting all provided XSDs to Json Schema
