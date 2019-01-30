@@ -39,16 +39,14 @@ const styles = () => createStyles({
   },
   containerMessage: {
     marginBottom: '12px',
-    maxWidth: '1000px',
     padding: '10px',
   },
   containerMessageHasConflict: {
-    background: theme.altinnPalette.primary.redLight,
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    maxWidth: '1100px',
   },
   containerMessageNoConflict: {
     background: theme.altinnPalette.primary.greenLight,
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    boxShadow: theme.sharedStyles.boxShadow,
   },
   title: {
     marginBottom: 16,
@@ -130,24 +128,31 @@ export class HandleMergeConflictContainer extends
                 </Hidden>
 
               </Grid>
-
               {
                 repoStatus.hasMergeConflict ?
 
-                  <span className={classNames(classes.containerMessage)}>
+                  <span className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
                     {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
                   </span>
-
                   :
 
                   repoStatus.contentStatus ?
 
                     repoStatus.contentStatus.length > 0 ?
-
-                      <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
-                        {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
-                      </span>
-
+                      <Grid
+                        item={true}
+                        xs={12}
+                        container={true}
+                        justify='center'
+                        alignItems='center'
+                        className={classes.containerMessage}
+                      >
+                        <Grid item={true}>
+                          <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
+                            {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
+                          </span>
+                        </Grid>
+                      </Grid>
                       :
 
                       <span className={classNames(classes.containerMessage)}>
@@ -158,6 +163,7 @@ export class HandleMergeConflictContainer extends
                     null
 
               }
+
 
               <Grid
                 id='boxtop'
