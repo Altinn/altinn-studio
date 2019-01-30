@@ -1,0 +1,73 @@
+replicaCount: 1
+
+environment: development
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-core
+  containerPort: 5000
+  imagePullSecret: acrsecret
+
+environmentVariables:
+  development:
+    - name: GiteaEndpoint
+      value: dev.altinn.studio
+    - name: GiteaApiEndpoint
+      value: https://dev.altinn.studio/api/v1
+    - name: GiteaLoginEndpoint
+      value: https://dev.altinn.studio/user/login
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000/
+    - name: ServiceRepositorySettings__GiteaInternalHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__EnableGiteaIntegration
+      value: "true"
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Deployment
+  production:
+    - name: GiteaEndpoint
+      value: altinn.studio
+    - name: GiteaApiEndpoint
+      value: https://altinn.studio/api/v1
+    - name: GiteaLoginEndpoint
+      value: https://altinn.studio/user/login
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5000
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnCore/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000/
+    - name: ServiceRepositorySettings__GiteaInternalHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__EnableGiteaIntegration
+      value: "true"
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
+    - name: GeneralSettings__DeploymentLocation
+      value: /Deployment
+
+volumeMounts:
+  - name: altinn-repo-storage
+    mountPath: "/AltinnCore/Repos"
+  - name: altinn-appsettings
+    mountPath: "/altinn-appsettings"
+
+volumes:
+  - name: altinn-repo-storage
+    persistantVolumeClaim:
+      claimName: altinn-storage-repo-volume-claim
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-appsettings-secret
+
+service:
+  internalPort: 5000

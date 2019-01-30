@@ -55,7 +55,6 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
 }
 export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
-
 }
 
 class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
@@ -192,7 +191,9 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                             exact={route.exact}
                             render={(props) => <route.subapp
                               {...props}
+                              {...route.props}
                               name={route.path}
+                              language={this.props.language}
                             />}
                           />
                         ))}
