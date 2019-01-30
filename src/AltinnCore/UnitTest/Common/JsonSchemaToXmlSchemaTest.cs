@@ -142,6 +142,7 @@ namespace AltinnCore.UnitTest.Common
                 }                
 
                 xmlSchema2 = ConvertFromJsdToXsd(jsonSchema1, xsd2FileName);
+
                 jsonSchema2 = ConvertFromXsdToJsd(xmlSchema2, jsd2FileName);
                 xmlSchema3 = ConvertFromJsdToXsd(jsonSchema2, xsd3FileName);
                      
