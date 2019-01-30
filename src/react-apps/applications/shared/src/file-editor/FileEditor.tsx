@@ -192,7 +192,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
+      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&SaveServiceFile=false`;
 
     const saveRes: any = await post(postUrl, this.state.value, {
       headers: {
