@@ -1,0 +1,71 @@
+replicaCount: 1
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-runtime
+  containerPort: 5005
+  imagePullSecret: acrsecret
+
+environmentVariables:
+  development:
+    - name: GiteaEndpoint
+      value: dev.altinn.studio
+    - name: GiteaLoginEndpoint
+      value: https://dev.altinn.studio/user/login
+    - name: GiteaApiEndpoint
+      value: https://dev.altinn.studio/api/v1
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5005
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnRuntime/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000/
+    - name: ServiceRepositorySettings__GiteaInternalHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__EnableGiteaIntegration
+      value: "true"
+    - name: ServiceRepositorySettings__RuntimeAPIEndPoint
+      value: "http://altinn-designer:5000/"
+    - name:  TestdataRepositorySettings__DesignerInternalHost
+      value: "altinn-designer"
+  production:
+    - name: GiteaEndpoint
+      value: altinn.studio
+    - name: GiteaLoginEndpoint
+      value: https://altinn.studio/user/login
+    - name: GiteaApiEndpoint
+      value: https://altinn.studio/api/v1
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5005
+    - name: ServiceRepositorySettings__RepositoryLocation
+      value: /AltinnRuntime/Repos/
+    - name: ServiceRepositorySettings__RepositoryBaseURL
+      value: http://altinn-repositories:3000/
+    - name: ServiceRepositorySettings__GiteaInternalHost
+      value: altinn-repositories
+    - name: ServiceRepositorySettings__EnableGiteaIntegration
+      value: "true"
+    - name: ServiceRepositorySettings__RuntimeAPIEndPoint
+      value: "http://altinn-designer:5000/"
+    - name:  TestdataRepositorySettings__DesignerInternalHost
+      value: "altinn-designer"
+
+volumeMounts:
+  - name: altinn-runtime-repo-storage
+    persistentVolumeClaim:
+      claimName: altinn-storage-runtime-repo-volume-claim
+
+volumes:
+  - name: altinn-repo-storage
+    persistantVolumeClaim:
+      claimName: altinn-storage-repo-volume-claim
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-appsettings-secret
+
+service:
+  type: ClusterIP
+  port: 5005

@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: altinn-loadbalancer
+  labels:
+    app.kubernetes.io/name: {{ include "altinn-loadbalancer.name" . }}
+    helm.sh/chart: {{ include "altinn-loadbalancer.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: altinn-loadbalancer
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.image.containerPorts.http }}
+            - containerPort: {{ .Values.image.containerPorts.https }}
+          {{- if .Values.volumeMounts }}
+          volumeMounts:
+          {{- range $mount := .Values.volumeMounts }}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+          {{- end }}
+          {{- end }}
+    {{- if .Values.volumes }}
+    volumes:
+      {{- range $volume := .Values.volumes }}
+      - name: {{ $volume.name }}
+      {{- if $volume.configMap }}
+        configMap:
+          name: {{ $volume.configMap.name }}
+      {{- end }}
+      {{- if $volume.secret }}
+        secret:
+          secretName: {{ $volume.secret.secretName }}
+      {{- end }}
+      {{- end }}
+    {{- end }}
