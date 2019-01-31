@@ -25,6 +25,7 @@ import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConfl
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import fetchLanguageDispatcher from './utils/fetchLanguage/fetchLanguageDispatcher';
+import handleFetchServiceActionDispatchers from './features/administration/handleFetchServiceDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -75,9 +76,13 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public componentDidMount() {
-    const altinnWindow: Window = window;
+    const altinnWindow: any = window;
+    const { org, service } = altinnWindow;
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+
+    handleFetchServiceActionDispatchers.fetchService(
+      `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`);
 
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);

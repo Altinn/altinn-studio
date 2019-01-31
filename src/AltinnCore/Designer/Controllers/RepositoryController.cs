@@ -58,6 +58,19 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Returns a given service repository
+        /// </summary>
+        /// <param name="owner">The service owner</param>
+        /// <param name="repository">The service repository</param>
+        /// <returns>The given service repository</returns>
+        [HttpGet]
+        public Repository GetRepository(string owner, string repository)
+        {
+            Repository returnRepository = _giteaApi.GetRepository(owner, repository).Result;
+            return returnRepository;
+        }
+
+        /// <summary>
         /// List of all organizations a user has access to.
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
