@@ -1,14 +1,14 @@
 import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
-import { createStyles, withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as diff from 'diff';
 import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
-import theme from '../../../shared/src/theme/altinnStudioTheme';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
 
-const altinnTheme = theme;
+const theme = createMuiTheme(altinnTheme);
 
 export interface ICodeLanguageItem {
   name: string;
@@ -57,11 +57,12 @@ export interface IFileEditorProvidedProps {
 
 export interface IFileEditorState {
   availableFiles: string[];
-  valueOriginal: string;
+  isLoading: boolean;
+  mounted: boolean;
   selectedFile: string;
   value: string;
-  mounted: boolean;
   valueDiff: boolean;
+  valueOriginal: string;
 }
 
 const styles = createStyles({
@@ -69,7 +70,7 @@ const styles = createStyles({
     background: 'blue',
   },
   fileHeader: {
-    background: altinnTheme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.white,
     borderBottom: '1px solid #C9C9C9',
     marginBottom: '0.1rem',
     paddingLeft: '1.3rem',
@@ -83,12 +84,12 @@ const styles = createStyles({
     minHeight: '100%',
   },
   selectFile: {
-    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
-    color: altinnTheme.altinnPalette.primary.blueDarker,
+    borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
+    color: theme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
   file: {
-    color: altinnTheme.altinnPalette.primary.blueDarker,
+    color: theme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
   fileMenuItem: {
@@ -102,7 +103,7 @@ const styles = createStyles({
   },
   formComponentsBtn: {
     'fontSize': '0.85em',
-    'fill': altinnTheme.altinnPalette.primary.blue,
+    'fill': theme.altinnPalette.primary.blue,
     'paddingLeft': '0',
     'marginTop': '0.1em',
     'outline': 'none !important',
@@ -126,12 +127,13 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   constructor(props: IFileEditorProvidedProps) {
     super(props);
     this.state = {
-      selectedFile: '',
       availableFiles: [],
-      valueOriginal: '',
+      isLoading: false,
+      mounted: false,
+      selectedFile: '',
       value: '',
       valueDiff: false,
-      mounted: false,
+      valueOriginal: '',
     };
   }
 
@@ -166,20 +168,25 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public loadFileContent = (fileName: string) => {
+    this.setState({
+      isLoading: true,
+    });
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
       .then((logicFileContent) => {
-        this.setState((prevState: IFileEditorState) => {
-          return {
-            ...prevState,
-            valueOriginal: logicFileContent,
-            selectedFile: fileName,
-            value: logicFileContent,
-          };
-        });
+          this.setState((prevState: IFileEditorState) => {
+            return {
+              ...prevState,
+              isLoading: false,
+              selectedFile: fileName,
+              value: logicFileContent,
+              valueOriginal: logicFileContent,
+            };
+          });
+
       });
   }
 
@@ -436,11 +443,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={classes.codeEditorContent}
         >
           <MonacoEditorComponent
-            height={this.props.editorHeight}
-            language={language.name}
-            value={this.state.value}
-            onValueChange={this.onValueChange}
             createCompletionSuggestions={this.createCompletionSuggestions}
+            heightPx={`${this.props.editorHeight}px`}
+            isLoading={this.state.isLoading}
+            language={language.name}
+            onValueChange={this.onValueChange}
+            value={this.state.value}
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />
