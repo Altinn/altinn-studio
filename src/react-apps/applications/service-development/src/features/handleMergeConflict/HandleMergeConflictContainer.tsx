@@ -164,7 +164,6 @@ export class HandleMergeConflictContainer extends
 
               }
 
-
               <Grid
                 id='boxtop'
                 container={true}
