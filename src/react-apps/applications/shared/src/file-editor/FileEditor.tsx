@@ -206,8 +206,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&SaveServiceFile=false` +
-      `&stageFile=${stageFile}`;
+      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
 
     const saveRes: any = await post(postUrl, this.state.value, {
       headers: {
@@ -342,7 +341,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   public render() {
     const { classes, mode } = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
-    console.log('hasNoMergeConflictTags', this.valueHasNoMergeConflictTags(this.state.value));
     return (
       <Grid
         container={true}
