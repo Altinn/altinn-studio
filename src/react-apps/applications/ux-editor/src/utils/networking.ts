@@ -32,9 +32,10 @@ export async function put(
   apiMode: string,
   data: any,
   config?: AxiosRequestConfig,
-): Promise<void> {
+): Promise<any> {
   try {
-    await axios.put(url + `/${apiMode}`, data, config ? config : null);
+    const response: AxiosResponse = await axios.put(url + `/${apiMode}`, data, config ? config : null);
+    return response.data ? response.data : null;
   } catch (err) {
     throw err;
   }
