@@ -46,25 +46,29 @@ export function* watchUpdateFormDataSaga(): SagaIterator {
   yield takeLatest(FormFillerActionTypes.UPDATE_FORM_DATA, updateFormDataSaga);
 }
 
-export function* submitFormDataSaga({ url }: FormFillerActions.ISubmitFormDataAction): SagaIterator {
+export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitFormDataAction): SagaIterator {
   try {
     const state: IAppState = yield select();
 
     // Validating entire form before trying to commit
     const valErrors = Validator.validateFormData(state.formFiller.formData, state.appData.dataModel.model,
       state.formDesigner.layout.components);
-
     if (Object.keys(valErrors).length === 0) {
-      yield call(put, url, 'Update', convertDataBindingToModel(state.formFiller.formData,
+      const apiResult = yield call(put, url, apiMode || 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
-      yield call(FormFillerActionDispatcher.submitFormDataFulfilled);
+      yield call(FormFillerActionDispatcher.submitFormDataFulfilled, apiResult);
+      if (apiResult.status === 0 && apiResult.nextStepUrl) {
+        if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
+          window.location.replace(`${window.location.origin}${apiResult.nextStepUrl}`);
+        }
+      }
     } else {
       // Update validationError state if schema contains errors
       yield call(FormFillerActionDispatcher.updateValidationErrors, valErrors);
     }
   } catch (err) {
     if (err.response && err.response.status === 303) {
-      yield call(FormFillerActionDispatcher.submitFormDataFulfilled);
+      yield call(FormFillerActionDispatcher.submitFormDataFulfilled, err);
       yield call(FormFillerActionDispatcher.fetchFormData, url + '/Read');
     } else {
       yield call(FormFillerActionDispatcher.submitFormDataRejected, err);
