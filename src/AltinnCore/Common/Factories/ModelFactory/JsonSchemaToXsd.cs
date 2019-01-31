@@ -46,17 +46,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             AddInfo(xsdSchema, jSchema);
 
             string title = GetterExtensions.Title(jSchema);
-            if (!string.IsNullOrEmpty(title))
+            string description = GetterExtensions.Description(jSchema);
+
+            if (!string.IsNullOrEmpty(title) || !string.IsNullOrEmpty(description))
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
-                XmlSchemaDocumentation titleDocumentation = new XmlSchemaDocumentation
-                {
-                    Source = "title",
-                };
-
-                XmlNode[] nodes = { xmlDocument.CreateTextNode(title) };
-                titleDocumentation.Markup = nodes;
-                annotation.Items.Add(titleDocumentation);
+                AddTitleAndDescriptionAnnotations(jSchema, annotation);
 
                 xsdSchema.Items.Add(annotation);
             }
@@ -70,7 +65,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     XmlSchemaElement rootElement = new XmlSchemaElement
                     {
                         Name = property.Key,
-                        SchemaTypeName = GetTypeName(property.Value),
+                        SchemaTypeName = GetTypeName(property.Value),                        
                     };
                     AddAnnotations(rootElement, property.Value);
                     xsdSchema.Items.Add(rootElement);
@@ -91,13 +86,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         private void AddAnnotations(XmlSchemaAnnotated element, JsonSchema jSchema)
-        {          
+        {
             XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
 
             var text = jSchema.Get<TextsKeyword>();
             if (text != null)
             {
-                JsonValue textObject = text.ToJson(new JsonSerializer());                
+                JsonValue textObject = text.ToJson(new JsonSerializer());
 
                 foreach (string textType in textObject.Object.Keys)
                 {
@@ -124,11 +119,21 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         annotation.Items.Add(documentation);
                     }
                 }
-            }            
+            }
 
+            AddTitleAndDescriptionAnnotations(jSchema, annotation);
+
+            if (annotation.Items.Count > 0)
+            {
+                element.Annotation = annotation;
+            }
+        }
+
+        private void AddTitleAndDescriptionAnnotations(JsonSchema jSchema, XmlSchemaAnnotation annotation)
+        {
             var description = GetterExtensions.Description(jSchema);
             if (description != null)
-            {                
+            {
                 annotation.Items.Add(CreateSimpleDocumentation("description", description));
             }
 
@@ -137,11 +142,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 annotation.Items.Add(CreateSimpleDocumentation("title", title));
             }
-
-            if (annotation.Items.Count > 0)
-            {
-                element.Annotation = annotation;
-            }            
         }
 
         private XmlSchemaDocumentation CreateSimpleDocumentation(string type, string description)
