@@ -131,9 +131,9 @@ export class HandleMergeConflictContainer extends
               {
                 repoStatus.hasMergeConflict ?
 
-                  <span className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
+                  <div className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
                     {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
-                  </span>
+                  </div>
                   :
 
                   repoStatus.contentStatus ?
@@ -148,16 +148,16 @@ export class HandleMergeConflictContainer extends
                         className={classes.containerMessage}
                       >
                         <Grid item={true}>
-                          <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
+                          <div className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
                             {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
-                          </span>
+                          </div>
                         </Grid>
                       </Grid>
                       :
 
-                      <span className={classNames(classes.containerMessage)}>
+                      <div className={classNames(classes.containerMessage)}>
                         {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
-                      </span>
+                      </div>
 
                     :
                     null
