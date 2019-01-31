@@ -24,7 +24,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: "true"
+      value: \"true\"
     - name: ServiceRepositorySettings__RuntimeAPIEndPoint
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
@@ -47,7 +47,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: "true"
+      value: \"true\"
     - name: ServiceRepositorySettings__RuntimeAPIEndPoint
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
@@ -55,11 +55,10 @@ environmentVariables:
 
 volumeMounts:
   - name: altinn-runtime-repo-storage
-    persistentVolumeClaim:
-      claimName: altinn-storage-runtime-repo-volume-claim
+    mountPath: "/AltinnRuntime/Repos"
 
 volumes:
-  - name: altinn-repo-storage
+  - name: altinn-runtime-repo-storage
     persistantVolumeClaim:
       claimName: altinn-storage-repo-volume-claim
   - name: altinn-appsettings
@@ -67,5 +66,4 @@ volumes:
       secretName: altinn-appsettings-secret
 
 service:
-  type: ClusterIP
-  port: 5005
+  internalPort: 5005
