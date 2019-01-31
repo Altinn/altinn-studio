@@ -11,13 +11,13 @@ image:
 
 environmentVariables:
   - name: USER_UID
-    value: "1000"
+    value: \"1000\"
   - name: USER_GID
-    value: "1000"
+    value: \"1000\"
   - name: DB_TYPE
     value: "postgres"
   - name: INSTALL_LOCK
-    value: "true"
+    value: \"true\"
   - name: DB_SSL_MODE
     value: require
   - name: DB_HOST

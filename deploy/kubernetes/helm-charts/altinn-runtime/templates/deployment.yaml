@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: altinn-runtime
@@ -62,20 +62,20 @@ spec:
             {{- end }}
           {{- end }}
         {{- if .Values.volumes }}
-        volumes:
-        {{- range $volume := .Values.volumes }}
-          - name: {{ $volume.name }}
-            {{- if $volume.persistantVolumeClaim }}
-            persistantVolumeClaim:
-              claimName: {{ $volume.persistantVolumeClaim.claimName }}
-            {{- end }}
-            {{- if $volume.secret }}
-            secret:
-              secretName: {{ $volume.secret.secretName }}
-            {{- end }}
-        {{- end }}
-        {{- end }}
-        {{- if .Values.image.imagePullSecret }}
-        imagePullSecrets:
-          - name: {{ .Values.image.imagePullSecret }}
-        {{- end }}
+      volumes:
+      {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+          {{- if $volume.persistantVolumeClaim }}
+          persistantVolumeClaim:
+            claimName: {{ $volume.persistantVolumeClaim.claimName }}
+          {{- end }}
+          {{- if $volume.secret }}
+          secret:
+            secretName: {{ $volume.secret.secretName }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.image.imagePullSecret }}
+      imagePullSecrets:
+        - name: {{ .Values.image.imagePullSecret }}
+      {{- end }}

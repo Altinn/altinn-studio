@@ -15,7 +15,7 @@ volumeMounts:
     mountPath: "/etc/nginx/ssl/altinn_studio"
 
 volumes:
-  - name: altinn-loadblancer-conf
+  - name: altinn-loadbalancer-conf
     configMap:
       name: loadbalancer-config
   - name: altinn-loadbalancer-ssl

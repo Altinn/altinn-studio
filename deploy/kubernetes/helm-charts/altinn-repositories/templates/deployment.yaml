@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: altinn-repositories
@@ -7,6 +7,7 @@ metadata:
     helm.sh/chart: {{ include "altinn-repositories.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app: altinn-repositories
 spec:
   replicas: {{ .Values.replicaCount }}
   template:
