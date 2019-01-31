@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
@@ -15,7 +16,9 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using LibGit2Sharp;
+using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,6 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGitea _gitea;
         private readonly ISourceControl _sourceControl;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -43,13 +47,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
+        /// <param name="logger">the logger</param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
             IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
-            ISourceControl sourceControl)
+            ISourceControl sourceControl,
+            ILogger<RepositorySI> logger)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -57,6 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _sourceControl = sourceControl;
+            _logger = logger;
         }
 
         /// <summary>
@@ -684,6 +691,22 @@ namespace AltinnCore.Common.Services.Implementation
                     catch
                     {
                         return false;
+                    }
+
+                    // Create the .jsd file for the model
+                    try
+                    {
+                        XmlReader xmlReader = XmlReader.Create(mainXsd.ToString());
+
+                        XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, null);
+                        JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJSDFileName;
+                        new FileInfo(filePath).Directory.Create();
+                        var serializer = new JsonSerializer();
+                        var json = serializer.Serialize(jsonSchema);
+                        File.WriteAllText(filename, json.ToString());
+                        File.WriteAllText(filePath, new JsonSerializer().Serialize<JsonSchema>(schemaJsonSchema).ToString(), Encoding.UTF8);
                     }
                 }
             }
