@@ -416,7 +416,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                                     LogError("MaxLength: Could not convert " + facet.Value + " to number");
                                 }
                             }
-                            else if (facet is XmlSchemaLengthFacet || facet is XmlSchemaTotalDigitsFacet)
+                            else if (facet is XmlSchemaLengthFacet)
                             {
                                 try
                                 {
@@ -439,6 +439,25 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             else if (facet is XmlSchemaPatternFacet)
                             {
                                 appendToSchema.Pattern(facet.Value);
+                            }
+                            else if (facet is XmlSchemaTotalDigitsFacet)
+                            {
+                                try
+                                {
+                                    uint digits = Convert.ToUInt32(facet.Value, CultureInfo.InvariantCulture);
+                                    long maxValue = 0;
+                                    for (int i = 0; i < digits; i++)
+                                    {
+                                        maxValue = (maxValue * 10) + 9;
+                                    }
+
+                                    SetMinimum(appendToSchema, -maxValue);
+                                    SetMaximum(appendToSchema, maxValue);
+                                }
+                                catch (Exception)
+                                {
+                                    LogError("totalDigits: Could not convert " + facet.Value + " to number");
+                                }
                             }
                             else if (facet is XmlSchemaFractionDigitsFacet)
                             {
