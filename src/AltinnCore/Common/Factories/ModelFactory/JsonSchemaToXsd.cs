@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Schema;
+using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
+using Manatee.Json.Serialization;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -14,6 +17,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
     public class JsonSchemaToXsd
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
+        private const string BRREG_NS = "http://www.brreg.no/or";
         private const int MagicNumberMaxOccurs = 99999;
 
         /// <summary>
@@ -34,12 +38,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 AttributeFormDefault = XmlSchemaForm.Unqualified,
             };
 
+            xsdSchema.Namespaces.Add("brreg", BRREG_NS);
+
             string title = GetterExtensions.Title(jSchema);
             if (!string.IsNullOrEmpty(title))
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
                 XmlSchemaDocumentation titleDocumentation = new XmlSchemaDocumentation();
-                titleDocumentation.Source = title;
+                titleDocumentation.Markup.SetValue(title, 0);
+                annotation.Items.Add(titleDocumentation);
 
                 xsdSchema.Items.Add(annotation);
             }
@@ -55,7 +62,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         Name = property.Key,
                         SchemaTypeName = GetTypeName(property.Value),
                     };
-
+                    AddAnnotations(rootElement, property.Value);
                     xsdSchema.Items.Add(rootElement);
                 }
             }            
@@ -71,6 +78,43 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }            
 
             return xsdSchema;
+        }
+
+        private void AddAnnotations(XmlSchemaAnnotated element, JsonSchema jSchema)
+        {                  
+            var text = jSchema.Get<TextsKeyword>();
+
+            if (text != null)
+            {
+                JsonValue textObject = text.ToJson(new JsonSerializer());              
+                XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
+
+                foreach (string textType in textObject.Object.Keys)
+                {
+                    JsonValue language = textObject.Object.GetValueOrDefault(textType);
+
+                    foreach (string lang in language.Object.Keys)
+                    {
+                        string textMessage = language.Object.TryGetString(lang);
+                        XmlDocument doc = new XmlDocument();
+                        var p = doc.CreateElement("p");
+                        p.AppendChild(doc.CreateTextNode(textMessage));
+                        
+                        var brregTekst = doc.CreateElement("brreg", "tekst", BRREG_NS);                        
+                        brregTekst.SetAttribute("lang", BRREG_NS, lang);
+                        brregTekst.SetAttribute("teksttype", BRREG_NS, textType);
+                        brregTekst.AppendChild(p);
+                        
+                        XmlNode[] nodes = { brregTekst };
+                        XmlSchemaDocumentation documentation = new XmlSchemaDocumentation();
+                        documentation.Markup = nodes;
+
+                        annotation.Items.Add(documentation);
+                    }
+                }
+
+                element.Annotation = annotation;
+            }
         }
 
         private XmlQualifiedName GetTypeName(JsonSchema jSchema)
@@ -320,10 +364,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
                 string xsdType = propertyType.OtherData.TryGetString("@xsdType");
                 if (xsdType != null && xsdType.Equals("XmlAttribute"))
-                {
-                    XmlSchemaAttribute attribute = ExtractAttribute(propertyName, propertyType);
-
-                    complexType.Attributes.Add(attribute);
+                {                    
+                    complexType.Attributes.Add(ExtractAttribute(propertyName, propertyType));
                 }
                 else
                 {
@@ -349,6 +391,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 Name = propertyName,
                 SchemaTypeName = ((XmlSchemaSimpleTypeRestriction)simpleType.Content).BaseTypeName,
             };
+
+            AddAnnotations(attribute, propertyType);
 
             JsonValue constant = propertyType.Const();
             if (constant != null)
@@ -619,6 +663,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 Name = propertyName,
             };
+
+            AddAnnotations(element, propertyType);
 
             List<JsonSchema> items = GetterExtensions.Items(propertyType);
             if (items != null && items.Count > 0)
