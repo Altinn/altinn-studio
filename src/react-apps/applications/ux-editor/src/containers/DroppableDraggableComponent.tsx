@@ -38,6 +38,17 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
   canDrag(props: IDroppableDraggableComponentProps) {
     return props.canDrag;
   },
+  endDrag(props: IDroppableDraggableComponentProps, monitor: DragSourceMonitor, component: any) {
+    if (!monitor.didDrop()) {
+      const draggedComponent = monitor.getItem();
+
+      props.onDropComponent(
+        draggedComponent.id,
+        props.containerId,
+        component.props.containerId,
+      );
+    }
+  }
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
@@ -72,24 +83,12 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
         }
         case 'ITEM': {
           const draggedComponent = monitor.getItem();
-          let hoverOverIndex = props.index;
-          const hoverBoundingRect = (ReactDOM.findDOMNode(component) as Element).getBoundingClientRect();
-          const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (hoverClientY > hoverMiddleY) {
-            hoverOverIndex += 1;
-          }
-
           props.onDropComponent(
             draggedComponent.id,
-            hoverOverIndex,
             props.containerId,
             component.props.containerId,
           );
 
-          draggedComponent.index = hoverOverIndex;
           break;
         }
         case 'CONTAINER': {
@@ -183,6 +182,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             component.props.containerId,
           );
 
+          monitor.getItem().index = hoverOverIndex;
           break;
         }
         case 'CONTAINER': {
@@ -209,6 +209,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
             component.props.containerId,
           );
 
+          monitor.getItem().index = hoverOverIndex;
           break;
         }
         default: {

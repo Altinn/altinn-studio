@@ -433,19 +433,10 @@ const formLayoutReducer: Reducer<IFormLayoutState> = (
       });
     }
     case FormDesignerActionTypes.UPDATE_FORM_COMPONENT_ORDER_FULFILLED: {
-      const { updatedOrder, containerId } = action as FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
-      if (!containerId) {
-        return update<IFormLayoutState>(state, {
-          order: {
-            $set: updatedOrder,
-          },
-        });
-      }
+      const { updatedOrder } = action as FormDesignerActions.IUpdateFormComponentOrderActionFulfilled;
       return update<IFormLayoutState>(state, {
         order: {
-          [containerId]: {
-            $set: updatedOrder,
-          },
+          $set: updatedOrder,
         },
       });
     }
