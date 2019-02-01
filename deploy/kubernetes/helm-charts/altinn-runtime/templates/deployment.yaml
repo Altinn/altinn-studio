@@ -14,6 +14,7 @@ spec:
       labels:
         app.kubernetes.io/name: {{ include "altinn-runtime.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        app: altinn-runtime
     spec:
       containers:
         - name: {{ .Chart.Name }}
