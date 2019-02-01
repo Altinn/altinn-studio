@@ -54,6 +54,15 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetConfiguration(string org, string service, string name);
 
         /// <summary>
+        /// Get content of file path relative to root
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="fileName">The name of file path relative to service root directory</param>
+        /// <returns>The fileContent</returns>
+        string GetFileByRelativePath(string org, string service, string fileName);
+
+        /// <summary>
         /// Get content of resource file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -299,6 +308,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="fileName">The fileName</param>
         /// <param name="fileContent">The file content</param>
         void SaveResourceFile(string org, string service, string fileName, string fileContent);
+
+        /// <summary>
+        /// Method that stores contents of file path relative to root
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="fileName">The name on config</param>
+        /// <param name="fileContent">The content</param>
+        /// <returns>A boolean indicating if everything went ok</returns>
+        bool SaveFile(string org, string service, string fileName, string fileContent);
 
         /// <summary>
         /// Save service texts to resource files

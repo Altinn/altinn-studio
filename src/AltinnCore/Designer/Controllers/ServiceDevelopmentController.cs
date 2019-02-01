@@ -27,6 +27,7 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ServiceDevelopmentController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="sourceControl">The source control service.</param>
         public ServiceDevelopmentController(
             IRepository repositoryService, ISourceControl sourceControl)
         {
@@ -90,6 +91,9 @@ namespace AltinnCore.Designer.Controllers
                 case FileEditorMode.All:
                     file = _repository.GetConfiguration(org, service, fileName);
                     break;
+                case FileEditorMode.Root:
+                    file = _repository.GetFileByRelativePath(org, service, fileName);
+                    break;
                 default:
                     break;
             }
@@ -104,6 +108,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="service">The service identifier.</param>
         /// <param name="fileEditorMode">The mode for which files should be saved.</param>
         /// <param name="fileName">The name of the file to save.</param>
+        /// <param name="stageFile">true if the file has to be staged</param>
         /// <returns>The content of the file.</returns>
         [HttpPost]
         public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName, bool stageFile)
@@ -139,6 +144,9 @@ namespace AltinnCore.Designer.Controllers
                     case FileEditorMode.All:
                         _repository.SaveConfiguration(org, service, fileName, content);
                         break;
+                    case FileEditorMode.Root:
+                        _repository.SaveFile(org, service, fileName, content);
+                        break;
                     default:
                         // Return 501 Not Implemented
                         return new HttpResponseMessage(HttpStatusCode.NotImplemented);
@@ -150,9 +158,8 @@ namespace AltinnCore.Designer.Controllers
                 }
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
-
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
