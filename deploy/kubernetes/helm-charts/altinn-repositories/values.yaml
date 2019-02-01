@@ -16,8 +16,6 @@ environmentVariables:
     value: \"1000\"
   - name: DB_TYPE
     value: "postgres"
-  - name: INSTALL_LOCK
-    value: \"true\"
   - name: DB_SSL_MODE
     value: require
   - name: DB_HOST
