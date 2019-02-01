@@ -70,7 +70,13 @@ namespace AltinnCore.UnitTest.Common
             file.Close();
         }
 
-        private static bool XmlDiff(string schema1, string schema2)
+        /// <summary>
+        /// diff to xml files
+        /// </summary>
+        /// <param name="schema1">the first schema file</param>
+        /// <param name="schema2">the second schema file</param>
+        /// <returns>a bool indicating that if the two files are equal</returns>
+        public static bool XmlDiff(string schema1, string schema2)
         {
             XmlDiff xmlDiff = new XmlDiff(XmlDiffOptions.IgnoreChildOrder | XmlDiffOptions.IgnoreNamespaces | XmlDiffOptions.IgnorePrefixes);
             MemoryStream ms = new MemoryStream();
@@ -142,7 +148,6 @@ namespace AltinnCore.UnitTest.Common
                 }                
 
                 xmlSchema2 = ConvertFromJsdToXsd(jsonSchema1, xsd2FileName);
-
                 jsonSchema2 = ConvertFromXsdToJsd(xmlSchema2, jsd2FileName);
                 xmlSchema3 = ConvertFromJsdToXsd(jsonSchema2, xsd3FileName);
                      
@@ -182,21 +187,11 @@ namespace AltinnCore.UnitTest.Common
 
         private static XmlSchema ConvertFromJsdToXsd(JsonSchema jsonSchema1, string fileName)
         {
-            /*try
-            {*/
-                XmlSchema xmlSchema2;
-                JsonSchemaToXsd jsonConverter1 = new JsonSchemaToXsd();
-                xmlSchema2 = jsonConverter1.CreateXsd(jsonSchema1);
-                SaveXmlSchema(xmlSchema2, fileName);
-                return xmlSchema2;
-            /*}
-            catch (Exception e)
-            {
-                Debug.WriteLine("Failed JsdToXsd conversion of: " + fileName + " Reason: " + e.Message);
-                throw e;
-            } 
-
-            return null;*/
+            XmlSchema xmlSchema2;
+            JsonSchemaToXsd jsonConverter1 = new JsonSchemaToXsd();
+            xmlSchema2 = jsonConverter1.CreateXsd(jsonSchema1);
+            SaveXmlSchema(xmlSchema2, fileName);
+            return xmlSchema2;
         }
     }       
  }
