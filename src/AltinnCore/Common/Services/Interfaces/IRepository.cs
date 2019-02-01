@@ -317,6 +317,14 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetXsdModel(string org, string service);
 
         /// <summary>
+        /// Get Json Schema model from disk
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>Returns the Json Schema from file as a string.</returns>
+        string GetJsonSchemaModel(string org, string service);
+
+        /// <summary>
         /// Returns a given service resource embedded in a service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>

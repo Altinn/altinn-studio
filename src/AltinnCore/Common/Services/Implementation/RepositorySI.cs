@@ -36,7 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGitea _gitea;
         private readonly ISourceControl _sourceControl;
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -47,7 +47,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
-        /// <param name="logger">the logger</param>
+        /// <param name="loggerFactory">the logger factory</param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -55,7 +55,7 @@ namespace AltinnCore.Common.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ISourceControl sourceControl,
-            ILogger<RepositorySI> logger)
+            ILoggerFactory loggerFactory)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -63,7 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _sourceControl = sourceControl;
-            _logger = logger;
+            _loggerFactory = loggerFactory;
         }
 
         /// <summary>
@@ -414,6 +414,25 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Get the Json Schema model from disk
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>Returns the Json Schema object as a string</returns>
+        public string GetJsonSchemaModel(string org, string service)
+        {
+            string filename = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+            string filedata = null;
+
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
+        /// <summary>
         /// Get the Json form model from disk
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -688,7 +707,7 @@ namespace AltinnCore.Common.Services.Implementation
                         new FileInfo(filePath).Directory.Create();
                         File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
                     }
-                    catch
+                    catch (Exception e)
                     {
                         return false;
                     }
@@ -696,17 +715,24 @@ namespace AltinnCore.Common.Services.Implementation
                     // Create the .jsd file for the model
                     try
                     {
-                        XmlReader xmlReader = XmlReader.Create(mainXsd.ToString());
+                        XmlReader xmlReader;
+                        using (MemoryStream memStream = new MemoryStream())
+                        {
+                            mainXsd.Save(memStream);
+                            memStream.Position = 0;
+                            xmlReader = XmlReader.Create(memStream);
+                        }
 
-                        XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, null);
+                        XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
                         JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJSDFileName;
+                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
                         new FileInfo(filePath).Directory.Create();
-                        var serializer = new JsonSerializer();
-                        var json = serializer.Serialize(jsonSchema);
-                        File.WriteAllText(filename, json.ToString());
-                        File.WriteAllText(filePath, new JsonSerializer().Serialize<JsonSchema>(schemaJsonSchema).ToString(), Encoding.UTF8);
+                        File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
+                    }
+                    catch (Exception e)
+                    {
+                        return false;
                     }
                 }
             }
@@ -1583,7 +1609,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Newtonsoft.Json.Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
