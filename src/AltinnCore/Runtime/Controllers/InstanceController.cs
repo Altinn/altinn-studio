@@ -9,6 +9,7 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.ServiceLibrary.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -32,6 +33,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IWorkflowSI _workflowSI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -41,12 +43,12 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="registerService">The registerService (set in Startup.cs)</param>
         /// <param name="formService">The form</param>
         /// <param name="repositoryService">The repository service (set in Startup.cs)</param>
-        /// <param name="viewRepository">The view repository</param>
         /// <param name="serviceExecutionService">The serviceExecutionService (set in Startup.cs)</param>
         /// <param name="profileService">The profileService (set in Startup.cs)</param>
         /// <param name="archiveService">The archive service</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testDataService">the test data service handler</param>
+        /// <param name="workflowSI">the workflow service handler</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -57,7 +59,8 @@ namespace AltinnCore.Runtime.Controllers
             IProfile profileService,
             IArchive archiveService,
             ITestdata testDataService,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IWorkflowSI workflowSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -69,6 +72,7 @@ namespace AltinnCore.Runtime.Controllers
             _archive = archiveService;
             _testdata = testDataService;
             _httpContextAccessor = httpContextAccessor;
+            _workflowSI = workflowSI;
         }
 
         /// <summary>
@@ -184,9 +188,13 @@ namespace AltinnCore.Runtime.Controllers
 
             if (ModelState.IsValid)
             {
-                _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                if (currentState.State == WorkflowStep.Archived)
+                {
+                    _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                }
 
-                return RedirectToAction("Receipt", new { org, service, instanceId });
+                return Redirect(_workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State));
             }
 
             return View();
@@ -335,7 +343,9 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
 
-                return Redirect($"/runtime/{startServiceModel.Org}/{startServiceModel.Service}/{formID}/#Preview");
+                ServiceState currentState = _workflowSI.InitializeService(formID, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+                string redirectUrl = _workflowSI.GetUrlForCurrentState(formID, startServiceModel.Org, startServiceModel.Service, currentState.State);
+                return Redirect(redirectUrl);
             }
 
             startServiceModel.ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)

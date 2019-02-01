@@ -1,5 +1,5 @@
 import { createMuiTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import { mount, shallow } from 'enzyme';
+import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import { MemoryRouter } from 'react-router-dom';
@@ -56,20 +56,21 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
       expect(rendered).toMatchSnapshot();
     });
 
-    it('should match shallow snapshot with subHeader and Publisere selection active', () => {
+    it('should match snapshot with subHeader and Publisere selection active', () => {
       mockOrg = 'other-org';
       mockService = 'other-service';
       mockActiveSubHeaderSelection = 'Publisere';
-      const wrapper = shallow(
-        <AppBarComponent
-          org={mockOrg}
-          service={mockService}
-          showSubHeader={mockShowSubheader}
-          activeSubHeaderSelection={mockActiveSubHeaderSelection}
-        />,
+      const wrapper = renderer.create(
+        <MemoryRouter>
+          <AppBarComponent
+            org={mockOrg}
+            service={mockService}
+            showSubHeader={mockShowSubheader}
+            activeSubHeaderSelection={mockActiveSubHeaderSelection}
+          />
+        </MemoryRouter>,
       );
-      const rendered = wrapper.shallow();
-      expect(rendered).toMatchSnapshot();
+      expect(wrapper).toMatchSnapshot();
     });
 
     it('should match snapshot and not render subHeader menu', () => {
@@ -97,14 +98,15 @@ describe('AppBarComponent - src/navigation/main-header/appBar', () => {
     });
 
     it('should match snapshot with backgroundColor prop', () => {
-      const wrapper = shallow(
-        <AppBarComponent
-          showSubHeader={false}
-          backgroundColor={'pink'}
-        />,
+      const wrapper = renderer.create(
+        <MemoryRouter>
+          <AppBarComponent
+            showSubHeader={false}
+            backgroundColor={'pink'}
+          />
+        </MemoryRouter>,
       );
-      const appBarRendered = wrapper.shallow();
-      expect(appBarRendered).toMatchSnapshot();
+      expect(wrapper).toMatchSnapshot();
     });
   });
 

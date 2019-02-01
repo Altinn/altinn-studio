@@ -128,7 +128,7 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
                 <Hidden mdUp>
                   {!showBreadcrumbOnTablet ? null : (
                     <Grid item={true} className={classes.breadCrumb}>
-                      / {activeSubHeaderSelection} /
+                      {activeSubHeaderSelection ? `/ ${activeSubHeaderSelection}` : null} /
                       <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
                     </Grid>
                   )}

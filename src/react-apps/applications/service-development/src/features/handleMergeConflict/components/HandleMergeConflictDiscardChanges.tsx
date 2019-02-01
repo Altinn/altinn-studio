@@ -23,6 +23,8 @@ export interface IHandleMergeConflictDiscardChangesProps extends WithStyles<type
 
 export interface IHandleMergeConflictDiscardChangesState {
   anchorEl: any;
+  errorObj: any;
+  networkingRes: any;
   popoverState: any;
 }
 
@@ -43,6 +45,8 @@ export class HandleMergeConflictDiscardChanges extends
     super(_props);
     this.state = {
       anchorEl: null,
+      errorObj: null,
+      networkingRes: null,
       popoverState: initialPopoverState,
     };
   }
@@ -85,23 +89,42 @@ export class HandleMergeConflictDiscardChanges extends
 
       if (discardRes.isSuccessStatusCode === true) {
         this.setState({
+          networkingRes: discardRes,
           popoverState: {
             ...this.state.popoverState,
             isLoading: false,
             shouldShowDoneIcon: true,
           },
         });
+
         window.postMessage('forceRepoStatusCheck', window.location.href);
+
+      } else {
+        this.setState({
+          networkingRes: discardRes,
+          popoverState: {
+            ...this.state.popoverState,
+            isLoading: false,
+            shouldShowDoneIcon: false,
+          },
+        });
+
+        console.error('Discard merge error', discardRes);
+
       }
 
     } catch (err) {
       this.setState({
+        errorObj: err,
+        networkingRes: 'error',
         popoverState: {
           ...this.state.popoverState,
           isLoading: false,
         },
       });
+
       console.error('Discard merge error', err);
+
     }
 
   }

@@ -55,7 +55,6 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
 }
 export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
-
 }
 
 class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentAppState, RouteChildrenProps> {
@@ -82,6 +81,10 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
 
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('message', this.windowEventReceived);
   }
 
   public windowEventReceived = (event: any) => {
@@ -188,7 +191,9 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                             exact={route.exact}
                             render={(props) => <route.subapp
                               {...props}
+                              {...route.props}
                               name={route.path}
+                              language={this.props.language}
                             />}
                           />
                         ))}
