@@ -138,7 +138,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public componentDidMount() {
-    if (this.props.mode) {
+    if (!this.props.loadFile) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service } = altinnWindow;
       const servicePath = `${org}/${service}`;
@@ -157,13 +157,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
   }
 
-  // TODO: The added '../' is temporary in place until loadfil API for unique file is available
   public componentDidUpdate(prevProps: any) {
     if (this.props.loadFile !== prevProps.loadFile) {
       this.setState({
-        selectedFile: `../${this.props.loadFile}`,
+        selectedFile: `${this.props.loadFile}`,
       });
-      this.loadFileContent(`../${this.props.loadFile}`);
+      this.loadFileContent(`${this.props.loadFile}`);
     }
   }
 
@@ -395,8 +394,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
               }
 
-              {/* If this.props.mode is present, show select*/}
-              {this.props.mode ?
+              {/* If not Loadfile, show select*/}
+              {!this.props.loadFile ?
 
                 <React.Fragment>
                   {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />

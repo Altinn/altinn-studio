@@ -72,7 +72,7 @@ export class HandleMergeConflictContainer extends
     this.setEditorHeight = this.setEditorHeight.bind(this);
     this.state = {
       editorHeight: null,
-      selectedFile: null,
+      selectedFile: '>',
     };
   }
 
@@ -194,11 +194,12 @@ export class HandleMergeConflictContainer extends
                   className={classNames(classes.box)}
                 >
                   <FileEditor
+                    boxShadow={true}
+                    checkRepoStatusAfterSaveFile={true}
                     editorHeight={this.state.editorHeight}
                     loadFile={selectedFile}
-                    boxShadow={true}
+                    mode='Root'
                     showSaveButton={true}
-                    checkRepoStatusAfterSaveFile={true}
                     stageAfterSaveFile={true}
                   />
                 </Grid>
