@@ -185,7 +185,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             valueOriginal: logicFileContent,
           };
         });
-
       });
   }
 

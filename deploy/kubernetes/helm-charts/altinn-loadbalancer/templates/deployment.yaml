@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: altinn-loadbalancer
@@ -28,17 +28,17 @@ spec:
               mountPath: {{ $mount.mountPath }}
           {{- end }}
           {{- end }}
-    {{- if .Values.volumes }}
-    volumes:
-      {{- range $volume := .Values.volumes }}
-      - name: {{ $volume.name }}
-      {{- if $volume.configMap }}
-        configMap:
-          name: {{ $volume.configMap.name }}
+      {{- if .Values.volumes }}
+      volumes:
+        {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+        {{- if $volume.configMap }}
+          configMap:
+            name: {{ $volume.configMap.name }}
+        {{- end }}
+        {{- if $volume.secret }}
+          secret:
+            secretName: {{ $volume.secret.secretName }}
+        {{- end }}
+        {{- end }}
       {{- end }}
-      {{- if $volume.secret }}
-        secret:
-          secretName: {{ $volume.secret.secretName }}
-      {{- end }}
-      {{- end }}
-    {{- end }}
