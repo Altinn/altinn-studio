@@ -715,7 +715,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         // special case handling SKD <choice><sequence><element> ...</sequence><sequence><element ...
                         XmlSchemaSequence sequence = (XmlSchemaSequence)choiceItem;
-                        var choiceItemInSequence = sequence.Items[0];
+                        XmlSchemaObject choiceItemInSequence = sequence.Items[0];
                         itemQName = GetItemName(choiceItemInSequence);
                         
                         AppendType(choiceItemInSequence, refSchema);
@@ -926,12 +926,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (item is XmlSchemaElement)
             {
                 XmlSchemaElement elementItem = (XmlSchemaElement)item;
-                var maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : elementItem.MaxOccurs;
+                decimal maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : elementItem.MaxOccurs;
                 if (maxOccurs > 1)
                 {
                     appendToSchema.Type(JsonSchemaType.Array);
-                    var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : elementItem.MinOccurs;
-                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : elementItem.MaxOccursString;
+                    decimal minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : elementItem.MinOccurs;
+                    string maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : elementItem.MaxOccursString;
                     appendToSchema.MinItems(Convert.ToUInt32(minOccurs, CultureInfo.InvariantCulture));
                     if (!"unbounded".Equals(maxOccursString))
                     {
@@ -986,12 +986,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             else if (item is XmlSchemaAny)
             {
                 XmlSchemaAny anyItem = (XmlSchemaAny)item;
-                var maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : anyItem.MaxOccurs;
+                decimal maxOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccurs : anyItem.MaxOccurs;
                 if (maxOccurs > 1)
                 {
                     appendToSchema.Type(JsonSchemaType.Array);
-                    var minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : anyItem.MinOccurs;
-                    var maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : anyItem.MaxOccursString;
+                    decimal minOccurs = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MinOccurs : anyItem.MinOccurs;
+                    string maxOccursString = referencedFromItem is XmlSchemaParticle ? ((XmlSchemaParticle)referencedFromItem).MaxOccursString : anyItem.MaxOccursString;
                     appendToSchema.MinItems(Convert.ToUInt32(minOccurs, CultureInfo.InvariantCulture));
                     if (!"unbounded".Equals(maxOccursString))
                     {
@@ -1126,7 +1126,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void AppendAttributes(XmlSchemaObjectCollection attributes, JsonSchema appendToSchema, List<XmlQualifiedName> requiredList)
         {
-            foreach (var attribute in attributes)
+            foreach (XmlSchemaObject attribute in attributes)
             {
                 if (attribute is XmlSchemaAttribute)
                 {
