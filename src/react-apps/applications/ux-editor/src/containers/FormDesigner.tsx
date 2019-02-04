@@ -82,7 +82,7 @@ const styles = ((theme: Theme) => createStyles({
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
-    overflowY: 'auto',
+    overflowY: 'scroll',
   },
   menuHeader: {
     padding: '2.5rem 2.5rem 1.2rem 2.5rem',

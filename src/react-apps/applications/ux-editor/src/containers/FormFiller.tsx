@@ -55,10 +55,12 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
       FormFillerActionDispatchers.submitFormData(`
         ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
+    } else {
+      this.setState({
+        // for now we simulate a work flow step change
+        workflowStep: 'archived',
+      });
     }
-    this.setState({
-      workflowStep: 'archived',
-    });
   }
 
   public submitForm = () => {
@@ -67,6 +69,11 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
       window.location.replace(`${window.location.origin}/runtime/` +
         `${org}/${service}/${instanceId}/CompleteAndSendIn`);
+    } else {
+      this.setState({
+        // for now we simulate a work flow step change
+        workflowStep: 'archived',
+      });
     }
   }
 
@@ -132,7 +139,7 @@ const makeMapStateToProps = () => {
       designMode: GetDesignMode(state),
       formDataCount: GetFormDataCount(state),
       language: state.appData.language.language,
-      workflowStep: 'formfiller', // TODO: Fetch state from redux store when back end for workflow is implemented
+      workflowStep: 'formfiller', // TODO: Fetch state from store when workflow back end is implemented
     };
   };
   return mapStateToProps;

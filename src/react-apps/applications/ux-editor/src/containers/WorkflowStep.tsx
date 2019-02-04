@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import theme from '../../../shared/src/theme/altinnStudioTheme';
 import { Redirect } from 'react-router';
 
 export interface IWorkflowStepProvidedProps {
@@ -9,8 +8,9 @@ export interface IWorkflowStepProvidedProps {
 }
 
 export enum WorkflowSteps {
-  FormFilling,
-  Archived,
+  FormFilling = 'formfilling',
+  Archived = 'archived',
+  Submit = 'submit',
 }
 
 export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
@@ -19,13 +19,16 @@ export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
 
 export interface IWorkflowStepState {
   redirect: boolean;
+  isRuntime: boolean;
 }
 
 class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflowStepState> {
   constructor(props: IWorkflowStepProps, state: IWorkflowStepState) {
     super(props, state);
+    const isRuntime = window.location.pathname.split('/')[1].toLowerCase() === 'runtime';
     this.state = {
       redirect: false,
+      isRuntime,
     };
   }
 
@@ -115,27 +118,28 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     return this.props.children;
   }
 
+  public renderSubmit(): React.ReactNode {
+    return (
+      <></>
+    );
+  }
+
   public renderReceipt = () => {
     // Just renders a placeholder receipt for now
     return (
-      <>
-        <h2 className='a-font'>{this.props.language.ux_editor.formfiller_placeholder_receipt_header}</h2>
-        <p className='a-leadText'>{this.props.language.ux_editor.formfiller_placeholder_receipt_time}</p>
-      </>
+      <p className='a-leadText'>{this.props.language.ux_editor.formfiller_placeholder_receipt_header}</p>
     );
   }
 
   public render() {
-    const backgroundColor = (this.props.step === 'archived') ?
-      theme.altinnPalette.primary.greenLight :
-      theme.altinnPalette.primary.blue;
-    if (this.state.redirect) {
+    const backgroundColor = (this.props.step === 'archived') ? '#D4F9E4' : '#1EAEF7';
+    if (!this.state.isRuntime && this.state.redirect) {
       return (
         <Redirect to={'/uieditor'} />
       );
     }
     return (
-      <div style={{ backgroundColor, height: '1058px' }} >
+      <div style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
           {this.renderTop()}
           <div className='row'>
@@ -147,10 +151,13 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                     <div className='modal-content'>
                       {this.renderHeader()}
                       <div className='modal-body a-modal-body'>
-                        {this.props.step === 'formfiller' &&
+                        {this.props.step === WorkflowSteps.FormFilling &&
                           this.renderFormFiller()
                         }
-                        {this.props.step === 'archived' &&
+                        {this.props.step === WorkflowSteps.Submit &&
+                          this.renderSubmit()
+                        }
+                        {this.props.step === WorkflowSteps.Archived &&
                           this.renderReceipt()
                         }
                       </div>
