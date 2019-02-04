@@ -122,7 +122,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
   }
 
   public render() {
-    console.log('rendering page');
     return(
       <div className='container'>
         {this.renderTop()}
