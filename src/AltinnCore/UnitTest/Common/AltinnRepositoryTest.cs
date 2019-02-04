@@ -41,7 +41,7 @@ namespace AltinnCore.UnitTest.Common
         /// [Fact]
         public async void ReadAllAsync()
         {
-            var services = await AltinnServiceRepository.ReadAllSchemaUrls();            
+            JsonArray services = await AltinnServiceRepository.ReadAllSchemaUrls();            
             
             File.WriteAllText("altinn-xsds.json", services.ToString());
 
@@ -51,7 +51,7 @@ namespace AltinnCore.UnitTest.Common
 
                 foreach (JsonValue form in formArray)
                 {
-                    var webClient = new WebClient();
+                    WebClient webClient = new WebClient();
                     string schemaUrl = form.Object.TryGetString("schemaUrl");
                     string fileName = schemaUrl.Replace("https://www.altinn.no/api/metadata/formtask", "schema");
                     fileName = fileName.Replace("/", "_");
@@ -76,7 +76,7 @@ namespace AltinnCore.UnitTest.Common
             
             foreach (string file in files)
             {
-                var seresParser = GetParser();
+                SeresXsdParser seresParser = GetParser();
                 Debug.WriteLine("Converting file " + file + " to Json Instance Model");
 
                 try
@@ -102,7 +102,7 @@ namespace AltinnCore.UnitTest.Common
             XDocument xsd = GetDocument(file);
             SeresXsdParser seresParser = GetParser();
 
-            var serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", xsd, null);
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", xsd, null);
 
             // string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
             // File.WriteAllText("test.json", metadataAsJson);
@@ -113,7 +113,7 @@ namespace AltinnCore.UnitTest.Common
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
 
-            var doc = XmlReader.Create(file, settings);
+            XmlReader doc = XmlReader.Create(file, settings);
             return XDocument.Load(doc);
         }
 
