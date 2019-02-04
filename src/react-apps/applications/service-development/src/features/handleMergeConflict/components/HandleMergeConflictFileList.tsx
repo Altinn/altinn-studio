@@ -92,57 +92,54 @@ export class HandleMergeConflictFileList extends
               root: classNames(classes.root),
             }}
           >
-            {repoStatus.contentStatus ?
-              repoStatus.contentStatus.length > 0 ?
+            {repoStatus.contentStatus && repoStatus.contentStatus.length > 0 ?
 
-                repoStatus.contentStatus.map((item: any, index: any) => {
-                  return (
-                    <ListItem
-                      id={`handleMergeConflictFileListItem${index}`}
-                      button={true}
-                      key={index}
-                      selected={selectedIndex === index}
-                      onClick={this.handleListItemClick(index, item)}
+              repoStatus.contentStatus.map((item: any, index: any) => {
+                return (
+                  <ListItem
+                    id={`handleMergeConflictFileListItem${index}`}
+                    button={true}
+                    key={index}
+                    selected={selectedIndex === index}
+                    onClick={this.handleListItemClick(index, item)}
+                    classes={{
+                      button: classNames(classes.listItemButton),
+                      focusVisible: classNames(classes.listItemFocusVisible),
+                    }}
+                  >
+                    <ListItemIcon
                       classes={{
-                        button: classNames(classes.listItemButton),
-                        focusVisible: classNames(classes.listItemFocusVisible),
+                        root: classNames(classes.listItemIcon),
                       }}
                     >
-                      <ListItemIcon
-                        classes={{
-                          root: classNames(classes.listItemIcon),
-                        }}
-                      >
-                        <AltinnIcon
-                          isActive={selectedIndex === index}
-                          isActiveIconColor={item.fileStatus === 'Conflicted' ?
-                            theme.altinnPalette.primary.blueDark : theme.altinnPalette.primary.green
-                          }
-                          iconClass={item.fileStatus === 'Conflicted' ?
-                            'ai ai-circlecancel' : 'ai ai-check'
-                          }
-                          iconColor={item.fileStatus === 'Conflicted' ?
-                            theme.altinnPalette.primary.blueDarker : theme.altinnPalette.primary.green
-                          }
-                          iconSize={16}
-                        />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={item.filePath}
-                        classes={{
-                          primary: classNames(classes.primaryText,
-                            {
-                              [classes.primaryTextSelected]: selectedIndex === index,
-                              [classes.primaryTextUnselected]: !selectedIndex === index,
-                            }),
-                          root: classNames(classes.listItemText),
-                        }}
+                      <AltinnIcon
+                        isActive={selectedIndex === index}
+                        isActiveIconColor={item.fileStatus === 'Conflicted' ?
+                          theme.altinnPalette.primary.blueDark : theme.altinnPalette.primary.green
+                        }
+                        iconClass={item.fileStatus === 'Conflicted' ?
+                          'ai ai-circlecancel' : 'ai ai-check'
+                        }
+                        iconColor={item.fileStatus === 'Conflicted' ?
+                          theme.altinnPalette.primary.blueDarker : theme.altinnPalette.primary.green
+                        }
+                        iconSize={16}
                       />
-                    </ListItem>
-                  );
-                })
-                :
-                null
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={item.filePath}
+                      classes={{
+                        primary: classNames(classes.primaryText,
+                          {
+                            [classes.primaryTextSelected]: selectedIndex === index,
+                            [classes.primaryTextUnselected]: !selectedIndex === index,
+                          }),
+                        root: classNames(classes.listItemText),
+                      }}
+                    />
+                  </ListItem>
+                );
+              })
               :
               null
             }
