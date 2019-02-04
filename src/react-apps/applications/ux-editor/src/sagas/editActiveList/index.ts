@@ -7,7 +7,7 @@ import {
 } from './editActiveListSagas';
 
 export default function*(): SagaIterator {
+  yield fork(watchDeleteActiveListSaga);
   yield fork(watchUpdateActiveListSaga);
   yield fork(watchUpdateActiveOrderSaga);
-  yield fork(watchDeleteActiveListSaga);
 }
