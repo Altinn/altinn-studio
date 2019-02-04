@@ -97,7 +97,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
               }}
             >
               <div>
-                <h3 className='a-fontReg'>
+                <h3 className='a-fontReg' style={{marginBottom: 0}}>
                   <i className='ai ai-info-circle a-icon'/>
                   <span>{this.props.language.form_filler.error_report_header}</span>
                 </h3>
@@ -150,10 +150,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
 }
 
 const getErrorList = (errors: any) => {
-  let errorList: string[] = [];
+  const errorList: string[] = [];
   // tslint:disable-next-line:forin
   for (const error in errors) {
-    errorList = errorList.concat(errors[error]);
+    const errorMessage = errors[error].join(', ');
+    errorList.push(errorMessage);
   }
   return errorList;
 }
