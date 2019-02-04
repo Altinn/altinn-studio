@@ -12,6 +12,7 @@ using AltinnCore.Runtime.ModelBinding;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +39,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IProfile _profile;
         private UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IWorkflowSI _workflowSI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceAPIController"/> class
@@ -52,6 +54,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="executionService">The execution service (set in Startup.cs)</param>
         /// <param name="profileService">The profile service (set in Startup.cs)</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="workflowSI">The workflow service</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             ICompilation compilationService,
@@ -62,7 +65,8 @@ namespace AltinnCore.Runtime.Controllers
             IRepository repositoryService,
             IExecution executionService,
             IProfile profileService,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IWorkflowSI workflowSI)
         {
             _settings = settings.Value;
             _compilation = compilationService;
@@ -75,6 +79,7 @@ namespace AltinnCore.Runtime.Controllers
             _profile = profileService;
             _userHelper = new UserHelper(_profile, _register);
             _httpContextAccessor = httpContextAccessor;
+            _workflowSI = workflowSI;
         }
 
         /// <summary>
@@ -383,6 +388,16 @@ namespace AltinnCore.Runtime.Controllers
                 org,
                 service,
                 requestContext.UserContext.ReporteeId);
+
+            if (apiMode.Equals(ApiMode.Complete))
+            {
+                ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                Response.StatusCode = 200;
+                apiResult.InstanceId = instanceId;
+                apiResult.Status = ApiStatusType.Ok;
+                apiResult.NextStepUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+                return new ObjectResult(apiResult);
+            }
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;

@@ -39,16 +39,14 @@ const styles = () => createStyles({
   },
   containerMessage: {
     marginBottom: '12px',
-    maxWidth: '1000px',
     padding: '10px',
   },
   containerMessageHasConflict: {
-    background: theme.altinnPalette.primary.redLight,
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    maxWidth: '1100px',
   },
   containerMessageNoConflict: {
     background: theme.altinnPalette.primary.greenLight,
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    boxShadow: theme.sharedStyles.boxShadow,
   },
   title: {
     marginBottom: 16,
@@ -63,6 +61,7 @@ export interface IHandleMergeConflictContainerProps extends WithStyles<typeof st
 }
 
 export interface IHandleMergeConflictContainerState {
+  editorHeight: string;
   selectedFile: string;
 }
 
@@ -71,7 +70,9 @@ export class HandleMergeConflictContainer extends
 
   constructor(_props: IHandleMergeConflictContainerProps, _state: IHandleMergeConflictContainerState) {
     super(_props, _state);
+    this.setEditorHeight = this.setEditorHeight.bind(this);
     this.state = {
+      editorHeight: null,
       selectedFile: null,
     };
   }
@@ -79,6 +80,23 @@ export class HandleMergeConflictContainer extends
   public changeSelectedFile = (file: string) => {
     this.setState({
       selectedFile: file,
+    });
+  }
+
+  public componentDidMount() {
+    this.setEditorHeight();
+    window.addEventListener('resize', this.setEditorHeight);
+  }
+
+  public componentWillUnmount() {
+    window.removeEventListener('resize', this.setEditorHeight);
+  }
+
+  public setEditorHeight = () => {
+    const height = document.getElementById('mergeConflictFileList').clientHeight;
+    const editorHeight = height - 47 - 48;
+    this.setState({
+      editorHeight: editorHeight.toString(),
     });
   }
 
@@ -101,7 +119,7 @@ export class HandleMergeConflictContainer extends
                 xs={12}
                 className={classes.title}
               >
-                <VersionControlHeader language={language} />
+                {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
 
                 <Hidden smDown={true}>
                   <Typography variant='h1'>
@@ -110,29 +128,36 @@ export class HandleMergeConflictContainer extends
                 </Hidden>
 
               </Grid>
-
               {
                 repoStatus.hasMergeConflict ?
 
-                  <span className={classNames(classes.containerMessage)}>
+                  <div className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
                     {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
-                  </span>
-
+                  </div>
                   :
 
                   repoStatus.contentStatus ?
 
                     repoStatus.contentStatus.length > 0 ?
-
-                      <span className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
-                        {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
-                      </span>
-
+                      <Grid
+                        item={true}
+                        xs={12}
+                        container={true}
+                        justify='center'
+                        alignItems='center'
+                        className={classes.containerMessage}
+                      >
+                        <Grid item={true}>
+                          <div className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
+                            {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
+                          </div>
+                        </Grid>
+                      </Grid>
                       :
 
-                      <span className={classNames(classes.containerMessage)}>
+                      <div className={classNames(classes.containerMessage)}>
                         {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
-                      </span>
+                      </div>
 
                     :
                     null
@@ -174,6 +199,7 @@ export class HandleMergeConflictContainer extends
                   className={classNames(classes.box)}
                 >
                   <FileEditor
+                    editorHeight={this.state.editorHeight}
                     loadFile={selectedFile}
                     boxShadow={true}
                     showSaveButton={true}

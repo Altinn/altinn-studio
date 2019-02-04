@@ -12,6 +12,7 @@ using AltinnCore.Common.Constants;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Workflow;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -38,6 +39,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IGitea _giteaApi;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IWorkflowSI _workflowSI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -51,6 +53,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="contextAccessor">The http context accessor</param>
         /// <param name="execution">The executionSI</param>
         /// <param name="testdataRepositorySettings">The test data settings</param>
+        /// <param name="workflowSI">The workflowSI</param>
         public ManualTestingController(
             ITestdata testdataService,
             IProfile profileService,
@@ -60,7 +63,8 @@ namespace AltinnCore.Runtime.Controllers
             IGitea giteaWrapper,
             IExecution execution,
             IHttpContextAccessor contextAccessor,
-            IOptions<TestdataRepositorySettings> testdataRepositorySettings)
+            IOptions<TestdataRepositorySettings> testdataRepositorySettings,
+            IWorkflowSI workflowSI)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -72,6 +76,7 @@ namespace AltinnCore.Runtime.Controllers
             _execution = execution;
             _httpContextAccessor = contextAccessor;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
+            _workflowSI = workflowSI;
         }
 
         /// <summary>
@@ -143,6 +148,23 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.InstanceList = formInstances.OrderBy(r => r.LastChanged).ToList();
 
             return View(startServiceModel);
+        }
+
+        /// <summary>
+        /// Redirects the user to the correct url given the service instances state
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <returns>The test message box</returns>
+        [Authorize]
+        public IActionResult RedirectToCorrectState(string org, string service, int instanceId)
+        {
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            ServiceState currentState = _workflowSI.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
+            string nextUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+            return Redirect(nextUrl);
         }
 
         /// <summary>

@@ -3,22 +3,29 @@ import * as ActionTypes from '../../formFillerActionTypes';
 
 export interface ISubmitFormDataAction extends Action {
   url: string;
+  apiMode?: string;
 }
 
 export interface ISubmitFormDataActionRejected extends Action {
   error: Error;
 }
 
-export function submitFormDataAction(url: string): ISubmitFormDataAction {
+export interface ISubmitFormDataActionFulfilled extends Action {
+  apiResult: any;
+}
+
+export function submitFormDataAction(url: string, apiMode?: string): ISubmitFormDataAction {
   return {
     type: ActionTypes.SUBMIT_FORM_DATA,
     url,
+    apiMode,
   };
 }
 
-export function submitFormDataActionFulfilled(): Action {
+export function submitFormDataActionFulfilled(apiResult: any): ISubmitFormDataActionFulfilled {
   return {
     type: ActionTypes.SUBMIT_FORM_DATA_FULFILLED,
+    apiResult,
   };
 }
 
