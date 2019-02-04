@@ -40,7 +40,7 @@ const styles = ((theme: Theme) => createStyles({
     minHeight: 'calc(100vh - 69px)',
   },
   drawerRoot: {
-    height: 'calc(100vh)',
+    height: '100vh',
     overflow: 'hidden',
   },
   button: {
