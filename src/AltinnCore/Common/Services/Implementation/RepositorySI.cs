@@ -751,15 +751,16 @@ namespace AltinnCore.Common.Services.Implementation
                     // Create the .jsd file for the model
                     try
                     {
+                        XsdToJsonSchema xsdToJsonSchemaConverter;
                         XmlReader xmlReader;
                         using (MemoryStream memStream = new MemoryStream())
                         {
                             mainXsd.Save(memStream);
                             memStream.Position = 0;
                             xmlReader = XmlReader.Create(memStream);
+                            xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
                         }
 
-                        XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
                         JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
                         string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
