@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
@@ -15,7 +16,9 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using LibGit2Sharp;
+using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,6 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGitea _gitea;
         private readonly ISourceControl _sourceControl;
+        private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -43,13 +47,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
+        /// <param name="loggerFactory">the logger factory</param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
             IDefaultFileFactory defaultFileFactory,
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
-            ISourceControl sourceControl)
+            ISourceControl sourceControl,
+            ILoggerFactory loggerFactory)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -57,6 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             _httpContextAccessor = httpContextAccessor;
             _gitea = gitea;
             _sourceControl = sourceControl;
+            _loggerFactory = loggerFactory;
         }
 
         /// <summary>
@@ -408,6 +415,25 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Get the Json Schema model from disk
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>Returns the Json Schema object as a string</returns>
+        public string GetJsonSchemaModel(string org, string service)
+        {
+            string filename = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+            string filedata = null;
+
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
+        /// <summary>
         /// Get the Json form model from disk
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -682,7 +708,30 @@ namespace AltinnCore.Common.Services.Implementation
                         new FileInfo(filePath).Directory.Create();
                         File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
                     }
-                    catch
+                    catch (Exception e)
+                    {
+                        return false;
+                    }
+
+                    // Create the .jsd file for the model
+                    try
+                    {
+                        XmlReader xmlReader;
+                        using (MemoryStream memStream = new MemoryStream())
+                        {
+                            mainXsd.Save(memStream);
+                            memStream.Position = 0;
+                            xmlReader = XmlReader.Create(memStream);
+                        }
+
+                        XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+                        JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+                        new FileInfo(filePath).Directory.Create();
+                        File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
+                    }
+                    catch (Exception e)
                     {
                         return false;
                     }
@@ -1561,7 +1610,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private static void Save(ResourceWrapper resourceWrapper)
         {
-            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Formatting.Indented);
+            string textContent = JsonConvert.SerializeObject(resourceWrapper.Resources, Newtonsoft.Json.Formatting.Indented);
             File.WriteAllText(resourceWrapper.FileName, textContent);
         }
 
