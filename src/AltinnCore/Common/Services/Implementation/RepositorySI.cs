@@ -226,6 +226,26 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Returns the content of a file path relative to the root folder
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="fileName">The name of the configuration</param>
+        /// <returns>A string containing the file content</returns>
+        public string GetFileByRelativePath(string org, string service, string fileName)
+        {
+            string filename = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            string filedata = null;
+
+            if (File.Exists(filename))
+            {
+                filedata = File.ReadAllText(filename, Encoding.UTF8);
+            }
+
+            return filedata;
+        }
+
+        /// <summary>
         /// Get content of resource file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -618,6 +638,21 @@ namespace AltinnCore.Common.Services.Implementation
             new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, config, Encoding.UTF8);
 
+            return true;
+        }
+
+        /// <summary>
+        /// Method that stores contents of file path relative to root
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="fileName">The name on config</param>
+        /// <param name="fileContent">The content</param>
+        /// <returns>A boolean indicating if everything went ok</returns>
+        public bool SaveFile(string org, string service, string fileName, string fileContent)
+        {
+            string filePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + fileName;
+            File.WriteAllText(filePath, fileContent, Encoding.UTF8);
             return true;
         }
 
