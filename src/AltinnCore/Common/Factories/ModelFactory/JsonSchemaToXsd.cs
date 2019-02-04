@@ -89,7 +89,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
 
-            var text = jSchema.Get<TextsKeyword>();
+            TextsKeyword text = jSchema.Get<TextsKeyword>();
             if (text != null)
             {
                 JsonValue textObject = text.ToJson(new JsonSerializer());
@@ -102,10 +102,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         string textMessage = language.Object.TryGetString(lang);
 
-                        var p = xmlDocument.CreateElement("p");
+                        XmlElement p = xmlDocument.CreateElement("p");
                         p.AppendChild(xmlDocument.CreateTextNode(textMessage));
 
-                        var brregTekst = xmlDocument.CreateElement("brreg", "tekst", BRREG_NS);
+                        XmlElement brregTekst = xmlDocument.CreateElement("brreg", "tekst", BRREG_NS);
                         brregTekst.SetAttribute("lang", BRREG_NS, lang);
                         brregTekst.SetAttribute("teksttype", BRREG_NS, textType);
                         brregTekst.AppendChild(p);
@@ -131,13 +131,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void AddTitleAndDescriptionAnnotations(JsonSchema jSchema, XmlSchemaAnnotation annotation)
         {
-            var description = GetterExtensions.Description(jSchema);
+            string description = GetterExtensions.Description(jSchema);
             if (description != null)
             {
                 annotation.Items.Add(CreateSimpleDocumentation("description", description));
             }
 
-            var title = GetterExtensions.Title(jSchema);
+            string title = GetterExtensions.Title(jSchema);
             if (title != null)
             {
                 annotation.Items.Add(CreateSimpleDocumentation("title", title));
@@ -157,7 +157,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void AddInfo(XmlSchema xSchema, JsonSchema jSchema)
         {
-            var info = jSchema.Get<InfoKeyword>();
+            InfoKeyword info = jSchema.Get<InfoKeyword>();
             if (info != null)
             {
                 XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
@@ -168,7 +168,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 JsonObject infoObject = info.ToJson(new JsonSerializer()).Object;
                 foreach (string attributeName in infoObject.Keys)
                 {
-                    var attrElement = xmlDocument.CreateElement("xs", "attribute", XML_SCHEMA_NS);
+                    XmlElement attrElement = xmlDocument.CreateElement("xs", "attribute", XML_SCHEMA_NS);
                     attrElement.SetAttribute("name", attributeName);
                     attrElement.SetAttribute("fixed", infoObject.TryGetString(attributeName));
 
@@ -240,7 +240,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (jSchema == JsonSchema.Empty)
             {
                 // empty type, 
-                var complexType = new XmlSchemaComplexType
+                XmlSchemaComplexType complexType = new XmlSchemaComplexType
                 {
                     Name = name,
                 };
@@ -281,7 +281,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             XmlSchemaSimpleContentExtension extension = new XmlSchemaSimpleContentExtension();
             simpleContent.Content = extension;            
            
-            foreach (var item in jSchema.Properties())
+            foreach (KeyValuePair<string, JsonSchema> item in jSchema.Properties())
             {               
                 if (item.Key.Equals("value") || HasSimpleContentAnnotation(item.Value))
                 {                    
@@ -324,7 +324,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (jSchema.Properties() != null)
             {
-                foreach (var propertyItem in jSchema.Properties())
+                foreach (KeyValuePair<string, JsonSchema> propertyItem in jSchema.Properties())
                 {
                     if (HasSimpleContentAnnotation(propertyItem.Value))
                     {
@@ -387,8 +387,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     XmlSchemaChoice choice = new XmlSchemaChoice();
                     foreach (JsonSchema choiceType in oneOf)
                     {
-                        var propSequence = ExtractAttributesAndElements(choiceType, complexType);
-                        foreach (var item in propSequence.Items)
+                        XmlSchemaSequence propSequence = ExtractAttributesAndElements(choiceType, complexType);
+                        foreach (XmlSchemaObject item in propSequence.Items)
                         {
                             choice.Items.Add(item);
                         }                        
@@ -402,7 +402,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 
                 if (propertySequence != null && propertySequence.Items.Count > 0)
                 {
-                    foreach (var item in propertySequence.Items)
+                    foreach (XmlSchemaObject item in propertySequence.Items)
                     {
                         sequence.Items.Add(item);                        
                     }                    
@@ -435,7 +435,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 string xsdType = propertyType.OtherData.TryGetString("@xsdType");
                 if (xsdType != null && xsdType.Equals("XmlAttribute"))
                 {
-                    var attribute = ExtractAttribute(propertyName, propertyType);
+                    XmlSchemaAttribute attribute = ExtractAttribute(propertyName, propertyType);
                     if (requiredProperties != null && requiredProperties.Contains(propertyName))
                     {
                         attribute.Use = XmlSchemaUse.Required;
@@ -471,7 +471,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (simpleType.Content != null && simpleType.Content is XmlSchemaSimpleTypeRestriction && ((XmlSchemaSimpleTypeRestriction)simpleType.Content).Facets.Count > 0)
             {
                 bool hasEnumeration = false;
-                var simpleTypeRestriction = (XmlSchemaSimpleTypeRestriction)simpleType.Content;
+                XmlSchemaSimpleTypeRestriction simpleTypeRestriction = (XmlSchemaSimpleTypeRestriction)simpleType.Content;
                 foreach (XmlSchemaObject facet in simpleTypeRestriction.Facets)
                 {
                     if (facet is XmlSchemaEnumerationFacet)
@@ -516,25 +516,25 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string reference = GetterExtensions.Ref(jSchema);
             if (reference != null)
             {
-                var baseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference));
+                XmlQualifiedName baseTypeName = new XmlQualifiedName(ExtractTypeFromDefinitionReference(reference));
                 XmlSchemaSimpleTypeRestriction simpleTypeRestriction = new XmlSchemaSimpleTypeRestriction
                 {
                     BaseTypeName = baseTypeName,
                 };                
 
-                var stringFacets = ExtractStringFacets(jSchema);
+                XmlSchemaSimpleTypeRestriction stringFacets = ExtractStringFacets(jSchema);
                 if (stringFacets.Facets.Count > 0)
                 {
-                    foreach (var facet in stringFacets.Facets)
+                    foreach (XmlSchemaObject facet in stringFacets.Facets)
                     {
                         simpleTypeRestriction.Facets.Add(facet);
                     }
                 }
-                
-                var numberFacets = ExtractNumberAndIntegerFacets(jSchema, new TypeKeyword(JsonSchemaType.Number));
+
+                XmlSchemaSimpleTypeRestriction numberFacets = ExtractNumberAndIntegerFacets(jSchema, new TypeKeyword(JsonSchemaType.Number));
                 if (numberFacets.Facets.Count > 0)
                 {
-                    foreach (var facet in numberFacets.Facets)
+                    foreach (XmlSchemaObject facet in numberFacets.Facets)
                     {
                         simpleTypeRestriction.Facets.Add(facet);
                     }
@@ -550,7 +550,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (type == null)
             {
                 // assume string type if type is missing
-                var noTypeSimpleType = ExtractStringFacets(jSchema);
+                XmlSchemaSimpleTypeRestriction noTypeSimpleType = ExtractStringFacets(jSchema);
                 noTypeSimpleType.BaseTypeName = null;
 
                 simpleType.Content = noTypeSimpleType;                 
@@ -821,11 +821,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
 
             List<string> requiredFields = GetterExtensions.Required(parentSchema);
-            if (requiredFields != null && requiredFields.Contains(propertyName))
-            {
-                // element.MinOccurs = 1; - is xsd default
-            }
-            else
+            if (requiredFields == null || !requiredFields.Contains(propertyName))
             {
                 element.MinOccurs = 0;
                 element.IsNillable = true;
