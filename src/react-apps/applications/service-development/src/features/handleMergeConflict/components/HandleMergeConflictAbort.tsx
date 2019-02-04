@@ -12,7 +12,7 @@ export interface IHandleMergeConflictAbortProps {
 
 export interface IHandleMergeConflictAbortState {
   anchorEl: any;
-  errorObj: null,
+  errorObj: null;
   networkingRes: any;
   popoverState: any;
 }

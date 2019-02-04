@@ -145,6 +145,11 @@ namespace AltinnCore.Common.Configuration
         public string ServiceModelXSDFileName { get; set; } = "ServiceModel.xsd";
 
         /// <summary>
+        /// Gets or sets The name of the ServiceModel json schema jsd file Name
+        /// </summary>
+        public string ServiceModelJsonSchemaFileName { get; set; } = "ServiceModel.schema.json";
+
+        /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
         public string FormLayoutJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "FormLayout.json";

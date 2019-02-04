@@ -91,6 +91,9 @@ namespace AltinnCore.Designer.Controllers
                 case FileEditorMode.All:
                     file = _repository.GetConfiguration(org, service, fileName);
                     break;
+                case FileEditorMode.Root:
+                    file = _repository.GetFileByRelativePath(org, service, fileName);
+                    break;
                 default:
                     break;
             }
@@ -141,6 +144,9 @@ namespace AltinnCore.Designer.Controllers
                     case FileEditorMode.All:
                         _repository.SaveConfiguration(org, service, fileName, content);
                         break;
+                    case FileEditorMode.Root:
+                        _repository.SaveFile(org, service, fileName, content);
+                        break;
                     default:
                         // Return 501 Not Implemented
                         return new HttpResponseMessage(HttpStatusCode.NotImplemented);
@@ -153,7 +159,7 @@ namespace AltinnCore.Designer.Controllers
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }

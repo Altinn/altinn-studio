@@ -166,5 +166,17 @@ namespace AltinnCore.Designer.Controllers
         {
             return Content(_repository.GetXsdModel(org, service), "text/plain", Encoding.UTF8);
         }
+
+        /// <summary>
+        /// Get the model as Json Schema
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>The model representation as Json Schema</returns>
+        [HttpGet]
+        public ActionResult GetJsonSchema(string org, string service)
+        {
+            return Content(_repository.GetJsonSchemaModel(org, service), "text/plain", Encoding.UTF8);
+        }
     }
 }

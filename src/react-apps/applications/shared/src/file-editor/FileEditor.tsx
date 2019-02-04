@@ -138,7 +138,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public componentDidMount() {
-    if (this.props.mode) {
+    if (!this.props.loadFile) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service } = altinnWindow;
       const servicePath = `${org}/${service}`;
@@ -157,13 +157,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
   }
 
-  // TODO: The added '../' is temporary in place until loadfil API for unique file is available
   public componentDidUpdate(prevProps: any) {
     if (this.props.loadFile !== prevProps.loadFile) {
       this.setState({
-        selectedFile: `../${this.props.loadFile}`,
+        selectedFile: `${this.props.loadFile}`,
       });
-      this.loadFileContent(`../${this.props.loadFile}`);
+      this.loadFileContent(`${this.props.loadFile}`);
     }
   }
 
@@ -177,16 +176,15 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     get(`${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
       `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`)
       .then((logicFileContent) => {
-          this.setState((prevState: IFileEditorState) => {
-            return {
-              ...prevState,
-              isLoading: false,
-              selectedFile: fileName,
-              value: logicFileContent,
-              valueOriginal: logicFileContent,
-            };
-          });
-
+        this.setState((prevState: IFileEditorState) => {
+          return {
+            ...prevState,
+            isLoading: false,
+            selectedFile: fileName,
+            value: logicFileContent,
+            valueOriginal: logicFileContent,
+          };
+        });
       });
   }
 
@@ -196,11 +194,17 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public saveFile = async (e: any) => {
+
+    let stageFile = false;
+    if (this.props.stageAfterSaveFile === true && this.valueHasNoMergeConflictTags(this.state.value)) {
+      stageFile = true;
+    }
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&SaveServiceFile=false`;
+      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
 
     const saveRes: any = await post(postUrl, this.state.value, {
       headers: {
@@ -210,18 +214,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
     if (saveRes.isSuccessStatusCode === false) {
       console.error('save error', saveRes);
-
-    } else if (this.props.stageAfterSaveFile === true) {
-
-      const stageUrl = `${altinnWindow.location.origin}` +
-        `/designerapi/Repository/StageChange?` +
-        `owner=${org}&repository=${service}&fileName=${this.state.selectedFile.replace(/^\.{2}\//, '')}`;
-      const stageRes = await get(stageUrl);
-
-      if (stageRes.isSuccessStatusCode === false) {
-        console.error('stage error', stageRes);
-      }
-
     }
 
     if (this.props.checkRepoStatusAfterSaveFile === true) {
@@ -336,10 +328,17 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     );
   }
 
+  public valueHasNoMergeConflictTags = (value: string) => {
+    if (value.includes('<<<<<<<') || value.includes('=======') || value.includes('>>>>>>>')) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   public render() {
     const { classes, mode } = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
-
     return (
       <Grid
         container={true}
@@ -394,8 +393,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
               }
 
-              {/* If this.props.mode is present, show select*/}
-              {this.props.mode ?
+              {/* If not Loadfile, show select*/}
+              {!this.props.loadFile ?
 
                 <React.Fragment>
                   {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />

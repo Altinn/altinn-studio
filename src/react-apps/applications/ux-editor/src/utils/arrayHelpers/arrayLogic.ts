@@ -40,6 +40,7 @@ const changeOrderNum = ({array, order}: ITwoArraysObj) => {
       component.order = order.indexOf(component.id);
     }
   });
+  markFirstAndLastObject(array);
   const cloneOfObj = JSON.parse(JSON.stringify({array, order}));
   return cloneOfObj;
 };
