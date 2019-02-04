@@ -48,9 +48,6 @@ const styles = () => createStyles({
     background: theme.altinnPalette.primary.greenLight,
     boxShadow: theme.sharedStyles.boxShadow,
   },
-  title: {
-  },
-
 });
 
 export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
@@ -116,7 +113,6 @@ export class HandleMergeConflictContainer extends
               <Grid
                 item={true}
                 xs={12}
-                className={classes.title}
               >
                 {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
 
