@@ -219,10 +219,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 isRequired = true;
             }
 
-            if (item.MaxOccursString != null)
-            {
-                // This is handled when appending type info
-            }
+            /* item.MaxOccursString is handled when appending type info */
 
             if (!item.RefName.IsEmpty)
             {
