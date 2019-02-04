@@ -82,9 +82,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             var result = new JsonArray();
 
             foreach (AltinnResource resource in resources)
-            {
-                System.Diagnostics.Debug.WriteLine(resource.ServiceName);
-
+            {            
                 JsonObject service = new JsonObject
                 {
                     { "ownerCode", resource.ServiceOwnerCode },
@@ -111,9 +109,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         jsonForm.Add("DataFormatID", form.DataFormatID);
                         jsonForm.Add("DataFormatVersion", form.DataFormatVersion);
                         jsonForm.Add("schemaUrl", serviceXsdSchemaUrl);
-                        forms.Add(jsonForm);
-
-                        System.Diagnostics.Debug.WriteLine("\t" + serviceXsdSchemaUrl);                        
+                        forms.Add(jsonForm);            
                     }                   
                 }
 
