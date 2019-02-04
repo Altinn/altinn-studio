@@ -261,7 +261,7 @@ export const routes = [
     exact: true,
     activeSubHeaderSelection: '',
     activeLeftMenuSelection: 'Mergekonflikt',
-    menu: 'about',
+    menu: '',
     subapp: HandleMergeConflictContainer,
     props: {
       headerTextKey: 'shared.wip_title',

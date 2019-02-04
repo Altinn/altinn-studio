@@ -21,15 +21,18 @@ namespace AltinnCore.Designer.Controllers
     public class ServiceDevelopmentController : Controller
     {
         private readonly IRepository _repository;
+        private readonly ISourceControl _sourceControl;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceDevelopmentController"/> class.
         /// </summary>
         /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="sourceControl">The source control service.</param>
         public ServiceDevelopmentController(
-            IRepository repositoryService)
+            IRepository repositoryService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
+            _sourceControl = sourceControl;
         }
 
         /// <summary>
@@ -102,44 +105,58 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="service">The service identifier.</param>
         /// <param name="fileEditorMode">The mode for which files should be saved.</param>
         /// <param name="fileName">The name of the file to save.</param>
+        /// <param name="stageFile">true if the file needs to be staged</param>
         /// <returns>The content of the file.</returns>
         [HttpPost]
-        public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName)
+        public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string service, FileEditorMode fileEditorMode, string fileName, bool stageFile)
         {
             string content = string.Empty;
-            using (var reader = new StreamReader(Request.Body))
+
+            try
             {
-                content = reader.ReadToEnd();
-            }
+                using (var reader = new StreamReader(Request.Body))
+                {
+                    content = reader.ReadToEnd();
+                }
 
-            switch (fileEditorMode)
+                switch (fileEditorMode)
+                {
+                    case FileEditorMode.Implementation:
+                        if (fileName == "RuleHandler.js")
+                        {
+                            _repository.SaveResourceFile(org, service, fileName, content);
+                        }
+                        else
+                        {
+                            _repository.SaveImplementationFile(org, service, fileName, content);
+                        }
+
+                        break;
+                    case FileEditorMode.Dynamics:
+                        _repository.SaveResourceFile(org, service, "Dynamics/" + fileName, content);
+                        break;
+                    case FileEditorMode.Calculation:
+                        _repository.SaveImplementationFile(org, service, "Calculation/" + fileName, content);
+                        break;
+                    case FileEditorMode.All:
+                        _repository.SaveConfiguration(org, service, fileName, content);
+                        break;
+                    default:
+                        // Return 501 Not Implemented
+                        return new HttpResponseMessage(HttpStatusCode.NotImplemented);
+                }
+
+                if (stageFile)
+                {
+                    _sourceControl.StageChange(org, service, fileName);
+                }
+
+                return new HttpResponseMessage(HttpStatusCode.OK);
+            }
+            catch (Exception)
             {
-                case FileEditorMode.Implementation:
-                    if (fileName == "RuleHandler.js")
-                    {
-                        _repository.SaveResourceFile(org, service, fileName, content);
-                    }
-                    else
-                    {
-                        _repository.SaveImplementationFile(org, service, fileName, content);
-                    }
-
-                    break;
-                case FileEditorMode.Dynamics:
-                    _repository.SaveResourceFile(org, service, "Dynamics/" + fileName, content);
-                    break;
-                case FileEditorMode.Calculation:
-                    _repository.SaveImplementationFile(org, service, "Calculation/" + fileName, content);
-                    break;
-                case FileEditorMode.All:
-                    _repository.SaveConfiguration(org, service, fileName, content);
-                    break;
-                default:
-                    // Return 501 Not Implemented
-                    return new HttpResponseMessage(HttpStatusCode.NotImplemented);
+                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
-
-            return new HttpResponseMessage(HttpStatusCode.OK);
         }
 
         private ActionResult GetImplementationFiles(string org, string service)

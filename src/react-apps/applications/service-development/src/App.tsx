@@ -83,6 +83,10 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
     window.addEventListener('message', this.windowEventReceived);
   }
 
+  public componentWillUnmount() {
+    window.removeEventListener('message', this.windowEventReceived);
+  }
+
   public windowEventReceived = (event: any) => {
     if (event.data === 'forceRepoStatusCheck') {
       this.checkForMergeConflict();
