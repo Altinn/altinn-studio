@@ -3,12 +3,13 @@ kind: Service
 metadata:
   name: altinn-runtime
   labels:
-    app.kubernetes.io/name: {{ include "altinn-runtime.name" . }}
-    helm.sh/chart: {{ include "altinn-runtime.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: altinn-runtime
 spec:
   ports:
-    - port: {{ .Values.service.internalPort }}
+  {{- range $port := .Values.service.ports }}
+    - port: {{ $port.port }}
+      targetPort:  {{ $port.targetPort }}
+      protocol:  {{ $port.protocol }}
+  {{- end }}
   selector:
-    app: altinn-runtime
+    run: altinn-runtime
