@@ -5,8 +5,7 @@
     "target": "es5",
     "lib": [
       "es6",
-      "dom",
-      "es2017.object"
+      "dom"
     ],
     "sourceMap": true,
     "allowJs": true,
