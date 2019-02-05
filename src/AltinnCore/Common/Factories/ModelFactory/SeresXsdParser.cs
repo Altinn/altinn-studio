@@ -107,7 +107,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 Name = rootName,
                 XPath = "/" + rootName,
                 Type = ElementType.Group,
-                TypeName = !string.IsNullOrEmpty(rootTypeName) ? rootTypeName : rootName,
+                TypeName = SanitizeName(!string.IsNullOrEmpty(rootTypeName) ? rootTypeName : rootName),
             };
             if (rootElement == null)
             {
