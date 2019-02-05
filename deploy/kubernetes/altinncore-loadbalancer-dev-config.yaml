@@ -28,7 +28,7 @@ data:
 
       server {
         listen 80;
-        server_name altinn.studio;
+        server_name dev.altinn.studio;
         # Redirect all HTTP requests to HTTPS with a 301 Moved Permanently response.
         return 301 https://dev.altinn.studio$request_uri;
       }

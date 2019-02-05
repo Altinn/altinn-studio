@@ -2,19 +2,15 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: altinn-runtime
-  labels:
-    app.kubernetes.io/name: {{ include "altinn-runtime.name" . }}
-    helm.sh/chart: {{ include "altinn-runtime.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
+  selector:
+    matchLabels:
+      run: altinn-runtime
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "altinn-runtime.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app: altinn-runtime
+        run: altinn-runtime
     spec:
       containers:
         - name: {{ .Chart.Name }}
