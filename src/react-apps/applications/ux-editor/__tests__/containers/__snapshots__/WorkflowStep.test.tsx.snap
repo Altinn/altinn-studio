@@ -63,6 +63,66 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot >>> Capture snapshot of Wo
       className="col-xl-10 offset-xl-1 a-p-static"
     >
       <div
+        className="a-modal-content-target"
+        style={
+          Object {
+            "marginTop": "55px",
+          }
+        }
+      >
+        <div
+          className="a-page a-current-page"
+        >
+          <div
+            className="modalPage"
+          >
+            <div
+              className="modal-content"
+            >
+              <div
+                className="modal-header a-modal-header"
+                style={
+                  Object {
+                    "backgroundColor": "#F9CAD3",
+                    "color": "black",
+                    "minHeight": "6rem",
+                  }
+                }
+              >
+                <div>
+                  <h3
+                    className="a-fontReg"
+                    style={
+                      Object {
+                        "marginBottom": 0,
+                      }
+                    }
+                  >
+                    <i
+                      className="ai ai-circle-exclamation a-icon"
+                    />
+                    <span>
+                      Mock error report
+                    </span>
+                  </h3>
+                </div>
+              </div>
+              <div
+                className="modal-body a-modal-body"
+              >
+                <ol>
+                  <li>
+                    <a>
+                      1. mock-error-message
+                    </a>
+                  </li>
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
         className="a-modal-navbar"
       >
         <button
