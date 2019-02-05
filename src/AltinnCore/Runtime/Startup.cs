@@ -98,6 +98,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IWorkflowSI, WorkflowSI>();
 
             services.AddResponseCompression();
 

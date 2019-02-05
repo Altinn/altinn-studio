@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Manatee.Json;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -75,14 +76,27 @@ namespace AltinnCore.Common.Factories.ModelFactory
         ///  idjfidfj
         /// </summary>
         /// <returns>sldøfi</returns>
-        public static async Task<List<string>> ReadAllSchemaUrls()
+        public static async Task<JsonArray> ReadAllSchemaUrls()
         {
             List<AltinnResource> resources = await GetResourcesAsync();
-            List<string> result = new List<string>();
+            var result = new JsonArray();
 
             foreach (AltinnResource resource in resources)
-            {
-                System.Diagnostics.Debug.WriteLine(resource.ServiceName);
+            {            
+                JsonObject service = new JsonObject
+                {
+                    { "ownerCode", resource.ServiceOwnerCode },
+                    { "ownerName", resource.ServiceOwnerName },
+                    { "code", resource.ServiceCode },
+                    { "name", resource.ServiceName },
+                    { "edition", resource.ServiceEditionCode },
+                    { "type", resource.ServiceType },
+                    { "validFrom", resource.ValidFrom.ToString() },
+                    { "validTo", resource.ValidTo.ToString() },
+                };
+
+                JsonArray forms = new JsonArray();
+                service.Add("forms", forms);
 
                 FormResource r = await GetFormsMetadata(resource);
                 if (r != null && r.FormsMetaData != null && r.FormsMetaData.ToArray() != null)
@@ -91,11 +105,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         var serviceXsdSchemaUrl = XsdUrl(resource, form);
 
-                        System.Diagnostics.Debug.WriteLine("\t" + serviceXsdSchemaUrl);
-
-                        result.Add(serviceXsdSchemaUrl);
+                        JsonObject jsonForm = new JsonObject();
+                        jsonForm.Add("DataFormatID", form.DataFormatID);
+                        jsonForm.Add("DataFormatVersion", form.DataFormatVersion);
+                        jsonForm.Add("schemaUrl", serviceXsdSchemaUrl);
+                        forms.Add(jsonForm);            
                     }                   
                 }
+
+                result.Add(service);
             }
 
             return result;
