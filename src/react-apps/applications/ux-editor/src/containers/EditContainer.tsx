@@ -349,7 +349,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       this.props.activeList.findIndex((listItem: any) => listItem.id === this.props.id);
     const first = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
     return (
-      <div id={this.props.id}>
+      <>
         <Grid container={true}>
           <Grid
             container={true}
@@ -457,7 +457,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
               </Grid>}
           </Grid>
         </Grid>
-      </div>
+      </>
     );
   }
 }
