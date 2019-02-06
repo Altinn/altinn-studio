@@ -1610,11 +1610,22 @@ namespace AltinnCore.Common.Services.Implementation
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            if (File.Exists(serviceResourceDirectoryPath + resource))
+            if (resource == "RuleHandler.js")
             {
-                fileContent = File.ReadAllBytes(serviceResourceDirectoryPath + resource);
+                string dynamicsPath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                if (File.Exists(dynamicsPath + resource))
+                {
+                    fileContent = File.ReadAllBytes(dynamicsPath + resource);
+                }
+            }
+            else
+            {
+                string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                if (File.Exists(serviceResourceDirectoryPath + resource))
+                {
+                    fileContent = File.ReadAllBytes(serviceResourceDirectoryPath + resource);
+                }
             }
 
             return fileContent;

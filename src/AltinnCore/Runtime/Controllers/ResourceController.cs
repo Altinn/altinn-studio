@@ -37,6 +37,7 @@ namespace AltinnCore.Runtime.Controllers
         public IActionResult Index(string org, string service, string id)
         {
             byte[] fileContent = _execution.GetServiceResource(org, service, id);
+
             if (fileContent != null)
             {
                 return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
