@@ -50,12 +50,17 @@ const styles = createStyles({
   },
   gridWrapper: {
     marginBottom: '0rem',
+    padding: '0 1.1rem 0 1.1rem',
+  },
+  gridWrapperActive: {
+    marginBottom: '0rem',
+    padding: '0',
   },
   gridForBtn: {
     marginTop: '-0.2rem !important',
+    marginLeft: '-1rem !important',
     visibility: 'hidden',
     paddingBottom: '0.8rem',
-    marginLeft: '0.2rem',
   },
   gridForBtnActive: {
     marginTop: '-0.2rem !important',
@@ -357,7 +362,12 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             spacing={0}
             className={this.props.classes.wrapper}
           >
-            <Grid item={true} xs={11} className={this.props.classes.gridWrapper}>
+            <Grid
+              item={true}
+              xs={11}
+              className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
+                this.props.classes.gridWrapperActive : this.props.classes.gridWrapper}
+            >
               <div
                 className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
                   this.props.classes.listBorder + ' ' + this.setPlacementClass(activeListIndex) :
@@ -398,10 +408,11 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 <Grid
                   container={true}
                   direction={'row'}
-                  className={activeListIndex > -1 ? this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
+                  className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
+                     this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
                 >
                   <Grid item={true} xs={12}>
-                    {first &&
+                    {((first && activeListIndex === 0) || this.props.activeList.length < 1) &&
                       <IconButton
                         type='button'
                         className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
@@ -413,7 +424,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     }
                   </Grid>
                   <Grid item={true} xs={12}>
-                    {!(this.props.activeList.length > 1) &&
+                    {(this.props.activeList.length < 1 ||
+                      this.props.activeList.length === 1 && activeListIndex === 0) &&
                       <IconButton
                         type='button'
                         className={this.props.classes.formComponentsBtn}
