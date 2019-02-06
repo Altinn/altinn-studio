@@ -1,18 +1,16 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: altinn-loadbalancer
-  labels:
-    app.kubernetes.io/name: {{ include "altinn-loadbalancer.name" . }}
-    helm.sh/chart: {{ include "altinn-loadbalancer.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
+  selector:
+    matchLabels:
+      run: altinn-loadbalancer
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
-        app: altinn-loadbalancer
+        run: altinn-loadbalancer
     spec:
       containers:
         - name: {{ .Chart.Name }}

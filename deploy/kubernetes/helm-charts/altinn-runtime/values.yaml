@@ -66,4 +66,7 @@ volumes:
       secretName: altinn-appsettings-secret
 
 service:
-  internalPort: 5005
+  ports:
+    - port: 5005
+      targetPort: 5005
+      protocol: TCP

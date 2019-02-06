@@ -64,4 +64,7 @@ volumes:
       claimName: altinn-storage-gitea-volume-claim
 
 service:
-  internalPort: 3000
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP

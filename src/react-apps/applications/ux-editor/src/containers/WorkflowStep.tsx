@@ -7,6 +7,7 @@ export interface IWorkflowStepProvidedProps {
 
 export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
   language: any;
+  errorList: string[];
 }
 
 export interface IWorkflowStepState {}
@@ -78,12 +79,55 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
     );
   }
 
+  public renderErrorReport = () => {
+    if (!this.props.errorList || this.props.errorList.length === 0) {
+      return null;
+    }
+    return (
+      <div className='a-modal-content-target' style={{marginTop: '55px'}}>
+        <div className='a-page a-current-page'>
+          <div className='modalPage'>
+            <div className='modal-content'>
+            <div
+              className='modal-header a-modal-header'
+              style={{
+                backgroundColor: '#F9CAD3',
+                color: 'black',
+                minHeight: '6rem',
+              }}
+            >
+              <div>
+                <h3 className='a-fontReg' style={{marginBottom: 0}}>
+                  <i className='ai ai-circle-exclamation a-icon'/>
+                  <span>{this.props.language.form_filler.error_report_header}</span>
+                </h3>
+              </div>
+            </div>
+            <div className='modal-body a-modal-body'>
+              {this.props.errorList ?
+                this.props.errorList.map((error, index) => {
+                  return (
+                    <ol key={index}>
+                      <li><a>{(index + 1).toString() + '. ' + error}</a></li>
+                    </ol>
+                  );
+                })
+              : null}
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   public render() {
     return(
       <div className='container'>
         {this.renderTop()}
         <div className='row'>
           <div className='col-xl-10 offset-xl-1 a-p-static'>
+            {this.renderErrorReport()}
             {this.renderNavBar()}
             <div className='a-modal-content-target'>
               <div className='a-page a-current-page'>
@@ -104,10 +148,21 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, any> {
   }
 }
 
+const getErrorList = (errors: any) => {
+  const errorList: string[] = [];
+  // tslint:disable-next-line:forin
+  for (const error in errors) {
+    const errorMessage = errors[error].join(', ');
+    errorList.push(errorMessage);
+  }
+  return errorList;
+}
+
 const mapStateToProps = (state: IAppState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
     header: props.header,
     language: state.appData.language.language,
+    errorList: getErrorList(state.formFiller.validationErrors),
   };
 };
 

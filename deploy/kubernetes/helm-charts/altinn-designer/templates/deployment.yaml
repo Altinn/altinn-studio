@@ -1,26 +1,22 @@
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: altinn-designer
-  labels:
-    app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
-    helm.sh/chart: {{ include "altinn-designer.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
+  selector:
+    matchLabels:
+      run: altinn-designer
   replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
-        app.kubernetes.io/instance: {{ .Release.Name }}
-        app: altinn-designer
+        run: altinn-designer
     spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ required "image.tag not set" .Values.image.tag }}"
           ports:
-            - containerPort: {{ .Values.service.internalPort }}
+            - containerPort: {{ .Values.image.containerPort }}
           {{- if eq (required "evironment not set" .Values.environment) "development"}}
           env:
             {{- range $variable := .Values.environmentVariables.development }}

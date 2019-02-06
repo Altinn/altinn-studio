@@ -249,12 +249,11 @@ class FormComponent extends React.Component<
     if (this.props.validationErrors && this.props.validationErrors.length > 0) {
       return (
         <span className='field-validation-error a-message a-message-error'>
-          <p>Validation fails:</p>
-          <ul>
+          <ol>
             {this.props.validationErrors.map((error: string, index: number) => {
               return <li key={index}>{error}</li>;
             })}
-          </ul>
+          </ol>
         </span>
       );
     }
