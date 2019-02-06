@@ -19,7 +19,15 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
             ux_editor: {
               formfiller_placeholder_user: 'OLA PRIVATPERSON',
             },
+            form_filler: {
+              error_report_header: 'Mock error report',
+            }
           },
+        },
+      },
+      formFiller: {
+        validationErrors: {
+          'mock-component-id': ['mock-error-message'],
         },
       },
     };
