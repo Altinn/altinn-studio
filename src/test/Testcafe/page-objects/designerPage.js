@@ -7,21 +7,22 @@ export default class DesignerPage {
   constructor() {
     //editor elements
     this.header = Selector("#schema-components").withText("Header");
-    this.inputBtn = Selector("#schema-components").withText("Input");
-    this.dropDown = Selector("#schema-components").withText("Dropdown");
-    this.checkBoxes = Selector("#schema-components").withText("Checkboxes");
-    this.radioButtons = Selector("#schema-components").withText("RadioButtons");
-    this.textArea = Selector("#schema-components").withText("TextArea");
-    this.fileUpload = Selector("#schema-components").withText("FileUpload");
+    this.inputBtn = Selector("#schema-components").withText("Inputfelt");
+    this.dropDown = Selector("#schema-components").withText("Rullegardin");
+    this.checkBoxes = Selector("#schema-components").withText("Avkrysningsboks");
+    this.radioButtons = Selector("#schema-components").withText("Radioknapp");
+    this.textArea = Selector("#schema-components").withText("Tekstområde");
+    this.fileUpload = Selector("#schema-components").withText("Vedlegg");
     this.submit = Selector("#schema-components").withText("Submit");
-    this.addContainer = Selector("#schema-components").withText("Add Container");
+    this.addContainer = Selector("#schema-components").withText("Container");
     this.saveButton = Selector("#schema-components").withText("Save");
     this.addApiConnection = Selector(".d-block").withText("Api connections").child(0);
     this.addRuleConnection = Selector(".d-block").withText("Rule connections").child(0);
     this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
 
     //editor canvas
-    this.canvas = ReactSelector("DesignView") //Selector('.div').withAttribute('draggable');
+
+    this.canvas = Selector('.div').withAttribute('draggable');
 
     //left drawer menu
     this.leftDrawerMenu = Selector('#root > div > div > div:nth-child(2) > div:nth-child(1) > div > div > div');
@@ -39,7 +40,7 @@ export default class DesignerPage {
     ];
 
     //"Lage" navigation tab selectors
-    this.lageNavigationTab = Selector('div').withExactText('Lage');
+    this.lageNavigationTab = Selector('div > a').withExactText('Lage');
     this.lageLeftMenuItems = [
       this.leftMenuList.withExactText('Datamodell'),
       this.leftMenuList.withExactText('GUI'),
@@ -75,12 +76,11 @@ export default class DesignerPage {
     this.addNewLanguage = Selector("#newtab > a");
 
     //syncing elements
-    this.delEndringer = Selector(".button").withExactText("Del endringer");
-    this.validerEndringer = Selector(".button").withExactText("Valider endringer");
-    this.hentEndringer = Selector(".button").withExactText("Hent endringer");
+    this.hentEndringer = Selector(".button").withText("Hent endringer");
+    this.validerEndringer = Selector("button > span").withExactText("Valider endringer");
+    this.delEndringer = Selector("button > span > p").withExactText("Del endringer");
     this.commitMessageBox = Selector("#test");
   }
-
   async deleteDataModelTexts(numberToDelete) {
     let deleteButtons = await Selector(".tbn").withText("Slett");
     let count = deleteButtons().count;

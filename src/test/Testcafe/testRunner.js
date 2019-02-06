@@ -18,11 +18,11 @@ createTestCafe()
       .run({
         skipJsErrors: true,
         quarantineMode: false,
-        selectorTimeout: 5000,
-        assertionTimeout: 5000,
-        pageLoadTimeout: 5000,
-        speed: 1,
-        debugOnFail: false,
+        selectorTimeout: 15000,
+        assertionTimeout: 15000,
+        pageLoadTimeout: 10000,
+        speed: 0.75,
+        debugOnFail: true,
         stopOnFirstFail: false
       })
       .then(failedCount => {

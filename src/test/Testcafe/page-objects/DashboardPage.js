@@ -1,12 +1,16 @@
 import { Selector, t } from 'testcafe';
-import { servicesVersion } from 'typescript';
 
 export default class DashBoard {
   constructor() {
-    this.newServiceButton = Selector('');
+    //New service dialogue box
+    this.newServiceButton = Selector("button > span").withExactText("ny tjeneste");
+    this.tjenesteEier = Selector("#service-owner");
+    this.tjenesteNavn = Selector("#service-name");
+    this.lagringsNavn = Selector("#service-saved-name");
+    this.opprettButton = Selector("button").withExactText("Opprett");
   }
 
-  async createNewService() {
-
+  async createNewService(serviceName) {
+    //New service button and dialogue selectors
   }
 }
