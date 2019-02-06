@@ -14,7 +14,7 @@ let loginPage = new LoginPage();
 let designerPage = new DesignerPage();
 const testUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
 
-fixture('Navigating the Service designer')
+fixture('Creating/Reading/Updating/Deleting services')
   .page(app.baseUrl)
   .before(async t => {
     //app.before()
@@ -54,6 +54,7 @@ test('Create a new service', async () => {
     .click(dash.newServiceButton)
     .click(dash.tjenesteNavn)
     .typeText(dash.tjenesteNavn, t.ctx.newServiceName)
+    .pressKey("tab")
     .pressKey("tab")
     .click(dash.opprettButton)
 });

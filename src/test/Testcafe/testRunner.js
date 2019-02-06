@@ -9,20 +9,20 @@ createTestCafe()
     const stream = fs.createWriteStream('junit.xml');
 
     return runner
-      .browsers(['chrome'])
+      .browsers(['chrome:headless'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
       .reporter('junit', stream)
-      .src(['./dashboard_tests/service-tests.js'])
+      .src(['./dashboard_tests/service-tests.js', './designer_tests/navigation-tests.js'])
       .run({
         skipJsErrors: true,
         quarantineMode: false,
         selectorTimeout: 15000,
         assertionTimeout: 15000,
         pageLoadTimeout: 10000,
-        speed: 0.75,
-        debugOnFail: true,
+        speed: 1,
+        debugOnFail: false,
         stopOnFirstFail: false
       })
       .then(failedCount => {

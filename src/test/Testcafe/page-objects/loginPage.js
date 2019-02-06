@@ -7,7 +7,7 @@ export default class LoginPage {
     this.welcomeLoginButton = Selector('[value ^= "Logg inn"]');
     this.userInput = Selector('#user_name');
     this.passwordInput = Selector('#password');
-    this.loginButton = Selector('.button').withExactText('Sign In');
+    this.loginButton = Selector('.button').withExactText('Logg inn');
   }
 
 }
