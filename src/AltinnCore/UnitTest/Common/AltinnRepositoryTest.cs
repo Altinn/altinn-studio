@@ -38,13 +38,19 @@ namespace AltinnCore.UnitTest.Common
         /// <summary>
         ///  read and save
         /// </summary>
-        /// [Fact]
+        [Fact]
         public async void ReadAllAsync()
         {
-            JsonArray services = await AltinnServiceRepository.ReadAllSchemaUrls();            
+            List<AltinnResource> services = await AltinnServiceRepository.ReadAllSchemaUrls();            
             
-            File.WriteAllText("altinn-xsds.json", services.ToString());
+            File.WriteAllText("altinn-xsds.json", JsonConvert.SerializeObject(services, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented }));
 
+            if (true)
+            {
+                return;
+            }
+
+            /*
             foreach (JsonValue service in services)
             {
                 JsonArray formArray = service.Object.TryGetArray("forms");
@@ -60,6 +66,7 @@ namespace AltinnCore.UnitTest.Common
                     webClient.DownloadFile(schemaUrl, fileName);
                 }
             }
+            */
         }
 
         private ILogger _logger = new LoggerFactory().CreateLogger("error");

@@ -3,8 +3,12 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Serialization;
 using Manatee.Json;
+using Manatee.Json.Schema;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -21,7 +25,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </summary>
         public AltinnServiceRepository()
         {
-            Console.WriteLine("starting");
+            Console.WriteLine("starting");            
         }
 
         /// <summary>
@@ -73,50 +77,99 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         /// <summary>
-        ///  idjfidfj
+        ///  Reads all altinn services resources and returns a list of these
         /// </summary>
-        /// <returns>sldøfi</returns>
-        public static async Task<JsonArray> ReadAllSchemaUrls()
+        /// <returns>the list</returns>
+        public static async Task<List<AltinnResource>> ReadAllSchemaUrls()
         {
             List<AltinnResource> resources = await GetResourcesAsync();
-            var result = new JsonArray();
+            List<AltinnResource> result = new List<AltinnResource>();
+
+            Dictionary<string, string> serviceCodeToServiceEditionCodeDictionary = new Dictionary<string, string>();
 
             foreach (AltinnResource resource in resources)
-            {            
-                JsonObject service = new JsonObject
+            {
+                if (resource.ServiceOwnerCode.Equals("ACN") || resource.ServiceOwnerCode.Equals("ASF"))
                 {
-                    { "ownerCode", resource.ServiceOwnerCode },
-                    { "ownerName", resource.ServiceOwnerName },
-                    { "code", resource.ServiceCode },
-                    { "name", resource.ServiceName },
-                    { "edition", resource.ServiceEditionCode },
-                    { "type", resource.ServiceType },
-                    { "validFrom", resource.ValidFrom.ToString() },
-                    { "validTo", resource.ValidTo.ToString() },
-                };
+                    continue;
+                }
 
-                JsonArray forms = new JsonArray();
-                service.Add("forms", forms);
+                List<AltinnFormMetaData> forms = new List<AltinnFormMetaData>();                
 
                 FormResource r = await GetFormsMetadata(resource);
                 if (r != null && r.FormsMetaData != null && r.FormsMetaData.ToArray() != null)
                 {
                     foreach (AltinnFormMetaData form in r.FormsMetaData)
                     {
-                        var serviceXsdSchemaUrl = XsdUrl(resource, form);
+                        form.XsdSchemaUrl = XsdUrl(resource, form);
 
-                        JsonObject jsonForm = new JsonObject();
-                        jsonForm.Add("DataFormatID", form.DataFormatID);
-                        jsonForm.Add("DataFormatVersion", form.DataFormatVersion);
-                        jsonForm.Add("schemaUrl", serviceXsdSchemaUrl);
-                        forms.Add(jsonForm);            
+                        form.JsonSchema = DownloadAndConvertXsdToJsonSchema(form.XsdSchemaUrl);
+
+                        forms.Add(form);            
                     }                   
                 }
 
-                result.Add(service);
+                if (forms.Count > 0)
+                {
+                    resource.Forms = forms;
+                    result.Add(resource);
+
+                    RememberHighestServiceEditionCode(serviceCodeToServiceEditionCodeDictionary, resource);
+                }
             }
 
-            return result;
+            List<AltinnResource> filteredResult = new List<AltinnResource>();
+
+            foreach (AltinnResource resource in result)
+            {
+                string highestEditionCode = serviceCodeToServiceEditionCodeDictionary.GetValueOrDefault(resource.ServiceCode);
+
+                if (resource.ServiceEditionCode.Equals(highestEditionCode))
+                {
+                    filteredResult.Add(resource);
+                }                    
+            }
+
+            return filteredResult;
+        }
+
+        private static JsonSchema DownloadAndConvertXsdToJsonSchema(string xsdSchemaUrl)
+        {
+            XmlReaderSettings settings = new XmlReaderSettings();
+            settings.IgnoreWhitespace = true;
+
+            XmlReader doc = XmlReader.Create(xsdSchemaUrl, settings);
+
+            // XSD to Json Schema
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(doc, null);
+
+            return xsdToJsonSchemaConverter.AsJsonSchema();
+        }
+
+        private static void RememberHighestServiceEditionCode(Dictionary<string, string> serviceCodeToServiceEditionCodeDictionary, AltinnResource resource)
+        {
+            string serviceCode = resource.ServiceCode;
+            string lastHighestServiceEditionCode = serviceCodeToServiceEditionCodeDictionary.GetValueOrDefault(serviceCode);
+            string currentServiceEditionCode = resource.ServiceEditionCode;
+
+            if (string.IsNullOrEmpty(lastHighestServiceEditionCode))
+            {
+                serviceCodeToServiceEditionCodeDictionary.Add(serviceCode, resource.ServiceEditionCode);
+            }
+            else
+            {
+                int lastEditionCode = 0;
+                int currentEditionCode = 0;
+
+                int.TryParse(lastHighestServiceEditionCode, out lastEditionCode);
+                int.TryParse(currentServiceEditionCode, out currentEditionCode);
+
+                if (currentEditionCode > lastEditionCode)
+                {
+                    serviceCodeToServiceEditionCodeDictionary.Remove(serviceCode);
+                    serviceCodeToServiceEditionCodeDictionary.Add(serviceCode, resource.ServiceEditionCode);
+                }
+            }
         }
     }
 
@@ -140,6 +193,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public string ServiceType { get; set; }
 
         public string EnterpriseUserEnabled { get; set; }
+
+        public List<AltinnFormMetaData> Forms { get; set; }
     }
 
     public class FormResource
@@ -153,8 +208,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
     {
         public string FormID { get; set; }
 
+        public string FormName { get; set; }
+
+        public string FormType { get; set; }
+
         public string DataFormatID { get; set; }
 
         public string DataFormatVersion { get; set; }
+
+        public string XsdSchemaUrl { get; set; }
+
+        public JsonSchema JsonSchema { get; set; }
     }
 }
