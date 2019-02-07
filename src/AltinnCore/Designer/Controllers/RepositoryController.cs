@@ -464,5 +464,64 @@ namespace AltinnCore.Designer.Controllers
                 _repository.SaveResource(owner, service, "nb-NO", json.ToString());
             }
         }
+
+        /// <summary>
+        /// Method to retrieve the service description from the metadata file
+        /// </summary>
+        /// <param name="owner">the owner of the service</param>
+        /// <param name="service">the service</param>
+        /// <returns>The service description of the service</returns>
+        [HttpGet]
+        public string GetServiceDesciption(string owner, string service)
+        {
+            string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
+            string serviceDesciption = string.Empty;
+
+            if (System.IO.File.Exists(serviceMetadataDirectoryPath))
+            {
+                string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
+                ServiceConfiguration serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
+                if (serviceConfigurationObject != null)
+                {
+                    serviceDesciption = serviceConfigurationObject.ServiceDescrition;
+                }
+            }
+
+            return serviceDesciption;
+        }
+
+        /// <summary>
+        /// Method to set the service description in the metadata file
+        /// </summary>
+        /// <param name="owner">the owner of the service</param>
+        /// <param name="service">the service</param>
+        /// <param name="description">the service description</param>
+        [HttpPost]
+        public void SetServiceDesciption(string owner, string service, [FromBody] string description)
+        {
+            string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
+            ServiceConfiguration serviceConfigurationObject = null;
+
+            if (System.IO.File.Exists(serviceMetadataDirectoryPath))
+            {
+                string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
+                serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
+                serviceConfigurationObject.ServiceDescrition = description;
+            }
+            else
+            {
+                new FileInfo(serviceMetadataDirectoryPath).Directory.Create();
+                serviceConfigurationObject = new ServiceConfiguration()
+                {
+                    RepositoryName = service,
+                    ServiceDescrition = description,
+                };
+            }
+
+            if (serviceConfigurationObject != null)
+            {
+                System.IO.File.WriteAllText(serviceMetadataDirectoryPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
+            }
+        }
     }
 }

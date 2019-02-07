@@ -128,7 +128,7 @@ export class AdministationComponent extends
   }
 
   public onBlurServiceName = () => {
-    if (!this.state.serviceName || this.state.serviceName === '') {
+    if (this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === '')) {
       this.setState({
         serviceNameAnchorEl: document.getElementById('service-name'),
       });
