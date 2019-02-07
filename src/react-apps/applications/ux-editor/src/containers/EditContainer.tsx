@@ -17,7 +17,7 @@ const styles = createStyles({
   active: {
     backgroundColor: '#fff',
     boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
-    padding: '1rem 1.2rem 1.4rem 1.2rem',
+    padding: '0.45rem 1.05rem 1.35rem 1.05rem',
     marginBottom: '1.2rem',
     border: '0.15rem solid #fff',
   },
@@ -34,7 +34,7 @@ const styles = createStyles({
     'backgroundColor': altinnTheme.altinnPalette.primary.greyLight,
     'border': '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     'color': altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
-    'padding': '1rem 1.2rem 1.4rem 1.2rem',
+    'padding': '0.45rem 1.05rem 1.35rem 1.05rem',
     'marginBottom': '1.2rem',
     '&:hover': {
       backgroundColor: '#fff',
@@ -48,6 +48,9 @@ const styles = createStyles({
     '&:hover': {
       background: 'none',
     },
+  },
+  formComponentTitle: {
+    marginTop: '0.6rem',
   },
   gridWrapper: {
     marginBottom: '0rem',
@@ -411,7 +414,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       />
                     </Grid>
                     :
-                    <div className={this.props.classes.textPrimaryDark}>
+                    <div className={this.props.classes.textPrimaryDark + ' ' + this.props.classes.formComponentTitle}>
                       {this.state.component.textResourceBindings.title ?
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
