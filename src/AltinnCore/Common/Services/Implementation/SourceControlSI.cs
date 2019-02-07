@@ -388,6 +388,34 @@ namespace AltinnCore.Common.Services.Implementation
             return commits;
         }
 
+        /// <inheritdoc />
+        public Models.Commit GetInitialCommit(string owner, string repository)
+        {
+            List<AltinnCore.Common.Models.Commit> commits = new List<Models.Commit>();
+            string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            using (var repo = new Repository(localServiceRepoFolder))
+            {
+                LibGit2Sharp.Commit firstCommit = repo.Commits.First();
+                Models.Commit commit = new Models.Commit();
+                commit.Message = firstCommit.Message;
+                commit.MessageShort = firstCommit.MessageShort;
+                commit.Encoding = firstCommit.Encoding;
+                commit.Sha = firstCommit.Sha;
+
+                commit.Author = new Models.Signature();
+                commit.Author.Email = firstCommit.Author.Email;
+                commit.Author.Name = firstCommit.Author.Name;
+                commit.Author.When = firstCommit.Author.When;
+
+                commit.Commiter = new Models.Signature();
+                commit.Commiter.Name = firstCommit.Committer.Name;
+                commit.Commiter.Email = firstCommit.Committer.Email;
+                commit.Commiter.When = firstCommit.Committer.When;
+
+                return commit;
+            }
+        }
+
         /// <summary>
         /// Creates the remote repository
         /// </summary>

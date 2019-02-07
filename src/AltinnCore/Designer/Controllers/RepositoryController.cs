@@ -1,17 +1,23 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
+using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -29,6 +35,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
@@ -37,12 +44,14 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repositorySettings">Settings for repository</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
-        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl, IRepository repository)
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl, IRepository repository, IHttpContextAccessor httpContextAccessor)
         {
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
             _sourceControl = sourceControl;
             _repository = repository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -75,9 +84,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
         [HttpGet]
-        public List<Organization> Organizations()
+        public List<RepositoryClient.Model.Organization> Organizations()
         {
-            List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
+            List<RepositoryClient.Model.Organization> orglist = _giteaApi.GetUserOrganizations().Result;
             return orglist;
         }
 
@@ -87,9 +96,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="id">The organization name</param>
         /// <returns>The organization</returns>
         [HttpGet]
-        public ActionResult<Organization> Organization(string id)
+        public ActionResult<RepositoryClient.Model.Organization> Organization(string id)
         {
-            Organization org = _giteaApi.GetOrganization(id).Result;
+            RepositoryClient.Model.Organization org = _giteaApi.GetOrganization(id).Result;
             if (org != null)
             {
                 return org;
@@ -173,7 +182,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Push commits to repo
+        /// Fetches the repository log
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The repo name</param>
@@ -185,7 +194,19 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Push commits to repo
+        /// Fetches the initial commit
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        /// <returns>The initial commit</returns>
+        [HttpGet]
+        public Commit GetInitialCommit(string owner, string repository)
+        {
+            return _sourceControl.GetInitialCommit(owner, repository);
+        }
+
+        /// <summary>
+        /// Gets the latest commit from current user
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The repo name</param>
@@ -378,6 +399,69 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Method to retrieve service name from textresources file
+        /// </summary>
+        /// <param name="owner">the owner of the service</param>
+        /// <param name="service">the service</param>
+        /// <returns>The service name of the service</returns>
+        [HttpGet]
+        public string GetServiceName(string owner, string service)
+        {
+            string defaultLang = "nb-NO";
+            string filename = $"resource.{defaultLang}.json";
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceName = string.Empty;
+
+            if (System.IO.File.Exists(serviceResourceDirectoryPath))
+            {
+                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
+                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
+                if (textResourceObject != null)
+                {
+                    serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
+                }
+            }
+            
+            return serviceName;
+        }
+
+        /// <summary>
+        /// Method to save the updated service name to the textresources file
+        /// </summary>
+        /// <param name="owner">the owner of the service</param>
+        /// <param name="service">the service</param>
+        /// <param name="jsonData">The json data</param>
+        [HttpPost]
+        public void SetServiceName(string owner, string service, [FromBody] dynamic jsonData)
+        {
+            string defaultLang = "nb-NO";
+            string filename = $"resource.{defaultLang}.json";
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            if (System.IO.File.Exists(serviceResourceDirectoryPath))
+            {
+                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
+
+                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
+
+                if (textResourceObject != null)
+                {
+                    textResourceObject.Add("ServiceName", jsonData.serviceName.ToString());
+                }
+
+                _repository.SaveResource(owner, service, "nb-NO", JObject.FromObject(textResourceObject).ToString());
+            }
+            else
+            {
+                JObject json = JObject.FromObject(new
+                {
+                    language = "nb-NO",
+                    resources = new[] { new { id = "ServiceName", value = jsonData.serviceName.ToString() } },
+                });
+                _repository.SaveResource(owner, service, "nb-NO", json.ToString());
             }
         }
     }

@@ -3,6 +3,7 @@ import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
+import AltinnButton from './AltinnButton';
 
 export interface IAltinnInputFieldComponentProvidedProps {
   classes: any;
@@ -13,6 +14,10 @@ export interface IAltinnInputFieldComponentProvidedProps {
   inputDescription?: string;
   inputValue?: string;
   onBlurFunction?: any;
+  isDisabled?: boolean;
+  textAreaRows?: number;
+  btnText?: string;
+  onBtnClickFunction?: any;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -37,8 +42,15 @@ const styles = createStyles({
   },
   inputFieldText: {
     fontSize: '16px',
-    color: '#000000',
+    color: theme.altinnPalette.primary.black,
     padding: '6px',
+  },
+  disabled: {
+    border: '1px solid ' + theme.altinnPalette.primary.greyMedium,
+  },
+  btn: {
+    marginTop: '10px',
+    marginBottom: '24px',
   },
 });
 
@@ -59,7 +71,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
           </Typography>
         }
         <FormControl
-          classes={{ root: classNames(classes.inputField) }}
+          classes={{ root: classNames(classes.inputField, { [classes.disabled]: this.props.isDisabled }) }}
           fullWidth={true}
           id={this.props.id}
         >
@@ -68,12 +80,24 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
             onChange={this.props.onChangeFunction}
             value={this.props.inputValue}
             placeholder={this.props.placeholder}
+            disabled={this.props.isDisabled}
+            multiline={this.props.textAreaRows ? true : false}
+            rows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },
             }}
           />
+
         </FormControl>
+        {this.props.btnText &&
+          <AltinnButton
+            btnText={this.props.btnText}
+            secondaryButton={true}
+            onClickFunction={this.props.onBtnClickFunction}
+            className={classNames(classes.btn)}
+          />
+        }
       </div>
     );
   }
