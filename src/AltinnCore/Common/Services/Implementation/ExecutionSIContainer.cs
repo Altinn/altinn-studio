@@ -211,14 +211,14 @@ namespace AltinnCore.Common.Services.Implementation
         {
             byte[] fileContent = null;
 
-            if (resource == "RuleHandler.js")
+            if (resource == _settings.RuleHandlerFileName)
             {
               if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
               {
                   fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
               }
             }
-            else 
+            else
             {
               if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))
               {

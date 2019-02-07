@@ -1420,7 +1420,7 @@ namespace AltinnCore.Common.Services.Implementation
             string[] jsFiles = Directory.GetFiles(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in jsFiles)
             {
-                if (Path.GetFileName(file) == "RuleHandler.js")
+                if (Path.GetFileName(file) == _settings.RuleHandlerFileName)
                 {
                     AltinnCoreFile corefile = new AltinnCoreFile
                     {
@@ -1612,7 +1612,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             byte[] fileContent = null;
 
-            if (resource == "RuleHandler.js")
+            if (resource == _settings.RuleHandlerFileName)
             {
                 string dynamicsPath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
                 if (File.Exists(dynamicsPath + resource))
