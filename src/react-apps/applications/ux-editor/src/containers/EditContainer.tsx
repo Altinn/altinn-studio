@@ -8,7 +8,7 @@ import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
-import { makeGetLayoutComponentsSelector } from '../selectors/getLayoutData';
+import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
 import { getTextResource, truncate } from '../utils/language';
@@ -124,7 +124,6 @@ const styles = createStyles({
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
   id: string;
-  order: number;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   sendItemToParent: any;
@@ -138,11 +137,11 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
   textResources: ITextResource[];
   language: any;
   components: any;
-  order: any;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   activeList: any;
   connections: any;
+  orderList: any[];
 }
 
 export interface IEditContainerState {
@@ -171,10 +170,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       },
       listItem: {
         id: _props.id,
-        order: _props.order,
         firstInActiveList: _props.firstInActiveList,
         lastInActiveList: _props.lastInActiveList,
         inEditMode: false,
+        order: null,
       },
       activeList: _props.activeList,
     };
@@ -224,11 +223,19 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public handleSetActive = (): void => {
     if (!this.state.isEditMode) {
-      this.props.sendItemToParent(this.state.listItem);
-      this.setState({
-        listItem: this.state.listItem,
+      const key: any = Object.keys(this.props.orderList)[0];
+      const orderIndex = this.props.orderList[key].indexOf(this.state.listItem.id);
+
+      this.setState((prevState) => ({
+        listItem: {
+          ...prevState.listItem,
+          order: orderIndex,
+        },
         hideDelete: false,
+      }), () => {
+        this.props.sendItemToParent(this.state.listItem);
       });
+
       if (!this.state.listItem.firstInActiveList) {
         this.setState({
           hideDelete: true,
@@ -489,6 +496,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
 const makeMapStateToProps = () => {
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const mapStateToProps = (
     state: IAppState,
     props: IEditContainerProvidedProps,
@@ -505,7 +513,7 @@ const makeMapStateToProps = () => {
       id: props.id,
       language: state.appData.language.language,
       lastInActiveList: props.lastInActiveList,
-      order: props.order,
+      orderList: GetLayoutOrderSelector(state),
       singleSelected: props.singleSelected,
       textResources: state.appData.textResources.resources,
     };
