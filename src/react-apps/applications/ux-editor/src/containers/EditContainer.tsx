@@ -19,6 +19,7 @@ const styles = createStyles({
     boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
     padding: '1rem 1.2rem 1.4rem 1.2rem',
     marginBottom: '1.2rem',
+    border: '0.15rem solid #fff',
   },
   activeWrapper: {
     padding: '1.0rem 1.2rem 2rem 1.2rem',
