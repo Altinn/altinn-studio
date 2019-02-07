@@ -68,6 +68,12 @@ const styles = createStyles({
     paddingBottom: '0.8rem',
     marginLeft: '0.2rem',
   },
+  gridForBtnSingleActive: {
+    marginTop: '-0.2rem !important',
+    marginLeft: '-1rem !important',
+    visibility: 'visible',
+    paddingBottom: '0.8rem',
+  },
   inputHelper: {
     marginTop: '1rem',
     fontSize: '1.6rem',
@@ -348,11 +354,19 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       return '';
     }
   }
+  public btnGrid = () => {
+    if (this.props.activeList.length > 1) {
+      return this.props.classes.gridForBtnActive;
+    } else if (this.props.activeList.length === 1) {
+      return this.props.classes.gridForBtnSingleActive;
+    } else {
+      return this.props.classes.gridForBtn;
+    }
+  }
 
   public render(): JSX.Element {
     const activeListIndex =
       this.props.activeList.findIndex((listItem: any) => listItem.id === this.props.id);
-    const first = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
     return (
       <>
         <Grid container={true}>
@@ -408,11 +422,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 <Grid
                   container={true}
                   direction={'row'}
-                  className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
-                     this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
+                  className={this.btnGrid()}
                 >
                   <Grid item={true} xs={12}>
-                    {((first && activeListIndex === 0) || this.props.activeList.length < 1) &&
+                    {(activeListIndex === 0 || this.props.activeList.length < 1) &&
                       <IconButton
                         type='button'
                         className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
@@ -443,7 +456,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 <Grid
                   container={true}
                   direction={'row'}
-                  className={this.props.classes.gridForBtnActive}
+                  className={this.props.classes.gridForBtnSingleActive}
                 >
                   <Grid item={true} xs={12}>
                     <IconButton
