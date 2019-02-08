@@ -33,6 +33,11 @@ namespace AltinnCore.Common.Configuration
         public const string CALCULATION_FOLDER_NAME = "Calculation/";
 
         /// <summary>
+        /// Constant for the location of validation files
+        /// </summary>
+        public const string VALIDATION_FOLDER_NAME = "Validation/";
+
+        /// <summary>
         /// Constant for the location of the testdata for parties folder
         /// </summary>
         public const string TESTDATA_FOR_PARTY_FOLDER_NAME = "Testdataforparty/";
@@ -419,6 +424,18 @@ namespace AltinnCore.Common.Configuration
         public string GetCalculationPath(string org, string service, string developer)
         {
             return GetServicePath(org, service, developer) + IMPLEMENTATION_FOLDER_NAME + CALCULATION_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Gets the full path to Validation directory (within ImplementationDirectory)
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="developer">the developer for the current service</param>
+        /// <returns>The full path to the validation folder, ending with '/'</returns>
+        public string GetValidationPath(string org, string service, string developer)
+        {
+            return GetServicePath(org, service, developer) + IMPLEMENTATION_FOLDER_NAME + VALIDATION_FOLDER_NAME;
         }
 
         /// <summary>
