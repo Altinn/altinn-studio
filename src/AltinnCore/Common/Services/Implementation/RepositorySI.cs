@@ -140,6 +140,16 @@ namespace AltinnCore.Common.Services.Implementation
                 calculationDirectoryInfo.Create();
             }
 
+            string validationDir = _settings.GetValidationPath(
+                serviceMetadata.Org,
+                serviceMetadata.RepositoryName,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            DirectoryInfo validationDirectoryInfo = new DirectoryInfo(validationDir);
+            if (!validationDirectoryInfo.Exists)
+            {
+                validationDirectoryInfo.Create();
+            }
+
             string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
@@ -797,7 +807,7 @@ namespace AltinnCore.Common.Services.Implementation
                 calculationHandlerPath,
                 File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
 
-            string validationHandlerPath = implementationDirectory + _settings.ValidationHandlerFileName;
+            string validationHandlerPath = _settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
             File.WriteAllText(
                 validationHandlerPath,
                 File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
@@ -1463,7 +1473,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list over the dynamics files for a Altinn Core service
+        /// Returns a list over the calculation files for a Altinn Core service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -1472,8 +1482,34 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
 
-            string[] jsFiles = Directory.GetFiles(_settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-            foreach (string file in jsFiles)
+            string[] files = Directory.GetFiles(_settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in files)
+            {
+                AltinnCoreFile corefile = new AltinnCoreFile
+                {
+                    FilePath = file,
+                    FileName = Path.GetFileName(file),
+                    LastChanged = File.GetLastWriteTime(file),
+                };
+
+                coreFiles.Add(corefile);
+            }
+
+            return coreFiles;
+        }
+
+        /// <summary>
+        /// Returns a list over the validation files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        public List<AltinnCoreFile> GetValidationFiles(string org, string service)
+        {
+            List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
+
+            string[] files = Directory.GetFiles(_settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in files)
             {
                 AltinnCoreFile corefile = new AltinnCoreFile
                 {
@@ -1739,7 +1775,7 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
+            string validationHandlerFilePath = _settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
             File.WriteAllText(validationHandlerFilePath, textData, Encoding.UTF8);
         }
 
@@ -1752,8 +1788,8 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
-            File.WriteAllText(validationHandlerFilePath, textData, Encoding.UTF8);
+            string instansiationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
+            File.WriteAllText(instansiationHandlerFilePath, textData, Encoding.UTF8);
         }
 
         private void CreateInitialWorkflow(string org, DirectoryInfo targetDirectory)
