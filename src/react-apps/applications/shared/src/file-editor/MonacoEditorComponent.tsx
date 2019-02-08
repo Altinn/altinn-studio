@@ -1,13 +1,20 @@
+import { CircularProgress, Grid } from '@material-ui/core';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import MonacoEditor from 'react-monaco-editor';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
+
+const theme = createMuiTheme(altinnTheme);
 
 export interface IMonacoEditorComponentProps {
-  height?: string;
-  width?: string;
-  language: string;
-  value: string;
-  onValueChange: (value: string) => void;
+  classes: any;
   createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
+  heightPx?: any;
+  isLoading?: boolean;
+  language: string;
+  onValueChange: (value: string) => void;
+  value: string;
+  widthPx?: any;
 }
 
 export interface IMonacoEditorComponentState {
@@ -18,8 +25,14 @@ export interface IMonacoEditorComponentWindow extends Window {
   MonacoEnvironment: any;
 }
 
+const styles = createStyles({
+  spinner: {
+    color: theme.altinnPalette.primary.blue,
+  },
+});
+
 class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps, IMonacoEditorComponentState> {
-  constructor(props: IMonacoEditorComponentProps, state: IMonacoEditorComponentState) {
+  constructor(props: IMonacoEditorComponentProps) {
     super(props);
     this.state = {
       code: props.value,
@@ -73,37 +86,66 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
   }
 
   public render() {
-    let { height, width } = this.props;
-    height = height ? height : '100%';
-    width = width ? width : '100%';
+    const { classes } = this.props;
     return (
-      <MonacoEditor
-        theme={'editorTheme'}
-        width={width}
-        height={height}
-        value={this.props.value}
-        language={this.props.language}
-        options={
-          {
-            autoClosingBrackets: 'always',
-            autoIndent: true,
-            automaticLayout: true,
-            colorDecorators: true,
-            minimap: {
-              enabled: false,
-            },
-            cursorBlinking: 'smooth',
-            scrollbar: {
-              vertical: 'auto',
-            },
-            scrollBeyondLastLine: false,
-          }
-        }
-        onChange={this.props.onValueChange}
-        editorWillMount={this.editorWillMount}
-      />
+      this.props.isLoading ?
+        (
+          <Grid
+            container={true}
+            alignItems='center'
+            justify='center'
+            direction='column'
+            style={{
+              height: this.props.heightPx ? this.props.heightPx : '100%',
+              width: this.props.widthPx ? this.props.heightPx : '100%',
+            }}
+          >
+            <Grid
+              container={true}
+              item={true}
+              alignItems='center'
+              justify='center'
+            >
+              <Grid
+                id='spinnerGridItem'
+                item={true}
+              >
+                <CircularProgress className={classes.spinner} />
+
+              </Grid>
+            </Grid>
+          </Grid>
+        )
+        :
+        (
+          <MonacoEditor
+            theme={'editorTheme'}
+            height={this.props.heightPx ? this.props.heightPx : '100%'}
+            width={this.props.widthPx ? this.props.widthPx : '100%'}
+            value={this.props.value}
+            language={this.props.language}
+            options={
+              {
+                autoClosingBrackets: 'always',
+                autoIndent: true,
+                automaticLayout: true,
+                colorDecorators: true,
+                minimap: {
+                  enabled: false,
+                },
+                cursorBlinking: 'smooth',
+                scrollbar: {
+                  vertical: 'auto',
+                },
+                scrollBeyondLastLine: false,
+              }
+            }
+            onChange={this.props.onValueChange}
+            editorWillMount={this.editorWillMount}
+          />
+        )
     );
   }
 }
 
-export default MonacoEditorComponent;
+export default withStyles(styles, { withTheme: true })(MonacoEditorComponent);

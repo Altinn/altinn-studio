@@ -3,12 +3,13 @@ kind: Service
 metadata:
   name: altinn-designer
   labels:
-    app.kubernetes.io/name: {{ include "altinn-designer.name" . }}
-    helm.sh/chart: {{ include "altinn-designer.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: altinn-designer
 spec:
   ports:
-    - port: {{ .Values.service.internalPort }}
+  {{- range $port := .Values.service.ports }}
+    - port: {{ $port.port }}
+      targetPort: {{ $port.targetPort }}
+      protocol: {{ $port.protocol }}
+  {{- end }}
   selector:
-    app: altinn-designer
+    run: altinn-designer

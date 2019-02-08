@@ -23,6 +23,8 @@ namespace AltinnCore.UnitTest.Common
     {
         private ILogger _logger = TestLogger.Create<XsdToJsonSchemaTest>();
 
+        private static bool writeDifferXsdFiles = false;
+
         /// <summary>
         /// Test converting all provided XSDs to Json Schema
         /// </summary>
@@ -37,12 +39,38 @@ namespace AltinnCore.UnitTest.Common
             {
                 _logger.LogInformation("Converting file " + file + " to Json Schema");
 
-                XsdToJsonSchema converter;
-                JsonValue schemaText;
                 try
                 {
-                    converter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
-                    schemaText = converter.AsJsonValue();
+                    // XSD to Json Schema
+                    XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
+                    JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                    // Json Schema to XSD
+                    JsonSchemaToXsd jsonSchemaToXsdConverter = new JsonSchemaToXsd();
+                    XmlSchema xmlSchema = jsonSchemaToXsdConverter.CreateXsd(schemaJsonSchema);
+
+                    // Load original file as XDocument
+                    XDocument original = XDocument.Load(file);
+
+                    // Load converted file as XDocument
+                    XDocument converted;
+                    StringBuilder sb = new StringBuilder();
+                    using (XmlWriter writer = XmlWriter.Create(sb))
+                    {
+                        xmlSchema.Write(writer);
+                        converted = XDocument.Load(new StringReader(sb.ToString()));
+                    }
+
+                    // Compare XDocuments
+                    bool xsdsAreEqual = XNode.DeepEquals(original, converted);
+                    if (!xsdsAreEqual && writeDifferXsdFiles)
+                    {
+                        File.Copy(file, "c:\\temp\\original.xsd", true);
+                        SaveJsonSchema(schemaJsonSchema, "c:\\temp\\converted.schema.json");
+                        SaveXmlSchema(xmlSchema, "c:\\temp\\converted.xsd");
+                    }
+
+                    /*Assert.True(xsdsAreEqual);*/
                 }
                 catch (Exception e)
                 {
@@ -52,6 +80,20 @@ namespace AltinnCore.UnitTest.Common
             }
 
             Assert.Equal(0, failCount);
+        }
+
+        private void SaveXmlSchema(XmlSchema xmlSchema, string fileName)
+        {
+            FileStream file = new FileStream(fileName, FileMode.Create, FileAccess.ReadWrite);
+            using (XmlTextWriter xwriter = new XmlTextWriter(file, Encoding.UTF8) { Formatting = Formatting.Indented })
+            {
+                xmlSchema.Write(xwriter);
+            }
+        }
+
+        private void SaveJsonSchema(JsonSchema jsonSchema, string fileName)
+        {
+            File.WriteAllText(fileName, new JsonSerializer().Serialize<JsonSchema>(jsonSchema).ToString(), Encoding.UTF8);
         }
     }
 }

@@ -11,13 +11,11 @@ image:
 
 environmentVariables:
   - name: USER_UID
-    value: "1000"
+    value: \"1000\"
   - name: USER_GID
-    value: "1000"
+    value: \"1000\"
   - name: DB_TYPE
     value: "postgres"
-  - name: INSTALL_LOCK
-    value: "true"
   - name: DB_SSL_MODE
     value: require
   - name: DB_HOST
@@ -66,4 +64,7 @@ volumes:
       claimName: altinn-storage-gitea-volume-claim
 
 service:
-  internalPort: 3000
+  ports:
+    - port: 3000
+      targetPort: 3000
+      protocol: TCP

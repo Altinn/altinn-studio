@@ -61,9 +61,9 @@ export interface IFormDesignerActionDispatchers
   ) => FormDesignerActions.ICreateRepeatingGroupRejected;
   deleteActiveListAction: (
   ) => Action;
-  deleteActionListActionFulfilled: (
+  deleteActiveListActionFulfilled: (
   ) => Action;
-  deleteActionListActionRejected: (
+  deleteActiveListActionRejected: (
     error: Error,
   ) => FormDesignerActions.IDeleteActiveListActionRejected;
   deleteFormComponent: (
@@ -194,8 +194,8 @@ const actions: IFormDesignerActionDispatchers = {
   createRepeatingGroupFulfilled: FormDesignerActions.createRepeatingGroupFulfilled,
   createRepeatingGroupRejected: FormDesignerActions.createRepeatingGroupRejected,
   deleteActiveListAction: FormDesignerActions.deleteActiveListAction,
-  deleteActionListActionFulfilled: FormDesignerActions.deleteActiveListActionFulfilled,
-  deleteActionListActionRejected: FormDesignerActions.deleteActiveListActionRejected,
+  deleteActiveListActionFulfilled: FormDesignerActions.deleteActiveListActionFulfilled,
+  deleteActiveListActionRejected: FormDesignerActions.deleteActiveListActionRejected,
   deleteFormComponent: FormDesignerActions.deleteComponentAction,
   deleteFormComponentFulfilled:
     FormDesignerActions.deleteComponentActionFulfilled,

@@ -54,9 +54,9 @@ export function* watchUpdateActiveOrderSaga(): SagaIterator {
 
 export function* deleteActiveListSaga(): SagaIterator {
   try {
-    yield call(FormDesignerActionDispatchers.deleteActionListActionFulfilled);
+    yield call(FormDesignerActionDispatchers.deleteActiveListActionFulfilled);
   } catch (err) {
-    yield call(FormDesignerActionDispatchers.deleteActionListActionRejected, err);
+    yield call(FormDesignerActionDispatchers.deleteActiveListActionRejected, err);
   }
 }
 export function* watchDeleteActiveListSaga(): SagaIterator {

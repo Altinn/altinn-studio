@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace AltinnCore.ServiceLibrary.Api
 {
@@ -18,6 +18,11 @@ namespace AltinnCore.ServiceLibrary.Api
         public List<ApiModelStateEntry> ModelStateEntries { get; set; }
 
         /// <summary>
+        /// Gets or sets the ValidationResult
+        /// </summary>
+        public ApiValidationResult ValidationResult { get; set; }
+
+        /// <summary>
         /// Gets or sets the Message
         /// </summary>
         public string Message { get; set; }
@@ -26,5 +31,10 @@ namespace AltinnCore.ServiceLibrary.Api
         /// Gets or sets the InstanceId
         /// </summary>
         public int InstanceId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the url for the next step of the workflow
+        /// </summary>
+        public string NextStepUrl { get; set; }
     }
 }

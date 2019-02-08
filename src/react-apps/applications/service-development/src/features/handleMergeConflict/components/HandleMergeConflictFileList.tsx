@@ -92,7 +92,7 @@ export class HandleMergeConflictFileList extends
               root: classNames(classes.root),
             }}
           >
-            {repoStatus.contentStatus.length > 0 ?
+            {repoStatus.contentStatus && repoStatus.contentStatus.length > 0 ?
 
               repoStatus.contentStatus.map((item: any, index: any) => {
                 return (

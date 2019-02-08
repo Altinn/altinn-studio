@@ -73,7 +73,7 @@
         <a class="nav-link" data-toggle="tab" href="#xml" role="tab">XSD</a>
     </li>
     <li class="nav-item">
-        <a class="nav-link" data-toggle="tab" href="#schema.json" role="tab">JSON SCHEMA</a>
+        <a class="nav-link" data-toggle="tab" href="#jsonschema" role="tab">JSON SCHEMA</a>
     </li>
 </ul>
 
@@ -125,14 +125,14 @@
         <div id="xml-model" style="display: none;"></div>
     </div>
 
-    <div class="tab-pane fade" id="xml" role="tabpanel">
+    <div class="tab-pane fade" id="jsonschema" role="tabpanel">
         <a title="Last ned Json Schema" asp-action="GetJsonSchema" download="@service-model.schema.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned Json Schema</span>
         </a>
-        <div id="xml-container" class="editor-frame">
-            <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
+        <div id="jsonschema-container" class="editor-frame">
+            <div id="jsonschema-editor" class="editor" style="width:100%;min-height:600px;"></div>
         </div>
-        <div id="xml-model" style="display: none;"></div>
+        <div id="jsonschema-model" style="display: none;"></div>
      </div>
 </div>
 
@@ -249,7 +249,7 @@
 
              $.get("@Url.Action("GetJsonSchema")",
             function (data) {
-                $("#json-schema-model").text(data);
+              $("#jsonschema-model").text(data);
             });
 
         $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
@@ -261,6 +261,15 @@
             if (tabId != treeTab) {
                 var editorId = tabId + "-editor";
                 var modelId = tabId + "-model";
+                var tabLanguage;
+                switch (tabId) {
+                  case "json":
+                  case "jsonschema": tabLanguage = "json"; break;
+
+                  case "xsd": tabLanguage = "xsd"; break;
+
+                  default: tabLanguage = tabId; break;
+                }
 
                 var h = $('.tab-content').height();
                 var w = $('.tab-content').width();
@@ -270,7 +279,7 @@
                         value:
                             document.getElementById(modelId).innerText
                         ,
-                        language: tabId
+                        language: tabLanguage
                     });
                     editor.updateOptions({
                         wrappingColumn:0});

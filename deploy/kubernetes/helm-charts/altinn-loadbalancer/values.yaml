@@ -15,7 +15,7 @@ volumeMounts:
     mountPath: "/etc/nginx/ssl/altinn_studio"
 
 volumes:
-  - name: altinn-loadblancer-conf
+  - name: altinn-loadbalancer-conf
     configMap:
       name: loadbalancer-config
   - name: altinn-loadbalancer-ssl
@@ -24,7 +24,12 @@ volumes:
 
 service:
   type: LoadBalancer
-  loadBalancerIp:
   ports:
-    http: 80
-    https: 443
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
+    - port: 443
+      targetPort: 443
+      protocol: TCP
+      name: https

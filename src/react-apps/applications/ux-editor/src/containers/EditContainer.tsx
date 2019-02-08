@@ -8,7 +8,7 @@ import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditModalContent } from '../components/config/EditModalContent';
-import { makeGetLayoutComponentsSelector } from '../selectors/getLayoutData';
+import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
 import { getTextResource, truncate } from '../utils/language';
@@ -17,8 +17,9 @@ const styles = createStyles({
   active: {
     backgroundColor: '#fff',
     boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
-    padding: '1rem 1.2rem 1.4rem 1.2rem',
+    padding: '0.45rem 1.05rem 1.05rem 1.05rem',
     marginBottom: '1.2rem',
+    border: '0.15rem solid #fff',
   },
   activeWrapper: {
     padding: '1.0rem 1.2rem 2rem 1.2rem',
@@ -33,7 +34,7 @@ const styles = createStyles({
     'backgroundColor': altinnTheme.altinnPalette.primary.greyLight,
     'border': '0.15rem dotted ' + altinnTheme.altinnPalette.primary.grey,
     'color': altinnTheme.altinnPalette.primary.blueDarker + '!mportant',
-    'padding': '1rem 1.2rem 1.4rem 1.2rem',
+    'padding': '0.45rem 1.05rem 1.05rem 1.05rem',
     'marginBottom': '1.2rem',
     '&:hover': {
       backgroundColor: '#fff',
@@ -48,20 +49,34 @@ const styles = createStyles({
       background: 'none',
     },
   },
+  formComponentTitle: {
+    marginTop: '0.6rem',
+  },
   gridWrapper: {
     marginBottom: '0rem',
+    padding: '0 1.1rem 0 1.1rem',
+  },
+  gridWrapperActive: {
+    marginBottom: '0rem',
+    padding: '0',
   },
   gridForBtn: {
     marginTop: '-0.2rem !important',
+    marginLeft: '-1rem !important',
     visibility: 'hidden',
     paddingBottom: '0.8rem',
-    marginLeft: '0.2rem',
   },
   gridForBtnActive: {
     marginTop: '-0.2rem !important',
     visibility: 'visible',
     paddingBottom: '0.8rem',
     marginLeft: '0.2rem',
+  },
+  gridForBtnSingleActive: {
+    marginTop: '-0.2rem !important',
+    marginLeft: '-1rem !important',
+    visibility: 'visible',
+    paddingBottom: '0.8rem',
   },
   inputHelper: {
     marginTop: '1rem',
@@ -113,7 +128,6 @@ const styles = createStyles({
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
   id: string;
-  order: number;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   sendItemToParent: any;
@@ -127,11 +141,11 @@ export interface IEditContainerProps extends IEditContainerProvidedProps {
   textResources: ITextResource[];
   language: any;
   components: any;
-  order: any;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   activeList: any;
   connections: any;
+  orderList: any[];
 }
 
 export interface IEditContainerState {
@@ -160,10 +174,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       },
       listItem: {
         id: _props.id,
-        order: _props.order,
         firstInActiveList: _props.firstInActiveList,
         lastInActiveList: _props.lastInActiveList,
         inEditMode: false,
+        order: null,
       },
       activeList: _props.activeList,
     };
@@ -213,11 +227,19 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
   public handleSetActive = (): void => {
     if (!this.state.isEditMode) {
-      this.props.sendItemToParent(this.state.listItem);
-      this.setState({
-        listItem: this.state.listItem,
+      const key: any = Object.keys(this.props.orderList)[0];
+      const orderIndex = this.props.orderList[key].indexOf(this.state.listItem.id);
+
+      this.setState((prevState) => ({
+        listItem: {
+          ...prevState.listItem,
+          order: orderIndex,
+        },
         hideDelete: false,
+      }), () => {
+        this.props.sendItemToParent(this.state.listItem);
       });
+
       if (!this.state.listItem.firstInActiveList) {
         this.setState({
           hideDelete: true,
@@ -343,11 +365,19 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       return '';
     }
   }
+  public btnGrid = () => {
+    if (this.props.activeList.length > 1) {
+      return this.props.classes.gridForBtnActive;
+    } else if (this.props.activeList.length === 1) {
+      return this.props.classes.gridForBtnSingleActive;
+    } else {
+      return this.props.classes.gridForBtn;
+    }
+  }
 
   public render(): JSX.Element {
     const activeListIndex =
       this.props.activeList.findIndex((listItem: any) => listItem.id === this.props.id);
-    const first = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
     return (
       <>
         <Grid container={true}>
@@ -357,7 +387,12 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
             spacing={0}
             className={this.props.classes.wrapper}
           >
-            <Grid item={true} xs={11} className={this.props.classes.gridWrapper}>
+            <Grid
+              item={true}
+              xs={11}
+              className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
+                this.props.classes.gridWrapperActive : this.props.classes.gridWrapper}
+            >
               <div
                 className={(this.props.activeList.length > 1) && (activeListIndex >= 0) ?
                   this.props.classes.listBorder + ' ' + this.setPlacementClass(activeListIndex) :
@@ -379,7 +414,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       />
                     </Grid>
                     :
-                    <div className={this.props.classes.textPrimaryDark}>
+                    <div className={this.props.classes.textPrimaryDark + ' ' + this.props.classes.formComponentTitle}>
                       {this.state.component.textResourceBindings.title ?
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
@@ -398,10 +433,10 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 <Grid
                   container={true}
                   direction={'row'}
-                  className={activeListIndex > -1 ? this.props.classes.gridForBtnActive : this.props.classes.gridForBtn}
+                  className={this.btnGrid()}
                 >
                   <Grid item={true} xs={12}>
-                    {first &&
+                    {(activeListIndex === 0 || this.props.activeList.length < 1) &&
                       <IconButton
                         type='button'
                         className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
@@ -413,7 +448,8 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     }
                   </Grid>
                   <Grid item={true} xs={12}>
-                    {!(this.props.activeList.length > 1) &&
+                    {(this.props.activeList.length < 1 ||
+                      this.props.activeList.length === 1 && activeListIndex === 0) &&
                       <IconButton
                         type='button'
                         className={this.props.classes.formComponentsBtn}
@@ -431,7 +467,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                 <Grid
                   container={true}
                   direction={'row'}
-                  className={this.props.classes.gridForBtnActive}
+                  className={this.props.classes.gridForBtnSingleActive}
                 >
                   <Grid item={true} xs={12}>
                     <IconButton
@@ -464,6 +500,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
 
 const makeMapStateToProps = () => {
   const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
+  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
   const mapStateToProps = (
     state: IAppState,
     props: IEditContainerProvidedProps,
@@ -480,7 +517,7 @@ const makeMapStateToProps = () => {
       id: props.id,
       language: state.appData.language.language,
       lastInActiveList: props.lastInActiveList,
-      order: props.order,
+      orderList: GetLayoutOrderSelector(state),
       singleSelected: props.singleSelected,
       textResources: state.appData.textResources.resources,
     };

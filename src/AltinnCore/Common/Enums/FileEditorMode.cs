@@ -58,5 +58,10 @@ namespace AltinnCore.Common.Enums
         /// All the files in the Validation folder
         /// </summary>
         Validation = 9,
+
+        /// <summary>
+        /// All the files in the root folder
+        /// </summary>
+        Root = 10,
     }
 }

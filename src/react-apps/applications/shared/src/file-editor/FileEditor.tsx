@@ -1,14 +1,14 @@
 import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
-import { createStyles, withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as diff from 'diff';
 import * as React from 'react';
 import MonacoEditorComponent from '../../../shared/src/file-editor/MonacoEditorComponent';
-import theme from '../../../shared/src/theme/altinnStudioTheme';
+import altinnTheme from '../../../shared/src/theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
 
-const altinnTheme = theme;
+const theme = createMuiTheme(altinnTheme);
 
 export interface ICodeLanguageItem {
   name: string;
@@ -47,6 +47,7 @@ export interface IFileEditorProvidedProps {
   checkRepoStatusAfterSaveFile?: boolean;
   classes: any;
   closeFileEditor?: () => void;
+  editorHeight?: string;
   getDataModelSuggestions?: (filterText: string) => any[];
   loadFile?: string;
   mode?: string;
@@ -56,11 +57,12 @@ export interface IFileEditorProvidedProps {
 
 export interface IFileEditorState {
   availableFiles: string[];
-  valueOriginal: string;
+  isLoading: boolean;
+  mounted: boolean;
   selectedFile: string;
   value: string;
-  mounted: boolean;
   valueDiff: boolean;
+  valueOriginal: string;
 }
 
 const styles = createStyles({
@@ -68,7 +70,7 @@ const styles = createStyles({
     background: 'blue',
   },
   fileHeader: {
-    background: altinnTheme.altinnPalette.primary.white,
+    background: theme.altinnPalette.primary.white,
     borderBottom: '1px solid #C9C9C9',
     marginBottom: '0.1rem',
     paddingLeft: '1.3rem',
@@ -82,12 +84,12 @@ const styles = createStyles({
     minHeight: '100%',
   },
   selectFile: {
-    borderBottom: '1px solid' + altinnTheme.altinnPalette.primary.blueDark,
-    color: altinnTheme.altinnPalette.primary.blueDarker,
+    borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
+    color: theme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
   file: {
-    color: altinnTheme.altinnPalette.primary.blueDarker,
+    color: theme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
   fileMenuItem: {
@@ -101,7 +103,7 @@ const styles = createStyles({
   },
   formComponentsBtn: {
     'fontSize': '0.85em',
-    'fill': altinnTheme.altinnPalette.primary.blue,
+    'fill': theme.altinnPalette.primary.blue,
     'paddingLeft': '0',
     'marginTop': '0.1em',
     'outline': 'none !important',
@@ -125,17 +127,18 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   constructor(props: IFileEditorProvidedProps) {
     super(props);
     this.state = {
-      selectedFile: '',
       availableFiles: [],
-      valueOriginal: '',
+      isLoading: false,
+      mounted: false,
+      selectedFile: '',
       value: '',
       valueDiff: false,
-      mounted: false,
+      valueOriginal: '',
     };
   }
 
   public componentDidMount() {
-    if (this.props.mode) {
+    if (!this.props.loadFile) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service } = altinnWindow;
       const servicePath = `${org}/${service}`;
@@ -154,17 +157,19 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     }
   }
 
-  // TODO: The added '../' is temporary in place until loadfil API for unique file is available
   public componentDidUpdate(prevProps: any) {
     if (this.props.loadFile !== prevProps.loadFile) {
       this.setState({
-        selectedFile: `../${this.props.loadFile}`,
+        selectedFile: `${this.props.loadFile}`,
       });
-      this.loadFileContent(`../${this.props.loadFile}`);
+      this.loadFileContent(`${this.props.loadFile}`);
     }
   }
 
   public loadFileContent = (fileName: string) => {
+    this.setState({
+      isLoading: true,
+    });
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
@@ -174,9 +179,10 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         this.setState((prevState: IFileEditorState) => {
           return {
             ...prevState,
-            valueOriginal: logicFileContent,
+            isLoading: false,
             selectedFile: fileName,
             value: logicFileContent,
+            valueOriginal: logicFileContent,
           };
         });
       });
@@ -188,11 +194,17 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 
   public saveFile = async (e: any) => {
+
+    let stageFile = false;
+    if (this.props.stageAfterSaveFile === true && this.valueHasNoMergeConflictTags(this.state.value)) {
+      stageFile = true;
+    }
+
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const servicePath = `${org}/${service}`;
     const postUrl = `${altinnWindow.location.origin}/designer/${servicePath}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}`;
+      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
 
     const saveRes: any = await post(postUrl, this.state.value, {
       headers: {
@@ -202,18 +214,6 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
     if (saveRes.isSuccessStatusCode === false) {
       console.error('save error', saveRes);
-
-    } else if (this.props.stageAfterSaveFile === true) {
-
-      const stageUrl = `${altinnWindow.location.origin}` +
-        `/designerapi/Repository/StageChange?` +
-        `owner=${org}&repository=${service}&fileName=${this.state.selectedFile.replace(/^\.{2}\//, '')}`;
-      const stageRes = await get(stageUrl);
-
-      if (stageRes.isSuccessStatusCode === false) {
-        console.error('stage error', stageRes);
-      }
-
     }
 
     if (this.props.checkRepoStatusAfterSaveFile === true) {
@@ -328,23 +328,33 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
     );
   }
 
+  public valueHasNoMergeConflictTags = (value: string) => {
+    if (value.includes('<<<<<<<') || value.includes('=======') || value.includes('>>>>>>>')) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   public render() {
     const { classes, mode } = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
-
     return (
-      <Grid container={true} spacing={0} className={classes.codeEditorContent}>
+      <Grid
+        container={true}
+        className={
+          classNames(classes.codeEditorContent, {
+            [classes.boxShadow]: this.props.boxShadow,
+          })
+        }
+      >
         <Grid
           item={true}
           xs={true}
           container={true}
           justify='flex-start'
           alignItems='center'
-          className={
-            classNames(classes.fileHeader, {
-              [classes.boxShadow]: this.props.boxShadow,
-            })
-          }
+          className={classes.fileHeader}
         >
           <Grid
             item={true}
@@ -383,8 +393,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
               }
 
-              {/* If this.props.mode is present, show select*/}
-              {this.props.mode ?
+              {/* If not Loadfile, show select*/}
+              {!this.props.loadFile ?
 
                 <React.Fragment>
                   {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
@@ -429,15 +439,15 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <Grid
           item={true}
           xs={12}
-          className={classNames(classes.codeEditorContent, {
-            [classes.boxShadow]: this.props.boxShadow,
-          })}
+          className={classes.codeEditorContent}
         >
           <MonacoEditorComponent
-            language={language.name}
-            value={this.state.value}
-            onValueChange={this.onValueChange}
             createCompletionSuggestions={this.createCompletionSuggestions}
+            heightPx={`${this.props.editorHeight}px`}
+            isLoading={this.state.isLoading}
+            language={language.name}
+            onValueChange={this.onValueChange}
+            value={this.state.value}
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />

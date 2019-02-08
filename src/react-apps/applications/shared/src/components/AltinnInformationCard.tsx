@@ -27,18 +27,7 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
   root: {
-    [theme.breakpoints.up('xl')]: {
-      paddingTop: 239,
-    },
-    [theme.breakpoints.down('lg')]: {
-      paddingTop: 249,
-    },
-    [theme.breakpoints.down('md')]: {
-      paddingTop: 148,
-    },
-    [theme.breakpoints.only('sm')]: {
-      paddingTop: 97,
-    },
+    height: '80vh',
   },
   paper: {
     [theme.breakpoints.up('xl')]: {
@@ -100,39 +89,56 @@ class AltinnInformationCard extends
   public render() {
     const { classes } = this.props;
     return (
-      <Grid container={true} className={classes.root} spacing={0} justify={'center'} alignContent={'center'} >
+      <Grid
+        container={true}
+        direction='column'
+        className={classes.root}
+        spacing={0}
+        justify={'center'}
+        alignContent={'center'}
+      >
         <Grid
-          className={classNames(classes.paper, { [classes.shadowBox]: this.props.shadow })}
           container={true}
+          item={true}
+          spacing={0}
+          justify={'center'}
+          alignContent={'center'}
         >
-          <Grid container={true} item={true}>
-            <Grid sm={12} md={7} item={true} container={true}>
-              <Grid item={true}>
-                <h1 className={classes.header}>
-                  {getLanguageFromKey(this.props.headerTextKey, this.props.language)}
-                </h1>
-                <p className={classes.subText1}>
-                  {getLanguageFromKey(this.props.subtext1TextKey, this.props.language)}
-                </p>
-                <p className={classes.subText2}>
-                  {getLanguageFromKey(this.props.subtext2TextKey, this.props.language)}
-                </p>
-                <div className={classes.smSpacing}>
-                  <a
-                    href={getLanguageFromKey(this.props.urlKey, this.props.language)}
-                    className={classes.link}>
-                    {getLanguageFromKey(this.props.linkTextKey, this.props.language)}
-                    <AltinnIcon
-                      isActive={true}
-                      iconClass='ai ai-arrowrightup'
-                      iconColor={theme.altinnPalette.primary.black}
-                    />
-                  </a>
-                </div>
+
+          <Grid
+            className={classNames(classes.paper, { [classes.shadowBox]: this.props.shadow })}
+            container={true}
+            item={true}
+          >
+            <Grid container={true} item={true}>
+              <Grid sm={12} md={7} item={true} container={true}>
+                <Grid item={true}>
+                  <h1 className={classes.header}>
+                    {getLanguageFromKey(this.props.headerTextKey, this.props.language)}
+                  </h1>
+                  <p className={classes.subText1}>
+                    {getLanguageFromKey(this.props.subtext1TextKey, this.props.language)}
+                  </p>
+                  <p className={classes.subText2}>
+                    {getLanguageFromKey(this.props.subtext2TextKey, this.props.language)}
+                  </p>
+                  <div className={classes.smSpacing}>
+                    <a
+                      href={getLanguageFromKey(this.props.urlKey, this.props.language)}
+                      className={classes.link}>
+                      {getLanguageFromKey(this.props.linkTextKey, this.props.language)}
+                      <AltinnIcon
+                        isActive={true}
+                        iconClass='ai ai-arrowrightup'
+                        iconColor={theme.altinnPalette.primary.black}
+                      />
+                    </a>
+                  </div>
+                </Grid>
               </Grid>
-            </Grid>
-            <Grid container={true} sm={12} md={5} item={true} spacing={0} justify={'center'} alignContent={'center'}>
-              <img alt='information' src={this.props.imageSource} />
+              <Grid container={true} sm={12} md={5} item={true} spacing={0} justify={'center'} alignContent={'center'}>
+                <img alt='information' src={this.props.imageSource} />
+              </Grid>
             </Grid>
           </Grid>
         </Grid>
