@@ -1,6 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ICommit, IServiceName, IServiceDescription } from '../../types/global';
+import { ICommit, IServiceDescription, IServiceName } from '../../types/global';
 import * as handleServiceInformationActions from './handleServiceInformationActions';
 import * as handleServiceInformationActionTypes from './handleServiceInformationActionTypes';
 
@@ -113,7 +113,7 @@ const handleServiceInformationReducer: Reducer<IHandleServiceInformationState> =
     }
     case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION_REJECTED: {
       return update<IHandleServiceInformationState>(state, {
-        serviceNaserviceDescriptionObjmeObj: {
+        serviceDescriptionObj: {
           saving: {
             $set: false,
           },
