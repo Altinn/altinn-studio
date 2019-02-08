@@ -223,14 +223,11 @@ class FormComponent extends React.Component<
         </div>
       );
     }
-    const key: any = Object.keys(this.props.order)[0];
-    const order = this.props.order[key].indexOf(this.props.id);
     return (
       <div ref={this.setWrapperRef}>
       <EditContainer
         component={this.props.component}
         id={this.props.id}
-        order={order}
         firstInActiveList={this.props.firstInActiveList}
         lastInActiveList={this.props.lastInActiveList}
         sendItemToParent={this.handleActiveListChange}
