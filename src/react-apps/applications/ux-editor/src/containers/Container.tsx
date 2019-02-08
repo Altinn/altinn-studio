@@ -176,8 +176,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     );
   }
 
-  public renderContainer = (id: string, index: number) => {
-    if (this.props.containers[id].hidden && !this.props.designMode) {
+  public renderContainer = (id: string, index: number): JSX.Element => {
+    return null;
+    /*
+      Commented out since we're disabling containers until design is done.
+      https://github.com/Altinn/altinn-studio/issues/451
+
+      if (this.props.containers[id].hidden && !this.props.designMode) {
       return null;
     }
     if (this.props.designMode) {
@@ -214,6 +219,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         baseContainer={false}
       />
     );
+    */
   }
 
   public renderDeleteGroupButton = (): JSX.Element => {
@@ -269,9 +275,15 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     const activeListIndex = this.props.activeList.findIndex((listItem: any) => listItem.id === id);
     if (this.props.designMode) {
       const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
+      let canDrag: boolean = true;
+      for (const activeItem of this.state.activeList) {
+        if (activeItem.id === id) {
+          canDrag = false;
+        }
+      }
       return (
         <DroppableDraggableComponent
-          canDrag={true}
+          canDrag={canDrag}
           id={id}
           index={index}
           key={index}
