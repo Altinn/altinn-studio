@@ -43,7 +43,8 @@ const styles = createStyles({
   },
   headerStyle: {
     fontSize: 36,
-    marginBottom: 70,
+    marginTop: 30,
+    marginBottom: 30,
   },
   sidebar: {
     borderLeft: '1px solid ' + theme.altinnPalette.primary.greyMedium,
@@ -73,10 +74,17 @@ const styles = createStyles({
     margin: 'auto',
   },
   layout: {
-    marginBottom: 30,
+    paddingBottom: 50,
   },
   mainLayout: {
-
+    [theme.breakpoints.down('sm')]: {
+      height: `calc(100vh - 55px - 36px)`, // TODO: remove 36 when old top menu is removed
+      overflowY: 'auto',
+    },
+    [theme.breakpoints.up('md')]: {
+      height: `calc(100vh - 110px - 36px)`, // TODO: remove 36 when old top menu is removed
+      overflowY: 'auto',
+    },
   },
 });
 
@@ -167,7 +175,7 @@ export class AdministationComponent extends
     return (
       <div className={classes.mainLayout}>
         <VersionControlHeader language={this.props.language} />
-        {this.props.service && this.props.serviceName ?
+        {this.props.service || this.props.serviceName === null || this.props.serviceDescription === null ?
           <Grid container={true} className={classes.layout}>
             <Grid item={true} className={classes.mainStyle} md={12}>
               <Typography className={classes.headerStyle}>
