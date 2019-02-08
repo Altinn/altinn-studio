@@ -19,6 +19,15 @@ export interface IHandleServiceInformationDispatchers extends ActionCreatorsMapO
   fetchInitialCommit: (url: string) => FetchServiceInformationActions.IFetchInitialCommitAction;
   fetchInitialCommitFulfilled: (result: any) => FetchServiceInformationActions.IFetchInitialCommitFulfilled;
   fetchInitialCommitRejected: (error: Error) => FetchServiceInformationActions.IFetchInitialCommitRejected;
+  fetchServiceDescription: (url: string) => FetchServiceInformationActions.IFetchServiceDescriptionAction;
+  // tslint:disable-next-line:max-line-length
+  fetchServiceDescriptionFulfilled: (description: string) => FetchServiceInformationActions.IFetchServiceDescriptionFulfilled;
+  fetchServiceDescriptionRejected: (error: Error) => FetchServiceInformationActions.IFetchServiceDescriptionRejected;
+  // tslint:disable-next-line:max-line-length
+  saveServiceDescription: (url: string, newServiceDescription: string) => FetchServiceInformationActions.ISaveServiceDescriptionAction;
+  // tslint:disable-next-line:max-line-length
+  saveServiceDescriptionFulfilled: (newServiceDescription: string) => FetchServiceInformationActions.ISaveServiceDescriptionFulfilled;
+  saveServiceDescriptionRejected: (error: Error) => FetchServiceInformationActions.ISaveServiceDescriptionRejected;
 }
 
 /**
@@ -38,6 +47,12 @@ const actions: IHandleServiceInformationDispatchers = {
   fetchInitialCommit: FetchServiceInformationActions.fetchInitialCommitAction,
   fetchInitialCommitFulfilled: FetchServiceInformationActions.fetchInitialCommitFulfilledAction,
   fetchInitialCommitRejected: FetchServiceInformationActions.fetchInitialCommitRejectedAction,
+  fetchServiceDescription: FetchServiceInformationActions.fetchServiceDescriptionAction,
+  fetchServiceDescriptionFulfilled: FetchServiceInformationActions.fetchServiceDescriptionFulfilledAction,
+  fetchServiceDescriptionRejected: FetchServiceInformationActions.fetchServiceDescriptionRejectedAction,
+  saveServiceDescription: FetchServiceInformationActions.saveServiceDescriptionAction,
+  saveServiceDescriptionFulfilled: FetchServiceInformationActions.saveServiceDescriptionFulfilledAction,
+  saveServiceDescriptionRejected: FetchServiceInformationActions.saveServiceDescriptionRejectedAction,
 };
 
 /**

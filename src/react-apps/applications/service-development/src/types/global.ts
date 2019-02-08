@@ -35,3 +35,8 @@ export interface IServiceName {
   name: string;
   saving: boolean;
 }
+
+export interface IServiceDescription {
+  description: string;
+  saving: boolean;
+}

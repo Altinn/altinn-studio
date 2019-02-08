@@ -1,12 +1,13 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ICommit, IServiceName } from '../../types/global';
+import { ICommit, IServiceName, IServiceDescription } from '../../types/global';
 import * as handleServiceInformationActions from './handleServiceInformationActions';
 import * as handleServiceInformationActionTypes from './handleServiceInformationActionTypes';
 
 export interface IHandleServiceInformationState {
   repositoryInfo: any;
   serviceNameObj: IServiceName;
+  serviceDescriptionObj: IServiceDescription;
   initialCommit: ICommit;
 }
 
@@ -14,6 +15,10 @@ const initialState: IHandleServiceInformationState = {
   repositoryInfo: null,
   serviceNameObj: {
     name: '',
+    saving: false,
+  },
+  serviceDescriptionObj: {
+    description: '',
     saving: false,
   },
   initialCommit: null,
@@ -84,6 +89,47 @@ const handleServiceInformationReducer: Reducer<IHandleServiceInformationState> =
       return update<IHandleServiceInformationState>(state, {
         initialCommit: {
           $set: result,
+        },
+      });
+    }
+    case handleServiceInformationActionTypes.FETCH_SERVICE_DESCRIPTION_FULFILLED: {
+      const { description } = action as handleServiceInformationActions.IFetchServiceDescriptionFulfilled;
+      return update<IHandleServiceInformationState>(state, {
+        serviceDescriptionObj: {
+          description: {
+            $set: description,
+          },
+        },
+      });
+    }
+    case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION: {
+      return update<IHandleServiceInformationState>(state, {
+        serviceDescriptionObj: {
+          saving: {
+            $set: true,
+          },
+        },
+      });
+    }
+    case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION_REJECTED: {
+      return update<IHandleServiceInformationState>(state, {
+        serviceNaserviceDescriptionObjmeObj: {
+          saving: {
+            $set: false,
+          },
+        },
+      });
+    }
+    case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION_FULFILLED: {
+      const { newServiceDescription } = action as handleServiceInformationActions.ISaveServiceDescriptionFulfilled;
+      return update<IHandleServiceInformationState>(state, {
+        serviceDescriptionObj: {
+          description: {
+            $set: newServiceDescription,
+          },
+          saving: {
+            $set: false,
+          },
         },
       });
     }

@@ -23,3 +23,13 @@ export const SAVE_SERVICE_NAME_REJECTED: string = `${moduleName}.SAVE_SERVICE_NA
 export const FETCH_INITIAL_COMMIT: string = `${moduleName}.FETCH_INITIAL_COMMIT`;
 export const FETCH_INITIAL_COMMIT_FULFILLED: string = `${moduleName}.FETCH_INITIAL_COMMIT_FULFILLED`;
 export const FETCH_INITIAL_COMMIT_REJECTED: string = `${moduleName}.FETCH_INITIAL_COMMIT_REJECTED`;
+
+// All fetch service description actions
+export const FETCH_SERVICE_DESCRIPTION: string = `${moduleName}.FETCH_SERVICE_DESCRIPTION`;
+export const FETCH_SERVICE_DESCRIPTION_FULFILLED: string = `${moduleName}.FETCH_SERVICE_DESCRIPTION_FULFILLED`;
+export const FETCH_SERVICE_DESCRIPTION_REJECTED: string = `${moduleName}.FETCH_SERVICE_DESCRIPTION_REJECTED`;
+
+// All save service description actions
+export const SAVE_SERVICE_DESCRIPTION: string = `${moduleName}.SAVE_SERVICE_DESCRIPTION`;
+export const SAVE_SERVICE_DESCRIPTION_FULFILLED: string = `${moduleName}.SAVE_SERVICE_DESCRIPTION_FULFILLED`;
+export const SAVE_SERVICE_DESCRIPTION_REJECTED: string = `${moduleName}.SAVE_SERVICE_DESCRIPTION_REJECTED`;

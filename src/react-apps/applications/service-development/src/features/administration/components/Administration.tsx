@@ -22,13 +22,15 @@ export interface IAdministationComponentProps extends IAdministationComponentPro
   serviceName: string;
   serviceNameIsSaving: boolean;
   initialCommit: ICommit;
+  serviceDescription: string;
+  serviceDescriptionIsSaving: boolean;
 }
 
 export interface IAdministationComponentState {
-  repoDescription: string;
+  serviceDescription: string;
   serviceName: string;
   editServiceName: boolean;
-  editRepoDescription: boolean;
+  editServiceDescription: boolean;
   serviceNameAnchorEl: any;
 }
 
@@ -84,26 +86,26 @@ export class AdministationComponent extends
     if (_state.editServiceName || _props.serviceNameIsSaving) {
       return {
         serviceName: _state.serviceName,
-        repoDescription: _props.service ? _props.service.description : '',
+        serviceDescription: _props.serviceDescription,
       };
     }
-    if (_state.editRepoDescription) {
+    if (_state.editServiceDescription || _props.serviceDescriptionIsSaving) {
       return {
-        repoDescription: _state.repoDescription,
+        serviceDescription: _state.serviceDescription,
         serviceName: _props.serviceName,
       };
     }
     return {
-      repoDescription: _props.service ? _props.service.description : '',
+      serviceDescription: _props.serviceDescription,
       serviceName: _props.serviceName,
     };
   }
 
   public state: IAdministationComponentState = {
-    repoDescription: '',
+    serviceDescription: '',
     serviceName: this.props.serviceName,
     editServiceName: false,
-    editRepoDescription: false,
+    editServiceDescription: false,
     serviceNameAnchorEl: null,
   };
 
@@ -117,6 +119,8 @@ export class AdministationComponent extends
       `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchServiceName(
       `${altinnWindow.location.origin}/designerapi/Repository/GetServiceName?owner=${org}&service=${service}`);
+    handleServiceInformationActionDispatchers.fetchServiceDescription(
+      `${altinnWindow.location.origin}/designerapi/Repository/GetServiceDescription?owner=${org}&service=${service}`);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -143,12 +147,18 @@ export class AdministationComponent extends
     }
   }
 
-  public onRepoDescriptionUpdated = (event: any) => {
-    this.setState({ repoDescription: event.target.value, editRepoDescription: true });
+  public onServiceDescriptionChanged = (event: any) => {
+    this.setState({ serviceDescription: event.target.value, editServiceDescription: true });
   }
 
-  public onBlurRepoDescription = () => {
-    this.setState({ editRepoDescription: false });
+  public onBlurServiceDescription = () => {
+    if (this.state.editServiceDescription) {
+      const altinnWindow: any = window;
+      const { org, service } = altinnWindow;
+      // tslint:disable-next-line:max-line-length
+      handleServiceInformationActionDispatchers.saveServiceDescription(`${altinnWindow.location.origin}/designerapi/Repository/SetServiceDescription?owner=${org}&service=${service}`, this.state.serviceDescription);
+      this.setState({ editServiceDescription: false });
+    }
   }
 
   public render() {
@@ -190,12 +200,12 @@ export class AdministationComponent extends
               />
               <AltinnInputField
                 id={'description'}
-                onChangeFunction={this.onRepoDescriptionUpdated}
+                onChangeFunction={this.onServiceDescriptionChanged}
                 inputHeader={getLanguageFromKey('general.service_description_header', this.props.language)}
                 inputDescription={getLanguageFromKey('administration.description_description', this.props.language)}
                 textAreaRows={7}
-                inputValue={this.state.repoDescription}
-                onBlurFunction={this.onBlurRepoDescription}
+                inputValue={this.state.serviceDescription}
+                onBlurFunction={this.onBlurServiceDescription}
               />
             </Grid>
             <Grid item={true} md={4} className={classNames(classes.sidebar)}>
@@ -243,6 +253,11 @@ const mapStateToProps = (
     // tslint:disable-next-line:max-line-length
     serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
     initialCommit: state.serviceInformation.initialCommit,
+    // tslint:disable-next-line:max-line-length
+    serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
+    // tslint:disable-next-line:max-line-length
+    serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
+
   };
 };
 

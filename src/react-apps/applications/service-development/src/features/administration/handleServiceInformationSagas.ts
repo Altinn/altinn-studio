@@ -80,10 +80,49 @@ export function* watchHandleFetchInitialCommitSaga(): SagaIterator {
   );
 }
 
+export function* handleFetchServiceDescriptionSaga({
+  url,
+}: HandleServiceInformationActions.IFetchServiceDescriptionAction): SagaIterator {
+  try {
+    const description = yield call(get, url);
+
+    yield call(HandleServiceInformationDispatcher.fetchServiceDescriptionFulfilled, description || '');
+  } catch (err) {
+    yield call(HandleServiceInformationDispatcher.fetchInitialCommitRejected, err);
+  }
+}
+
+export function* watchHandleFetchServiceDescriptionSaga(): SagaIterator {
+  yield takeLatest(
+    HandleServiceInformationActionTypes.FETCH_SERVICE_DESCRIPTION,
+    handleFetchServiceDescriptionSaga,
+  );
+}
+
+export function* handleSaveServiceDescriptionSaga({
+  url, newServiceDescription,
+}: HandleServiceInformationActions.ISaveServiceDescriptionAction): SagaIterator {
+  try {
+    yield call(post, url, { serviceDescription: newServiceDescription });
+    yield call(HandleServiceInformationDispatcher.saveServiceDescriptionFulfilled, newServiceDescription);
+  } catch (err) {
+    yield call(HandleServiceInformationDispatcher.saveServiceDescriptionRejected, err);
+  }
+}
+
+export function* watchHandleSaveServiceDescriptionSaga(): SagaIterator {
+  yield takeLatest(
+    HandleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION,
+    handleSaveServiceDescriptionSaga,
+  );
+}
+
 // tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
   yield fork(watchHandleFetchServiceSaga);
   yield fork(watchHandleFetchServiceNameSaga);
   yield fork(watchHandleSaveServiceNameSaga);
-  yield fork(watchHandleFetchInitialCommitSaga)
+  yield fork(watchHandleFetchInitialCommitSaga);
+  yield fork(watchHandleFetchServiceDescriptionSaga);
+  yield fork(watchHandleSaveServiceDescriptionSaga);
 }

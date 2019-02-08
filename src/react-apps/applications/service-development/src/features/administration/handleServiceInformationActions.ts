@@ -134,3 +134,72 @@ export function fetchInitialCommitRejectedAction(error: Error): IFetchInitialCom
     error,
   };
 }
+
+export interface IFetchServiceDescriptionAction extends Action {
+  url: string;
+}
+
+export interface IFetchServiceDescriptionFulfilled extends Action {
+  description: any;
+}
+
+export interface IFetchServiceDescriptionRejected extends Action {
+  error: Error;
+}
+
+export function fetchServiceDescriptionAction(url: string): IFetchServiceDescriptionAction {
+  return {
+    type: ActionTypes.FETCH_SERVICE_DESCRIPTION,
+    url,
+  };
+}
+
+export function fetchServiceDescriptionFulfilledAction(description: any): IFetchServiceDescriptionFulfilled {
+  return {
+    type: ActionTypes.FETCH_SERVICE_DESCRIPTION_FULFILLED,
+    description,
+  };
+}
+
+export function fetchServiceDescriptionRejectedAction(error: Error): IFetchServiceDescriptionRejected {
+  return {
+    type: ActionTypes.FETCH_INITIAL_COMMIT_REJECTED,
+    error,
+  };
+}
+
+export interface ISaveServiceDescriptionAction extends Action {
+  url: string;
+  newServiceDescription: string;
+}
+
+export interface ISaveServiceDescriptionFulfilled extends Action {
+  newServiceDescription: string;
+}
+
+export interface ISaveServiceDescriptionRejected extends Action {
+  error: Error;
+}
+
+// tslint:disable-next-line:max-line-length
+export function saveServiceDescriptionAction(url: string, newServiceDescription: string): ISaveServiceDescriptionAction {
+  return {
+    type: ActionTypes.SAVE_SERVICE_DESCRIPTION,
+    url,
+    newServiceDescription,
+  };
+}
+
+export function saveServiceDescriptionFulfilledAction(newServiceDescription: string): ISaveServiceDescriptionFulfilled {
+  return {
+    type: ActionTypes.SAVE_SERVICE_DESCRIPTION_FULFILLED,
+    newServiceDescription,
+  };
+}
+
+export function saveServiceDescriptionRejectedAction(error: Error): ISaveServiceDescriptionRejected {
+  return {
+    type: ActionTypes.SAVE_SERVICE_DESCRIPTION_REJECTED,
+    error,
+  };
+}

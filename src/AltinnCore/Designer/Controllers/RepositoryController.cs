@@ -434,9 +434,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="owner">the owner of the service</param>
         /// <param name="service">the service</param>
-        /// <param name="jsonData">The json data</param>
+        /// <param name="serviceName">The service name</param>
         [HttpPost]
-        public void SetServiceName(string owner, string service, [FromBody] dynamic jsonData)
+        public void SetServiceName(string owner, string service, [FromBody] dynamic serviceName)
         {
             string defaultLang = "nb-NO";
             string filename = $"resource.{defaultLang}.json";
@@ -449,7 +449,7 @@ namespace AltinnCore.Designer.Controllers
 
                 if (textResourceObject != null)
                 {
-                    textResourceObject.Add("ServiceName", jsonData.serviceName.ToString());
+                    textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
                 }
 
                 _repository.SaveResource(owner, service, "nb-NO", JObject.FromObject(textResourceObject).ToString());
@@ -459,7 +459,7 @@ namespace AltinnCore.Designer.Controllers
                 JObject json = JObject.FromObject(new
                 {
                     language = "nb-NO",
-                    resources = new[] { new { id = "ServiceName", value = jsonData.serviceName.ToString() } },
+                    resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
                 });
                 _repository.SaveResource(owner, service, "nb-NO", json.ToString());
             }
@@ -472,10 +472,10 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="service">the service</param>
         /// <returns>The service description of the service</returns>
         [HttpGet]
-        public string GetServiceDesciption(string owner, string service)
+        public string GetServiceDescription(string owner, string service)
         {
             string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
-            string serviceDesciption = string.Empty;
+            string serviceDescription = string.Empty;
 
             if (System.IO.File.Exists(serviceMetadataDirectoryPath))
             {
@@ -483,11 +483,11 @@ namespace AltinnCore.Designer.Controllers
                 ServiceConfiguration serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
                 if (serviceConfigurationObject != null)
                 {
-                    serviceDesciption = serviceConfigurationObject.ServiceDescrition;
+                    serviceDescription = serviceConfigurationObject.ServiceDescrition;
                 }
             }
 
-            return serviceDesciption;
+            return serviceDescription;
         }
 
         /// <summary>
@@ -497,7 +497,7 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="service">the service</param>
         /// <param name="description">the service description</param>
         [HttpPost]
-        public void SetServiceDesciption(string owner, string service, [FromBody] string description)
+        public void SetServiceDescription(string owner, string service, [FromBody] dynamic description)
         {
             string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
             ServiceConfiguration serviceConfigurationObject = null;
@@ -506,7 +506,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
                 serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
-                serviceConfigurationObject.ServiceDescrition = description;
+                serviceConfigurationObject.ServiceDescrition = description.serviceDescription;
             }
             else
             {
