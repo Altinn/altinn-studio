@@ -210,7 +210,6 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     Stream stream = await response.Content.ReadAsStreamAsync();
                     {
-                        // This is the first or a specific page requested
                         returnRepository = serializer.ReadObject(stream) as Repository;
                     }
                 }

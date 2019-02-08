@@ -1,27 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -84,9 +77,9 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <returns>A list over all organizations user has access to</returns>
         [HttpGet]
-        public List<RepositoryClient.Model.Organization> Organizations()
+        public List<Organization> Organizations()
         {
-            List<RepositoryClient.Model.Organization> orglist = _giteaApi.GetUserOrganizations().Result;
+            List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
             return orglist;
         }
 
@@ -96,9 +89,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="id">The organization name</param>
         /// <returns>The organization</returns>
         [HttpGet]
-        public ActionResult<RepositoryClient.Model.Organization> Organization(string id)
+        public ActionResult<Organization> Organization(string id)
         {
-            RepositoryClient.Model.Organization org = _giteaApi.GetOrganization(id).Result;
+            Organization org = _giteaApi.GetOrganization(id).Result;
             if (org != null)
             {
                 return org;
@@ -399,128 +392,6 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
-            }
-        }
-
-        /// <summary>
-        /// Method to retrieve service name from textresources file
-        /// </summary>
-        /// <param name="owner">the owner of the service</param>
-        /// <param name="service">the service</param>
-        /// <returns>The service name of the service</returns>
-        [HttpGet]
-        public string GetServiceName(string owner, string service)
-        {
-            string defaultLang = "nb-NO";
-            string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-            string serviceName = string.Empty;
-
-            if (System.IO.File.Exists(serviceResourceDirectoryPath))
-            {
-                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-                if (textResourceObject != null)
-                {
-                    serviceName = textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName") != null ? textResourceObject.Resources.FirstOrDefault(r => r.Id == "ServiceName").Value : string.Empty;
-                }
-            }
-            
-            return serviceName;
-        }
-
-        /// <summary>
-        /// Method to save the updated service name to the textresources file
-        /// </summary>
-        /// <param name="owner">the owner of the service</param>
-        /// <param name="service">the service</param>
-        /// <param name="serviceName">The service name</param>
-        [HttpPost]
-        public void SetServiceName(string owner, string service, [FromBody] dynamic serviceName)
-        {
-            string defaultLang = "nb-NO";
-            string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
-            if (System.IO.File.Exists(serviceResourceDirectoryPath))
-            {
-                string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
-
-                ResourceCollection textResourceObject = JsonConvert.DeserializeObject<ResourceCollection>(textResource);
-
-                if (textResourceObject != null)
-                {
-                    textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
-                }
-
-                _repository.SaveResource(owner, service, "nb-NO", JObject.FromObject(textResourceObject).ToString());
-            }
-            else
-            {
-                JObject json = JObject.FromObject(new
-                {
-                    language = "nb-NO",
-                    resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
-                });
-                _repository.SaveResource(owner, service, "nb-NO", json.ToString());
-            }
-        }
-
-        /// <summary>
-        /// Method to retrieve the service description from the metadata file
-        /// </summary>
-        /// <param name="owner">the owner of the service</param>
-        /// <param name="service">the service</param>
-        /// <returns>The service description of the service</returns>
-        [HttpGet]
-        public string GetServiceDescription(string owner, string service)
-        {
-            string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
-            string serviceDescription = string.Empty;
-
-            if (System.IO.File.Exists(serviceMetadataDirectoryPath))
-            {
-                string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
-                ServiceConfiguration serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
-                if (serviceConfigurationObject != null)
-                {
-                    serviceDescription = serviceConfigurationObject.ServiceDescrition;
-                }
-            }
-
-            return serviceDescription;
-        }
-
-        /// <summary>
-        /// Method to set the service description in the metadata file
-        /// </summary>
-        /// <param name="owner">the owner of the service</param>
-        /// <param name="service">the service</param>
-        /// <param name="description">the service description</param>
-        [HttpPost]
-        public void SetServiceDescription(string owner, string service, [FromBody] dynamic description)
-        {
-            string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
-            ServiceConfiguration serviceConfigurationObject = null;
-
-            if (System.IO.File.Exists(serviceMetadataDirectoryPath))
-            {
-                string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
-                serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
-                serviceConfigurationObject.ServiceDescrition = description.serviceDescription;
-            }
-            else
-            {
-                new FileInfo(serviceMetadataDirectoryPath).Directory.Create();
-                serviceConfigurationObject = new ServiceConfiguration()
-                {
-                    RepositoryName = service,
-                    ServiceDescrition = description,
-                };
-            }
-
-            if (serviceConfigurationObject != null)
-            {
-                System.IO.File.WriteAllText(serviceMetadataDirectoryPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
             }
         }
     }

@@ -1,17 +1,17 @@
 
-import { createMuiTheme, createStyles, Typography, withStyles, Grid } from '@material-ui/core';
+import { createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import classNames = require('classnames');
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnInputField from '../../../../../shared/src/components/AltinnInputField';
+import AltinnPopper from '../../../../../shared/src/components/AltinnPopper';
+import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
+import { formatNameAndDate } from '../../../../../shared/src/utils/formatDate';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlHeader from '../../../../../shared/src/version-control/versionControlHeader';
-import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
-import classNames = require('classnames');
-import AltinnPopper from '../../../../../shared/src/components/AltinnPopper';
 import { ICommit } from '../../../types/global';
-import { formatNameAndDate } from '../../../../../shared/src/utils/formatDate';
-import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
+import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
 export interface IAdministationComponentProvidedProps {
   classes: any;
 }
@@ -126,9 +126,9 @@ export class AdministationComponent extends
     handleServiceInformationActionDispatchers.fetchInitialCommit(
       `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchServiceName(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetServiceName?owner=${org}&service=${service}`);
+      `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
     handleServiceInformationActionDispatchers.fetchServiceDescription(
-      `${altinnWindow.location.origin}/designerapi/Repository/GetServiceDescription?owner=${org}&service=${service}`);
+      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceDescription`);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -150,7 +150,7 @@ export class AdministationComponent extends
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceName(`${altinnWindow.location.origin}/designerapi/Repository/SetServiceName?owner=${org}&service=${service}`, this.state.serviceName);
+      handleServiceInformationActionDispatchers.saveServiceName(`${altinnWindow.location.origin}/designer/${org}/${service}/Text/SetServiceName`, this.state.serviceName);
       this.setState({ editServiceName: false });
     }
   }
@@ -164,7 +164,7 @@ export class AdministationComponent extends
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceDescription(`${altinnWindow.location.origin}/designerapi/Repository/SetServiceDescription?owner=${org}&service=${service}`, this.state.serviceDescription);
+      handleServiceInformationActionDispatchers.saveServiceDescription(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceDescription`, this.state.serviceDescription);
       this.setState({ editServiceDescription: false });
     }
   }
