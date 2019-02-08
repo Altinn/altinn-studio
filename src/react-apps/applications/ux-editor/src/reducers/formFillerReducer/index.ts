@@ -99,7 +99,10 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         },
         apiResult: {
           $set: apiResult,
-        }
+        },
+        validationErrors: {
+          $set: {},
+        },
       });
     }
 

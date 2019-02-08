@@ -289,10 +289,10 @@ namespace AltinnCore.Runtime
                     template: "runtime/api/{controller}/{org}/{service}/{action=Index}/{name}",
                     defaults: new { controller = "Codelist" },
                     constraints: new
-                {
-                    controller = "Codelist",
-                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                });
+                    {
+                        controller = "Codelist",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
 
                 routes.MapRoute(
                     name: "apiRoute",
@@ -305,15 +305,23 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
-            name: "serviceRoute",
-            template: "runtime/{org}/{service}/{controller}/{action=Index}/{id?}",
-            defaults: new { controller = "Service" },
-            constraints: new
-            {
-                controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
-                service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                id = "[a-zA-Z0-9_\\-]{1,30}",
-            });
+                    name: "serviceRoute",
+                    template: "runtime/{org}/{service}/{controller}/{action=Index}/{id?}",
+                    defaults: new { controller = "Service" },
+                    constraints: new
+                    {
+                        controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                        id = "[a-zA-Z0-9_\\-]{1,30}",
+                    });
+                routes.MapRoute(
+                    name: "languageRoute",
+                    template: "runtime/api/{controller}/{action=Index}/{id?}",
+                    defaults: new { controller = "Language" },
+                    constraints: new
+                    {
+                        controller = "Language",
+                    });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
