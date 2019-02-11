@@ -58,3 +58,10 @@ test('Create a new service', async () => {
     .pressKey("tab")
     .click(dash.opprettButton)
 });
+
+test.skip('Filter services by name', async () => {
+  await t
+    .click()
+    .click()
+    .expect().ok()
+});
