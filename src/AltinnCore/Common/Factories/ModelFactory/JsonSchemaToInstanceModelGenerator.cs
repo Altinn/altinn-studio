@@ -224,7 +224,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("ID", path);
 
             string parentElement = ExtractParent(path);
-            result.Add("ParentElement", parentElement);
+            if (parentElement != null)
+            {
+                result.Add("ParentElement", parentElement);
+            }
 
             string typeName = ExtractTypeNameFromSchema(propertyType);
             string xsdValueType = FollowValueType(propertyType);
@@ -440,7 +443,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         visitedTypes.Add(typeName);
                         foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(schema))
                         {
-                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, jSchema));
+                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema));
                         }
                     }                    
                 }
