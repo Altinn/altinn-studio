@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,8 +11,10 @@ using System.Xml;
 using System.Xml.Serialization;
 using Manatee.Json;
 using Manatee.Json.Schema;
+using Manatee.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using JsonSerializer = Manatee.Json.Serialization.JsonSerializer;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -80,21 +86,24 @@ namespace AltinnCore.Common.Factories.ModelFactory
         ///  Reads all altinn services resources and returns a list of these
         /// </summary>
         /// <returns>the list</returns>
-        public static async Task<List<AltinnResource>> ReadAllSchemaUrls()
+        public static async Task<List<AltinnResource>> ReadAllSchemas()
         {
             List<AltinnResource> resources = await GetResourcesAsync();
-            List<AltinnResource> result = new List<AltinnResource>();
 
+            List<AltinnResource> result = new List<AltinnResource>();
+            Dictionary<string, string> orgShortnameToOrgnumberMap = BuildOrganizationNumberMap();
             Dictionary<string, string> serviceCodeToServiceEditionCodeDictionary = new Dictionary<string, string>();
 
+            string[] excludeServiceOwnerCodes = { "ACN", "ASF", "TTD" };
+
             foreach (AltinnResource resource in resources)
-            {
-                if (resource.ServiceOwnerCode.Equals("ACN") || resource.ServiceOwnerCode.Equals("ASF"))
+            {           
+                if (excludeServiceOwnerCodes.Contains(resource.ServiceOwnerCode))
                 {
                     continue;
                 }
 
-                List<AltinnFormMetaData> forms = new List<AltinnFormMetaData>();                
+                List<AltinnFormMetaData> forms = new List<AltinnFormMetaData>();
 
                 FormResource r = await GetFormsMetadata(resource);
                 if (r != null && r.FormsMetaData != null && r.FormsMetaData.ToArray() != null)
@@ -103,15 +112,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         form.XsdSchemaUrl = XsdUrl(resource, form);
 
-                        form.JsonSchema = DownloadAndConvertXsdToJsonSchema(form.XsdSchemaUrl);
-
-                        forms.Add(form);            
-                    }                   
+                        form.JsonSchema = Zip(DownloadAndConvertXsdToJsonSchema(form.XsdSchemaUrl));
+                        forms.Add(form);
+                    }
                 }
 
                 if (forms.Count > 0)
                 {
+                    string orgnr = orgShortnameToOrgnumberMap.GetValueOrDefault(resource.ServiceOwnerCode);
+
+                    if (string.IsNullOrEmpty(orgnr))
+                    {
+                        Debug.WriteLine(resource.ServiceOwnerCode + "\t" + resource.ServiceOwnerName);
+                    }
+
+                    resource.OrganizationNumber = orgnr;
                     resource.Forms = forms;
+
                     result.Add(resource);
 
                     RememberHighestServiceEditionCode(serviceCodeToServiceEditionCodeDictionary, resource);
@@ -127,10 +144,45 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 if (resource.ServiceEditionCode.Equals(highestEditionCode))
                 {
                     filteredResult.Add(resource);
-                }                    
+                }
             }
 
             return filteredResult;
+        }
+
+        private static string Zip(JsonSchema jsonSchema)
+        {
+            JsonSerializer serializer = new JsonSerializer();
+            JsonValue json = serializer.Serialize(jsonSchema);
+
+            byte[] bytes = Encoding.Unicode.GetBytes(json.GetIndentedString());
+            using (MemoryStream msi = new MemoryStream(bytes))
+            using (MemoryStream mso = new MemoryStream())
+            {
+                using (GZipStream gs = new GZipStream(mso, CompressionMode.Compress))
+                {
+                    msi.CopyTo(gs);
+                }
+
+                return Convert.ToBase64String(mso.ToArray());
+            }
+        }
+
+        private static Dictionary<string, string> BuildOrganizationNumberMap()
+        {
+            Dictionary<string, string> orgShortnameToOrgnumberMap = new Dictionary<string, string>();
+
+            using (StreamReader r = new StreamReader("Common/orgs.json"))
+            {
+                string json = r.ReadToEnd();
+                List<Organization> orgs = JsonConvert.DeserializeObject<List<Organization>>(json);
+                foreach (Organization org in orgs)
+                {
+                    orgShortnameToOrgnumberMap.Add(org.Shortname, org.Orgnr);
+                }
+            }
+
+            return orgShortnameToOrgnumberMap;
         }
 
         private static JsonSchema DownloadAndConvertXsdToJsonSchema(string xsdSchemaUrl)
@@ -142,7 +194,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             // XSD to Json Schema
             XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(doc, null);
-
             return xsdToJsonSchemaConverter.AsJsonSchema();
         }
 
@@ -177,6 +228,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
     public class AltinnResource
     {
         public string ServiceOwnerCode { get; set; }
+
+        public string OrganizationNumber { get; set; }
 
         public string ServiceOwnerName { get; set; }
 
@@ -218,6 +271,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         public string XsdSchemaUrl { get; set; }
 
-        public JsonSchema JsonSchema { get; set; }
+        public string JsonSchema { get; set; }
+    }
+
+    public class Organization
+    {
+        public string Name { get; set; }
+
+        public string Shortname { get; set; }
+
+        public string Orgnr { get; set; }
+
+        public string Url { get; set; }
     }
 }

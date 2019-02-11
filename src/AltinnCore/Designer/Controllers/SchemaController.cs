@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Manatee.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,13 +25,24 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <returns>The schemas</returns>
         [HttpGet]
-        public ActionResult Schemas()
+        public async Task<IActionResult> Schemas()
         {
             AltinnServiceRepository repositoryClient = new AltinnServiceRepository();
 
-            // List<AltinnResource> resources = await AltinnServiceRepository.GetResourcesAsync();
-            // return Json(resources, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented })
-            return null;
+            Task<List<AltinnResource>> serviceRequestTask = AltinnServiceRepository.ReadAllSchemas();
+
+            await Task.WhenAll(serviceRequestTask);
+
+            if (serviceRequestTask.Result != null)
+            {
+                Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
+
+                JsonValue json = serializer.Serialize(serviceRequestTask.Result);
+
+                return Ok(json.GetIndentedString());
+            }
+
+            return NoContent();
         }
     }
 }

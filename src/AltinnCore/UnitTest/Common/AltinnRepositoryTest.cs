@@ -41,32 +41,13 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public async void ReadAllAsync()
         {
-            List<AltinnResource> services = await AltinnServiceRepository.ReadAllSchemaUrls();            
+            List<AltinnResource> services = await AltinnServiceRepository.ReadAllSchemas();
+
+            Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
             
-            File.WriteAllText("altinn-xsds.json", JsonConvert.SerializeObject(services, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented }));
+            JsonValue json = serializer.Serialize(services);
 
-            if (true)
-            {
-                return;
-            }
-
-            /*
-            foreach (JsonValue service in services)
-            {
-                JsonArray formArray = service.Object.TryGetArray("forms");
-
-                foreach (JsonValue form in formArray)
-                {
-                    WebClient webClient = new WebClient();
-                    string schemaUrl = form.Object.TryGetString("schemaUrl");
-                    string fileName = schemaUrl.Replace("https://www.altinn.no/api/metadata/formtask", "schema");
-                    fileName = fileName.Replace("/", "_");
-                    fileName = fileName.Replace("_xsd", ".xsd");
-
-                    webClient.DownloadFile(schemaUrl, fileName);
-                }
-            }
-            */
+            File.WriteAllText("altinn-service-schemas.json", json.GetIndentedString());              
         }
 
         private ILogger _logger = new LoggerFactory().CreateLogger("error");
