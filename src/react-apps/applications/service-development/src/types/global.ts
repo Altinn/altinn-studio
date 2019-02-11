@@ -27,20 +27,20 @@ export interface IRepository {
   full_name: string;
   html_url: string;
   id: number;
+  is_cloned_to_local: boolean;
   mirror: boolean;
   name: string;
   open_issues_count: number;
   owner: IOwner;
   permissions: IPermissions;
   private: boolean;
+  repositoryCreatedStatus: number;
   size: number;
   ssh_url: string;
   stars_count: number;
   updated_at: string;
   watchers_count: number;
   website: string;
-  is_cloned_to_local: boolean;
-  repositoryCreatedStatus: number;
 }
 
 export interface IOwner {
@@ -60,10 +60,10 @@ export interface IPermissions {
 export interface ICommit {
   message: string;
   author: ICommitAuthor;
-  commiter: ICommitAuthor;
+  comitter: ICommitAuthor;
   sha: string;
   messageShort: string;
-  ecoding: string;
+  encoding: string;
 }
 
 export interface ICommitAuthor {

@@ -95,7 +95,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
       const url = `${altinnWindow.location.origin}/designerapi/Repository/GetLatestCommitFromCurrentUser?owner=${org}&repository=${service}`;
       get(url).then((result: any) => {
         if (this._isMounted && result) {
-          const diff = new Date().getTime() - new Date(result.commiter.when).getTime();
+          const diff = new Date().getTime() - new Date(result.comitter.when).getTime();
           const oneHour = 60 * 60 * 1000;
           this.setState({
             moreThanAnHourSinceLastPush: oneHour < diff,

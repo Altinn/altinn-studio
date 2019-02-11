@@ -376,10 +376,10 @@ namespace AltinnCore.Common.Services.Implementation
                     commit.Author.Name = c.Author.Name;
                     commit.Author.When = c.Author.When;
 
-                    commit.Commiter = new Models.Signature();
-                    commit.Commiter.Name = c.Committer.Name;
-                    commit.Commiter.Email = c.Committer.Email;
-                    commit.Commiter.When = c.Committer.When;
+                    commit.Comitter = new Models.Signature();
+                    commit.Comitter.Name = c.Committer.Name;
+                    commit.Comitter.Email = c.Committer.Email;
+                    commit.Comitter.When = c.Committer.When;
 
                     commits.Add(commit);
                 }
@@ -407,10 +407,10 @@ namespace AltinnCore.Common.Services.Implementation
                 commit.Author.Name = firstCommit.Author.Name;
                 commit.Author.When = firstCommit.Author.When;
 
-                commit.Commiter = new Models.Signature();
-                commit.Commiter.Name = firstCommit.Committer.Name;
-                commit.Commiter.Email = firstCommit.Committer.Email;
-                commit.Commiter.When = firstCommit.Committer.When;
+                commit.Comitter = new Models.Signature();
+                commit.Comitter.Name = firstCommit.Committer.Name;
+                commit.Comitter.Email = firstCommit.Committer.Email;
+                commit.Comitter.When = firstCommit.Committer.When;
 
                 return commit;
             }

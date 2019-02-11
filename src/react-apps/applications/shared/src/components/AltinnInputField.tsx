@@ -6,20 +6,20 @@ import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from './AltinnButton';
 
 export interface IAltinnInputFieldComponentProvidedProps {
-  classes: any;
-  id: string;
-  placeholder?: any;
-  onChangeFunction?: any;
-  inputHeader?: string;
-  inputDescription?: string;
-  inputValue?: string;
-  onBlurFunction?: any;
-  isDisabled?: boolean;
-  textAreaRows?: number;
   btnText?: string;
-  onBtnClickFunction?: any;
-  inputFieldStyling?: any;
+  classes: any;
   focusOnComponentDidUpdate?: boolean;
+  id: string;
+  inputDescription?: string;
+  inputFieldStyling?: object;
+  inputHeader?: string;
+  inputValue?: string;
+  isDisabled?: boolean;
+  onBlurFunction?: any;
+  onBtnClickFunction?: any;
+  onChangeFunction?: any;
+  placeholder?: any;
+  textAreaRows?: number;
 }
 
 export interface IAltinnInputFieldComponentState {

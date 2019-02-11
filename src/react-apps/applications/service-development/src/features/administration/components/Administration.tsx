@@ -12,11 +12,11 @@ import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlHeader from '../../../../../shared/src/version-control/versionControlHeader';
 import { ICommit } from '../../../types/global';
 import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
-export interface IAdministationComponentProvidedProps {
+export interface IAdministrationComponentProvidedProps {
   classes: any;
 }
 
-export interface IAdministationComponentProps extends IAdministationComponentProvidedProps {
+export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
   language: any;
   service: any;
   serviceName: string;
@@ -26,7 +26,7 @@ export interface IAdministationComponentProps extends IAdministationComponentPro
   serviceDescriptionIsSaving: boolean;
 }
 
-export interface IAdministationComponentState {
+export interface IAdministrationComponentState {
   serviceDescription: string;
   serviceName: string;
   editServiceName: boolean;
@@ -88,9 +88,9 @@ const styles = createStyles({
   },
 });
 
-export class AdministationComponent extends
-  React.Component<IAdministationComponentProps, IAdministationComponentState> {
-  public static getDerivedStateFromProps(_props: IAdministationComponentProps, _state: IAdministationComponentState) {
+export class AdministrationComponent extends
+  React.Component<IAdministrationComponentProps, IAdministrationComponentState> {
+  public static getDerivedStateFromProps(_props: IAdministrationComponentProps, _state: IAdministrationComponentState) {
     if (_state.editServiceName || _props.serviceNameIsSaving) {
       return {
         serviceName: _state.serviceName,
@@ -109,7 +109,7 @@ export class AdministationComponent extends
     };
   }
 
-  public state: IAdministationComponentState = {
+  public state: IAdministrationComponentState = {
     serviceDescription: '',
     serviceName: this.props.serviceName,
     editServiceName: false,
@@ -184,7 +184,7 @@ export class AdministationComponent extends
             </Grid>
             <Grid item={true} className={classes.mainStyle} md={8}>
               <AltinnInputField
-                id={'service-name'}
+                id='service-name'
                 onChangeFunction={this.onServiceNameChanged}
                 inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
                 // tslint:disable-next-line:max-line-length
@@ -204,7 +204,7 @@ export class AdministationComponent extends
                 message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
               />
               <AltinnInputField
-                id={'repo-name'}
+                id='repo-name'
                 inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
                 // tslint:disable-next-line:max-line-length
                 inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
@@ -212,7 +212,7 @@ export class AdministationComponent extends
                 isDisabled={true}
               />
               <AltinnInputField
-                id={'description'}
+                id='description'
                 onChangeFunction={this.onServiceDescriptionChanged}
                 inputHeader={getLanguageFromKey('general.service_description_header', this.props.language)}
                 inputDescription={getLanguageFromKey('administration.description_description', this.props.language)}
@@ -231,8 +231,10 @@ export class AdministationComponent extends
               <Typography className={classNames(classes.sidebarServiceOwner, classes.sidebarInfoText)}>
                 <i
                   className={classNames(classes.iconStyling,
-                    { ['ai ai-corp']: this.props.service.owner.UserType === 2 },
-                    { ['ai ai-private']: this.props.service.owner.UserType !== 2 })}
+                    {
+                      ['ai ai-corp']: this.props.service.owner.UserType === 2,
+                      ['ai ai-private']: this.props.service.owner.UserType !== 2
+                    })}
                   aria-hidden='true'
                 />
                 {this.props.service.owner.full_name || this.props.service.owner.login}
@@ -247,7 +249,7 @@ export class AdministationComponent extends
           </Grid>
           :
           <Grid container={true}>
-            <AltinnSpinner spinnerText={'Laster siden'} className={classes.spinnerLocation} />
+            <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
           </Grid>
         }
       </div>
@@ -256,8 +258,8 @@ export class AdministationComponent extends
 }
 const mapStateToProps = (
   state: IServiceDevelopmentState,
-  props: IAdministationComponentProvidedProps,
-): IAdministationComponentProps => {
+  props: IAdministrationComponentProvidedProps,
+): IAdministrationComponentProps => {
   return {
     language: state.language,
     classes: props.classes,
@@ -274,4 +276,4 @@ const mapStateToProps = (
   };
 };
 
-export const Administation = withStyles(styles)(connect(mapStateToProps)(AdministationComponent));
+export const Administration = withStyles(styles)(connect(mapStateToProps)(AdministrationComponent));

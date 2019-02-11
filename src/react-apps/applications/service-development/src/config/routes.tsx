@@ -1,6 +1,6 @@
 import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import uieditorApp from '../../../ux-editor/src/SubApp';
-import { Administation } from '../features/administration/components/Administration';
+import { Administration } from '../features/administration/components/Administration';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
 export const routes = [
@@ -59,7 +59,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om tjenesten',
     menu: 'about',
-    subapp: Administation,
+    subapp: Administration,
   },
   {
     path: '/rolesandrights',
