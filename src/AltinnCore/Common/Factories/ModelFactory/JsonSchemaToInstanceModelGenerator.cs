@@ -369,9 +369,18 @@ namespace AltinnCore.Common.Factories.ModelFactory
             switch (typeName)
             {
                 case "string":
-                    {                        
-                        AddRestrictionValue(restriction, "minLength", GetterExtensions.MinLength(jSchema));
-                        AddRestrictionValue(restriction, "maxLength", GetterExtensions.MaxLength(jSchema));
+                    {
+                        double? minLength = GetterExtensions.MinLength(jSchema);
+                        double? maxLength = GetterExtensions.MaxLength(jSchema);
+                        if (minLength != null && minLength == maxLength)
+                        {
+                            AddRestrictionValue(restriction, "length", minLength);
+                        }
+                        else
+                        {
+                            AddRestrictionValue(restriction, "minLength", minLength);
+                            AddRestrictionValue(restriction, "maxLength", maxLength);
+                        }
 
                         Regex pattern = GetterExtensions.Pattern(jSchema);
                         if (pattern != null)
