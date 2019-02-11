@@ -59,14 +59,14 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
       const apiResult = yield call(put, url, apiMode || 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled, apiResult);
+      if (apiResult.status === 0 && apiMode === 'Complete') {
+        WorkflowActionDispatcher.setCurrentState(WorkflowSteps.Submit);
+      }
       if (apiResult.status === 0 && apiResult.nextStepUrl && !apiResult.nextStepUrl.contains('#Preview')) {
         // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
         // This is just a "POC" that this can be done
         if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
           window.location.replace(`${window.location.origin}${apiResult.nextStepUrl}`);
-        }
-        if (apiMode === 'Complete') {
-          WorkflowActionDispatcher.setCurrentState(WorkflowSteps.Submit);
         }
       }
     } else {
