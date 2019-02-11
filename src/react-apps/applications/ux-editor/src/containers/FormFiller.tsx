@@ -73,11 +73,6 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
       FormFillerActionDispatchers.submitFormData(`
       ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`, 'Complete');
     }
-    this.setState({
-      // for now we simulate a work flow step change
-      workflowStep: WorkflowSteps.Submit,
-    });
-
   }
 
   public renderSaveButton = () => {

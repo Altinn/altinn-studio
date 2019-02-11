@@ -65,6 +65,9 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
         if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
           window.location.replace(`${window.location.origin}${apiResult.nextStepUrl}`);
         }
+        if (apiMode === 'Complete') {
+          WorkflowActionDispatcher.setCurrentState(WorkflowSteps.Submit);
+        }
       }
     } else {
       // Update validationError state if schema contains errors
