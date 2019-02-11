@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Manatee.Json;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Newtonsoft.Json;
@@ -40,20 +41,24 @@ namespace AltinnCore.UnitTest.Common
         /// [Fact]
         public async void ReadAllAsync()
         {
-            List<string> schemaUrls = await AltinnServiceRepository.ReadAllSchemaUrls();
+            JsonArray services = await AltinnServiceRepository.ReadAllSchemaUrls();            
+            
+            File.WriteAllText("altinn-xsds.json", services.ToString());
 
-            var json = JsonConvert.SerializeObject(schemaUrls);
-
-            File.WriteAllText("altinn-xsds.json", json);
-
-            foreach (string schemaUrl in schemaUrls)
+            foreach (JsonValue service in services)
             {
-                var webClient = new WebClient();
-                string fileName = schemaUrl.Replace("https://www.altinn.no/api/metadata/formtask", "schema");
-                fileName = fileName.Replace("/", "_");
-                fileName = fileName.Replace("_xsd", ".xsd");
-                
-                webClient.DownloadFile(schemaUrl, fileName);
+                JsonArray formArray = service.Object.TryGetArray("forms");
+
+                foreach (JsonValue form in formArray)
+                {
+                    WebClient webClient = new WebClient();
+                    string schemaUrl = form.Object.TryGetString("schemaUrl");
+                    string fileName = schemaUrl.Replace("https://www.altinn.no/api/metadata/formtask", "schema");
+                    fileName = fileName.Replace("/", "_");
+                    fileName = fileName.Replace("_xsd", ".xsd");
+
+                    webClient.DownloadFile(schemaUrl, fileName);
+                }
             }
         }
 
@@ -71,7 +76,7 @@ namespace AltinnCore.UnitTest.Common
             
             foreach (string file in files)
             {
-                var seresParser = GetParser();
+                SeresXsdParser seresParser = GetParser();
                 Debug.WriteLine("Converting file " + file + " to Json Instance Model");
 
                 try
@@ -97,7 +102,7 @@ namespace AltinnCore.UnitTest.Common
             XDocument xsd = GetDocument(file);
             SeresXsdParser seresParser = GetParser();
 
-            var serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", xsd, null);
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", xsd, null);
 
             // string metadataAsJson = Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata);
             // File.WriteAllText("test.json", metadataAsJson);
@@ -108,7 +113,7 @@ namespace AltinnCore.UnitTest.Common
             XmlReaderSettings settings = new XmlReaderSettings();
             settings.IgnoreWhitespace = true;
 
-            var doc = XmlReader.Create(file, settings);
+            XmlReader doc = XmlReader.Create(file, settings);
             return XDocument.Load(doc);
         }
 

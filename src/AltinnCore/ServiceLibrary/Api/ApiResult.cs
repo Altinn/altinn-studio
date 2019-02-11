@@ -18,6 +18,11 @@ namespace AltinnCore.ServiceLibrary.Api
         public List<ApiModelStateEntry> ModelStateEntries { get; set; }
 
         /// <summary>
+        /// Gets or sets the ValidationResult
+        /// </summary>
+        public ApiValidationResult ValidationResult { get; set; }
+
+        /// <summary>
         /// Gets or sets the Message
         /// </summary>
         public string Message { get; set; }

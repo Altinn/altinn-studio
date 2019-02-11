@@ -24,21 +24,21 @@ const styles = () => createStyles({
     paddingLeft: 60,
   },
   box: {
+    background: theme.altinnPalette.primary.white,
     padding: 1,
   },
   boxTop: {
     [theme.breakpoints.down('sm')]: {
-      height: `calc(100vh - 110px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
+      height: `calc(100vh - 50px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
     },
     [theme.breakpoints.up('md')]: {
-      height: `calc(100vh - 110px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
+      height: `calc(100vh - 50px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
     },
   },
   boxBottom: {
-    height: 130,
+    height: 60,
   },
   containerMessage: {
-    marginBottom: '12px',
     padding: '10px',
   },
   containerMessageHasConflict: {
@@ -48,10 +48,6 @@ const styles = () => createStyles({
     background: theme.altinnPalette.primary.greenLight,
     boxShadow: theme.sharedStyles.boxShadow,
   },
-  title: {
-    marginBottom: 16,
-  },
-
 });
 
 export interface IHandleMergeConflictContainerProps extends WithStyles<typeof styles> {
@@ -73,7 +69,7 @@ export class HandleMergeConflictContainer extends
     this.setEditorHeight = this.setEditorHeight.bind(this);
     this.state = {
       editorHeight: null,
-      selectedFile: null,
+      selectedFile: '>',
     };
   }
 
@@ -117,7 +113,6 @@ export class HandleMergeConflictContainer extends
               <Grid
                 item={true}
                 xs={12}
-                className={classes.title}
               >
                 {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
 
@@ -127,42 +122,42 @@ export class HandleMergeConflictContainer extends
                   </Typography>
                 </Hidden>
 
-              </Grid>
-              {
-                repoStatus.hasMergeConflict ?
+                {
+                  repoStatus.hasMergeConflict ?
 
-                  <div className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
-                    {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
-                  </div>
-                  :
-
-                  repoStatus.contentStatus ?
-
-                    repoStatus.contentStatus.length > 0 ?
-                      <Grid
-                        item={true}
-                        xs={12}
-                        container={true}
-                        justify='center'
-                        alignItems='center'
-                        className={classes.containerMessage}
-                      >
-                        <Grid item={true}>
-                          <div className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
-                            {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
-                          </div>
-                        </Grid>
-                      </Grid>
-                      :
-
-                      <div className={classNames(classes.containerMessage)}>
-                        {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
-                      </div>
-
+                    <div className={classNames(classes.containerMessage, classes.containerMessageHasConflict)}>
+                      {getLanguageFromKey('handle_merge_conflict.container_message_has_conflict', language)}
+                    </div>
                     :
-                    null
 
-              }
+                    repoStatus.contentStatus ?
+
+                      repoStatus.contentStatus.length > 0 ?
+                        <Grid
+                          item={true}
+                          xs={12}
+                          container={true}
+                          justify='center'
+                          alignItems='center'
+                          className={classes.containerMessage}
+                        >
+                          <Grid item={true}>
+                            <div className={classNames(classes.containerMessage, classes.containerMessageNoConflict)}>
+                              {getLanguageFromKey('handle_merge_conflict.container_message_no_conflict', language)}
+                            </div>
+                          </Grid>
+                        </Grid>
+                        :
+
+                        <div className={classNames(classes.containerMessage)}>
+                          {getLanguageFromKey('handle_merge_conflict.container_message_no_files', language)}
+                        </div>
+
+                      :
+                      null
+
+                }
+              </Grid>
 
               <Grid
                 id='boxtop'
@@ -180,15 +175,11 @@ export class HandleMergeConflictContainer extends
                   className={classNames(classes.box)}
                 >
 
-                  {repoStatus.contentStatus ?
-                    <HandleMergeConflictFileList
-                      repoStatus={repoStatus}
-                      language={language}
-                      changeSelectedFile={this.changeSelectedFile}
-                    />
-                    :
-                    null
-                  }
+                  <HandleMergeConflictFileList
+                    repoStatus={repoStatus}
+                    language={language}
+                    changeSelectedFile={this.changeSelectedFile}
+                  />
 
                 </Grid>
 
@@ -199,11 +190,12 @@ export class HandleMergeConflictContainer extends
                   className={classNames(classes.box)}
                 >
                   <FileEditor
+                    boxShadow={true}
+                    checkRepoStatusAfterSaveFile={true}
                     editorHeight={this.state.editorHeight}
                     loadFile={selectedFile}
-                    boxShadow={true}
+                    mode='Root'
                     showSaveButton={true}
-                    checkRepoStatusAfterSaveFile={true}
                     stageAfterSaveFile={true}
                   />
                 </Grid>

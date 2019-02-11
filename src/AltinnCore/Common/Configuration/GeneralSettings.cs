@@ -26,6 +26,11 @@ namespace AltinnCore.Common.Configuration
         public string RuntimeMode { get; set; }
 
         /// <summary>
+        /// Gets or sets the soft validation prefix
+        /// </summary>
+        public string SoftValidationPrefix { get; set; }
+
+        /// <summary>
         /// Gets the path to the service implementation template
         /// </summary>
         public string ServiceImplementationTemplate

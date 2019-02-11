@@ -49,6 +49,7 @@ export interface IFormElementProps extends IProvidedProps {
 export interface IFormElementState {
   component: FormComponentType;
   activeList: any[];
+  wrapperRef: any;
 }
 
 /**
@@ -64,7 +65,34 @@ class FormComponent extends React.Component<
     this.state = {
       component: _props.component,
       activeList: _props.activeList,
+      wrapperRef: '',
     };
+  }
+
+  public componentDidMount() {
+    document.addEventListener('mousedown', this.handleClick);
+  }
+
+  public setWrapperRef = (node: any) => {
+    if (node) {
+      this.setState({
+        wrapperRef: node.parentElement.parentElement,
+      });
+    }
+  }
+
+  /*
+  * Handle all types of clicks.
+  * Tracks if the click is outside of the formComponent
+  */
+  public handleClick = () => {
+    const key: any = Object.keys(this.props.order)[0];
+    const order = this.props.order[key].indexOf(this.props.id);
+
+    if (this.state.wrapperRef && !this.state.wrapperRef.contains(event.target) &&
+        order === 0) {
+      this.handleActiveListChange({});
+    }
   }
 
   /**
@@ -168,7 +196,11 @@ class FormComponent extends React.Component<
   }
 
   public handleActiveListChange = (obj: any) => {
-    FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
+    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
+      FormDesignerActionDispatchers.deleteActiveListAction();
+    } else  {
+      FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
+    }
     this.props.sendListToParent(this.props.activeList);
   }
 
@@ -191,13 +223,11 @@ class FormComponent extends React.Component<
         </div>
       );
     }
-    const key: any = Object.keys(this.props.order)[0];
-    const order = this.props.order[key].indexOf(this.props.id);
     return (
+      <div ref={this.setWrapperRef}>
       <EditContainer
         component={this.props.component}
         id={this.props.id}
-        order={order}
         firstInActiveList={this.props.firstInActiveList}
         lastInActiveList={this.props.lastInActiveList}
         sendItemToParent={this.handleActiveListChange}
@@ -208,6 +238,7 @@ class FormComponent extends React.Component<
           {this.renderComponent()}
         </div>
       </EditContainer>
+      </div>
     );
   }
 
@@ -215,12 +246,11 @@ class FormComponent extends React.Component<
     if (this.props.validationErrors && this.props.validationErrors.length > 0) {
       return (
         <span className='field-validation-error a-message a-message-error'>
-          <p>Validation fails:</p>
-          <ul>
+          <ol>
             {this.props.validationErrors.map((error: string, index: number) => {
               return <li key={index}>{error}</li>;
             })}
-          </ul>
+          </ol>
         </span>
       );
     }

@@ -3,12 +3,13 @@ kind: Service
 metadata:
   name: altinn-repositories
   labels:
-    app.kubernetes.io/name: {{ include "altinn-repositories.name" . }}
-    helm.sh/chart: {{ include "altinn-repositories.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    run: altinn-repositories
 spec:
   ports:
-    - port: {{ .Values.service.internalPort }}
+  {{- range $port := .Values.service.ports}}
+    - port: {{ $port.port }}
+      targetPort: {{ $port.targetPort }}
+      protocol: {{ $port.protocol }}
+  {{- end }}
   selector:
-    app: altinn-repositories
+    run: altinn-repositories

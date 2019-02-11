@@ -1,4 +1,4 @@
-import { createStyles, Drawer, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
+import { createStyles, Grid, IconButton, Theme, withStyles, Drawer } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
@@ -40,7 +40,7 @@ const styles = ((theme: Theme) => createStyles({
     minHeight: 'calc(100vh - 69px)',
   },
   drawerRoot: {
-    height: 'calc(100vh - 6.5em)',
+    height: '100vh',
     overflow: 'hidden',
   },
   button: {
@@ -142,17 +142,26 @@ class FormDesigner extends React.Component<
     return filterDataModelForIntellisense(this.props.dataModel, filterText);
   }
 
-  public renderLogicMenu = () => {
+  public getEditorHeight = () => {
+    const height = document.getElementById('formFillerGrid').clientHeight;
+    const editorHeight = height - 20;
+    return editorHeight.toString();
+  }
+
+  public renderLogicEditor = () => {
+    const {classes} = this.props;
     return (
       <Drawer
         anchor='bottom'
         open={this.state.codeEditorOpen}
-        classes={{ paper: classNames(this.props.classes.drawerRoot) }}
+        classes={{ paper: classNames(classes.drawerRoot) }}
       >
         <FileEditor
+          editorHeight={this.getEditorHeight()}
           mode={this.state.codeEditorMode.toString()}
           closeFileEditor={this.toggleCodeEditor}
           getDataModelSuggestions={this.getDataModelSuggestions}
+          boxShadow={true}
         />
       </Drawer>
     );
@@ -167,6 +176,7 @@ class FormDesigner extends React.Component<
           wrap={'nowrap'}
           spacing={0}
           classes={{ container: classNames(classes.container) }}
+          id='formFillerGrid'
         >
           <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
             <Toolbar />
@@ -182,7 +192,7 @@ class FormDesigner extends React.Component<
             >
               <DesignView />
               {this.state.codeEditorOpen ?
-                this.renderLogicMenu()
+                this.renderLogicEditor()
                 : null}
             </div>
           </Grid>
@@ -216,7 +226,11 @@ class FormDesigner extends React.Component<
                 </h3>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_validations}
-                  listItems={[{ name: this.props.language.ux_editor.service_logic_edit_validations }]}
+                  listItems={[
+                    { name: this.props.language.ux_editor.service_logic_edit_validations ,
+                      action: this.toggleCodeEditor.bind(this, 'Validation'),
+                    },
+                  ]}
                 />
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_dynamics}

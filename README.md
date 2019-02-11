@@ -15,7 +15,7 @@ These instructions will get you a copy of the project up and running on your loc
 ### Prerequisites
 
 1. [.NET Core 2.1 SDK](https://www.microsoft.com/net/download/dotnet-core/sdk-2.1.300)
-2. [Node.js](https://nodejs.org) (version 8 or newer. **Note**: version 10.* does not currently work for this project)
+2. [Node.js](https://nodejs.org) (Version 10.*)
 3. Newest [Git](https://git-scm.com/downloads)
 4. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))

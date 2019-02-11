@@ -54,6 +54,15 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetConfiguration(string org, string service, string name);
 
         /// <summary>
+        /// Get content of file path relative to root
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="fileName">The name of file path relative to service root directory</param>
+        /// <returns>The fileContent</returns>
+        string GetFileByRelativePath(string org, string service, string fileName);
+
+        /// <summary>
         /// Get content of resource file
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -265,6 +274,14 @@ namespace AltinnCore.Common.Services.Interfaces
         List<AltinnCoreFile> GetCalculationFiles(string org, string service);
 
         /// <summary>
+        /// Returns a list over the validation files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        List<AltinnCoreFile> GetValidationFiles(string org, string service);
+
+        /// <summary>
         /// Returns the file Content of a
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -301,6 +318,16 @@ namespace AltinnCore.Common.Services.Interfaces
         void SaveResourceFile(string org, string service, string fileName, string fileContent);
 
         /// <summary>
+        /// Method that stores contents of file path relative to root
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="fileName">The name on config</param>
+        /// <param name="fileContent">The content</param>
+        /// <returns>A boolean indicating if everything went ok</returns>
+        bool SaveFile(string org, string service, string fileName, string fileContent);
+
+        /// <summary>
         /// Save service texts to resource files
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
@@ -315,6 +342,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">The service code for the current service</param>
         /// <returns>Returns the XSD from file as a string.</returns>
         string GetXsdModel(string org, string service);
+
+        /// <summary>
+        /// Get Json Schema model from disk
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>Returns the Json Schema from file as a string.</returns>
+        string GetJsonSchemaModel(string org, string service);
 
         /// <summary>
         /// Returns a given service resource embedded in a service

@@ -78,6 +78,10 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       WorkflowActionDispatcher.getCurrentState(
         `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`);
 
+      // Fetch language
+      appDataActionDispatcher.fetchLanguage(
+        `${altinnWindow.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb');
+
     } else {
       // ALTINN STUDIO
       if (window.location.hash.split('#/')[1] && window.location.hash.split('#/')[1].toLowerCase() === PREVIEW) {
