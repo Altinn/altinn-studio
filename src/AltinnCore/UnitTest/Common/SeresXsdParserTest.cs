@@ -19,6 +19,7 @@ namespace AltinnCore.UnitTest.Common
     /// <summary>
     /// Tests converting Json Schema to XSD
     /// </summary>
+    [Obsolete]
     public class SeresXsdParserTest
     {
         /// <summary>

@@ -88,8 +88,7 @@ namespace AltinnCore.Designer.Controllers
                 }
             }
 
-            var seresParser = new SeresXsdParser(_repository);
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata(org, service, mainXsd, secondaryXsds);
+            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
 
             if (_repository.CreateModel(org, service, serviceMetadata, mainXsd))
             {

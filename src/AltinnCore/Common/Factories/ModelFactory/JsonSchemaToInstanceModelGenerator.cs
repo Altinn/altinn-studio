@@ -20,6 +20,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private JsonObject instanceModel = new JsonObject();
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
+        private string multiplicityString;
 
         /// <summary>
         ///  Initializes a new instance of the <see cref="JsonSchemaToInstanceModelGenerator"/> class.
@@ -29,13 +30,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <param name="organizationName">The organisation name</param>
         /// <param name="serviceName">Service name</param>
         /// <param name="jsonSchema">The Json Schema to generate the instance model from</param>
-        public JsonSchemaToInstanceModelGenerator(string organizationName, string serviceName, JsonSchema jsonSchema)
+        /// <param name="multiplicityString">String to append for marking arrays</param>
+        public JsonSchemaToInstanceModelGenerator(string organizationName, string serviceName, JsonSchema jsonSchema, string multiplicityString = "[*]")
         {
+            this.jsonSchema = jsonSchema;
+            this.multiplicityString = multiplicityString;
+
             instanceModel.Add("Org", organizationName);
             instanceModel.Add("Service", serviceName);
             instanceModel.Add("Elements", elements);
-
-            this.jsonSchema = jsonSchema;
 
             foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Definitions(jsonSchema))
             {
@@ -170,7 +173,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return null;
             }
 
-            return SeresXsdParser.SanitizeName(name);
+            return XsdToJsonSchema.SanitizeName(name);
         }
 
         private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired)
@@ -187,7 +190,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (type != null && type.Value == JsonSchemaType.Array)
             {
                 List<JsonSchema> items = GetterExtensions.Items(propertyType);
-                path += "[*]";
+                path += multiplicityString;
                 FollowRef(path, items[0]); // TODO fix multiple item types. It now uses only the first
 
                 double? minItemsValue = GetterExtensions.MinItems(propertyType);
@@ -415,7 +418,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string RemoveLastStar(string path)
         {
-            if (path.EndsWith("[*]"))
+            if (multiplicityString.Length > 0 && path.EndsWith(multiplicityString))
             {
                 return path.Substring(0, path.Length - 3);
             }
