@@ -1,11 +1,11 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ICommit, IServiceDescription, IServiceName } from '../../types/global';
+import { ICommit, IRepository, IServiceDescription, IServiceName } from '../../types/global';
 import * as handleServiceInformationActions from './handleServiceInformationActions';
 import * as handleServiceInformationActionTypes from './handleServiceInformationActionTypes';
 
 export interface IHandleServiceInformationState {
-  repositoryInfo: any;
+  repositoryInfo: IRepository;
   serviceNameObj: IServiceName;
   serviceDescriptionObj: IServiceDescription;
   initialCommit: ICommit;
@@ -33,10 +33,10 @@ const handleServiceInformationReducer: Reducer<IHandleServiceInformationState> =
   }
   switch (action.type) {
     case handleServiceInformationActionTypes.FETCH_SERVICE_FULFILLED: {
-      const { result } = action as handleServiceInformationActions.IFetchServiceFulfilled;
+      const { repository } = action as handleServiceInformationActions.IFetchServiceFulfilled;
       return update<IHandleServiceInformationState>(state, {
         repositoryInfo: {
-          $set: result,
+          $set: repository,
         },
       });
     }

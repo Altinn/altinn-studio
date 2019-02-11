@@ -16,6 +16,47 @@ declare global {
     IHandleServiceInformationState> { }
 }
 
+export interface IRepository {
+  clone_url: string;
+  created_at: string;
+  default_branch: string;
+  description: string;
+  empty: boolean;
+  fork: boolean;
+  forks_count: number;
+  full_name: string;
+  html_url: string;
+  id: number;
+  mirror: boolean;
+  name: string;
+  open_issues_count: number;
+  owner: IOwner;
+  permissions: IPermissions;
+  private: boolean;
+  size: number;
+  ssh_url: string;
+  stars_count: number;
+  updated_at: string;
+  watchers_count: number;
+  website: string;
+  is_cloned_to_local: boolean;
+  repositoryCreatedStatus: number;
+}
+
+export interface IOwner {
+  avatar_url: string;
+  email: string;
+  full_name: string;
+  id: number;
+  login: string;
+}
+
+export interface IPermissions {
+  admin: boolean;
+  pull: boolean;
+  push: boolean;
+}
+
 export interface ICommit {
   message: string;
   author: ICommitAuthor;

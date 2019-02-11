@@ -1,4 +1,5 @@
 import { Action } from 'redux';
+import { IRepository } from '../../types/global';
 import * as ActionTypes from './handleServiceInformationActionTypes';
 
 export interface IFetchServiceAction extends Action {
@@ -6,7 +7,7 @@ export interface IFetchServiceAction extends Action {
 }
 
 export interface IFetchServiceFulfilled extends Action {
-  result: any;
+  repository: IRepository;
 }
 
 export interface IFetchServiceRejected extends Action {
@@ -20,10 +21,10 @@ export function fetchServiceAction(url: string): IFetchServiceAction {
   };
 }
 
-export function fetchServiceFulfilledAction(result: any): IFetchServiceFulfilled {
+export function fetchServiceFulfilledAction(repository: any): IFetchServiceFulfilled {
   return {
     type: ActionTypes.FETCH_SERVICE_FULFILLED,
-    result,
+    repository,
   };
 }
 
