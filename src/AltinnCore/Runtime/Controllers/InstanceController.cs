@@ -92,11 +92,6 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
-            {
-                return RedirectToAction("Receipt", new { org, service, instanceId });
-            }
-
             // TODO Add info for REACT app.
             return View();
         }
@@ -194,10 +189,57 @@ namespace AltinnCore.Runtime.Controllers
                     _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
                 }
 
-                return Redirect(_workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State));
             }
 
-            return View();
+            return Ok();
+        }
+
+        /// <summary>
+        /// This is the HttpPost version of the CompleteAndSendIn operation that
+        /// is triggered when user press the send in option, for API Calls
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instanceId</param>
+        /// <returns>Redirect user to the receipt page</returns>
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> CompleteAndSendInAPI(string org, string service, int instanceId)
+        {
+            // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
+            // Will compile code and load DLL in to memory for AltinnCore
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
+
+            // Get the serviceContext containing all metadata about current service
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
+
+            // Create and populate the RequestContext object and make it available for the service implementation so
+            // service developer can implement logic based on information about the request and the user performing
+            // the request
+            RequestContext requestContext = PopulateRequestContext(instanceId);
+
+            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            serviceImplementation.SetPlatformServices(platformServices);
+
+            // Getting the Form Data from database
+            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            serviceImplementation.SetServiceModel(serviceModel);
+
+            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
+            await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
+
+            if (ModelState.IsValid)
+            {
+                ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                if (currentState.State == WorkflowStep.Archived)
+                {
+                    _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                }
+
+                return Ok(_workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State));
+            }
+
+            return Ok();
         }
 
         /// <summary>
@@ -357,6 +399,23 @@ namespace AltinnCore.Runtime.Controllers
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
             return View(startServiceModel);
+        }
+
+
+        /// <summary>
+        /// Get the current state
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="reporteeId">The reportee id</param>
+        /// <returns>An api response containing the current ServiceState </returns>
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetCurrentState(string org, string service, int instanceId, int reporteeId)
+        {
+
+            return new ObjectResult(_workflowSI.GetCurrentState(instanceId, org, service, reporteeId));
         }
 
         /// <summary>

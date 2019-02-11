@@ -105,9 +105,9 @@ namespace AltinnCore.Common.Services.Implementation
                 case WorkflowStep.FormFilling:
                     return $"/runtime/{owner}/{service}/{formId}/#Preview";
                 case WorkflowStep.Submit:
-                    return $"/runtime/{owner}/{service}/{formId}/CompleteAndSendIn";
+                    return $"/runtime/{owner}/{service}/{formId}/#Preview";
                 case WorkflowStep.Archived:
-                    return $"/runtime/{owner}/{service}/{formId}/Receipt";
+                    return $"/runtime/{owner}/{service}/{formId}/#Preview";
                 default:
                     return $"/runtime/{owner}/{service}/ManualTesting";
             }

@@ -8,7 +8,7 @@ import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selector
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
 import { Preview } from './Preview';
-import { WorkflowStep } from './WorkflowStep';
+import { WorkflowStep, WorkflowSteps } from './WorkflowStep';
 
 export interface IFormFillerProps {
   validationErrors: any[];
@@ -18,11 +18,11 @@ export interface IFormFillerProps {
   designMode: boolean;
   formDataCount: number;
   language: any;
-  workflowStep: string;
+  workflowStep: WorkflowSteps;
 }
 
 export interface IFormFillerState {
-  workflowStep: string;
+  workflowStep: WorkflowSteps;
 }
 
 /**
@@ -36,6 +36,14 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     this.state = {
       workflowStep: props.workflowStep,
     };
+  }
+
+  public componentWillReceiveProps(nextProps: IFormFillerProps) {
+    if (nextProps.workflowStep !== this.state.workflowStep) {
+      this.setState({
+        workflowStep: nextProps.workflowStep,
+      });
+    }
   }
 
   public componentDidMount() {
@@ -55,11 +63,6 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
       FormFillerActionDispatchers.submitFormData(`
         ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
-    } else {
-      this.setState({
-        // for now we simulate a work flow step change
-        workflowStep: 'archived',
-      });
     }
   }
 
@@ -69,36 +72,44 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
       FormFillerActionDispatchers.submitFormData(`
       ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`, 'Complete');
-    } else {
-      this.setState({
-        // for now we simulate a work flow step change
-        workflowStep: 'archived',
-      });
-
     }
+    this.setState({
+      // for now we simulate a work flow step change
+      workflowStep: WorkflowSteps.Submit,
+    });
+
   }
 
   public renderSaveButton = () => {
+    const isActive = Object.keys(this.props.validationErrors).length === 0 && this.props.unsavedChanges;
     return (
       <button
         type='submit'
-        className={Object.keys(this.props.validationErrors).length === 0 && this.props.unsavedChanges ?
+        className={isActive ?
           'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.saveFormData}
+        disabled={!isActive}
       >
         {this.props.language.general.save}
       </button>
     );
   }
 
+  public handleStepChange = (step: WorkflowSteps) => {
+    this.setState({
+      workflowStep: step,
+    });
+  }
+
   public renderSubmitButton = () => {
+    const isActive = Object.keys(this.props.validationErrors).length === 0 && !this.props.unsavedChanges
+      && this.props.formDataCount > 0;
     return (
       <button
         type='submit'
-        className={Object.keys(this.props.validationErrors).length === 0 && !this.props.unsavedChanges
-          && this.props.formDataCount > 0 ?
-          'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
+        className={isActive ? 'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
         onClick={this.submitForm}
+        disabled={!isActive}
       >
         {this.props.language.general.control_submit}
       </button>
@@ -109,7 +120,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
     const altinnWindow = window as IAltinnWindow;
     const { service } = altinnWindow;
     return (
-      <WorkflowStep header={service} step={this.state.workflowStep}>
+      <WorkflowStep header={service} step={this.state.workflowStep} onStepChange={this.handleStepChange}>
         <div className='row'>
           <Preview />
         </div>
@@ -140,7 +151,7 @@ const makeMapStateToProps = () => {
       designMode: GetDesignMode(state),
       formDataCount: GetFormDataCount(state),
       language: state.appData.language.language,
-      workflowStep: 'formfiller', // TODO: Fetch state from store when workflow back end is implemented
+      workflowStep: state.workflow.workflowStep,
     };
   };
   return mapStateToProps;

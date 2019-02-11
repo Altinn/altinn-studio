@@ -214,7 +214,7 @@ namespace AltinnCore.Runtime
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
-                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
+                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit|GetCurrentState",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"\d+",
@@ -289,10 +289,10 @@ namespace AltinnCore.Runtime
                     template: "runtime/api/{controller}/{org}/{service}/{action=Index}/{name}",
                     defaults: new { controller = "Codelist" },
                     constraints: new
-                {
-                    controller = "Codelist",
-                    service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                });
+                    {
+                        controller = "Codelist",
+                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
 
                 routes.MapRoute(
                     name: "apiRoute",

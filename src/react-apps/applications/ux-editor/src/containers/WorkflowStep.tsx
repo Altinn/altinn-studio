@@ -1,16 +1,22 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { Redirect } from 'react-router';
+import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
-  step: string;
+  step: WorkflowSteps;
+  onStepChange: any;
 }
 
+/*
+  Reflects enum at server side
+*/
 export enum WorkflowSteps {
-  FormFilling = 'formfilling',
-  Archived = 'archived',
-  Submit = 'submit',
+  Unknown = 0,
+  FormFilling = 1,
+  Submit = 2,
+  Archived = 3,
 }
 
 export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
@@ -20,6 +26,7 @@ export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
 export interface IWorkflowStepState {
   redirect: boolean;
   isRuntime: boolean;
+  workflowStep: WorkflowSteps;
 }
 
 class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflowStepState> {
@@ -29,7 +36,16 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     this.state = {
       redirect: false,
       isRuntime,
+      workflowStep: props.step,
     };
+  }
+
+  public componentWillReceiveProps(nextProps: IWorkflowStepProps) {
+    if (nextProps.step !== this.state.workflowStep) {
+      this.setState({
+        workflowStep: nextProps.step,
+      });
+    }
   }
 
   public renderTop = () => {
@@ -67,7 +83,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     return (
       <div
         className={'modal-header a-modal-header ' +
-          ((this.props.step === 'archived') ? 'a-modal-background-success' : '')
+          ((this.props.step === WorkflowSteps.Archived) ? 'a-modal-background-success' : '')
         }
       >
         <div className='a-iconText a-iconText-background a-iconText-large'>
@@ -85,7 +101,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public renderNavBar = () => {
     return (
       <div className='a-modal-navbar'>
-        {this.props.step === 'formfiller' &&
+        {this.props.step === WorkflowSteps.FormFilling &&
           <button type='button' className='a-modal-back a-js-tabable-popover' aria-label='Tilbake'>
             <span className='ai-stack'>
               <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
@@ -114,32 +130,48 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     });
   }
 
+  public handleSubmitForm = () => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, instanceId } = altinnWindow;
+    if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
+      FormFillerActionDispatchers.completeAndSendInForm(
+        `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
+    }
+  }
   public renderFormFiller = () => {
     return this.props.children;
   }
 
   public renderSubmit(): React.ReactNode {
     return (
-      <></>
+      <button
+        type='submit'
+        className={'a-btn a-btn-success'}
+        onClick={this.handleSubmitForm}
+        id='workflowSubmitStepButton'
+      >
+        Send Inn
+      </button>
     );
   }
 
   public renderReceipt = () => {
-    // Just renders a placeholder receipt for now
     return (
-      <p className='a-leadText'>{this.props.language.ux_editor.formfiller_placeholder_receipt_header}</p>
+      <div id='receiptWrapper'>
+        <p className='a-leadText'>{this.props.language.ux_editor.formfiller_placeholder_receipt_header}</p>
+      </div>
     );
   }
 
   public render() {
-    const backgroundColor = (this.props.step === 'archived') ? '#D4F9E4' : '#1EAEF7';
+    const backgroundColor = (this.props.step === WorkflowSteps.Archived) ? '#D4F9E4' : '#1EAEF7';
     if (!this.state.isRuntime && this.state.redirect) {
       return (
         <Redirect to={'/uieditor'} />
       );
     }
     return (
-      <div style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
+      <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>
           {this.renderTop()}
           <div className='row'>

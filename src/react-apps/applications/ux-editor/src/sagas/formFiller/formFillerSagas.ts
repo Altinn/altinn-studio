@@ -4,9 +4,11 @@ import FormDesignerActionDispatchers from '../../actions/formDesignerActions/for
 import * as FormFillerActions from '../../actions/formFillerActions/actions/index';
 import FormFillerActionDispatcher from '../../actions/formFillerActions/formFillerActionDispatcher';
 import * as FormFillerActionTypes from '../../actions/formFillerActions/formFillerActionTypes';
+import WorkflowActionDispatcher from '../../actions/workflowActions/worflowActionDispatcher';
+import { WorkflowSteps } from '../../containers/WorkflowStep';
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { convertDataBindingToModel, convertModelToDataBinding } from '../../utils/databindings';
-import { get, put } from '../../utils/networking';
+import { get, post, put } from '../../utils/networking';
 import * as Validator from '../../utils/validation';
 
 const selectAppData = (state: IAppState): IAppDataState => state.appData;
@@ -57,7 +59,9 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
       const apiResult = yield call(put, url, apiMode || 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled, apiResult);
-      if (apiResult.status === 0 && apiResult.nextStepUrl) {
+      if (apiResult.status === 0 && apiResult.nextStepUrl && !apiResult.nextStepUrl.contains('#Preview')) {
+        // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
+        // This is just a "POC" that this can be done
         if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
           window.location.replace(`${window.location.origin}${apiResult.nextStepUrl}`);
         }
@@ -112,4 +116,23 @@ export function* resetFormDataSaga({ url }: FormFillerActions.IResetFormDataActi
 
 export function* watchResetFormDataSaga(): SagaIterator {
   yield takeLatest(FormFillerActionTypes.RESET_FORM_DATA, resetFormDataSaga);
+}
+
+export function* completeAndSendInFormSaga({ url }: FormFillerActions.ICompleteAndSendInForm): SagaIterator {
+  try {
+    const response = yield call(post, url);
+    if (response.status === 200) {
+      yield call(FormFillerActionDispatcher.completeAndSendInFormFulfilled);
+      // For now we just set state to archived, but this may change in the future.
+      yield call(WorkflowActionDispatcher.setCurrentState, WorkflowSteps.Archived);
+    } else {
+      yield call(FormFillerActionDispatcher.completeAndSendInFormRejected);
+    }
+  } catch (err) {
+    yield call(FormFillerActionDispatcher.completeAndSendInFormRejected);
+  }
+}
+
+export function* watchCompleteAndSendInFormSaga(): SagaIterator {
+  yield takeLatest(FormFillerActionTypes.COMPLETE_AND_SEND_IN_FORM, completeAndSendInFormSaga);
 }
