@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, takeLatest } from 'redux-saga/effects';
+import { call, takeLatest } from 'redux-saga/effects';
 import { get, post } from '../../../../shared/src/utils/networking';
 import * as HandleServiceInformationActions from './handleServiceInformationActions';
 import * as HandleServiceInformationActionTypes from './handleServiceInformationActionTypes';
@@ -115,14 +115,4 @@ export function* watchHandleSaveServiceDescriptionSaga(): SagaIterator {
     HandleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION,
     handleSaveServiceDescriptionSaga,
   );
-}
-
-// tslint:disable-next-line:space-before-function-paren
-export default function* (): SagaIterator {
-  yield fork(watchHandleFetchServiceSaga);
-  yield fork(watchHandleFetchServiceNameSaga);
-  yield fork(watchHandleSaveServiceNameSaga);
-  yield fork(watchHandleFetchInitialCommitSaga);
-  yield fork(watchHandleFetchServiceDescriptionSaga);
-  yield fork(watchHandleSaveServiceDescriptionSaga);
 }

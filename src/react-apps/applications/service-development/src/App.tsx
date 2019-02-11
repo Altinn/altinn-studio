@@ -75,7 +75,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public componentDidMount() {
-    const altinnWindow: any = window;
+    const altinnWindow: Window = window;
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
 
