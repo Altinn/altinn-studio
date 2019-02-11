@@ -27,7 +27,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnServiceRepository"/> class.
-        ///   xyz
         /// </summary>
         public AltinnServiceRepository()
         {
@@ -35,9 +34,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         /// <summary>
-        ///  132345
+        ///  Gets all resources in altinn metadata
         /// </summary>
-        /// <returns>jijiji</returns>
+        /// <returns>list of the resources</returns>
         public static async Task<List<AltinnResource>> GetResourcesAsync()
         {
             List<AltinnResource> resources = null;
@@ -54,10 +53,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
         }
 
         /// <summary>
-        ///  djkfkfa
+        ///  Get forms metadata from altinn
         /// </summary>
-        /// <param name="altinnResource">afassdf</param>
-        /// <returns>ddfdf</returns>
+        /// <param name="altinnResource">The resource</param>
+        /// <returns>The form resource</returns>
         public static async Task<FormResource> GetFormsMetadata(AltinnResource altinnResource)
         {
             string path = FormTaskUrl(altinnResource);
@@ -172,7 +171,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             Dictionary<string, string> orgShortnameToOrgnumberMap = new Dictionary<string, string>();
 
-            using (StreamReader r = new StreamReader("Common/orgs.json"))
+            using (StreamReader r = new StreamReader("Schemas/orgs.json"))
             {
                 string json = r.ReadToEnd();
                 List<Organization> orgs = JsonConvert.DeserializeObject<List<Organization>>(json);

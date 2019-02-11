@@ -1,0 +1,3857 @@
+[
+        {
+            "name": "Etatenes fellesforvaltning",
+            "shortname": "EFF",
+            "avatar_url": "eff.png",
+            "url": "https://www.skatteetaten.no/"
+        },
+        {
+            "name": "Entur",
+            "shortname": "entur",
+            "avatar_url": "entur.png",
+            "orgnr": "917422575",
+            "url": "http://www.entur.org/"
+        },
+        {
+            "name": "Språkrådet",
+            "shortname": "sprakradet",
+            "avatar_url": "sprakradet.png",
+            "orgnr": "971527404",
+            "url": "http://www.sprakradet.no/"
+        },
+        {
+            "name": "Senter for internasjonalisering av utdanning",
+            "shortname": "SIU",
+            "avatar_url": "siu.png",
+            "orgnr": "986339523",
+            "url": "https://www.siu.no/"
+        },
+        {
+            "name": "Helseforetakenes senter for pasientreiser ANS",
+            "shortname": "pasientreiser",
+            "avatar_url": "pasientreiser.png",
+            "orgnr": "994111841",
+            "url": "https://pasientreiser.no/"
+        },
+        {
+            "name": "Valgdirektoratet",
+            "shortname": "VALG",
+            "avatar_url": "valgdir.png",
+            "orgnr": "916132727",
+            "url": "https://valg.no/valgdirektoratet/"
+        },
+        {
+            "name": "Kulturminnefondet",
+            "shortname": "kulturminnefondet",
+            "avatar_url": "kulturminnefondet.png",
+            "orgnr": "985980101",
+            "url": "https://kulturminnefondet.no/"
+        },
+        {
+            "name": "Konfliktrådet",
+            "shortname": "konfliktradet",
+            "avatar_url": "konfliktradet.png",
+            "orgnr": "986074465",
+            "url": "http://www.konfliktraadet.no/"
+        },
+        {
+            "name": "Forbrukertilsynet",
+            "shortname": "forbrukertilsynet",
+            "avatar_url": "forbrukertilsynet.png",
+            "orgnr": "974761335",
+            "url": "https://www.forbrukertilsynet.no/"
+        },
+        {
+            "name": "Sysselmannen på Svalbard",
+            "shortname": "sysselmannen",
+            "avatar_url": "Sysselmannen.png",
+            "orgnr": "971456523",
+            "url": "http://www.sysselmannen.no/"
+        },
+        {
+            "name": "Direktoratet for e-helse",
+            "shortname": "EHLS",
+            "avatar_url": "ehelse.png",
+            "orgnr": "915933149",
+            "url": "https://ehelse.no/"
+        },
+        {
+            "name": "Statens institutt for forbruksforskning",
+            "shortname": "SIFO",
+            "avatar_url": "sifo.png",
+            "orgnr": "971036885",
+            "url": "http://www.sifo.no/"
+        },
+        {
+            "name": "Forsvarsbygg",
+            "shortname": "forsvarsbygg",
+            "avatar_url": "Forsvarsbygg.png",
+            "orgnr": "975950662",
+            "url": "http://www.forsvarsbygg.no"
+        },
+        {
+            "name": "Kulturdepartementet",
+            "shortname": "kud",
+            "avatar_url": "dep.png",
+            "orgnr": "972417866",
+            "url": "https://www.regjeringen.no/no/dep/kud/id545/"
+        },
+        {
+            "name": "Kulturrådet",
+            "shortname": "NKR",
+            "avatar_url": "kulturradet.png",
+            "orgnr": "971527412",
+            "url": "http://www.kulturradet.no/"
+        },
+        {
+            "name": "Justis- og beredskapsdepartementet",
+            "shortname": "justis-og-beredskap",
+            "avatar_url": "dep.png",
+            "orgnr": "972417831",
+            "url": "https://www.regjeringen.no/no/dep/jd/id463/"
+        },
+        {
+            "name": "Helse- og omsorgsdepartementet",
+            "shortname": "hod",
+            "avatar_url": "dep.png",
+            "orgnr": "983887406",
+            "url": "https://www.regjeringen.no/no/dep/hod/id421/"
+        },
+        {
+            "name": "Fylkesmannen",
+            "shortname": "fylkesmannen",
+            "avatar_url": "riksvapen.png",
+            "orgnr": "974761319",
+            "url": "http://fylkesmannen.no/"
+        },
+        {
+            "name": "Barne- og likestillingsdepartementet",
+            "shortname": "bld",
+            "avatar_url": "dep.png",
+            "orgnr": "972417793",
+            "url": "https://www.regjeringen.no/no/dep/bld/id298/"
+        },
+        {
+            "name": "Direktoratet for nødkommunikasjon",
+            "shortname": "dnk",
+            "avatar_url": "dnk.png",
+            "orgnr": "990382840",
+            "url": "http://www.xn--ndnett-bya.no/"
+        },
+        {
+            "name": "Norsk pasientskadeerstatning",
+            "shortname": "NPE",
+            "avatar_url": "npe.png",
+            "orgnr": "984936923",
+            "url": "http://www.npe.no/en/"
+        },
+        {
+            "name": "Kontoret for voldsoffererstatning",
+            "shortname": "voldsoffererstatning",
+            "avatar_url": "voldsoffererstatning.png",
+            "orgnr": "986187243",
+            "url": "http://www.voldsoffererstatning.no/"
+        },
+        {
+            "name": "Barne-, ungdoms- og familiedirektoratet",
+            "shortname": "BUF",
+            "avatar_url": "bufdir.png",
+            "orgnr": "986128433",
+            "url": "https://www.bufdir.no/"
+        },
+        {
+            "name": "Nasjonal sikkerhetsmyndighet",
+            "shortname": "NSM",
+            "avatar_url": "nsm.png",
+            "orgnr": "985165262",
+            "url": "https://www.nsm.stat.no/"
+        },
+        {
+            "name": "Lotteri- og stiftelsestilsynet",
+            "shortname": "LTS",
+            "avatar_url": "lottstift.png",
+            "orgnr": "982391490",
+            "url": "https://lottstift.no/en/"
+        },
+        {
+            "name": "Landbruksdirektoratet",
+            "shortname": "SLF",
+            "avatar_url": "riksvapen.png",
+            "orgnr": "981544315",
+            "url": "https://www.landbruksdirektoratet.no"
+        },
+        {
+            "name": "Departementenes sikkerhets- og serviceorganisasjon",
+            "shortname": "DSS",
+            "avatar_url": "dep.png",
+            "orgnr": "974761424",
+            "url": "https://dss.dep.no/"
+        },
+        {
+            "name": "Utdanningsdirektoratet",
+            "shortname": "udir",
+            "avatar_url": "udir.png",
+            "orgnr": "970018131",
+            "url": "https://www.udir.no/"
+        },
+        {
+            "name": "Direktoratet for byggkvalitet",
+            "shortname": "DIBK",
+            "avatar_url": "dibk.png",
+            "orgnr": "974760223",
+            "url": "https://dibk.no/"
+        },
+        {
+            "name": "Medietilsynet",
+            "shortname": "medietilsynet",
+            "avatar_url": "medietilsynet.png",
+            "orgnr": "974760886",
+            "url": "https://www.medietilsynet.no/"
+        },
+        {
+            "name": "Justervesenet",
+            "shortname": "justervesenet",
+            "avatar_url": "justervesenet.png",
+            "orgnr": "874761192",
+            "url": "http://www.justervesenet.no/"
+        },
+        {
+            "name": "Statens helsetilsyn",
+            "shortname": "helsetilsynet",
+            "avatar_url": "helsetilsynet.png",
+            "orgnr": "974761394",
+            "url": "https://www.helsetilsynet.no"
+        },
+        {
+            "name": "Statens strålevern",
+            "shortname": "nrpa",
+            "avatar_url": "nrpa.png",
+            "orgnr": "867668292",
+            "url": "https://www.nrpa.no/"
+        },
+        {
+            "name": "Finanstilsynet",
+            "shortname": "KRT",
+            "avatar_url": "finanstilsynet.png",
+            "orgnr": "840747972",
+            "url": "https://www.finanstilsynet.no/"
+        },
+        {
+            "name": "Luftfartstilsynet",
+            "shortname": "LT",
+            "avatar_url": "luftfartstilsynet.png",
+            "orgnr": "981105516",
+            "url": "http://luftfartstilsynet.no/"
+        },
+        {
+            "name": "Arbeidstilsynet",
+            "shortname": "DAT",
+            "avatar_url": "arbeidstilsynet.png",
+            "orgnr": "974761211",
+            "url": "https://www.arbeidstilsynet.no/"
+        },
+        {
+            "name": "Tilsynsrådet for advokatvirksomhet",
+            "shortname": "TRA",
+            "avatar_url": "tilsynsradet.png",
+            "orgnr": "914459265",
+            "url": "http://tilsynet.no/"
+        },
+        {
+            "name": "Kunnskapsdepartementet",
+            "shortname": "kd",
+            "avatar_url": "dep.png",
+            "orgnr": "872417842",
+            "url": "https://www.regjeringen.no/no/dep/kd/id586/"
+        },
+        {
+            "name": "Direktoratet for mineralforvaltning",
+            "shortname": "dirmin",
+            "avatar_url": "dirmin.png",
+            "orgnr": "974760282",
+            "url": "https://dirmin.no/"
+        },
+        {
+            "name": "Statens jernbanetilsyn",
+            "shortname": "sjt",
+            "avatar_url": "sjt.png",
+            "orgnr": "979363974",
+            "url": "http://www.sjt.no/"
+        },
+        {
+            "name": "Meteorologisk institutt",
+            "shortname": "met",
+            "avatar_url": "met.png",
+            "orgnr": "971274042",
+            "url": "https://www.met.no/"
+        },
+        {
+            "name": "Arkivverket",
+            "shortname": "arkivverket",
+            "avatar_url": "arkivverket.png",
+            "orgnr": "961181399",
+            "url": "http://www.arkivverket.no/"
+        },
+        {
+            "name": "Sjøfartsdirektoratet",
+            "shortname": "SFD",
+            "avatar_url": "sdir.png",
+            "orgnr": "974761262",
+            "url": "https://www.sdir.no/"
+        },
+        {
+            "name": "Pensjonstrygden for sjømenn",
+            "shortname": "pts",
+            "avatar_url": "pts.png",
+            "orgnr": "940415683",
+            "url": "https://www.pts.no/"
+        },
+        {
+            "name": "Statens sivilrettsforvaltning",
+            "shortname": "SRF",
+            "avatar_url": "riksvapen.png",
+            "orgnr": "986186999",
+            "url": "http://www.sivilrett.no/"
+        },
+        {
+            "name": "Norsk institutt for bioøkonomi",
+            "shortname": "nibio",
+            "avatar_url": "nibio.png",
+            "orgnr": "988983837",
+            "url": "https://www.nibio.no/"
+        },
+        {
+            "name": "Direktoratet for økonomistyring",
+            "shortname": "DFO",
+            "avatar_url": "dfo.png",
+            "orgnr": "986252932",
+            "url": "https://dfo.no/"
+        },
+        {
+            "name": "Nasjonalbiblioteket",
+            "shortname": "nb",
+            "avatar_url": "nasjonalbiblioteket.png",
+            "orgnr": "976029100",
+            "url": "https://www.nb.no/"
+        },
+        {
+            "name": "Mattilsynet",
+            "shortname": "MAT",
+            "avatar_url": "mattilsynet.png",
+            "orgnr": "985399077",
+            "url": "http://www.mattilsynet.no/"
+        },
+        {
+            "name": "Utlendingsnemnda",
+            "shortname": "une",
+            "avatar_url": "une.png",
+            "orgnr": "982019095",
+            "url": "https://www.une.no/"
+        },
+        {
+            "name": "Stortinget",
+            "shortname": "stortinget",
+            "avatar_url": "stortinget.png",
+            "orgnr": "971524960",
+            "url": "https://www.stortinget.no/"
+        },
+        {
+            "name": "Forsvaret",
+            "shortname": "forsvaret",
+            "avatar_url": "forsvaret.png",
+            "orgnr": "986105174",
+            "url": "https://forsvaret.no/"
+        },
+        {
+            "name": "Fiskeridirektoratet",
+            "shortname": "FD",
+            "avatar_url": "fiskeridir.png",
+            "orgnr": "971203420",
+            "url": "https://www.fiskeridir.no/"
+        },
+        {
+            "name": "Reklamasjonsnemnda for takstmenn",
+            "shortname": "takstklagenemnd",
+            "avatar_url": "takstklagenemnd.png",
+            "url": "https://www.takstklagenemnd.no/"
+        },
+        {
+            "name": "Reklamasjonsnemnda for eiendomsmeglingstjenester",
+            "shortname": "eiendomsmeglingsnemnda",
+            "avatar_url": "eiendomsmeglingsnemnda.png",
+            "orgnr": "987665521",
+            "url": "http://eiendomsmeglingsnemnda.no/"
+        },
+        {
+            "name": "Parkeringsklagenemnda",
+            "shortname": "pklagenemnda",
+            "avatar_url": "pklagenemnda.png",
+            "orgnr": "986885129",
+            "url": "http://pklagenemnda.no/"
+        },
+        {
+            "name": "Barneombudet",
+            "shortname": "barneombudet",
+            "avatar_url": "barneombudet.png",
+            "orgnr": "971527765",
+            "url": "http://barneombudet.no"
+        },
+        {
+            "name": "Inkassoklagenemnda",
+            "shortname": "inkassoklagenemnda",
+            "avatar_url": "inkassoklagenemnda.png",
+            "orgnr": "971317612",
+            "url": "http://klagenemnda.inkasso.no/"
+        },
+        {
+            "name": "Domstoladministrasjonen",
+            "shortname": "domstol",
+            "avatar_url": "riksvapen.png",
+            "orgnr": "984195796",
+            "url": "https://www.domstol.no/"
+        },
+        {
+            "name": "Finansklagenemnda",
+            "shortname": "finkn",
+            "avatar_url": "finkn.png",
+            "orgnr": "971437022",
+            "url": "http://www.finkn.no/"
+        },
+        {
+            "name": "Brukerklagenemnda for elektronisk kommunikasjon",
+            "shortname": "brukerklagenemnda",
+            "avatar_url": "brukerklagenemnda.png",
+            "orgnr": "989363093",
+            "url": "https://www.brukerklagenemnda.no/"
+        },
+        {
+            "name": "Nasjonalt organ for kvalitet i utdanningen",
+            "shortname": "nokut",
+            "avatar_url": "nokut.png",
+            "orgnr": "985042667",
+            "url": "https://www.nokut.no/"
+        },
+        {
+            "name": "Den norske kirke",
+            "shortname": "kirke",
+            "avatar_url": "kirke.png",
+            "orgnr": "970550259",
+            "url": "https://kirken.no"
+        },
+        {
+            "name": "Riksantikvaren",
+            "shortname": "riksantikvaren",
+            "avatar_url": "riksantikvaren.png",
+            "orgnr": "974760819",
+            "url": "http://www.riksantikvaren.no/"
+        },
+        {
+            "name": "Innovasjon Norge",
+            "shortname": "innovasjon-norge",
+            "avatar_url": "innovasjon-norge.png",
+            "orgnr": "986399445",
+            "url": "http://www.innovasjonnorge.no/"
+        },
+        {
+            "name": "Samferdselsdepartementet",
+            "shortname": "samferdselsdepartementet",
+            "avatar_url": "dep.png",
+            "orgnr": "972417904",
+            "url": "https://www.regjeringen.no/no/dep/sd/id791/"
+        },
+        {
+            "name": "Kommunal- og moderniseringsdepartementet",
+            "shortname": "kmd",
+            "avatar_url": "dep.png",
+            "orgnr": "972417858",
+            "url": "https://www.regjeringen.no/no/dep/kmd/id504/"
+        },
+        {
+            "name": "Nasjonal kommunikasjonsmyndighet",
+            "shortname": "nkom",
+            "avatar_url": "nkom.png",
+            "orgnr": "974446871",
+            "url": "https://www.nkom.no/"
+        },
+        {
+            "name": "Bane NOR",
+            "shortname": "banenor",
+            "avatar_url": "banenor.png",
+            "orgnr": "917082308",
+            "url": "http://www.banenor.no/"
+        },
+        {
+            "name": "Integrerings- og mangfoldsdirektoratet",
+            "shortname": "imdi",
+            "avatar_url": "imdi.png",
+            "orgnr": "987879696",
+            "url": "https://www.imdi.no/en/"
+        },
+        {
+            "name": "Kystverket",
+            "shortname": "KYV",
+            "avatar_url": "kystverket.png",
+            "orgnr": "970237372",
+            "url": "http://www.kystverket.no/"
+        },
+        {
+            "name": "Direktoratet for samfunnssikkerhet og beredskap",
+            "shortname": "dsb",
+            "avatar_url": "dsb.png",
+            "orgnr": "974760983",
+            "url": "https://www.dsb.no/"
+        },
+        {
+            "name": "Datatilsynet",
+            "shortname": "DPA",
+            "avatar_url": "Datatilsynet.png",
+            "orgnr": "974761467",
+            "url": "https://www.datatilsynet.no/"
+        },
+        {
+            "name": "Konkurransetilsynet",
+            "shortname": "konkurransetilsynet",
+            "avatar_url": "Konkurransetilsynet.png",
+            "orgnr": "974761246",
+            "url": "http://www.konkurransetilsynet.no/"
+        },
+        {
+            "name": "Oslo fylkeskommune",
+            "shortname": "oslo-fylke",
+            "avatar_url": "Oslo.png",
+            "orgnr": "958935420",
+            "url": "https://www.oslo.kommune.no/"
+        },
+        {
+            "name": "Vestfold fylkeskommune",
+            "shortname": "vestfold",
+            "avatar_url": "Vestfold.png",
+            "orgnr": "944025391",
+            "url": "https://www.vfk.no/"
+        },
+        {
+            "name": "Troms fylkeskommune",
+            "shortname": "troms",
+            "avatar_url": "Troms.png",
+            "orgnr": "864870732",
+            "url": "http://www.tromsfylke.no/"
+        },
+        {
+            "name": "Telemark fylkeskommune",
+            "shortname": "telemark",
+            "avatar_url": "Telemark.png",
+            "orgnr": "940192226",
+            "url": "https://www.telemark.no/"
+        },
+        {
+            "name": "Sogn og Fjordane fylkeskommune",
+            "shortname": "sogn-og-fjordane",
+            "avatar_url": "Sogn_og_Fjordane.png",
+            "orgnr": "941388841",
+            "url": "http://www.sfj.no/"
+        },
+        {
+            "name": "Rogaland fylkeskommune",
+            "shortname": "rogaland",
+            "avatar_url": "Rogaland.png",
+            "orgnr": "971045698",
+            "url": "http://www.rogfk.no/"
+        },
+        {
+            "name": "Oppland fylkeskommune",
+            "shortname": "oppland",
+            "avatar_url": "Oppland.png",
+            "orgnr": "961382335",
+            "url": "http://www.oppland.no/"
+        },
+        {
+            "name": "Trøndelag fylkeskommune",
+            "shortname": "trondelag",
+            "avatar_url": "Trøndelag.png",
+            "orgnr": "817920632",
+            "url": "https://www.trondelagfylke.no/"
+        },
+        {
+            "name": "Møre og Romsdal fylkeskommune",
+            "shortname": "more-og-romsdal",
+            "avatar_url": "Møre_og_Romsdal.png",
+            "orgnr": "944183779",
+            "url": "http://mrfylke.no/"
+        },
+        {
+            "name": "Hedmark fylkeskommune",
+            "shortname": "hedmark",
+            "avatar_url": "Hedmark.png",
+            "orgnr": "942116217",
+            "url": "https://www.hedmark.org/"
+        },
+        {
+            "name": "Akershus fylkeskommune",
+            "shortname": "akershus",
+            "avatar_url": "Akershus.png",
+            "orgnr": "958381492",
+            "url": "http://www.akershus.no/"
+        },
+        {
+            "name": "Aust-Agder fylkeskommune",
+            "shortname": "aust-agder",
+            "avatar_url": "Aust-Agder.png",
+            "orgnr": "943039046",
+            "url": "https://www.austagderfk.no/"
+        },
+        {
+            "name": "Østfold fylkeskommune",
+            "shortname": "ostfold",
+            "avatar_url": "Østfold.png",
+            "orgnr": "842952972",
+            "url": "http://www.ostfold-f.kommune.no/"
+        },
+        {
+            "name": "Vest-Agder fylkeskommune",
+            "shortname": "vest-agder",
+            "avatar_url": "Vest-Agder.png",
+            "orgnr": "960895827",
+            "url": "http://www.vaf.no/"
+        },
+        {
+            "name": "Buskerud fylkeskommune",
+            "shortname": "buskerud",
+            "avatar_url": "Buskerud.png",
+            "orgnr": "964951373",
+            "url": "http://www.bfk.no/"
+        },
+        {
+            "name": "Hordaland fylkeskommune",
+            "shortname": "hordaland",
+            "avatar_url": "Hordaland.png",
+            "orgnr": "938626367",
+            "url": "https://www.hordaland.no/"
+        },
+        {
+            "name": "Nordland fylkeskommune",
+            "shortname": "nordland",
+            "avatar_url": "Nordland.png",
+            "orgnr": "964982953",
+            "url": "https://www.nfk.no/"
+        },
+        {
+            "name": "Finnmark fylkeskommune",
+            "shortname": "finnmark",
+            "avatar_url": "Finnmark.png",
+            "orgnr": "964994218",
+            "url": "https://www.ffk.no/"
+        },
+        {
+            "name": "Statens vegvesen",
+            "shortname": "SVV",
+            "avatar_url": "vegvesen.png",
+            "orgnr": "971032081",
+            "url": "https://www.vegvesen.no/"
+        },
+        {
+            "name": "Husbanken",
+            "shortname": "husbanken",
+            "avatar_url": "husbanken.png",
+            "orgnr": "942114184",
+            "url": "https://husbanken.no/"
+        },
+        {
+            "name": "Utlendingsdirektoratet",
+            "shortname": "udi",
+            "avatar_url": "udi.png",
+            "orgnr": "974760746",
+            "url": "https://www.udi.no/"
+        },
+        {
+            "name": "Enova",
+            "shortname": "enova",
+            "avatar_url": "enova.png",
+            "orgnr": "983609155",
+            "url": "https://www.enova.no/"
+        },
+        {
+            "name": "Brønnøysundregistrene",
+            "shortname": "BRG",
+            "avatar_url": "brreg.png",
+            "orgnr": "974760673",
+            "url": "http://brreg.no"
+        },
+        {
+            "name": "Forbrukerrådet",
+            "shortname": "forbrukerradet",
+            "avatar_url": "Forbrukerrådet.png",
+            "orgnr": "871033382",
+            "url": "https://www.forbrukerradet.no/"
+        },
+        {
+            "name": "Tolletaten",
+            "shortname": "TAD",
+            "avatar_url": "toll.png",
+            "orgnr": "880455702",
+            "url": "https://www.toll.no/"
+        },
+        {
+            "name": "Statistisk sentralbyrå",
+            "shortname": "SSB",
+            "avatar_url": "SSB.png",
+            "orgnr": "971526920",
+            "url": "http://www.ssb.no"
+        },
+        {
+            "name": "Politidirektoratet",
+            "shortname": "politiet",
+            "avatar_url": "politiet.png",
+            "orgnr": "982531950",
+            "url": "https://www.politi.no/en/"
+        },
+        {
+            "name": "Miljødirektoratet",
+            "shortname": "miljodir",
+            "avatar_url": "Miljødirektoratet.png",
+            "orgnr": "999601391",
+            "url": "http://www.miljodirektoratet.no/"
+        },
+        {
+            "name": "Statens innkrevingssentral",
+            "shortname": "sismo",
+            "avatar_url": "sismo.png",
+            "orgnr": "971648198",
+            "url": "https://www.sismo.no/"
+        },
+        {
+            "name": "VIGO",
+            "shortname": "vigo",
+            "avatar_url": "vigo.png",
+            "orgnr": "998283914",
+            "url": "https://www.vigo.no/"
+        },
+        {
+            "name": "Utenriksdepartementet",
+            "shortname": "UD",
+            "avatar_url": "dep.png",
+            "orgnr": "972417920",
+            "url": "https://www.regjeringen.no/no/dep/ud/id833/"
+        },
+        {
+            "name": "Helsedirektoratet",
+            "shortname": "HDIR",
+            "avatar_url": "Helsedirektoratet.png",
+            "orgnr": "983544622",
+            "url": "https://helsedirektoratet.no/"
+        },
+        {
+            "name": "Folkehelseinstituttet",
+            "shortname": "fhi",
+            "avatar_url": "Folkehelseinstituttet.png",
+            "orgnr": "983744516",
+            "url": "https://www.fhi.no/"
+        },
+        {
+            "name": "Kommunesektorens organisasjon",
+            "shortname": "KS",
+            "avatar_url": "KS.png",
+            "orgnr": "971032146",
+            "url": "http://www.ks.no/"
+        },
+        {
+            "name": "Oslo kommune",
+            "shortname": "OK",
+            "avatar_url": "Oslo.png",
+            "orgnr": "958935420",
+            "url": "https://www.oslo.kommune.no/"
+        },
+        {
+            "name": "Eidsberg kommune",
+            "shortname": "eidsberg",
+            "avatar_url": "Eidsberg.png",
+            "orgnr": "944345035",
+            "url": "http://www.eidsberg.kommune.no"
+        },
+        {
+            "name": "Eidsvoll kommune",
+            "shortname": "eidsvoll",
+            "avatar_url": "Eidsvoll.png",
+            "orgnr": "964950113",
+            "url": "https://www.eidsvoll.kommune.no/"
+        },
+        {
+            "name": "Eigersund kommune",
+            "shortname": "eigersund",
+            "avatar_url": "Eigersund.png",
+            "orgnr": "944496394",
+            "url": "http://www.eigersund.kommune.no/"
+        },
+        {
+            "name": "Enebakk kommune",
+            "shortname": "enebakk",
+            "avatar_url": "Enebakk.png",
+            "orgnr": "964949581",
+            "url": "http://www.enebakk.kommune.no/"
+        },
+        {
+            "name": "Engerdal kommune",
+            "shortname": "engerdal",
+            "avatar_url": "Engerdal.png",
+            "orgnr": "964948976",
+            "url": "http://www.engerdal.kommune.no/"
+        },
+        {
+            "name": "Etnedal kommune",
+            "shortname": "etnedal",
+            "avatar_url": "Etnedal.png",
+            "orgnr": "933038173",
+            "url": "https://www.etnedal.kommune.no/"
+        },
+        {
+            "name": "Evenes kommune",
+            "shortname": "evenes",
+            "avatar_url": "Evenes.png",
+            "orgnr": "940642140",
+            "url": "http://www.evenes.kommune.no"
+        },
+        {
+            "name": "Evje og Hornnes kommune",
+            "shortname": "evje-og-hornnes",
+            "avatar_url": "Evje_og_Hornnes.png",
+            "orgnr": "964966109",
+            "url": "http://www.e-h.kommune.no"
+        },
+        {
+            "name": "Farsund kommune",
+            "shortname": "farsund",
+            "avatar_url": "Farsund.png",
+            "orgnr": "964083266",
+            "url": "https://www.farsund.kommune.no/"
+        },
+        {
+            "name": "Fedje kommune",
+            "shortname": "fedje",
+            "avatar_url": "Fedje.png",
+            "orgnr": "944041036",
+            "url": "http://www.fedje.kommune.no/"
+        },
+        {
+            "name": "Fet kommune",
+            "shortname": "fet",
+            "avatar_url": "Fet.png",
+            "orgnr": "964949115",
+            "url": "http://www.fet.kommune.no/"
+        },
+        {
+            "name": "Finnøy kommune",
+            "shortname": "finnoy",
+            "avatar_url": "Finnøy.png",
+            "orgnr": "938633029",
+            "url": "http://www.finnoy.kommune.no"
+        },
+        {
+            "name": "Fitjar kommune",
+            "shortname": "fitjar",
+            "avatar_url": "Fitjar.png",
+            "orgnr": "944073310",
+            "url": "http://www.fitjar.kommune.no"
+        },
+        {
+            "name": "Fjaler kommune",
+            "shortname": "fjaler",
+            "avatar_url": "Fjaler.png",
+            "orgnr": "864968422",
+            "url": "https://www.fjaler.kommune.no/"
+        },
+        {
+            "name": "Flakstad kommune",
+            "shortname": "flakstad",
+            "avatar_url": "Flakstad.png",
+            "orgnr": "863320852",
+            "url": "https://flakstad.kommune.no/"
+        },
+        {
+            "name": "Flesberg kommune",
+            "shortname": "flesberg",
+            "avatar_url": "Flesberg.png",
+            "orgnr": "940898862",
+            "url": "http://www.flesberg.kommune.no/"
+        },
+        {
+            "name": "Flora kommune",
+            "shortname": "flora",
+            "avatar_url": "Flora.png",
+            "orgnr": "935473578",
+            "url": "https://www.flora.kommune.no/"
+        },
+        {
+            "name": "Flå kommune",
+            "shortname": "flaa",
+            "avatar_url": "Flå.png",
+            "orgnr": "964951462",
+            "url": "http://www.flaa.kommune.no/"
+        },
+        {
+            "name": "Folldal kommune",
+            "shortname": "folldal",
+            "avatar_url": "Folldal.png",
+            "orgnr": "939885684",
+            "url": "http://www.folldal.kommune.no/"
+        },
+        {
+            "name": "Forsand kommune",
+            "shortname": "forsand",
+            "avatar_url": "Forsand.png",
+            "orgnr": "939347801",
+            "url": "https://www.forsand.kommune.no/"
+        },
+        {
+            "name": "Fosnes kommune",
+            "shortname": "fosnes",
+            "avatar_url": "Fosnes.png",
+            "orgnr": "964982775",
+            "url": "http://www.fosnes.kommune.no/"
+        },
+        {
+            "name": "Froland kommune",
+            "shortname": "froland",
+            "avatar_url": "Froland.png",
+            "orgnr": "946439045",
+            "url": "https://www.froland.kommune.no/"
+        },
+        {
+            "name": "Frosta kommune",
+            "shortname": "frosta",
+            "avatar_url": "Frosta.png",
+            "orgnr": "944482253",
+            "url": "https://www.frosta.kommune.no"
+        },
+        {
+            "name": "Fusa kommune",
+            "shortname": "fusa",
+            "avatar_url": "Fusa.png",
+            "orgnr": "964968896",
+            "url": "https://www.fusa.kommune.no/"
+        },
+        {
+            "name": "Fyresdal kommune",
+            "shortname": "fyresdal",
+            "avatar_url": "Fyresdal.png",
+            "orgnr": "939772766",
+            "url": "http://www.fyresdal.kommune.no/"
+        },
+        {
+            "name": "Førde kommune",
+            "shortname": "forde",
+            "avatar_url": "Førde.png",
+            "orgnr": "963923511",
+            "url": "https://www.forde.kommune.no/"
+        },
+        {
+            "name": "Gausdal kommune",
+            "shortname": "gausdal",
+            "avatar_url": "Gausdal.png",
+            "orgnr": "961381274",
+            "url": "http://www.gausdal.kommune.no/"
+        },
+        {
+            "name": "Hadsel kommune",
+            "shortname": "hadsel",
+            "avatar_url": "Hadsel.png",
+            "orgnr": "958501420",
+            "url": "http://www.hadsel.kommune.no/"
+        },
+        {
+            "name": "Halsa kommune",
+            "shortname": "halsa",
+            "avatar_url": "Halsa.png",
+            "orgnr": "962350526",
+            "url": "http://www.halsa.kommune.no/"
+        },
+        {
+            "name": "Hamarøy kommune",
+            "shortname": "hamaroy",
+            "avatar_url": "Hamarøy.png",
+            "orgnr": "970542507",
+            "url": "http://www.hamaroy.kommune.no/"
+        },
+        {
+            "name": "Haram kommune",
+            "shortname": "haram",
+            "avatar_url": "Haram.png",
+            "orgnr": "964980810",
+            "url": "https://www.haram.kommune.no/"
+        },
+        {
+            "name": "Hareid kommune",
+            "shortname": "hareid",
+            "avatar_url": "Hareid.png",
+            "orgnr": "964979278",
+            "url": "http://www.hareid.kommune.no/"
+        },
+        {
+            "name": "Harstad kommune",
+            "shortname": "harstad",
+            "avatar_url": "Harstad.png",
+            "orgnr": "972417971",
+            "url": "http://www.harstad.kommune.no/"
+        },
+        {
+            "name": "Hattfjelldal kommune",
+            "shortname": "hattfjelldal",
+            "avatar_url": "Hattfjelldal.png",
+            "orgnr": "944716904",
+            "url": "http://www.hattfjelldal.no/"
+        },
+        {
+            "name": "Haugesund kommune",
+            "shortname": "haugesund",
+            "avatar_url": "Haugesund.png",
+            "orgnr": "944073787",
+            "url": "https://www.haugesund.kommune.no/"
+        },
+        {
+            "name": "Hemnes kommune",
+            "shortname": "hemnes",
+            "avatar_url": "Hemnes.png",
+            "orgnr": "846316442",
+            "url": "http://www.hemnes.kommune.no"
+        },
+        {
+            "name": "Hemsedal kommune",
+            "shortname": "hemsedal",
+            "avatar_url": "Hemsedal.png",
+            "orgnr": "964952701",
+            "url": "http://www.hemsedal.kommune.no/"
+        },
+        {
+            "name": "Herøy kommune (Møre og Romsdal)",
+            "shortname": "heroy",
+            "avatar_url": "Herøy_Møre_og_Romsdal.png",
+            "orgnr": "964978840",
+            "url": "https://www.heroy.kommune.no/"
+        },
+        {
+            "name": "Herøy kommune (Nordland)",
+            "shortname": "heroy-no",
+            "avatar_url": "Herøy_Nordland.png",
+            "orgnr": "872417982",
+            "url": "http://www.heroy-no.kommune.no"
+        },
+        {
+            "name": "Hitra kommune",
+            "shortname": "hitra",
+            "avatar_url": "Hitra.png",
+            "orgnr": "938772924",
+            "url": "https://www.hitra.kommune.no/"
+        },
+        {
+            "name": "Hjartdal kommune",
+            "shortname": "hjartdal",
+            "avatar_url": "Hjartdal.png",
+            "orgnr": "964963649",
+            "url": "http://www.hjartdal.kommune.no"
+        },
+        {
+            "name": "Hjelmeland kommune",
+            "shortname": "hjelmeland",
+            "avatar_url": "Hjelmeland.png",
+            "orgnr": "864979092",
+            "url": "https://www.hjelmeland.kommune.no/"
+        },
+        {
+            "name": "Hol kommune",
+            "shortname": "hol",
+            "avatar_url": "Hol.png",
+            "orgnr": "944889116",
+            "url": "http://www.hol.kommune.no"
+        },
+        {
+            "name": "Holmestrand kommune",
+            "shortname": "holmestrand",
+            "avatar_url": "Holmestrand.png",
+            "orgnr": "917151229",
+            "url": "http://www.holmestrand.kommune.no/"
+        },
+        {
+            "name": "Holtålen kommune",
+            "shortname": "holtalen",
+            "avatar_url": "Holtålen.png",
+            "orgnr": "937697767",
+            "url": "http://www.holtalen.kommune.no/"
+        },
+        {
+            "name": "Hornindal kommune",
+            "shortname": "hornindal",
+            "avatar_url": "Hornindal.png",
+            "orgnr": "835095762",
+            "url": "https://hornindal.kommune.no/"
+        },
+        {
+            "name": "Horten kommune",
+            "shortname": "horten",
+            "avatar_url": "Horten_Kommune.svg",
+            "orgnr": "964951284",
+            "url": "https://www.horten.kommune.no/"
+        },
+        {
+            "name": "Hurdal kommune",
+            "shortname": "hurdal",
+            "avatar_url": "Hurdal.png",
+            "orgnr": "939780777",
+            "url": "https://www.hurdal.kommune.no/"
+        },
+        {
+            "name": "Hurum kommune",
+            "shortname": "hurum",
+            "avatar_url": "Hurum.png",
+            "orgnr": "964963193",
+            "url": "http://www.hurum.kommune.no/"
+        },
+        {
+            "name": "Hvaler kommune",
+            "shortname": "hvaler",
+            "avatar_url": "Hvaler.png",
+            "orgnr": "964947082",
+            "url": "https://www.hvaler.kommune.no/"
+        },
+        {
+            "name": "Hyllestad kommune",
+            "shortname": "hyllestad",
+            "avatar_url": "Hyllestad.png",
+            "orgnr": "964967547",
+            "url": "https://www.hyllestad.kommune.no/"
+        },
+        {
+            "name": "Hægebostad kommune",
+            "shortname": "haegebostad",
+            "avatar_url": "Hægebostad.png",
+            "orgnr": "964963916",
+            "url": "https://www.haegebostad.kommune.no/"
+        },
+        {
+            "name": "Høyanger kommune",
+            "shortname": "hoyanger",
+            "avatar_url": "Høyanger.png",
+            "orgnr": "944439838",
+            "url": "https://www.hoyanger.kommune.no/"
+        },
+        {
+            "name": "Hå kommune",
+            "shortname": "ha",
+            "avatar_url": "Hå.png",
+            "orgnr": "964969590",
+            "url": "https://www.ha.no/"
+        },
+        {
+            "name": "Ibestad kommune",
+            "shortname": "ibestad",
+            "avatar_url": "Ibestad.png",
+            "orgnr": "959469792",
+            "url": "http://www.ibestad.kommune.no"
+        },
+        {
+            "name": "Inderøy kommune",
+            "shortname": "inderoy",
+            "avatar_url": "Inderøy.png",
+            "orgnr": "997391853",
+            "url": "http://www.inderoy.kommune.no/"
+        },
+        {
+            "name": "Iveland kommune",
+            "shortname": "iveland",
+            "avatar_url": "Iveland.png",
+            "orgnr": "864966012",
+            "url": "http://www.iveland.kommune.no"
+        },
+        {
+            "name": "Jevnaker kommune",
+            "shortname": "jevnaker",
+            "avatar_url": "Jevnaker.png",
+            "orgnr": "961381363",
+            "url": "http://www.jevnaker.kommune.no/"
+        },
+        {
+            "name": "Jondal kommune",
+            "shortname": "jondal",
+            "avatar_url": "Jondal.png",
+            "orgnr": "944439927",
+            "url": "https://www.jondal.kommune.no/"
+        },
+        {
+            "name": "Jølster kommune",
+            "shortname": "jolster",
+            "avatar_url": "Jølster.png",
+            "orgnr": "963923600",
+            "url": "https://www.jolster.kommune.no/"
+        },
+        {
+            "name": "Karasjok kommune",
+            "shortname": "karasjok",
+            "avatar_url": "Karasjok.png",
+            "orgnr": "963376030",
+            "url": "https://www.karasjok.kommune.no/"
+        },
+        {
+            "name": "Karlsøy kommune",
+            "shortname": "karlsoy",
+            "avatar_url": "Karlsøy.png",
+            "orgnr": "940330408",
+            "url": "http://www.karlsoy.kommune.no"
+        },
+        {
+            "name": "Karmøy kommune",
+            "shortname": "karmoy",
+            "avatar_url": "Karmøy.png",
+            "orgnr": "940791901",
+            "url": "https://www.karmoy.kommune.no/"
+        },
+        {
+            "name": "Klæbu kommune",
+            "shortname": "klabu",
+            "avatar_url": "Klæbu.png",
+            "orgnr": "958731469",
+            "url": "https://www.klabu.kommune.no/"
+        },
+        {
+            "name": "Kongsberg kommune",
+            "shortname": "kongsberg",
+            "avatar_url": "Kongsberg.png",
+            "orgnr": "942402465",
+            "url": "http://www.kongsberg.kommune.no/"
+        },
+        {
+            "name": "Kongsvinger kommune",
+            "shortname": "kongsvinger",
+            "avatar_url": "Kongsvinger.png",
+            "orgnr": "944117784",
+            "url": "http://www.kongsvinger.kommune.no"
+        },
+        {
+            "name": "Kragerø kommune",
+            "shortname": "kragero",
+            "avatar_url": "Kragerø.png",
+            "orgnr": "963946902",
+            "url": "https://www.kragero.kommune.no/"
+        },
+        {
+            "name": "Kristiansand kommune",
+            "shortname": "kristiansand",
+            "avatar_url": "Kristiansand.png",
+            "orgnr": "963296746",
+            "url": "https://www.kristiansand.kommune.no/"
+        },
+        {
+            "name": "Kristiansund kommune",
+            "shortname": "kristiansund",
+            "avatar_url": "Kristiansund.png",
+            "orgnr": "991891919",
+            "url": "http://www.kristiansund.kommune.no"
+        },
+        {
+            "name": "Krødsherad kommune",
+            "shortname": "krodsherad",
+            "avatar_url": "Krødsherad.png",
+            "orgnr": "964962855",
+            "url": "https://www.krodsherad.kommune.no/"
+        },
+        {
+            "name": "Kviteseid kommune",
+            "shortname": "kviteseid",
+            "avatar_url": "Kviteseid.png",
+            "orgnr": "964963827",
+            "url": "http://www.kviteseid.kommune.no"
+        },
+        {
+            "name": "Kvitsøy kommune",
+            "shortname": "kvitsoy",
+            "avatar_url": "Kvitsøy.png",
+            "orgnr": "964979634",
+            "url": "http://www.kvitsoy.kommune.no/"
+        },
+        {
+            "name": "Kvæfjord kommune",
+            "shortname": "kvafjord",
+            "avatar_url": "Kvæfjord.png",
+            "orgnr": "972417998",
+            "url": "http://www.kvafjord.kommune.no/"
+        },
+        {
+            "name": "Kvænangen kommune",
+            "shortname": "kvanangen",
+            "avatar_url": "Kvænangen.png",
+            "orgnr": "940331102",
+            "url": "http://www.kvanangen.kommune.no"
+        },
+        {
+            "name": "Lavangen kommune",
+            "shortname": "lavangen",
+            "avatar_url": "Lavangen.png",
+            "orgnr": "959469881",
+            "url": "http://www.lavangen.kommune.no"
+        },
+        {
+            "name": "Lebesby kommune",
+            "shortname": "lebesby",
+            "avatar_url": "Lebesby.png",
+            "orgnr": "940400392",
+            "url": "http://www.lebesby.kommune.no"
+        },
+        {
+            "name": "Leikanger kommune",
+            "shortname": "leikanger",
+            "avatar_url": "Leikanger.png",
+            "orgnr": "964967725",
+            "url": "http://www.leikanger.kommune.no"
+        },
+        {
+            "name": "Leirfjord kommune",
+            "shortname": "leirfjord",
+            "avatar_url": "Leirfjord.png",
+            "orgnr": "945034572",
+            "url": "http://www.leirfjord.kommune.no/"
+        },
+        {
+            "name": "Leka kommune",
+            "shortname": "leka",
+            "avatar_url": "Leka.png",
+            "orgnr": "944484574",
+            "url": "http://www.leka.kommune.no/"
+        },
+        {
+            "name": "Indre Fosen kommune",
+            "shortname": "indrefosen",
+            "avatar_url": "Indre_Fosen.png",
+            "orgnr": "944305483",
+            "url": "https://www.indrefosen.kommune.no/"
+        },
+        {
+            "name": "Lenvik kommune",
+            "shortname": "lenvik",
+            "avatar_url": "Lenvik.png",
+            "orgnr": "939807314",
+            "url": "https://www.lenvik.kommune.no/"
+        },
+        {
+            "name": "Lesja kommune",
+            "shortname": "lesja",
+            "avatar_url": "Lesja.png",
+            "orgnr": "964949204",
+            "url": "http://www.lesja.kommune.no"
+        },
+        {
+            "name": "Levanger kommune",
+            "shortname": "levanger",
+            "avatar_url": "Levanger.png",
+            "orgnr": "938587051",
+            "url": "http://www.levanger.kommune.no/"
+        },
+        {
+            "name": "Lillehammer kommune",
+            "shortname": "lillehammer",
+            "avatar_url": "Lillehammer.png",
+            "orgnr": "945578564",
+            "url": "http://www.lillehammer.kommune.no/"
+        },
+        {
+            "name": "Lindesnes kommune",
+            "shortname": "lindesnes",
+            "avatar_url": "Lindesnes.png",
+            "orgnr": "964966664",
+            "url": "http://www.lindesnes.kommune.no/"
+        },
+        {
+            "name": "Lindås kommune",
+            "shortname": "lindaas",
+            "avatar_url": "Lindås.png",
+            "orgnr": "935084733",
+            "url": "http://www.lindas.kommune.no/"
+        },
+        {
+            "name": "Lom kommune",
+            "shortname": "lom",
+            "avatar_url": "Lom.png",
+            "orgnr": "959377677",
+            "url": "http://www.lom.kommune.no/"
+        },
+        {
+            "name": "Lund kommune",
+            "shortname": "lund",
+            "avatar_url": "Lund.png",
+            "orgnr": "964966486",
+            "url": "http://www.lund.kommune.no/"
+        },
+        {
+            "name": "Lunner kommune",
+            "shortname": "lunner",
+            "avatar_url": "Lunner.png",
+            "orgnr": "961381452",
+            "url": "https://www.lunner.kommune.no/"
+        },
+        {
+            "name": "Lurøy kommune",
+            "shortname": "luroy",
+            "avatar_url": "Lurøy.png",
+            "orgnr": "940667852",
+            "url": "http://www.luroy.kommune.no/"
+        },
+        {
+            "name": "Luster kommune",
+            "shortname": "luster",
+            "avatar_url": "Luster.png",
+            "orgnr": "964968241",
+            "url": "http://www.luster.kommune.no/"
+        },
+        {
+            "name": "Lyngen kommune",
+            "shortname": "lyngen",
+            "avatar_url": "Lyngen.png",
+            "orgnr": "840014932",
+            "url": "http://www.lyngen.kommune.no/"
+        },
+        {
+            "name": "Lærdal kommune",
+            "shortname": "laerdal",
+            "avatar_url": "Lærdal.png",
+            "orgnr": "954681890",
+            "url": "http://www.laerdal.kommune.no/"
+        },
+        {
+            "name": "Lødingen kommune",
+            "shortname": "lodingen",
+            "avatar_url": "Lødingen.png",
+            "orgnr": "945468661",
+            "url": "http://www.lodingen.kommune.no/"
+        },
+        {
+            "name": "Lørenskog kommune",
+            "shortname": "lorenskog",
+            "avatar_url": "Lørenskog.png",
+            "orgnr": "842566142",
+            "url": "https://www.lorenskog.kommune.no/"
+        },
+        {
+            "name": "Alvdal kommune",
+            "shortname": "alvdal",
+            "avatar_url": "Alvdal.png",
+            "orgnr": "939984194",
+            "url": "http://www.alvdal.kommune.no"
+        },
+        {
+            "name": "Berlevåg kommune",
+            "shortname": "berlevag",
+            "avatar_url": "Berlevåg.png",
+            "orgnr": "962388108",
+            "url": "http://www.berlevag.kommune.no"
+        },
+        {
+            "name": "Birkenes kommune",
+            "shortname": "birkenes",
+            "avatar_url": "Birkenes.png",
+            "orgnr": "964965870",
+            "url": "http://www.birkenes.kommune.no/"
+        },
+        {
+            "name": "Bjerkreim kommune",
+            "shortname": "bjerkreim",
+            "avatar_url": "Bjerkreim.png",
+            "orgnr": "970490361",
+            "url": "https://www.bjerkreim.kommune.no/"
+        },
+        {
+            "name": "Bokn kommune",
+            "shortname": "bokn",
+            "avatar_url": "Bokn.png",
+            "orgnr": "964979723",
+            "url": "https://www.bokn.kommune.no/"
+        },
+        {
+            "name": "Brønnøy kommune",
+            "shortname": "bronnoy",
+            "avatar_url": "Brønnøy.png",
+            "orgnr": "964983291",
+            "url": "http://www.bronnoy.kommune.no/"
+        },
+        {
+            "name": "Bygland kommune",
+            "shortname": "bygland",
+            "avatar_url": "Bygland.png",
+            "orgnr": "964966397",
+            "url": "http://www.bygland.kommune.no/"
+        },
+        {
+            "name": "Bykle kommune",
+            "shortname": "bykle",
+            "avatar_url": "Bykle.png",
+            "orgnr": "958814968",
+            "url": "http://www.bykle.kommune.no"
+        },
+        {
+            "name": "Bø kommune (Telemark)",
+            "shortname": "bo",
+            "avatar_url": "Bø_Telemark.png",
+            "orgnr": "962276172",
+            "url": "http://www.bo.kommune.no/"
+        },
+        {
+            "name": "Bø kommune (Nordland)",
+            "shortname": "boe",
+            "avatar_url": "Bø_Nordland.png",
+            "orgnr": "945452676",
+            "url": "http://www.boe.kommune.no/"
+        },
+        {
+            "name": "Båtsfjord kommune",
+            "shortname": "batsfjord",
+            "avatar_url": "Båtsfjord.png",
+            "orgnr": "938795592",
+            "url": "http://www.batsfjord.kommune.no"
+        },
+        {
+            "name": "Tana kommune",
+            "shortname": "tana",
+            "avatar_url": "Tana.png",
+            "orgnr": "943505527",
+            "url": "http://www.tana.kommune.no"
+        },
+        {
+            "name": "Dønna kommune",
+            "shortname": "donna",
+            "avatar_url": "Dønna.png",
+            "orgnr": "945114878",
+            "url": "http://www.donna.kommune.no/"
+        },
+        {
+            "name": "Eid kommune",
+            "shortname": "eid",
+            "avatar_url": "Eid.png",
+            "orgnr": "938521816",
+            "url": "https://eid.kommune.no/"
+        },
+        {
+            "name": "Agdenes kommune",
+            "shortname": "agdenes",
+            "avatar_url": "Agdenes.png",
+            "orgnr": "840098222",
+            "url": "https://www.agdenes.kommune.no/"
+        },
+        {
+            "name": "Alstahaug kommune",
+            "shortname": "alstahaug",
+            "avatar_url": "Alstahaug.png",
+            "orgnr": "938712441",
+            "url": "http://www.alstahaug.kommune.no/"
+        },
+        {
+            "name": "Andøy kommune",
+            "shortname": "andoy",
+            "avatar_url": "Andøy.png",
+            "orgnr": "945624809",
+            "url": "http://www.andoy.kommune.no"
+        },
+        {
+            "name": "Askvoll kommune",
+            "shortname": "askvoll",
+            "avatar_url": "Askvoll.png",
+            "orgnr": "964968330",
+            "url": "https://www.askvoll.kommune.no/"
+        },
+        {
+            "name": "Audnedal kommune",
+            "shortname": "audnedal",
+            "avatar_url": "Audnedal.png",
+            "orgnr": "964966753",
+            "url": "http://www.audnedal.kommune.no/"
+        },
+        {
+            "name": "Aukra kommune",
+            "shortname": "aukra",
+            "avatar_url": "Aukra.png",
+            "orgnr": "964981337",
+            "url": "https://www.aukra.kommune.no/#"
+        },
+        {
+            "name": "Aurland kommune",
+            "shortname": "aurland",
+            "avatar_url": "Aurland.png",
+            "orgnr": "964968063",
+            "url": "http://www.aurland.kommune.no/"
+        },
+        {
+            "name": "Austevoll kommune",
+            "shortname": "austevoll",
+            "avatar_url": "Austevoll.png",
+            "orgnr": "941139787",
+            "url": "https://www.austevoll.kommune.no/"
+        },
+        {
+            "name": "Austrheim kommune",
+            "shortname": "austrheim",
+            "avatar_url": "Austrheim.png",
+            "orgnr": "948350823",
+            "url": "https://www.austrheim.kommune.no/"
+        },
+        {
+            "name": "Averøy kommune",
+            "shortname": "averoy",
+            "avatar_url": "Averøy.png",
+            "orgnr": "962378064",
+            "url": "http://www.averoy.kommune.no/"
+        },
+        {
+            "name": "Balestrand kommune",
+            "shortname": "balestrand",
+            "avatar_url": "Balestrand.png",
+            "orgnr": "970184252",
+            "url": "http://www.balestrand.kommune.no"
+        },
+        {
+            "name": "Ballangen kommune",
+            "shortname": "ballangen",
+            "avatar_url": "Ballangen.png",
+            "orgnr": "945152931",
+            "url": "http://www.ballangen.kommune.no/"
+        },
+        {
+            "name": "Balsfjord kommune",
+            "shortname": "balsfjord",
+            "avatar_url": "Balsfjord.png",
+            "orgnr": "940208580",
+            "url": "http://www.balsfjord.kommune.no/"
+        },
+        {
+            "name": "Bamble kommune",
+            "shortname": "bamble",
+            "avatar_url": "Bamble.png",
+            "orgnr": "940244145",
+            "url": "http://www.bamble.kommune.no/"
+        },
+        {
+            "name": "Bardu kommune",
+            "shortname": "bardu",
+            "avatar_url": "Bardu.png",
+            "orgnr": "864993982",
+            "url": "http://www.bardu.kommune.no/"
+        },
+        {
+            "name": "Beiarn kommune",
+            "shortname": "beiarn",
+            "avatar_url": "Beiarn.png",
+            "orgnr": "961147867",
+            "url": "http://www.beiarn.kommune.no/"
+        },
+        {
+            "name": "Berg kommune",
+            "shortname": "berg",
+            "avatar_url": "Berg.png",
+            "orgnr": "943730040",
+            "url": "http://www.berg.kommune.no"
+        },
+        {
+            "name": "Bindal kommune",
+            "shortname": "bindal",
+            "avatar_url": "Bindal.png",
+            "orgnr": "964983380",
+            "url": "https://www.bindal.kommune.no/"
+        },
+        {
+            "name": "Bjugn kommune",
+            "shortname": "bjugn",
+            "avatar_url": "Bjugn.png",
+            "orgnr": "944422315",
+            "url": "https://www.bjugn.kommune.no/"
+        },
+        {
+            "name": "Granvin herad",
+            "shortname": "granvin-herad",
+            "avatar_url": "Granvin.png",
+            "orgnr": "844162502",
+            "url": "http://www.granvin.kommune.no/"
+        },
+        {
+            "name": "Kvam herad",
+            "shortname": "kvam-herad",
+            "avatar_url": "Kvam.png",
+            "orgnr": "944233199",
+            "url": "https://www.kvam.no/"
+        },
+        {
+            "name": "Ullensvang herad",
+            "shortname": "ullensvang-herad",
+            "avatar_url": "Ullensvang.png",
+            "orgnr": "964967903",
+            "url": "https://www.ullensvang.herad.no/"
+        },
+        {
+            "name": "Dovre kommune",
+            "shortname": "dovre",
+            "avatar_url": "Dovre.png",
+            "orgnr": "939849831",
+            "url": "http://www.dovre.kommune.no"
+        },
+        {
+            "name": "Eide kommune",
+            "shortname": "eide",
+            "avatar_url": "Eide.png",
+            "orgnr": "945685263",
+            "url": "http://www.eide.kommune.no/"
+        },
+        {
+            "name": "Eidfjord kommune",
+            "shortname": "eidfjord",
+            "avatar_url": "Eidfjord.png",
+            "orgnr": "944227121",
+            "url": "https://www.eidfjord.kommune.no/"
+        },
+        {
+            "name": "Etne kommune",
+            "shortname": "etne",
+            "avatar_url": "Etne.png",
+            "orgnr": "959435375",
+            "url": "http://www.etne.kommune.no/"
+        },
+        {
+            "name": "Fauske kommune",
+            "shortname": "fauske",
+            "avatar_url": "Fauske.png",
+            "orgnr": "972418021",
+            "url": "http://www.fauske.kommune.no/"
+        },
+        {
+            "name": "Flatanger kommune",
+            "shortname": "flatanger",
+            "avatar_url": "Flatanger.png",
+            "orgnr": "845153272",
+            "url": "http://www.flatanger.kommune.no/"
+        },
+        {
+            "name": "Flekkefjord kommune",
+            "shortname": "flekkefjord",
+            "avatar_url": "Flekkefjord.png",
+            "orgnr": "964967369",
+            "url": "https://www.flekkefjord.kommune.no/"
+        },
+        {
+            "name": "Frøya kommune",
+            "shortname": "froya",
+            "avatar_url": "Frøya.png",
+            "orgnr": "964982597",
+            "url": "https://www.froya.kommune.no/"
+        },
+        {
+            "name": "Kåfjord kommune",
+            "shortname": "kafjord",
+            "avatar_url": "Kåfjord.png",
+            "orgnr": "940363586",
+            "url": "http://www.kafjord.kommune.no"
+        },
+        {
+            "name": "Gamvik kommune",
+            "shortname": "gamvik",
+            "avatar_url": "Gamvik.png",
+            "orgnr": "934266811",
+            "url": "http://www.gamvik.kommune.no/"
+        },
+        {
+            "name": "Gaular kommune",
+            "shortname": "gaular",
+            "avatar_url": "Gaular.png",
+            "orgnr": "963923988",
+            "url": "https://www.gaular.kommune.no/"
+        },
+        {
+            "name": "Gildeskål kommune",
+            "shortname": "gildeskaal",
+            "avatar_url": "Gildeskål.png",
+            "orgnr": "845901422",
+            "url": "http://www.gildeskal.kommune.no/"
+        },
+        {
+            "name": "Giske kommune",
+            "shortname": "giske",
+            "avatar_url": "Giske.png",
+            "orgnr": "964980721",
+            "url": "https://www.giske.kommune.no/"
+        },
+        {
+            "name": "Gjemnes kommune",
+            "shortname": "gjemnes",
+            "avatar_url": "Gjemnes.png",
+            "orgnr": "964981426",
+            "url": "http://www.gjemnes.kommune.no/"
+        },
+        {
+            "name": "Gjerdrum kommune",
+            "shortname": "gjerdrum",
+            "avatar_url": "Gjerdrum.png",
+            "orgnr": "864949762",
+            "url": "https://www.gjerdrum.kommune.no/"
+        },
+        {
+            "name": "Gjerstad kommune",
+            "shortname": "gjerstad",
+            "avatar_url": "Gjerstad.png",
+            "orgnr": "964964998",
+            "url": "http://www.gjerstad.kommune.no"
+        },
+        {
+            "name": "Gjøvik kommune",
+            "shortname": "gjovik",
+            "avatar_url": "Gjøvik.png",
+            "orgnr": "940155223",
+            "url": "https://www.gjovik.kommune.no/"
+        },
+        {
+            "name": "Gloppen kommune",
+            "shortname": "gloppen",
+            "avatar_url": "Gloppen.png",
+            "orgnr": "964969124",
+            "url": "https://gloppen.kommune.no/"
+        },
+        {
+            "name": "Gol kommune",
+            "shortname": "gol",
+            "avatar_url": "Gol.png",
+            "orgnr": "964952612",
+            "url": "http://www.gol.kommune.no/"
+        },
+        {
+            "name": "Gran kommune",
+            "shortname": "gran",
+            "avatar_url": "Gran.png",
+            "orgnr": "961381541",
+            "url": "http://www.gran.kommune.no"
+        },
+        {
+            "name": "Grane kommune",
+            "shortname": "grane",
+            "avatar_url": "Grane.png",
+            "orgnr": "940643112",
+            "url": "http://www.grane.kommune.no"
+        },
+        {
+            "name": "Gratangen kommune",
+            "shortname": "gratangen",
+            "avatar_url": "Gratangen.png",
+            "orgnr": "959469415",
+            "url": "http://www.gratangen.kommune.no/"
+        },
+        {
+            "name": "Grimstad kommune",
+            "shortname": "grimstad",
+            "avatar_url": "Grimstad.png",
+            "orgnr": "864964702",
+            "url": "https://www.grimstad.kommune.no/"
+        },
+        {
+            "name": "Grue kommune",
+            "shortname": "grue",
+            "avatar_url": "Grue.png",
+            "orgnr": "964948143",
+            "url": "http://www.grue.kommune.no/"
+        },
+        {
+            "name": "Gulen kommune",
+            "shortname": "gulen",
+            "avatar_url": "Gulen.png",
+            "orgnr": "938497524",
+            "url": "http://www.gulen.kommune.no/"
+        },
+        {
+            "name": "Marnardal kommune",
+            "shortname": "marnardal",
+            "avatar_url": "Marnardal.png",
+            "orgnr": "964966931",
+            "url": "https://www.marnardal.kommune.no/"
+        },
+        {
+            "name": "Masfjorden kommune",
+            "shortname": "masfjorden",
+            "avatar_url": "Masfjorden.png",
+            "orgnr": "945627913",
+            "url": "http://www.masfjorden.kommune.no/"
+        },
+        {
+            "name": "Meland kommune",
+            "shortname": "meland",
+            "avatar_url": "Meland.png",
+            "orgnr": "951549770",
+            "url": "http://www.meland.kommune.no/"
+        },
+        {
+            "name": "Meldal kommune",
+            "shortname": "meldal",
+            "avatar_url": "Meldal.png",
+            "orgnr": "958731647",
+            "url": "http://www.meldal.kommune.no"
+        },
+        {
+            "name": "Melhus kommune",
+            "shortname": "melhus",
+            "avatar_url": "Melhus.png",
+            "orgnr": "938726027",
+            "url": "http://www.melhus.kommune.no/"
+        },
+        {
+            "name": "Meløy kommune",
+            "shortname": "meloy",
+            "avatar_url": "Meløy.png",
+            "orgnr": "970189866",
+            "url": "http://www.meloy.kommune.no/"
+        },
+        {
+            "name": "Meråker kommune",
+            "shortname": "meraker",
+            "avatar_url": "Meråker.png",
+            "orgnr": "835231712",
+            "url": "https://www.meraker.kommune.no/"
+        },
+        {
+            "name": "Midsund kommune",
+            "shortname": "midsund",
+            "avatar_url": "Midsund.png",
+            "orgnr": "964981159",
+            "url": "http://www.midsund.kommune.no/"
+        },
+        {
+            "name": "Modalen kommune",
+            "shortname": "modalen",
+            "avatar_url": "Modalen.png",
+            "orgnr": "964969302",
+            "url": "http://www.modalen.kommune.no/"
+        },
+        {
+            "name": "Modum kommune",
+            "shortname": "modum",
+            "avatar_url": "Modum.png",
+            "orgnr": "970491589",
+            "url": "http://www.modum.kommune.no/"
+        },
+        {
+            "name": "Moskenes kommune",
+            "shortname": "moskenes",
+            "avatar_url": "Moskenes.png",
+            "orgnr": "945962151",
+            "url": "https://moskenes.kommune.no/"
+        },
+        {
+            "name": "Moss kommune",
+            "shortname": "moss",
+            "avatar_url": "Moss.png",
+            "orgnr": "944383476",
+            "url": "https://www.moss.kommune.no/"
+        },
+        {
+            "name": "Målselv kommune",
+            "shortname": "malselv",
+            "avatar_url": "Målselv.png",
+            "orgnr": "972418005",
+            "url": "https://www.malselv.kommune.no/"
+        },
+        {
+            "name": "Namdalseid kommune",
+            "shortname": "namdalseid",
+            "avatar_url": "Namdalseid.png",
+            "orgnr": "940015456",
+            "url": "http://www.namdalseid.kommune.no/"
+        },
+        {
+            "name": "Namsos kommune",
+            "shortname": "namsos",
+            "avatar_url": "Namsos.png",
+            "orgnr": "942875967",
+            "url": "https://www.namsos.kommune.no/"
+        },
+        {
+            "name": "Nannestad kommune",
+            "shortname": "nannestad",
+            "avatar_url": "Nannestad.png",
+            "orgnr": "964950202",
+            "url": "https://www.nannestad.kommune.no/"
+        },
+        {
+            "name": "Narvik kommune",
+            "shortname": "narvik",
+            "avatar_url": "Narvik.png",
+            "orgnr": "959469059",
+            "url": "https://www.narvik.kommune.no/"
+        },
+        {
+            "name": "Naustdal kommune",
+            "shortname": "naustdal",
+            "avatar_url": "Naustdal.png",
+            "orgnr": "963923899",
+            "url": "https://www.naustdal.kommune.no/"
+        },
+        {
+            "name": "Nedre Eiker kommune",
+            "shortname": "nedre-eiker",
+            "avatar_url": "Nedre_Eiker.png",
+            "orgnr": "841088832",
+            "url": "https://www.nedre-eiker.kommune.no/"
+        },
+        {
+            "name": "Nes kommune (Akershus)",
+            "shortname": "nes-ak",
+            "avatar_url": "Nes_Akershus.png",
+            "orgnr": "938679088",
+            "url": "https://www.nes-ak.kommune.no/"
+        },
+        {
+            "name": "Nes kommune (Buskerud)",
+            "shortname": "nes-bu",
+            "avatar_url": "Nes_Buskerud.png",
+            "orgnr": "964951640",
+            "url": "http://www.nes-bu.kommune.no"
+        },
+        {
+            "name": "Nesna kommune",
+            "shortname": "nesna",
+            "avatar_url": "Nesna.png",
+            "orgnr": "939600515",
+            "url": "https://www.nesna.kommune.no/"
+        },
+        {
+            "name": "Nissedal kommune",
+            "shortname": "nissedal",
+            "avatar_url": "Nissedal.png",
+            "orgnr": "964964343",
+            "url": "http://www.nissedal.kommune.no/"
+        },
+        {
+            "name": "Nittedal kommune",
+            "shortname": "nittedal",
+            "avatar_url": "Nittedal.png",
+            "orgnr": "971643870",
+            "url": "https://www.nittedal.kommune.no/"
+        },
+        {
+            "name": "Nome kommune",
+            "shortname": "nome",
+            "avatar_url": "Nome.png",
+            "orgnr": "964963371",
+            "url": "http://www.nome.kommune.no/"
+        },
+        {
+            "name": "Nord-Aurdal kommune",
+            "shortname": "nord-aurdal",
+            "avatar_url": "Nord-Aurdal.png",
+            "orgnr": "961381908",
+            "url": "https://www.nord-aurdal.kommune.no/"
+        },
+        {
+            "name": "Norddal kommune",
+            "shortname": "norddal",
+            "avatar_url": "Norddal.png",
+            "orgnr": "939396268",
+            "url": "https://www.norddal.kommune.no/"
+        },
+        {
+            "name": "Nord-Odal kommune",
+            "shortname": "nord-odal",
+            "avatar_url": "Nord-Odal.png",
+            "orgnr": "964950768",
+            "url": "http://www.nord-odal.kommune.no/"
+        },
+        {
+            "name": "Nordre Land kommune",
+            "shortname": "nordre-land",
+            "avatar_url": "Nordre_Land.png",
+            "orgnr": "861381722",
+            "url": "http://www.nordre-land.kommune.no/"
+        },
+        {
+            "name": "Nordreisa kommune",
+            "shortname": "nordreisa",
+            "avatar_url": "Nordreisa.png",
+            "orgnr": "943350833",
+            "url": "http://www.nordreisa.kommune.no"
+        },
+        {
+            "name": "Nore og Uvdal kommune",
+            "shortname": "nore-og-uvdal",
+            "avatar_url": "Nore_og_Uvdal.png",
+            "orgnr": "964950946",
+            "url": "http://www.nore-og-uvdal.kommune.no/"
+        },
+        {
+            "name": "Nærøy kommune",
+            "shortname": "naroy",
+            "avatar_url": "Nærøy.png",
+            "orgnr": "944350497",
+            "url": "http://www.naroy.kommune.no/"
+        },
+        {
+            "name": "Odda kommune",
+            "shortname": "odda",
+            "avatar_url": "Odda.png",
+            "orgnr": "964967814",
+            "url": "https://www.odda.kommune.no/"
+        },
+        {
+            "name": "Oppdal kommune",
+            "shortname": "oppdal",
+            "avatar_url": "Oppdal.png",
+            "orgnr": "964983003",
+            "url": "https://www.oppdal.kommune.no/"
+        },
+        {
+            "name": "Os kommune (Hedmark)",
+            "shortname": "os-hedmark",
+            "avatar_url": "Os_Hedmark.png",
+            "orgnr": "943464723",
+            "url": "http://os.kommune.no/"
+        },
+        {
+            "name": "Os kommune (Hordaland)",
+            "shortname": "os-hordaland",
+            "avatar_url": "Os_Hordaland.png",
+            "orgnr": "844458312",
+            "url": "https://oskommune.no/"
+        },
+        {
+            "name": "Osen kommune",
+            "shortname": "osen",
+            "avatar_url": "Osen.png",
+            "orgnr": "944350675",
+            "url": "https://www.osen.kommune.no/"
+        },
+        {
+            "name": "Røyken kommune",
+            "shortname": "royken",
+            "avatar_url": "Røyken.png",
+            "orgnr": "938709866",
+            "url": "https://www.royken.kommune.no/"
+        },
+        {
+            "name": "Osterøy kommune",
+            "shortname": "osteroy",
+            "avatar_url": "Osterøy.png",
+            "orgnr": "864338712",
+            "url": "https://www.osteroy.kommune.no/"
+        },
+        {
+            "name": "Overhalla kommune",
+            "shortname": "overhalla",
+            "avatar_url": "Overhalla.png",
+            "orgnr": "939896600",
+            "url": "http://www.overhalla.kommune.no/"
+        },
+        {
+            "name": "Porsanger kommune",
+            "shortname": "porsanger",
+            "avatar_url": "Porsanger.png",
+            "orgnr": "959411735",
+            "url": "http://www.porsanger.kommune.no/"
+        },
+        {
+            "name": "Porsgrunn kommune",
+            "shortname": "porsgrunn",
+            "avatar_url": "Porsgrunn.png",
+            "orgnr": "939991034",
+            "url": "https://www.porsgrunn.kommune.no/"
+        },
+        {
+            "name": "Randaberg kommune",
+            "shortname": "randaberg",
+            "avatar_url": "Randaberg.png",
+            "orgnr": "934945514",
+            "url": "http://www.randaberg.kommune.no/"
+        },
+        {
+            "name": "Rauma kommune",
+            "shortname": "rauma",
+            "avatar_url": "Rauma.png",
+            "orgnr": "864980902",
+            "url": "https://www.rauma.kommune.no/"
+        },
+        {
+            "name": "Rendalen kommune",
+            "shortname": "rendalen",
+            "avatar_url": "Rendalen.png",
+            "orgnr": "940028515",
+            "url": "http://www.rendalen.kommune.no/"
+        },
+        {
+            "name": "Rennebu kommune",
+            "shortname": "rennebu",
+            "avatar_url": "Rennebu.png",
+            "orgnr": "940083672",
+            "url": "http://www.rennebu.kommune.no/"
+        },
+        {
+            "name": "Rennesøy kommune",
+            "shortname": "rennesoy",
+            "avatar_url": "Rennesøy.png",
+            "orgnr": "964979545",
+            "url": "http://www.rennesoy.kommune.no/"
+        },
+        {
+            "name": "Rindal kommune",
+            "shortname": "rindal",
+            "avatar_url": "Rindal.png",
+            "orgnr": "940138051",
+            "url": "https://www.rindal.kommune.no/"
+        },
+        {
+            "name": "Ringerike kommune",
+            "shortname": "ringerike",
+            "avatar_url": "Ringerike.png",
+            "orgnr": "940100925",
+            "url": "http://www.ringerike.kommune.no/"
+        },
+        {
+            "name": "Ringsaker kommune",
+            "shortname": "ringsaker",
+            "avatar_url": "Ringsaker.png",
+            "orgnr": "864950582",
+            "url": "http://www.ringsaker.kommune.no"
+        },
+        {
+            "name": "Risør kommune",
+            "shortname": "risor",
+            "avatar_url": "Risør.png",
+            "orgnr": "964977402",
+            "url": "http://www.risor.kommune.no/"
+        },
+        {
+            "name": "Roan kommune",
+            "shortname": "roan",
+            "avatar_url": "Roan.png",
+            "orgnr": "944315438",
+            "url": "https://www.roan.kommune.no/"
+        },
+        {
+            "name": "Rollag kommune",
+            "shortname": "rollag",
+            "avatar_url": "Rollag.png",
+            "orgnr": "964963282",
+            "url": "http://www.rollag.kommune.no/"
+        },
+        {
+            "name": "Rælingen kommune",
+            "shortname": "ralingen",
+            "avatar_url": "Rælingen.png",
+            "orgnr": "952540556",
+            "url": "http://www.ralingen.kommune.no"
+        },
+        {
+            "name": "Rødøy kommune",
+            "shortname": "rodoy",
+            "avatar_url": "Rødøy.png",
+            "orgnr": "945717173",
+            "url": "http://www.rodoy.kommune.no/"
+        },
+        {
+            "name": "Rømskog kommune",
+            "shortname": "romskog",
+            "avatar_url": "Rømskog.png",
+            "orgnr": "964947171",
+            "url": "http://www.romskog.kommune.no"
+        },
+        {
+            "name": "Røros kommune",
+            "shortname": "roros",
+            "avatar_url": "Røros.png",
+            "orgnr": "939898743",
+            "url": "http://www.roros.kommune.no"
+        },
+        {
+            "name": "Røst kommune",
+            "shortname": "rost",
+            "avatar_url": "Røst.png",
+            "orgnr": "945037687",
+            "url": "http://rost.kommune.no/"
+        },
+        {
+            "name": "Salangen kommune",
+            "shortname": "salangen",
+            "avatar_url": "Salangen.png",
+            "orgnr": "961416388",
+            "url": "http://www.salangen.kommune.no/"
+        },
+        {
+            "name": "Saltdal kommune",
+            "shortname": "saltdal",
+            "avatar_url": "Saltdal.png",
+            "orgnr": "972417734",
+            "url": "http://www.saltdal.kommune.no/"
+        },
+        {
+            "name": "Sande kommune (Møre og Romsdal)",
+            "shortname": "sande-mr",
+            "avatar_url": "Sande_Møre_og_Romsdal.png",
+            "orgnr": "822534422",
+            "url": "http://www.sande-mr.kommune.no/"
+        },
+        {
+            "name": "Sande kommune (Vestfold)",
+            "shortname": "sande-ve",
+            "avatar_url": "Sande_Vestfold.png",
+            "orgnr": "938971471",
+            "url": "https://www.sande-ve.kommune.no/"
+        },
+        {
+            "name": "Sandefjord kommune",
+            "shortname": "sandefjord",
+            "avatar_url": "Sandefjord.png",
+            "orgnr": "916882807",
+            "url": "https://www.sandefjord.kommune.no/"
+        },
+        {
+            "name": "Sandøy kommune",
+            "shortname": "sandoy",
+            "avatar_url": "Sandøy.png",
+            "orgnr": "964981248",
+            "url": "http://www.sandoy.kommune.no/"
+        },
+        {
+            "name": "Sarpsborg kommune",
+            "shortname": "sarpsborg",
+            "avatar_url": "Sarpsborg.png",
+            "orgnr": "938801363",
+            "url": "https://www.sarpsborg.com/"
+        },
+        {
+            "name": "Sauda kommune",
+            "shortname": "sauda",
+            "avatar_url": "Sauda.png",
+            "orgnr": "964979367",
+            "url": "https://www.sauda.kommune.no/"
+        },
+        {
+            "name": "Sauherad kommune",
+            "shortname": "sauherad",
+            "avatar_url": "Sauherad.png",
+            "orgnr": "964963460",
+            "url": "http://www.sauherad.kommune.no"
+        },
+        {
+            "name": "Sel kommune",
+            "shortname": "sel",
+            "avatar_url": "Sel.png",
+            "orgnr": "939617671",
+            "url": "https://www.sel.kommune.no//"
+        },
+        {
+            "name": "Selbu kommune",
+            "shortname": "selbu",
+            "avatar_url": "Selbu.png",
+            "orgnr": "971197609",
+            "url": "http://www.selbu.kommune.no/"
+        },
+        {
+            "name": "Selje kommune",
+            "shortname": "selje",
+            "avatar_url": "Selje.png",
+            "orgnr": "970541705",
+            "url": "https://selje.kommune.no/"
+        },
+        {
+            "name": "Seljord kommune",
+            "shortname": "seljord",
+            "avatar_url": "Seljord.png",
+            "orgnr": "964963738",
+            "url": "http://www.seljord.kommune.no"
+        },
+        {
+            "name": "Sigdal kommune",
+            "shortname": "sigdal",
+            "avatar_url": "Sigdal.png",
+            "orgnr": "964962766",
+            "url": "http://www.sigdal.kommune.no"
+        },
+        {
+            "name": "Sirdal kommune",
+            "shortname": "sirdal",
+            "avatar_url": "Sirdal.png",
+            "orgnr": "964964165",
+            "url": "http://www.sirdal.kommune.no"
+        },
+        {
+            "name": "Skaun kommune",
+            "shortname": "skaun",
+            "avatar_url": "Skaun.png",
+            "orgnr": "939865942",
+            "url": "https://www.skaun.kommune.no/"
+        },
+        {
+            "name": "Skien kommune",
+            "shortname": "skien",
+            "avatar_url": "Skien.png",
+            "orgnr": "938759839",
+            "url": "https://www.skien.kommune.no/"
+        },
+        {
+            "name": "Skiptvet kommune",
+            "shortname": "skiptvet",
+            "avatar_url": "Skiptvet.png",
+            "orgnr": "941962726",
+            "url": "http://www.skiptvet.kommune.no"
+        },
+        {
+            "name": "Skjervøy kommune",
+            "shortname": "skjervoy",
+            "avatar_url": "Skjervøy.png",
+            "orgnr": "941812716",
+            "url": "http://www.skanland.kommune.no/"
+        },
+        {
+            "name": "Skjåk kommune",
+            "shortname": "skjaak",
+            "avatar_url": "Skjåk.png",
+            "orgnr": "961381096",
+            "url": "https://www.skjaak.kommune.no/"
+        },
+        {
+            "name": "Skodje kommune",
+            "shortname": "skodje",
+            "avatar_url": "Skodje.png",
+            "orgnr": "964980454",
+            "url": "https://www.skodje.kommune.no/"
+        },
+        {
+            "name": "Skånland kommune",
+            "shortname": "skanland",
+            "avatar_url": "Skånland.png",
+            "orgnr": "959469326",
+            "url": "http://www.skanland.kommune.no/"
+        },
+        {
+            "name": "Smøla kommune",
+            "shortname": "smola",
+            "avatar_url": "Smøla.png",
+            "orgnr": "945012986",
+            "url": "http://www.smola.kommune.no/"
+        },
+        {
+            "name": "Snillfjord kommune",
+            "shortname": "snillfjord",
+            "avatar_url": "Snillfjord.png",
+            "orgnr": "964982309",
+            "url": "https://www.snillfjord.kommune.no/"
+        },
+        {
+            "name": "Sogndal kommune",
+            "shortname": "sogndal",
+            "avatar_url": "Sogndal.png",
+            "orgnr": "936401651",
+            "url": "http://www.sogndal.kommune.no/"
+        },
+        {
+            "name": "Sokndal kommune",
+            "shortname": "sokndal",
+            "avatar_url": "Sokndal.png",
+            "orgnr": "964965692",
+            "url": "https://www.sokndal.kommune.no/forside"
+        },
+        {
+            "name": "Sola kommune",
+            "shortname": "sola",
+            "avatar_url": "Sola.png",
+            "orgnr": "948243113",
+            "url": "https://www.sola.kommune.no/"
+        },
+        {
+            "name": "Solund kommune",
+            "shortname": "solund",
+            "avatar_url": "Solund.png",
+            "orgnr": "964967458",
+            "url": "https://www.solund.kommune.no/"
+        },
+        {
+            "name": "Songdalen kommune",
+            "shortname": "songdalen",
+            "avatar_url": "Songdalen.png",
+            "orgnr": "938091900",
+            "url": "https://www.songdalen.kommune.no/"
+        },
+        {
+            "name": "Sortland kommune",
+            "shortname": "sortland",
+            "avatar_url": "Sortland.png",
+            "orgnr": "847737492",
+            "url": "https://www.sortland.kommune.no/"
+        },
+        {
+            "name": "Stange kommune",
+            "shortname": "stange",
+            "avatar_url": "Stange.png",
+            "orgnr": "970169717",
+            "url": "http://www.stange.kommune.no/"
+        },
+        {
+            "name": "Stavanger kommune",
+            "shortname": "stavanger",
+            "avatar_url": "Stavanger.png",
+            "orgnr": "939508295",
+            "url": "https://www.stavanger.kommune.no/"
+        },
+        {
+            "name": "Steigen kommune",
+            "shortname": "steigen",
+            "avatar_url": "Steigen.png",
+            "orgnr": "962299385",
+            "url": "http://www.steigen.kommune.no/"
+        },
+        {
+            "name": "Stordal kommune",
+            "shortname": "stordal",
+            "avatar_url": "Stordal.png",
+            "orgnr": "964980276",
+            "url": "https://www.stordal.kommune.no/"
+        },
+        {
+            "name": "Stor-Elvdal kommune",
+            "shortname": "stor-elvdal",
+            "avatar_url": "Stor-Elvdal.png",
+            "orgnr": "964948887",
+            "url": "http://www.stor-elvdal.kommune.no/"
+        },
+        {
+            "name": "Storfjord kommune",
+            "shortname": "storfjord",
+            "avatar_url": "Storfjord.png",
+            "orgnr": "964994129",
+            "url": "http://www.storfjord.kommune.no/"
+        },
+        {
+            "name": "Strand kommune",
+            "shortname": "strand",
+            "avatar_url": "Strand.png",
+            "orgnr": "964978751",
+            "url": "https://www.strand.kommune.no/"
+        },
+        {
+            "name": "Stranda kommune",
+            "shortname": "stranda",
+            "avatar_url": "Stranda.png",
+            "orgnr": "964980098",
+            "url": "https://www.stranda.kommune.no/"
+        },
+        {
+            "name": "Stryn kommune",
+            "shortname": "stryn",
+            "avatar_url": "Stryn.png",
+            "orgnr": "963989202",
+            "url": "https://stryn.kommune.no/"
+        },
+        {
+            "name": "Sula kommune",
+            "shortname": "sula",
+            "avatar_url": "Sula.png",
+            "orgnr": "964980543",
+            "url": "https://www.sula.kommune.no/"
+        },
+        {
+            "name": "Suldal kommune",
+            "shortname": "suldal",
+            "avatar_url": "Suldal.png",
+            "orgnr": "964979189",
+            "url": "https://www.suldal.kommune.no/"
+        },
+        {
+            "name": "Sund kommune",
+            "shortname": "sund",
+            "avatar_url": "Sund.png",
+            "orgnr": "964338809",
+            "url": "https://www.sund.kommune.no/"
+        },
+        {
+            "name": "Svelvik kommune",
+            "shortname": "svelvik",
+            "avatar_url": "Svelvik.png",
+            "orgnr": "939516107",
+            "url": "https://www.svelvik.kommune.no/"
+        },
+        {
+            "name": "Sykkylven kommune",
+            "shortname": "sykkylven",
+            "avatar_url": "Sykkylven.png",
+            "orgnr": "964980365",
+            "url": "http://www.sykkylven.kommune.no"
+        },
+        {
+            "name": "Søgne kommune",
+            "shortname": "sogne",
+            "avatar_url": "Søgne.png",
+            "orgnr": "964967091",
+            "url": "http://www.sogne.kommune.no/"
+        },
+        {
+            "name": "Sømna kommune",
+            "shortname": "somna",
+            "avatar_url": "Sømna.png",
+            "orgnr": "944810277",
+            "url": "http://www.somna.kommune.no/"
+        },
+        {
+            "name": "Søndre Land kommune",
+            "shortname": "sondre-land",
+            "avatar_url": "Søndre_Land.png",
+            "orgnr": "961381630",
+            "url": "http://www.sondre-land.kommune.no/"
+        },
+        {
+            "name": "Sør-Aurdal kommune",
+            "shortname": "sor-aurdal",
+            "avatar_url": "Sør-Aurdal.png",
+            "orgnr": "961381819",
+            "url": "https://www.sor-aurdal.kommune.no/"
+        },
+        {
+            "name": "Sørfold kommune",
+            "shortname": "sorfold",
+            "avatar_url": "Sørfold.png",
+            "orgnr": "972417750",
+            "url": "http://www.sorfold.kommune.no"
+        },
+        {
+            "name": "Sør-Fron kommune",
+            "shortname": "sor-fron",
+            "avatar_url": "Sør-Fron.png",
+            "orgnr": "941827195",
+            "url": "https://www.sor-fron.kommune.no/"
+        },
+        {
+            "name": "Sørreisa kommune",
+            "shortname": "sorreisa",
+            "avatar_url": "Sørreisa.png",
+            "orgnr": "940755603",
+            "url": "http://www.sorreisa.kommune.no/"
+        },
+        {
+            "name": "Sør-Varanger kommune",
+            "shortname": "sor-varanger",
+            "avatar_url": "Sør-Varanger.png",
+            "orgnr": "942110286",
+            "url": "http://www.sor-varanger.kommune.no"
+        },
+        {
+            "name": "Tingvoll kommune",
+            "shortname": "tingvoll",
+            "avatar_url": "Tingvoll.png",
+            "orgnr": "964981515",
+            "url": "http://www.tingvoll.kommune.no/"
+        },
+        {
+            "name": "Tinn kommune",
+            "shortname": "tinn",
+            "avatar_url": "Tinn.png",
+            "orgnr": "864963552",
+            "url": "http://www.tinn.kommune.no"
+        },
+        {
+            "name": "Tjeldsund kommune",
+            "shortname": "tjeldsund",
+            "avatar_url": "Tjeldsund.png",
+            "orgnr": "959469237",
+            "url": "http://www.tjeldsund.kommune.no/"
+        },
+        {
+            "name": "Færder kommune",
+            "shortname": "faerder",
+            "avatar_url": "Færder.png",
+            "orgnr": "817263992",
+            "url": "https://www.faerder.kommune.no/"
+        },
+        {
+            "name": "Tokke kommune",
+            "shortname": "tokke",
+            "avatar_url": "Tokke.png",
+            "orgnr": "964964521",
+            "url": "http://www.tokke.kommune.no/"
+        },
+        {
+            "name": "Tolga kommune",
+            "shortname": "tolga",
+            "avatar_url": "Tolga.png",
+            "orgnr": "940192404",
+            "url": "http://www.tolga.kommune.no/"
+        },
+        {
+            "name": "Torsken kommune",
+            "shortname": "torsken",
+            "avatar_url": "Torsken.png",
+            "orgnr": "939900993",
+            "url": "http://www.torsken.kommune.no"
+        },
+        {
+            "name": "Tranøy kommune",
+            "shortname": "tranoy",
+            "avatar_url": "Tranøy.png",
+            "orgnr": "944824030",
+            "url": "http://www.tranoy.kommune.no/"
+        },
+        {
+            "name": "Trysil kommune",
+            "shortname": "trysil",
+            "avatar_url": "Trysil.png",
+            "orgnr": "864948502",
+            "url": "http://www.trysil.kommune.no"
+        },
+        {
+            "name": "Træna kommune",
+            "shortname": "trana",
+            "avatar_url": "Træna.png",
+            "orgnr": "940192692",
+            "url": "http://www.trana.kommune.no/"
+        },
+        {
+            "name": "Tvedestrand kommune",
+            "shortname": "tvedestrand",
+            "avatar_url": "Tvedestrand.png",
+            "orgnr": "964965781",
+            "url": "http://www.tvedestrand.kommune.no/"
+        },
+        {
+            "name": "Tydal kommune",
+            "shortname": "tydal",
+            "avatar_url": "Tydal.png",
+            "orgnr": "864983472",
+            "url": "https://www.tydal.kommune.no"
+        },
+        {
+            "name": "Tysfjord kommune",
+            "shortname": "tysfjord",
+            "avatar_url": "Tysfjord.png",
+            "orgnr": "972417769",
+            "url": "https://www.tysfjord.kommune.no/"
+        },
+        {
+            "name": "Tysnes kommune",
+            "shortname": "tysnes",
+            "avatar_url": "Tysnes.png",
+            "orgnr": "959412340",
+            "url": "http://www.tysnes.kommune.no/"
+        },
+        {
+            "name": "Tysvær kommune",
+            "shortname": "tysver",
+            "avatar_url": "Tysvær.png",
+            "orgnr": "964979812",
+            "url": "https://www.tysver.kommune.no/"
+        },
+        {
+            "name": "Tønsberg kommune",
+            "shortname": "tonsberg",
+            "avatar_url": "Tønsberg.png",
+            "orgnr": "950611839",
+            "url": "https://www.tonsberg.kommune.no/"
+        },
+        {
+            "name": "Ullensaker kommune",
+            "shortname": "ullensaker",
+            "avatar_url": "Ullensaker.png",
+            "orgnr": "933649768",
+            "url": "https://www.ullensaker.kommune.no/"
+        },
+        {
+            "name": "Ulstein kommune",
+            "shortname": "ulstein",
+            "avatar_url": "Ulstein.png",
+            "orgnr": "964979456",
+            "url": "https://www.ulstein.kommune.no/"
+        },
+        {
+            "name": "Ulvik herad",
+            "shortname": "ulvik",
+            "avatar_url": "Ulvik.png",
+            "orgnr": "971159928",
+            "url": "https://www.ulvik.kommune.no/"
+        },
+        {
+            "name": "Nesseby kommune",
+            "shortname": "nesseby",
+            "avatar_url": "Nesseby.png",
+            "orgnr": "839953062",
+            "url": "http://www.nesseby.kommune.no/"
+        },
+        {
+            "name": "Utsira kommune",
+            "shortname": "utsira",
+            "avatar_url": "Utsira.png",
+            "orgnr": "964979901",
+            "url": "http://www.utsira.kommune.no"
+        },
+        {
+            "name": "Vadsø kommune",
+            "shortname": "vadso",
+            "avatar_url": "Vadsø.png",
+            "orgnr": "964993602",
+            "url": "http://www.vadso.kommune.no/"
+        },
+        {
+            "name": "Vaksdal kommune",
+            "shortname": "vaksdal",
+            "avatar_url": "Vaksdal.png",
+            "orgnr": "961821967",
+            "url": "http://www.vaksdal.kommune.no"
+        },
+        {
+            "name": "Valle kommune",
+            "shortname": "valle",
+            "avatar_url": "Valle.png",
+            "orgnr": "964966575",
+            "url": "http://www.valle.kommune.no"
+        },
+        {
+            "name": "Vang kommune",
+            "shortname": "vang",
+            "avatar_url": "Vang.png",
+            "orgnr": "961382246",
+            "url": "https://www.vang.kommune.no/"
+        },
+        {
+            "name": "Vanylven kommune",
+            "shortname": "vanylven",
+            "avatar_url": "Vanylven.png",
+            "orgnr": "964978662",
+            "url": "https://www.vanylven.kommune.no/"
+        },
+        {
+            "name": "Vega kommune",
+            "shortname": "vega",
+            "avatar_url": "Vega.png",
+            "orgnr": "941017975",
+            "url": "http://www.vega.kommune.no/"
+        },
+        {
+            "name": "Vegårshei kommune",
+            "shortname": "vegarshei",
+            "avatar_url": "Vegårshei.png",
+            "orgnr": "964965048",
+            "url": "http://www.vegarshei.kommune.no/"
+        },
+        {
+            "name": "Verran kommune",
+            "shortname": "verran",
+            "avatar_url": "Verran.png",
+            "orgnr": "964981981",
+            "url": "http://www.verran.kommune.no/"
+        },
+        {
+            "name": "Vestnes kommune",
+            "shortname": "vestnes",
+            "avatar_url": "Vestnes.png",
+            "orgnr": "939901965",
+            "url": "http://www.vestnes.kommune.no"
+        },
+        {
+            "name": "Vestre Slidre kommune",
+            "shortname": "vestre-slidre",
+            "avatar_url": "Vestre_Slidre.png",
+            "orgnr": "961382157",
+            "url": "https://www.vestre-slidre.kommune.no/"
+        },
+        {
+            "name": "Vestre Toten kommune",
+            "shortname": "vestre-toten",
+            "avatar_url": "Vestre_Toten.png",
+            "orgnr": "971028300",
+            "url": "http://www.vestre-toten.kommune.no/"
+        },
+        {
+            "name": "Vestvågøy kommune",
+            "shortname": "vestvagoy",
+            "avatar_url": "Vestvågøy.png",
+            "orgnr": "942570619",
+            "url": "https://www.vestvagoy.kommune.no/"
+        },
+        {
+            "name": "Vevelstad kommune",
+            "shortname": "vevelstad",
+            "avatar_url": "Vevelstad.png",
+            "orgnr": "940651034",
+            "url": "http://www.vevelstad.kommune.no/"
+        },
+        {
+            "name": "Vik kommune",
+            "shortname": "vik",
+            "avatar_url": "Vik.png",
+            "orgnr": "937498764",
+            "url": "http://www.vik.kommune.no/"
+        },
+        {
+            "name": "Vikna kommune",
+            "shortname": "vikna",
+            "avatar_url": "Vikna.png",
+            "orgnr": "944976728",
+            "url": "http://www.vikna.kommune.no/"
+        },
+        {
+            "name": "Vindafjord kommune",
+            "shortname": "vindafjord",
+            "avatar_url": "Vindafjord.png",
+            "orgnr": "988893226",
+            "url": "https://www.vindafjord.kommune.no/"
+        },
+        {
+            "name": "Vinje kommune",
+            "shortname": "vinje",
+            "avatar_url": "Vinje.png",
+            "orgnr": "964964610",
+            "url": "http://www.vinje.kommune.no/"
+        },
+        {
+            "name": "Volda kommune",
+            "shortname": "volda",
+            "avatar_url": "Volda.png",
+            "orgnr": "939760946",
+            "url": "https://www.volda.kommune.no/"
+        },
+        {
+            "name": "Voss kommune",
+            "shortname": "voss",
+            "avatar_url": "Voss.png",
+            "orgnr": "960510542",
+            "url": "http://www.voss.kommune.no/"
+        },
+        {
+            "name": "Værøy kommune",
+            "shortname": "varoy",
+            "avatar_url": "Værøy.png",
+            "orgnr": "964994307",
+            "url": "https://varoy.kommune.no/"
+        },
+        {
+            "name": "Vågan kommune",
+            "shortname": "vagan",
+            "avatar_url": "Vågan.png",
+            "orgnr": "938644500",
+            "url": "https://vagan.kommune.no/"
+        },
+        {
+            "name": "Vågsøy kommune",
+            "shortname": "vagsoy",
+            "avatar_url": "Vågsøy.png",
+            "orgnr": "942952880",
+            "url": "https://vagsoy.kommune.no/"
+        },
+        {
+            "name": "Vågå kommune",
+            "shortname": "vaga",
+            "avatar_url": "Vågå.png",
+            "orgnr": "939607706",
+            "url": "http://www.vaga.kommune.no"
+        },
+        {
+            "name": "Våler kommune i Solør (Hedmark)",
+            "shortname": "vaaler-he-kommmune",
+            "avatar_url": "Våler_Hedmark.png",
+            "orgnr": "871034222",
+            "url": "https://www.vaaler-he.kommune.no/"
+        },
+        {
+            "name": "Våler kommune (Østfold)",
+            "shortname": "valer-of",
+            "avatar_url": "Våler_Østfold.png",
+            "orgnr": "959272581",
+            "url": "https://www.valer-of.kommune.no/"
+        },
+        {
+            "name": "Øksnes kommune",
+            "shortname": "oksnes",
+            "avatar_url": "Øksnes.png",
+            "orgnr": "845152012",
+            "url": "http://www.oksnes.kommune.no"
+        },
+        {
+            "name": "Ørland kommune",
+            "shortname": "orland",
+            "avatar_url": "Ørland.png",
+            "orgnr": "964982686",
+            "url": "https://www.orland.kommune.no/"
+        },
+        {
+            "name": "Ørskog kommune",
+            "shortname": "orskog",
+            "avatar_url": "Ørskog.png",
+            "orgnr": "864978932",
+            "url": "http://www.orskog.kommune.no/"
+        },
+        {
+            "name": "Ørsta kommune",
+            "shortname": "orsta",
+            "avatar_url": "Ørsta.png",
+            "orgnr": "939461450",
+            "url": "https://www.orsta.kommune.no/"
+        },
+        {
+            "name": "Østre Toten kommune",
+            "shortname": "ostre-toten",
+            "avatar_url": "Østre_Toten.png",
+            "orgnr": "964949859",
+            "url": "http://www.ostre-toten.kommune.no/"
+        },
+        {
+            "name": "Øyer kommune",
+            "shortname": "oyer",
+            "avatar_url": "Øyer.png",
+            "orgnr": "961381185",
+            "url": "http://www.oyer.kommune.no"
+        },
+        {
+            "name": "Øygarden kommune",
+            "shortname": "oygarden",
+            "avatar_url": "Øygarden.png",
+            "orgnr": "938766223",
+            "url": "https://www.oygarden.kommune.no/"
+        },
+        {
+            "name": "Øystre Slidre kommune",
+            "shortname": "oystre-slidre",
+            "avatar_url": "Øystre_Slidre.png",
+            "orgnr": "961382068",
+            "url": "https://www.oystre-slidre.kommune.no/"
+        },
+        {
+            "name": "Åfjord kommune",
+            "shortname": "afjord",
+            "avatar_url": "Åfjord.png",
+            "orgnr": "964982864",
+            "url": "https://www.afjord.kommune.no/"
+        },
+        {
+            "name": "Ål kommune",
+            "shortname": "aal",
+            "avatar_url": "Ål.png",
+            "orgnr": "864952992",
+            "url": "http://www.aal.kommune.no/"
+        },
+        {
+            "name": "Åmli kommune",
+            "shortname": "aamli",
+            "avatar_url": "Åmli.png",
+            "orgnr": "864965962",
+            "url": "http://www.amli.kommune.no"
+        },
+        {
+            "name": "Åmot kommune",
+            "shortname": "amot",
+            "avatar_url": "Åmot.png",
+            "orgnr": "940152496",
+            "url": "http://www.amot.kommune.no"
+        },
+        {
+            "name": "Årdal kommune",
+            "shortname": "ardal",
+            "avatar_url": "Årdal.png",
+            "orgnr": "954679721",
+            "url": "http://www.ardal.kommune.no"
+        },
+        {
+            "name": "Åseral kommune",
+            "shortname": "aseral",
+            "avatar_url": "Åseral.png",
+            "orgnr": "964966842",
+            "url": "http://www.aseral.kommune.no/"
+        },
+        {
+            "name": "Åsnes kommune",
+            "shortname": "asnes",
+            "avatar_url": "Åsnes.png",
+            "orgnr": "964948232",
+            "url": "https://www.asnes.kommune.no"
+        },
+        {
+            "name": "Kautokeino kommune",
+            "shortname": "kautokeino",
+            "avatar_url": "Kautokeino.png",
+            "orgnr": "945475056",
+            "url": "http://www.kautokeino.kommune.no/"
+        },
+        {
+            "name": "Longyearbyen lokalstyre, Svalbard",
+            "shortname": "longyearbyen-lokalstyre",
+            "avatar_url": "lokalstyre.png",
+            "orgnr": "984047851",
+            "url": "http://www.lokalstyre.no/"
+        },
+        {
+            "name": "Helfo",
+            "shortname": "helfo",
+            "avatar_url": "helfo.png",
+            "orgnr": "986965610",
+            "url": "https://helfo.no/"
+        },
+        {
+            "name": "Skatteetaten",
+            "shortname": "SKD",
+            "avatar_url": "skd.png",
+            "orgnr": "974761076",
+            "url": "https://www.skatteetaten.no/"
+        },
+        {
+            "name": "Siljan kommune",
+            "shortname": "siljan",
+            "avatar_url": "Siljan.png",
+            "orgnr": "864953042",
+            "url": "https://www.siljan.kommune.no/"
+        },
+        {
+            "name": "Lånekassen",
+            "shortname": "lanekassen",
+            "avatar_url": "lanekassen.png",
+            "orgnr": "960885406",
+            "url": "https://www.lanekassen.no/"
+        },
+        {
+            "name": "Ambita AS",
+            "shortname": "ambita",
+            "avatar_url": "ambita.png",
+            "orgnr": "945811714",
+            "url": "https://www.ambita.com/"
+        },
+        {
+            "name": "Ski kommune",
+            "shortname": "ski",
+            "avatar_url": "Ski.png",
+            "orgnr": "960507878",
+            "url": "http://www.ski.kommune.no/"
+        },
+        {
+            "name": "Asker kommune",
+            "shortname": "asker",
+            "avatar_url": "Asker.png",
+            "orgnr": "944382038",
+            "url": "https://www.asker.kommune.no/"
+        },
+        {
+            "name": "Frogn kommune",
+            "shortname": "frogn",
+            "avatar_url": "Frogn.png",
+            "orgnr": "963999089",
+            "url": "https://www.frogn.kommune.no/"
+        },
+        {
+            "name": "Molde kommune",
+            "shortname": "molde",
+            "avatar_url": "Molde.png",
+            "orgnr": "944020977",
+            "url": "http://www.molde.kommune.no"
+        },
+        {
+            "name": "Fjell kommune",
+            "shortname": "fjell",
+            "avatar_url": "Fjell.png",
+            "orgnr": "951996777",
+            "url": "https://www.fjell.kommune.no/"
+        },
+        {
+            "name": "Alta kommune",
+            "shortname": "alta",
+            "avatar_url": "Alta.png",
+            "orgnr": "944588132",
+            "url": "http://www.alta.kommune.no/"
+        },
+        {
+            "name": "Loppa kommune",
+            "shortname": "loppa",
+            "avatar_url": "Loppa.png",
+            "orgnr": "963063237",
+            "url": "http://www.loppa.kommune.no/"
+        },
+        {
+            "name": "Hammerfest kommune",
+            "shortname": "hammerfest",
+            "avatar_url": "Hammerfest.png",
+            "orgnr": "964830533",
+            "url": "http://www.hammerfest.kommune.no/"
+        },
+        {
+            "name": "Hasvik kommune",
+            "shortname": "hasvik",
+            "avatar_url": "Hasvik.png",
+            "orgnr": "964830711",
+            "url": "http://www.hasvik.kommune.no/"
+        },
+        {
+            "name": "Måsøy kommune",
+            "shortname": "masoy",
+            "avatar_url": "Måsøy.png",
+            "orgnr": "941087957",
+            "url": "http://www.masoy.kommune.no"
+        },
+        {
+            "name": "Nordkapp kommune",
+            "shortname": "nordkapp",
+            "avatar_url": "Nordkapp.png",
+            "orgnr": "938469415",
+            "url": "http://www.nordkapp.kommune.no/"
+        },
+        {
+            "name": "Kvalsund kommune",
+            "shortname": "kvalsund",
+            "avatar_url": "Kvalsund.png",
+            "orgnr": "964830622",
+            "url": "http://www.kvalsund.kommune.no"
+        },
+        {
+            "name": "Nesodden kommune",
+            "shortname": "nesodden",
+            "avatar_url": "Nesodden.png",
+            "orgnr": "944383565",
+            "url": "https://www.nesodden.kommune.no/"
+        },
+        {
+            "name": "Vestby kommune",
+            "shortname": "vestby",
+            "avatar_url": "Vestby.png",
+            "orgnr": "943485437",
+            "url": "http://www.vestby.kommune.no"
+        },
+        {
+            "name": "Oppegård kommune",
+            "shortname": "oppegard",
+            "avatar_url": "Oppegård.png",
+            "orgnr": "944384081",
+            "url": "https://www.oppegard.kommune.no/"
+        },
+        {
+            "name": "Ås kommune",
+            "shortname": "as",
+            "avatar_url": "Ås.png",
+            "orgnr": "964948798",
+            "url": "http://www.as.kommune.no"
+        },
+        {
+            "name": "Skedsmo kommune",
+            "shortname": "K0231",
+            "avatar_url": "Skedsmo.png",
+            "orgnr": "938275130",
+            "url": "https://www.skedsmo.kommune.no/"
+        },
+        {
+            "name": "Malvik kommune",
+            "shortname": "malvik",
+            "avatar_url": "Malvik.png",
+            "orgnr": "971035560",
+            "url": "https://www.malvik.kommune.no/"
+        },
+        {
+            "name": "Stjørdal kommune",
+            "shortname": "stjordal",
+            "avatar_url": "Stjørdal.png",
+            "orgnr": "939958851",
+            "url": "https://www.stjordal.kommune.no"
+        },
+        {
+            "name": "Steinkjer kommune",
+            "shortname": "steinkjer",
+            "avatar_url": "Steinkjer.png",
+            "orgnr": "840029212",
+            "url": "http://www.steinkjer.kommune.no"
+        },
+        {
+            "name": "Verdal kommune",
+            "shortname": "verdal",
+            "avatar_url": "Verdal.png",
+            "orgnr": "938587418",
+            "url": "http://www.verdal.kommune.no"
+        },
+        {
+            "name": "Halden kommune",
+            "shortname": "halden",
+            "avatar_url": "Halden.png",
+            "orgnr": "959159092",
+            "url": "http://www.halden.kommune.no"
+        },
+        {
+            "name": "Surnadal kommune",
+            "shortname": "surnadal",
+            "avatar_url": "Surnadal.png",
+            "orgnr": "964981892",
+            "url": "http://www.surnadal.kommune.no/"
+        },
+        {
+            "name": "Hemne kommune",
+            "shortname": "hemne",
+            "avatar_url": "Hemne.png",
+            "orgnr": "940158893",
+            "url": "http://www.hemne.kommune.no/"
+        },
+        {
+            "name": "Fræna kommune",
+            "shortname": "frana",
+            "avatar_url": "Fræna.png",
+            "orgnr": "845241112",
+            "url": "http://www.frana.kommune.no"
+        },
+        {
+            "name": "Sørum kommune",
+            "shortname": "sorum",
+            "avatar_url": "Sørum.png",
+            "orgnr": "942645295",
+            "url": "http://www.sorum.kommune.no"
+        },
+        {
+            "name": "Trondheim kommune",
+            "shortname": "trondheim",
+            "avatar_url": "Trondheim.png",
+            "orgnr": "942110464",
+            "url": "https://trondheim.kommune.no/"
+        },
+        {
+            "name": "Dyrøy kommune",
+            "shortname": "dyroy",
+            "avatar_url": "Dyrøy.png",
+            "orgnr": "864994032",
+            "url": "http://www.dyroy.kommune.no/"
+        },
+        {
+            "name": "Hobøl kommune",
+            "shortname": "hobol",
+            "avatar_url": "Hobøl.png",
+            "orgnr": "964947449",
+            "url": "http://www.hobol.kommune.no"
+        },
+        {
+            "name": "Sandnes kommune",
+            "shortname": "sandnes",
+            "avatar_url": "Sandnes.png",
+            "orgnr": "964965137",
+            "url": "https://www.sandnes.kommune.no/#"
+        },
+        {
+            "name": "Aure kommune",
+            "shortname": "aure",
+            "avatar_url": "Aure.png",
+            "orgnr": "988913898",
+            "url": "http://www.aure.kommune.no/"
+        },
+        {
+            "name": "Bergen kommune",
+            "shortname": "bergen",
+            "avatar_url": "Bergen.png",
+            "orgnr": "964338531",
+            "url": "https://www.bergen.kommune.no/"
+        },
+        {
+            "name": "Sør-Odal kommune",
+            "shortname": "sor-odal",
+            "avatar_url": "Sør-Odal.png",
+            "orgnr": "964947716",
+            "url": "http://www.sor-odal.kommune.no/"
+        },
+        {
+            "name": "Gjesdal kommune",
+            "shortname": "gjesdal",
+            "avatar_url": "Gjesdal.png",
+            "orgnr": "964978573",
+            "url": "https://www.gjesdal.kommune.no/"
+        },
+        {
+            "name": "Klepp kommune",
+            "shortname": "klepp",
+            "avatar_url": "Klepp.png",
+            "orgnr": "864969682",
+            "url": "https://www.klepp.kommune.no/"
+        },
+        {
+            "name": "Time kommune",
+            "shortname": "time",
+            "avatar_url": "Time.png",
+            "orgnr": "859223672",
+            "url": "https://www.time.kommune.no/"
+        },
+        {
+            "name": "Spydeberg kommune",
+            "shortname": "spydeberg",
+            "avatar_url": "Spydeberg.png",
+            "orgnr": "864947352",
+            "url": "http://www.spydeberg.kommune.no"
+        },
+        {
+            "name": "Rakkestad kommune",
+            "shortname": "rakkestad",
+            "avatar_url": "Rakkestad.png",
+            "orgnr": "945372281",
+            "url": "http://www.rakkestad.kommune.no"
+        },
+        {
+            "name": "Hamar kommune",
+            "shortname": "hamar",
+            "avatar_url": "Hamar.png",
+            "orgnr": "970540008",
+            "url": "http://www.hamar.kommune.no"
+        },
+        {
+            "name": "Øvre Eiker kommune",
+            "shortname": "ovre-eiker",
+            "avatar_url": "Øvre_Eiker.png",
+            "orgnr": "954597482",
+            "url": "https://ovre-eiker.kommune.no/"
+        },
+        {
+            "name": "Posten Norge AS",
+            "shortname": "posten",
+            "avatar_url": "posten.png",
+            "orgnr": "984661185",
+            "url": "https://www.posten.no/"
+        },
+        {
+            "name": "Aremark kommune",
+            "shortname": "aremark",
+            "avatar_url": "Aremark.png",
+            "orgnr": "940875560",
+            "url": "http://www.aremark.kommune.no/"
+        },
+        {
+            "name": "Askim kommune",
+            "shortname": "askim",
+            "avatar_url": "Askim.png",
+            "orgnr": "840894312",
+            "url": "http://www.askim.kommune.no/"
+        },
+        {
+            "name": "Kommunal Landspensjonskasse",
+            "shortname": "klp",
+            "avatar_url": "klp.png",
+            "orgnr": "938708606",
+            "url": "https://www.klp.no/"
+        },
+        {
+            "name": "Drammen kommune",
+            "shortname": "drammen",
+            "avatar_url": "Drammen.png",
+            "orgnr": "939214895",
+            "url": "https://www.drammen.kommune.no/"
+        },
+        {
+            "name": "Sunndal kommune",
+            "shortname": "sunndal",
+            "avatar_url": "Sunndal.png",
+            "orgnr": "964981604",
+            "url": "http://www.sunndal.kommune.no"
+        },
+        {
+            "name": "Fredrikstad kommune",
+            "shortname": "fredrikstad",
+            "avatar_url": "Fredrikstad.png",
+            "orgnr": "940039541",
+            "url": "https://www.fredrikstad.kommune.no/"
+        },
+        {
+            "name": "Samordna opptak",
+            "shortname": "samordna-opptak",
+            "avatar_url": "samordnaopptak.png",
+            "orgnr": "994948660",
+            "url": "http://www.samordnaopptak.no/"
+        },
+        {
+            "name": "Trøgstad kommune",
+            "shortname": "trogstad",
+            "avatar_url": "Trøgstad.png",
+            "orgnr": "964947260",
+            "url": "http://www.trogstad.kommune.no/"
+        },
+        {
+            "name": "Hole kommune",
+            "shortname": "hole",
+            "avatar_url": "Hole.png",
+            "orgnr": "960010833",
+            "url": "http://www.hole.kommune.no/"
+        },
+        {
+            "name": "Lier kommune",
+            "shortname": "lier",
+            "avatar_url": "Lier.png",
+            "orgnr": "857566122",
+            "url": "http://lier.kommune.no/"
+        },
+        {
+            "name": "Marker kommune",
+            "shortname": "marker",
+            "avatar_url": "Marker.png",
+            "orgnr": "964944334",
+            "url": "http://marker.kommune.no/"
+        },
+        {
+            "name": "Bærum kommune",
+            "shortname": "baerum",
+            "avatar_url": "Bærum.png",
+            "orgnr": "935478715",
+            "url": "https://www.baerum.kommune.no"
+        },
+        {
+            "name": "Direktoratet for forvaltning og ikt",
+            "shortname": "difi",
+            "avatar_url": "difi.png",
+            "orgnr": "991825827",
+            "url": "https://www.difi.no/"
+        },
+        {
+            "name": "Arbeids- og velferdsetaten",
+            "shortname": "NAV",
+            "avatar_url": "nav.png",
+            "orgnr": "889640782",
+            "url": "https://www.nav.no/"
+        },
+        {
+            "name": "Nesset kommune",
+            "shortname": "nesset",
+            "avatar_url": "Nesset.png",
+            "orgnr": "864981062",
+            "url": "http://www.nesset.kommune.no/"
+        },
+        {
+            "name": "Rana kommune",
+            "shortname": "rana",
+            "avatar_url": "Rana.png",
+            "orgnr": "872418032",
+            "url": "https://www.rana.kommune.no/"
+        },
+        {
+            "name": "Lyngdal kommune",
+            "shortname": "lyngdal",
+            "avatar_url": "Lyngdal.png",
+            "orgnr": "946485764",
+            "url": "https://www.lyngdal.kommune.no/"
+        },
+        {
+            "name": "Stord kommune",
+            "shortname": "stord",
+            "avatar_url": "Stord.png",
+            "orgnr": "939866914",
+            "url": "http://www.stord.kommune.no/"
+        },
+        {
+            "name": "Vardø kommune",
+            "shortname": "vardo",
+            "avatar_url": "Vardø.png",
+            "orgnr": "972418048",
+            "url": "http://www.vardo.kommune.no/"
+        },
+        {
+            "name": "Askøy kommune",
+            "shortname": "askoy",
+            "avatar_url": "Askøy.png",
+            "orgnr": "964338442",
+            "url": "http://www.askoy.kommune.no/"
+        },
+        {
+            "name": "Statens pensjonskasse",
+            "shortname": "SPK",
+            "avatar_url": "spk.png",
+            "orgnr": "982583462",
+            "url": "https://www.spk.no/"
+        },
+        {
+            "name": "Arendal kommune",
+            "shortname": "arendal",
+            "avatar_url": "Arendal.png",
+            "orgnr": "940493021",
+            "url": "https://www.arendal.kommune.no/"
+        },
+        {
+            "name": "Drangedal kommune",
+            "shortname": "drangedal",
+            "avatar_url": "Drangedal.png",
+            "orgnr": "933277461",
+            "url": "http://www.drangedal.kommune.no/"
+        },
+        {
+            "name": "Aurskog-Høland kommune",
+            "shortname": "aurskog-holand",
+            "avatar_url": "Aurskog-Høland.png",
+            "orgnr": "948164256",
+            "url": "https://www.aurskog-holand.kommune.no/"
+        },
+        {
+            "name": "Grong kommune",
+            "shortname": "grong",
+            "avatar_url": "Grong.png",
+            "orgnr": "940010853",
+            "url": "https://www.grong.kommune.no/"
+        },
+        {
+            "name": "Lierne kommune",
+            "shortname": "lierne",
+            "avatar_url": "Lierne.png",
+            "orgnr": "972417963",
+            "url": "https://www.lierne.kommune.no/"
+        },
+        {
+            "name": "Høylandet kommune",
+            "shortname": "hoylandet",
+            "avatar_url": "Høylandet.png",
+            "orgnr": "959220476",
+            "url": "https://www.hoylandet.kommune.no/"
+        },
+        {
+            "name": "Namsskogan kommune",
+            "shortname": "namsskogan",
+            "avatar_url": "Namsskogan.png",
+            "orgnr": "864982212",
+            "url": "https://www.namsskogan.kommune.no/"
+        },
+        {
+            "name": "Røyrvik kommune",
+            "shortname": "royrvik",
+            "avatar_url": "Røyrvik.png",
+            "orgnr": "964982120",
+            "url": "https://www.royrvik.kommune.no/"
+        },
+        {
+            "name": "Snåsa kommune",
+            "shortname": "snasa",
+            "avatar_url": "Snåsa.png",
+            "orgnr": "964982031",
+            "url": "https://www.snasa.kommune.no/"
+        },
+        {
+            "name": "Lillesand kommune",
+            "shortname": "lillesand",
+            "avatar_url": "Lillesand.png",
+            "orgnr": "964965404",
+            "url": "http://www.lillesand.kommune.no/"
+        },
+        {
+            "name": "Ringebu kommune",
+            "shortname": "ringebu",
+            "avatar_url": "Ringebu.png",
+            "orgnr": "939864970",
+            "url": "https://www.ringebu.kommune.no/"
+        },
+        {
+            "name": "Sveio kommune",
+            "shortname": "sveio",
+            "avatar_url": "Sveio.png",
+            "orgnr": "864967272",
+            "url": "https://www.sveio.kommune.no/"
+        },
+        {
+            "name": "Norges vassdrags- og energidirektorat",
+            "shortname": "nve",
+            "avatar_url": "nve.png",
+            "orgnr": "970205039",
+            "url": "https://www.nve.no/"
+        },
+        {
+            "name": "Bømlo kommune",
+            "shortname": "bomlo",
+            "avatar_url": "Bømlo.png",
+            "orgnr": "834210622",
+            "url": "https://www.bomlo.kommune.no/"
+        },
+        {
+            "name": "Statens legemiddelverk",
+            "shortname": "SLV",
+            "avatar_url": "legemiddelverket.png",
+            "orgnr": "974761122",
+            "url": "https://legemiddelverket.no/"
+        },
+        {
+            "name": "Kvinnherad kommune",
+            "shortname": "kvinnherad",
+            "avatar_url": "Kvinnherad.png",
+            "orgnr": "964967636",
+            "url": "http://www.kvinnherad.kommune.no/"
+        },
+        {
+            "name": "Eidskog kommune",
+            "shortname": "eidskog",
+            "avatar_url": "Eidskog.png",
+            "orgnr": "964948054",
+            "url": "https://www.eidskog.kommune.no/"
+        },
+        {
+            "name": "Løten kommune",
+            "shortname": "loten",
+            "avatar_url": "Løten.png",
+            "orgnr": "964950679",
+            "url": "http://www.loten.kommune.no/"
+        },
+        {
+            "name": "Larvik kommune",
+            "shortname": "larvik",
+            "avatar_url": "Larvik.png",
+            "orgnr": "918082956",
+            "url": "https://www.larvik.kommune.no/"
+        },
+        {
+            "name": "Råde kommune",
+            "shortname": "rade",
+            "avatar_url": "Råde.png",
+            "orgnr": "940802652",
+            "url": "https://www.rade.kommune.no/"
+        },
+        {
+            "name": "Nord-Fron kommune",
+            "shortname": "nord-fron",
+            "avatar_url": "Nord-Fron.png",
+            "orgnr": "839893132",
+            "url": "https://www.nord-fron.kommune.no/"
+        },
+        {
+            "name": "Vennesla kommune",
+            "shortname": "vennesla",
+            "avatar_url": "Vennesla.png",
+            "orgnr": "936846777",
+            "url": "https://www.vennesla.kommune.no/"
+        },
+        {
+            "name": "Tromsø kommune",
+            "shortname": "tromso",
+            "avatar_url": "Tromsø.png",
+            "orgnr": "940101808",
+            "url": "http://www.tromso.kommune.no/"
+        },
+        {
+            "name": "Elverum kommune",
+            "shortname": "elverum",
+            "avatar_url": "Elverum.png",
+            "orgnr": "952857991",
+            "url": "https://www.elverum.kommune.no/"
+        },
+        {
+            "name": "Samnanger kommune",
+            "shortname": "samnanger",
+            "avatar_url": "Samnanger.png",
+            "orgnr": "964968985",
+            "url": "https://www.samnanger.kommune.no/"
+        },
+        {
+            "name": "Rygge kommune",
+            "shortname": "rygge",
+            "avatar_url": "Rygge.png",
+            "orgnr": "959272492",
+            "url": "http://www.rygge.kommune.no/"
+        },
+        {
+            "name": "Norsk Pensjon",
+            "shortname": "norsk-pensjon",
+            "avatar_url": "norskpensjon.png",
+            "orgnr": "890050212",
+            "url": "https://www.norskpensjon.no/"
+        },
+        {
+            "name": "Notodden kommune",
+            "shortname": "notodden",
+            "avatar_url": "Notodden.png",
+            "orgnr": "938583986",
+            "url": "http://www.notodden.kommune.no/"
+        },
+        {
+            "name": "Kvinesdal kommune",
+            "shortname": "kvinesdal",
+            "avatar_url": "Kvinesdal.png",
+            "orgnr": "964964076",
+            "url": "http://www.kvinesdal.kommune.no"
+        },
+        {
+            "name": "Orkdal kommune",
+            "shortname": "orkdal",
+            "avatar_url": "Orkdal.png",
+            "orgnr": "958731558",
+            "url": "https://www.orkdal.kommune.no/"
+        },
+        {
+            "name": "Bodø kommune",
+            "shortname": "bodo",
+            "avatar_url": "Bodø.png",
+            "orgnr": "972418013",
+            "url": "http://bodo.kommune.no"
+        },
+        {
+            "name": "Bremanger kommune",
+            "shortname": "bremanger",
+            "avatar_url": "Bremanger.png",
+            "orgnr": "959318166",
+            "url": "https://bremanger.kommune.no"
+        },
+        {
+            "name": "Mandal kommune",
+            "shortname": "mandal",
+            "avatar_url": "Mandal.png",
+            "orgnr": "964968519",
+            "url": "http://www.mandal.kommune.no/"
+        },
+        {
+            "name": "Radøy kommune",
+            "shortname": "radoy",
+            "avatar_url": "Radøy.png",
+            "orgnr": "954748634",
+            "url": "http://www.rodoy.kommune.no/"
+        },
+        {
+            "name": "Re kommune",
+            "shortname": "re",
+            "avatar_url": "Re.png",
+            "orgnr": "983885497",
+            "url": "https://www.re.kommune.no/"
+        },
+        {
+            "name": "Tynset kommune",
+            "shortname": "tynset",
+            "avatar_url": "Tynset.png",
+            "orgnr": "940837685",
+            "url": "http://tynset.kommune.no"
+        },
+        {
+            "name": "Vefsn kommune",
+            "shortname": "vefsn",
+            "avatar_url": "Vefsn.png",
+            "orgnr": "844824122",
+            "url": "http://www.vefsn.kommune.no/"
+        },
+        {
+            "name": "Ålesund kommune",
+            "shortname": "alesund",
+            "avatar_url": "Ålesund.png",
+            "orgnr": "942953119",
+            "url": "http://alesund.kommune.no"
+        },
+        {
+            "name": "Statens kartverk",
+            "shortname": "kartverket",
+            "avatar_url": "kartverket.png",
+            "orgnr": "971040238",
+            "url": "https://kartverket.no/"
+        },
+        {
+            "name": "Midtre Gauldal kommune",
+            "shortname": "midtre-gauldal",
+            "avatar_url": "Midtre_Gauldal.png",
+            "orgnr": "970187715",
+            "url": "https://www.mgk.no/"
+        },
+		{
+			"name": "Økokrim",
+			"shortname": "OKO",
+			"avatar_url": "okokrim.png",
+			"orgnr": "874761532",
+			"url": "https://www.okokrim.no/"
+		},
+		{
+			"name": "Patentstyret",
+			"shortname": "PAT",
+			"avatar_url": "patentstyret.png",
+			"orgnr": "971526157",
+			"url": "https://www.patentstyret.no/"
+		},
+		{
+			"name": "Fellesordn for avtalefestet pensjon",
+			"shortname": "FK",
+			"avatar_url": "fellesavtalepensj.png",
+			"orgnr": "987414502",
+			"url": "https://www.afp.no/"
+		},
+		{
+			"name": "Statens havarikommisjon for transport",
+			"shortname": "SHT",
+			"avatar_url": "havarikom.png",
+			"orgnr": "881143712",
+			"url": "https://www.aibn.no/"
+		},
+		{
+			"name": "Statens lånekasse for utdanning",
+			"shortname": "SLK",
+			"avatar_url": "laanekassa.png",
+			"orgnr": "960885406",
+			"url": "https://www.lanekassen.no/"
+		},
+		{
+			"name": "Statens arbeidsmiljøinstitutt",
+			"shortname": "STAMI",
+			"avatar_url": "stami.png",
+			"orgnr": "874761222",
+			"url": "https://stami.no/"
+		}
+]

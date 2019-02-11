@@ -35,6 +35,12 @@
     <ExcludeFromStyleCop Include="***" Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" />
   </ItemGroup>
   
+  <ItemGroup>
+    <None Update="Schemas\orgs.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>
