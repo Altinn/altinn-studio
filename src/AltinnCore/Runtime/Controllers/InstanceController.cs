@@ -93,6 +93,7 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.Reportee = requestContext.UserContext.Reportee;
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             // TODO Add info for REACT app.
+
             return View();
         }
 
@@ -401,7 +402,6 @@ namespace AltinnCore.Runtime.Controllers
             return View(startServiceModel);
         }
 
-
         /// <summary>
         /// Get the current state
         /// </summary>
@@ -414,7 +414,6 @@ namespace AltinnCore.Runtime.Controllers
         [HttpGet]
         public IActionResult GetCurrentState(string org, string service, int instanceId, int reporteeId)
         {
-
             return new ObjectResult(_workflowSI.GetCurrentState(instanceId, org, service, reporteeId));
         }
 
