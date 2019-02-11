@@ -229,19 +229,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 result.Add("ParentElement", parentElement);
             }
 
-            string typeName = ExtractTypeNameFromSchema(propertyType);
             string xsdValueType = FollowValueType(propertyType);
-            if (xsdValueType == null)
+
+            string typeName = ExtractTypeNameFromSchema(propertyType);
+            if (typeName != null)
             {
                 result.Add("TypeName", SanitizeName(typeName));
-            }
-            else
-            {
-                result.Add("TypeName", null);
-                if (typeName != null)
-                {
-                    typeName = xsdValueType;
-                }
             }
 
             result.Add("Name", sanitizedPropertyName);
@@ -389,9 +382,26 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             restriction.Add("pattern", pat);
                         }
 
+                        // enum restriction?
+                        List<JsonValue> enumerations = GetterExtensions.Enum(jSchema);
+                        if (enumerations != null && enumerations.Count > 0)
+                        {
+                            string value = string.Empty;
+                            foreach (JsonValue enumeration in enumerations)
+                            {
+                                value += enumeration.String + ";";
+                            }
+
+                            JsonObject enumerationObject = new JsonObject();
+                            enumerationObject.Add("Value", value);
+
+                            restriction.Add("enumeration", enumerationObject);
+                        }
+
                         break;
                     }
 
+                case "integer":
                 case "decimal":
                 case "positiveInteger":
                 case "number":
@@ -401,6 +411,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         AddRestrictionValue(restriction, "exclusiveMinimum", GetterExtensions.ExclusiveMinimum(jSchema));
                         AddRestrictionValue(restriction, "exclusiveMaximum", GetterExtensions.ExclusiveMaximum(jSchema));
 
+                        break;
+                    }
+
+                case "date": break; // TODO
+
+                default:
+                    {
                         break;
                     }
             }
