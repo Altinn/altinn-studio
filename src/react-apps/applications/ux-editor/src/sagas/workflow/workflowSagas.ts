@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import * as WorkflowActions from '../../actions/WorkflowActions/actions';
+import * as WorkflowActions from '../../actions/workflowActions/actions';
 import WorkflowActionDispatcher from '../../actions/workflowActions/worflowActionDispatcher';
 import * as WorkflowActionTypes from '../../actions/workflowActions/workflowActionTypes';
 import { get } from '../../utils/networking';
