@@ -18,6 +18,8 @@ export interface IAltinnInputFieldComponentProvidedProps {
   textAreaRows?: number;
   btnText?: string;
   onBtnClickFunction?: any;
+  inputFieldStyling?: any;
+  focusOnComponentDidUpdate?: boolean;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -42,7 +44,7 @@ const styles = createStyles({
   },
   inputFieldText: {
     fontSize: '16px',
-    color: theme.altinnPalette.primary.black,
+    color: theme.altinnPalette.primary.black + '!Important',
     padding: '6px',
   },
   disabled: {
@@ -56,6 +58,18 @@ const styles = createStyles({
 
 // tslint:disable-next-line:max-line-length
 class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+  public textInput: any;
+  constructor(props: any) {
+    super(props);
+    this.textInput = React.createRef();
+  }
+
+  public componentDidUpdate() {
+    if (this.props.focusOnComponentDidUpdate) {
+      this.textInput.current.focus();
+    }
+  }
+
   public render() {
     const { classes } = this.props;
     return (
@@ -71,11 +85,16 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
           </Typography>
         }
         <FormControl
-          classes={{ root: classNames(classes.inputField, { [classes.disabled]: this.props.isDisabled }) }}
+          classes={{
+            root: classNames(
+              classes.inputField, { [classes.disabled]: this.props.isDisabled }),
+          }}
+          style={this.props.inputFieldStyling}
           fullWidth={true}
           id={this.props.id}
         >
           <TextField
+            inputRef={this.textInput}
             onBlur={this.props.onBlurFunction}
             onChange={this.props.onChangeFunction}
             value={this.props.inputValue}

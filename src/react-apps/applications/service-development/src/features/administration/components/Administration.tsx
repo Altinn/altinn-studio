@@ -193,6 +193,11 @@ export class AdministationComponent extends
                 onBlurFunction={this.onBlurServiceName}
                 btnText={getLanguageFromKey('general.edit', this.props.language)}
                 onBtnClickFunction={this.handleEditServiceName}
+                isDisabled={!this.state.editServiceName}
+                focusOnComponentDidUpdate={this.state.editServiceName}
+                inputFieldStyling={this.state.editServiceName ?
+                  { background: theme.altinnPalette.primary.white } :
+                  { border: '1px solid ' + theme.altinnPalette.primary.blueDark }}
               />
               <AltinnPopper
                 anchorEl={this.state.serviceNameAnchorEl}
