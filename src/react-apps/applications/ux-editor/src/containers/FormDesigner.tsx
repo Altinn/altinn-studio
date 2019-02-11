@@ -148,7 +148,7 @@ class FormDesigner extends React.Component<
     return editorHeight.toString();
   }
 
-  public renderLogicMenu = () => {
+  public renderLogicEditor = () => {
     const {classes} = this.props;
     return (
       <Drawer
@@ -192,7 +192,7 @@ class FormDesigner extends React.Component<
             >
               <DesignView />
               {this.state.codeEditorOpen ?
-                this.renderLogicMenu()
+                this.renderLogicEditor()
                 : null}
             </div>
           </Grid>
@@ -226,7 +226,11 @@ class FormDesigner extends React.Component<
                 </h3>
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_validations}
-                  listItems={[{ name: this.props.language.ux_editor.service_logic_edit_validations }]}
+                  listItems={[
+                    { name: this.props.language.ux_editor.service_logic_edit_validations ,
+                      action: this.toggleCodeEditor.bind(this, 'Validation'),
+                    },
+                  ]}
                 />
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_dynamics}

@@ -119,6 +119,11 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     FormDesignerActionDispatchers.updateActiveListOrder(this.props.activeList, this.props.order);
   }
 
+  /*
+
+  Commented out since we're disabling containers until design is done.
+  https://github.com/Altinn/altinn-studio/issues/451
+
   public addContainerToLayout(containerId: string, index: number) {
     FormDesignerActionDispatchers.addFormContainer({
       repeating: false,
@@ -131,7 +136,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       null,
       index,
     );
-  }
+  }*/
 
   public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
     const textResourceBindings: ITextResourceBindings = {};
@@ -311,12 +316,18 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                   key={index}
                 />
               ))}
+              {/*
+
+              Commented out since we're disabling containers until design is done.
+              https://github.com/Altinn/altinn-studio/issues/451
+
               <ToolbarItem
                 text={this.props.language.ux_editor.container}
                 onClick={this.handleComponentInformationOpen}
                 onDropAction={this.addContainerToLayout}
                 componentType={ComponentTypes.Container}
               />
+              */}
             </List>
           </Collapse>
           <CollapsableMenuComponent
