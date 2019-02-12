@@ -398,7 +398,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             string value = string.Empty;
                             foreach (JsonValue enumeration in enumerations)
                             {
-                                value += enumeration.String + ";";
+                                if (value.Length > 0)
+                                {
+                                    value += ";";
+                                }
+
+                                value += enumeration.String;
                             }
 
                             JsonObject enumerationObject = new JsonObject();
