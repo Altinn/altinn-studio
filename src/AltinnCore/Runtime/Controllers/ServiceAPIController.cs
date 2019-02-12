@@ -29,6 +29,7 @@ namespace AltinnCore.Runtime.Controllers
     public class ServiceAPIController : Controller
     {
         private readonly ServiceRepositorySettings _settings;
+        private readonly GeneralSettings _generalSettings;
         private readonly ICompilation _compilation;
         private readonly IRepository _repository;
         private readonly IAuthorization _authorization;
@@ -45,6 +46,7 @@ namespace AltinnCore.Runtime.Controllers
         /// Initializes a new instance of the <see cref="ServiceAPIController"/> class
         /// </summary>
         /// <param name="settings">The repository settings (set in Startup.cs)</param>
+        /// <param name="generalSettings">The general settings (set in Startup.cs)</param>
         /// <param name="compilationService">The compilation service (set in Startup.cs)</param>
         /// <param name="authorizationService">The authorization service (set in Startup.cs)</param>
         /// <param name="logger">The logger (set in Startup.cs)</param>
@@ -57,6 +59,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="workflowSI">The workflow service</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
+            IOptions<GeneralSettings> generalSettings,
             ICompilation compilationService,
             IAuthorization authorizationService,
             ILogger<ServiceAPIController> logger,
@@ -69,6 +72,7 @@ namespace AltinnCore.Runtime.Controllers
             IWorkflowSI workflowSI)
         {
             _settings = settings.Value;
+            _generalSettings = generalSettings.Value;
             _compilation = compilationService;
             _authorization = authorizationService;
             _logger = logger;
@@ -234,12 +238,15 @@ namespace AltinnCore.Runtime.Controllers
                 }
             }
 
-            // ServiceEvent 4: HandleValidationEvent
-            // Perform additional Validation defined by the service developer.
-            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
-
             // Run the model Validation that handles validation defined on the model
             TryValidateModel(serviceModel);
+
+            // ServiceEvent 4: HandleValidationEvent
+            // Perform additional Validation defined by the service developer. Runs when the ApiMode is set to Validate or Complete.
+            if (apiMode.Equals(ApiMode.Validate) || apiMode.Equals(ApiMode.Complete))
+            {
+                await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
+            }
 
             // If ApiMode is only validate the instance should not be created and only return any validation errors
             if (apiMode.Equals(ApiMode.Validate) || (!ModelState.IsValid && !apiMode.Equals(ApiMode.Create)))
@@ -351,17 +358,20 @@ namespace AltinnCore.Runtime.Controllers
                 }
             }
 
-            // ServiceEvent 4: HandleValidationEvent
-            // Perform additional Validation defined by the service developer.
-            await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
-
             // Run the model Validation that handles validation defined on the model
             TryValidateModel(serviceModel);
+
+            // ServiceEvent 4: HandleValidationEvent
+            // Perform additional Validation defined by the service developer. Runs when the ApiMode is set to Validate or Complete.
+            if (apiMode.Equals(ApiMode.Validate) || apiMode.Equals(ApiMode.Complete))
+            {
+                await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.Validation);
+            }
 
             // If ApiMode is only validate the instance should not be created and only return any validation errors
             if (apiMode.Equals(ApiMode.Validate) || (!ModelState.IsValid && !apiMode.Equals(ApiMode.Create)))
             {
-                MapModelStateToApiResult(ModelState, apiResult, serviceContext);
+                MapModelStateToApiResultForClient(ModelState, apiResult, serviceContext);
 
                 if (apiResult.Status.Equals(ApiStatusType.ContainsError))
                 {
@@ -513,6 +523,64 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
+        /// Method that maps the MVC Model state to the ApiResult for the client
+        /// </summary>
+        /// <param name="modelState">The model state</param>
+        /// <param name="apiResult">The api result</param>
+        /// <param name="serviceContext">The service context</param>
+        private void MapModelStateToApiResultForClient(ModelStateDictionary modelState, ApiResult apiResult, ServiceContext serviceContext)
+        {
+            apiResult.ValidationResult = new ApiValidationResult
+            {
+                Errors = new Dictionary<string, List<string>>(),
+                Warnings = new Dictionary<string, List<string>>(),
+            };
+            foreach (string modelKey in modelState.Keys)
+            {
+                ModelState.TryGetValue(modelKey, out ModelStateEntry entry);
+
+                if (entry != null && entry.ValidationState == ModelValidationState.Invalid)
+                {
+                    foreach (ModelError error in entry.Errors)
+                    {
+                        if (error.ErrorMessage.StartsWith(_generalSettings.SoftValidationPrefix))
+                        {
+                            string errorMesssage = error.ErrorMessage.Substring(9);
+                            if (apiResult.ValidationResult.Warnings.ContainsKey(modelKey))
+                            {
+                                apiResult.ValidationResult.Warnings[modelKey].Add(ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO"));
+                            }
+                            else
+                            {
+                                apiResult.ValidationResult.Warnings.Add(modelKey, new List<string> { ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO") });
+                            }
+                        }
+                        else
+                        {
+                            if (apiResult.ValidationResult.Errors.ContainsKey(modelKey))
+                            {
+                                apiResult.ValidationResult.Errors[modelKey].Add(ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO"));
+                            }
+                            else
+                            {
+                                apiResult.ValidationResult.Errors.Add(modelKey, new List<string> { ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (apiResult.ValidationResult.Errors.Count > 0)
+            {
+                apiResult.Status = ApiStatusType.ContainsError;
+            }
+            else if (apiResult.ValidationResult.Warnings.Count > 0)
+            {
+                apiResult.Status = ApiStatusType.ContainsWarnings;
+            }
+        }
+
+        /// <summary>
         /// Method that maps the MVC Model state to the ApiResult
         /// </summary>
         /// <param name="modelState">The model state</param>
@@ -536,7 +604,7 @@ namespace AltinnCore.Runtime.Controllers
                     };
                     foreach (ModelError error in entry.Errors)
                     {
-                        apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
+                            apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
                     }
 
                     apiResult.ModelStateEntries.Add(apiEntry);

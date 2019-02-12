@@ -61,6 +61,8 @@ namespace AltinnCore.Designer.Controllers
                     return GetCalculationFiles(org, service);
                 case FileEditorMode.Dynamics:
                     return GetResourceFiles(org, service, true);
+                case FileEditorMode.Validation:
+                    return GetValidationFiles(org, service);
                 default:
                     return Content(string.Empty);
             }
@@ -84,6 +86,9 @@ namespace AltinnCore.Designer.Controllers
                     break;
                 case FileEditorMode.Calculation:
                     file = _repository.GetImplementationFile(org, service, "Calculation/" + fileName);
+                    break;
+                case FileEditorMode.Validation:
+                    file = _repository.GetImplementationFile(org, service, "Validation/" + fileName);
                     break;
                 case FileEditorMode.Dynamics:
                     file = _repository.GetResourceFile(org, service, "Dynamics/" + fileName);
@@ -141,6 +146,9 @@ namespace AltinnCore.Designer.Controllers
                     case FileEditorMode.Calculation:
                         _repository.SaveImplementationFile(org, service, "Calculation/" + fileName, content);
                         break;
+                    case FileEditorMode.Validation:
+                        _repository.SaveImplementationFile(org, service, "Validation/" + fileName, content);
+                        break;
                     case FileEditorMode.All:
                         _repository.SaveConfiguration(org, service, fileName, content);
                         break;
@@ -177,6 +185,13 @@ namespace AltinnCore.Designer.Controllers
           List<AltinnCoreFile> files = _repository.GetCalculationFiles(org, service);
 
           return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
+        }
+
+        private ActionResult GetValidationFiles(string org, string service)
+        {
+            List<AltinnCoreFile> files = _repository.GetValidationFiles(org, service);
+
+            return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
         private ActionResult GetResourceFiles(string org, string service, bool dynamics)

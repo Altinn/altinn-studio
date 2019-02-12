@@ -78,6 +78,9 @@ const fallbackLanguage = {
     toolbar_header: 'Header',
     toolbar_file_upload: 'File Upload',
   },
+  form_filler: {
+    error_report_header: 'Det er et problem',
+  }
 };
 
 export default fallbackLanguage;
