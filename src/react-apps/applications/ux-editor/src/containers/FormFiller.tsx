@@ -76,14 +76,14 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public renderSaveButton = () => {
-    const isActive = Object.keys(this.props.validationErrors).length === 0 && this.props.unsavedChanges;
+    const disabled = !this.props.unsavedChanges;
     return (
       <button
         type='submit'
-        className={isActive ?
-          'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
+        className={disabled ?
+          'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
         onClick={this.saveFormData}
-        disabled={!isActive}
+        disabled={disabled}
       >
         {this.props.language.general.save}
       </button>
@@ -97,14 +97,14 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public renderSubmitButton = () => {
-    const isActive = Object.keys(this.props.validationErrors).length === 0 && !this.props.unsavedChanges
-      && this.props.formDataCount > 0;
+    const disabled = (this.props.formDataCount > 0 && Object.keys(this.props.validationErrors).length !== 0)
+      || this.props.unsavedChanges || this.props.formDataCount === 0;
     return (
       <button
         type='submit'
-        className={isActive ? 'a-btn a-btn-success' : 'a-btn a-btn-success disabled'}
+        className={disabled ? 'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
         onClick={this.submitForm}
-        disabled={!isActive}
+        disabled={disabled}
       >
         {this.props.language.general.control_submit}
       </button>
