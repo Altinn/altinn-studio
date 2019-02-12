@@ -60,6 +60,7 @@ namespace AltinnCore.Runtime.Db
             }
             else
             {
+                app.UseExceptionHandler();
                 app.UseHsts();
             }
 
