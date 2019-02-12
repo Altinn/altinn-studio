@@ -179,8 +179,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
-            string path = string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".";
-            path += sanitizedPropertyName;
+            string path;
+            int index = 0;
+            do
+            {
+                path = (string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".") + sanitizedPropertyName;
+                if (++index >= 2)
+                {
+                    path += index.ToString();
+                }
+            }
+            while (elements.ContainsKey(path));
 
             string minItems = "0";
             string maxItems = "1";
@@ -215,7 +224,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     minItems = "1";
                 }
             }
-                                     
+
             JsonObject result = new JsonObject();
 
             string inputType = "Field";
@@ -259,7 +268,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 result.Add("DataBindingName", null);
             }
-            else 
+            else
             {
                 result.Add("DataBindingName", path);
             }
@@ -268,9 +277,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
             result.Add("Choices", null); // ??
-            
+
             result.Add("Type", inputType);
-            
+
             result.Add("XsdValueType", xsdValueType);
 
             result.Add("Texts", new JsonObject()); // TODO
@@ -280,16 +289,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("MinOccurs", int.Parse(minItems));
 
             result.Add("XName", propertyName);
-                        
+
             if (fixedValue != null)
             {
                 result.Add("FixedValue", fixedValue);
             }
-                        
+
             string jsonSchemaPointer = "#/properties/" + propertyName;
-            if (parentElement != null) 
+            if (parentElement != null)
             {
-                 jsonSchemaPointer = "#/definitions/" + parentTypeName + "/properties/" + propertyName;
+                jsonSchemaPointer = "#/definitions/" + parentTypeName + "/properties/" + propertyName;
             }
 
             result.Add("JsonSchemaPointer", jsonSchemaPointer);
