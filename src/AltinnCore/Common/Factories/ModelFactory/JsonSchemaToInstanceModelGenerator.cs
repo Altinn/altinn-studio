@@ -272,11 +272,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("XPath", "/" + path.Replace(".", "/"));
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
-            result.Add("Choices", null); // ??
+            //result.Add("Choices", null);
 
             result.Add("Type", inputType);
 
-            result.Add("XsdValueType", xsdValueType);
+            if (!string.IsNullOrEmpty(xsdValueType))
+            {
+                result.Add("XsdValueType", char.ToUpper(xsdValueType[0]) + xsdValueType.Substring(1)); //Uppercase first character
+            }
 
             result.Add("Texts", new JsonObject()); // TODO
             result.Add("CustomProperties", new JsonObject()); // ??
