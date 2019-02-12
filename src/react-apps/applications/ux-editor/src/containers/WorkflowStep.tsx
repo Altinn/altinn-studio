@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { Redirect } from 'react-router';
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 
 export interface IWorkflowStepProvidedProps {
@@ -25,23 +24,18 @@ export interface IWorkflowStepProps extends IWorkflowStepProvidedProps {
 }
 
 export interface IWorkflowStepState {
-  redirect: boolean;
-  isRuntime: boolean;
   workflowStep: WorkflowSteps;
 }
 
 class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflowStepState> {
   constructor(props: IWorkflowStepProps, state: IWorkflowStepState) {
     super(props, state);
-    const isRuntime = window.location.pathname.split('/')[1].toLowerCase() === 'runtime';
     this.state = {
-      redirect: false,
-      isRuntime,
       workflowStep: props.step,
     };
   }
 
-  public componentWillReceiveProps(nextProps: IWorkflowStepProps) {
+  public getDerivedStateFromProps(nextProps: IWorkflowStepProps) {
     if (nextProps.step !== this.state.workflowStep) {
       this.setState({
         workflowStep: nextProps.step,
@@ -60,10 +54,10 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
               className='a-logo a-modal-top-logo '
             />
             <div className='a-modal-top-user'>
-              <div className='a-personSwitcher ' title={this.props.language.ux_editor.formfiller_placeholder_user}>
+              <div className='a-personSwitcher ' title={this.props.language.form_filler.placeholder_user}>
                 <span className='a-personSwitcher-name'>
                   <span className='d-block' style={{ color: '#022F51' }}>
-                    {this.props.language.ux_editor.formfiller_placeholder_user}
+                    {this.props.language.form_filler.placeholder_user}
                   </span>
                   <span className='d-block' />
                 </span>
@@ -114,7 +108,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
           type='button'
           className='a-modal-close a-js-tabable-popover'
           aria-label='Lukk'
-          onClick={this.handleClose}
         >
           <span className='ai-stack'>
             <i className='ai ai-stack-1x ai-plain-circle-big' aria-hidden='true' />
@@ -125,19 +118,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     );
   }
 
-  public handleClose = () => {
-    this.setState({
-      redirect: true,
-    });
-  }
-
   public handleSubmitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId } = altinnWindow;
-    if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
-      FormFillerActionDispatchers.completeAndSendInForm(
-        `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
-    }
+    FormFillerActionDispatchers.completeAndSendInForm(
+      `${window.location.origin}/runtime/${org}/${service}/${instanceId}/CompleteAndSendIn`);
   }
   public renderFormFiller = () => {
     return this.props.children;
@@ -159,7 +144,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public renderReceipt = () => {
     return (
       <div id='receiptWrapper'>
-        <p className='a-leadText'>{this.props.language.ux_editor.formfiller_placeholder_receipt_header}</p>
+        <p className='a-leadText'>{this.props.language.form_filler.placeholder_receipt_header}</p>
       </div>
     );
   }
@@ -208,11 +193,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
 
   public render() {
     const backgroundColor = (this.props.step === WorkflowSteps.Archived) ? '#D4F9E4' : '#1EAEF7';
-    if (!this.state.isRuntime && this.state.redirect) {
-      return (
-        <Redirect to={'/uieditor'} />
-      );
-    }
     return (
       <div id='workflowContainer' style={{ backgroundColor, height: 'calc(100vh - 146px)' }} >
         <div className='container'>

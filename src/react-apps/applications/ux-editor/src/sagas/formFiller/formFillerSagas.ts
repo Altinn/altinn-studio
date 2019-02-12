@@ -78,7 +78,7 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled, err);
       yield call(FormFillerActionDispatcher.fetchFormData, url + '/Read');
     } else if (err.response && err.response.data &&
-        (err.response.data.status === 1 || err.response.data.status === 2)) {
+      (err.response.data.status === 1 || err.response.data.status === 2)) {
       // Update validationError state if response contains validation errors
       const validationErrors: any = err.response.data.validationResult.errors;
       yield call(FormFillerActionDispatcher.updateValidationErrors, validationErrors);
