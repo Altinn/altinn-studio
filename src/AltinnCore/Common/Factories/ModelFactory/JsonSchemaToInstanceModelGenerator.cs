@@ -264,11 +264,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 inputType = "Group";
             }
 
-            if (inputType.Equals("Group") || !string.IsNullOrEmpty(fixedValue))
-            {
-                result.Add("DataBindingName", null);
-            }
-            else
+            if (!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue))
             {
                 result.Add("DataBindingName", path);
             }
@@ -367,13 +363,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return restriction;
             }
 
-            string reference = GetterExtensions.Ref(jSchema);            
-            if (reference != null)
+            string reference;
+            do
             {
-                JsonSchema nextSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
-
-                jSchema = nextSchema;
+                reference = GetterExtensions.Ref(jSchema);
+                if (reference != null)
+                {
+                    jSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
+                }
             }
+            while (reference != null);
 
             switch (typeName)
             {
