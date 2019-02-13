@@ -298,7 +298,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>The api result</returns>
         [Authorize]
         [HttpPut]
-        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode, string validationTriggerField = null)
+        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode, string validationTriggerField)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
