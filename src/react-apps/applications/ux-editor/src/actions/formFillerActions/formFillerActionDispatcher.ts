@@ -27,6 +27,11 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   updateValidationErrors: (validationErrors: {}) => formFillerActions.IUpdateValidationErrors;
   resetFormData: (url: string) => formFillerActions.IResetFormDataAction;
   resetFormDataFulfilled: (formData: any) => formFillerActions.IResetFormDataActionFulfilled;
+  runSingleFieldValidation: (url: string, componentId: any) => formFillerActions.IRunSingleFieldValidationAction;
+  runSingleFieldValidationFulfilled: (
+    validationResult: any,
+    ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
+  runSingleFieldValidationRejected: (error: Error) => formFillerActions.IRunSingleFieldValidationActionRejected;
 }
 
 const actions: IFormFillerActionDispatchers = {
@@ -42,6 +47,9 @@ const actions: IFormFillerActionDispatchers = {
   updateValidationErrors: formFillerActions.updateValidationErrors,
   resetFormData: formFillerActions.resetFormDataAction,
   resetFormDataFulfilled: formFillerActions.resetFormDataFulfilled,
+  runSingleFieldValidation: formFillerActions.runSingleFieldValidationAction,
+  runSingleFieldValidationFulfilled: formFillerActions.runSingleFieldValidationActionFulfilled,
+  runSingleFieldValidationRejected: formFillerActions.runSingleFieldValidationActionRejected,
 };
 
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<
