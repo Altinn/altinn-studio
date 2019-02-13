@@ -1,7 +1,8 @@
 ---
 name: Feature request
 about: Suggest an idea you have for Altinn Studio
-
+labels: enhancement
+assignees: lvbachmann
 ---
 
 **Is your feature request related to a problem? Please describe.**
