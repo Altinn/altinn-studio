@@ -35,14 +35,6 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
     };
   }
 
-  public getDerivedStateFromProps(nextProps: IWorkflowStepProps) {
-    if (nextProps.step !== this.state.workflowStep) {
-      this.setState({
-        workflowStep: nextProps.step,
-      });
-    }
-  }
-
   public renderTop = () => {
     return (
       <div className='row'>
@@ -54,10 +46,10 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
               className='a-logo a-modal-top-logo '
             />
             <div className='a-modal-top-user'>
-              <div className='a-personSwitcher ' title={this.props.language.form_filler.placeholder_user}>
+              <div className='a-personSwitcher ' title={this.props.language.form_filler.formfiller_placeholder_user}>
                 <span className='a-personSwitcher-name'>
                   <span className='d-block' style={{ color: '#022F51' }}>
-                    {this.props.language.form_filler.placeholder_user}
+                    {this.props.language.form_filler.formfiller_placeholder_user}
                   </span>
                   <span className='d-block' />
                 </span>

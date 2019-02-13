@@ -18,11 +18,9 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
       appData: {
         language: {
           language: {
-            ux_editor: {
-              formfiller_placeholder_user: 'OLA PRIVATPERSON',
-            },
             form_filler: {
               error_report_header: 'Mock error report',
+              formfiller_placeholder_user: 'OLA PRIVATPERSON',
             },
           },
         },

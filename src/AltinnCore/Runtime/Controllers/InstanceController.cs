@@ -182,17 +182,29 @@ namespace AltinnCore.Runtime.Controllers
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
             await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
 
+            ApiResult apiResult = new ApiResult();
             if (ModelState.IsValid)
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
                 if (currentState.State == WorkflowStep.Archived)
                 {
                     _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                    apiResult.NextState = currentState.State;
                 }
-
             }
 
-            return Ok();
+            ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
+
+            if (apiResult.Status.Equals(ApiStatusType.ContainsError))
+            {
+                Response.StatusCode = 202;
+            }
+            else
+            {
+                Response.StatusCode = 200;
+            }
+
+            return new ObjectResult(apiResult);
         }
 
         /// <summary>

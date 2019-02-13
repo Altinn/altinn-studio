@@ -5,7 +5,6 @@ import * as FormFillerActions from '../../actions/formFillerActions/actions/inde
 import FormFillerActionDispatcher from '../../actions/formFillerActions/formFillerActionDispatcher';
 import * as FormFillerActionTypes from '../../actions/formFillerActions/formFillerActionTypes';
 import WorkflowActionDispatcher from '../../actions/workflowActions/worflowActionDispatcher';
-import { WorkflowSteps } from '../../containers/WorkflowStep';
 import { IAppDataState } from '../../reducers/appDataReducer';
 import { convertDataBindingToModel, convertModelToDataBinding } from '../../utils/databindings';
 import { get, post, put } from '../../utils/networking';
@@ -59,8 +58,8 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
       const apiResult = yield call(put, url, apiMode || 'Update', convertDataBindingToModel(state.formFiller.formData,
         state.appData.dataModel.model));
       yield call(FormFillerActionDispatcher.submitFormDataFulfilled, apiResult);
-      if (apiResult.status === 0 && apiMode === 'Complete') {
-        WorkflowActionDispatcher.setCurrentState(WorkflowSteps.Submit);
+      if (apiResult.status === 0 && apiResult.nextState) {
+        WorkflowActionDispatcher.setCurrentState(apiResult.nextState);
       }
       if (apiResult.status === 0 && apiResult.nextStepUrl && !apiResult.nextStepUrl.contains('#Preview')) {
         // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
@@ -130,10 +129,9 @@ export function* watchResetFormDataSaga(): SagaIterator {
 export function* completeAndSendInFormSaga({ url }: FormFillerActions.ICompleteAndSendInForm): SagaIterator {
   try {
     const response = yield call(post, url);
-    if (response.status === 200) {
+    if (response.data.status === 0) {
       yield call(FormFillerActionDispatcher.completeAndSendInFormFulfilled);
-      // For now we just set state to archived, but this may change in the future.
-      yield call(WorkflowActionDispatcher.setCurrentState, WorkflowSteps.Archived);
+      yield call(WorkflowActionDispatcher.setCurrentState, response.data.nextState);
     } else {
       yield call(FormFillerActionDispatcher.completeAndSendInFormRejected);
     }
