@@ -76,7 +76,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
       // Fetch current workflow state
       WorkflowActionDispatcher.getCurrentState(
-        `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`);
+        `${altinnWindow.location.origin}/runtime/${servicePath}/${instanceId}/GetCurrentState?reporteeId=${reportee}`);
 
       // Fetch language
       appDataActionDispatcher.fetchLanguage(

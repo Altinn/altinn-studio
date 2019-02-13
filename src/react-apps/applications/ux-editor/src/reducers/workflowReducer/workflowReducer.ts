@@ -32,7 +32,7 @@ const workflowReducer: Reducer<IWorkflowState> = (
       }
       return update<IWorkflowState>(state, {
         workflowStep: {
-          $set: (action as IGetCurrentStateFulfilled).state,
+          $set: (action as ISetCurrentState).state,
         },
       });
     }

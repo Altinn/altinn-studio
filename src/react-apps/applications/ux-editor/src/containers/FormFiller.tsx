@@ -31,19 +31,21 @@ export interface IFormFillerState {
  */
 export class FormFillerComponent extends React.Component<IFormFillerProps, IFormFillerState> {
 
+  public static getDerivedStateFromProps(props: IFormFillerProps, state: IFormFillerState): IFormFillerState {
+    if (props.workflowStep !== state.workflowStep) {
+      return {
+        workflowStep: props.workflowStep,
+      };
+    } else {
+      return null;
+    }
+  }
+
   constructor(props: IFormFillerProps, state: IFormFillerState) {
     super(props, state);
     this.state = {
       workflowStep: props.workflowStep,
     };
-  }
-
-  public componentWillReceiveProps(nextProps: IFormFillerProps) {
-    if (nextProps.workflowStep !== this.state.workflowStep) {
-      this.setState({
-        workflowStep: nextProps.workflowStep,
-      });
-    }
   }
 
   public componentDidMount() {
@@ -60,19 +62,15 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   public saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
-    if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
-      FormFillerActionDispatchers.submitFormData(`
+    FormFillerActionDispatchers.submitFormData(`
         ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
-    }
   }
 
   public submitForm = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
-    if (window.location.pathname.split('/')[1].toLowerCase() === 'runtime') {
-      FormFillerActionDispatchers.submitFormData(`
+    FormFillerActionDispatchers.submitFormData(`
       ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`, 'Complete');
-    }
   }
 
   public renderSaveButton = () => {
