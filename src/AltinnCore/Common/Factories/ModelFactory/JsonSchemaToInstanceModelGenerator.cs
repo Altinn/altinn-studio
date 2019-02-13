@@ -40,7 +40,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             instanceModel.Add("Service", serviceName);
             instanceModel.Add("Elements", elements);
 
-            foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Definitions(jsonSchema))
+            foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Definitions())
             {
                 definitions.Add(def.Key, def.Value);
             }
@@ -60,15 +60,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private JsonObject GenerateInitialReferences()
         {                                
-            string title = GetterExtensions.Title(jsonSchema);
+            string title = jsonSchema.Title();
 
-            if (GetterExtensions.Properties(jsonSchema) == null)
+            if (jsonSchema.Properties() == null)
             {
                 throw new ApplicationException("Cannot read top level object. Did not find any properties");
             }
 
             // Handle all properties
-            foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(jsonSchema))
+            foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
             {
                 TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema));          
             }
@@ -106,7 +106,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             // Only handle properties below path                
             try
             {
-                foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(jsonSchema))
+                foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
                 {
                     TraverseModell(path, typeName, def.Key, def.Value, false);
                 }
@@ -156,7 +156,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private bool IsRequired(string propertyName, JsonSchema parentType)
         {
-            List<string> requiredProperties = GetterExtensions.Required(parentType);
+            List<string> requiredProperties = parentType.Required();
 
             if (requiredProperties != null && requiredProperties.Contains(propertyName))
             {
@@ -198,12 +198,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (type != null && type.Value == JsonSchemaType.Array)
             {
-                List<JsonSchema> items = GetterExtensions.Items(propertyType);
+                List<JsonSchema> items = propertyType.Items();
                 path += multiplicityString;
                 FollowRef(path, items[0]); // TODO fix multiple item types. It now uses only the first
 
-                double? minItemsValue = GetterExtensions.MinItems(propertyType);
-                double? maxItemsValue = GetterExtensions.MaxItems(propertyType);
+                double? minItemsValue = propertyType.MinItems();
+                double? maxItemsValue = propertyType.MaxItems();
 
                 if (minItemsValue.HasValue)
                 {
@@ -249,7 +249,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("Name", sanitizedPropertyName);
 
             string fixedValue = null;
-            JsonValue fixedValueJson = GetterExtensions.Const(propertyType);
+            JsonValue fixedValueJson = propertyType.Const();
             if (fixedValueJson != null)
             {
                 fixedValue = fixedValueJson.String;
@@ -312,7 +312,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string ExtractTypeNameFromSchema(JsonSchema jSchema)
         {
-            string reference = GetterExtensions.Ref(jSchema);
+            string reference = jSchema.Ref();
             if (reference != null)
             {
                 return ExtractTypeNameFromDefinitionReference(reference);
@@ -324,14 +324,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if (type.Value == JsonSchemaType.Array)
                 {
-                    List<JsonSchema> items = GetterExtensions.Items(jSchema);
+                    List<JsonSchema> items = jSchema.Items();
 
                     return ExtractTypeNameFromSchema(items[0]);
                 }
 
                 if (type.Value == JsonSchemaType.Object)
                 {
-                    return GetterExtensions.Title(jSchema);
+                    return jSchema.Title();
                 }
 
                 return type.Value.ToString();
@@ -369,7 +369,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string reference;
             do
             {
-                reference = GetterExtensions.Ref(jSchema);
+                reference = jSchema.Ref();
                 if (reference != null)
                 {
                     jSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
@@ -381,8 +381,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 case "string":
                     {
-                        double? minLength = GetterExtensions.MinLength(jSchema);
-                        double? maxLength = GetterExtensions.MaxLength(jSchema);
+                        double? minLength = jSchema.MinLength();
+                        double? maxLength = jSchema.MaxLength();
                         if (minLength != null && minLength == maxLength)
                         {
                             AddRestrictionValue(restriction, "length", minLength);
@@ -393,7 +393,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             AddRestrictionValue(restriction, "maxLength", maxLength);
                         }
 
-                        Regex pattern = GetterExtensions.Pattern(jSchema);
+                        Regex pattern = jSchema.Pattern();
                         if (pattern != null)
                         {
                             var pat = new JsonObject();
@@ -403,7 +403,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         }
 
                         // enum restriction?
-                        List<JsonValue> enumerations = GetterExtensions.Enum(jSchema);
+                        List<JsonValue> enumerations = jSchema.Enum();
                         if (enumerations != null && enumerations.Count > 0)
                         {
                             string value = string.Empty;
@@ -431,10 +431,28 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 case "positiveInteger":
                 case "number":
                     {
-                        AddRestrictionValue(restriction, "minimum", GetterExtensions.Minimum(jSchema));
-                        AddRestrictionValue(restriction, "maximum", GetterExtensions.Maximum(jSchema));
-                        AddRestrictionValue(restriction, "exclusiveMinimum", GetterExtensions.ExclusiveMinimum(jSchema));
-                        AddRestrictionValue(restriction, "exclusiveMaximum", GetterExtensions.ExclusiveMaximum(jSchema));
+                        int totalDigits = 0;
+                        if (jSchema.Maximum() != null && jSchema.Minimum() == -jSchema.Maximum())
+                        {
+                            string maxAsString = jSchema.Maximum().ToString();
+                            if (maxAsString.Length > 0 && maxAsString.Replace("9", string.Empty).Length == 0)
+                            {
+                                totalDigits = maxAsString.Length;
+                            }
+                        }
+
+                        if (totalDigits != 0)
+                        {
+                            AddRestrictionValue(restriction, "totalDigits", totalDigits);
+                        }
+                        else
+                        {
+                            AddRestrictionValue(restriction, "minimum", jSchema.Minimum());
+                            AddRestrictionValue(restriction, "maximum", jSchema.Maximum());
+                        }
+
+                        AddRestrictionValue(restriction, "exclusiveMinimum", jSchema.ExclusiveMinimum());
+                        AddRestrictionValue(restriction, "exclusiveMaximum", jSchema.ExclusiveMaximum());
 
                         break;
                     }
@@ -473,25 +491,68 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void FollowRef(string path, JsonSchema jSchema)
         {            
-            string reference = GetterExtensions.Ref(jSchema);
+            string reference = jSchema.Ref();
             if (reference != null)
             {
                 string typeName = ExtractTypeNameFromDefinitionReference(reference);
                 JsonSchema schema = definitions.GetValueOrDefault(typeName);
-                if (schema != null && GetterExtensions.Properties(schema) != null)
+                if (schema != null)
                 {
-                    if (!visitedTypes.Contains(typeName))
+                    if (schema.Properties() != null)
                     {
-                        visitedTypes.Add(typeName);
-                        foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(schema))
+                        if (!visitedTypes.Contains(typeName))
                         {
-                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema));
+                            visitedTypes.Add(typeName);
+                            foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
+                            {
+                                TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema));
+                            }
                         }
-                    }                    
+                    }
+                    else if (schema.OneOf() != null)
+                    {
+                        if (!visitedTypes.Contains(typeName))
+                        {
+                            visitedTypes.Add(typeName);
+                            foreach (JsonSchema oneOfSchema in schema.OneOf())
+                            {
+                                if (oneOfSchema.Ref() != null)
+                                {
+                                    FollowRef(path, oneOfSchema);
+                                }
+                                else if (oneOfSchema.Properties() != null)
+                                {
+                                    foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
+                                    {
+                                        TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else if (schema.AllOf() != null)
+                    {
+                        if (!visitedTypes.Contains(typeName))
+                        {
+                            visitedTypes.Add(typeName);
+                            foreach (JsonSchema allOfSchema in schema.AllOf())
+                            {
+                                if (allOfSchema.Ref() != null)
+                                {
+                                    FollowRef(path, allOfSchema);
+                                }
+                                else if (allOfSchema.Properties() != null)
+                                {
+                                    foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
+                                    {
+                                        TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema));
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
-
-            // TODO oneOf, allOf, ...
         }
 
         private string FollowValueType(JsonSchema jSchema)
@@ -502,7 +563,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return HandleJsonTypes(jSchema);
             }
 
-            string reference = GetterExtensions.Ref(jSchema);
+            string reference = jSchema.Ref();
             if (reference != null)
             {
                 JsonSchema nextSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
@@ -549,7 +610,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         return "decimal";
                     case JsonSchemaType.Integer:
                         {
-                            double? minimum = GetterExtensions.Minimum(jSchema);
+                            double? minimum = jSchema.Minimum();
                             if (minimum == 0.0)
                             {
                                 return "positiveInteger";
