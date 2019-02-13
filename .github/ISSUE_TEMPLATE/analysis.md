@@ -7,8 +7,8 @@ labels: analysis
 **Description**
 Describe the problem area that needs to be analysed.
 
-**Links**
-Link to relevant resources, documentation or issues.
+**Links and screenshots**
+Link to relevant resources, documentation or issues. If relevant, add screenshots.
 
 **Constraints**
 If there are any constraints (technical or funcitonal) that the proposed solution must adhere to, then list those.
