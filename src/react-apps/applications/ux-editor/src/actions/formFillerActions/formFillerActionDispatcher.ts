@@ -29,7 +29,7 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   resetFormDataFulfilled: (formData: any) => formFillerActions.IResetFormDataActionFulfilled;
   runSingleFieldValidation: (url: string, componentId: any) => formFillerActions.IRunSingleFieldValidationAction;
   runSingleFieldValidationFulfilled: (
-    validationResult: any,
+    validationErrors: any,
     ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
   runSingleFieldValidationRejected: (error: Error) => formFillerActions.IRunSingleFieldValidationActionRejected;
 }
