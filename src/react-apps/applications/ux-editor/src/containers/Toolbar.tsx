@@ -138,15 +138,20 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     );
   }*/
 
-  public addThirdPartyComponentToLayout = (componentPackage: string, componentName: string) => {
-    const textResourceBindings: ITextResourceBindings = {};
-    textResourceBindings.title = `${componentPackage}.${componentName}`,
-      FormDesignerActionDispatchers.addFormComponent({
-        component: THIRD_PARTY_COMPONENT,
-        textResourceBindings,
+  public addThirdPartyComponentToLayout = (componentName: string) => {
+    const customProperties = {};
+    FormDesignerActionDispatchers.addFormComponent({
+      label: {componentName},
+      component: THIRD_PARTY_COMPONENT,
+      itemType: LayoutItemType.Component,
+      textResourceBindings: {
+        title: componentName,
       },
-        null,
-      );
+      dataModelBindings: {},
+      ...JSON.parse(JSON.stringify(customProperties)),
+    },
+    null,
+    );
   }
 
   public getThirdPartyComponents = (): IToolbarElement[] => {
@@ -155,20 +160,31 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       return [];
     }
     const thirdPartyComponentArray: IToolbarElement[] = [];
-    for (const packageName of thirdPartyComponents) {
-      for (const componentName of thirdPartyComponents[packageName]) {
-        const textResourceBindings: ITextResourceBindings = {};
-        textResourceBindings.title = `${packageName}.${componentName}`;
-        thirdPartyComponentArray.push({
-          label: `${packageName} - ${componentName}`,
-          componentType: null,
-          actionMethod: FormDesignerActionDispatchers.addFormComponent({
-            component: THIRD_PARTY_COMPONENT,
-            textResourceBindings,
-          },
-            null,
-          ) as any,
-        });
+    for (const packageName in thirdPartyComponents) {
+      if (thirdPartyComponents.hasOwnProperty(packageName)) {
+        for (const componentName in thirdPartyComponents[packageName]) {
+          if (thirdPartyComponents[packageName].hasOwnProperty(componentName)) {
+            const customProperties = thirdPartyComponents[packageName][componentName].customProperties ?
+              thirdPartyComponents[packageName][componentName].customProperties : {};
+            thirdPartyComponentArray.push({
+              label: `${packageName} - ${componentName}`,
+              componentType: null,
+              actionMethod: (containerId: string, position: number) =>
+                FormDesignerActionDispatchers.addFormComponent({
+                  component: componentName,
+                  itemType: LayoutItemType.Component,
+                  textResourceBindings: {
+                    title: `${packageName} - ${componentName}`,
+                  },
+                  dataModelBindings: {},
+                  ...JSON.parse(JSON.stringify(customProperties)),
+                },
+                position,
+                containerId,
+              ),
+            });
+          }
+        }
       }
     }
     return thirdPartyComponentArray;
@@ -311,7 +327,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
-                  onDropAction={this.addThirdPartyComponentToLayout.bind(null, component, component.label)}
+                  onDropAction={this.addThirdPartyComponentToLayout.bind(null, component.label)}
                   onClick={this.handleComponentInformationOpen}
                   key={index}
                 />
@@ -320,7 +336,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
               Commented out since we're disabling containers until design is done.
               https://github.com/Altinn/altinn-studio/issues/451
-
               <ToolbarItem
                 text={this.props.language.ux_editor.container}
                 onClick={this.handleComponentInformationOpen}

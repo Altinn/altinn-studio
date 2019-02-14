@@ -115,18 +115,23 @@ class FormComponent extends React.Component<
    */
   public renderComponent(): JSX.Element {
     const isValid = !this.errorMessage();
-    return (
-      <GenericComponent
-        id={this.props.id}
-        component={this.props.component}
-        isValid={isValid}
-        formData={this.props.formData}
-        handleDataChange={this.handleComponentDataUpdate}
-        getTextResource={this.getTextResource}
-        designMode={this.props.designMode}
-        thirdPartyComponents={this.props.thirdPartyComponents}
-      />
-    );
+    if (this.props.component.dataModelBindings) {
+      console.log(this.props.component);
+      return (
+        <GenericComponent
+          id={this.props.id}
+          component={this.props.component}
+          isValid={isValid}
+          formData={this.props.formData}
+          handleDataChange={this.handleComponentDataUpdate}
+          getTextResource={this.getTextResource}
+          designMode={this.props.designMode}
+          thirdPartyComponents={this.props.thirdPartyComponents}
+        />
+      );
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -279,9 +284,15 @@ const makeMapStateToProps = () => {
     order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
-      (element) =>
-        element.DataBindingName ===
-        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
+      (element) => {
+        if (state.formDesigner.layout.components[props.id].dataModelBindings) {
+          if (element.DataBindingName ===
+          state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding) {
+            return true;
+          }
+        }
+        return false;
+      }),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:
