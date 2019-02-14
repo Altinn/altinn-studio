@@ -16,7 +16,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private const int MagicNumberMaxOccurs = 99999;
 
         private Dictionary<string, JsonSchema> definitions = new Dictionary<string, JsonSchema>();
-        private ISet<string> visitedTypes = new HashSet<string>();
         private JsonObject instanceModel = new JsonObject();
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
@@ -70,7 +69,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             // Handle all properties
             foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
             {
-                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema));          
+                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>());
             }
 
             return instanceModel;
@@ -108,7 +107,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
                 {
-                    TraverseModell(path, typeName, def.Key, def.Value, false);
+                    TraverseModell(path, typeName, def.Key, def.Value, false, new HashSet<string>());
                 }
             }
             catch (Exception e)
@@ -176,7 +175,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return XsdToJsonSchema.SanitizeName(name);
         }
 
-        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired)
+        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
             string path;
@@ -200,7 +199,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 List<JsonSchema> items = propertyType.Items();
                 path += multiplicityString;
-                FollowRef(path, items[0]); // TODO fix multiple item types. It now uses only the first
+                FollowRef(path, items[0], alreadyVisitedTypes); // TODO fix multiple item types. It now uses only the first
 
                 double? minItemsValue = propertyType.MinItems();
                 double? maxItemsValue = propertyType.MaxItems();
@@ -218,7 +217,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else
             {
-                FollowRef(path, propertyType);
+                FollowRef(path, propertyType, alreadyVisitedTypes);
                 if (isRequired)
                 {
                     minItems = "1";
@@ -457,8 +456,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         break;
                     }
 
-                case "date": break; // TODO
-
                 default:
                     {
                         break;
@@ -489,8 +486,8 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return path;
         }
 
-        private void FollowRef(string path, JsonSchema jSchema)
-        {            
+        private void FollowRef(string path, JsonSchema jSchema, ISet<string> alreadyVisitedTypes)
+        {
             string reference = jSchema.Ref();
             if (reference != null)
             {
@@ -498,55 +495,51 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 JsonSchema schema = definitions.GetValueOrDefault(typeName);
                 if (schema != null)
                 {
+                    if (alreadyVisitedTypes.Contains(typeName))
+                    {
+                        return;
+                    }
+
+                    ISet<string> currentlyVisitedTypes = new HashSet<string>(alreadyVisitedTypes);
+                    currentlyVisitedTypes.Add(typeName);
+
                     if (schema.Properties() != null)
                     {
-                        if (!visitedTypes.Contains(typeName))
+                        foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
                         {
-                            visitedTypes.Add(typeName);
-                            foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
-                            {
-                                TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema));
-                            }
+                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes);
                         }
                     }
                     else if (schema.OneOf() != null)
                     {
-                        if (!visitedTypes.Contains(typeName))
+                        foreach (JsonSchema oneOfSchema in schema.OneOf())
                         {
-                            visitedTypes.Add(typeName);
-                            foreach (JsonSchema oneOfSchema in schema.OneOf())
+                            if (oneOfSchema.Ref() != null)
                             {
-                                if (oneOfSchema.Ref() != null)
+                                FollowRef(path, oneOfSchema, currentlyVisitedTypes);
+                            }
+                            else if (oneOfSchema.Properties() != null)
+                            {
+                                foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
                                 {
-                                    FollowRef(path, oneOfSchema);
-                                }
-                                else if (oneOfSchema.Properties() != null)
-                                {
-                                    foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
-                                    {
-                                        TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema));
-                                    }
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes);
                                 }
                             }
                         }
                     }
                     else if (schema.AllOf() != null)
                     {
-                        if (!visitedTypes.Contains(typeName))
+                        foreach (JsonSchema allOfSchema in schema.AllOf())
                         {
-                            visitedTypes.Add(typeName);
-                            foreach (JsonSchema allOfSchema in schema.AllOf())
+                            if (allOfSchema.Ref() != null)
                             {
-                                if (allOfSchema.Ref() != null)
+                                FollowRef(path, allOfSchema, currentlyVisitedTypes);
+                            }
+                            else if (allOfSchema.Properties() != null)
+                            {
+                                foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
                                 {
-                                    FollowRef(path, allOfSchema);
-                                }
-                                else if (allOfSchema.Properties() != null)
-                                {
-                                    foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
-                                    {
-                                        TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema));
-                                    }
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes);
                                 }
                             }
                         }
