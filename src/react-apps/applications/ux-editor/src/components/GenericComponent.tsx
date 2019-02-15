@@ -17,6 +17,7 @@ export interface IGenericComponentProps {
 class GenericComponent extends React.Component<IGenericComponentProps> {
 
   public renderThirdPartyComponent = (): JSX.Element => {
+    console.log( this.props.component);
     const [packageName, component] =
       this.props.component.textResourceBindings.title.split('.');
     if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName]

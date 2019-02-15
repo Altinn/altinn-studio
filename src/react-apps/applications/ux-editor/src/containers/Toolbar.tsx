@@ -138,22 +138,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     );
   }*/
 
-  public addThirdPartyComponentToLayout = (componentName: string) => {
-    const customProperties = {};
-    FormDesignerActionDispatchers.addFormComponent({
-      label: {componentName},
-      component: THIRD_PARTY_COMPONENT,
-      itemType: LayoutItemType.Component,
-      textResourceBindings: {
-        title: componentName,
-      },
-      dataModelBindings: {},
-      ...JSON.parse(JSON.stringify(customProperties)),
-    },
-    null,
-    );
-  }
-
   public getThirdPartyComponents = (): IToolbarElement[] => {
     const { thirdPartyComponents } = this.props;
     if (!thirdPartyComponents) {
@@ -164,14 +148,15 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       if (thirdPartyComponents.hasOwnProperty(packageName)) {
         for (const componentName in thirdPartyComponents[packageName]) {
           if (thirdPartyComponents[packageName].hasOwnProperty(componentName)) {
-            const customProperties = thirdPartyComponents[packageName][componentName].customProperties ?
-              thirdPartyComponents[packageName][componentName].customProperties : {};
+            const customProperties = thirdPartyComponents[packageName][componentName].type ?
+              thirdPartyComponents[packageName][componentName].type : {};
+            console.log(thirdPartyComponents[packageName][componentName]);
             thirdPartyComponentArray.push({
               label: `${packageName} - ${componentName}`,
               componentType: null,
               actionMethod: (containerId: string, position: number) =>
                 FormDesignerActionDispatchers.addFormComponent({
-                  component: componentName,
+                  component: THIRD_PARTY_COMPONENT,
                   itemType: LayoutItemType.Component,
                   textResourceBindings: {
                     title: `${packageName} - ${componentName}`,
@@ -327,7 +312,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                 <ToolbarItem
                   text={component.label}
                   componentType={component.componentType}
-                  onDropAction={this.addThirdPartyComponentToLayout.bind(null, component.label)}
+                  onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
                   key={index}
                 />

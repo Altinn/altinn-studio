@@ -407,6 +407,13 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           </Grid >
         );
       }
+      case 'ThirdParty': {
+        console.log(this.props);
+        return (
+          <div> Hello
+          </div>
+        );
+      }
 
       default: {
         return null;
