@@ -128,7 +128,7 @@ export function* runSingleFieldValidationSaga({
   try {
     const response = yield call(put, url, 'Validate',
     convertDataBindingToModel(state.formFiller.formData, state.appData.dataModel.model), null, dataModelBinding);
-    if (response && response && (response.status === 1 || response.status === 2)) {
+    if (response && response.validationResult && (response.status === 1 || response.status === 2)) {
       // Update validationError state if response contains validation errors
       const validationErrors: any = response.validationResult.errors;
       yield call(FormFillerActionDispatcher.runSingleFieldValidationFulfilled, validationErrors);
