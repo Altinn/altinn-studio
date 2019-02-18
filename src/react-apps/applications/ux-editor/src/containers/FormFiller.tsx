@@ -4,6 +4,7 @@ import ApiActionDispatcher from '../actions/apiActions/apiActionDispatcher';
 import AppConfigActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
+import { getTextResource } from '../utils/language';
 import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
@@ -18,6 +19,7 @@ export interface IFormFillerProps {
   designMode: boolean;
   formDataCount: number;
   language: any;
+  textResources: any[];
 }
 
 export interface IFormFillerState { }
@@ -83,11 +85,9 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public render() {
-    const altinnWindow = window as IAltinnWindow;
-    const { service } = altinnWindow;
     return (
       <>
-        <WorkflowStep header={service}>
+        <WorkflowStep header={getTextResource('ServiceName', this.props.textResources)}>
           <div className='row'>
             <Preview />
           </div>
@@ -119,6 +119,7 @@ const makeMapStateToProps = () => {
       designMode: GetDesignMode(state),
       formDataCount: GetFormDataCount(state),
       language: state.appData.language.language,
+      textResources: state.appData.textResources.resources,
     };
   };
   return mapStateToProps;
