@@ -116,7 +116,6 @@ class FormComponent extends React.Component<
   public renderComponent(): JSX.Element {
     const isValid = !this.errorMessage();
     if (this.props.component.dataModelBindings) {
-      console.log(this.props.component);
       return (
         <GenericComponent
           id={this.props.id}

@@ -105,6 +105,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
             title: c.name,
           },
           dataModelBindings: {},
+          func: null,
           ...JSON.parse(JSON.stringify(customProperties)),
         },
           position,
@@ -148,9 +149,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       if (thirdPartyComponents.hasOwnProperty(packageName)) {
         for (const componentName in thirdPartyComponents[packageName]) {
           if (thirdPartyComponents[packageName].hasOwnProperty(componentName)) {
-            const customProperties = thirdPartyComponents[packageName][componentName].type ?
-              thirdPartyComponents[packageName][componentName].type : {};
-            console.log(thirdPartyComponents[packageName][componentName]);
             thirdPartyComponentArray.push({
               label: `${packageName} - ${componentName}`,
               componentType: null,
@@ -162,7 +160,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                     title: `${packageName} - ${componentName}`,
                   },
                   dataModelBindings: {},
-                  ...JSON.parse(JSON.stringify(customProperties)),
+                  ...JSON.parse(JSON.stringify({})),
                 },
                 position,
                 containerId,
