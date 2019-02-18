@@ -10,7 +10,7 @@ import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { formatNameAndDate } from '../../../../../shared/src/utils/formatDate';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlHeader from '../../../../../shared/src/version-control/versionControlHeader';
-import { ICommit } from '../../../types/global';
+import { ICommit, IRepository } from '../../../types/global';
 import handleServiceInformationActionDispatchers from '../handleServiceInformationDispatcher';
 export interface IAdministrationComponentProvidedProps {
   classes: any;
@@ -18,7 +18,7 @@ export interface IAdministrationComponentProvidedProps {
 
 export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
   language: any;
-  service: any;
+  service: IRepository;
   serviceName: string;
   serviceNameIsSaving: boolean;
   initialCommit: ICommit;
@@ -233,7 +233,7 @@ export class AdministrationComponent extends
                   className={classNames(classes.iconStyling,
                     {
                       ['ai ai-corp']: this.props.service.owner.UserType === 2,
-                      ['ai ai-private']: this.props.service.owner.UserType !== 2
+                      ['ai ai-private']: this.props.service.owner.UserType !== 2,
                     })}
                   aria-hidden='true'
                 />

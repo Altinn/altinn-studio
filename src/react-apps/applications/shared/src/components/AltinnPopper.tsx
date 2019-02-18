@@ -6,7 +6,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnPopperComponentProvidedProps {
   classes: any;
-  className?: any;
+  styleObj?: object;
   message?: string;
   anchorEl: any;
 }
@@ -23,7 +23,6 @@ const styles = createStyles({
     borderRadius: 0,
     boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
     fontSize: 16,
-    zIndex: 1300,
     padding: '12px 24px 12px 24px',
     maxWidth: '550px',
   },
@@ -37,7 +36,7 @@ class AltinnPopper extends React.Component<IAltinnPopperComponentProvidedProps, 
       <Popper
         open={open}
         anchorEl={this.props.anchorEl}
-        className={classNames(classes.snackbar_error)}
+        className={classNames(classes.snackbar_error, this.props.styleObj)}
         placement={'bottom-start'}
       >
         {this.props.message}

@@ -49,6 +49,7 @@ export interface IOwner {
   full_name: string;
   id: number;
   login: string;
+  UserType: number;
 }
 
 export interface IPermissions {

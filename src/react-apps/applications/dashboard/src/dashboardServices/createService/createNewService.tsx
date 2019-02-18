@@ -38,6 +38,9 @@ const styles = createStyles({
     padding: '5px 45px 5px 45px',
     height: '37px !Important',
   },
+  popperZIndex: {
+    zIndex: 1300,
+  },
 });
 
 export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
@@ -208,6 +211,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           <AltinnPopper
             anchorEl={this.state.serviceOwnerAnchorEl}
             message={this.state.serviceOwnerPopperMessage}
+            styleObj={classes.popperZIndex}
           />
           <AltinnInputField
             id={'service-name'}
@@ -227,6 +231,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           <AltinnPopper
             anchorEl={this.state.repoNameAnchorEl}
             message={this.state.repoNamePopperMessage}
+            styleObj={classes.popperZIndex}
           />
           {this.state.isLoading ?
             <AltinnSpinner
