@@ -26,8 +26,8 @@ fixture('Creating/Reading/Updating/Deleting services')
     await common.login(testUser.userEmail, testUser.password, loginPage);
     //app.before()
   })
-  .after(async () => {
-    //await app.after();
+  .after(async (t) => {
+    await dash.logout();
   })
 
 test('Sync a service with master', async () => {
@@ -59,9 +59,10 @@ test('Create a new service', async () => {
     .click(dash.opprettButton)
 });
 
-test.skip('Filter services by name', async () => {
+test('Search for only my users services', async () => {
   await t
-    .click()
-    .click()
-    .expect().ok()
+    .click(dash.serviceSearch)
+    .typeText(dash.serviceSearch, "testcafe")
+    .pressKey("enter")
+    .expect(dash.rettigheterMelding.exists).ok()
 });

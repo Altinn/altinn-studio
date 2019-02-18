@@ -5,8 +5,10 @@ import CommonPage from '../page-objects/common';
 import TestData from '../TestData';
 import App from '../app';
 import LoginPage from '../page-objects/loginPage';
+import DashBoard from '../page-objects/DashboardPage';
 
 let app = new App();
+let dash = new DashBoard();
 let common = new CommonPage();
 let loginPage = new LoginPage();
 let designerPage = new DesignerPage();
@@ -23,7 +25,7 @@ fixture('Navigating the Service designer')
     //app.before();
   })
   .after(async () => {
-    //await app.after();
+    await dash.logout();
   })
 
 test('Om tab navigation', async () => {
