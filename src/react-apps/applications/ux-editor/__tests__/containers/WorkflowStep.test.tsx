@@ -20,7 +20,7 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
           language: {
             form_filler: {
               error_report_header: 'Mock error report',
-              formfiller_placeholder_user: 'OLA PRIVATPERSON',
+              placeholder_user: 'OLA PRIVATPERSON',
             },
           },
         },
