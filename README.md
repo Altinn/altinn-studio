@@ -1,10 +1,10 @@
 Altinn Studio: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-designer-image-v2-master)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
 
-Runtime: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-runtime-image)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=6)
+Altinn Studio Apps: [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-runtime-image)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=6)
 
 # Altinn studio
 
-A _very_ early test version of Altinn Studio is available at https://altinn.studio.
+An early test version of Altinn Studio is available at https://altinn.studio.
 
 Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio (currently available only in Norwegian).
 
