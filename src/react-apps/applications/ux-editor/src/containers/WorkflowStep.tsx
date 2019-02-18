@@ -49,11 +49,11 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             <div className='a-modal-top-user'>
               <div
                 className='a-personSwitcher '
-                title={getLanguageFromKey('form_filler.formfiller_placeholder_user', this.props.language)}
+                title={getLanguageFromKey('form_filler.placeholder_user', this.props.language)}
               >
                 <span className='a-personSwitcher-name'>
                   <span className='d-block' style={{ color: '#022F51' }}>
-                    {getLanguageFromKey('form_filler.formfiller_placeholder_user', this.props.language)}
+                    {getLanguageFromKey('form_filler.placeholder_user', this.props.language)}
                   </span>
                   <span className='d-block' />
                 </span>
@@ -132,7 +132,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
         onClick={this.handleSubmitForm}
         id='workflowSubmitStepButton'
       >
-        {getLanguageFromKey('general.control_submit', this.props.language)}
+        {getLanguageFromKey('general.submit', this.props.language)}
       </button>
     );
   }
