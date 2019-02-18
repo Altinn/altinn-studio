@@ -12,6 +12,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
     /// <summary>
     ///     Transforms OR XSD to metadata (Json Instance Model)
     /// </summary>
+    [Obsolete]
     public class SeresXsdParser
     {
         private const int MaxOccursMagicNumber = 99999;

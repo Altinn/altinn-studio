@@ -21,7 +21,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="serviceMetadata">The service metadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current service</param>
         /// <returns>A boolean indicating the result</returns>
-        bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, XDocument mainXsd);
+        bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, string mainXsd);
 
         /// <summary>
         /// Creates a new service
@@ -272,6 +272,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">The service code for the current service</param>
         /// <returns>A list of file names</returns>
         List<AltinnCoreFile> GetCalculationFiles(string org, string service);
+
+        /// <summary>
+        /// Returns a list over the validation files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        List<AltinnCoreFile> GetValidationFiles(string org, string service);
 
         /// <summary>
         /// Returns the file Content of a

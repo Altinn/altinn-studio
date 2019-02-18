@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Xml;
 using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
@@ -10,6 +11,7 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
 using Moq;
+using NUnit.Framework;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Common
@@ -48,30 +50,45 @@ namespace AltinnCore.UnitTest.Common
         [Fact]
         public void JsonInstanceFromAutogenJson()
         {
-            var schemaText = File.ReadAllText("Common/jsd/melding1.schema.json");
-            var schemaJson = JsonValue.Parse(schemaText);
-            var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
-
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "edag", schema);
-
-            JsonObject instanceModel = converter.GetInstanceModel();
-
-            Assert.NotNull(instanceModel);
-            JsonObject actualElements = instanceModel.TryGetObject("Elements");
-            Assert.Equal(101, actualElements.Count);
-
-            string metadataAsJson = instanceModel.ToString();
-
-            File.WriteAllText("melding1.instance-model.json", metadataAsJson);
-
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            var seresParser = new SeresXsdParser(moqRepository.Object);
-            XDocument mainXsd = XDocument.Load("Common/xsd/ServiceModel.xsd");
 
-            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("123", "service", mainXsd, null);            
+            int failCount = 0;
+            int mismatchCount = 0;
 
-            File.WriteAllText("medling1.element-metadata.json", Newtonsoft.Json.JsonConvert.SerializeObject(serviceMetadata));
-        }    
+            string[] files = Directory.GetFiles("Common/xsd", "*.xsd", SearchOption.AllDirectories);
+
+            foreach (string file in files)
+            {
+                try
+                {
+                    // XSD to Json Schema metadata
+                    XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(new XmlTextReader(file), TestLogger.Create<XsdToJsonSchema>());
+                    JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                    JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("org", "service", schemaJsonSchema, string.Empty);
+                    JsonObject instanceModel = converter.GetInstanceModel();
+
+                    // XSD to Json Schema metadata using obsolete SeresXsdParser
+                    SeresXsdParser seresParser = new SeresXsdParser(moqRepository.Object);
+                    XDocument mainXsd = XDocument.Load(file);
+                    ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "service", mainXsd, null);
+                    JsonValue serviceMetadataValue = new JsonSerializer().Serialize<ServiceMetadata>(serviceMetadata);
+
+                    if (!instanceModel["Elements"].Equals(serviceMetadataValue.Object["Elements"]))
+                    {
+                        mismatchCount++;
+                        File.WriteAllText(file + ".new.schema.json", instanceModel.GetIndentedString(0));
+                        File.WriteAllText(file + ".seresParser.schema.json", serviceMetadataValue.GetIndentedString(0));
+                    }
+                }
+                catch (Exception e)
+                {
+                    failCount++;
+                }
+            }
+
+            /*Assert.Equal(0, failCount + mismatchCount);*/
+        }
 
         /// <summary>
         ///  Tests a recursive schema and expand/remove path. Happy days!

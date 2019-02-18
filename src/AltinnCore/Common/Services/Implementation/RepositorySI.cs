@@ -140,6 +140,16 @@ namespace AltinnCore.Common.Services.Implementation
                 calculationDirectoryInfo.Create();
             }
 
+            string validationDir = _settings.GetValidationPath(
+                serviceMetadata.Org,
+                serviceMetadata.RepositoryName,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            DirectoryInfo validationDirectoryInfo = new DirectoryInfo(validationDir);
+            if (!validationDirectoryInfo.Exists)
+            {
+                validationDirectoryInfo.Create();
+            }
+
             string filePath = metaDataDir + _settings.ServiceMetadataFileName;
             File.WriteAllText(filePath, metadataAsJson, Encoding.UTF8);
 
@@ -702,7 +712,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="serviceMetadata">The service metadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current service</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, XDocument mainXsd)
+        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, string mainXsd)
         {
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
@@ -711,10 +721,13 @@ namespace AltinnCore.Common.Services.Implementation
 
             string classes = modelGenerator.CreateModelFromMetadata(serviceMetadata);
 
-            // Update the service metadata with all elements
+            // Load currently stored service metadata
             ServiceMetadata original = GetServiceMetaData(org, service);
-            string oldRoot = original.Elements?.Values.First(e => e.ParentElement == null).TypeName;
+            string oldRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
+
+            // Update the service metadata with new elements
             original.Elements = serviceMetadata.Elements;
+            string newRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
             if (!UpdateServiceMetadata(org, service, original))
             {
@@ -741,7 +754,7 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
                         new FileInfo(filePath).Directory.Create();
-                        File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
+                        File.WriteAllText(filePath, mainXsd, Encoding.UTF8);
                     }
                     catch (Exception e)
                     {
@@ -752,13 +765,9 @@ namespace AltinnCore.Common.Services.Implementation
                     try
                     {
                         XsdToJsonSchema xsdToJsonSchemaConverter;
-                        XmlReader xmlReader;
-                        using (MemoryStream memStream = new MemoryStream())
+                        using (MemoryStream memStream = new MemoryStream(Encoding.UTF8.GetBytes(mainXsd)))
                         {
-                            mainXsd.Save(memStream);
-                            memStream.Position = 0;
-                            xmlReader = XmlReader.Create(memStream);
-                            xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+                            xsdToJsonSchemaConverter = new XsdToJsonSchema(XmlReader.Create(memStream), _loggerFactory.CreateLogger<XsdToJsonSchema>());
                         }
 
                         JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
@@ -790,22 +799,22 @@ namespace AltinnCore.Common.Services.Implementation
             string serviceImplementationPath = implementationDirectory + _settings.ServiceImplementationFileName;
             File.WriteAllText(
                 serviceImplementationPath,
-                File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             string calculationHandlerPath = _settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
             File.WriteAllText(
                 calculationHandlerPath,
-                File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
-            string validationHandlerPath = implementationDirectory + _settings.ValidationHandlerFileName;
+            string validationHandlerPath = _settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
             File.WriteAllText(
                 validationHandlerPath,
-                File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             string instansiationHandlerPath = implementationDirectory + _settings.InstantiationHandlerFileName;
             File.WriteAllText(
                 instansiationHandlerPath,
-                File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             return true;
         }
@@ -1420,7 +1429,7 @@ namespace AltinnCore.Common.Services.Implementation
             string[] jsFiles = Directory.GetFiles(_settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
             foreach (string file in jsFiles)
             {
-                if (Path.GetFileName(file) == "RuleHandler.js")
+                if (Path.GetFileName(file) == _settings.RuleHandlerFileName)
                 {
                     AltinnCoreFile corefile = new AltinnCoreFile
                     {
@@ -1463,7 +1472,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns a list over the dynamics files for a Altinn Core service
+        /// Returns a list over the calculation files for a Altinn Core service
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -1472,8 +1481,34 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
 
-            string[] jsFiles = Directory.GetFiles(_settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-            foreach (string file in jsFiles)
+            string[] files = Directory.GetFiles(_settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in files)
+            {
+                AltinnCoreFile corefile = new AltinnCoreFile
+                {
+                    FilePath = file,
+                    FileName = Path.GetFileName(file),
+                    LastChanged = File.GetLastWriteTime(file),
+                };
+
+                coreFiles.Add(corefile);
+            }
+
+            return coreFiles;
+        }
+
+        /// <summary>
+        /// Returns a list over the validation files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        public List<AltinnCoreFile> GetValidationFiles(string org, string service)
+        {
+            List<AltinnCoreFile> coreFiles = new List<AltinnCoreFile>();
+
+            string[] files = Directory.GetFiles(_settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+            foreach (string file in files)
             {
                 AltinnCoreFile corefile = new AltinnCoreFile
                 {
@@ -1611,11 +1646,22 @@ namespace AltinnCore.Common.Services.Implementation
         public byte[] GetServiceResource(string org, string service, string resource)
         {
             byte[] fileContent = null;
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
 
-            if (File.Exists(serviceResourceDirectoryPath + resource))
+            if (resource == _settings.RuleHandlerFileName)
             {
-                fileContent = File.ReadAllBytes(serviceResourceDirectoryPath + resource);
+                string dynamicsPath = _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                if (File.Exists(dynamicsPath + resource))
+                {
+                    fileContent = File.ReadAllBytes(dynamicsPath + resource);
+                }
+            }
+            else
+            {
+                string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                if (File.Exists(serviceResourceDirectoryPath + resource))
+                {
+                    fileContent = File.ReadAllBytes(serviceResourceDirectoryPath + resource);
+                }
             }
 
             return fileContent;
@@ -1728,7 +1774,7 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
+            string validationHandlerFilePath = _settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
             File.WriteAllText(validationHandlerFilePath, textData, Encoding.UTF8);
         }
 
@@ -1741,8 +1787,8 @@ namespace AltinnCore.Common.Services.Implementation
             textData = textData.Replace(CodeGeneration.ServiceNamespaceTemplateDefault, string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service));
 
             // Get the file path
-            string validationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
-            File.WriteAllText(validationHandlerFilePath, textData, Encoding.UTF8);
+            string instansiationHandlerFilePath = _settings.GetImplementationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.InstantiationHandlerFileName;
+            File.WriteAllText(instansiationHandlerFilePath, textData, Encoding.UTF8);
         }
 
         private void CreateInitialWorkflow(string org, DirectoryInfo targetDirectory)

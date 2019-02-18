@@ -211,9 +211,19 @@ namespace AltinnCore.Common.Services.Implementation
         {
             byte[] fileContent = null;
 
-            if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))
+            if (resource == _settings.RuleHandlerFileName)
             {
-                fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource);
+              if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
+              {
+                  fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+              }
+            }
+            else
+            {
+              if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))
+              {
+                  fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource);
+              }
             }
 
             return fileContent;

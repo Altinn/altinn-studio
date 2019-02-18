@@ -16,10 +16,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private const int MagicNumberMaxOccurs = 99999;
 
         private Dictionary<string, JsonSchema> definitions = new Dictionary<string, JsonSchema>();
-        private ISet<string> visitedTypes = new HashSet<string>();
         private JsonObject instanceModel = new JsonObject();
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
+        private string multiplicityString;
 
         /// <summary>
         ///  Initializes a new instance of the <see cref="JsonSchemaToInstanceModelGenerator"/> class.
@@ -29,15 +29,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// <param name="organizationName">The organisation name</param>
         /// <param name="serviceName">Service name</param>
         /// <param name="jsonSchema">The Json Schema to generate the instance model from</param>
-        public JsonSchemaToInstanceModelGenerator(string organizationName, string serviceName, JsonSchema jsonSchema)
+        /// <param name="multiplicityString">String to append for marking arrays</param>
+        public JsonSchemaToInstanceModelGenerator(string organizationName, string serviceName, JsonSchema jsonSchema, string multiplicityString = "[*]")
         {
+            this.jsonSchema = jsonSchema;
+            this.multiplicityString = multiplicityString;
+
             instanceModel.Add("Org", organizationName);
-            instanceModel.Add("Service", serviceName);
+            instanceModel.Add("ServiceName", serviceName);
             instanceModel.Add("Elements", elements);
 
-            this.jsonSchema = jsonSchema;
-
-            foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Definitions(jsonSchema))
+            foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Definitions())
             {
                 definitions.Add(def.Key, def.Value);
             }
@@ -57,17 +59,17 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private JsonObject GenerateInitialReferences()
         {                                
-            string title = GetterExtensions.Title(jsonSchema);
+            string title = jsonSchema.Title();
 
-            if (GetterExtensions.Properties(jsonSchema) == null)
+            if (jsonSchema.Properties() == null)
             {
                 throw new ApplicationException("Cannot read top level object. Did not find any properties");
             }
 
             // Handle all properties
-            foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(jsonSchema))
+            foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
             {
-                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema));          
+                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>());
             }
 
             return instanceModel;
@@ -103,9 +105,9 @@ namespace AltinnCore.Common.Factories.ModelFactory
             // Only handle properties below path                
             try
             {
-                foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(jsonSchema))
+                foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
                 {
-                    TraverseModell(path, typeName, def.Key, def.Value, false);
+                    TraverseModell(path, typeName, def.Key, def.Value, false, new HashSet<string>());
                 }
             }
             catch (Exception e)
@@ -153,7 +155,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private bool IsRequired(string propertyName, JsonSchema parentType)
         {
-            List<string> requiredProperties = GetterExtensions.Required(parentType);
+            List<string> requiredProperties = parentType.Required();
 
             if (requiredProperties != null && requiredProperties.Contains(propertyName))
             {
@@ -170,14 +172,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return null;
             }
 
-            return SeresXsdParser.SanitizeName(name);
+            return XsdToJsonSchema.SanitizeName(name);
         }
 
-        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired)
+        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
-            string path = string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".";
-            path += sanitizedPropertyName;
+            string path;
+            int index = 0;
+            do
+            {
+                path = (string.IsNullOrEmpty(parentPath) ? string.Empty : parentPath + ".") + sanitizedPropertyName;
+                if (++index >= 2)
+                {
+                    path += index.ToString();
+                }
+            }
+            while (elements.ContainsKey(path));
 
             string minItems = "0";
             string maxItems = "1";
@@ -186,12 +197,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (type != null && type.Value == JsonSchemaType.Array)
             {
-                List<JsonSchema> items = GetterExtensions.Items(propertyType);
-                path += "[*]";
-                FollowRef(path, items[0]); // TODO fix multiple item types. It now uses only the first
+                List<JsonSchema> items = propertyType.Items();
+                path += multiplicityString;
+                FollowRef(path, items[0], alreadyVisitedTypes); // TODO fix multiple item types. It now uses only the first
 
-                double? minItemsValue = GetterExtensions.MinItems(propertyType);
-                double? maxItemsValue = GetterExtensions.MaxItems(propertyType);
+                double? minItemsValue = propertyType.MinItems();
+                double? maxItemsValue = propertyType.MaxItems();
 
                 if (minItemsValue.HasValue)
                 {
@@ -206,13 +217,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             else
             {
-                FollowRef(path, propertyType);
+                FollowRef(path, propertyType, alreadyVisitedTypes);
                 if (isRequired)
                 {
                     minItems = "1";
                 }
             }
-                                     
+
             JsonObject result = new JsonObject();
 
             string inputType = "Field";
@@ -221,27 +232,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("ID", path);
 
             string parentElement = ExtractParent(path);
-            result.Add("ParentElement", parentElement);
+            if (parentElement != null)
+            {
+                result.Add("ParentElement", parentElement);
+            }
+
+            string xsdValueType = FollowValueType(propertyType);
 
             string typeName = ExtractTypeNameFromSchema(propertyType);
-            string xsdValueType = FollowValueType(propertyType);
-            if (xsdValueType == null)
+            if (typeName != null)
             {
                 result.Add("TypeName", SanitizeName(typeName));
-            }
-            else
-            {
-                result.Add("TypeName", null);
-                if (typeName != null)
-                {
-                    typeName = xsdValueType;
-                }
             }
 
             result.Add("Name", sanitizedPropertyName);
 
             string fixedValue = null;
-            JsonValue fixedValueJson = GetterExtensions.Const(propertyType);
+            JsonValue fixedValueJson = propertyType.Const();
             if (fixedValueJson != null)
             {
                 fixedValue = fixedValueJson.String;
@@ -256,11 +263,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 inputType = "Group";
             }
 
-            if (inputType.Equals("Group") || !string.IsNullOrEmpty(fixedValue))
-            {
-                result.Add("DataBindingName", null);
-            }
-            else 
+            if (!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue))
             {
                 result.Add("DataBindingName", path);
             }
@@ -268,11 +271,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("XPath", "/" + path.Replace(".", "/"));
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
-            result.Add("Choices", null); // ??
-            
+            //result.Add("Choices", null);
+
             result.Add("Type", inputType);
-            
-            result.Add("XsdValueType", xsdValueType);
+
+            if (!string.IsNullOrEmpty(xsdValueType))
+            {
+                result.Add("XsdValueType", char.ToUpper(xsdValueType[0]) + xsdValueType.Substring(1)); //Uppercase first character
+            }
 
             result.Add("Texts", new JsonObject()); // TODO
             result.Add("CustomProperties", new JsonObject()); // ??
@@ -281,16 +287,16 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("MinOccurs", int.Parse(minItems));
 
             result.Add("XName", propertyName);
-                        
+
             if (fixedValue != null)
             {
                 result.Add("FixedValue", fixedValue);
             }
-                        
+
             string jsonSchemaPointer = "#/properties/" + propertyName;
-            if (parentElement != null) 
+            if (parentElement != null)
             {
-                 jsonSchemaPointer = "#/definitions/" + parentTypeName + "/properties/" + propertyName;
+                jsonSchemaPointer = "#/definitions/" + parentTypeName + "/properties/" + propertyName;
             }
 
             result.Add("JsonSchemaPointer", jsonSchemaPointer);
@@ -305,7 +311,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string ExtractTypeNameFromSchema(JsonSchema jSchema)
         {
-            string reference = GetterExtensions.Ref(jSchema);
+            string reference = jSchema.Ref();
             if (reference != null)
             {
                 return ExtractTypeNameFromDefinitionReference(reference);
@@ -317,14 +323,14 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 if (type.Value == JsonSchemaType.Array)
                 {
-                    List<JsonSchema> items = GetterExtensions.Items(jSchema);
+                    List<JsonSchema> items = jSchema.Items();
 
                     return ExtractTypeNameFromSchema(items[0]);
                 }
 
                 if (type.Value == JsonSchemaType.Object)
                 {
-                    return GetterExtensions.Title(jSchema);
+                    return jSchema.Title();
                 }
 
                 return type.Value.ToString();
@@ -359,22 +365,34 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return restriction;
             }
 
-            string reference = GetterExtensions.Ref(jSchema);            
-            if (reference != null)
+            string reference;
+            do
             {
-                JsonSchema nextSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
-
-                jSchema = nextSchema;
+                reference = jSchema.Ref();
+                if (reference != null)
+                {
+                    jSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
+                }
             }
+            while (reference != null);
 
             switch (typeName)
             {
                 case "string":
-                    {                        
-                        AddRestrictionValue(restriction, "minLength", GetterExtensions.MinLength(jSchema));
-                        AddRestrictionValue(restriction, "maxLength", GetterExtensions.MaxLength(jSchema));
+                    {
+                        double? minLength = jSchema.MinLength();
+                        double? maxLength = jSchema.MaxLength();
+                        if (minLength != null && minLength == maxLength)
+                        {
+                            AddRestrictionValue(restriction, "length", minLength);
+                        }
+                        else
+                        {
+                            AddRestrictionValue(restriction, "minLength", minLength);
+                            AddRestrictionValue(restriction, "maxLength", maxLength);
+                        }
 
-                        Regex pattern = GetterExtensions.Pattern(jSchema);
+                        Regex pattern = jSchema.Pattern();
                         if (pattern != null)
                         {
                             var pat = new JsonObject();
@@ -383,18 +401,63 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             restriction.Add("pattern", pat);
                         }
 
+                        // enum restriction?
+                        List<JsonValue> enumerations = jSchema.Enum();
+                        if (enumerations != null && enumerations.Count > 0)
+                        {
+                            string value = string.Empty;
+                            foreach (JsonValue enumeration in enumerations)
+                            {
+                                if (value.Length > 0)
+                                {
+                                    value += ";";
+                                }
+
+                                value += enumeration.String;
+                            }
+
+                            JsonObject enumerationObject = new JsonObject();
+                            enumerationObject.Add("Value", value);
+
+                            restriction.Add("enumeration", enumerationObject);
+                        }
+
                         break;
                     }
 
+                case "integer":
                 case "decimal":
                 case "positiveInteger":
                 case "number":
                     {
-                        AddRestrictionValue(restriction, "minimum", GetterExtensions.Minimum(jSchema));
-                        AddRestrictionValue(restriction, "maximum", GetterExtensions.Maximum(jSchema));
-                        AddRestrictionValue(restriction, "exclusiveMinimum", GetterExtensions.ExclusiveMinimum(jSchema));
-                        AddRestrictionValue(restriction, "exclusiveMaximum", GetterExtensions.ExclusiveMaximum(jSchema));
+                        int totalDigits = 0;
+                        if (jSchema.Maximum() != null && jSchema.Minimum() == -jSchema.Maximum())
+                        {
+                            string maxAsString = jSchema.Maximum().ToString();
+                            if (maxAsString.Length > 0 && maxAsString.Replace("9", string.Empty).Length == 0)
+                            {
+                                totalDigits = maxAsString.Length;
+                            }
+                        }
 
+                        if (totalDigits != 0)
+                        {
+                            AddRestrictionValue(restriction, "totalDigits", totalDigits);
+                        }
+                        else
+                        {
+                            AddRestrictionValue(restriction, "minimum", jSchema.Minimum());
+                            AddRestrictionValue(restriction, "maximum", jSchema.Maximum());
+                        }
+
+                        AddRestrictionValue(restriction, "exclusiveMinimum", jSchema.ExclusiveMinimum());
+                        AddRestrictionValue(restriction, "exclusiveMaximum", jSchema.ExclusiveMaximum());
+
+                        break;
+                    }
+
+                default:
+                    {
                         break;
                     }
             }
@@ -415,7 +478,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private string RemoveLastStar(string path)
         {
-            if (path.EndsWith("[*]"))
+            if (multiplicityString.Length > 0 && path.EndsWith(multiplicityString))
             {
                 return path.Substring(0, path.Length - 3);
             }
@@ -423,27 +486,66 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return path;
         }
 
-        private void FollowRef(string path, JsonSchema jSchema)
-        {            
-            string reference = GetterExtensions.Ref(jSchema);
+        private void FollowRef(string path, JsonSchema jSchema, ISet<string> alreadyVisitedTypes)
+        {
+            string reference = jSchema.Ref();
             if (reference != null)
             {
                 string typeName = ExtractTypeNameFromDefinitionReference(reference);
                 JsonSchema schema = definitions.GetValueOrDefault(typeName);
-                if (schema != null && GetterExtensions.Properties(schema) != null)
+                if (schema != null)
                 {
-                    if (!visitedTypes.Contains(typeName))
+                    if (alreadyVisitedTypes.Contains(typeName))
                     {
-                        visitedTypes.Add(typeName);
-                        foreach (KeyValuePair<string, JsonSchema> def in GetterExtensions.Properties(schema))
+                        return;
+                    }
+
+                    ISet<string> currentlyVisitedTypes = new HashSet<string>(alreadyVisitedTypes);
+                    currentlyVisitedTypes.Add(typeName);
+
+                    if (schema.Properties() != null)
+                    {
+                        foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
                         {
-                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, jSchema));
+                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes);
                         }
-                    }                    
+                    }
+                    else if (schema.OneOf() != null)
+                    {
+                        foreach (JsonSchema oneOfSchema in schema.OneOf())
+                        {
+                            if (oneOfSchema.Ref() != null)
+                            {
+                                FollowRef(path, oneOfSchema, currentlyVisitedTypes);
+                            }
+                            else if (oneOfSchema.Properties() != null)
+                            {
+                                foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
+                                {
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes);
+                                }
+                            }
+                        }
+                    }
+                    else if (schema.AllOf() != null)
+                    {
+                        foreach (JsonSchema allOfSchema in schema.AllOf())
+                        {
+                            if (allOfSchema.Ref() != null)
+                            {
+                                FollowRef(path, allOfSchema, currentlyVisitedTypes);
+                            }
+                            else if (allOfSchema.Properties() != null)
+                            {
+                                foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
+                                {
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes);
+                                }
+                            }
+                        }
+                    }
                 }
             }
-
-            // TODO oneOf, allOf, ...
         }
 
         private string FollowValueType(JsonSchema jSchema)
@@ -454,7 +556,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 return HandleJsonTypes(jSchema);
             }
 
-            string reference = GetterExtensions.Ref(jSchema);
+            string reference = jSchema.Ref();
             if (reference != null)
             {
                 JsonSchema nextSchema = definitions.GetValueOrDefault(ExtractTypeNameFromDefinitionReference(reference));
@@ -501,7 +603,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                         return "decimal";
                     case JsonSchemaType.Integer:
                         {
-                            double? minimum = GetterExtensions.Minimum(jSchema);
+                            double? minimum = jSchema.Minimum();
                             if (minimum == 0.0)
                             {
                                 return "positiveInteger";
