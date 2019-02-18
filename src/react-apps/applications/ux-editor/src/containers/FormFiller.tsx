@@ -7,6 +7,7 @@ import FormFillerActionDispatchers from '../actions/formFillerActions/formFiller
 import { makeGetDataModelSelector, makeGetDesignModeSelector } from '../selectors/getAppData';
 import { makeGetFormDataCountSelector, makeGetUnsavedChangesSelector, makeGetValidationErrorsSelector } from '../selectors/getFormData';
 import { makeGetApiConnectionsSelector } from '../selectors/getServiceConfigurations';
+import { getTextResource } from '../utils/language';
 import { Preview } from './Preview';
 import { WorkflowStep, WorkflowSteps } from './WorkflowStep';
 
@@ -19,6 +20,7 @@ export interface IFormFillerProps {
   formDataCount: number;
   language: any;
   workflowStep: WorkflowSteps;
+  textResources: any[];
 }
 
 export interface IFormFillerState {
@@ -110,10 +112,12 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public render() {
-    const altinnWindow = window as IAltinnWindow;
-    const { service } = altinnWindow;
     return (
-      <WorkflowStep header={service} step={this.state.workflowStep} onStepChange={this.handleStepChange}>
+      <WorkflowStep
+        header={getTextResource('ServiceName', this.props.textResources)}
+        step={this.state.workflowStep}
+        onStepChange={this.handleStepChange}
+      >
         <div className='row'>
           <Preview />
         </div>
@@ -145,6 +149,7 @@ const makeMapStateToProps = () => {
       formDataCount: GetFormDataCount(state),
       language: state.appData.language.language,
       workflowStep: state.workflow.workflowStep,
+      textResources: state.appData.textResources.resources,
     };
   };
   return mapStateToProps;

@@ -5,6 +5,10 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Extensions.Logging;
 
 namespace AltinnCore.Designer
 {
@@ -61,6 +65,15 @@ namespace AltinnCore.Designer
                     config.AddAzureKeyVault(
                         keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
                 }
+            })
+            .ConfigureLogging((hostingContext, logging) =>
+            {
+                logging.ClearProviders();
+                Serilog.ILogger logger = new LoggerConfiguration()
+                                .WriteTo.Console()
+                                .CreateLogger();
+
+                logging.AddProvider(new SerilogLoggerProvider(logger));
             })
                 .UseStartup<Startup>()
                 .CaptureStartupErrors(true);
