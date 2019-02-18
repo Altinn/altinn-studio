@@ -149,7 +149,7 @@ class FormDesigner extends React.Component<
   }
 
   public renderLogicEditor = () => {
-    const {classes} = this.props;
+    const { classes } = this.props;
     return (
       <Drawer
         anchor='bottom'
@@ -227,7 +227,8 @@ class FormDesigner extends React.Component<
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_validations}
                   listItems={[
-                    { name: this.props.language.ux_editor.service_logic_edit_validations ,
+                    {
+                      name: this.props.language.ux_editor.service_logic_edit_validations,
                       action: this.toggleCodeEditor.bind(this, 'Validation'),
                     },
                   ]}
