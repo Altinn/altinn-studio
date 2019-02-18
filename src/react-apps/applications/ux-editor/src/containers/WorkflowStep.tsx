@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -46,10 +47,13 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
               className='a-logo a-modal-top-logo '
             />
             <div className='a-modal-top-user'>
-              <div className='a-personSwitcher ' title={this.props.language.form_filler.formfiller_placeholder_user}>
+              <div
+                className='a-personSwitcher '
+                title={getLanguageFromKey('form_filler.formfiller_placeholder_user', this.props.language)}
+              >
                 <span className='a-personSwitcher-name'>
                   <span className='d-block' style={{ color: '#022F51' }}>
-                    {this.props.language.form_filler.formfiller_placeholder_user}
+                    {getLanguageFromKey('form_filler.formfiller_placeholder_user', this.props.language)}
                   </span>
                   <span className='d-block' />
                 </span>
@@ -62,7 +66,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             </div>
           </div>
         </div>
-      </div>
+      </div >
     );
   }
 
@@ -128,7 +132,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
         onClick={this.handleSubmitForm}
         id='workflowSubmitStepButton'
       >
-        Send Inn
+        {getLanguageFromKey('general.control_submit', this.props.language)}
       </button>
     );
   }
@@ -136,7 +140,9 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   public renderReceipt = () => {
     return (
       <div id='receiptWrapper'>
-        <p className='a-leadText'>{this.props.language.form_filler.placeholder_receipt_header}</p>
+        <p className='a-leadText'>
+          {getLanguageFromKey('form_filler.placeholder_receipt_header', this.props.language)}
+        </p>
       </div>
     );
   }
@@ -161,7 +167,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                 <div>
                   <h3 className='a-fontReg' style={{ marginBottom: 0 }}>
                     <i className='ai ai-circle-exclamation a-icon' />
-                    <span>{this.props.language.form_filler.error_report_header}</span>
+                    <span>{getLanguageFromKey('form_filler.error_report_header', this.props.language)}</span>
                   </h3>
                 </div>
               </div>
