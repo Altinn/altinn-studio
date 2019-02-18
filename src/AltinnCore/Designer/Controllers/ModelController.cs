@@ -10,6 +10,7 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
@@ -23,14 +24,16 @@ namespace AltinnCore.Designer.Controllers
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
+        private readonly ILoggerFactory _loggerFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ModelController"/> class
         /// </summary>
         /// <param name="repositoryService">The service Repository Service</param>
-        public ModelController(IRepository repositoryService)
+        public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory)
         {
             _repository = repositoryService;
+            _loggerFactory = loggerFactory;
         }
 
         /// <summary>
@@ -51,44 +54,29 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="thefile">The main XSD</param>
-        /// <param name="secondaryFiles">Secondary xsd</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public ActionResult Upload(string org, string service, IFormFile thefile, IEnumerable<IFormFile> secondaryFiles)
+        public ActionResult Upload(string org, string service, IFormFile thefile)
         {
             if (thefile == null)
             {
                 throw new ApplicationException("Cannot upload empty file");
             }
 
-            XDocument mainXsd = null;
-            var secondaryXsds = new Dictionary<string, XDocument>();
-
             string mainFileName = ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
 
-            XmlReaderSettings settings = new XmlReaderSettings();
-            settings.IgnoreWhitespace = true;
+            MemoryStream xsdMemoryStream = new MemoryStream();
+            thefile.OpenReadStream().CopyTo(xsdMemoryStream);
 
-            using (var reader = XmlReader.Create(thefile.OpenReadStream(), settings))
-            {
-                mainXsd = XDocument.Load(reader, LoadOptions.None);
-            }
+            string mainXsd;
+            xsdMemoryStream.Position = 0;
+            StreamReader streamReader = new StreamReader(xsdMemoryStream);
+            mainXsd = streamReader.ReadToEnd();
 
-            secondaryXsds.Clear();
-
-            if (secondaryFiles != null)
-            {
-                foreach (IFormFile file in secondaryFiles)
-                {
-                    string filename = ContentDispositionHeaderValue.Parse(new StringSegment(file.ContentDisposition)).FileName.ToString();
-                    using (var reader = XmlReader.Create(file.OpenReadStream()))
-                    {
-                        secondaryXsds.Add(filename, XDocument.Load(reader));
-                    }
-                }
-            }
-
-            ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
+            ServiceMetadata serviceMetadata;
+            xsdMemoryStream.Position = 0;
+            XmlReader reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
+            serviceMetadata = XsdToJsonSchema.ParseXsdToServiceMetadata(org, service, reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
 
             if (_repository.CreateModel(org, service, serviceMetadata, mainXsd))
             {

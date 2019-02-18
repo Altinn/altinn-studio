@@ -36,7 +36,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             this.multiplicityString = multiplicityString;
 
             instanceModel.Add("Org", organizationName);
-            instanceModel.Add("Service", serviceName);
+            instanceModel.Add("ServiceName", serviceName);
             instanceModel.Add("Elements", elements);
 
             foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Definitions())

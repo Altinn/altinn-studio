@@ -9,6 +9,7 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using NUnit.Framework;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Designer
@@ -29,7 +30,7 @@ namespace AltinnCore.UnitTest.Designer
             XDocument xmlDocument = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<string>()))
                 .Returns(true)
                 .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
                 {
@@ -37,11 +38,11 @@ namespace AltinnCore.UnitTest.Designer
                     xmlDocument = d;
                 });
 
-            ModelController controller = new ModelController(moqRepository.Object);           
+            ModelController controller = new ModelController(moqRepository.Object, new TestLoggerFactory());
 
             IFormFile formFile = AsMockIFormFile("Designer/Edag-latin1.xsd");
 
-            ActionResult result = controller.Upload("Org", "service2", formFile, null);
+            ActionResult result = controller.Upload("Org", "service2", formFile);
 
             Assert.NotNull(serviceMetadata);
 
@@ -68,11 +69,11 @@ namespace AltinnCore.UnitTest.Designer
             moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(existingDictionary);                
 
-            ModelController controller = new ModelController(moqRepository.Object);
+            ModelController controller = new ModelController(moqRepository.Object, new TestLoggerFactory());
 
             IFormFile formFile = AsMockIFormFile("Common/xsd/ServiceModel.xsd");
 
-            ActionResult result = controller.Upload("Org", "service2", formFile, null);
+            ActionResult result = controller.Upload("Org", "service2", formFile);
 
             Assert.NotNull(dictionary);
 
