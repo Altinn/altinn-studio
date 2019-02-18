@@ -109,6 +109,9 @@ const styles = ((theme: Theme) => createStyles({
       marginBottom: '28px',
     },
   },
+  rightDrawerWrapper: {
+    position: 'relative',
+  },
 }));
 export enum LayoutItemType {
   Container = 'CONTAINER',
@@ -214,7 +217,11 @@ class FormDesigner extends React.Component<
                 : null}
             </div>
           </Grid>
-          <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
+          <Grid
+            item={true}
+            xs={2}
+            classes={{ item: classNames(classes.item) }}
+          >
             <ServiceLogicMenu
               open={this.state.menuOpen}
               openCloseHandler={this.toggleMenu}
@@ -224,6 +231,7 @@ class FormDesigner extends React.Component<
                   direction={'column'}
                   justify={'center'}
                   alignItems={'flex-end'}
+                  classes={classes.menuWrapper}
                 >
                   <IconButton
                     type='button'

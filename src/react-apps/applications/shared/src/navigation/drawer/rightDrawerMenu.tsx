@@ -26,6 +26,8 @@ const styles = createStyles({
   scrollable: {
     overflowY: 'scroll',
     height: 'inherit',
+    marginTop: '0px',
+    maxHeight: `calc(100vh - 146px)`,
   },
 });
 
