@@ -8,7 +8,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "3-Clause BSD",
   "devDependencies": {
     "cross-env": "^5.2.0",
     "minimist": "^1.2.0",
