@@ -712,7 +712,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="serviceMetadata">The service metadata to generate the model based on</param>
         /// <param name="mainXsd">The main XSD for the current service</param>
         /// <returns>A value indicating if everything went ok</returns>
-        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, string mainXsd)
+        public bool CreateModel(string org, string service, ServiceMetadata serviceMetadata, XDocument mainXsd)
         {
             JsonMetadataParser modelGenerator = new JsonMetadataParser();
 
@@ -748,38 +748,38 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (mainXsd != null)
             {
+                string mainXsdString = mainXsd.ToString();
+
+                // Create the .xsd file for the model
+                try
                 {
-                    // Create the .xsd file for the model
-                    try
+                    string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
+                    new FileInfo(filePath).Directory.Create();
+                    File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+
+                // Create the .jsd file for the model
+                try
+                {
+                    XsdToJsonSchema xsdToJsonSchemaConverter;
+                    using (MemoryStream memStream = new MemoryStream(Encoding.UTF8.GetBytes(mainXsdString)))
                     {
-                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
-                        new FileInfo(filePath).Directory.Create();
-                        File.WriteAllText(filePath, mainXsd, Encoding.UTF8);
-                    }
-                    catch (Exception e)
-                    {
-                        return false;
+                        xsdToJsonSchemaConverter = new XsdToJsonSchema(XmlReader.Create(memStream), _loggerFactory.CreateLogger<XsdToJsonSchema>());
                     }
 
-                    // Create the .jsd file for the model
-                    try
-                    {
-                        XsdToJsonSchema xsdToJsonSchemaConverter;
-                        using (MemoryStream memStream = new MemoryStream(Encoding.UTF8.GetBytes(mainXsd)))
-                        {
-                            xsdToJsonSchemaConverter = new XsdToJsonSchema(XmlReader.Create(memStream), _loggerFactory.CreateLogger<XsdToJsonSchema>());
-                        }
+                    JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                        JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
-                        new FileInfo(filePath).Directory.Create();
-                        File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
-                    }
-                    catch (Exception e)
-                    {
-                        return false;
-                    }
+                    string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+                    new FileInfo(filePath).Directory.Create();
+                    File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
+                }
+                catch (Exception e)
+                {
+                    return false;
                 }
             }
 

@@ -68,15 +68,14 @@ namespace AltinnCore.Designer.Controllers
             MemoryStream xsdMemoryStream = new MemoryStream();
             thefile.OpenReadStream().CopyTo(xsdMemoryStream);
 
-            string mainXsd;
-            xsdMemoryStream.Position = 0;
-            StreamReader streamReader = new StreamReader(xsdMemoryStream);
-            mainXsd = streamReader.ReadToEnd();
-
             ServiceMetadata serviceMetadata;
             xsdMemoryStream.Position = 0;
             XmlReader reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
             serviceMetadata = XsdToJsonSchema.ParseXsdToServiceMetadata(org, service, reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+
+            xsdMemoryStream.Position = 0;
+            reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
+            XDocument mainXsd = XDocument.Load(reader, LoadOptions.None);
 
             if (_repository.CreateModel(org, service, serviceMetadata, mainXsd))
             {
