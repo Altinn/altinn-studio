@@ -25,6 +25,7 @@ namespace AltinnCore.Common.Controllers
         /// </summary>
         /// <returns>The schemas</returns>
         [HttpGet]
+        [Route("api/v1/schemas")]
         public async Task<IActionResult> Schemas()
         {
             AltinnServiceRepository repositoryClient = new AltinnServiceRepository();
