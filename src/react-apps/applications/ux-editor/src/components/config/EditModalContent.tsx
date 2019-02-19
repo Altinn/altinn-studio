@@ -220,6 +220,26 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           </Grid>
         );
       }
+      case 'Datepicker': {
+        return (
+          <Grid item={true} xs={12}>
+            {renderSelectDataModelBinding(
+              this.props.component.dataModelBindings,
+              this.handleDataModelChange,
+              this.props.language)}
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+            {renderSelectTextFromResources('modal_properties_description_helper',
+              this.handleDescriptionChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+          </Grid>
+        );
+      }
       case 'Paragraph': {
         return (
           <Grid>
