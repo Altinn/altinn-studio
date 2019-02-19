@@ -271,8 +271,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("XPath", "/" + path.Replace(".", "/"));
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
-            //result.Add("Choices", null);
-
+            
             result.Add("Type", inputType);
 
             if (!string.IsNullOrEmpty(xsdValueType))
