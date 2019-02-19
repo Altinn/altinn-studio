@@ -32,14 +32,9 @@ export async function put(
   apiMode: string,
   data: any,
   config?: AxiosRequestConfig,
-  validationTriggerField?: string,
 ): Promise<any> {
   try {
-    let putUrl = `${url}/${apiMode}`;
-    if (validationTriggerField) {
-      putUrl += `?validationTriggerField=${validationTriggerField}`;
-    }
-    const response: AxiosResponse = await axios.put(putUrl, data, config ? config : null);
+    const response: AxiosResponse = await axios.put(`${url}/${apiMode}`, data, config ? config : null);
     return response.data ? response.data : null;
   } catch (err) {
     throw err;

@@ -42,6 +42,8 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
 
+        private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceAPIController"/> class
         /// </summary>
@@ -294,11 +296,10 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="service">the service</param>
         /// <param name="instanceId">the instance id</param>
         /// <param name="apiMode">the mode of the api</param>
-        /// <param name="validationTriggerField">The field that triggered a single field validation</param>
         /// <returns>The api result</returns>
         [Authorize]
         [HttpPut]
-        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode, string validationTriggerField)
+        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -314,7 +315,10 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            requestContext.ValidationTriggerField = validationTriggerField;
+            if (Request.Headers.Keys.Contains(VALIDATION_TRIGGER_FIELD))
+            {
+                requestContext.ValidationTriggerField = Request.Headers[VALIDATION_TRIGGER_FIELD];
+            }
 
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service);

@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -126,10 +127,15 @@ export function* runSingleFieldValidationSaga({
 }: FormFillerActions.IRunSingleFieldValidationAction): SagaIterator {
   const state: IAppState = yield select();
   try {
-    const response = yield call(put, url, 'Validate',
-    convertDataBindingToModel(state.formFiller.formData, state.appData.dataModel.model), null, dataModelBinding);
-    if (response && response.validationResult && (response.status === 1 || response.status === 2)) {
-      // Update validationError state if response contains validation errors
+    const requestBody = convertDataBindingToModel(state.formFiller.formData, state.appData.dataModel.model);
+    const config: AxiosRequestConfig = {
+      headers: {
+        ValidationTriggerField: dataModelBinding,
+      },
+    };
+    const response = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
+    if (response && response.validationResult) {
+      // Update validationError state
       const validationErrors: any = response.validationResult.errors;
       yield call(FormFillerActionDispatcher.runSingleFieldValidationFulfilled, validationErrors);
     }
