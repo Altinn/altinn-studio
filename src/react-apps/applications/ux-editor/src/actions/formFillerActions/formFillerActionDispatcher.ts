@@ -1,4 +1,4 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as formFillerActions from './actions/index';
 
@@ -32,6 +32,9 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
     validationErrors: any,
     ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
   runSingleFieldValidationRejected: (error: Error) => formFillerActions.IRunSingleFieldValidationActionRejected;
+  completeAndSendInForm: (url: any) => formFillerActions.ICompleteAndSendInForm;
+  completeAndSendInFormFulfilled: () => Action;
+  completeAndSendInFormRejected: () => Action;
 }
 
 const actions: IFormFillerActionDispatchers = {
@@ -50,6 +53,9 @@ const actions: IFormFillerActionDispatchers = {
   runSingleFieldValidation: formFillerActions.runSingleFieldValidationAction,
   runSingleFieldValidationFulfilled: formFillerActions.runSingleFieldValidationActionFulfilled,
   runSingleFieldValidationRejected: formFillerActions.runSingleFieldValidationActionRejected,
+  completeAndSendInForm: formFillerActions.completeAndSendInForm,
+  completeAndSendInFormFulfilled: formFillerActions.completeAndSendInFormFulfilled,
+  completeAndSendInFormRejected: formFillerActions.completeAndSendInFormRejected,
 };
 
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<

@@ -5,14 +5,12 @@ import * as HandleMergeConflictActionTypes from './handleMergeConflictActionType
 
 export interface IHandleMergeConflictState {
   repoStatus: any;
-  foo: any;
 }
 
 const initialState: IHandleMergeConflictState = {
   repoStatus: {
     hasMergeConflict: null,
   },
-  foo: 'bar',
 };
 
 const handleMergeConflictReducer: Reducer<IHandleMergeConflictState> = (
