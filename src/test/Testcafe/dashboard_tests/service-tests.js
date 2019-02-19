@@ -1,4 +1,4 @@
-import { t } from 'testcafe';
+import { t, Selector } from 'testcafe';
 import { waitForReact } from 'testcafe-react-selectors';
 import DesignerPage from '../page-objects/designerPage';
 import CommonPage from '../page-objects/common';
@@ -20,19 +20,19 @@ fixture('Creating/Reading/Updating/Deleting services')
     //app.before()
   })
   .beforeEach(async t => {
-    t.ctx.newServiceName = "testcafe02";
+    t.ctx.newServiceName = "testcafe04";
     t.ctx.deltMessage = "Du har delt dine endringer";
     t.ctx.syncMessage = "Endringene er validert";
     await common.login(testUser.userEmail, testUser.password, loginPage);
     //app.before()
   })
   .after(async (t) => {
-    await dash.logout();
+    //await dash.logout();
   })
 
 test('Sync a service with master', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe03#/aboutservice')
     .click(designerPage.lageNavigationTab)
     .click(designerPage.dropDown)
     .pressKey("enter")
@@ -49,7 +49,7 @@ test('Sync a service with master', async () => {
     .pressKey("enter")
 });
 
-test('Create a new service', async () => {
+test.skip('Create a new service', async () => {
   await t
     .click(dash.newServiceButton)
     .click(dash.tjenesteNavn)
@@ -66,3 +66,9 @@ test('Search for only my users services', async () => {
     .pressKey("enter")
     .expect(dash.rettigheterMelding.exists).ok()
 });
+
+test('filter away a users services by clicking owner bubble', async () => {
+  await t
+  .click(Selector('span').withText("AutoTest"))
+  .expect(dash.skriveRettigheter.exists).ok({ timeout: 2500 })
+})

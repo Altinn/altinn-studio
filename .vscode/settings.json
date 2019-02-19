@@ -18,5 +18,6 @@
     "**/publish/**": true,
     "**/Debug": true
   },
-  "typescript.surveys.enabled": false
+  "typescript.surveys.enabled": false,
+  "python.pythonPath": "C:\\Users\\tniel\\Miniconda3\\python.exe"
 }

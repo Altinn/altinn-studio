@@ -12,6 +12,7 @@ export default class DashBoard {
     this.tjenesteNavn = Selector("#service-name");
     this.lagringsNavn = Selector("#service-saved-name");
     this.rettigheterMelding = Selector("p").withText("Du har ikke rettigheter");
+    this.skriveRettigheter = Selector("div > div > p").withText("Du har ikke skriverettigheter");
     this.opprettButton = Selector("button").withExactText("Opprett");
   }
 
