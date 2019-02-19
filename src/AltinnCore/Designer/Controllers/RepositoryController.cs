@@ -3,19 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using System.Xml;
+using System.Text;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.RepositoryClient.Model;
 using AltinnCore.ServiceLibrary.Configuration;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace AltinnCore.Designer.Controllers
 {
@@ -29,6 +28,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
@@ -37,12 +37,14 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="repositorySettings">Settings for repository</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
-        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl, IRepository repository)
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl, IRepository repository, IHttpContextAccessor httpContextAccessor)
         {
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
             _sourceControl = sourceControl;
             _repository = repository;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         /// <summary>
@@ -55,6 +57,19 @@ namespace AltinnCore.Designer.Controllers
         {
             SearchResults repositorys = _giteaApi.SearchRepository(repositorySearch.OnlyAdmin, repositorySearch.KeyWord, repositorySearch.Page).Result;
             return repositorys.Data;
+        }
+
+        /// <summary>
+        /// Returns a given service repository
+        /// </summary>
+        /// <param name="owner">The service owner</param>
+        /// <param name="repository">The service repository</param>
+        /// <returns>The given service repository</returns>
+        [HttpGet]
+        public Repository GetRepository(string owner, string repository)
+        {
+            Repository returnRepository = _giteaApi.GetRepository(owner, repository).Result;
+            return returnRepository;
         }
 
         /// <summary>
@@ -160,7 +175,7 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Push commits to repo
+        /// Fetches the repository log
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The repo name</param>
@@ -172,7 +187,19 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Push commits to repo
+        /// Fetches the initial commit
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The repo name</param>
+        /// <returns>The initial commit</returns>
+        [HttpGet]
+        public Commit GetInitialCommit(string owner, string repository)
+        {
+            return _sourceControl.GetInitialCommit(owner, repository);
+        }
+
+        /// <summary>
+        /// Gets the latest commit from current user
         /// </summary>
         /// <param name="owner">The owner of the repository</param>
         /// <param name="repository">The repo name</param>

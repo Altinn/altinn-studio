@@ -1,4 +1,5 @@
 import { createStyles, Drawer, withStyles } from '@material-ui/core';
+import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
@@ -9,19 +10,25 @@ const styles = createStyles({
     top: 64,
   },
   drawerHeader: {
-   display: 'flex',
-   alignContent: 'flex-start',
- },
- hidden: {
-   visibility: 'hidden',
- },
- paper: {
-   borderTop: '1px solid ' + altinnTheme.altinnPalette.primary.greyMedium,
-   background: altinnTheme.altinnPalette.primary.greyLight,
-   top: 146,
-   width: 240,
-  position: 'absolute',
- },
+    display: 'flex',
+    alignContent: 'flex-start',
+  },
+  hidden: {
+    visibility: 'hidden',
+  },
+  paper: {
+    borderTop: '1px solid ' + altinnTheme.altinnPalette.primary.greyMedium,
+    background: altinnTheme.altinnPalette.primary.greyLight,
+    top: 146,
+    width: 240,
+    position: 'absolute',
+  },
+  scrollable: {
+    overflowY: 'scroll',
+    height: 'inherit',
+    marginTop: '0px',
+    maxHeight: `calc(100vh - 146px)`,
+  },
 });
 
 export interface IServiceLogicMenuProvidedProps {
@@ -60,7 +67,7 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
     }
   }
   public render(): JSX.Element {
-    return(
+    return (
       <>
         <div
           onClick={this.handleDrawerOpen}
@@ -75,12 +82,13 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
           variant={'persistent'}
           anchor={'right'}
           open={this.state.open}
-          classes={{paper: this.props.classes.paper}}
-          SlideProps={{unmountOnExit: false}}
+          classes={{ paper: this.props.classes.paper }}
+          SlideProps={{ unmountOnExit: false }}
         >
-        <div className={this.props.classes.drawerHeader}>
-          {this.props.children}
-        </div>
+          <div className={classNames(this.props.classes.drawerHeader, this.props.classes.scrollable)}>
+            {this.props.children}
+
+          </div>
         </Drawer>
       </>
     );
