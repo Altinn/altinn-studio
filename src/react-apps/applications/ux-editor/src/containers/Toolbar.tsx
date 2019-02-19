@@ -255,7 +255,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
   public render() {
     return (
-      <div className={'col-sm-12'} style={{ padding: '24px' }}>
+      <div className={'col-sm-12'}>
         <FormControl
           classes={{ root: classNames(this.props.classes.searchBox) }}
           fullWidth={true}

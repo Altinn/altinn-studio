@@ -1,4 +1,4 @@
-import { createStyles, Grid, IconButton, Theme, withStyles, Drawer } from '@material-ui/core';
+import { createStyles, Drawer, Grid, IconButton, Theme, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import { DragDropContext } from 'react-dnd';
@@ -56,14 +56,14 @@ const styles = ((theme: Theme) => createStyles({
     top: '69px',
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
   },
-  devider: {
+  divider: {
     width: '100%',
     height: '0.1rem',
     background: altinnTheme.altinnPalette.primary.greyMedium,
   },
   item: {
     padding: 0,
-    minWidth: '171px', /* Two columns at 1024px screen size */
+    minWidth: '240px', /* Two columns at 1024px screen size */
   },
   icon: {
     'fontSize': '3rem',
@@ -81,8 +81,15 @@ const styles = ((theme: Theme) => createStyles({
   },
   mainContent: {
     borderLeft: '1px solid #C9C9C9',
+    marginRight: '2px',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
     overflowY: 'auto',
+    [theme.breakpoints.up('md')]: {
+      marginBottom: '80px',
+    },
+    [theme.breakpoints.down('sm')]: {
+      marginBottom: '28px',
+    },
   },
   menuHeader: {
     padding: '2.5rem 2.5rem 1.2rem 2.5rem',
@@ -90,6 +97,20 @@ const styles = ((theme: Theme) => createStyles({
   },
   fullWidth: {
     width: '100%',
+  },
+  toolbarWrapper: {
+    padding: '24px 12px 0 12px',
+    marginRight: '2px',
+    overflowY: 'auto',
+    [theme.breakpoints.up('md')]: {
+      marginBottom: '80px',
+    },
+    [theme.breakpoints.down('sm')]: {
+      marginBottom: '28px',
+    },
+  },
+  rightDrawerWrapper: {
+    position: 'relative',
   },
 }));
 export enum LayoutItemType {
@@ -178,7 +199,7 @@ class FormDesigner extends React.Component<
           classes={{ container: classNames(classes.container) }}
           id='formFillerGrid'
         >
-          <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
+          <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
             <Toolbar />
           </Grid>
           <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
@@ -196,7 +217,11 @@ class FormDesigner extends React.Component<
                 : null}
             </div>
           </Grid>
-          <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
+          <Grid
+            item={true}
+            xs={2}
+            classes={{ item: classNames(classes.item) }}
+          >
             <ServiceLogicMenu
               open={this.state.menuOpen}
               openCloseHandler={this.toggleMenu}
@@ -206,6 +231,7 @@ class FormDesigner extends React.Component<
                   direction={'column'}
                   justify={'center'}
                   alignItems={'flex-end'}
+                  classes={classes.menuWrapper}
                 >
                   <IconButton
                     type='button'
@@ -253,7 +279,7 @@ class FormDesigner extends React.Component<
                     },
                   ]}
                 />
-                <div className={this.props.classes.devider} />
+                <div className={this.props.classes.divider} />
               </div>
             </ServiceLogicMenu >
           </Grid>
