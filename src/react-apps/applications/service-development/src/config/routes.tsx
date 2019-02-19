@@ -1,5 +1,6 @@
 import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import uieditorApp from '../../../ux-editor/src/SubApp';
+import { Administration } from '../features/administration/components/Administration';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
 export const routes = [
@@ -58,16 +59,7 @@ export const routes = [
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om tjenesten',
     menu: 'about',
-    subapp: AltinnInformationCard,
-    props: {
-      headerTextKey: 'shared.wip_title',
-      subtext1TextKey: 'shared.wip_subtext_1',
-      subtext2TextKey: 'shared.wip_subtext_2',
-      linkTextKey: 'shared.wip_link_text',
-      urlKey: 'shared.wip_link_github_url',
-      imageSource: '../../designer/img/illustration-help-circle.svg',
-      shadow: true,
-    },
+    subapp: Administration,
   },
   {
     path: '/rolesandrights',
