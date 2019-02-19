@@ -214,7 +214,7 @@ namespace AltinnCore.Runtime
                     defaults: new { controller = "Instance" },
                     constraints: new
                     {
-                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit",
+                        action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit|GetCurrentState",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         instanceId = @"\d+",

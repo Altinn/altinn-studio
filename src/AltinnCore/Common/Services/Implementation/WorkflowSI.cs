@@ -103,11 +103,9 @@ namespace AltinnCore.Common.Services.Implementation
             switch (currentState)
             {
                 case WorkflowStep.FormFilling:
-                    return $"/runtime/{owner}/{service}/{formId}/#Preview";
                 case WorkflowStep.Submit:
-                    return $"/runtime/{owner}/{service}/{formId}/CompleteAndSendIn";
                 case WorkflowStep.Archived:
-                    return $"/runtime/{owner}/{service}/{formId}/Receipt";
+                    return $"/runtime/{owner}/{service}/{formId}/#Preview";
                 default:
                     return $"/runtime/{owner}/{service}/ManualTesting";
             }

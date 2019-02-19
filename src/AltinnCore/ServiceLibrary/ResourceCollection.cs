@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace AltinnCore.ServiceLibrary
 {
     using System;
-
+    using System.Linq;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -21,7 +21,7 @@ namespace AltinnCore.ServiceLibrary
         /// Gets or sets the resources.
         /// </summary>
         [JsonProperty("resources")]
-        public IList<Resource> Resources { get; set; }
+        public List<Resource> Resources { get; set; }
 
         /// <summary>
         /// Adds text resource to the Resources list.
@@ -36,7 +36,14 @@ namespace AltinnCore.ServiceLibrary
                 throw new ArgumentException("Argument null or whitespace", nameof(id));
             }
 
-            Resources.Add(new Resource { Id = id, Value = value ?? string.Empty });
+            if (Resources.Any(r => r.Id == id))
+            {
+                Resources.Find(r => r.Id == id).Value = value;
+            }
+            else
+            {
+                Resources.Add(new Resource { Id = id, Value = value ?? string.Empty });
+            }
         }
     }
 }

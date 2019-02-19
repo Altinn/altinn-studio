@@ -195,6 +195,46 @@ namespace AltinnCore.Common.Services.Implementation
             return repository;
         }
 
+        /// <inheritdoc/>
+        public async Task<Repository> GetRepository(string owner, string repository)
+        {
+            Repository returnRepository = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Repository));
+
+            Uri giteaUrl = new Uri(GetApiBaseUrl() + $"/repos/{owner}/{repository}");
+
+            using (HttpClient client = GetApiClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(giteaUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    Stream stream = await response.Content.ReadAsStreamAsync();
+                    {
+                        returnRepository = serializer.ReadObject(stream) as Repository;
+                    }
+                }
+                else
+                {
+                    _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching service {owner}/{repository} failed with reponsecode {response.StatusCode}");
+                }
+            }
+
+            if (returnRepository != null)
+            {
+                if (returnRepository.Owner != null && !string.IsNullOrEmpty(returnRepository.Owner.Login))
+                {
+                    returnRepository.IsClonedToLocal = IsLocalRepo(returnRepository.Owner.Login, returnRepository.Name);
+                    Organization org = await GetCachedOrg(returnRepository.Owner.Login);
+                    if (org != null)
+                    {
+                        returnRepository.Owner.UserType = UserType.Org;
+                    }
+                }
+            }
+
+            return returnRepository;
+        }
+
         /// <summary>
         /// Gets a list over the organizations that the current user has access to.
         /// </summary>

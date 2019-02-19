@@ -92,10 +92,6 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
             List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            if (formInstances.FirstOrDefault(i => i.ServiceInstanceID == instanceId && i.IsArchived) != null)
-            {
-                return RedirectToAction("Receipt", new { org, service, instanceId });
-            }
 
             // TODO Add info for REACT app.
             return View();
@@ -186,18 +182,29 @@ namespace AltinnCore.Runtime.Controllers
             serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
             await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
 
+            ApiResult apiResult = new ApiResult();
             if (ModelState.IsValid)
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
                 if (currentState.State == WorkflowStep.Archived)
                 {
                     _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                    apiResult.NextState = currentState.State;
                 }
-
-                return Redirect(_workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State));
             }
 
-            return View();
+            ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
+
+            if (apiResult.Status.Equals(ApiStatusType.ContainsError))
+            {
+                Response.StatusCode = 202;
+            }
+            else
+            {
+                Response.StatusCode = 200;
+            }
+
+            return new ObjectResult(apiResult);
         }
 
         /// <summary>
@@ -357,6 +364,21 @@ namespace AltinnCore.Runtime.Controllers
 
             HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
             return View(startServiceModel);
+        }
+
+        /// <summary>
+        /// Get the current state
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="reporteeId">The reportee id</param>
+        /// <returns>An api response containing the current ServiceState </returns>
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetCurrentState(string org, string service, int instanceId, int reporteeId)
+        {
+            return new ObjectResult(_workflowSI.GetCurrentState(instanceId, org, service, reporteeId));
         }
 
         /// <summary>
