@@ -9,6 +9,7 @@ namespace AltinnCore.Runtime.Db.Models
     /// <summary>
     /// Model for form data
     /// </summary>
+    [Serializable]
     public class FormData
     {
         /// <summary>

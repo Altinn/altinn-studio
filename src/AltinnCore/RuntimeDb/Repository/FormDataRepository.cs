@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Runtime.Db.Configuration;
 using AltinnCore.Runtime.Db.Models;
@@ -8,6 +10,9 @@ using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Runtime.Db.Repository
@@ -23,12 +28,13 @@ namespace AltinnCore.Runtime.Db.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
+        private readonly AzureStorageConfiguration _storageConfiguration;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FormDataRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public FormDataRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        public FormDataRepository(IOptions<AzureCosmosSettings> cosmosettings, IOptions<AzureStorageConfiguration> storageConfiguration)
         {
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
@@ -41,6 +47,8 @@ namespace AltinnCore.Runtime.Db.Repository
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
                 new DocumentCollection { Id = _cosmosettings.Collection }).GetAwaiter().GetResult();
+            _storageConfiguration = storageConfiguration.Value;
+
         }
 
         /// <summary>
@@ -121,6 +129,51 @@ namespace AltinnCore.Runtime.Db.Repository
             {
                 throw ex;
             }
+        }
+
+        public async Task<bool> CreateFormDataInStorage(Stream fileStream, string fileName)
+        {
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
+            CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            await blockBlob.UploadFromStreamAsync(fileStream);
+            return await Task.FromResult(true);
+        }
+
+        public async Task<bool> UpdateFormDataInStorage(Stream fileStream, string fileName)
+        {
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+            await blockBlob.UploadFromStreamAsync(fileStream);
+            return await Task.FromResult(true);
+        }
+
+        public async Task<FormData> GetFormDataInStorage(string fileName)
+        {
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+            StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
+            CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+
+            var memoryStream = new MemoryStream();
+            string text;
+            await blockBlob.DownloadToStreamAsync(memoryStream);
+            memoryStream.Position = 0;
+            using (StreamReader sr = new StreamReader(memoryStream))
+            {
+                text = sr.ReadToEnd();
+            }
+                
+            var resultData = JsonConvert.DeserializeObject<FormData>(text);
+            return resultData;
         }
     }
 }

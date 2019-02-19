@@ -215,4 +215,28 @@ namespace AltinnCore.Runtime.Db.Models
         [JsonProperty(PropertyName = "customMessage")]
         public string CustomMessage { get; set; }
     }
+
+    /// <summary>
+    /// Form model
+    /// </summary>
+    public class Form
+    {
+        /// <summary>
+        /// Gets or sets unique id for the attachment
+        /// </summary>
+        [JsonProperty(PropertyName = "formId")]
+        public string FormId { get; set; }
+
+        /// <summary>
+        /// Gets or sets content type of the attachment file
+        /// </summary>
+        [JsonProperty(PropertyName = "formUrl")]
+        public string FormUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets content type of the attachment file
+        /// </summary>
+        [JsonProperty(PropertyName = "formType")]
+        public string FormType { get; set; }
+    }
 }

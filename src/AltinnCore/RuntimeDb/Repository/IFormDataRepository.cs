@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Runtime.Db.Models;
@@ -34,5 +35,20 @@ namespace AltinnCore.Runtime.Db.Repository
         /// <param name="item">the form data</param>
         /// <returns>The updated form data</returns>
         Task<FormData> UpdateFormDataInCollectionAsync(string id, FormData item);
+
+        /// <summary>
+        /// Create a new file in blob storage for formdata
+        /// </summary>
+        /// <param name="fileStream">data to be written to the form data file</param>
+        /// <param name="fileName">the filename to be used</param>
+        /// <returns></returns>
+        Task<bool> CreateFormDataInStorage(Stream fileStream, string fileName);
+
+        /// <summary>
+        /// Gets a formd data file in blob storage
+        /// </summary>
+        /// <param name="fileName">the filename to be used</param>
+        /// <returns></returns>
+        Task<FormData> GetFormDataInStorage(string fileName);
     }
 }

@@ -42,9 +42,12 @@ namespace AltinnCore.Runtime.Db
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
+            services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
             services.AddSingleton<IFormDataRepository, FormDataRepository>();
+            services.AddSingleton<IReporteeElementRepository, ReporteeElementRepository>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().AddControllersAsServices();
         }
 
         /// <summary>
@@ -60,7 +63,7 @@ namespace AltinnCore.Runtime.Db
             }
             else
             {
-                app.UseExceptionHandler();
+                app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
 
