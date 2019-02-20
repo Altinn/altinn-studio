@@ -315,6 +315,9 @@ src/react-apps/applications/service-development/js
 src/react-apps/applications/dashboard/node_modules
 src/react-apps/applications/dashboard/compiled
 src/react-apps/applications/dashboard/dist
+src/react-apps/applications/runtime/node_modules
+src/react-apps/applications/runtime/compiled
+src/react-apps/applications/runtime/dist
 
 ######### Built react apps ###########
 src/AltinnCore/Designer/wwwroot/designer/css/react
