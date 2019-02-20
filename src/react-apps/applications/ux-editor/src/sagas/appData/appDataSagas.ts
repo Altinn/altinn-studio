@@ -117,9 +117,11 @@ function* fetchThirdPartyComponentsSaga(action: AppDataActions.IFetchThirdPartyC
       const evaluatedSrc: any = eval(fetchedSrc);
       let fetchedComponents = {};
       for (const component in evaluatedSrc.Components) {
-        fetchedComponents = Object.assign(fetchedComponents, {
-          [component]: React.createElement(evaluatedSrc.Components[component]),
-        });
+        if (component) {
+          fetchedComponents = Object.assign(fetchedComponents, {
+            [component]: React.createElement(evaluatedSrc.Components[component]),
+          });
+        }
       }
       fetchedPackages = Object.assign(fetchedPackages, {
         [externalPackage.packageName]: fetchedComponents,
