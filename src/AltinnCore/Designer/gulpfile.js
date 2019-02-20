@@ -24,9 +24,11 @@ const jsServDevMonacoWorker1 = '../../react-apps/applications/service-developmen
 const jsServDevMonacoWorker2 = '../../react-apps/applications/service-development/js/react/typescript.worker.js';
 const jsDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.js';
 const jsUiEditorFile = '../../react-apps/applications/ux-editor/dist/react-app.js';
+const jsRuntimeFile = '../../react-apps/applications/runtime/dist/runtime.js';
 const cssServDevFile = '../../react-apps/applications/service-development/dist/service-development.css';
 const cssDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.css';
 const cssUiEditorFile = '../../react-apps/applications/ux-editor/dist/react-app.css';
+const cssRuntimeFile = '../../react-apps/applications/runtime/dist/runtime.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
@@ -157,6 +159,13 @@ function copyUiEditorJs() {
   return;
 }
 
+function copyRuntimeJs() {
+  setTimeout(function () {
+    gulp.src(jsRuntimeFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
+  }, 1000);
+  return;
+}
+
 function copyDashboardCss() {
   setTimeout(function () {
     gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
@@ -174,6 +183,13 @@ function copyServDevCss() {
 function copyUiEditorCss() {
   setTimeout(function () {
     gulp.src(cssUiEditorFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+  }, 1000);
+  return;
+}
+
+function copyRuntimeCss() {
+  setTimeout(function () {
+    gulp.src(cssRuntimeFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
   }, 1000);
   return;
 }
@@ -231,6 +247,15 @@ function setupWatchers(cb) {
     }
   }, 1000);
 
+  var checkRuntimeJsFile = setInterval(function () {
+    if (fs.existsSync(jsRuntimeFile)) {
+      jsWatcher = chokidar.watch(jsRuntimeFile);
+      // jsWatcher.on('ready', copyReactJs);
+      jsWatcher.on('change', copyRuntimeJs);
+      clearInterval(checkRuntimeJsFile);
+    }
+  }, 1000);
+
   var checkDashboardCssFile = setInterval(function () {
     if (fs.existsSync(cssDashboardFile)) {
       cssWatcher = chokidar.watch(cssDashboardFile);
@@ -255,6 +280,15 @@ function setupWatchers(cb) {
       // cssWatcher.on('ready', copyReactCss);
       cssWatcher.on('change', copyUiEditorCss);
       clearInterval(checkUiEditorCssFile);
+    }
+  }, 1000);
+
+  var checkRuntimeCssFile = setInterval(function () {
+    if (fs.existsSync(cssRuntimeFile)) {
+      cssWatcher = chokidar.watch(cssRuntimeFile);
+      // cssWatcher.on('ready', copyReactCss);
+      cssWatcher.on('change', copyRuntimeCss);
+      clearInterval(checkRuntimeCssFile);
     }
   }, 1000);
 
@@ -312,6 +346,13 @@ gulp.task('build-ux-editor', gulp.series(
   'copy-files'
 ));
 
+gulp.task('build-runtime', gulp.series(
+  run('npm run build', {
+    cwd: '../../react-apps/applications/runtime',
+  }),
+  'copy-files'
+));
+
 gulp.task('install-react-app-dependencies', gulp.series(
   run('lerna bootstrap --hoist', {
     cwd: '../../react-apps',
@@ -327,6 +368,9 @@ gulp.task('default', gulp.series([
   }),
   run('npm run build', {
     cwd: '../../react-apps/applications/ux-editor',
+  }),
+  run('npm run build', {
+    cwd: '../../react-apps/applications/runtime',
   }),
   'copy-files'
 ]));
