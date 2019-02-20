@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import GenericComponent from './GenericComponent';
+import { GenericComponent } from './GenericComponent';
 
 const styles = createStyles({
 
@@ -125,7 +125,6 @@ class FormComponent extends React.Component<
           handleDataChange={this.handleComponentDataUpdate}
           getTextResource={this.getTextResource}
           designMode={this.props.designMode}
-          thirdPartyComponents={this.props.thirdPartyComponents}
         />
       );
     } else {

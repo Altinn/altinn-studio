@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 import * as AppDataActions from '../../actions/appDataActions/actions';
@@ -99,4 +100,43 @@ export function* watchFetchLanguageSaga(): SagaIterator {
     AppDataActionTypes.FETCH_LANGUAGE,
     fetchLanguageSaga,
   );
+}
+function* fetchThirdPartyComponentsSaga(action: AppDataActions.IFetchThirdPartyComponent): SagaIterator {
+  try {
+    const fetchedDefinitions: any = yield call(get, action.location);
+    if (!fetchedDefinitions || !fetchedDefinitions.packages) {
+      yield call(
+        AppDataActionDispatchers.fetchThirdPartyComponentsFulfilled,
+        null,
+      );
+      return;
+    }
+    let fetchedPackages: any = {};
+    for (const externalPackage of fetchedDefinitions.packages) {
+      const fetchedSrc: any = yield call(get, externalPackage.location);
+      const evaluatedSrc: any = eval(fetchedSrc);
+      let fetchedComponents = {};
+      for (const component in evaluatedSrc.Components) {
+        fetchedComponents = Object.assign(fetchedComponents, {
+          [component]: React.createElement(evaluatedSrc.Components[component]),
+        });
+      }
+      fetchedPackages = Object.assign(fetchedPackages, {
+        [externalPackage.packageName]: fetchedComponents,
+      });
+    }
+    yield call(
+      AppDataActionDispatchers.fetchThirdPartyComponentsFulfilled,
+      fetchedPackages,
+    );
+  } catch (err) {
+    yield call(
+      AppDataActionDispatchers.fetchThirdPartyComponentsRejected,
+      err,
+    );
+  }
+}
+
+export function* watchFetchThirdPartyComponentsSaga(): SagaIterator {
+  yield takeLatest(AppDataActionTypes.FETCH_THIRD_PARTY_COMPONENTS, fetchThirdPartyComponentsSaga);
 }
