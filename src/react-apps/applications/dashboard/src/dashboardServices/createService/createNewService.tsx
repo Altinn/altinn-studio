@@ -38,6 +38,9 @@ const styles = createStyles({
     padding: '5px 45px 5px 45px',
     height: '37px !Important',
   },
+  popperZIndex: {
+    zIndex: 1300,
+  },
 });
 
 export class CreateNewServiceComponent extends React.Component<ICreateNewServiceProps, ICreateNewServiceState> {
@@ -198,7 +201,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
         >
           <AltinnDropdown
             id={'service-owner'}
-            inputHeader={getLanguageFromKey('dashboard.service_owner', this.props.language)}
+            inputHeader={getLanguageFromKey('general.service_owner', this.props.language)}
             inputDescription={getLanguageFromKey('dashboard.service_owner_description', this.props.language)}
             handleChange={this.handleUpdateDropdown}
             dropdownItems={this.props.selectableUser}
@@ -208,10 +211,11 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           <AltinnPopper
             anchorEl={this.state.serviceOwnerAnchorEl}
             message={this.state.serviceOwnerPopperMessage}
+            styleObj={classes.popperZIndex}
           />
           <AltinnInputField
             id={'service-name'}
-            inputHeader={getLanguageFromKey('dashboard.service_name', this.props.language)}
+            inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
             inputDescription={getLanguageFromKey('dashboard.service_name_description', this.props.language)}
             inputValue={this.state.serviceName}
             onChangeFunction={this.handleServiceNameUpdated}
@@ -219,14 +223,15 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           />
           <AltinnInputField
             id={'service-saved-name'}
-            inputHeader={getLanguageFromKey('dashboard.service_saved_name', this.props.language)}
-            inputDescription={getLanguageFromKey('dashboard.service_saved_name_descripyion', this.props.language)}
+            inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
+            inputDescription={getLanguageFromKey('dashboard.service_saved_name_description', this.props.language)}
             inputValue={this.state.repoName}
             onChangeFunction={this.handleRepoNameUpdated}
           />
           <AltinnPopper
             anchorEl={this.state.repoNameAnchorEl}
             message={this.state.repoNamePopperMessage}
+            styleObj={classes.popperZIndex}
           />
           {this.state.isLoading ?
             <AltinnSpinner

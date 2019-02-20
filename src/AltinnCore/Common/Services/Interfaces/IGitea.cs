@@ -35,6 +35,14 @@ namespace AltinnCore.Common.Services.Interfaces
         Task<SearchResults> SearchRepository(bool onlyAdmin, string keyWord, int page);
 
         /// <summary>
+        /// Fetch the repository information of a given owner and service
+        /// </summary>
+        /// <param name="owner">the owner of the repository</param>
+        /// <param name="repository">the repository</param>
+        /// <returns>Information about the repository of the given owner</returns>
+        Task<Repository> GetRepository(string owner, string repository);
+
+        /// <summary>
         /// Returns organization that user has access to
         /// </summary>
         /// <returns>A list over organizations</returns>

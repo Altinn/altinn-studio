@@ -11,6 +11,7 @@ import { FormFiller } from './containers/FormFiller';
 
 // tslint:disable-next-line:no-implicit-dependencies
 import { Route } from 'react-router';
+import WorkflowActionDispatcher from './actions/workflowActions/worflowActionDispatcher';
 export interface IAppComponentProps { }
 
 export interface IAppCompoentState { }
@@ -72,6 +73,10 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       // Fetch service configuration
       manageServiceConfigurationActionDispatcher.fetchJsonFile(
         `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/ServiceConfigurations.json`);
+
+      // Fetch current workflow state
+      WorkflowActionDispatcher.getCurrentState(
+        `${altinnWindow.location.origin}/runtime/${servicePath}/${instanceId}/GetCurrentState?reporteeId=${reportee}`);
 
       // Fetch language
       appDataActionDispatcher.fetchLanguage(
