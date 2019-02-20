@@ -169,7 +169,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public renderComponentSpecificContent(): JSX.Element {
-    console.log(this.props.component);
     switch (this.props.component.component) {
       case 'Header': {
         const sizes = [
