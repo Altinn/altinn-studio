@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Runtime.Db.Models;
-using AltinnCore.Runtime.Db.Repository;
+using AltinnCore.Runtime.DataService.Models;
+using AltinnCore.Runtime.DataService.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
-namespace AltinnCore.Runtime.Db.Controllers
+namespace AltinnCore.Runtime.DataService.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("runtimedbapi/[controller]")]
     public class ReporteeElementController : Controller
     {
         private readonly IReporteeElementRepository _reporteeElementRepository;
@@ -31,7 +31,7 @@ namespace AltinnCore.Runtime.Db.Controllers
             return new string[] { "value1", "value2" };
         }
 
-        // GET api/<controller>/?reporteeElementId
+        // GET api/<controller>/{reporteeId}/?reporteeElementId
         [HttpGet("{reporteeId}")]
         public async Task<ActionResult> Get(string reporteeId, string reporteeElementId)
         {

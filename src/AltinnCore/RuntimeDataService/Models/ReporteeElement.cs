@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Runtime.Db.Models
+namespace AltinnCore.Runtime.DataService.Models
 {
     /// <summary>
     /// Model for the reportee element
@@ -140,7 +140,7 @@ namespace AltinnCore.Runtime.Db.Models
         /// <summary>
         /// the attachment list associated witht the reportee element
         /// </summary>
-        [JsonProperty(PropertyName = "Attachments")]
+        [JsonProperty(PropertyName = "attachments")]
         public Attachments ReporteeElementAttachment { get; set; }
 
         /// <summary>

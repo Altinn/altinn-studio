@@ -4,8 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AltinnCore.Runtime.Db.Configuration;
-using AltinnCore.Runtime.Db.Models;
+using AltinnCore.Runtime.DataService.Configuration;
+using AltinnCore.Runtime.DataService.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
@@ -15,7 +15,7 @@ using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Runtime.Db.Repository
+namespace AltinnCore.Runtime.DataService.Repository
 {
     /// <summary>
     /// repository for form data

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
-using AltinnCore.Runtime.Db.Models;
+using AltinnCore.Runtime.DataService.Models;
 
-namespace AltinnCore.Runtime.Db.Repository
+namespace AltinnCore.Runtime.DataService.Repository
 {
     public interface IReporteeElementRepository
     {
@@ -18,7 +18,7 @@ namespace AltinnCore.Runtime.Db.Repository
         /// </summary>
         /// <param name="item">the form data</param>
         /// <returns>The reportee element inserted into collection</returns>
-        Task<ReporteeElement> InsertReporteeElementIntoCollectionAsync(ReporteeElement item);
+        Task<string> InsertReporteeElementIntoCollectionAsync(ReporteeElement item);
 
         /// <summary>
         /// update existing reportee element

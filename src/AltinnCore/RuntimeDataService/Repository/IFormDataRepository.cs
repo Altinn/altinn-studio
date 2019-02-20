@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Runtime.Db.Models;
+using AltinnCore.Runtime.DataService.Models;
 
-namespace AltinnCore.Runtime.Db.Repository
+namespace AltinnCore.Runtime.DataService.Repository
 {
     /// <summary>
     /// the interface contains methods for operations on form data document

@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Extensions.Logging;
 
-namespace AltinnCore.Runtime.Db
+namespace AltinnCore.Runtime.DataService
 {
     public class Program
     {

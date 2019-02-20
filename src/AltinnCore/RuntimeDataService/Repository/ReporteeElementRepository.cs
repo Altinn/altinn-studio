@@ -1,15 +1,15 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Runtime.Db.Configuration;
-using AltinnCore.Runtime.Db.Models;
+using AltinnCore.Runtime.DataService.Configuration;
+using AltinnCore.Runtime.DataService.Models;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Runtime.Db.Repository
+namespace AltinnCore.Runtime.DataService.Repository
 {
     public class ReporteeElementRepository : IReporteeElementRepository
     {
@@ -44,14 +44,15 @@ namespace AltinnCore.Runtime.Db.Repository
         /// </summary>
         /// <param name="item">the form data</param>
         /// <returns>The deserialized formdata saved to file</returns>
-        public async Task<ReporteeElement> InsertReporteeElementIntoCollectionAsync(ReporteeElement item)
+        public async Task<string> InsertReporteeElementIntoCollectionAsync(ReporteeElement item)
         {
             try
             {
                 var document = await _client.CreateDocumentAsync(_collectionUri, item);
                 var res = document.Resource;
                 var formData = JsonConvert.DeserializeObject<ReporteeElement>(res.ToString());
-                return formData;
+
+                return formData.Id;
             }
             catch (Exception ex)
             {
@@ -69,8 +70,10 @@ namespace AltinnCore.Runtime.Db.Repository
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM REPORTEEELEMENT WHERE REPORTEEELEMENT.reporteeElementId = '{reporteeElementId}'";
-                IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId) }).AsDocumentQuery();
+                string sqlQuery = $"SELECT * FROM REPORTEEELEMENT WHERE REPORTEEELEMENT.id = '{reporteeElementId}'";
+
+                //IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId) }).AsDocumentQuery();
+                IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { EnableCrossPartitionQuery = true}).AsDocumentQuery();
                 ReporteeElement reporteeElement = null;
                 while (query.HasMoreResults)
                 {

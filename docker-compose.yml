@@ -36,6 +36,7 @@ services:
     depends_on:
       - altinn_repositories
       - altinn_designer
+      - altinn_dataservice
     build:
       context: ./src/LoadBalancer
 
@@ -112,12 +113,12 @@ services:
       context: .
       dockerfile: src/AltinnRepositories/Dockerfile
 
-  altinn_runttimedb:
-    container_name: altinn-runtimedb
-    image: altinncoreruntimedb:latest
+  altinn_dataservice:
+    container_name: altinn-dataservice
+    image: altinncoredataservice:latest
     restart: always
     ports:
-      - "44355:44355"
+      - "6000:6000"
     build:
       context: .
-      dockerfile: src/AltinnCore/RuntimeDb/Dockerfile
+      dockerfile: src/AltinnCore/RuntimeDataService/Dockerfile
