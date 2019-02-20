@@ -120,6 +120,7 @@ function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
   copyUiEditorJs();
+  copyRuntimeJs();
   cb();
   return;
 }
@@ -128,6 +129,7 @@ function copyReactCss(cb) {
   copyDashboardCss();
   copyServDevCss();
   copyUiEditorCss();
+  copyRuntimeCss();
   cb();
   return;
 }
