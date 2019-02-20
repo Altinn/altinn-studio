@@ -59,7 +59,7 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
         <Router>
           <div>
             <AppBarComponent
-              org={this.props.user.full_name || this.props.user.login}
+              org={this.props.user ? this.props.user.full_name || this.props.user.login : ''}
               service=' '
               logoutButton={true}
               showSubHeader={false}

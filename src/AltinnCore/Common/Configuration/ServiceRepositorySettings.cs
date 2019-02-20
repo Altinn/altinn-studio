@@ -76,7 +76,10 @@ namespace AltinnCore.Common.Configuration
         private const string TEMP_LOCATION = "Temp/";
         private const string TESTDATA_FOLDER_NAME = "Data/";
 
-        private const string METADATA_FILENAME = "ServiceMetadata.json";
+        /// <summary>
+        /// Constant for the location of service metadata file
+        /// </summary>
+        public const string METADATA_FILENAME = "ServiceMetadata.json";
         private const string GENERATED_METHODS_FILENAME = "GeneratedMethods.cs";
 
         /// <summary>
@@ -532,6 +535,15 @@ namespace AltinnCore.Common.Configuration
         public string GetMetadataFolder()
         {
             return METADATA_FOLDER_NAME;
+        }
+
+        /// <summary>
+        /// Returns the Metadata file name
+        /// </summary>
+        /// <returns>The metadata file name</returns>
+        public string GetMetadataJsonFile()
+        {
+            return METADATA_FILENAME;
         }
 
         /// <summary>

@@ -77,6 +77,14 @@ namespace AltinnCore.Common.Services.Interfaces
         List<Commit> Log(string owner, string repository);
 
         /// <summary>
+        /// Gets initial commit
+        /// </summary>
+        /// <param name="owner">The owner of the repository</param>
+        /// <param name="repository">The name of the repository</param>
+        /// <returns>The first commits</returns>
+        Commit GetInitialCommit(string owner, string repository);
+
+        /// <summary>
         /// Gets the latest commit for current user
         /// </summary>
         /// <param name="owner">The owner of the repository</param>

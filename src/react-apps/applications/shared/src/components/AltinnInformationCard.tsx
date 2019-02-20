@@ -81,6 +81,15 @@ const styles = () => createStyles({
       paddingBottom: 53,
     },
   },
+  scrollable: {
+    overflowY: 'auto',
+    [theme.breakpoints.up('md')]: {
+      marginBottom: '40px',
+    },
+    [theme.breakpoints.down('sm')]: {
+      marginBottom: '-15px',
+    },
+  },
 });
 
 class AltinnInformationCard extends
@@ -103,6 +112,7 @@ class AltinnInformationCard extends
           spacing={0}
           justify={'center'}
           alignContent={'center'}
+          className={classNames(classes.scrollable)}
         >
 
           <Grid
