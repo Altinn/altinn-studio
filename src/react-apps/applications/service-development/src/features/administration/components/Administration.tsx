@@ -24,13 +24,17 @@ export interface IAdministrationComponentProps extends IAdministrationComponentP
   initialCommit: ICommit;
   serviceDescription: string;
   serviceDescriptionIsSaving: boolean;
+  serviceId: string;
+  serviceIdIsSaving: boolean;
 }
 
 export interface IAdministrationComponentState {
   serviceDescription: string;
   serviceName: string;
+  serviceId: string;
   editServiceName: boolean;
   editServiceDescription: boolean;
+  editServiceId: boolean;
   serviceNameAnchorEl: any;
 }
 
@@ -95,25 +99,37 @@ export class AdministrationComponent extends
       return {
         serviceName: _state.serviceName,
         serviceDescription: _props.serviceDescription,
+        serviceId: _props.serviceId,
       };
     }
     if (_state.editServiceDescription || _props.serviceDescriptionIsSaving) {
       return {
         serviceDescription: _state.serviceDescription,
         serviceName: _props.serviceName,
+        serviceId: _props.serviceId,
+      };
+    }
+    if (_state.editServiceId || _props.serviceIdIsSaving) {
+      return {
+        serviceDescription: _props.serviceDescription,
+        serviceName: _props.serviceName,
+        serviceId: _state.serviceId,
       };
     }
     return {
       serviceDescription: _props.serviceDescription,
       serviceName: _props.serviceName,
+      serviceId: _props.serviceId,
     };
   }
 
   public state: IAdministrationComponentState = {
     serviceDescription: '',
     serviceName: this.props.serviceName,
+    serviceId: '',
     editServiceName: false,
     editServiceDescription: false,
+    editServiceId: false,
     serviceNameAnchorEl: null,
   };
 
@@ -127,8 +143,8 @@ export class AdministrationComponent extends
       `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchServiceName(
       `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
-    handleServiceInformationActionDispatchers.fetchServiceDescription(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceDescription`);
+    handleServiceInformationActionDispatchers.fetchServiceConfig(
+      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceConfig`);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -151,7 +167,9 @@ export class AdministrationComponent extends
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceName(`${altinnWindow.location.origin}/designer/${org}/${service}/Text/SetServiceName`, this.state.serviceName);
-      this.setState({ editServiceName: false });
+      if (!(this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === ''))) {
+        this.setState({ editServiceName: false });
+      }
     }
   }
 
@@ -164,8 +182,22 @@ export class AdministrationComponent extends
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceDescription(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceDescription`, this.state.serviceDescription);
+      handleServiceInformationActionDispatchers.saveServiceConfig(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`, this.state.serviceDescription, this.state.serviceId);
       this.setState({ editServiceDescription: false });
+    }
+  }
+
+  public onServiceIdChanged = (event: any) => {
+    this.setState({ serviceId: event.target.value, editServiceId: true });
+  }
+
+  public onBlurServiceId = () => {
+    if (this.state.editServiceId) {
+      const altinnWindow: any = window;
+      const { org, service } = altinnWindow;
+      // tslint:disable-next-line:max-line-length
+      handleServiceInformationActionDispatchers.saveServiceConfig(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`, this.state.serviceDescription, this.state.serviceId);
+      this.setState({ editServiceId: false });
     }
   }
 
@@ -175,7 +207,8 @@ export class AdministrationComponent extends
     return (
       <div className={classes.mainLayout}>
         <VersionControlHeader language={this.props.language} />
-        {this.props.service || this.props.serviceName === null || this.props.serviceDescription === null ?
+        {this.props.service && this.props.serviceName !== null
+          && this.props.serviceDescription !== null && this.props.serviceId !== null ?
           <Grid container={true} className={classes.layout}>
             <Grid item={true} className={classes.mainStyle} md={12}>
               <Typography className={classes.headerStyle}>
@@ -196,12 +229,20 @@ export class AdministrationComponent extends
                 isDisabled={!this.state.editServiceName}
                 focusOnComponentDidUpdate={this.state.editServiceName}
                 inputFieldStyling={this.state.editServiceName ?
-                  { background: theme.altinnPalette.primary.white } :
-                  { border: '1px solid ' + theme.altinnPalette.primary.blueDark }}
+                  { background: theme.altinnPalette.primary.white } : null}
               />
               <AltinnPopper
                 anchorEl={this.state.serviceNameAnchorEl}
                 message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
+              />
+              <AltinnInputField
+                id='service-id'
+                onChangeFunction={this.onServiceIdChanged}
+                inputHeader={getLanguageFromKey('administration.service_id', this.props.language)}
+                // tslint:disable-next-line:max-line-length
+                inputDescription={getLanguageFromKey('administration.service_id_description', this.props.language)}
+                inputValue={this.state.serviceId}
+                onBlurFunction={this.onBlurServiceId}
               />
               <AltinnInputField
                 id='repo-name'
@@ -272,7 +313,8 @@ const mapStateToProps = (
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
     // tslint:disable-next-line:max-line-length
     serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
-
+    serviceId: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.serviceId : '',
+    serviceIdIsSaving: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.saving : false,
   };
 };
 

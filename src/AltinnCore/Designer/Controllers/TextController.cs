@@ -146,15 +146,15 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method to retrieve service name from textresources file
         /// </summary>
-        /// <param name="owner">the owner of the service</param>
+        /// <param name="org">the owner of the service</param>
         /// <param name="service">the service</param>
         /// <returns>The service name of the service</returns>
         [HttpGet]
-        public string GetServiceName(string owner, string service)
+        public string GetServiceName(string org, string service)
         {
             string defaultLang = "nb-NO";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             string serviceName = string.Empty;
 
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
@@ -173,15 +173,15 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method to save the updated service name to the textresources file
         /// </summary>
-        /// <param name="owner">the owner of the service</param>
+        /// <param name="org">the owner of the service</param>
         /// <param name="service">the service</param>
         /// <param name="serviceName">The service name</param>
         [HttpPost]
-        public void SetServiceName(string owner, string service, [FromBody] dynamic serviceName)
+        public void SetServiceName(string org, string service, [FromBody] dynamic serviceName)
         {
             string defaultLang = "nb-NO";
             string filename = $"resource.{defaultLang}.json";
-            string serviceResourceDirectoryPath = _settings.GetResourcePath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
+            string serviceResourceDirectoryPath = _settings.GetResourcePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + filename;
             if (System.IO.File.Exists(serviceResourceDirectoryPath))
             {
                 string textResource = System.IO.File.ReadAllText(serviceResourceDirectoryPath, Encoding.UTF8);
@@ -193,7 +193,7 @@ namespace AltinnCore.Designer.Controllers
                     textResourceObject.Add("ServiceName", serviceName.serviceName.ToString());
                 }
 
-                _repository.SaveResource(owner, service, "nb-NO", JObject.FromObject(textResourceObject).ToString());
+                _repository.SaveResource(org, service, "nb-NO", JObject.FromObject(textResourceObject).ToString());
             }
             else
             {
@@ -202,7 +202,7 @@ namespace AltinnCore.Designer.Controllers
                     language = "nb-NO",
                     resources = new[] { new { id = "ServiceName", value = serviceName.serviceName.ToString() } },
                 });
-                _repository.SaveResource(owner, service, "nb-NO", json.ToString());
+                _repository.SaveResource(org, service, "nb-NO", json.ToString());
             }
         }
     }
