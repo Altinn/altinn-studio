@@ -37,13 +37,52 @@ namespace AltinnCore.UnitTest.Common
 
             Assert.NotNull(instanceModel);
             JsonObject actualElements = instanceModel.TryGetObject("Elements");
-            Assert.Equal(158, actualElements.Count);
+            Assert.Equal(410, actualElements.Count);
 
             string metadataAsJson = instanceModel.ToString();
 
             File.WriteAllText("edag1.instance-model.json", metadataAsJson);
         }
 
+        /// <summary>
+        ///  fantastisk
+        /// </summary>
+        [Fact]
+        public void TextGenerationOk()
+        {
+            var schemaText = File.ReadAllText("Common/jsd/service-model.schema.json");
+            var schemaJson = JsonValue.Parse(schemaText);
+            var schema = new JsonSerializer().Deserialize<JsonSchema>(schemaJson);
+
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "ServiceModel", schema);
+
+            JsonObject instanceModel = converter.GetInstanceModel();
+
+            Assert.NotNull(instanceModel);
+            JsonObject actualElements = instanceModel.TryGetObject("Elements");
+
+            // Assert.Equal(410, actualElements.Count);
+
+            string metadataAsJson = instanceModel.GetIndentedString();
+
+            File.WriteAllText("service-model.instance-model.json", metadataAsJson);
+
+            JsonSerializer json = new JsonSerializer();
+            Dictionary<string, Dictionary<string, string>> textDictionary = new Dictionary<string, Dictionary<string, string>>();
+            Mock<IRepository> moqRepository = new Mock<IRepository>();
+            moqRepository
+                .Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>())).Returns(textDictionary);
+            ServiceMetadata serviceMetadata = SeresXSDParse(moqRepository, "Common/xsd/ServiceModel.xsd");
+            JsonValue serviceMetadataValue = json.Serialize<ServiceMetadata>(serviceMetadata);
+            File.WriteAllText("service-model.instance-model.old.json", serviceMetadataValue.GetIndentedString());
+
+            SortedDictionary<string, Dictionary<string, string>> oldTexts = new SortedDictionary<string, Dictionary<string, string>>(textDictionary);
+            SortedDictionary<string, Dictionary<string, string>> newTexts = new SortedDictionary<string, Dictionary<string, string>>(converter.GetTexts());
+            
+            File.WriteAllText("service-model.texts.old.json", json.Serialize(new Dictionary<string, Dictionary<string, string>>(oldTexts)).GetIndentedString());
+            File.WriteAllText("service-model.texts.json", json.Serialize(new Dictionary<string, Dictionary<string, string>>(newTexts)).GetIndentedString());
+        }
+        
         /// <summary>
         ///  nokså fantastisk
         /// </summary>
@@ -69,9 +108,7 @@ namespace AltinnCore.UnitTest.Common
                     JsonObject instanceModel = converter.GetInstanceModel();
 
                     // XSD to Json Schema metadata using obsolete SeresXsdParser
-                    SeresXsdParser seresParser = new SeresXsdParser(moqRepository.Object);
-                    XDocument mainXsd = XDocument.Load(file);
-                    ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "service", mainXsd, null);
+                    ServiceMetadata serviceMetadata = SeresXSDParse(moqRepository, file);
                     JsonValue serviceMetadataValue = new JsonSerializer().Serialize<ServiceMetadata>(serviceMetadata);
 
                     if (!instanceModel["Elements"].Equals(serviceMetadataValue.Object["Elements"]))
@@ -88,6 +125,14 @@ namespace AltinnCore.UnitTest.Common
             }
 
             /*Assert.Equal(0, failCount + mismatchCount);*/
+        }
+
+        private static ServiceMetadata SeresXSDParse(Mock<IRepository> moqRepository, string file)
+        {
+            SeresXsdParser seresParser = new SeresXsdParser(moqRepository.Object);
+            XDocument mainXsd = XDocument.Load(file);
+            ServiceMetadata serviceMetadata = seresParser.ParseXsdToServiceMetadata("org", "service", mainXsd, null);
+            return serviceMetadata;
         }
 
         /// <summary>
@@ -114,7 +159,7 @@ namespace AltinnCore.UnitTest.Common
             JsonObject actualElementsAfterExpand = instanceModelAfterExpand.TryGetObject("Elements");
             JsonObject nameElement = actualElementsAfterExpand.TryGetObject(path + ".navn");
             Assert.NotNull(nameElement);
-            Assert.Equal(10, actualElementsAfterExpand.Count);
+            Assert.Equal(18, actualElementsAfterExpand.Count);
 
             // test remove path
             JsonObject modelAfterRemovePath = converter.RemovePath(path);

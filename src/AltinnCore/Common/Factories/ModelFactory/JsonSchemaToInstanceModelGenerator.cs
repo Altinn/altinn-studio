@@ -1,9 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
+using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
 using Manatee.Json;
 using Manatee.Json.Schema;
+using Manatee.Json.Serialization;
 
 namespace AltinnCore.Common.Factories.ModelFactory
 {
@@ -16,6 +20,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private const int MagicNumberMaxOccurs = 99999;
 
         private Dictionary<string, JsonSchema> definitions = new Dictionary<string, JsonSchema>();
+        private Dictionary<string, Dictionary<string, string>> allTexts = new Dictionary<string, Dictionary<string, string>>();
         private JsonObject instanceModel = new JsonObject();
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
@@ -57,6 +62,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return instanceModel;
         }
 
+        /// <summary>
+        ///  Returns the texts found when parsing the Schema
+        /// </summary>
+        /// <returns></returns>
+        public Dictionary<string, Dictionary<string,string>> GetTexts()
+        {
+            return allTexts;
+        }
+
         private JsonObject GenerateInitialReferences()
         {                                
             string title = jsonSchema.Title();
@@ -69,7 +83,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             // Handle all properties
             foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
             {
-                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>());
+                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema);
             }
 
             return instanceModel;
@@ -107,7 +121,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             {
                 foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
                 {
-                    TraverseModell(path, typeName, def.Key, def.Value, false, new HashSet<string>());
+                    TraverseModell(path, typeName, def.Key, def.Value, false, new HashSet<string>(), jsonSchema);
                 }
             }
             catch (Exception e)
@@ -175,7 +189,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             return XsdToJsonSchema.SanitizeName(name);
         }
 
-        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes)
+        private void TraverseModell(string parentPath, string parentTypeName, string propertyName, JsonSchema propertyType, bool isRequired, ISet<string> alreadyVisitedTypes, JsonSchema parentType)
         {
             string sanitizedPropertyName = SanitizeName(propertyName);
             string path;
@@ -271,16 +285,23 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("XPath", "/" + path.Replace(".", "/"));
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
-            //result.Add("Choices", null);
 
             result.Add("Type", inputType);
 
             if (!string.IsNullOrEmpty(xsdValueType))
             {
-                result.Add("XsdValueType", char.ToUpper(xsdValueType[0]) + xsdValueType.Substring(1)); //Uppercase first character
+                result.Add("XsdValueType", char.ToUpper(xsdValueType[0]) + xsdValueType.Substring(1)); // Uppercase first character
             }
 
-            result.Add("Texts", new JsonObject()); // TODO
+            if (path.EndsWith(".value"))
+            {
+                result.Add("Texts", ExtractTexts(parentElement.Split(".").Last(), parentType));
+            }
+            else
+            {
+                result.Add("Texts", ExtractTexts(propertyName, propertyType));
+            }
+
             result.Add("CustomProperties", new JsonObject()); // ??
 
             result.Add("MaxOccurs", maxItems.Equals("*") ? MagicNumberMaxOccurs : int.Parse(maxItems));
@@ -305,8 +326,104 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string displayString = RemoveLastStar(path) + " : " + cardinality + " " + SanitizeName(typeName);
             result.Add("DisplayString", displayString);
 
-            // TODO, add texts, ..., XmlSchemaReference
+            // TODO ..., XmlSchemaReference
             elements.Add(path, result);
+        }
+
+        private JsonValue ExtractTexts(string propertyName, JsonSchema propertyType)
+        {
+            JsonObject result = new JsonObject();
+
+            JsonValue otherData = propertyType.OtherData;
+            if (otherData == null)
+            {
+                return result;
+            }
+
+            JsonValue texts = otherData.Object.GetValueOrDefault("texts");
+           
+            if (texts != null)
+            {
+                foreach (string textType in texts.Object.Keys)
+                {
+                    JsonValue language = texts.Object.GetValueOrDefault(textType);
+
+                    string textKey = TextTypeFormat(propertyName, textType);
+
+                    result.Add(TextTypeFormat(textType), textKey);
+
+                    Dictionary<string, string> languageWithText = new Dictionary<string, string>();
+
+                    foreach (string lang in language.Object.Keys)
+                    {
+                        string textMessage = language.Object.TryGetString(lang);
+
+                        languageWithText.Add(LanguageCode(lang), textMessage);
+                    }
+
+                    if (!allTexts.ContainsKey(textKey))
+                    {
+                        allTexts.Add(textKey, languageWithText);
+                    }
+                }
+            }            
+
+            return result;
+        }
+
+        private string TextTypeFormat(string propertyName, string textType)
+        {
+            string number = string.Concat(propertyName.ToArray().Reverse().TakeWhile(char.IsNumber).Reverse());
+            if (!string.IsNullOrEmpty(number))
+            {
+                number += ".";
+            }
+
+            string textKey = number + propertyName.Replace("-", string.Empty) + "." + TextTypeFormat(textType);
+            return textKey;
+        }
+
+        private static string LanguageCode(string lang)
+        {
+            string langLocale = lang;
+            switch (lang)
+            {
+                case "NOB":
+                    langLocale = "nb-NO";
+                    break;
+                case "NNO":
+                case "NON":
+                    langLocale = "nn-NO";
+                    break;
+                case "SME":
+                    langLocale = "se-NO";
+                    break;
+                case "EN":
+                    langLocale = "en";
+                    break;
+            }
+
+            return langLocale;
+        }
+
+        private string TextTypeFormat(string textType)
+        {
+            switch (textType)
+            {
+                case "DEF":
+                    return "Def";
+
+                case "LEDE":
+                    return "Label";
+
+                case "HINT":
+                    return "PlaceHolder";
+
+                case "HJELP":
+                    return "Help";
+            }
+
+            return textType;
         }
 
         private string ExtractTypeNameFromSchema(JsonSchema jSchema)
@@ -507,7 +624,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                     {
                         foreach (KeyValuePair<string, JsonSchema> def in schema.Properties())
                         {
-                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes);
+                            TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, schema), currentlyVisitedTypes, jSchema);
                         }
                     }
                     else if (schema.OneOf() != null)
@@ -522,7 +639,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 foreach (KeyValuePair<string, JsonSchema> def in oneOfSchema.Properties())
                                 {
-                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes);
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, oneOfSchema), currentlyVisitedTypes, jSchema);
                                 }
                             }
                         }
@@ -539,7 +656,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                             {
                                 foreach (KeyValuePair<string, JsonSchema> def in allOfSchema.Properties())
                                 {
-                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes);
+                                    TraverseModell(path, typeName, def.Key, def.Value, IsRequired(def.Key, allOfSchema), currentlyVisitedTypes, jSchema);
                                 }
                             }
                         }

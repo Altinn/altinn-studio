@@ -1743,24 +1743,5 @@ namespace AltinnCore.Common.Factories.ModelFactory
         {
             return name.Replace("-", string.Empty);
         }
-
-        /// <summary>
-        /// Parses XSD into JSON Schema and return it as ServiceMetadata
-        /// </summary>
-        /// <param name="org">The organization the service belongs to</param>
-        /// <param name="serviceName">The service name</param>
-        /// <param name="xsdReader">Reader for the XSD</param>
-        /// <param name="logger">The logger</param>
-        /// <returns>The ServiceMetadata</returns>
-        public static ServiceMetadata ParseXsdToServiceMetadata(string org, string serviceName, XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
-        {
-            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader, logger);
-            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, serviceName, schemaJsonSchema);
-            JsonObject instanceModel = converter.GetInstanceModel();
-
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceMetadata>(instanceModel.GetIndentedString());
-        }
     }
 }

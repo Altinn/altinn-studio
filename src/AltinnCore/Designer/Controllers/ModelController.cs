@@ -7,6 +7,8 @@ using System.Xml.Linq;
 using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using Manatee.Json;
+using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -67,11 +69,11 @@ namespace AltinnCore.Designer.Controllers
 
             MemoryStream xsdMemoryStream = new MemoryStream();
             thefile.OpenReadStream().CopyTo(xsdMemoryStream);
-
+           
             ServiceMetadata serviceMetadata;
             xsdMemoryStream.Position = 0;
             XmlReader reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
-            serviceMetadata = XsdToJsonSchema.ParseXsdToServiceMetadata(org, service, reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+            serviceMetadata = ParseXsdToServiceMetadata(org, service, reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
 
             xsdMemoryStream.Position = 0;
             reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
@@ -83,6 +85,20 @@ namespace AltinnCore.Designer.Controllers
             }
 
             return Json(false);
+        }
+
+        /// <summary>
+        /// Parses XSD into JSON Schema and return it as ServiceMetadata
+        /// </summary>
+        private ServiceMetadata ParseXsdToServiceMetadata(string org, string serviceName, XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
+        {
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader, logger);
+            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, serviceName, schemaJsonSchema);
+            JsonObject instanceModel = converter.GetInstanceModel();
+
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceMetadata>(instanceModel.GetIndentedString());
         }
 
         /// <summary>
