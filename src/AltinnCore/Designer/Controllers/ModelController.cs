@@ -74,7 +74,7 @@ namespace AltinnCore.Designer.Controllers
 
             ServiceMetadata serviceMetadata = null;
 
-            bool useOldParser = true;
+            bool useOldParser = false;
             if (useOldParser)
             {
                 var seresParser = new SeresXsdParser(_repository);
