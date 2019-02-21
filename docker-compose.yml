@@ -73,6 +73,7 @@ services:
       - altinn_repositories
       - altinn_dashboard
       - altinn_service_development
+      - altinn_runtime_app
     build:
       context: .
       dockerfile: src/AltinnCore/Designer/Dockerfile
