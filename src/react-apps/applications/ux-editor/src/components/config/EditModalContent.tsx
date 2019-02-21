@@ -218,7 +218,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.props.textResources,
               this.props.language,
               this.props.component.textResourceBindings.title)}
-            {this.renderValidationTriggerOption()}
           </Grid>
         );
       }
@@ -447,19 +446,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     });
   }
 
-  public handleToggleValidationTrigger = (event: any, checked: boolean) => {
-    this.setState({
-      component: {
-        ...this.state.component,
-        triggerValidation: checked,
-      },
-    });
-    this.props.handleComponentUpdate({
-        ...this.props.component,
-        triggerValidation: checked,
-    });
-  }
-
   public renderTextResourceOptions = (): JSX.Element[] => {
     if (!this.props.textResources) {
       return null;
@@ -474,17 +460,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           </option>
         );
       }));
-  }
-
-  public renderValidationTriggerOption = (): JSX.Element => {
-    return (
-      <AltinnSwitch
-        checked={this.props.component.triggerValidation}
-        id={this.props.component.component + this.props.component.id}
-        onChangeFunction={this.handleToggleValidationTrigger}
-        switchHeader={this.props.language.ux_editor.modal_properties_trigger_validation_label}
-      />
-    );
   }
 
   public render(): JSX.Element {
