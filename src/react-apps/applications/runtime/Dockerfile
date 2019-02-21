@@ -1,13 +1,21 @@
 # base image
-FROM node:10.13.0
+FROM node:10.13.0  AS generate-runtime-app
 
-# set working directory
-RUN mkdir /usr/src/app
-WORKDIR /usr/src/app
-
-# install and cache app dependencies
-COPY package.json /usr/src/app/package.json
+# Copy and install Lerna
+COPY ./src/react-apps/lerna.json .
+COPY ./src/react-apps/package.json .
+COPY ./src/react-apps/package-lock.json .
 RUN npm install
 
-# start app
-CMD ["npm", "start"]
+# Copy shared and runtime
+COPY ./src/react-apps/applications/shared/ /applications/shared/
+COPY ./src/react-apps/applications/runtime/ /applications/runtime/
+
+# Install
+RUN npm run install-deps
+
+# Build runtime
+RUN npm run build --prefix /applications/runtime
+
+CMD ["echo", "done"]
+
