@@ -186,7 +186,7 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
             </div>
             <div className={classes.descriptionStyle}>
               <Typography className={classes.descriptionHeader}>
-                {getLanguageFromKey('dashboard.description_header', this.props.language)}
+                {getLanguageFromKey('general.service_description_header', this.props.language)}
               </Typography>
               <Typography className={classes.fontSize_16}>
                 {repoInfo.description ||
