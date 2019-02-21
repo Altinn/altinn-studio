@@ -406,6 +406,7 @@ namespace AltinnCore.Runtime.Controllers
                 apiResult.InstanceId = instanceId;
                 apiResult.Status = ApiStatusType.Ok;
                 apiResult.NextStepUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+                apiResult.NextState = currentState.State;
                 return new ObjectResult(apiResult);
             }
 
@@ -604,7 +605,7 @@ namespace AltinnCore.Runtime.Controllers
                     };
                     foreach (ModelError error in entry.Errors)
                     {
-                            apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
+                        apiEntry.Errors.Add(new ApiModelError() { ErrorMessage = ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
                     }
 
                     apiResult.ModelStateEntries.Add(apiEntry);

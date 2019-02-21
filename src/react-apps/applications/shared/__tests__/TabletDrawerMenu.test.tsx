@@ -59,25 +59,25 @@ describe('>>> shared/src/navigation/drawer/TabletDrawerMenu.tsx', () => {
     });
   });
 
-  describe('when the tabletDrawerOpen property is false', () => {
-    let mockTabletDrawerOpen: boolean;
-    let mockHandleTabletDrawerMenu: () => void;
+  // describe('when the tabletDrawerOpen property is false', () => {
+  //   let mockTabletDrawerOpen: boolean;
+  //   let mockHandleTabletDrawerMenu: () => void;
 
-    beforeEach(() => {
-      mockTabletDrawerOpen = false;
-      mockHandleTabletDrawerMenu = jest.fn();
-    });
+  //   beforeEach(() => {
+  //     mockTabletDrawerOpen = false;
+  //     mockHandleTabletDrawerMenu = jest.fn();
+  //   });
 
-    it(`should render menu button and the tablet menu must not be visible and menu items must match the snapshot`, () => {
-      const mountWrapper = mount(
-        <TabletDrawerMenu
-          tabletDrawerOpen={mockTabletDrawerOpen}
-          handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
-        />, { attachTo: document.getElementById('root') }
-      );
-      // This is tested with .getDOMNode, since it won't allow us to use the react-renderer
-      // Cannot set attribute visibility of Null
-      expect(mountWrapper.getDOMNode()).toMatchSnapshot();
-    });
-  });
+  // it(`should render menu button and the tablet menu must not be visible and menu items must match the snapshot`, () => {
+  //   const mountWrapper = mount(
+  //     <TabletDrawerMenu
+  //       tabletDrawerOpen={mockTabletDrawerOpen}
+  //       handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
+  //     />, { attachTo: document.getElementById('root') }
+  //   );
+  //   // This is tested with .getDOMNode, since it won't allow us to use the react-renderer
+  //   // Cannot set attribute visibility of Null
+  //   expect(mountWrapper.getDOMNode()).toMatchSnapshot();
+  // });
+  // });
 });

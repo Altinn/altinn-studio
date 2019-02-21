@@ -22,7 +22,7 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// The comitter
         /// </summary>
-        public Signature Commiter { get; set; }
+        public Signature Comitter { get; set; }
 
         /// <summary>
         /// The Sha

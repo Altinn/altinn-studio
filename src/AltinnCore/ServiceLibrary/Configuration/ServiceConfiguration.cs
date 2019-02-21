@@ -22,5 +22,10 @@ namespace AltinnCore.ServiceLibrary.Configuration
         /// Gets or sets the name of the service
         /// </summary>
         public string ServiceName { get; set; }
+
+        /// <summary>
+        /// Gets or sets the description of the
+        /// </summary>
+        public string ServiceDescrition { get; set; }
     }
 }

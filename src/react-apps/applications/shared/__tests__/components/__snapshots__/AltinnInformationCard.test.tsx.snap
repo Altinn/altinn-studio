@@ -2,22 +2,22 @@
 
 exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with all the properties 1`] = `
 <div
-  className="MuiGrid-container-9 MuiGrid-direction-xs-column-12 MuiGrid-align-content-xs-center-21 MuiGrid-justify-xs-center-26 AltinnInformationCard-root-1"
+  className="MuiGrid-container-10 MuiGrid-direction-xs-column-13 MuiGrid-align-content-xs-center-22 MuiGrid-justify-xs-center-27 AltinnInformationCard-root-1"
 >
   <div
-    className="MuiGrid-container-9 MuiGrid-item-10 MuiGrid-align-content-xs-center-21 MuiGrid-justify-xs-center-26"
+    className="MuiGrid-container-10 MuiGrid-item-11 MuiGrid-align-content-xs-center-22 MuiGrid-justify-xs-center-27 AltinnInformationCard-scrollable-9"
   >
     <div
-      className="MuiGrid-container-9 MuiGrid-item-10 AltinnInformationCard-paper-2 AltinnInformationCard-shadowBox-3"
+      className="MuiGrid-container-10 MuiGrid-item-11 AltinnInformationCard-paper-2 AltinnInformationCard-shadowBox-3"
     >
       <div
-        className="MuiGrid-container-9 MuiGrid-item-10"
+        className="MuiGrid-container-10 MuiGrid-item-11"
       >
         <div
-          className="MuiGrid-container-9 MuiGrid-item-10 MuiGrid-grid-sm-12-63 MuiGrid-grid-md-7-72"
+          className="MuiGrid-container-10 MuiGrid-item-11 MuiGrid-grid-sm-12-64 MuiGrid-grid-md-7-73"
         >
           <div
-            className="MuiGrid-item-10"
+            className="MuiGrid-item-11"
           >
             <h1
               className="AltinnInformationCard-header-4"
@@ -56,7 +56,7 @@ exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with al
           </div>
         </div>
         <div
-          className="MuiGrid-container-9 MuiGrid-item-10 MuiGrid-align-content-xs-center-21 MuiGrid-justify-xs-center-26 MuiGrid-grid-sm-12-63 MuiGrid-grid-md-5-70"
+          className="MuiGrid-container-10 MuiGrid-item-11 MuiGrid-align-content-xs-center-22 MuiGrid-justify-xs-center-27 MuiGrid-grid-sm-12-64 MuiGrid-grid-md-5-71"
         >
           <img
             alt="information"

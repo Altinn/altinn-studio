@@ -3,16 +3,23 @@ import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
+import AltinnButton from './AltinnButton';
 
 export interface IAltinnInputFieldComponentProvidedProps {
+  btnText?: string;
   classes: any;
+  focusOnComponentDidUpdate?: boolean;
   id: string;
-  placeholder?: any;
-  onChangeFunction?: any;
-  inputHeader?: string;
   inputDescription?: string;
+  inputFieldStyling?: object;
+  inputHeader?: string;
   inputValue?: string;
+  isDisabled?: boolean;
   onBlurFunction?: any;
+  onBtnClickFunction?: any;
+  onChangeFunction?: any;
+  placeholder?: any;
+  textAreaRows?: number;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -37,13 +44,32 @@ const styles = createStyles({
   },
   inputFieldText: {
     fontSize: '16px',
-    color: '#000000',
+    color: theme.altinnPalette.primary.black + '!Important',
     padding: '6px',
+  },
+  disabled: {
+    border: '1px solid ' + theme.altinnPalette.primary.greyMedium,
+  },
+  btn: {
+    marginTop: '10px',
+    marginBottom: '24px',
   },
 });
 
 // tslint:disable-next-line:max-line-length
 class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvidedProps, IAltinnInputFieldComponentState> {
+  public textInput: any;
+  constructor(props: any) {
+    super(props);
+    this.textInput = React.createRef();
+  }
+
+  public componentDidUpdate() {
+    if (this.props.focusOnComponentDidUpdate) {
+      this.textInput.current.focus();
+    }
+  }
+
   public render() {
     const { classes } = this.props;
     return (
@@ -59,21 +85,38 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
           </Typography>
         }
         <FormControl
-          classes={{ root: classNames(classes.inputField) }}
+          classes={{
+            root: classNames(
+              classes.inputField, { [classes.disabled]: this.props.isDisabled }),
+          }}
+          style={this.props.inputFieldStyling}
           fullWidth={true}
           id={this.props.id}
         >
           <TextField
+            inputRef={this.textInput}
             onBlur={this.props.onBlurFunction}
             onChange={this.props.onChangeFunction}
             value={this.props.inputValue}
             placeholder={this.props.placeholder}
+            disabled={this.props.isDisabled}
+            multiline={this.props.textAreaRows ? true : false}
+            rows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },
             }}
           />
+
         </FormControl>
+        {this.props.btnText &&
+          <AltinnButton
+            btnText={this.props.btnText}
+            secondaryButton={true}
+            onClickFunction={this.props.onBtnClickFunction}
+            className={classNames(classes.btn)}
+          />
+        }
       </div>
     );
   }
