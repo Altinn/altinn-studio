@@ -31,6 +31,12 @@ export function filterDataModelForIntellisense(
   if (!dataModelElements) {
     return [];
   }
+  const rootElementFilterText = filterText.split('.')[0];
+  const rootElementDataModel = dataModelElements[0].ID.split('.')[0];
+  if (rootElementFilterText.toLowerCase() !== rootElementDataModel.toLowerCase()) {
+    filterText = filterText.replace(rootElementFilterText, rootElementDataModel);
+  }
+
   const parentElement = filterText.substr(0, filterText.lastIndexOf('.')).toLowerCase();
   const currentElement = filterText.endsWith('.') ? null :
     filterText.substr(filterText.lastIndexOf('.') + 1, filterText.length).toLowerCase();

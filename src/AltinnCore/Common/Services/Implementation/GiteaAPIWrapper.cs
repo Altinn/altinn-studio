@@ -446,7 +446,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private async void DeleteAllAppKeys(List<string> appKeys, string csrf)
         {
-            Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
+            Uri giteaUrl = BuildGiteaUrl("user/settings/applications/delete");
 
             using (HttpClient client = GetWebHtmlClient())
             {
@@ -458,6 +458,10 @@ namespace AltinnCore.Common.Services.Implementation
 
                     FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
                     HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
+                    if (!response.StatusCode.Equals(HttpStatusCode.OK))
+                    {
+                        break;
+                    }
                 }
             }
         }

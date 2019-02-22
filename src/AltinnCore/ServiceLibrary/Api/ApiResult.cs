@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AltinnCore.ServiceLibrary.Enums;
 
 namespace AltinnCore.ServiceLibrary.Api
 {
@@ -36,5 +37,11 @@ namespace AltinnCore.ServiceLibrary.Api
         /// Gets or sets the url for the next step of the workflow
         /// </summary>
         public string NextStepUrl { get; set; }
+
+        /// <summary>
+        /// Gets or sets the next state of the workflow
+        /// </summary>
+        public Enums.WorkflowStep NextState { get; set; }
+
     }
 }

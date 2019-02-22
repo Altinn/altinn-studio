@@ -90,6 +90,15 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
       dataModelElement,
       dataBindingName,
     );
+    const component = this.props.components[id];
+    if (component && component.triggerValidation) {
+      const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+      const { org, service, instanceId, reportee } = altinnWindow;
+      FormFillerActionDispatchers.runSingleFieldValidation(
+        `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+        dataBindingName,
+      );
+    }
     const repeatingContainerId = this.isRepeating() ? this.props.id : null;
     ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun(repeatingContainerId);
     RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, repeatingContainerId);

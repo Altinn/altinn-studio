@@ -274,6 +274,14 @@ namespace AltinnCore.Common.Services.Interfaces
         List<AltinnCoreFile> GetCalculationFiles(string org, string service);
 
         /// <summary>
+        /// Returns a list over the validation files for a Altinn Core service
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <returns>A list of file names</returns>
+        List<AltinnCoreFile> GetValidationFiles(string org, string service);
+
+        /// <summary>
         /// Returns the file Content of a
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>

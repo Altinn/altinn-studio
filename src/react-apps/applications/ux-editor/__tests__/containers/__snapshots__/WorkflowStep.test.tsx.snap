@@ -1,207 +1,217 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`>>> containers/WorkflowStep.tsx --- Snapshot >>> Capture snapshot of WorkflowStep 1`] = `
+exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 1`] = `
 <div
-  className="container"
+  id="workflowContainer"
+  style={
+    Object {
+      "backgroundColor": "#1EAEF7",
+      "height": "calc(100vh - 146px)",
+    }
+  }
 >
   <div
-    className="row"
+    className="container"
   >
     <div
-      className="col-xl-12"
+      className="row"
     >
       <div
-        className="a-modal-top"
+        className="col-xl-12"
       >
-        <img
-          alt="Altinn logo"
-          className="a-logo a-modal-top-logo "
-          src="/designer/img/a-logo-blue.svg"
-        />
         <div
-          className="a-modal-top-user"
+          className="a-modal-top"
         >
+          <img
+            alt="Altinn logo"
+            className="a-logo a-modal-top-logo "
+            src="/designer/img/a-logo-blue.svg"
+          />
           <div
-            className="a-personSwitcher "
-            title="OLA PRIVATPERSON"
+            className="a-modal-top-user"
           >
-            <span
-              className="a-personSwitcher-name"
+            <div
+              className="a-personSwitcher "
+              title="OLA PRIVATPERSON"
             >
               <span
-                className="d-block"
+                className="a-personSwitcher-name"
+              >
+                <span
+                  className="d-block"
+                  style={
+                    Object {
+                      "color": "#022F51",
+                    }
+                  }
+                >
+                  OLA PRIVATPERSON
+                </span>
+                <span
+                  className="d-block"
+                />
+              </span>
+              <i
+                aria-hidden="true"
+                className="ai ai-private-circle-big  a-personSwitcher-icon"
                 style={
                   Object {
                     "color": "#022F51",
                   }
                 }
-              >
-                OLA PRIVATPERSON
-              </span>
-              <span
-                className="d-block"
               />
-            </span>
-            <i
-              aria-hidden="true"
-              className="ai ai-private-circle-big  a-personSwitcher-icon"
-              style={
-                Object {
-                  "color": "#022F51",
-                }
-              }
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div
-    className="row"
-  >
-    <div
-      className="col-xl-10 offset-xl-1 a-p-static"
-    >
-      <div
-        className="a-modal-content-target"
-        style={
-          Object {
-            "marginTop": "55px",
-          }
-        }
-      >
-        <div
-          className="a-page a-current-page"
-        >
-          <div
-            className="modalPage"
-          >
-            <div
-              className="modal-content"
-            >
-              <div
-                className="modal-header a-modal-header"
-                style={
-                  Object {
-                    "backgroundColor": "#F9CAD3",
-                    "color": "black",
-                    "minHeight": "6rem",
-                  }
-                }
-              >
-                <div>
-                  <h3
-                    className="a-fontReg"
-                    style={
-                      Object {
-                        "marginBottom": 0,
-                      }
-                    }
-                  >
-                    <i
-                      className="ai ai-circle-exclamation a-icon"
-                    />
-                    <span>
-                      Mock error report
-                    </span>
-                  </h3>
-                </div>
-              </div>
-              <div
-                className="modal-body a-modal-body"
-              >
-                <ol>
-                  <li>
-                    <a>
-                      1. mock-error-message
-                    </a>
-                  </li>
-                </ol>
-              </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
+    <div
+      className="row"
+    >
       <div
-        className="a-modal-navbar"
-      >
-        <button
-          aria-label="Tilbake"
-          className="a-modal-back a-js-tabable-popover"
-          type="button"
-        >
-          <span
-            className="ai-stack"
-          >
-            <i
-              aria-hidden="true"
-              className="ai ai-stack-1x ai-plain-circle-big"
-            />
-            <i
-              aria-hidden="true"
-              className="ai-stack-1x ai ai-back"
-            />
-          </span>
-        </button>
-        <button
-          aria-label="Lukk"
-          className="a-modal-close a-js-tabable-popover"
-          type="button"
-        >
-          <span
-            className="ai-stack"
-          >
-            <i
-              aria-hidden="true"
-              className="ai ai-stack-1x ai-plain-circle-big"
-            />
-            <i
-              aria-hidden="true"
-              className="ai-stack-1x ai ai-exit  a-modal-close-icon"
-            />
-          </span>
-        </button>
-      </div>
-      <div
-        className="a-modal-content-target"
+        className="col-xl-10 offset-xl-1 a-p-static"
       >
         <div
-          className="a-page a-current-page"
+          className="a-modal-content-target"
+          style={
+            Object {
+              "marginTop": "55px",
+            }
+          }
         >
           <div
-            className="modalPage"
+            className="a-page a-current-page"
           >
             <div
-              className="modal-content"
+              className="modalPage"
             >
               <div
-                className="modal-header a-modal-header"
+                className="modal-content"
               >
                 <div
-                  className="a-iconText a-iconText-background a-iconText-large"
+                  className="modal-header a-modal-header"
+                  style={
+                    Object {
+                      "backgroundColor": "#F9CAD3",
+                      "color": "black",
+                      "minHeight": "6rem",
+                    }
+                  }
                 >
-                  <div
-                    className="a-iconText-icon"
-                  >
-                    <i
-                      aria-hidden="true"
-                      className="ai ai-corp a-icon"
-                    />
-                  </div>
-                  <h1
-                    className="a-iconText-text mb-0"
-                  >
-                    <span
-                      className="a-iconText-text-large"
+                  <div>
+                    <h3
+                      className="a-fontReg"
+                      style={
+                        Object {
+                          "marginBottom": 0,
+                        }
+                      }
                     >
-                      mock-service-name
-                    </span>
-                  </h1>
+                      <i
+                        className="ai ai-circle-exclamation a-icon"
+                      />
+                      <span>
+                        Mock error report
+                      </span>
+                    </h3>
+                  </div>
+                </div>
+                <div
+                  className="modal-body a-modal-body"
+                >
+                  <ol>
+                    <li>
+                      <a>
+                        1. mock-error-message
+                      </a>
+                    </li>
+                  </ol>
                 </div>
               </div>
-              <div
-                className="modal-body a-modal-body"
+            </div>
+          </div>
+        </div>
+        <div
+          className="a-modal-navbar"
+        >
+          <button
+            aria-label="Tilbake"
+            className="a-modal-back a-js-tabable-popover"
+            type="button"
+          >
+            <span
+              className="ai-stack"
+            >
+              <i
+                aria-hidden="true"
+                className="ai ai-stack-1x ai-plain-circle-big"
               />
+              <i
+                aria-hidden="true"
+                className="ai-stack-1x ai ai-back"
+              />
+            </span>
+          </button>
+          <button
+            aria-label="Lukk"
+            className="a-modal-close a-js-tabable-popover"
+            type="button"
+          >
+            <span
+              className="ai-stack"
+            >
+              <i
+                aria-hidden="true"
+                className="ai ai-stack-1x ai-plain-circle-big"
+              />
+              <i
+                aria-hidden="true"
+                className="ai-stack-1x ai ai-exit  a-modal-close-icon"
+              />
+            </span>
+          </button>
+        </div>
+        <div
+          className="a-modal-content-target"
+        >
+          <div
+            className="a-page a-current-page"
+          >
+            <div
+              className="modalPage"
+            >
+              <div
+                className="modal-content"
+              >
+                <div
+                  className="modal-header a-modal-header "
+                >
+                  <div
+                    className="a-iconText a-iconText-background a-iconText-large"
+                  >
+                    <div
+                      className="a-iconText-icon"
+                    >
+                      <i
+                        aria-hidden="true"
+                        className="ai ai-corp a-icon"
+                      />
+                    </div>
+                    <h1
+                      className="a-iconText-text mb-0"
+                    >
+                      <span
+                        className="a-iconText-text-large"
+                      >
+                        mock-service-name
+                      </span>
+                    </h1>
+                  </div>
+                </div>
+                <div
+                  className="modal-body a-modal-body"
+                />
+              </div>
             </div>
           </div>
         </div>

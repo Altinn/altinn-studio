@@ -1,4 +1,4 @@
-import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as formFillerActions from './actions/index';
 
@@ -27,6 +27,14 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   updateValidationErrors: (validationErrors: {}) => formFillerActions.IUpdateValidationErrors;
   resetFormData: (url: string) => formFillerActions.IResetFormDataAction;
   resetFormDataFulfilled: (formData: any) => formFillerActions.IResetFormDataActionFulfilled;
+  runSingleFieldValidation: (url: string, componentId: any) => formFillerActions.IRunSingleFieldValidationAction;
+  runSingleFieldValidationFulfilled: (
+    validationErrors: any,
+    ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
+  runSingleFieldValidationRejected: (error: Error) => formFillerActions.IRunSingleFieldValidationActionRejected;
+  completeAndSendInForm: (url: any) => formFillerActions.ICompleteAndSendInForm;
+  completeAndSendInFormFulfilled: () => Action;
+  completeAndSendInFormRejected: () => Action;
 }
 
 const actions: IFormFillerActionDispatchers = {
@@ -42,6 +50,12 @@ const actions: IFormFillerActionDispatchers = {
   updateValidationErrors: formFillerActions.updateValidationErrors,
   resetFormData: formFillerActions.resetFormDataAction,
   resetFormDataFulfilled: formFillerActions.resetFormDataFulfilled,
+  runSingleFieldValidation: formFillerActions.runSingleFieldValidationAction,
+  runSingleFieldValidationFulfilled: formFillerActions.runSingleFieldValidationActionFulfilled,
+  runSingleFieldValidationRejected: formFillerActions.runSingleFieldValidationActionRejected,
+  completeAndSendInForm: formFillerActions.completeAndSendInForm,
+  completeAndSendInFormFulfilled: formFillerActions.completeAndSendInFormFulfilled,
+  completeAndSendInFormRejected: formFillerActions.completeAndSendInFormRejected,
 };
 
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<
