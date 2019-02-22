@@ -158,7 +158,7 @@ export class AdministrationComponent extends
   public onBlurServiceName = () => {
     if (this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === '')) {
       this.setState({
-        serviceNameAnchorEl: document.getElementById('service-name'),
+        serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
       });
     } else {
       const altinnWindow: any = window;
@@ -261,8 +261,9 @@ export class AdministrationComponent extends
                 <AltinnInputField
                   id='administrationInputDescription'
                   onChangeFunction={this.onServiceDescriptionChanged}
-                  inputHeader={getLanguageFromKey('general.service_description_header', this.props.language)}
-                  inputDescription={getLanguageFromKey('administration.description_description', this.props.language)}
+                  inputHeader={getLanguageFromKey('administration.service_comment', this.props.language)}
+                  // tslint:disable-next-line:max-line-length
+                  inputDescription={getLanguageFromKey('administration.service_comment_description', this.props.language)}
                   textAreaRows={7}
                   inputValue={this.state.serviceDescription}
                   onBlurFunction={this.onBlurServiceDescription}
