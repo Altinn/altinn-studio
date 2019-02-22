@@ -43,7 +43,6 @@ const styles = createStyles({
   inputField: {
     border: '1px solid ' + theme.altinnPalette.primary.blueDark,
     marginTop: '10px',
-    marginBottom: '24px',
     background: 'none',
     width: '386px',
   },
@@ -57,7 +56,6 @@ const styles = createStyles({
   },
   btn: {
     marginTop: '10px',
-    marginBottom: '24px',
   },
 });
 
@@ -78,7 +76,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
   public render() {
     const { classes } = this.props;
     return (
-      <div>
+      <>
         {this.props.inputHeader &&
           <Typography style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)} variant='h2'>
             {this.props.inputHeader}
@@ -92,7 +90,10 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
         <FormControl
           classes={{
             root: classNames(
-              classes.inputField, { [classes.disabled]: this.props.isDisabled }, { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader }),
+              classes.inputField,
+              { [classes.disabled]: this.props.isDisabled },
+              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader }
+            ),
           }}
           style={this.props.inputFieldStyling}
           fullWidth={true}
@@ -122,7 +123,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
             className={classNames(classes.btn)}
           />
         }
-      </div>
+      </>
     );
   }
 }

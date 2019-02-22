@@ -33,7 +33,6 @@ const styles = createStyles({
   },
   inputField: {
     border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-    marginBottom: '24px',
     background: 'none',
     width: '386px',
   },
@@ -53,7 +52,7 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
   public render() {
     const { classes } = this.props;
     return (
-      <div>
+      <>
         {this.props.inputHeader &&
           <Typography className={classes.inputHeader} variant='h2'>
             {this.props.inputHeader}
@@ -92,7 +91,7 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
             ))}
           </TextField>
         </FormControl>
-      </div>
+      </>
     );
   }
 }
