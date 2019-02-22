@@ -4,16 +4,16 @@ import * as React from 'react';
 import * as networking from '../../../../shared/src/utils/networking';
 import { CreateNewServiceComponent } from '../../../src/dashboardServices/createService/createNewService';
 
-describe('>>> components/base/cloneService.tsx', () => {
+describe('>>> components/base/createNewService.tsx', () => {
   let mockSelectableUser: any;
   let mockClasses: any;
   let mockLanguage: any;
 
   beforeEach(() => {
     mockSelectableUser = [
-      'FirstUser',
-      'FirstOrg',
-      'SecondOrg',
+      { name: 'FirstUser', full_name: '' },
+      { name: 'FirstOrg', full_name: '' },
+      { name: 'SecondOrg', full_name: '' },
     ];
     mockClasses = {};
     mockLanguage = { dashboard: {} };
@@ -123,7 +123,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance.state.selectedOrgOrUser = mockSelectableUser[0];
+    instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     instance.state.repoName = '1234ThisIsAnInValidServiceName';
     expect(instance.validateService()).toBe(false);
     instance.state.repoName = 'ThisIsAValidServiceName';
@@ -143,8 +143,8 @@ describe('>>> components/base/cloneService.tsx', () => {
     );
 
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
-    instance.handleUpdateDropdown({ target: { value: mockSelectableUser[0] } });
-    expect(instance.state.selectedOrgOrUser).toBe(mockSelectableUser[0]);
+    instance.handleUpdateDropdown({ target: { value: mockSelectableUser[0].name } });
+    expect(instance.state.selectedOrgOrUser).toBe(mockSelectableUser[0].name);
 
     const mockServiceName = 'Service name';
     instance.handleServiceNameUpdated({ target: { value: mockServiceName } });
@@ -191,7 +191,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance._isMounted = true;
     instance.state.repoName = 'ServiceName';
-    instance.state.selectedOrgOrUser = mockSelectableUser[0];
+    instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
       repositoryCreatedStatus: 422,
     };
@@ -218,7 +218,7 @@ describe('>>> components/base/cloneService.tsx', () => {
     const instance = mountedComponent.instance() as CreateNewServiceComponent;
     instance._isMounted = true;
     instance.state.repoName = 'ServiceName';
-    instance.state.selectedOrgOrUser = mockSelectableUser[0];
+    instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
     const mockResult = {
       repositoryCreatedStatus: 201,
       full_name: 'FirstOrg/ServiceName',

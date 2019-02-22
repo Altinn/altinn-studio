@@ -171,7 +171,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       });
       const altinnWindow: Window = window;
       // tslint:disable-next-line:max-line-length
-      const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.full_name === this.state.selectedOrgOrUser));
+      const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.name === this.state.selectedOrgOrUser));
       // tslint:disable-next-line:max-line-length
       const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
       post(url).then((result: any) => {
