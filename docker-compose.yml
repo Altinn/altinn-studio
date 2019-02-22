@@ -22,6 +22,13 @@ services:
       context: .
       dockerfile: src/react-apps/applications/service-development/Dockerfile
 
+  altinn_runtime_app:
+    container_name: altinn-runtime-app
+    image: altinn-runtime-app:latest
+    build:
+      context: .
+      dockerfile: src/react-apps/applications/runtime/Dockerfile
+
   altinn_loadbalancer:
     container_name: altinn-loadbalancer
     image: loadbalancer:latest
