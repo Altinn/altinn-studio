@@ -27,6 +27,11 @@ namespace AltinnCore.ServiceLibrary.ServiceMetadata
         public string RepositoryName { get; set; }
 
         /// <summary>
+        /// Gets or sets the service id
+        /// </summary>
+        public string ServiceId { get; set; }
+
+        /// <summary>
         /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)
         /// </summary>
         public Dictionary<string, ElementMetadata> Elements { get; set; }

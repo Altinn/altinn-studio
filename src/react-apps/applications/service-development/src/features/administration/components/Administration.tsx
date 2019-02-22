@@ -17,20 +17,24 @@ export interface IAdministrationComponentProvidedProps {
 }
 
 export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
+  initialCommit: ICommit;
   language: any;
   service: IRepository;
-  serviceName: string;
-  serviceNameIsSaving: boolean;
-  initialCommit: ICommit;
   serviceDescription: string;
   serviceDescriptionIsSaving: boolean;
+  serviceId: string;
+  serviceIdIsSaving: boolean;
+  serviceName: string;
+  serviceNameIsSaving: boolean;
 }
 
 export interface IAdministrationComponentState {
-  serviceDescription: string;
-  serviceName: string;
-  editServiceName: boolean;
   editServiceDescription: boolean;
+  editServiceId: boolean;
+  editServiceName: boolean;
+  serviceDescription: string;
+  serviceId: string;
+  serviceName: string;
   serviceNameAnchorEl: any;
 }
 
@@ -51,9 +55,8 @@ const styles = createStyles({
     paddingLeft: 10,
   },
   sidebarHeader: {
-    marginTop: 40,
     marginBottom: 20,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 500,
   },
   sidebarInfoText: {
@@ -86,6 +89,9 @@ const styles = createStyles({
       overflowY: 'auto',
     },
   },
+  marginBottom_24: {
+    marginBottom: 24,
+  },
 });
 
 export class AdministrationComponent extends
@@ -93,27 +99,39 @@ export class AdministrationComponent extends
   public static getDerivedStateFromProps(_props: IAdministrationComponentProps, _state: IAdministrationComponentState) {
     if (_state.editServiceName || _props.serviceNameIsSaving) {
       return {
-        serviceName: _state.serviceName,
         serviceDescription: _props.serviceDescription,
+        serviceId: _props.serviceId,
+        serviceName: _state.serviceName,
       };
     }
     if (_state.editServiceDescription || _props.serviceDescriptionIsSaving) {
       return {
         serviceDescription: _state.serviceDescription,
+        serviceId: _props.serviceId,
+        serviceName: _props.serviceName,
+      };
+    }
+    if (_state.editServiceId || _props.serviceIdIsSaving) {
+      return {
+        serviceDescription: _props.serviceDescription,
+        serviceId: _state.serviceId,
         serviceName: _props.serviceName,
       };
     }
     return {
       serviceDescription: _props.serviceDescription,
+      serviceId: _props.serviceId,
       serviceName: _props.serviceName,
     };
   }
 
   public state: IAdministrationComponentState = {
-    serviceDescription: '',
-    serviceName: this.props.serviceName,
-    editServiceName: false,
     editServiceDescription: false,
+    editServiceId: false,
+    editServiceName: false,
+    serviceDescription: '',
+    serviceId: '',
+    serviceName: this.props.serviceName,
     serviceNameAnchorEl: null,
   };
 
@@ -125,10 +143,8 @@ export class AdministrationComponent extends
       `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchInitialCommit(
       `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
-    handleServiceInformationActionDispatchers.fetchServiceName(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
-    handleServiceInformationActionDispatchers.fetchServiceDescription(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceDescription`);
+    handleServiceInformationActionDispatchers.fetchServiceConfig(
+      `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceConfig`);
   }
 
   public onServiceNameChanged = (event: any) => {
@@ -142,11 +158,9 @@ export class AdministrationComponent extends
   public onBlurServiceName = () => {
     if (this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === '')) {
       this.setState({
-        serviceNameAnchorEl: document.getElementById('service-name'),
+        serviceNameAnchorEl: document.getElementById('administrationInputServicename'),
       });
-    }
-
-    if (this.state.editServiceName) {
+    } else {
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
@@ -164,8 +178,22 @@ export class AdministrationComponent extends
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
-      handleServiceInformationActionDispatchers.saveServiceDescription(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceDescription`, this.state.serviceDescription);
+      handleServiceInformationActionDispatchers.saveServiceConfig(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`, this.state.serviceDescription, this.state.serviceId);
       this.setState({ editServiceDescription: false });
+    }
+  }
+
+  public onServiceIdChanged = (event: any) => {
+    this.setState({ serviceId: event.target.value, editServiceId: true });
+  }
+
+  public onBlurServiceId = () => {
+    if (this.state.editServiceId) {
+      const altinnWindow: any = window;
+      const { org, service } = altinnWindow;
+      // tslint:disable-next-line:max-line-length
+      handleServiceInformationActionDispatchers.saveServiceConfig(`${altinnWindow.location.origin}/designer/${org}/${service}/Config/SetServiceConfig`, this.state.serviceDescription, this.state.serviceId);
+      this.setState({ editServiceId: false });
     }
   }
 
@@ -175,7 +203,8 @@ export class AdministrationComponent extends
     return (
       <div className={classes.mainLayout}>
         <VersionControlHeader language={this.props.language} />
-        {this.props.service || this.props.serviceName === null || this.props.serviceDescription === null ?
+        {this.props.service && this.props.serviceName !== null
+          && this.props.serviceDescription !== null && this.props.serviceId !== null ?
           <Grid container={true} className={classes.layout}>
             <Grid item={true} className={classes.mainStyle} md={12}>
               <Typography className={classes.headerStyle}>
@@ -183,43 +212,65 @@ export class AdministrationComponent extends
               </Typography>
             </Grid>
             <Grid item={true} className={classes.mainStyle} md={8}>
-              <AltinnInputField
-                id='service-name'
-                onChangeFunction={this.onServiceNameChanged}
-                inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
-                // tslint:disable-next-line:max-line-length
-                inputDescription={getLanguageFromKey('administration.service_name_administration_description', this.props.language)}
-                inputValue={this.state.serviceName}
-                onBlurFunction={this.onBlurServiceName}
-                btnText={getLanguageFromKey('general.edit', this.props.language)}
-                onBtnClickFunction={this.handleEditServiceName}
-                isDisabled={!this.state.editServiceName}
-                focusOnComponentDidUpdate={this.state.editServiceName}
-                inputFieldStyling={this.state.editServiceName ?
-                  { background: theme.altinnPalette.primary.white } :
-                  { border: '1px solid ' + theme.altinnPalette.primary.blueDark }}
-              />
+              <div className={classes.marginBottom_24}>
+                <AltinnInputField
+                  id='administrationInputServicename'
+                  onChangeFunction={this.onServiceNameChanged}
+                  inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
+                  // tslint:disable-next-line:max-line-length
+                  inputDescription={getLanguageFromKey('administration.service_name_administration_description', this.props.language)}
+                  inputValue={this.state.serviceName}
+                  onBlurFunction={this.onBlurServiceName}
+                  btnText={getLanguageFromKey('general.edit', this.props.language)}
+                  onBtnClickFunction={this.handleEditServiceName}
+                  isDisabled={!this.state.editServiceName}
+                  focusOnComponentDidUpdate={this.state.editServiceName}
+                  inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+                  inputFieldStyling={this.state.editServiceName ?
+                    { background: theme.altinnPalette.primary.white } : null}
+                />
+              </div>
               <AltinnPopper
                 anchorEl={this.state.serviceNameAnchorEl}
                 message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
               />
-              <AltinnInputField
-                id='repo-name'
-                inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
-                // tslint:disable-next-line:max-line-length
-                inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
-                inputValue={this.props.service ? this.props.service.name : ''}
-                isDisabled={true}
-              />
-              <AltinnInputField
-                id='description'
-                onChangeFunction={this.onServiceDescriptionChanged}
-                inputHeader={getLanguageFromKey('general.service_description_header', this.props.language)}
-                inputDescription={getLanguageFromKey('administration.description_description', this.props.language)}
-                textAreaRows={7}
-                inputValue={this.state.serviceDescription}
-                onBlurFunction={this.onBlurServiceDescription}
-              />
+              <div className={classes.marginBottom_24}>
+                <AltinnInputField
+                  id='administrationInputServiceid'
+                  onChangeFunction={this.onServiceIdChanged}
+                  inputHeader={getLanguageFromKey('administration.service_id', this.props.language)}
+                  // tslint:disable-next-line:max-line-length
+                  inputDescription={getLanguageFromKey('administration.service_id_description', this.props.language)}
+                  inputValue={this.state.serviceId}
+                  onBlurFunction={this.onBlurServiceId}
+                  inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+                />
+              </div>
+              <div className={classes.marginBottom_24}>
+                <AltinnInputField
+                  id='administrationInputReponame'
+                  inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
+                  // tslint:disable-next-line:max-line-length
+                  inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
+                  inputValue={this.props.service ? this.props.service.name : ''}
+                  isDisabled={true}
+                  inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+                />
+              </div>
+              <div className={classes.marginBottom_24}>
+                <AltinnInputField
+                  id='administrationInputDescription'
+                  onChangeFunction={this.onServiceDescriptionChanged}
+                  inputHeader={getLanguageFromKey('administration.service_comment', this.props.language)}
+                  // tslint:disable-next-line:max-line-length
+                  inputDescription={getLanguageFromKey('administration.service_comment_description', this.props.language)}
+                  textAreaRows={7}
+                  inputValue={this.state.serviceDescription}
+                  onBlurFunction={this.onBlurServiceDescription}
+                  inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
+                  className={classes.marginBottom_24}
+                />
+              </div>
             </Grid>
             <Grid item={true} md={4} className={classNames(classes.sidebar)}>
               <Typography className={classes.sidebarHeader}>
@@ -261,18 +312,19 @@ const mapStateToProps = (
   props: IAdministrationComponentProvidedProps,
 ): IAdministrationComponentProps => {
   return {
-    language: state.language,
     classes: props.classes,
-    service: state.serviceInformation.repositoryInfo,
-    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-    // tslint:disable-next-line:max-line-length
-    serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
     initialCommit: state.serviceInformation.initialCommit,
+    language: state.language,
+    service: state.serviceInformation.repositoryInfo,
     // tslint:disable-next-line:max-line-length
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
     // tslint:disable-next-line:max-line-length
     serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
-
+    serviceId: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.serviceId : '',
+    serviceIdIsSaving: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.saving : false,
+    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
+    // tslint:disable-next-line:max-line-length
+    serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
   };
 };
 

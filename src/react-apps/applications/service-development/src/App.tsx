@@ -21,6 +21,7 @@ import NavigationActionDispatcher from './actions/navigationActions/navigationAc
 import './App.css';
 import { redirects } from './config/redirects';
 import { routes } from './config/routes';
+import handleServiceInformationActionDispatchers from './features/administration/handleServiceInformationDispatcher';
 import HandleMergeConflict from './features/handleMergeConflict/HandleMergeConflictContainer';
 import HandleMergeConflictDispatchers from './features/handleMergeConflict/handleMergeConflictDispatcher';
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
@@ -52,6 +53,7 @@ export interface IServiceDevelopmentProps extends WithStyles<typeof styles> {
   language: any;
   location: any;
   repoStatus: any;
+  serviceName: any;
 }
 export interface IServiceDevelopmentAppState {
   forceRepoStatusCheckComplete: boolean;
@@ -75,9 +77,12 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
   }
 
   public componentDidMount() {
-    const altinnWindow: Window = window;
+    const altinnWindow: any = window;
+    const { org, service } = altinnWindow;
     fetchLanguageDispatcher.fetchLanguage(
       `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');
+    handleServiceInformationActionDispatchers.fetchServiceName(
+      `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
 
     this.checkForMergeConflict();
     window.addEventListener('message', this.windowEventReceived);
@@ -135,7 +140,7 @@ class App extends React.Component<IServiceDevelopmentProps, IServiceDevelopmentA
                         activeSubHeaderSelection={route.activeSubHeaderSelection}
                         logoutButton={repoStatus.hasMergeConflict}
                         org={org}
-                        service={service}
+                        service={this.props.serviceName || service}
                         showBreadcrumbOnTablet={true}
                         showSubHeader={repoStatus.hasMergeConflict ? false : true}
                       />}
@@ -217,6 +222,7 @@ const makeMapStateToProps = () => {
     return {
       repoStatus: GetRepoStatusSelector(state),
       language: state.language,
+      serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
     };
   };
   return mapStateToProps;
