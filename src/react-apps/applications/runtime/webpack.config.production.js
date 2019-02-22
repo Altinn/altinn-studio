@@ -9,7 +9,7 @@ module.exports = {
   devtool: false,
   entry: "./src/index.tsx",
   output: {
-    filename: "runtime.js"
+    filename: "react-app.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
@@ -62,7 +62,7 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "runtime.css",
+      filename: "react-app.css",
     }),
     new UglifyJsPlugin(),
   ],

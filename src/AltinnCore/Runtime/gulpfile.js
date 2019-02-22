@@ -3,8 +3,8 @@ const run = require('gulp-run-command').default;
 const chokidar = require('chokidar');
 const fs = require('fs');
 
-const jsRuntimeFile = '../../react-apps/applications/runtime/dist/runtime.js';
-const cssRuntimeFile = '../../react-apps/applications/runtime/dist/runtime.css';
+const jsRuntimeFile = '../../react-apps/applications/runtime/dist/react-app.js';
+const cssRuntimeFile = '../../react-apps/applications/runtime/dist/react-app.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
