@@ -17,24 +17,24 @@ export interface IAdministrationComponentProvidedProps {
 }
 
 export interface IAdministrationComponentProps extends IAdministrationComponentProvidedProps {
+  initialCommit: ICommit;
   language: any;
   service: IRepository;
-  serviceName: string;
-  serviceNameIsSaving: boolean;
-  initialCommit: ICommit;
   serviceDescription: string;
   serviceDescriptionIsSaving: boolean;
   serviceId: string;
   serviceIdIsSaving: boolean;
+  serviceName: string;
+  serviceNameIsSaving: boolean;
 }
 
 export interface IAdministrationComponentState {
-  serviceDescription: string;
-  serviceName: string;
-  serviceId: string;
-  editServiceName: boolean;
   editServiceDescription: boolean;
   editServiceId: boolean;
+  editServiceName: boolean;
+  serviceDescription: string;
+  serviceId: string;
+  serviceName: string;
   serviceNameAnchorEl: any;
 }
 
@@ -99,39 +99,39 @@ export class AdministrationComponent extends
   public static getDerivedStateFromProps(_props: IAdministrationComponentProps, _state: IAdministrationComponentState) {
     if (_state.editServiceName || _props.serviceNameIsSaving) {
       return {
-        serviceName: _state.serviceName,
         serviceDescription: _props.serviceDescription,
         serviceId: _props.serviceId,
+        serviceName: _state.serviceName,
       };
     }
     if (_state.editServiceDescription || _props.serviceDescriptionIsSaving) {
       return {
         serviceDescription: _state.serviceDescription,
-        serviceName: _props.serviceName,
         serviceId: _props.serviceId,
+        serviceName: _props.serviceName,
       };
     }
     if (_state.editServiceId || _props.serviceIdIsSaving) {
       return {
         serviceDescription: _props.serviceDescription,
-        serviceName: _props.serviceName,
         serviceId: _state.serviceId,
+        serviceName: _props.serviceName,
       };
     }
     return {
       serviceDescription: _props.serviceDescription,
-      serviceName: _props.serviceName,
       serviceId: _props.serviceId,
+      serviceName: _props.serviceName,
     };
   }
 
   public state: IAdministrationComponentState = {
-    serviceDescription: '',
-    serviceName: this.props.serviceName,
-    serviceId: '',
-    editServiceName: false,
     editServiceDescription: false,
     editServiceId: false,
+    editServiceName: false,
+    serviceDescription: '',
+    serviceId: '',
+    serviceName: this.props.serviceName,
     serviceNameAnchorEl: null,
   };
 
@@ -312,19 +312,19 @@ const mapStateToProps = (
   props: IAdministrationComponentProvidedProps,
 ): IAdministrationComponentProps => {
   return {
-    language: state.language,
     classes: props.classes,
-    service: state.serviceInformation.repositoryInfo,
-    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
-    // tslint:disable-next-line:max-line-length
-    serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
     initialCommit: state.serviceInformation.initialCommit,
+    language: state.language,
+    service: state.serviceInformation.repositoryInfo,
     // tslint:disable-next-line:max-line-length
     serviceDescription: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.description : '',
     // tslint:disable-next-line:max-line-length
     serviceDescriptionIsSaving: state.serviceInformation.serviceDescriptionObj ? state.serviceInformation.serviceDescriptionObj.saving : false,
     serviceId: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.serviceId : '',
     serviceIdIsSaving: state.serviceInformation.serviceIdObj ? state.serviceInformation.serviceIdObj.saving : false,
+    serviceName: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.name : '',
+    // tslint:disable-next-line:max-line-length
+    serviceNameIsSaving: state.serviceInformation.serviceNameObj ? state.serviceInformation.serviceNameObj.saving : false,
   };
 };
 

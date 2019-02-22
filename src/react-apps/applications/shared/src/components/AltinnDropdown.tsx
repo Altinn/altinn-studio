@@ -52,7 +52,7 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
   public render() {
     const { classes } = this.props;
     return (
-      <>
+      <React.Fragment>
         {this.props.inputHeader &&
           <Typography className={classes.inputHeader} variant='h2'>
             {this.props.inputHeader}
@@ -91,7 +91,7 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
             ))}
           </TextField>
         </FormControl>
-      </>
+      </React.Fragment>
     );
   }
 }

@@ -76,7 +76,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
   public render() {
     const { classes } = this.props;
     return (
-      <>
+      <React.Fragment>
         {this.props.inputHeader &&
           <Typography style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)} variant='h2'>
             {this.props.inputHeader}
@@ -123,7 +123,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
             className={classNames(classes.btn)}
           />
         }
-      </>
+      </React.Fragment>
     );
   }
 }
