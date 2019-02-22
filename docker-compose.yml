@@ -118,8 +118,13 @@ services:
     container_name: altinn-dataservice
     image: altinncoredataservice:latest
     restart: always
+    networks:
+      - altinncore_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5010
     ports:
-      - "6000:6000"
+      - "5010:5010"
     build:
       context: .
       dockerfile: src/AltinnCore/RuntimeDataService/Dockerfile

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AltinnCore.Runtime.DataService.Controllers
 {
-    [Route("runtimedbapi/[controller]")]
+    [Route("dataserviceapi/[controller]")]
     public class ReporteeElementController : Controller
     {
         private readonly IReporteeElementRepository _reporteeElementRepository;

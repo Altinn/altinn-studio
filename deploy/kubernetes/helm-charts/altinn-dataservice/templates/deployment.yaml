@@ -1,16 +1,16 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: altinn-runtime
-spec:
+  name: altinn-dataservice
+spec:  
   selector:
     matchLabels:
-      run: altinn-runtime
-  replicas: {{ .Values.replicaCount }}
+      run: altinn-dataservice
+  replicas: {{ .Values.replicaCount }}      
   template:
     metadata:
       labels:
-        run: altinn-runtime
+        run: altinn-dataservice
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -19,7 +19,7 @@ spec:
             - containerPort: {{ .Values.image.containerPort }}
           {{- if eq (required "evironment not set" .Values.environment) "development"}}
           env:
-            {{- range $variable := $.Values.environmentVariables.development }}
+            {{- range $variable := .Values.environmentVariables.development }}
             - name: {{ $variable.name }}
               {{- if $variable.value }}
               value: {{ $variable.value}}
@@ -51,27 +51,6 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
-          {{- if .Values.volumeMounts}}
-          volumeMounts:
-            {{- range $volume := .Values.volumeMounts }}
-            - name: {{ $volume.name }}
-              mountPath: {{ $volume.mountPath }}
-            {{- end }}
-          {{- end }}
-        {{- if .Values.volumes }}
-      volumes:
-      {{- range $volume := .Values.volumes }}
-        - name: {{ $volume.name }}
-          {{- if $volume.persistantVolumeClaim }}
-          persistantVolumeClaim:
-            claimName: {{ $volume.persistantVolumeClaim.claimName }}
-          {{- end }}
-          {{- if $volume.secret }}
-          secret:
-            secretName: {{ $volume.secret.secretName }}
-          {{- end }}
-      {{- end }}
-      {{- end }}
       {{- if .Values.image.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.imagePullSecret }}

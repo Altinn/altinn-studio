@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "runtimedbapi/formdataapi",
+      "launchUrl": "dataserviceapi/formdataapi",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,8 +20,8 @@
     "AltinnCore.Runtime.DataService": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "runtimedbapi/formdataapi",
-      "applicationUrl": "https://localhost:6001;http://localhost:6000",
+      "launchUrl": "dataserviceapi/formdataapi",
+      "applicationUrl": "http://localhost:5010",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }

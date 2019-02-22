@@ -64,10 +64,11 @@ namespace AltinnCore.Runtime.DataService
             else
             {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
+
+                //app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

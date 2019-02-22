@@ -135,8 +135,10 @@ namespace AltinnCore.Runtime.DataService.Repository
         {
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
-            CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+
+            //StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
+            //CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
             await blockBlob.UploadFromStreamAsync(fileStream);
@@ -158,8 +160,10 @@ namespace AltinnCore.Runtime.DataService.Repository
         {
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
-            CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+
+            //StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
+            //CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
+            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 

@@ -11,7 +11,7 @@ namespace AltinnCore.Runtime.DataService.Controllers
     /// <summary>
     /// api for managing the form data
     /// </summary>
-    [Route("runtimedbapi/[controller]")]
+    [Route("dataserviceapi/[controller]")]
     [ApiController]
     public class FormDataAPIController : ControllerBase
     {
@@ -30,7 +30,7 @@ namespace AltinnCore.Runtime.DataService.Controllers
         /// Default test api
         /// </summary>
         /// <returns>The test return values</returns>
-        // GET api/formdataapi
+        // GET dataserviceapi/formdataapi
         [HttpGet]
         public ActionResult<IEnumerable<string>> Get()
         {
@@ -42,7 +42,7 @@ namespace AltinnCore.Runtime.DataService.Controllers
         /// </summary>
         /// <param name="formData">the form data to be stored</param>
         /// <returns>If the request was successful or not</returns>
-        // POST api/formdataapi/{reporteeId}/?reporteeElementId&formId
+        // POST dataserviceapi/formdataapi/{reporteeId}/?reporteeElementId&formId
         [HttpPost("{reporteeId}")]
         public async Task<ActionResult> Post([FromBody] FormData formData, string reporteeId, string reporteeElementId, string formId)
         {
@@ -78,7 +78,7 @@ namespace AltinnCore.Runtime.DataService.Controllers
         /// <param name="formId">the form id</param>
         /// <returns>The get response</returns>        
         /// <returns>If the request was successful or not</returns>
-        // POST api/formdataapi/{reporteeId}/?reporteeElementId&formId
+        // POST dataserviceapi/formdataapi/{reporteeId}/?reporteeElementId&formId
         [HttpGet("{reporteeId}")]
         public async Task<ActionResult> Get(string reporteeId, string reporteeElementId, string formId)
         {

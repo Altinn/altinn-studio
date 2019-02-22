@@ -1,0 +1,25 @@
+replicaCount: 1
+
+environment: development
+
+image:
+  repository: altinntjenestercontainerregistry.azurecr.io/altinn-dataservice-dev
+  containerPort: 5010
+  imagePullSecret: acrsecret
+environmentVariables:
+  development:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Development
+    - name: ASPNETCORE_URLS
+      value: http://+:5010
+  production:
+    - name: ASPNETCORE_ENVIRONMENT
+      value: Production
+    - name: ASPNETCORE_URLS
+      value: http://+:5010
+      
+service:
+  ports:
+    - port: 5010
+      targetPort: 5010
+      protocol: TCP
