@@ -1,3 +1,4 @@
+import { AxiosRequestConfig } from 'axios';
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -124,6 +125,33 @@ export function* resetFormDataSaga({ url }: FormFillerActions.IResetFormDataActi
 
 export function* watchResetFormDataSaga(): SagaIterator {
   yield takeLatest(FormFillerActionTypes.RESET_FORM_DATA, resetFormDataSaga);
+}
+
+export function* runSingleFieldValidationSaga({
+  url,
+  dataModelBinding,
+}: FormFillerActions.IRunSingleFieldValidationAction): SagaIterator {
+  const state: IAppState = yield select();
+  try {
+    const requestBody = convertDataBindingToModel(state.formFiller.formData, state.appData.dataModel.model);
+    const config: AxiosRequestConfig = {
+      headers: {
+        ValidationTriggerField: dataModelBinding,
+      },
+    };
+    const response = yield call(put, url, 'Validate', requestBody, config, dataModelBinding);
+    if (response && response.validationResult) {
+      // Update validationError state
+      const validationErrors: any = response.validationResult.errors;
+      yield call(FormFillerActionDispatcher.runSingleFieldValidationFulfilled, validationErrors);
+    }
+  } catch (err) {
+    yield call(FormFillerActionDispatcher.runSingleFieldValidationRejected, err);
+  }
+}
+
+export function* watchRunSingleFieldValidationSaga(): SagaIterator {
+  yield takeLatest(FormFillerActionTypes.RUN_SINGLE_FIELD_VALIDATION, runSingleFieldValidationSaga);
 }
 
 export function* completeAndSendInFormSaga({ url }: FormFillerActions.ICompleteAndSendInForm): SagaIterator {

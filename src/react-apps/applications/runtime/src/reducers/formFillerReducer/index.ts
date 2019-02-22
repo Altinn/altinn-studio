@@ -25,7 +25,8 @@ const formFillerReducer: Reducer<IFormFillerState> = (
   }
 
   switch (action.type) {
-    case FormFillerActionTypes.UPDATE_VALIDATIONERRORS: {
+    case FormFillerActionTypes.UPDATE_VALIDATIONERRORS:
+    case FormFillerActionTypes.RUN_SINGLE_FIELD_VALIDATION_FULFILLED: {
       const {
         validationErrors,
       } = action as FormFillerActions.IUpdateValidationErrors;
