@@ -23,14 +23,16 @@ const theme = createMuiTheme(altinnTheme);
 const styles = createStyles({
   inputHeader: {
     fontSize: '24px',
+    fontWeight: 400,
+  },
+  marginTop_10: {
+    marginTop: '10px',
   },
   descriptionInput: {
     fontSize: '16px',
-    marginTop: '10px',
   },
   inputField: {
     border: '1px solid ' + theme.altinnPalette.primary.blueDark,
-    marginTop: '10px',
     marginBottom: '24px',
     background: 'none',
     width: '386px',
@@ -53,17 +55,23 @@ class AltinnDropdown extends React.Component<IAltinnDropdownComponentProvidedPro
     return (
       <div>
         {this.props.inputHeader &&
-          <Typography className={classes.inputHeader}>
+          <Typography className={classes.inputHeader} variant='h2'>
             {this.props.inputHeader}
           </Typography>
         }
         {this.props.inputDescription &&
-          <Typography className={classes.descriptionInput}>
+          <Typography
+            className={classNames(classes.descriptionInput, { [classes.marginTop_10]: this.props.inputHeader })}>
             {this.props.inputDescription}
           </Typography>
         }
         <FormControl
-          classes={{ root: classNames(classes.inputField, { [classes.inputField_disabled]: this.props.disabled }) }}
+          classes={{
+            root: classNames(
+              classes.inputField,
+              { [classes.inputField_disabled]: this.props.disabled },
+              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader })
+          }}
           fullWidth={true}
           id={this.props.id}
         >

@@ -55,9 +55,8 @@ const styles = createStyles({
     paddingLeft: 10,
   },
   sidebarHeader: {
-    marginTop: 40,
     marginBottom: 20,
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 500,
   },
   sidebarInfoText: {
@@ -141,8 +140,6 @@ export class AdministrationComponent extends
       `${altinnWindow.location.origin}/designerapi/Repository/GetRepository?owner=${org}&repository=${service}`);
     handleServiceInformationActionDispatchers.fetchInitialCommit(
       `${altinnWindow.location.origin}/designerapi/Repository/GetInitialCommit?owner=${org}&repository=${service}`);
-    handleServiceInformationActionDispatchers.fetchServiceName(
-      `${altinnWindow.location.origin}/designer/${org}/${service}/Text/GetServiceName`);
     handleServiceInformationActionDispatchers.fetchServiceConfig(
       `${altinnWindow.location.origin}/designer/${org}/${service}/Config/GetServiceConfig`);
   }
@@ -160,17 +157,20 @@ export class AdministrationComponent extends
       this.setState({
         serviceNameAnchorEl: document.getElementById('service-name'),
       });
-    }
-
-    if (this.state.editServiceName) {
+    } else {
       const altinnWindow: any = window;
       const { org, service } = altinnWindow;
       // tslint:disable-next-line:max-line-length
       handleServiceInformationActionDispatchers.saveServiceName(`${altinnWindow.location.origin}/designer/${org}/${service}/Text/SetServiceName`, this.state.serviceName);
-      if (!(this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === ''))) {
-        this.setState({ editServiceName: false });
-      }
+      this.setState({ editServiceName: false });
     }
+
+    // if (this.state.editServiceName) {
+
+    //   if (!(this.state.editServiceName && (!this.state.serviceName || this.state.serviceName === ''))) {
+    //     this.setState({ editServiceName: false });
+    //   }
+    // }
   }
 
   public onServiceDescriptionChanged = (event: any) => {
@@ -217,7 +217,7 @@ export class AdministrationComponent extends
             </Grid>
             <Grid item={true} className={classes.mainStyle} md={8}>
               <AltinnInputField
-                id='service-name'
+                id='administrationInputServicename'
                 onChangeFunction={this.onServiceNameChanged}
                 inputHeader={getLanguageFromKey('general.service_name', this.props.language)}
                 // tslint:disable-next-line:max-line-length
@@ -228,6 +228,7 @@ export class AdministrationComponent extends
                 onBtnClickFunction={this.handleEditServiceName}
                 isDisabled={!this.state.editServiceName}
                 focusOnComponentDidUpdate={this.state.editServiceName}
+                inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
                 inputFieldStyling={this.state.editServiceName ?
                   { background: theme.altinnPalette.primary.white } : null}
               />
@@ -236,30 +237,33 @@ export class AdministrationComponent extends
                 message={getLanguageFromKey('administration.service_name_empty_message', this.props.language)}
               />
               <AltinnInputField
-                id='service-id'
+                id='administrationInputServiceid'
                 onChangeFunction={this.onServiceIdChanged}
                 inputHeader={getLanguageFromKey('administration.service_id', this.props.language)}
                 // tslint:disable-next-line:max-line-length
                 inputDescription={getLanguageFromKey('administration.service_id_description', this.props.language)}
                 inputValue={this.state.serviceId}
                 onBlurFunction={this.onBlurServiceId}
+                inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
               />
               <AltinnInputField
-                id='repo-name'
+                id='administrationInputReponame'
                 inputHeader={getLanguageFromKey('general.service_saved_name', this.props.language)}
                 // tslint:disable-next-line:max-line-length
                 inputDescription={getLanguageFromKey('administration.service_saved_name_administration_description', this.props.language)}
                 inputValue={this.props.service ? this.props.service.name : ''}
                 isDisabled={true}
+                inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
               />
               <AltinnInputField
-                id='description'
+                id='administrationInputDescription'
                 onChangeFunction={this.onServiceDescriptionChanged}
                 inputHeader={getLanguageFromKey('general.service_description_header', this.props.language)}
                 inputDescription={getLanguageFromKey('administration.description_description', this.props.language)}
                 textAreaRows={7}
                 inputValue={this.state.serviceDescription}
                 onBlurFunction={this.onBlurServiceDescription}
+                inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
               />
             </Grid>
             <Grid item={true} md={4} className={classNames(classes.sidebar)}>

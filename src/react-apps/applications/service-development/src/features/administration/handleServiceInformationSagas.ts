@@ -105,6 +105,7 @@ export function* handleSaveServiceConfigSaga({
   try {
     yield call(post, url, { serviceDescription: newServiceDescription, serviceId: newServiceId });
     yield call(HandleServiceInformationDispatcher.saveServiceConfigFulfilled, newServiceDescription, newServiceId);
+    window.postMessage('SAVED', window.location.href);
   } catch (err) {
     yield call(HandleServiceInformationDispatcher.saveServiceConfigRejected, err);
   }
