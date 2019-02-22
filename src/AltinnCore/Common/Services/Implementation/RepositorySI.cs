@@ -1809,13 +1809,13 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialWebApp(string org, DirectoryInfo targetDirectory)
         {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeAppFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppFileName);
             if (File.Exists(destFileName))
             {
                 return;
             }
 
-            FileInfo sourceFile = _defaultFileFactory.GetWebAppDefaultFile(_settings.RuntimeAppFileName, org);
+            FileInfo sourceFile = _defaultFileFactory.GetWebAppDefaultFile(_settings.ReactAppFileName, org);
             if (sourceFile != null && sourceFile.Exists)
             {
                 sourceFile.CopyTo(destFileName);
@@ -1824,10 +1824,10 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialStyles(string org, DirectoryInfo targetDirectory)
         {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeAppCssFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppCssFileName);
             if (!File.Exists(destFileName))
             {
-                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.RuntimeAppCssFileName, org);
+                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.ReactAppCssFileName, org);
                 if (sourceFile != null && sourceFile.Exists)
                 {
                     sourceFile.CopyTo(destFileName);
@@ -1836,7 +1836,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             StylesConfig stylesConfig = new StylesConfig();
             stylesConfig.InternalStyles = new List<string>();
-            stylesConfig.InternalStyles.Add(_settings.RuntimeAppCssFileName);
+            stylesConfig.InternalStyles.Add(_settings.ReactAppCssFileName);
             stylesConfig.ExternalStyles = new List<string>();
             stylesConfig.ExternalStyles.Add(_settings.DefaultBootstrapUrl);
 
