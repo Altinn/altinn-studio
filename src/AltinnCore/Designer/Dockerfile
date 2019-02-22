@@ -17,6 +17,8 @@ FROM altinn-studio-service-development:latest AS altinn-studio-service-developme
 # Altinn-Studio Dashboard
 FROM altinn-studio-dashboard:latest AS altinn-studio-dashboard
 
+FROM altinn-runtime-app:latest AS generate-runtime-app
+
 #dotnet:2.1.300-sdk
 FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce70a4f66406375e AS final
 EXPOSE 80
@@ -34,6 +36,8 @@ COPY --from=altinn-studio-service-development /dist/react-app.js ./wwwroot/desig
 COPY --from=altinn-studio-service-development /dist/react-app.css ./wwwroot/designer/css/react/react-app.css
 COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
+COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/designer/js/react/runtime.js
+COPY --from=generate-runtime-app /applications/runtime/dist/runtime.css ./wwwroot/designer/css/react/runtime.css
 RUN mv Templates ..
 RUN mv Testdata ..
 RUN mv Deployment ..
