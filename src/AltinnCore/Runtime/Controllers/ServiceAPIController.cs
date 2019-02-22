@@ -42,6 +42,8 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
 
+        private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceAPIController"/> class
         /// </summary>
@@ -313,6 +315,10 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
+            if (Request.Headers.Keys.Contains(VALIDATION_TRIGGER_FIELD))
+            {
+                requestContext.ValidationTriggerField = Request.Headers[VALIDATION_TRIGGER_FIELD];
+            }
 
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service);
