@@ -4,6 +4,7 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
+import MessageComponent from '../components/message/MessageComponent';
 import { formatCreateTextLabel, getTextResource, truncate } from './language';
 
 export const styles = {
@@ -107,3 +108,49 @@ export function renderSelectTextFromResources(
   );
 }
 
+export function renderValidationMessages(validationMessages: IValidationMessages): JSX.Element[] {
+  const validationMessageElements: JSX.Element[] = [];
+  if (validationMessages.errors) {
+    validationMessageElements.push(renderValidationErrors(validationMessages.errors));
+  }
+
+  if (validationMessages.warnings) {
+    validationMessageElements.push(renderValidationWarnings(validationMessages.warnings));
+  }
+
+  return validationMessageElements.length > 0 ? validationMessageElements : null;
+}
+
+export function renderValidationErrors(errors: string[]): JSX.Element {
+  return (
+    <MessageComponent
+      messageType='error'
+      style={{display: 'block', width: 'fit-content'}}
+    >
+    <ol>
+      {errors.map((error: string, idx: number) => {
+        return (
+          <li key={idx}>{error}</li>
+        );
+      })}
+      </ol>
+    </MessageComponent>
+  );
+}
+
+export function renderValidationWarnings(warnings: string[]): JSX.Element {
+  return (
+    <MessageComponent
+      messageType='info'
+      style={{display: 'block', width: 'fit-content'}}
+    >
+    <ol>
+      {warnings.map((warning: string, idx: number) => {
+        return (
+          <li key={idx}>{warning}</li>
+        );
+      })}
+      </ol>
+    </MessageComponent>
+  );
+}
