@@ -70,6 +70,7 @@ declare global {
     textResourceBindings?: ITextResourceBindings;
     customType?: string;
     codeListId?: string;
+    triggerValidation?: boolean;
     handleUpdateElement?: (component: FormComponentType) => void;
     handleDeleteElement?: () => void;
     handleUpdateFormData?: (formData: any) => void;
@@ -217,5 +218,10 @@ declare global {
   export interface ITextResource {
     id: string;
     value: string;
+  }
+
+  export interface IValidationMessages {
+    errors?: string[];
+    warnings?: string[];
   }
 }

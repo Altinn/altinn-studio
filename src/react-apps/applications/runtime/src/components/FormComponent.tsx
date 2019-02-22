@@ -7,6 +7,7 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import GenericComponent from './GenericComponent';
+import MessageComponent from './message/MessageComponent';
 
 const styles = createStyles({
 
@@ -114,7 +115,7 @@ class FormComponent extends React.Component<
    * This is the method that renders the configured form components in FormLayout.json
    */
   public renderComponent(): JSX.Element {
-    const isValid = !this.errorMessage();
+    const isValid = !this.props.validationErrors || this.props.validationErrors.length === 0;
     return (
       <GenericComponent
         id={this.props.id}
@@ -125,6 +126,7 @@ class FormComponent extends React.Component<
         getTextResource={this.getTextResource}
         designMode={this.props.designMode}
         thirdPartyComponents={this.props.thirdPartyComponents}
+        validationMessages={{errors: this.props.validationErrors}}
       />
     );
   }
@@ -242,19 +244,28 @@ class FormComponent extends React.Component<
     );
   }
 
+  private isSimpleComponent(): boolean {
+    const component = this.props.component.component;
+    const simpleBinding = this.props.component.dataModelBindings.simpleBinding;
+    return simpleBinding && component !== 'Checkboxes' && component !== 'RadioButtons';
+  }
+
   private errorMessage(): JSX.Element {
-    if (this.props.validationErrors && this.props.validationErrors.length > 0) {
-      return (
-        <span className='field-validation-error a-message a-message-error'>
-          <ol>
-            {this.props.validationErrors.map((error: string, index: number) => {
-              return <li key={index}>{error}</li>;
-            })}
-          </ol>
-        </span>
-      );
+    if (!this.isSimpleComponent() ||
+      !this.props.validationErrors ||
+      this.props.validationErrors.length === 0) {
+        return null;
     }
-    return null;
+
+    return (
+      <MessageComponent messageType='error'>
+        <ol>
+          {this.props.validationErrors.map((error: string, index: number) => {
+            return <li key={index}>{error}</li>;
+          })}
+        </ol>
+      </MessageComponent>
+    );
   }
 }
 
