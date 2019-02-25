@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -113,63 +113,61 @@ namespace AltinnCore.Designer.Controllers
 
             return result;
         }
-
+        
         /// <summary>
         /// Method to retrieve the service description from the metadata file
         /// </summary>
-        /// <param name="owner">the owner of the service</param>
+        /// <param name="org">the owner of the service</param>
         /// <param name="service">the service</param>
-        /// <returns>The service description of the service</returns>
+        /// <returns>The service configuration</returns>
         [HttpGet]
-        public string GetServiceDescription(string owner, string service)
+        public ServiceConfiguration GetServiceConfig(string org, string service)
         {
-            string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
-            string serviceDescription = string.Empty;
+            string serviceConfigPath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
+            ServiceConfiguration serviceConfigurationObject = null;
 
-            if (System.IO.File.Exists(serviceMetadataDirectoryPath))
+            if (System.IO.File.Exists(serviceConfigPath))
             {
-                string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
-                ServiceConfiguration serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
-                if (serviceConfigurationObject != null)
-                {
-                    serviceDescription = serviceConfigurationObject.ServiceDescrition;
-                }
+                string serviceConfiguration = System.IO.File.ReadAllText(serviceConfigPath, Encoding.UTF8);
+                serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
             }
 
-            return serviceDescription;
+            return serviceConfigurationObject;
         }
 
         /// <summary>
         /// Method to set the service description in the metadata file
         /// </summary>
-        /// <param name="owner">the owner of the service</param>
+        /// <param name="org">the owner of the service</param>
         /// <param name="service">the service</param>
-        /// <param name="description">the service description</param>
+        /// <param name="serviceConfig">the service config</param>
         [HttpPost]
-        public void SetServiceDescription(string owner, string service, [FromBody] dynamic description)
+        public void SetServiceConfig(string org, string service, [FromBody] dynamic serviceConfig)
         {
-            string serviceMetadataDirectoryPath = _settings.GetMetadataPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.GetMetadataJsonFile();
+            string serviceConfigPath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
 
-            if (System.IO.File.Exists(serviceMetadataDirectoryPath))
+            if (System.IO.File.Exists(serviceConfigPath))
             {
-                string serviceConfiguration = System.IO.File.ReadAllText(serviceMetadataDirectoryPath, Encoding.UTF8);
+                string serviceConfiguration = System.IO.File.ReadAllText(serviceConfigPath, Encoding.UTF8);
                 serviceConfigurationObject = JsonConvert.DeserializeObject<ServiceConfiguration>(serviceConfiguration);
-                serviceConfigurationObject.ServiceDescrition = description.serviceDescription.ToString();
+                serviceConfigurationObject.ServiceDescription = serviceConfig.serviceDescription.ToString();
+                serviceConfigurationObject.ServiceId = serviceConfig.serviceId.ToString();
             }
             else
             {
-                new FileInfo(serviceMetadataDirectoryPath).Directory.Create();
+                new FileInfo(serviceConfigPath).Directory.Create();
                 serviceConfigurationObject = new ServiceConfiguration()
                 {
                     RepositoryName = service,
-                    ServiceDescrition = description.serviceDescription.ToString(),
+                    ServiceDescription = serviceConfig.serviceDescription.ToString(),
+                    ServiceId = serviceConfig.serviceId.ToString(),
                 };
             }
 
             if (serviceConfigurationObject != null)
             {
-                System.IO.File.WriteAllText(serviceMetadataDirectoryPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
+                System.IO.File.WriteAllText(serviceConfigPath, JObject.FromObject(serviceConfigurationObject).ToString(), Encoding.UTF8);
             }
         }
     }

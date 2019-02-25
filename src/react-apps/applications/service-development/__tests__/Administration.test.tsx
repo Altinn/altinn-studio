@@ -15,6 +15,8 @@ describe('HandleMergeConflictAbort', () => {
   let mockServiceDescription: string;
   let mockServiceDescriptionIsSaving: boolean;
   let mockClasses: any;
+  let mockServiceIdIsSaving: boolean;
+  let mockServiceId: string;
 
   beforeEach(() => {
     mockLanguage = {};
@@ -57,6 +59,8 @@ describe('HandleMergeConflictAbort', () => {
     };
     mockServiceName = 'Service name';
     mockServiceNameIsSaving = false;
+    mockServiceId = 'service id';
+    mockServiceIdIsSaving = false;
     mockInitialCommit = {
       message: '',
       author: {
@@ -81,9 +85,8 @@ describe('HandleMergeConflictAbort', () => {
   it('should handle sucessfully calling component did mount and mapping props to state', async () => {
     const mockFetchService = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchService');
     const mockFetchInitialCommit = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchInitialCommit');
-    const mockFetchServiceName = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchServiceName');
     // tslint:disable-next-line:max-line-length
-    const mockFetchServiceDescription = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchServiceDescription');
+    const mockFetchServiceDescription = jest.spyOn(handleServiceInformationActionDispatchers, 'fetchServiceConfig');
 
     const wrapper = mount(
       <AdministrationComponent
@@ -95,6 +98,8 @@ describe('HandleMergeConflictAbort', () => {
         serviceDescription={mockServiceDescription}
         serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
         initialCommit={mockInitialCommit}
+        serviceId={mockServiceId}
+        serviceIdIsSaving={mockServiceIdIsSaving}
       />,
     );
 
@@ -102,10 +107,10 @@ describe('HandleMergeConflictAbort', () => {
 
     expect(mockFetchService).toHaveBeenCalled();
     expect(mockFetchInitialCommit).toHaveBeenCalled();
-    expect(mockFetchServiceName).toHaveBeenCalled();
     expect(mockFetchServiceDescription).toHaveBeenCalled();
     expect(instance.state.serviceName).toEqual(mockServiceName);
     expect(instance.state.serviceDescription).toEqual(mockServiceDescription);
+    expect(instance.state.serviceId).toEqual(mockServiceId);
   });
 
   it('should handle sucessfully updating service description', async () => {
@@ -119,6 +124,8 @@ describe('HandleMergeConflictAbort', () => {
         serviceDescription={mockServiceDescription}
         serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
         initialCommit={mockInitialCommit}
+        serviceId={mockServiceId}
+        serviceIdIsSaving={mockServiceIdIsSaving}
       />,
     );
 
@@ -138,13 +145,54 @@ describe('HandleMergeConflictAbort', () => {
     expect(instance.state.serviceDescription).not.toEqual(instance.props.serviceDescription);
     expect(instance.state.serviceDescription).not.toEqual(mockServiceDescription);
 
-    const spySaveServiceDescription = jest.spyOn(handleServiceInformationActionDispatchers, 'saveServiceDescription')
+    const spySaveServiceDescription = jest.spyOn(handleServiceInformationActionDispatchers, 'saveServiceConfig')
       .mockImplementation(() => wrapper.setProps({ serviceDescription: mockEvent.target.value }));
     instance.onBlurServiceDescription();
     expect(spySaveServiceDescription).toBeCalled();
     expect(instance.state.editServiceDescription).toEqual(false);
     expect(instance.state.serviceDescription).toEqual(instance.props.serviceDescription);
     expect(instance.state.serviceDescription).not.toEqual(mockServiceDescription);
+  });
+
+  it('should handle sucessfully updating service id', async () => {
+    const wrapper = mount(
+      <AdministrationComponent
+        classes={mockClasses}
+        language={mockLanguage}
+        service={mockService}
+        serviceName={mockServiceName}
+        serviceNameIsSaving={mockServiceNameIsSaving}
+        serviceDescription={mockServiceDescription}
+        serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
+        initialCommit={mockInitialCommit}
+        serviceId={mockServiceId}
+        serviceIdIsSaving={mockServiceIdIsSaving}
+      />,
+    );
+
+    const instance = wrapper.instance() as AdministrationComponent;
+
+    const mockEvent = {
+      target: {
+        value: 'New id',
+      },
+    };
+
+    expect(instance.state.serviceId).toEqual(mockServiceId);
+    expect(instance.state.editServiceId).toEqual(false);
+    instance.onServiceIdChanged(mockEvent);
+    expect(instance.state.editServiceId).toEqual(true);
+    expect(instance.state.serviceId).toEqual(mockEvent.target.value);
+    expect(instance.state.serviceId).not.toEqual(instance.props.serviceId);
+    expect(instance.state.serviceId).not.toEqual(mockServiceId);
+
+    const spySaveServiceId = jest.spyOn(handleServiceInformationActionDispatchers, 'saveServiceConfig')
+      .mockImplementation(() => wrapper.setProps({ serviceId: mockEvent.target.value }));
+    instance.onBlurServiceId();
+    expect(spySaveServiceId).toBeCalled();
+    expect(instance.state.editServiceId).toEqual(false);
+    expect(instance.state.serviceId).toEqual(instance.props.serviceId);
+    expect(instance.state.serviceId).not.toEqual(mockServiceId);
   });
 
   it('should handle sucessfully updating service name', async () => {
@@ -158,6 +206,8 @@ describe('HandleMergeConflictAbort', () => {
         serviceDescription={mockServiceDescription}
         serviceDescriptionIsSaving={mockServiceDescriptionIsSaving}
         initialCommit={mockInitialCommit}
+        serviceId={mockServiceId}
+        serviceIdIsSaving={mockServiceIdIsSaving}
       />,
     );
 

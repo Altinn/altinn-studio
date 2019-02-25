@@ -25,6 +25,7 @@ const styles = createStyles({
     fontSize: 16,
     padding: '12px 24px 12px 24px',
     maxWidth: '550px',
+    marginTop: 10,
   },
 });
 
