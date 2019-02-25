@@ -82,3 +82,8 @@ export interface IServiceDescription {
   description: string;
   saving: boolean;
 }
+
+export interface IServiceId {
+  serviceId: string;
+  saving: boolean;
+}

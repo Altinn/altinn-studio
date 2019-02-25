@@ -21,7 +21,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
     >
       <div>
         <button
-          className="MuiButtonBase-root-172 MuiButton-root-146 MuiButton-contained-157 MuiButton-raised-160 AltinnIconButton-dottedBtn-144"
+          className="MuiButtonBase-root-173 MuiButton-root-147 MuiButton-contained-158 MuiButton-raised-161 AltinnIconButton-dottedBtn-145"
           disabled={false}
           id="ceateService"
           onBlur={[Function]}
@@ -39,15 +39,15 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
           type="button"
         >
           <span
-            className="MuiButton-label-147"
+            className="MuiButton-label-148"
           >
             <i
-              className="ai ai-circle-plus AltinnIconButton-dottedBtnIcon-145"
+              className="ai ai-circle-plus AltinnIconButton-dottedBtnIcon-146"
             />
             dashboard.new_service
           </span>
           <span
-            className="MuiTouchRipple-root-230"
+            className="MuiTouchRipple-root-231"
           />
         </button>
       </div>
@@ -65,17 +65,17 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-item-11 MuiGrid-grid-xs-12-50 MuiGrid-grid-sm-10-62 MuiGrid-grid-md-10-76 MuiGrid-grid-lg-12-92 MuiGrid-grid-xl-12-106"
     >
       <div
-        className="MuiFormControl-root-187 AltinnSearchInput-searchBox-184 MuiFormControl-fullWidth-190"
+        className="MuiFormControl-root-188 AltinnSearchInput-searchBox-185 MuiFormControl-fullWidth-191"
       >
         <div
-          className="MuiFormControl-root-187"
+          className="MuiFormControl-root-188"
         >
           <div
-            className="MuiInputBase-root-204 MuiInput-root-191 AltinnSearchInput-searchBoxInput-185 MuiInputBase-formControl-205 MuiInput-formControl-192 MuiInputBase-adornedStart-208"
+            className="MuiInputBase-root-205 MuiInput-root-192 AltinnSearchInput-searchBoxInput-186 MuiInputBase-formControl-206 MuiInput-formControl-193 MuiInputBase-adornedStart-209"
             onClick={[Function]}
           >
             <div
-              className="MuiInputAdornment-root-221 AltinnSearchInput-searchBoxIcon-186 MuiInputAdornment-positionEnd-224"
+              className="MuiInputAdornment-root-222 AltinnSearchInput-searchBoxIcon-187 MuiInputAdornment-positionEnd-225"
             >
               <i
                 className="ai ai-search"
@@ -83,7 +83,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
             </div>
             <input
               aria-invalid={false}
-              className="MuiInputBase-input-214 MuiInput-input-199 MuiInputBase-inputAdornedStart-219"
+              className="MuiInputBase-input-215 MuiInput-input-200 MuiInputBase-inputAdornedStart-220"
               disabled={false}
               id="service-search"
               onBlur={[Function]}
@@ -101,7 +101,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-item-11 MuiGrid-grid-md-12-78 MuiGrid-grid-lg-10-90 MuiGrid-grid-xl-10-104"
     >
       <div
-        className="MuiChip-root-240 MuiChip-colorPrimary-241 MuiChip-clickable-243 MuiChip-clickableColorPrimary-244 MuiChip-outlined-249 MuiChip-outlinedPrimary-250 Connect-ServicesOverviewComponent--mar_right_20-4 Connect-ServicesOverviewComponent--mar_top_20-5 AltinnFilterChip-chip-237"
+        className="MuiChip-root-241 MuiChip-colorPrimary-242 MuiChip-clickable-244 MuiChip-clickableColorPrimary-245 MuiChip-outlined-250 MuiChip-outlinedPrimary-251 Connect-ServicesOverviewComponent--mar_right_20-4 Connect-ServicesOverviewComponent--mar_top_20-5 AltinnFilterChip-chip-238"
         onClick={[Function]}
         onKeyDown={[Function]}
         onKeyUp={[Function]}
@@ -109,13 +109,13 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         tabIndex={0}
       >
         <span
-          className="MuiChip-label-259"
+          className="MuiChip-label-260"
         >
           Mons Monsen
         </span>
       </div>
       <div
-        className="MuiChip-root-240 MuiChip-colorPrimary-241 MuiChip-clickable-243 MuiChip-clickableColorPrimary-244 MuiChip-outlined-249 MuiChip-outlinedPrimary-250 Connect-ServicesOverviewComponent--mar_right_20-4 Connect-ServicesOverviewComponent--mar_top_20-5 AltinnFilterChip-chip-237 AltinnFilterChip-chipActive-238"
+        className="MuiChip-root-241 MuiChip-colorPrimary-242 MuiChip-clickable-244 MuiChip-clickableColorPrimary-245 MuiChip-outlined-250 MuiChip-outlinedPrimary-251 Connect-ServicesOverviewComponent--mar_right_20-4 Connect-ServicesOverviewComponent--mar_top_20-5 AltinnFilterChip-chip-238 AltinnFilterChip-chipActive-239"
         onClick={[Function]}
         onKeyDown={[Function]}
         onKeyUp={[Function]}
@@ -123,7 +123,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         tabIndex={0}
       >
         <span
-          className="MuiChip-label-259"
+          className="MuiChip-label-260"
         >
           This is the full name of this org
         </span>
@@ -137,7 +137,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-226 CategoryComponent-width100-227 CategoryComponent-fontSize_16-229"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-227 CategoryComponent-width100-228 CategoryComponent-fontSize_16-230"
       >
         dashboard.category_service_write
       </p>
@@ -146,7 +146,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-227 CategoryComponent-mar_top_100-225 CategoryComponent-fontSize_24-228"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-228 CategoryComponent-mar_top_100-226 CategoryComponent-fontSize_24-229"
       >
         dashboard.no_category_service_write
       </p>
@@ -159,7 +159,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-226 CategoryComponent-width100-227 CategoryComponent-fontSize_16-229"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-227 CategoryComponent-width100-228 CategoryComponent-fontSize_16-230"
       >
         dashboard.category_service_read
       </p>
@@ -168,7 +168,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-227 CategoryComponent-mar_top_100-225 CategoryComponent-fontSize_24-228"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-228 CategoryComponent-mar_top_100-226 CategoryComponent-fontSize_24-229"
       >
         dashboard.no_category_service_read
       </p>
@@ -198,7 +198,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
     >
       <div>
         <button
-          className="MuiButtonBase-root-172 MuiButton-root-146 MuiButton-contained-157 MuiButton-raised-160 AltinnIconButton-dottedBtn-144"
+          className="MuiButtonBase-root-173 MuiButton-root-147 MuiButton-contained-158 MuiButton-raised-161 AltinnIconButton-dottedBtn-145"
           disabled={false}
           id="ceateService"
           onBlur={[Function]}
@@ -216,15 +216,15 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
           type="button"
         >
           <span
-            className="MuiButton-label-147"
+            className="MuiButton-label-148"
           >
             <i
-              className="ai ai-circle-plus AltinnIconButton-dottedBtnIcon-145"
+              className="ai ai-circle-plus AltinnIconButton-dottedBtnIcon-146"
             />
             dashboard.new_service
           </span>
           <span
-            className="MuiTouchRipple-root-230"
+            className="MuiTouchRipple-root-231"
           />
         </button>
       </div>
@@ -242,17 +242,17 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-item-11 MuiGrid-grid-xs-12-50 MuiGrid-grid-sm-10-62 MuiGrid-grid-md-10-76 MuiGrid-grid-lg-12-92 MuiGrid-grid-xl-12-106"
     >
       <div
-        className="MuiFormControl-root-187 AltinnSearchInput-searchBox-184 MuiFormControl-fullWidth-190"
+        className="MuiFormControl-root-188 AltinnSearchInput-searchBox-185 MuiFormControl-fullWidth-191"
       >
         <div
-          className="MuiFormControl-root-187"
+          className="MuiFormControl-root-188"
         >
           <div
-            className="MuiInputBase-root-204 MuiInput-root-191 AltinnSearchInput-searchBoxInput-185 MuiInputBase-formControl-205 MuiInput-formControl-192 MuiInputBase-adornedStart-208"
+            className="MuiInputBase-root-205 MuiInput-root-192 AltinnSearchInput-searchBoxInput-186 MuiInputBase-formControl-206 MuiInput-formControl-193 MuiInputBase-adornedStart-209"
             onClick={[Function]}
           >
             <div
-              className="MuiInputAdornment-root-221 AltinnSearchInput-searchBoxIcon-186 MuiInputAdornment-positionEnd-224"
+              className="MuiInputAdornment-root-222 AltinnSearchInput-searchBoxIcon-187 MuiInputAdornment-positionEnd-225"
             >
               <i
                 className="ai ai-search"
@@ -260,7 +260,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
             </div>
             <input
               aria-invalid={false}
-              className="MuiInputBase-input-214 MuiInput-input-199 MuiInputBase-inputAdornedStart-219"
+              className="MuiInputBase-input-215 MuiInput-input-200 MuiInputBase-inputAdornedStart-220"
               disabled={false}
               id="service-search"
               onBlur={[Function]}
@@ -278,7 +278,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-item-11 MuiGrid-grid-md-12-78 MuiGrid-grid-lg-10-90 MuiGrid-grid-xl-10-104"
     >
       <div
-        className="MuiChip-root-240 MuiChip-colorPrimary-241 MuiChip-clickable-243 MuiChip-clickableColorPrimary-244 MuiChip-outlined-249 MuiChip-outlinedPrimary-250 Connect-ServicesOverviewComponent--mar_right_20-4 Connect-ServicesOverviewComponent--mar_top_20-5 AltinnFilterChip-chip-237"
+        className="MuiChip-root-241 MuiChip-colorPrimary-242 MuiChip-clickable-244 MuiChip-clickableColorPrimary-245 MuiChip-outlined-250 MuiChip-outlinedPrimary-251 Connect-ServicesOverviewComponent--mar_right_20-4 Connect-ServicesOverviewComponent--mar_top_20-5 AltinnFilterChip-chip-238"
         onClick={[Function]}
         onKeyDown={[Function]}
         onKeyUp={[Function]}
@@ -286,7 +286,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         tabIndex={0}
       >
         <span
-          className="MuiChip-label-259"
+          className="MuiChip-label-260"
         >
           Mons Monsen
         </span>
@@ -300,7 +300,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-226 CategoryComponent-width100-227 CategoryComponent-fontSize_16-229"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-227 CategoryComponent-width100-228 CategoryComponent-fontSize_16-230"
       >
         dashboard.category_service_write
       </p>
@@ -309,7 +309,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-227 CategoryComponent-mar_top_100-225 CategoryComponent-fontSize_24-228"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-228 CategoryComponent-mar_top_100-226 CategoryComponent-fontSize_24-229"
       >
         dashboard.no_category_service_write
       </p>
@@ -322,7 +322,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-226 CategoryComponent-width100-227 CategoryComponent-fontSize_16-229"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-noWrap-133 MuiTypography-gutterBottom-134 CategoryComponent-displayInlineBlock-227 CategoryComponent-width100-228 CategoryComponent-fontSize_16-230"
       >
         dashboard.category_service_read
       </p>
@@ -331,7 +331,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
       className="MuiGrid-container-10"
     >
       <p
-        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-227 CategoryComponent-mar_top_100-225 CategoryComponent-fontSize_24-228"
+        className="MuiTypography-root-107 MuiTypography-body1-116 MuiTypography-alignCenter-130 CategoryComponent-width100-228 CategoryComponent-mar_top_100-226 CategoryComponent-fontSize_24-229"
       >
         dashboard.no_category_service_read
       </p>

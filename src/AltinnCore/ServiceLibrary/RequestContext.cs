@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.ServiceLibrary
@@ -42,5 +42,10 @@ namespace AltinnCore.ServiceLibrary
         /// Gets or sets a value indicating if the client need to updated
         /// </summary>
         public bool RequiresClientSideReleoad { get; set; }
+
+        /// <summary>
+        /// Gets or sets the field that triggered a single field validation
+        /// </summary>
+        public string ValidationTriggerField { get; set; }
     }
 }
