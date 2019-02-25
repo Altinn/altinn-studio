@@ -41,7 +41,7 @@ namespace AltinnCore.UnitTest.Common
 
             string metadataAsJson = instanceModel.ToString();
 
-            File.WriteAllText("edag1.instance-model.json", metadataAsJson);
+            //File.WriteAllText("edag1.instance-model.json", metadataAsJson);
         }
 
         /// <summary>
@@ -56,31 +56,13 @@ namespace AltinnCore.UnitTest.Common
 
             JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "ServiceModel", schema);
 
-            JsonObject instanceModel = converter.GetInstanceModel();
+            ServiceMetadata serviceMetadata = converter.GetServiceMetadata();
 
-            Assert.NotNull(instanceModel);
-            JsonObject actualElements = instanceModel.TryGetObject("Elements");
+            Assert.NotNull(serviceMetadata);
 
-            // Assert.Equal(410, actualElements.Count);
-
-            string metadataAsJson = instanceModel.GetIndentedString();
-
-            File.WriteAllText("service-model.instance-model.json", metadataAsJson);
-
-            JsonSerializer json = new JsonSerializer();
-            Dictionary<string, Dictionary<string, string>> textDictionary = new Dictionary<string, Dictionary<string, string>>();
-            Mock<IRepository> moqRepository = new Mock<IRepository>();
-            moqRepository
-                .Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>())).Returns(textDictionary);
-            ServiceMetadata serviceMetadata = SeresXSDParse(moqRepository, "Common/xsd/ServiceModel.xsd");
-            JsonValue serviceMetadataValue = json.Serialize<ServiceMetadata>(serviceMetadata);
-            File.WriteAllText("service-model.instance-model.old.json", serviceMetadataValue.GetIndentedString());
-
-            SortedDictionary<string, Dictionary<string, string>> oldTexts = new SortedDictionary<string, Dictionary<string, string>>(textDictionary);
-            SortedDictionary<string, Dictionary<string, string>> newTexts = new SortedDictionary<string, Dictionary<string, string>>(converter.GetTexts());
-            
-            File.WriteAllText("service-model.texts.old.json", json.Serialize(new Dictionary<string, Dictionary<string, string>>(oldTexts)).GetIndentedString());
-            File.WriteAllText("service-model.texts.json", json.Serialize(new Dictionary<string, Dictionary<string, string>>(newTexts)).GetIndentedString());
+            // get a chosen text identifier
+            string placeholder = serviceMetadata.Elements["klagefristgrp5804.KlageUtloptKlagefristBegrunnelsedatadef25456.value"].Texts["PlaceHolder"];
+            Assert.Equal("25456.KlageUtloptKlagefristBegrunnelsedatadef25456.PlaceHolder", placeholder);           
         }
         
         /// <summary>
@@ -114,8 +96,9 @@ namespace AltinnCore.UnitTest.Common
                     if (!instanceModel["Elements"].Equals(serviceMetadataValue.Object["Elements"]))
                     {
                         mismatchCount++;
-                        File.WriteAllText(file + ".new.schema.json", instanceModel.GetIndentedString(0));
-                        File.WriteAllText(file + ".seresParser.schema.json", serviceMetadataValue.GetIndentedString(0));
+
+                        //File.WriteAllText(file + ".new.schema.json", instanceModel.GetIndentedString(0));
+                        //File.WriteAllText(file + ".seresParser.schema.json", serviceMetadataValue.GetIndentedString(0));
                     }
                 }
                 catch (Exception e)
@@ -124,7 +107,7 @@ namespace AltinnCore.UnitTest.Common
                 }
             }
 
-            /*Assert.Equal(0, failCount + mismatchCount);*/
+            Assert.Equal(0, failCount);
         }
 
         private static ServiceMetadata SeresXSDParse(Mock<IRepository> moqRepository, string file)
