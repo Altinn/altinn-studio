@@ -24,12 +24,12 @@ export const FETCH_INITIAL_COMMIT: string = `${moduleName}.FETCH_INITIAL_COMMIT`
 export const FETCH_INITIAL_COMMIT_FULFILLED: string = `${moduleName}.FETCH_INITIAL_COMMIT_FULFILLED`;
 export const FETCH_INITIAL_COMMIT_REJECTED: string = `${moduleName}.FETCH_INITIAL_COMMIT_REJECTED`;
 
-// All fetch service description actions
-export const FETCH_SERVICE_DESCRIPTION: string = `${moduleName}.FETCH_SERVICE_DESCRIPTION`;
-export const FETCH_SERVICE_DESCRIPTION_FULFILLED: string = `${moduleName}.FETCH_SERVICE_DESCRIPTION_FULFILLED`;
-export const FETCH_SERVICE_DESCRIPTION_REJECTED: string = `${moduleName}.FETCH_SERVICE_DESCRIPTION_REJECTED`;
+// All fetch service config actions
+export const FETCH_SERVICE_CONFIG: string = `${moduleName}.FETCH_SERVICE_CONFIG`;
+export const FETCH_SERVICE_CONFIG_FULFILLED: string = `${moduleName}.FETCH_SERVICE_CONFIG_FULFILLED`;
+export const FETCH_SERVICE_CONFIG_REJECTED: string = `${moduleName}.FETCH_SERVICE_CONFIG_REJECTED`;
 
-// All save service description actions
-export const SAVE_SERVICE_DESCRIPTION: string = `${moduleName}.SAVE_SERVICE_DESCRIPTION`;
-export const SAVE_SERVICE_DESCRIPTION_FULFILLED: string = `${moduleName}.SAVE_SERVICE_DESCRIPTION_FULFILLED`;
-export const SAVE_SERVICE_DESCRIPTION_REJECTED: string = `${moduleName}.SAVE_SERVICE_DESCRIPTION_REJECTED`;
+// All save service config actions
+export const SAVE_SERVICE_CONFIG: string = `${moduleName}.SAVE_SERVICE_CONFIG`;
+export const SAVE_SERVICE_CONFIG_FULFILLED: string = `${moduleName}.SAVE_SERVICE_CONFIG_FULFILLED`;
+export const SAVE_SERVICE_CONFIG_REJECTED: string = `${moduleName}.SAVE_SERVICE_CONFIG_REJECTED`;

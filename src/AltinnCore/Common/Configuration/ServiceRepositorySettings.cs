@@ -198,6 +198,11 @@ namespace AltinnCore.Common.Configuration
         public string ServiceStylesConfigFileName { get; set; } = "Styles.json";
 
         /// <summary>
+        /// Gets or sets config file name for service
+        /// </summary>
+        public string ServiceConfigFileName { get; set; } = "config.json";
+
+        /// <summary>
         /// Gets or sets default Bootstrap url
         /// </summary>
         public string DefaultBootstrapUrl { get; set; } = "https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css";

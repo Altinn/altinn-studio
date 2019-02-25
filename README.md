@@ -20,7 +20,7 @@ These instructions will get you a copy of the project up and running on your loc
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp) and [Debugger for Chrome](https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome))
 5. [Docker CE](https://www.docker.com/get-docker)
 6. Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` in the hosts file (C:/Windows/System32/drivers/etc/hosts) <br />
-   On MacOS: Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` to /private/etc/hosts. 
+   On MacOS: Add `localhost altinn3.no` and `127.0.0.1 altinn3.no` to /private/etc/hosts.
     ```cmd
     sudo nano /private/etc/hosts
     ```
@@ -83,6 +83,7 @@ npm run gulp
 npm run gulp-develop
 ```
 
+
 **Runtime**
 
 Stop the container running Runtime.
@@ -95,9 +96,20 @@ Navigate to the Runtime folder. Build and run the code.
 
 ```cmd
 cd src/AltinnCore/Runtime
-dotnet build
+npm install
+npm run gulp-develop
+```
+
+If you are not going to edit the runtime react app you can use
+
+```cmd
+cd src/AltinnCore/Runtime
+npm install
+npm run gulp
 dotnet run
 ```
+
+Which will build the runtime app, but not listen for changes to our react app.
 
 ## Running the tests
 
@@ -118,13 +130,13 @@ npm run lint
 
 ## Deployment
 
-The current build is deployed in Kubernetes on Azure. 
+The current build is deployed in Kubernetes on Azure.
 
 Automated build/deploy process is being developed.
 
 ## Built With
 
-- [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework 
+- [React](https://reactjs.org/)/[Redux](https://redux.js.org/) - The front-end framework
 - [.NET Core](https://docs.microsoft.com/en-us/dotnet/core/)/[C#](https://docs.microsoft.com/en-us/dotnet/csharp/) - The back-end framework
 - [npm](https://www.npmjs.com/) - Package management
 - [Docker](https://www.docker.com/) - Container platform
