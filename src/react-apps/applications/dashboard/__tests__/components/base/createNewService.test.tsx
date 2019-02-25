@@ -206,6 +206,59 @@ describe('>>> components/base/createNewService.tsx', () => {
     });
   });
 
+  it('+++ should handle creating new service when repository created status is unknown', () => {
+    const mountedComponent = mount(
+      <CreateNewServiceComponent
+        language={mockLanguage}
+        selectableUser={mockSelectableUser}
+        classes={mockClasses}
+      />,
+    );
+
+    const instance = mountedComponent.instance() as CreateNewServiceComponent;
+    instance._isMounted = true;
+    instance.state.repoName = 'ServiceName';
+    instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
+    const mockResult = {
+      repositoryCreatedStatus: 418,
+    };
+    const getSpy = jest.spyOn(networking, 'post').mockImplementation(() => Promise.resolve(mockResult));
+    instance.createNewService();
+    expect(instance.state.isLoading).toBe(true);
+    return Promise.resolve().then(() => {
+      expect(getSpy).toHaveBeenCalled();
+      expect(instance._isMounted).toBe(true);
+      expect(instance.state.isLoading).toBe(false);
+      expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+    });
+  });
+
+  it('+++ should handle creating new service when api fails', async () => {
+    const mountedComponent = mount(
+      <CreateNewServiceComponent
+        language={mockLanguage}
+        selectableUser={mockSelectableUser}
+        classes={mockClasses}
+      />,
+    );
+
+    const instance = mountedComponent.instance() as CreateNewServiceComponent;
+    instance._isMounted = true;
+    instance.state.repoName = 'ServiceName';
+    instance.state.selectedOrgOrUser = mockSelectableUser[0].name;
+    const mockError = Error('mocked error');
+    const getStub = jest.fn();
+    const mockPost = jest.spyOn(networking, 'post').mockImplementation(getStub);
+    getStub.mockReturnValue(Promise.reject(mockError));
+    instance.createNewService();
+    expect(instance.state.isLoading).toBe(true);
+    await Promise.resolve();
+    expect(mockPost).toHaveBeenCalled();
+    expect(instance._isMounted).toBe(true);
+    expect(instance.state.isLoading).toBe(false);
+    expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+  });
+
   it('+++ should handle successfully creating new service', () => {
     const mountedComponent = mount(
       <CreateNewServiceComponent

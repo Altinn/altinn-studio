@@ -186,11 +186,17 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
         } else if (result.repositoryCreatedStatus === 201) {
           window.location.assign(`${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`);
         } else {
+          this.setState({
+            isLoading: false,
+          });
           this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_service', this.props.language));
         }
       }).catch((error: Error) => {
         console.error('Unsucessful creating new service', error.message);
         if (this._isMounted) {
+          this.setState({
+            isLoading: false,
+          });
           this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_service', this.props.language));
         }
       });
