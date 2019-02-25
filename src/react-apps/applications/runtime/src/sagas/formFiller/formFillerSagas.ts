@@ -25,8 +25,7 @@ export function* updateFormDataSaga({
       return;
     }
 
-    let validationErrors = [];
-    validationErrors = Validator.validateDataModel(
+    const validationErrors = Validator.validateDataModel(
       formData,
       dataModelElement,
       state.formDesigner.layout.components[componentID],

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { renderValidationMessages } from '../../utils/render';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -8,7 +8,7 @@ export interface IRadioButtonsContainerProps {
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid?: boolean;
-  validationMessages?: IValidationMessages;
+  validationMessages?: IComponentValidations;
   designMode: boolean;
 }
 
@@ -85,7 +85,7 @@ export class RadioButtonContainerComponent
               {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
             </label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&
-             renderValidationMessages(this.props.validationMessages)}
+             renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding)}
           </div>
         ))}
       </div>

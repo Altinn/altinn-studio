@@ -220,8 +220,16 @@ declare global {
     value: string;
   }
 
-  export interface IValidationMessages {
+  export interface IComponentBindingValidation {
     errors?: string[];
     warnings?: string[];
+  }
+
+  export interface IComponentValidations {
+    [id: string]: IComponentBindingValidation;
+  }
+
+  export interface IValidationResults {
+    [id: string]: IComponentValidations;
   }
 }

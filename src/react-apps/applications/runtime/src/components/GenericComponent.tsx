@@ -10,7 +10,7 @@ export interface IGenericComponentProps {
   formData: any;
   designMode: boolean;
   thirdPartyComponents?: any;
-  validationMessages?: IValidationMessages;
+  validationMessages?: IComponentValidations;
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
 }

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { renderValidationMessages } from '../../utils/render';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -8,7 +8,7 @@ export interface ICheckboxContainerProps {
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid: boolean;
-  validationMessages: IValidationMessages;
+  validationMessages: IComponentValidations;
   designMode: boolean;
 }
 
@@ -87,7 +87,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             />
             <label className='pl-3 custom-control-label'>{option.label}</label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&
-              renderValidationMessages(this.props.validationMessages)}
+              renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding)}
           </div>
         ))}
       </div>

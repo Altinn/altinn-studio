@@ -6,8 +6,8 @@ import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { renderValidationMessagesForComponent } from '../utils/render';
 import GenericComponent from './GenericComponent';
-import MessageComponent from './message/MessageComponent';
 
 const styles = createStyles({
 
@@ -38,7 +38,7 @@ export interface IFormElementProps extends IProvidedProps {
   externalApi: any;
   dataModelElement: IDataModelFieldElement;
   dataModel: IDataModelFieldElement[];
-  validationErrors: any[];
+  validationResults: IComponentValidations;
   textResources: any[];
   thirdPartyComponents: any;
   order: any[];
@@ -115,7 +115,7 @@ class FormComponent extends React.Component<
    * This is the method that renders the configured form components in FormLayout.json
    */
   public renderComponent(): JSX.Element {
-    const isValid = !this.props.validationErrors || this.props.validationErrors.length === 0;
+    const isValid = this.isComponentValid();
     return (
       <GenericComponent
         id={this.props.id}
@@ -126,7 +126,7 @@ class FormComponent extends React.Component<
         getTextResource={this.getTextResource}
         designMode={this.props.designMode}
         thirdPartyComponents={this.props.thirdPartyComponents}
-        validationMessages={{errors: this.props.validationErrors}}
+        validationMessages={this.props.validationResults}
       />
     );
   }
@@ -244,28 +244,35 @@ class FormComponent extends React.Component<
     );
   }
 
+  private isComponentValid = () => {
+    if (!this.props.validationResults) {
+      return true;
+    }
+    let isValid: boolean = true;
+
+    Object.keys(this.props.validationResults).forEach((key: string) => {
+      if (this.props.validationResults[key].errors.length > 0) {
+        isValid = false;
+        return;
+      }
+    });
+
+    return isValid;
+  }
+
   private isSimpleComponent(): boolean {
     const component = this.props.component.component;
     const simpleBinding = this.props.component.dataModelBindings.simpleBinding;
     return simpleBinding && component !== 'Checkboxes' && component !== 'RadioButtons';
   }
 
-  private errorMessage(): JSX.Element {
+  private errorMessage(): JSX.Element[] {
     if (!this.isSimpleComponent() ||
-      !this.props.validationErrors ||
-      this.props.validationErrors.length === 0) {
+      this.isComponentValid()) {
         return null;
     }
 
-    return (
-      <MessageComponent messageType='error'>
-        <ol>
-          {this.props.validationErrors.map((error: string, index: number) => {
-            return <li key={index}>{error}</li>;
-          })}
-        </ol>
-      </MessageComponent>
-    );
+    return renderValidationMessagesForComponent(this.props.validationResults.simpleBinding);
   }
 }
 
@@ -295,9 +302,9 @@ const makeMapStateToProps = () => {
         state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
-    validationErrors:
-      Object.keys(state.formFiller.validationErrors).length > 0
-        ? state.formFiller.validationErrors[props.id]
+    validationResults:
+      Object.keys(state.formFiller.validationResults).length > 0
+        ? state.formFiller.validationResults[props.id]
         : null,
     textResources: state.appData.textResources.resources,
     thirdPartyComponents: state.thirdPartyComponents.components,

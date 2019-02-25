@@ -5,14 +5,14 @@ import * as FormFillerActionTypes from '../../actions/formFillerActions/formFill
 
 export interface IFormFillerState {
   formData: any;
-  validationErrors: any;
+  validationResults: IValidationResults;
   unsavedChanges: boolean;
   apiResult?: any;
 }
 
 const initialState: IFormFillerState = {
   formData: {},
-  validationErrors: {},
+  validationResults: {},
   unsavedChanges: false,
 };
 
@@ -28,12 +28,12 @@ const formFillerReducer: Reducer<IFormFillerState> = (
     case FormFillerActionTypes.UPDATE_VALIDATIONERRORS:
     case FormFillerActionTypes.RUN_SINGLE_FIELD_VALIDATION_FULFILLED: {
       const {
-        validationErrors,
-      } = action as FormFillerActions.IUpdateValidationErrors;
+        validationResults,
+      } = action as FormFillerActions.IUpdateValidationResults;
       return update<IFormFillerState>(state, {
         $apply: () => ({
           ...state,
-          validationErrors,
+          validationResults,
         }),
       });
     }
@@ -43,9 +43,10 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         formData,
         componentID,
         dataModelBinding,
-        validationErrors,
+        validationResults,
       } = action as FormFillerActions.IUpdateFormDataActionFulfilled;
-      if (validationErrors && validationErrors.length > 0) {
+      if (validationResults && Object.keys(validationResults).length > 0) {
+        console.log('validation results:', validationResults);
         return update<IFormFillerState>(state, {
           formData: {
             $apply: () => ({
@@ -53,9 +54,9 @@ const formFillerReducer: Reducer<IFormFillerState> = (
               [dataModelBinding]: formData,
             }),
           },
-          validationErrors: {
+          validationResults: {
             [componentID]: {
-              $set: validationErrors,
+              $set: validationResults,
             },
           },
           unsavedChanges: {
@@ -71,7 +72,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
             [dataModelBinding]: formData,
           }),
         },
-        validationErrors: {
+        validationResults: {
           $unset: [componentID],
         },
         unsavedChanges: {
@@ -101,7 +102,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         apiResult: {
           $set: apiResult,
         },
-        validationErrors: {
+        validationResults: {
           $set: {},
         },
       });

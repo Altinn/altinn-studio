@@ -35,8 +35,18 @@ export function validateDataModel(
   formData: any,
   dataModelFieldElement: IDataModelFieldElement,
   layoutModelElement?: IFormComponent,
-): any {
+): IComponentValidations {
   const validationErrors: string[] = [];
+  const fieldKey = Object.keys(layoutModelElement.dataModelBindings).find((binding: string) =>
+    layoutModelElement.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
+  const componentValidations: IComponentValidations = {
+      [fieldKey]: {
+        errors: [],
+        warnings: [],
+      },
+    };
+
+  // Loop through all restrictions for the data model element and validate
   Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
     if (
       !runValidation(key, dataModelFieldElement.Restrictions[key], formData)
@@ -60,7 +70,9 @@ export function validateDataModel(
       );
     }
   }
-  return validationErrors;
+
+  componentValidations[fieldKey].errors = validationErrors;
+  return componentValidations;
 }
 
 export function validateFormData(
@@ -69,13 +81,18 @@ export function validateFormData(
   layoutModelElements?: IFormDesignerComponent,
 ): any {
   const validationErrors: string[] = [];
-  const result: any = {};
+  const componentValidations: IComponentValidations = {};
+  const result: IValidationResults = {};
   Object.keys(formData).forEach((formDataKey, index) => {
+    // Get data model element
     const dataBindingName = getKeyWithoutIndex(formDataKey);
     const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
     if (!dataModelFieldElement) {
       return;
     }
+
+    // Get form component and field connected to data model element
+    let fieldKey: string = null;
     const layoutModelKey = Object.keys(layoutModelElements).find(
       (e) => {
         if (!layoutModelElements[e].dataModelBindings) {
@@ -86,6 +103,7 @@ export function validateFormData(
             continue;
           }
           if (layoutModelElements[e].dataModelBindings[key] === dataBindingName) {
+            fieldKey = key;
             return true;
           }
         }
@@ -113,7 +131,14 @@ export function validateFormData(
     }
 
     if (validationErrors.length > 0) {
-      result[layoutModelKey] = validationErrors;
+      if (!componentValidations[fieldKey]) {
+        componentValidations[fieldKey] = {
+          errors: [],
+          warnings: [],
+        };
+      }
+      componentValidations[fieldKey].errors = validationErrors;
+      result[layoutModelKey] = componentValidations;
     }
   });
 

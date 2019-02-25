@@ -227,20 +227,19 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 }
 
-const getErrorList = (errors: any) => {
-  const errorList: string[] = [];
-  // tslint:disable-next-line:forin
-  for (const error in errors) {
-    const errorMessage = errors[error].join(', ');
-    errorList.push(errorMessage);
+const getErrorList = (validations: IValidationResults) => {
+  const unmappedValidations = validations.unmapped;
+  if (!unmappedValidations) {
+    return null;
   }
-  return errorList;
+
+  return unmappedValidations.simpleBinding.errors;
 };
 
 const mapStateToProps = (state: IAppState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
     language: state.appData.language.language,
-    errorList: getErrorList(state.formFiller.validationErrors),
+    errorList: getErrorList(state.formFiller.validationResults),
     ...props,
   };
 };

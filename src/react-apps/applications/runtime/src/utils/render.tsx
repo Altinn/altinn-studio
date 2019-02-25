@@ -108,7 +108,7 @@ export function renderSelectTextFromResources(
   );
 }
 
-export function renderValidationMessages(validationMessages: IValidationMessages): JSX.Element[] {
+export function renderValidationMessagesForComponent(validationMessages: IComponentBindingValidation): JSX.Element[] {
   const validationMessageElements: JSX.Element[] = [];
   if (validationMessages.errors) {
     validationMessageElements.push(renderValidationErrors(validationMessages.errors));
