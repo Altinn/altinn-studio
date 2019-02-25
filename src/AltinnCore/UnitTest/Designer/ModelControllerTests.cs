@@ -59,6 +59,7 @@ namespace AltinnCore.UnitTest.Designer
             Dictionary<string, Dictionary<string, string>> dictionary = null;
 
             Dictionary<string, Dictionary<string, string>> existingDictionary = new Dictionary<string, Dictionary<string, string>>();
+            ServiceMetadata serviceMetadata = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))        
@@ -67,7 +68,14 @@ namespace AltinnCore.UnitTest.Designer
                     dictionary = d;
                 });
             moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(existingDictionary);                
+                .Returns(existingDictionary);
+
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+                .Returns(true)
+                .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
+                {
+                    serviceMetadata = m;
+                });
 
             ModelController controller = new ModelController(moqRepository.Object, new TestLoggerFactory());
 
@@ -75,7 +83,9 @@ namespace AltinnCore.UnitTest.Designer
 
             ActionResult result = controller.Upload("Org", "service2", formFile);
 
-            Assert.NotNull(dictionary);
+            Assert.True(serviceMetadata.Elements.ContainsKey("Skattyterinforgrp5801"));
+
+            Assert.NotNull(dictionary);        
 
             string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinforgrp5801.Label").GetValueOrDefault("nb-NO");
 

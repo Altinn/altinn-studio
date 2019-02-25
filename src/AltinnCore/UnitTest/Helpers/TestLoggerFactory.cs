@@ -16,7 +16,7 @@ namespace NUnit.Framework
         /// <inheritdoc/>
         public ILogger CreateLogger(string categoryName)
         {
-            throw new NotImplementedException();
+            return TestLogger.Create<ILogger>();
         }
 
         /// <summary>

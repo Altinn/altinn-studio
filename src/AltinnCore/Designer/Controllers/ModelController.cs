@@ -86,7 +86,14 @@ namespace AltinnCore.Designer.Controllers
             {
                 xsdMemoryStream.Position = 0;
                 reader = XmlReader.Create(xsdMemoryStream, new XmlReaderSettings { IgnoreWhitespace = true });
-                serviceMetadata = ParseXsdToServiceMetadata(org, service, reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+
+                XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(reader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
+                JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+                JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, service, schemaJsonSchema);
+                serviceMetadata = converter.GetServiceMetadata();
+
+                HandleTexts(org, service, converter.GetTexts());
             }
 
             if (_repository.CreateModel(org, service, serviceMetadata, mainXsd))
@@ -97,18 +104,32 @@ namespace AltinnCore.Designer.Controllers
             return Json(false);
         }
 
-        /// <summary>
-        /// Parses XSD into JSON Schema and return it as ServiceMetadata
-        /// </summary>
-        private ServiceMetadata ParseXsdToServiceMetadata(string org, string serviceName, XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
+        private void HandleTexts(string org, string service, Dictionary<string, Dictionary<string, string>> allTexts)
         {
-            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader, logger);
-            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+            Dictionary<string, Dictionary<string, string>> existingTexts = _repository.GetServiceTexts(org, service);
 
-            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator(org, serviceName, schemaJsonSchema);
-            JsonObject instanceModel = converter.GetInstanceModel();
+            if (existingTexts == null)
+            {
+                existingTexts = new Dictionary<string, Dictionary<string, string>>();
+            }           
 
-            return Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceMetadata>(instanceModel.GetIndentedString());
+            foreach (KeyValuePair<string, Dictionary<string, string>> cultureString in allTexts)
+            {
+                if (!existingTexts.ContainsKey(cultureString.Key))
+                {
+                    existingTexts.Add(cultureString.Key, new Dictionary<string, string>());
+                }
+
+                foreach (KeyValuePair<string, string> localizedString in cultureString.Value)
+                {
+                    if (!existingTexts[cultureString.Key].ContainsKey(localizedString.Key))
+                    {
+                        existingTexts[cultureString.Key].Add(localizedString.Key, localizedString.Value);
+                    }
+                }
+            }
+
+            _repository.SaveServiceTexts(org, service, existingTexts);
         }
 
         /// <summary>

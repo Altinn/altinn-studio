@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -60,6 +61,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
         public JsonObject GetInstanceModel()
         {
             return instanceModel;
+        }
+
+        /// <summary>
+        ///  Returns the current service metamodel.
+        /// </summary>
+        /// <returns>The Service Metadata object which represent the instance model of the Schema</returns>
+        public ServiceMetadata GetServiceMetadata()
+        {
+            return Newtonsoft.Json.JsonConvert.DeserializeObject<ServiceMetadata>(instanceModel.ToString());
         }
 
         /// <summary>
@@ -337,11 +347,21 @@ namespace AltinnCore.Common.Factories.ModelFactory
             JsonValue otherData = propertyType.OtherData;
             if (otherData == null)
             {
-                return result;
+                return result;                
             }
 
             JsonValue texts = otherData.Object.GetValueOrDefault("texts");
-           
+            
+            if (texts == null)
+            {
+                // For some unknown reason Manatee sometimes needs to explicit use this method to extract other data texts 
+                TextsKeyword texts2 = propertyType.Get<TextsKeyword>();
+                if (texts2 != null)
+                {
+                    texts = texts2.ToJson(new JsonSerializer());
+                }
+            }
+
             if (texts != null)
             {
                 foreach (string textType in texts.Object.Keys)
