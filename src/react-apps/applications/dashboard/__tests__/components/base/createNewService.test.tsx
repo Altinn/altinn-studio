@@ -206,7 +206,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     });
   });
 
-  it('+++ should handle creating new service when repository created status is unknown', () => {
+  it('+++ should handle unknown repositoryCreatedStatus 418', () => {
     const mountedComponent = mount(
       <CreateNewServiceComponent
         language={mockLanguage}
@@ -233,7 +233,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     });
   });
 
-  it('+++ should handle creating new service when api fails', async () => {
+  it('+++ should handle error when creating new service fails', async () => {
     const mountedComponent = mount(
       <CreateNewServiceComponent
         language={mockLanguage}
