@@ -10,16 +10,37 @@ export interface ITextAreaComponentProps {
 }
 
 export interface ITextAreaComponentState {
-  title: string;
-  component: string;
-  name: string;
+  formData: string;
 }
 
 export class TextAreaComponent
   extends React.Component<ITextAreaComponentProps, ITextAreaComponentState> {
 
+  public static getDerivedStateFromProps(props: ITextAreaComponentProps, state: ITextAreaComponentState) {
+    if (props.formData !== state.formData) {
+      return {
+        formData: props.formData,
+      };
+    } else {
+      return null;
+    }
+  }
+
+  constructor(props: ITextAreaComponentProps, state: ITextAreaComponentState) {
+    super(props, state);
+    this.state = {
+      formData: props.formData,
+    };
+  }
+
   public onDataChanged = (e: any) => {
-    this.props.handleDataChange(e.target.value);
+    this.setState({
+      formData: e.target.value,
+    });
+  }
+
+  public onBlur = () => {
+    this.props.handleDataChange(this.state.formData);
   }
 
   public render() {
@@ -27,11 +48,12 @@ export class TextAreaComponent
       <div className={'a-form-group-items input-group p-0' + (this.props.component.readOnly ? ' disabled' : '')} >
         <textarea
           id={this.props.id}
-          onBlur={this.onDataChanged}
+          onBlur={this.onBlur}
+          onChange={this.onDataChanged}
           disabled={this.props.component.readOnly}
           className={(this.props.isValid ? 'form-control a-textarea' : 'form-control validation-error')
             + (this.props.component.readOnly ? ' textarea-disabled' : '')}
-          value={this.props.formData}
+          value={this.state.formData}
         />
       </div>
     );
