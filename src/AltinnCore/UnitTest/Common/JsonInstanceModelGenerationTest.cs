@@ -45,7 +45,24 @@ namespace AltinnCore.UnitTest.Common
         }
 
         /// <summary>
-        ///  fantastisk
+        /// create instancemodel from xsd and check a chosen data binding name is as expected.
+        /// </summary>
+        [Fact]
+        public void ConvertServiceModelAndStripSchemaFromDataBindingName()
+        {
+            // XSD to Json Schema
+            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(new XmlTextReader("Common/xsd/ServiceModel.xsd"), TestLogger.Create<XsdToJsonSchema>());
+            JsonSchema schemaJsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
+
+            JsonSchemaToInstanceModelGenerator converter = new JsonSchemaToInstanceModelGenerator("TestOrg", "ServiceModel", schemaJsonSchema);
+            ServiceMetadata serviceMetadata = converter.GetServiceMetadata();
+
+            string actualDatabinding = serviceMetadata.Elements["Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPoststeddatadef10442.value"].DataBindingName;
+            Assert.Equal("Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPoststeddatadef10442.value", actualDatabinding);           
+        }
+
+        /// <summary>
+        ///  Create instance model and check that a chosen text identifier is generated.
         /// </summary>
         [Fact]
         public void TextGenerationOk()
@@ -61,7 +78,7 @@ namespace AltinnCore.UnitTest.Common
             Assert.NotNull(serviceMetadata);
 
             // get a chosen text identifier
-            string placeholder = serviceMetadata.Elements["klagefristgrp5804.KlageUtloptKlagefristBegrunnelsedatadef25456.value"].Texts["PlaceHolder"];
+            string placeholder = serviceMetadata.Elements["Skjema.Skattyterinforgrp5801.klagefristgrp5804.KlageUtloptKlagefristBegrunnelsedatadef25456.value"].Texts["PlaceHolder"];
             Assert.Equal("25456.KlageUtloptKlagefristBegrunnelsedatadef25456.PlaceHolder", placeholder);           
         }
         
@@ -137,7 +154,7 @@ namespace AltinnCore.UnitTest.Common
             Assert.Equal(6, actualElements.Count);
 
             // test expand path
-            string path = "melding.ansatte[*].foresatt[*]";
+            string path = "melding.ansatte.foresatt";
             JsonObject instanceModelAfterExpand = converter.ExpandPath(path);
             JsonObject actualElementsAfterExpand = instanceModelAfterExpand.TryGetObject("Elements");
             JsonObject nameElement = actualElementsAfterExpand.TryGetObject(path + ".navn");
@@ -173,7 +190,7 @@ namespace AltinnCore.UnitTest.Common
             Assert.Equal(6, actualElements.Count);
 
             // test expand path with wrong path
-            string path = "melding.ansatte[*].foresatt[*].wronginput[*]";
+            string path = "melding.ansatte.foresatt.wronginput";
             try
             {
                 JsonObject instanceModelAfterExpand = converter.ExpandPath(path);
@@ -184,7 +201,7 @@ namespace AltinnCore.UnitTest.Common
             }
 
             // test expand path which cannot be expanded
-            path = "melding.ansatte[*].navn";
+            path = "melding.ansatte.navn";
             try
             {
                 JsonObject instanceModelAfterExpand = converter.ExpandPath(path);
@@ -195,7 +212,7 @@ namespace AltinnCore.UnitTest.Common
             }
 
             // test expand path of already expanded path
-            path = "melding.ansatte[*]";
+            path = "melding.ansatte";
             try
             {
                 JsonObject instanceModelAfterExpand = converter.ExpandPath(path);

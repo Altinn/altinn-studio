@@ -26,6 +26,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         private JsonObject elements = new JsonObject();
         private JsonSchema jsonSchema;
         private string multiplicityString;
+        private string firstPropertyName;
 
         /// <summary>
         ///  Initializes a new instance of the <see cref="JsonSchemaToInstanceModelGenerator"/> class.
@@ -93,7 +94,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             // Handle all properties
             foreach (KeyValuePair<string, JsonSchema> def in jsonSchema.Properties())
             {
-                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema);
+                if (string.IsNullOrEmpty(firstPropertyName))
+                {
+                    firstPropertyName = def.Key;
+                }
+
+                TraverseModell(string.Empty, title, def.Key, def.Value, IsRequired(def.Key, jsonSchema), new HashSet<string>(), jsonSchema);          
             }
 
             return instanceModel;
@@ -214,6 +220,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             }
             while (elements.ContainsKey(path));
 
+            // exclude elements that does not start with firstPropertyName
+            if (!path.StartsWith(firstPropertyName))
+            {
+                return;
+            }
+
             string minItems = "0";
             string maxItems = "1";
 
@@ -253,12 +265,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string inputType = "Field";
             string xsdType = propertyType.OtherData.TryGetString("@xsdType");
 
-            result.Add("ID", path);
+            result.Add("ID", OldPath(path));
 
             string parentElement = ExtractParent(path);
             if (parentElement != null)
             {
-                result.Add("ParentElement", parentElement);
+                result.Add("ParentElement", OldPath(parentElement));
             }
 
             string xsdValueType = FollowValueType(propertyType);
@@ -289,10 +301,10 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue))
             {
-                result.Add("DataBindingName", path);
+                result.Add("DataBindingName", OldPath(path).Replace(firstPropertyName + ".", string.Empty));                
             }
 
-            result.Add("XPath", "/" + path.Replace(".", "/"));
+            result.Add("XPath", "/" + OldPath(path).Replace(".", "/"));
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
 
@@ -306,6 +318,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
             if (path.EndsWith(".value"))
             {
                 result.Add("Texts", ExtractTexts(parentElement.Split(".").Last(), parentType));
+                result.Add("IsTagContent", true);
             }
             else
             {
@@ -335,9 +348,15 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string cardinality = "[" + minItems + ".." + maxItems + "]";
             string displayString = RemoveLastStar(path) + " : " + cardinality + " " + SanitizeName(typeName);
             result.Add("DisplayString", displayString);
-
+           
             // TODO ..., XmlSchemaReference
-            elements.Add(path, result);
+            elements.Add(OldPath(path), result);
+        }
+
+        // remove [*] in path
+        private static string OldPath(string path)
+        {
+            return path.Replace("[*]", string.Empty);
         }
 
         private JsonValue ExtractTexts(string propertyName, JsonSchema propertyType)

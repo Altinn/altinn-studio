@@ -83,14 +83,14 @@ namespace AltinnCore.UnitTest.Designer
 
             ActionResult result = controller.Upload("Org", "service2", formFile);
 
-            Assert.True(serviceMetadata.Elements.ContainsKey("Skattyterinforgrp5801"));
+            Assert.True(serviceMetadata.Elements.ContainsKey("Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPostnummerdatadef10441.value"));
 
             Assert.NotNull(dictionary);        
 
-            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinforgrp5801.Label").GetValueOrDefault("nb-NO");
+            string lookupValue = dictionary.GetValueOrDefault("10441.KontaktpersonPostnummerdatadef10441.Label").GetValueOrDefault("nb-NO");
 
             // Text should be without extra withespaces
-            Assert.Equal("Informasjon om skattyter", lookupValue);           
+            Assert.Equal("Postnummer", lookupValue);           
         }
 
         private IFormFile AsMockIFormFile(string file)
