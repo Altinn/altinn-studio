@@ -109,12 +109,16 @@ export function renderSelectTextFromResources(
 }
 
 export function renderValidationMessagesForComponent(validationMessages: IComponentBindingValidation): JSX.Element[] {
+  if (!validationMessages) {
+    return null;
+  }
+
   const validationMessageElements: JSX.Element[] = [];
-  if (validationMessages.errors) {
+  if (validationMessages.errors && validationMessages.errors.length > 0) {
     validationMessageElements.push(renderValidationErrors(validationMessages.errors));
   }
 
-  if (validationMessages.warnings) {
+  if (validationMessages.warnings && validationMessages.warnings.length > 0) {
     validationMessageElements.push(renderValidationWarnings(validationMessages.warnings));
   }
 
@@ -126,6 +130,7 @@ export function renderValidationErrors(errors: string[]): JSX.Element {
     <MessageComponent
       messageType='error'
       style={{display: 'block', width: 'fit-content'}}
+      key={'error'}
     >
     <ol>
       {errors.map((error: string, idx: number) => {
@@ -143,6 +148,7 @@ export function renderValidationWarnings(warnings: string[]): JSX.Element {
     <MessageComponent
       messageType='info'
       style={{display: 'block', width: 'fit-content'}}
+      key={'warning'}
     >
     <ol>
       {warnings.map((warning: string, idx: number) => {

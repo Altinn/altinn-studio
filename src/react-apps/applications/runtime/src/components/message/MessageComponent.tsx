@@ -32,8 +32,6 @@ class MessageComponent extends React.Component<IMessageComponentProps, IMessageC
   }
 
   public render() {
-    console.log('render message, type: ', this.props.messageType);
-    console.log('using classes:', this.getMessageClasses());
     return (
       <div className={this.getMessageClasses()} style={this.props.style}>
         {this.props.message ? this.props.message : this.props.children}
