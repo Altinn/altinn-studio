@@ -64,7 +64,8 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   public handleModalOpen = () => {
     this.setState({
       isOpen: true,
-      selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0] : '',
+      // tslint:disable-next-line:max-line-length
+      selectedOrgOrUser: this.props.selectableUser.length === 1 ? this.props.selectableUser[0].full_name ? this.props.selectableUser[0].full_name : this.props.selectableUser[0].name : '',
       selectedOrgOrUserDisabled: this.props.selectableUser.length === 1,
     });
   }
@@ -173,7 +174,9 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
       });
       const altinnWindow: Window = window;
       // tslint:disable-next-line:max-line-length
-      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${this.state.selectedOrgOrUser}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
+      const selectedOrgOrUser = this.props.selectableUser.find((user: any) => (user.full_name === this.state.selectedOrgOrUser || user.name === this.state.selectedOrgOrUser));
+      // tslint:disable-next-line:max-line-length
+      const url = `${altinnWindow.location.origin}/designerapi/Repository/CreateService?org=${selectedOrgOrUser.name}&serviceName=${this.state.serviceName}&repoName=${this.state.repoName}`;
       post(url).then((result: any) => {
         if (this._isMounted && result.repositoryCreatedStatus === 422) {
           this.setState({
@@ -182,9 +185,26 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
           this.showRepoNamePopper(getLanguageFromKey('dashboard.service_name_already_exist', this.props.language));
         } else if (result.repositoryCreatedStatus === 201) {
           window.location.assign(`${altinnWindow.location.origin}/designer/${result.full_name}#/aboutservice`);
+        } else {
+          this.setState({
+            isLoading: false,
+          });
+          this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_service', this.props.language));
+        }
+      }).catch((error: Error) => {
+        console.error('Unsucessful creating new service', error.message);
+        if (this._isMounted) {
+          this.setState({
+            isLoading: false,
+          });
+          this.showRepoNamePopper(getLanguageFromKey('dashboard.error_when_creating_service', this.props.language));
         }
       });
     }
+  }
+
+  public getListOfUsers() {
+    return this.props.selectableUser.map((user: any) => user.full_name ? user.full_name : user.name);
   }
 
   public render() {
@@ -208,7 +228,7 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
               inputHeader={getLanguageFromKey('general.service_owner', this.props.language)}
               inputDescription={getLanguageFromKey('dashboard.service_owner_description', this.props.language)}
               handleChange={this.handleUpdateDropdown}
-              dropdownItems={this.props.selectableUser}
+              dropdownItems={this.getListOfUsers()}
               selectedValue={this.state.selectedOrgOrUser}
               disabled={this.state.selectedOrgOrUserDisabled}
             />
@@ -261,9 +281,8 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
   }
 }
 const combineCurrentUserAndOrg = (organizations: any, user: any) => {
-  const allUsers = organizations.map((org: any) => org.full_name ? org.full_name : org.username);
-  const currentUserName =
-    user.full_name ? user.full_name : user.login;
+  const allUsers = organizations.map(({ username, full_name }: any) => ({ name: username, full_name }));
+  const currentUserName = { name: user.login, full_name: user.full_name };
   allUsers.push(currentUserName);
   return allUsers;
 };
@@ -276,7 +295,6 @@ const mapStateToProps = (
     classes: props.classes,
     language: state.language.language,
     selectableUser: combineCurrentUserAndOrg(state.dashboard.organizations, state.dashboard.user),
-
   };
 };
 
