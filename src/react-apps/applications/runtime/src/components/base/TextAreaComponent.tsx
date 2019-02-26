@@ -29,7 +29,6 @@ export class TextAreaComponent
           id={this.props.id}
           onBlur={this.onDataChanged}
           disabled={this.props.component.readOnly}
-          onChange={this.onDataChanged}
           className={(this.props.isValid ? 'form-control a-textarea' : 'form-control validation-error')
             + (this.props.component.readOnly ? ' textarea-disabled' : '')}
           value={this.props.formData}
