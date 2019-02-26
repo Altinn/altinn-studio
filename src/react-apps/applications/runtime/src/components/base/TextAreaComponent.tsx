@@ -1,8 +1,9 @@
 import * as React from 'react';
+import '../../styles/TextAreaComponent.css';
 
 export interface ITextAreaComponentProps {
   id: string;
-  component: IFormComponent;
+  component: IFormTextAreaComponent;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
@@ -23,13 +24,17 @@ export class TextAreaComponent
 
   public render() {
     return (
-      <textarea
-        id={this.props.id}
-        onBlur={this.onDataChanged}
-        onChange={this.onDataChanged}
-        className={this.props.isValid ? 'form-control a-textarea' : 'form-control a-textarea validation-error'}
-        value={this.props.formData}
-      />
+      <div className={'a-form-group-items input-group p-0' + (this.props.component.readOnly ? ' disabled' : '')} >
+        <textarea
+          id={this.props.id}
+          onBlur={this.onDataChanged}
+          disabled={this.props.component.readOnly}
+          onChange={this.onDataChanged}
+          className={(this.props.isValid ? 'form-control a-textarea' : 'form-control validation-error')
+            + (this.props.component.readOnly ? ' textarea-disabled' : '')}
+          value={this.props.formData}
+        />
+      </div>
     );
   }
 }

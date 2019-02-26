@@ -1,8 +1,9 @@
-import { Grid } from '@material-ui/core';
+import { Grid, withStyles } from '@material-ui/core';
 import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
@@ -19,6 +20,17 @@ export const customInput = {
   }),
 };
 
+const styles = {
+  checkbox: {
+    paddingLeft: '0px',
+    paddingRight: '6px',
+    paddingTop: '6px',
+  },
+  gridItem: {
+    marginTop: '24px',
+  },
+};
+
 export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
@@ -28,6 +40,7 @@ export interface IEditModalContentProps {
   cancelEdit?: () => void;
   handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
   language: any;
+  classes: any;
 }
 
 export interface IEditModalContentState {
@@ -146,6 +159,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     const updatedComponent = this.props.component;
     updatedComponent.textResourceBindings.description
       = selectedText ? selectedText.value : null;
+    this.setState((state) => {
+      return {
+        ...state,
+        component: updatedComponent,
+      };
+    });
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -216,7 +235,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleDescriptionChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              this.props.component.textResourceBindings.description)}
           </Grid>
         );
       }
@@ -408,10 +427,52 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
 
+      case 'TextArea': {
+        const component = (this.state.component as IFormTextAreaComponent);
+        return (
+          <Grid item={true} xs={12}>
+            {renderSelectDataModelBinding(
+              this.props.component.dataModelBindings,
+              this.handleDataModelChange,
+              this.props.language)}
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+            {renderSelectTextFromResources('modal_properties_description_helper',
+              this.handleDescriptionChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.description)}
+            <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
+              {getLanguageFromKey('ux_editor.modal_properties_read_only_description', this.props.language)}
+            </Grid>
+            <Grid item={true}>
+              <Checkbox
+                classes={{ root: this.props.classes.checkbox }}
+                checked={!!component.readOnly}
+                onChange={this.handleReadOnlyChange}
+              />
+              {getLanguageFromKey('ux_editor.modal_properties_read_only', this.props.language)}
+            </Grid>
+          </Grid>
+        );
+      }
+
       default: {
         return null;
       }
     }
+  }
+
+  public handleReadOnlyChange = (event: object, checked: boolean) => {
+    const component = this.props.component as IFormTextAreaComponent;
+    component.readOnly = checked;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
   }
 
   public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
@@ -482,4 +543,4 @@ const mapStateToProps = (
   };
 };
 
-export const EditModalContent = connect(mapStateToProps)(EditModalContentComponent);
+export const EditModalContent = withStyles(styles)(connect(mapStateToProps)(EditModalContentComponent));

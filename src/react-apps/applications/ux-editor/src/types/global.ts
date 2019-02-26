@@ -98,7 +98,9 @@ declare global {
     preselectedOptionIndex?: number;
   }
 
-  export interface IFormTextAreaComponent extends IFormComponent { }
+  export interface IFormTextAreaComponent extends IFormComponent {
+    readOnly: boolean;
+  }
 
   export interface IFormButtonComponent extends IFormComponent {
     onClickAction: () => void;
@@ -126,6 +128,7 @@ declare global {
   }
 
   export type FormComponentType =
+    | IFormComponent
     | IFormHeaderComponent
     | IFormInputComponent
     | IFormCheckboxComponent
