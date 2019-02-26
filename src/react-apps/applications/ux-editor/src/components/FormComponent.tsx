@@ -4,9 +4,7 @@ import {
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import { GenericComponent } from './GenericComponent';
 
 const styles = createStyles({
 
@@ -110,27 +108,6 @@ class FormComponent extends React.Component<
     this.props.handleDataUpdate(this.props.id, dataModelElement, callbackValue);
   }
 
-  /**
-   * This is the method that renders the configured form components in FormLayout.json
-   */
-  public renderComponent(): JSX.Element {
-    const isValid = !this.errorMessage();
-    if (this.props.component.dataModelBindings) {
-      return (
-        <GenericComponent
-          id={this.props.id}
-          component={this.props.component}
-          isValid={isValid}
-          formData={this.props.formData}
-          handleDataChange={this.handleComponentDataUpdate}
-          getTextResource={this.getTextResource}
-          designMode={this.props.designMode}
-        />
-      );
-    } else {
-      return null;
-    }
-  }
 
   /**
    * Return a given textresource from all textresources avaiable
@@ -207,58 +184,6 @@ class FormComponent extends React.Component<
     this.props.sendListToParent(this.props.activeList);
   }
 
-  /**
-   * The React Render method. This is run when this component is included in another component.
-   * It is either called from FormFiller or FormDesigner.
-   */
-  public render(): JSX.Element {
-    if (!this.props.designMode) {
-      return (
-        <div className='row mt-2'>
-          <div className='col'>
-            <div className='a-form-group'>
-              {this.renderLabel()}
-              {this.renderDescription()}
-              {this.renderComponent()}
-              {this.errorMessage()}
-            </div>
-          </div>
-        </div>
-      );
-    }
-    return (
-      <div ref={this.setWrapperRef}>
-      <EditContainer
-        component={this.props.component}
-        id={this.props.id}
-        firstInActiveList={this.props.firstInActiveList}
-        lastInActiveList={this.props.lastInActiveList}
-        sendItemToParent={this.handleActiveListChange}
-        singleSelected={this.props.singleSelected}
-      >
-        <div onClick={this.disableEditOnClickForAddedComponent}>
-          {this.renderLabel()}
-          {this.renderComponent()}
-        </div>
-      </EditContainer>
-      </div>
-    );
-  }
-
-  private errorMessage(): JSX.Element {
-    if (this.props.validationErrors && this.props.validationErrors.length > 0) {
-      return (
-        <span className='field-validation-error a-message a-message-error'>
-          <ol>
-            {this.props.validationErrors.map((error: string, index: number) => {
-              return <li key={index}>{error}</li>;
-            })}
-          </ol>
-        </span>
-      );
-    }
-    return null;
-  }
 }
 
 /**

@@ -81,6 +81,10 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       // Fetch language
       appDataActionDispatcher.fetchLanguage(
         `${altinnWindow.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb');
+        
+      // Fetch thirdParty Components
+      appDataActionDispatcher.fetchThirdPartyComponents(
+        `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/ThirdPartyComponents.json`);
 
     } else {
       // ALTINN STUDIO

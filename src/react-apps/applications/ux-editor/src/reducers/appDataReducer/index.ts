@@ -5,7 +5,6 @@ import dataModelReducer, { IDataModelState } from './dataModelReducer';
 import languageReducer, { ILanguageState } from './languageReducer';
 import ruleModelReducer, { IRuleModelState } from './ruleModelReducer';
 import textResourceReducer, { ITextResourcesState } from './textResourcesReducer';
-import thirdPartyComponentsReducer, { IThirdPartyComponentsState } from './thirdPartyComponentsReducer';
 
 export interface IAppDataState {
   appConfig: IAppConfigState;
@@ -14,7 +13,6 @@ export interface IAppDataState {
   ruleModel: IRuleModelState;
   codeLists: ICodeListsState;
   language: ILanguageState;
-  thirdPartyComponents: IThirdPartyComponentsState;
 }
 
 const combinedReducers: Reducer<IAppDataState> = combineReducers({
@@ -24,7 +22,6 @@ const combinedReducers: Reducer<IAppDataState> = combineReducers({
   ruleModel: ruleModelReducer,
   codeLists: codeListsReducer,
   language: languageReducer,
-  thirdPartyComponents: thirdPartyComponentsReducer,
 });
 
 export default combinedReducers;

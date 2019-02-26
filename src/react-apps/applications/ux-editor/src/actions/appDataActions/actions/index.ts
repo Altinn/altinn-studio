@@ -4,4 +4,3 @@ export * from './setDesignMode';
 export * from './loadTextResources';
 export * from './fetchCodeList';
 export * from './fetchLanguage';
-export * from './fetchThirdPartyComponents';
