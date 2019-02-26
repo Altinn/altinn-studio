@@ -47,14 +47,8 @@ class Generic extends React.Component<IGenericComponentProps> {
 }
 const makeMapStateToProps = () => {
   const mapStateToProps = (state: IAppState, props: IGenericComponentProps): IGenericComponentProps => ({
-    id: props.id,
-    component: props.component,
-    isValid: props.isValid,
-    formData: props.formData,
-    designMode: props.designMode,
+    ...props,
     thirdPartyComponents: state.appData.thirdPartyComponents.components,
-    handleDataChange: props.handleDataChange,
-    getTextResource: props.getTextResource,
   });
   return mapStateToProps;
 };
