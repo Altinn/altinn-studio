@@ -85,11 +85,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public handleTitleChange = (e: any): void => {
     const updatedComponent = this.state.component;
     updatedComponent.textResourceBindings.title = e ? e.value : null;
-    this.setState((state) => {
-      return {
-        ...state,
-        component: updatedComponent,
-      };
+    this.setState({
+      component: updatedComponent,
     });
     this.props.handleComponentUpdate(updatedComponent);
   }
@@ -159,11 +156,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     const updatedComponent = this.props.component;
     updatedComponent.textResourceBindings.description
       = selectedText ? selectedText.value : null;
-    this.setState((state) => {
-      return {
-        ...state,
-        component: updatedComponent,
-      };
+    this.setState({
+      component: updatedComponent,
     });
     this.props.handleComponentUpdate(updatedComponent);
   }
