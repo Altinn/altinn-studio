@@ -47,7 +47,7 @@ export class TextAreaComponent
     return (
       <div className={'a-form-group-items input-group p-0' + (this.props.component.readOnly ? ' disabled' : '')} >
         <textarea
-          id={this.props.id}
+          id={this.props.component.id}
           onBlur={this.onBlur}
           onChange={this.onDataChanged}
           disabled={this.props.component.readOnly}
