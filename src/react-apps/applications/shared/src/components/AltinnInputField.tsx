@@ -20,6 +20,7 @@ export interface IAltinnInputFieldComponentProvidedProps {
   onChangeFunction?: any;
   placeholder?: any;
   textAreaRows?: number;
+  inputHeaderStyling?: object;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -30,6 +31,10 @@ const theme = createMuiTheme(altinnTheme);
 const styles = createStyles({
   inputHeader: {
     fontSize: '24px',
+    fontWeight: 400
+  },
+  marginTop_10: {
+    marginTop: '10px',
   },
   descriptionInput: {
     fontSize: '16px',
@@ -38,7 +43,6 @@ const styles = createStyles({
   inputField: {
     border: '1px solid ' + theme.altinnPalette.primary.blueDark,
     marginTop: '10px',
-    marginBottom: '24px',
     background: 'none',
     width: '386px',
   },
@@ -52,7 +56,6 @@ const styles = createStyles({
   },
   btn: {
     marginTop: '10px',
-    marginBottom: '24px',
   },
 });
 
@@ -73,21 +76,24 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
   public render() {
     const { classes } = this.props;
     return (
-      <div>
+      <React.Fragment>
         {this.props.inputHeader &&
-          <Typography className={classes.inputHeader}>
+          <Typography style={this.props.inputHeaderStyling} className={classNames(classes.inputHeader)} variant='h2'>
             {this.props.inputHeader}
           </Typography>
         }
         {this.props.inputDescription &&
-          <Typography className={classes.descriptionInput}>
+          <Typography className={classNames(classes.descriptionInput, { [classes.marginTop_10]: this.props.inputHeader })}>
             {this.props.inputDescription}
           </Typography>
         }
         <FormControl
           classes={{
             root: classNames(
-              classes.inputField, { [classes.disabled]: this.props.isDisabled }),
+              classes.inputField,
+              { [classes.disabled]: this.props.isDisabled },
+              { [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader }
+            ),
           }}
           style={this.props.inputFieldStyling}
           fullWidth={true}
@@ -117,7 +123,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
             className={classNames(classes.btn)}
           />
         }
-      </div>
+      </React.Fragment>
     );
   }
 }

@@ -136,71 +136,76 @@ export function fetchInitialCommitRejectedAction(error: Error): IFetchInitialCom
   };
 }
 
-export interface IFetchServiceDescriptionAction extends Action {
+export interface IFetchServiceConfigAction extends Action {
   url: string;
 }
 
-export interface IFetchServiceDescriptionFulfilled extends Action {
-  description: any;
+export interface IFetchServiceConfigFulfilled extends Action {
+  serviceConfig: any;
 }
 
-export interface IFetchServiceDescriptionRejected extends Action {
+export interface IFetchServiceConfigRejected extends Action {
   error: Error;
 }
 
-export function fetchServiceDescriptionAction(url: string): IFetchServiceDescriptionAction {
+export function fetchServiceConfigAction(url: string): IFetchServiceConfigAction {
   return {
-    type: ActionTypes.FETCH_SERVICE_DESCRIPTION,
+    type: ActionTypes.FETCH_SERVICE_CONFIG,
     url,
   };
 }
 
-export function fetchServiceDescriptionFulfilledAction(description: any): IFetchServiceDescriptionFulfilled {
+export function fetchServiceConfigFulfilledAction(serviceConfig: any): IFetchServiceConfigFulfilled {
   return {
-    type: ActionTypes.FETCH_SERVICE_DESCRIPTION_FULFILLED,
-    description,
+    type: ActionTypes.FETCH_SERVICE_CONFIG_FULFILLED,
+    serviceConfig,
   };
 }
 
-export function fetchServiceDescriptionRejectedAction(error: Error): IFetchServiceDescriptionRejected {
+export function fetchServiceConfigRejectedAction(error: Error): IFetchServiceConfigRejected {
   return {
-    type: ActionTypes.FETCH_INITIAL_COMMIT_REJECTED,
+    type: ActionTypes.FETCH_SERVICE_CONFIG_REJECTED,
     error,
   };
 }
 
-export interface ISaveServiceDescriptionAction extends Action {
+export interface ISaveServiceConfigAction extends Action {
   url: string;
   newServiceDescription: string;
+  newServiceId: string;
 }
 
-export interface ISaveServiceDescriptionFulfilled extends Action {
+export interface ISaveServiceConfigFulfilled extends Action {
   newServiceDescription: string;
+  newServiceId: string;
 }
 
-export interface ISaveServiceDescriptionRejected extends Action {
+export interface ISaveServiceConfigRejected extends Action {
   error: Error;
 }
 
 // tslint:disable-next-line:max-line-length
-export function saveServiceDescriptionAction(url: string, newServiceDescription: string): ISaveServiceDescriptionAction {
+export function saveServiceConfigAction(url: string, newServiceDescription: string, newServiceId: string): ISaveServiceConfigAction {
   return {
-    type: ActionTypes.SAVE_SERVICE_DESCRIPTION,
+    type: ActionTypes.SAVE_SERVICE_CONFIG,
     url,
     newServiceDescription,
+    newServiceId,
   };
 }
 
-export function saveServiceDescriptionFulfilledAction(newServiceDescription: string): ISaveServiceDescriptionFulfilled {
+// tslint:disable-next-line:max-line-length
+export function saveServiceConfigFulfilledAction(newServiceDescription: string, newServiceId: string): ISaveServiceConfigFulfilled {
   return {
-    type: ActionTypes.SAVE_SERVICE_DESCRIPTION_FULFILLED,
+    type: ActionTypes.SAVE_SERVICE_CONFIG_FULFILLED,
     newServiceDescription,
+    newServiceId,
   };
 }
 
-export function saveServiceDescriptionRejectedAction(error: Error): ISaveServiceDescriptionRejected {
+export function saveServiceConfigRejectedAction(error: Error): ISaveServiceConfigRejected {
   return {
-    type: ActionTypes.SAVE_SERVICE_DESCRIPTION_REJECTED,
+    type: ActionTypes.SAVE_SERVICE_CONFIG_REJECTED,
     error,
   };
 }
