@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import GenericComponent from './GenericComponent';
+import { GenericComponent } from './GenericComponent';
 
 const styles = createStyles({
 
@@ -289,7 +289,7 @@ const makeMapStateToProps = () => {
         ? state.formFiller.validationErrors[props.id]
         : null,
     textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.thirdPartyComponents.components,
+    thirdPartyComponents: state.appData.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
   });
   return mapStateToProps;

@@ -442,7 +442,7 @@ const mapsStateToProps = (
     classes: props.classes,
     dataModel: state.appData.dataModel.model,
     textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.thirdPartyComponents.components,
+    thirdPartyComponents: state.appData.thirdPartyComponents.components,
     activeContainer: state.formDesigner.layout.activeContainer,
     activeList: state.formDesigner.layout.activeList,
     order: GetLayoutOrderSelector(state),
