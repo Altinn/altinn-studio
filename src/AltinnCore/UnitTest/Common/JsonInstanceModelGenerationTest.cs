@@ -17,12 +17,12 @@ using Xunit;
 namespace AltinnCore.UnitTest.Common
 {
     /// <summary>
-    ///   a bloddy test class to test you know
+    ///   a test class to test the code you know
     /// </summary>
     public class JsonInstanceModelGenerationTest
     {
         /// <summary>
-        ///  fantastisk
+        ///  Generate elements and count them. If more or less something has been done to the logic.
         /// </summary>
         [Fact]
         public void JsonInstanceModel()
@@ -45,7 +45,9 @@ namespace AltinnCore.UnitTest.Common
         }
 
         /// <summary>
-        /// create instancemodel from xsd and check a chosen data binding name is as expected.
+        /// create instancemodel from xsd and check that a chosen data binding name is as expected.
+        /// - it should not start with first property name
+        /// - it should have all segments as lowerCamelCase
         /// </summary>
         [Fact]
         public void ConvertServiceModelAndStripSchemaFromDataBindingName()
@@ -58,7 +60,7 @@ namespace AltinnCore.UnitTest.Common
             ServiceMetadata serviceMetadata = converter.GetServiceMetadata();
 
             string actualDatabinding = serviceMetadata.Elements["Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPoststeddatadef10442.value"].DataBindingName;
-            Assert.Equal("Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPoststeddatadef10442.value", actualDatabinding);           
+            Assert.Equal("skattyterinforgrp5801.kontaktgrp5803.kontaktpersonPoststeddatadef10442.value", actualDatabinding);           
         }
 
         /// <summary>
@@ -83,10 +85,10 @@ namespace AltinnCore.UnitTest.Common
         }
         
         /// <summary>
-        ///  nokså fantastisk
+        ///  Run through all xsd test files. Convert to JsonSchema and to ServiceMetadata.
         /// </summary>
         [Fact]
-        public void JsonInstanceFromAutogenJson()
+        public void JsonInstanceModelFromAutogenJson()
         {
             Mock<IRepository> moqRepository = new Mock<IRepository>();
 

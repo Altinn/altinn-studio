@@ -265,12 +265,12 @@ namespace AltinnCore.Common.Factories.ModelFactory
             string inputType = "Field";
             string xsdType = propertyType.OtherData.TryGetString("@xsdType");
 
-            result.Add("ID", OldPath(path));
+            result.Add("ID", RemoveStarsFromPath(path));
 
             string parentElement = ExtractParent(path);
             if (parentElement != null)
             {
-                result.Add("ParentElement", OldPath(parentElement));
+                result.Add("ParentElement", RemoveStarsFromPath(parentElement));
             }
 
             string xsdValueType = FollowValueType(propertyType);
@@ -301,10 +301,13 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
             if (!inputType.Equals("Group") && string.IsNullOrEmpty(fixedValue))
             {
-                result.Add("DataBindingName", OldPath(path).Replace(firstPropertyName + ".", string.Empty));                
+                string databindingNameWithoutFirstPropertyName = RemoveStarsFromPath(path).Replace(firstPropertyName + ".", string.Empty);
+                string[] lowerCamelCaseSegments = databindingNameWithoutFirstPropertyName.Split(".").Select(s => char.ToLowerInvariant(s[0]) + s.Substring(1)).ToArray();
+                string dataBindingName = string.Join(".", lowerCamelCaseSegments);
+                result.Add("DataBindingName", dataBindingName);                
             }
 
-            result.Add("XPath", "/" + OldPath(path).Replace(".", "/"));
+            result.Add("XPath", "/" + RemoveStarsFromPath(path).Replace(".", "/"));
 
             result.Add("Restrictions", ExtractRestrictions(xsdValueType, propertyType));
 
@@ -350,11 +353,11 @@ namespace AltinnCore.Common.Factories.ModelFactory
             result.Add("DisplayString", displayString);
            
             // TODO ..., XmlSchemaReference
-            elements.Add(OldPath(path), result);
+            elements.Add(RemoveStarsFromPath(path), result);
         }
 
         // remove [*] in path
-        private static string OldPath(string path)
+        private static string RemoveStarsFromPath(string path)
         {
             return path.Replace("[*]", string.Empty);
         }
