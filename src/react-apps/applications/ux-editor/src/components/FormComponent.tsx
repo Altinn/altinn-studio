@@ -189,39 +189,22 @@ class FormComponent extends React.Component<
    * It is either called from FormFiller or FormDesigner.
    */
   public render(): JSX.Element {
-    if (this.props.designMode) {
-      return (
-        <div ref={this.setWrapperRef}>
-        <EditContainer
-          component={this.props.component}
-          id={this.props.id}
-          firstInActiveList={this.props.firstInActiveList}
-          lastInActiveList={this.props.lastInActiveList}
-          sendItemToParent={this.handleActiveListChange}
-          singleSelected={this.props.singleSelected}
-        >
-          <div onClick={this.disableEditOnClickForAddedComponent}>
-            {this.renderLabel()}
-          </div>
-        </EditContainer>
+    return (
+      <div ref={this.setWrapperRef}>
+      <EditContainer
+        component={this.props.component}
+        id={this.props.id}
+        firstInActiveList={this.props.firstInActiveList}
+        lastInActiveList={this.props.lastInActiveList}
+        sendItemToParent={this.handleActiveListChange}
+        singleSelected={this.props.singleSelected}
+      >
+        <div onClick={this.disableEditOnClickForAddedComponent}>
+          {this.renderLabel()}
         </div>
-      );
-    }
-  }
-
-  private errorMessage(): JSX.Element {
-    if (this.props.validationErrors && this.props.validationErrors.length > 0) {
-      return (
-        <span className='field-validation-error a-message a-message-error'>
-          <ol>
-            {this.props.validationErrors.map((error: string, index: number) => {
-              return <li key={index}>{error}</li>;
-            })}
-          </ol>
-        </span>
-      );
-    }
-    return null;
+      </EditContainer>
+      </div>
+    );
   }
 }
 
