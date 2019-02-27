@@ -5,11 +5,16 @@ exports[`>>> components/base/TextAreaComponent.tsx +++ should match snapshot 1`]
   className="a-form-group-items input-group p-0"
 >
   <textarea
-    className="form-control a-textarea"
+    className="form-control a-textarea "
     disabled={false}
     id="mock-component-id"
     onBlur={[Function]}
     onChange={[Function]}
+    style={
+      Object {
+        "resize": "none",
+      }
+    }
   />
 </div>
 `;
