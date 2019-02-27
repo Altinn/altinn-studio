@@ -4,6 +4,7 @@ import {
 import * as React from 'react';
 import { connect } from 'react-redux';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
+import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 const styles = createStyles({
@@ -183,6 +184,45 @@ class FormComponent extends React.Component<
     this.props.sendListToParent(this.props.activeList);
   }
 
+  /**
+   * The React Render method. This is run when this component is included in another component.
+   * It is either called from FormFiller or FormDesigner.
+   */
+  public render(): JSX.Element {
+    if (this.props.designMode) {
+      return (
+        <div ref={this.setWrapperRef}>
+        <EditContainer
+          component={this.props.component}
+          id={this.props.id}
+          firstInActiveList={this.props.firstInActiveList}
+          lastInActiveList={this.props.lastInActiveList}
+          sendItemToParent={this.handleActiveListChange}
+          singleSelected={this.props.singleSelected}
+        >
+          <div onClick={this.disableEditOnClickForAddedComponent}>
+            {this.renderLabel()}
+          </div>
+        </EditContainer>
+        </div>
+      );
+    }
+  }
+
+  private errorMessage(): JSX.Element {
+    if (this.props.validationErrors && this.props.validationErrors.length > 0) {
+      return (
+        <span className='field-validation-error a-message a-message-error'>
+          <ol>
+            {this.props.validationErrors.map((error: string, index: number) => {
+              return <li key={index}>{error}</li>;
+            })}
+          </ol>
+        </span>
+      );
+    }
+    return null;
+  }
 }
 
 /**
@@ -206,15 +246,9 @@ const makeMapStateToProps = () => {
     order: GetLayoutOrderSelector(state),
     designMode: state.appData.appConfig.designMode,
     dataModelElement: state.appData.dataModel.model.find(
-      (element) => {
-        if (state.formDesigner.layout.components[props.id].dataModelBindings) {
-          if (element.DataBindingName ===
-          state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding) {
-            return true;
-          }
-        }
-        return false;
-      }),
+      (element) =>
+        element.DataBindingName ===
+        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
     connections: state.serviceConfigurations.APIs.connections,
     externalApi: state.serviceConfigurations.APIs.externalApisById,
     validationErrors:
