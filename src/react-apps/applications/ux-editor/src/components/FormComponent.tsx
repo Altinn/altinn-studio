@@ -108,7 +108,6 @@ class FormComponent extends React.Component<
     this.props.handleDataUpdate(this.props.id, dataModelElement, callbackValue);
   }
 
-
   /**
    * Return a given textresource from all textresources avaiable
    */
