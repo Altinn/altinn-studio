@@ -114,7 +114,10 @@ function* fetchThirdPartyComponentsSaga(action: AppDataActions.IFetchThirdPartyC
     let fetchedPackages: any = {};
     for (const externalPackage of fetchedDefinitions.packages) {
       const fetchedSrc: any = yield call(get, externalPackage.location);
+      /* tslint:disable */
+      // Ignoring eval for now. This is not permanent.
       const evaluatedSrc: any = eval(fetchedSrc);
+      /* tslint:enable */
       let fetchedComponents = {};
       for (const component in evaluatedSrc.Components) {
         if (component) {
