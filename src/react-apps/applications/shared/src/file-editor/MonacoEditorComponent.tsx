@@ -49,8 +49,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
 
   public escFunction = (e: any) => {
     if(e.keyCode === 27 && document.activeElement.tabIndex === 0) {
-      const tabable = document.querySelectorAll('#fileEditorCancel');
-      tabable[0].focus();
+      document.getElementById('#fileEditorCancel').focus();
     }
   }
 
