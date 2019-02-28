@@ -39,17 +39,17 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     };
   }
 
-  public componentDidMount(){
-    document.addEventListener("keydown", this.escFunction, false);
+  public componentDidMount() {
+    document.addEventListener('keydown', this.escFunction, false);
   }
 
-  public componentWillUnmount(){
-    document.removeEventListener("keydown", this.escFunction, false);
+  public componentWillUnmount() {
+    document.removeEventListener('keydown', this.escFunction, false);
   }
 
   public escFunction = (e: any) => {
     if(e.keyCode === 27 && document.activeElement.tabIndex === 0) {
-      document.getElementById('#fileEditorCancel').focus();
+      document.getElementById('s#fileEditorCancel').focus();
     }
   }
 
