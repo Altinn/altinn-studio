@@ -37,6 +37,7 @@ const validationFunctions: any = {
   max,
   minLength,
   maxLength,
+  length,
   pattern,
 };
 
