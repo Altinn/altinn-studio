@@ -233,7 +233,9 @@ const getErrorList = (validations: IValidationResults) => {
     return null;
   }
 
-  return unmappedValidations.simpleBinding.errors;
+  return Object.keys(unmappedValidations).map((validationKey) => {
+    return unmappedValidations[validationKey].errors.join(', ');
+  });
 };
 
 const mapStateToProps = (state: IAppState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {

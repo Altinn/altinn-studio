@@ -97,7 +97,7 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public renderSubmitButton = () => {
-    const disabled = (this.props.formDataCount > 0 && Object.keys(this.props.validationResults).length !== 0)
+    const disabled = (this.props.formDataCount > 0 && (this.props.validationResults !== null && Object.keys(this.props.validationResults).length !== 0))
       || this.props.unsavedChanges || this.props.formDataCount === 0;
     return (
       <button

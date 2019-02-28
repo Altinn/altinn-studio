@@ -244,6 +244,23 @@ class FormComponent extends React.Component<
     );
   }
 
+  private hasValidationMessages = () => {
+    if (!this.props.validationResults) {
+      return false;
+    }
+
+    let hasMessages = false;
+    Object.keys(this.props.validationResults).forEach((key: string) => {
+      if (this.props.validationResults[key].errors.length > 0
+        || this.props.validationResults[key].warnings.length > 0) {
+        hasMessages = true;
+        return;
+      }
+    });
+
+    return hasMessages;
+  }
+
   private isComponentValid = () => {
     if (!this.props.validationResults) {
       return true;
@@ -268,7 +285,7 @@ class FormComponent extends React.Component<
 
   private errorMessage(): JSX.Element[] {
     if (!this.isSimpleComponent() ||
-      this.isComponentValid()) {
+      !this.hasValidationMessages()) {
         return null;
     }
 
