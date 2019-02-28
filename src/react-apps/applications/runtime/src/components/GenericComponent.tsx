@@ -15,7 +15,7 @@ export interface IGenericComponentProps {
   thirdPartyComponents?: any;
 }
 
-class Generic extends React.Component<IGenericComponentProps> {
+class GenericComponent extends React.Component<IGenericComponentProps> {
 
   public renderThirdPartyComponent = (): JSX.Element => {
     const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
@@ -53,4 +53,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-export const GenericComponent = connect(makeMapStateToProps)(Generic);
+export const GenericComponentWrapper = connect(makeMapStateToProps)(GenericComponent);

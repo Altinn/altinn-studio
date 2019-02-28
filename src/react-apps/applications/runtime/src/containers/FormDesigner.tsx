@@ -16,7 +16,6 @@ import { ConditionalRenderingModalComponent } from '../components/toolbar/Condit
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import DesignView from './DesignView';
-import { Toolbar } from './Toolbar';
 
 export interface IFormDesignerProvidedProps {
   classes: any;
@@ -200,7 +199,6 @@ class FormDesigner extends React.Component<
           id='formFillerGrid'
         >
           <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
-            <Toolbar />
           </Grid>
           <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
             <VersionControlHeader language={this.props.language} />
