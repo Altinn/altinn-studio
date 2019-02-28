@@ -198,8 +198,7 @@ class FormDesigner extends React.Component<
           classes={{ container: classNames(classes.container) }}
           id='formFillerGrid'
         >
-          <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
-          </Grid>
+          <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }} />
           <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
             <VersionControlHeader language={this.props.language} />
             <div
