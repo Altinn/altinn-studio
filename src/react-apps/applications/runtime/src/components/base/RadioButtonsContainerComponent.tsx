@@ -85,7 +85,8 @@ export class RadioButtonContainerComponent
               {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
             </label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&
-             renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding)}
+              renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
+                this.props.component.id)}
           </div>
         ))}
       </div>

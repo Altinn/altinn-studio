@@ -3,6 +3,7 @@ import * as React from 'react';
 export type MessageType = 'message' | 'info' | 'error' | 'success';
 
 export interface IMessageComponentProps {
+  id: string;
   messageType: MessageType;
   message?: any;
   style?: any;
@@ -33,7 +34,11 @@ class MessageComponent extends React.Component<IMessageComponentProps, IMessageC
 
   public render() {
     return (
-      <div className={this.getMessageClasses()} style={this.props.style}>
+      <div
+        id={this.props.id}
+        className={this.getMessageClasses()}
+        style={this.props.style}
+      >
         {this.props.message ? this.props.message : this.props.children}
       </div>
     );

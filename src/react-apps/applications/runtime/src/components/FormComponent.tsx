@@ -288,8 +288,8 @@ class FormComponent extends React.Component<
       !this.hasValidationMessages()) {
         return null;
     }
-
-    return renderValidationMessagesForComponent(this.props.validationResults.simpleBinding);
+    const { component: {id} } = this.props;
+    return renderValidationMessagesForComponent(this.props.validationResults.simpleBinding, id);
   }
 }
 

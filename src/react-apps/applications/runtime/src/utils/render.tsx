@@ -4,7 +4,7 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
-import MessageComponent from '../components/message/MessageComponent';
+import MessageComponent, { MessageType } from '../components/message/MessageComponent';
 import { formatCreateTextLabel, getTextResource, truncate } from './language';
 
 export const styles = {
@@ -108,52 +108,38 @@ export function renderSelectTextFromResources(
   );
 }
 
-export function renderValidationMessagesForComponent(validationMessages: IComponentBindingValidation): JSX.Element[] {
+export function renderValidationMessagesForComponent(
+  validationMessages: IComponentBindingValidation,
+  id: string,
+): JSX.Element[] {
   if (!validationMessages) {
     return null;
   }
 
   const validationMessageElements: JSX.Element[] = [];
   if (validationMessages.errors && validationMessages.errors.length > 0) {
-    validationMessageElements.push(renderValidationErrors(validationMessages.errors));
+    validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));
   }
 
   if (validationMessages.warnings && validationMessages.warnings.length > 0) {
-    validationMessageElements.push(renderValidationWarnings(validationMessages.warnings));
+    validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `info_${id}`, 'info'));
   }
 
   return validationMessageElements.length > 0 ? validationMessageElements : null;
 }
 
-export function renderValidationErrors(errors: string[]): JSX.Element {
+export function renderValidationMessages(messages: string[], id: string, messageType: MessageType) {
   return (
     <MessageComponent
-      messageType='error'
+      messageType={messageType}
       style={{display: 'block', width: 'fit-content'}}
-      key={'error'}
+      key={'messageType'}
+      id={id}
     >
     <ol>
-      {errors.map((error: string, idx: number) => {
+      {messages.map((message: string, idx: number) => {
         return (
-          <li key={idx}>{error}</li>
-        );
-      })}
-      </ol>
-    </MessageComponent>
-  );
-}
-
-export function renderValidationWarnings(warnings: string[]): JSX.Element {
-  return (
-    <MessageComponent
-      messageType='info'
-      style={{display: 'block', width: 'fit-content'}}
-      key={'warning'}
-    >
-    <ol>
-      {warnings.map((warning: string, idx: number) => {
-        return (
-          <li key={idx}>{warning}</li>
+          <li key={idx}>{message}</li>
         );
       })}
       </ol>
