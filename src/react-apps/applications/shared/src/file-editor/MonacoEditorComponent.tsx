@@ -15,10 +15,12 @@ export interface IMonacoEditorComponentProps {
   onValueChange: (value: string) => void;
   value: string;
   widthPx?: any;
+  escRef: any;
 }
 
 export interface IMonacoEditorComponentState {
   code: string;
+  fileEditorFocus: boolean;
 }
 
 export interface IMonacoEditorComponentWindow extends Window {
@@ -36,6 +38,7 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     super(props);
     this.state = {
       code: props.value,
+      fileEditorFocus: false,
     };
   }
 
@@ -48,8 +51,8 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
   }
 
   public escFunction = (e: any) => {
-    if (e.keyCode === 27 && document.activeElement.tabIndex === 0) {
-      document.getElementById('fileEditorCancel').focus();
+    if (e.keyCode === 27 && this.state.fileEditorFocus) {
+      this.props.escRef.current.focus();
     }
   }
 
@@ -98,6 +101,11 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       },
     });
   }
+  public setFileEditorFocus = () => {
+    this.setState({
+      fileEditorFocus: !this.state.fileEditorFocus,
+    });
+  }
 
   public render() {
     const { classes } = this.props;
@@ -132,31 +140,37 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
         )
         :
         (
-          <MonacoEditor
-            theme={'editorTheme'}
-            height={this.props.heightPx ? this.props.heightPx : '100%'}
-            width={this.props.widthPx ? this.props.widthPx : '100%'}
-            value={this.props.value}
-            language={this.props.language}
-            options={
-              {
-                autoClosingBrackets: 'always',
-                autoIndent: true,
-                automaticLayout: true,
-                colorDecorators: true,
-                minimap: {
-                  enabled: false,
-                },
-                cursorBlinking: 'smooth',
-                scrollbar: {
-                  vertical: 'auto',
-                },
-                scrollBeyondLastLine: false,
+          <div
+            tabIndex={0}
+            onFocus={this.setFileEditorFocus}
+            onBlur={this.setFileEditorFocus}
+          >
+            <MonacoEditor
+              theme={'editorTheme'}
+              height={this.props.heightPx ? this.props.heightPx : '100%'}
+              width={this.props.widthPx ? this.props.widthPx : '100%'}
+              value={this.props.value}
+              language={this.props.language}
+              options={
+                {
+                  autoClosingBrackets: 'always',
+                  autoIndent: true,
+                  automaticLayout: true,
+                  colorDecorators: true,
+                  minimap: {
+                    enabled: false,
+                  },
+                  cursorBlinking: 'smooth',
+                  scrollbar: {
+                    vertical: 'auto',
+                  },
+                  scrollBeyondLastLine: false,
+                }
               }
-            }
-            onChange={this.props.onValueChange}
-            editorWillMount={this.editorWillMount}
-          />
+              onChange={this.props.onValueChange}
+              editorWillMount={this.editorWillMount}
+            />
+          </div>
         )
     );
   }

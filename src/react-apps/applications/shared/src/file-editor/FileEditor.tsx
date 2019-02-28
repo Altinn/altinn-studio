@@ -63,6 +63,7 @@ export interface IFileEditorState {
   value: string;
   valueDiff: boolean;
   valueOriginal: string;
+  fileEditorCancelRef: any;
 }
 
 const styles = createStyles({
@@ -134,6 +135,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       value: '',
       valueDiff: false,
       valueOriginal: '',
+      fileEditorCancelRef: React.createRef(),
     };
   }
 
@@ -292,7 +294,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.props.closeFileEditor}
         >
-          <i className='ai ai-circlecancel' id='fileEditorCancel' tabIndex={1} />
+          <i className='ai ai-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={1} />
         </IconButton>
         <IconButton
           type='button'
@@ -448,6 +450,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             language={language.name}
             onValueChange={this.onValueChange}
             value={this.state.value}
+            escRef={this.state.fileEditorCancelRef}
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />
