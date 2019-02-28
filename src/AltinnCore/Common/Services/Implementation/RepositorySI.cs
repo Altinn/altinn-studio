@@ -721,10 +721,13 @@ namespace AltinnCore.Common.Services.Implementation
 
             string classes = modelGenerator.CreateModelFromMetadata(serviceMetadata);
 
-            // Update the service metadata with all elements
+            // Load currently stored service metadata
             ServiceMetadata original = GetServiceMetaData(org, service);
-            string oldRoot = original.Elements?.Values.First(e => e.ParentElement == null).TypeName;
+            string oldRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
+
+            // Update the service metadata with new elements
             original.Elements = serviceMetadata.Elements;
+            string newRoot = original.Elements != null && original.Elements.Count > 0 ? original.Elements.Values.First(e => e.ParentElement == null).TypeName : null;
 
             if (!UpdateServiceMetadata(org, service, original))
             {
@@ -745,42 +748,38 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (mainXsd != null)
             {
+                string mainXsdString = mainXsd.ToString();
+
+                // Create the .xsd file for the model
+                try
                 {
-                    // Create the .xsd file for the model
-                    try
+                    string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
+                    new FileInfo(filePath).Directory.Create();
+                    File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+
+                // Create the .jsd file for the model
+                try
+                {
+                    XsdToJsonSchema xsdToJsonSchemaConverter;
+                    using (MemoryStream memStream = new MemoryStream(Encoding.UTF8.GetBytes(mainXsdString)))
                     {
-                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelXSDFileName;
-                        new FileInfo(filePath).Directory.Create();
-                        File.WriteAllText(filePath, mainXsd.ToString(), Encoding.UTF8);
-                    }
-                    catch (Exception e)
-                    {
-                        return false;
+                        xsdToJsonSchemaConverter = new XsdToJsonSchema(XmlReader.Create(memStream), _loggerFactory.CreateLogger<XsdToJsonSchema>());
                     }
 
-                    // Create the .jsd file for the model
-                    try
-                    {
-                        XsdToJsonSchema xsdToJsonSchemaConverter;
-                        XmlReader xmlReader;
-                        using (MemoryStream memStream = new MemoryStream())
-                        {
-                            mainXsd.Save(memStream);
-                            memStream.Position = 0;
-                            xmlReader = XmlReader.Create(memStream);
-                            xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader, _loggerFactory.CreateLogger<XsdToJsonSchema>());
-                        }
+                    JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
 
-                        JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-                        string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
-                        new FileInfo(filePath).Directory.Create();
-                        File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
-                    }
-                    catch (Exception e)
-                    {
-                        return false;
-                    }
+                    string filePath = _settings.GetModelPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceModelJsonSchemaFileName;
+                    new FileInfo(filePath).Directory.Create();
+                    File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
+                }
+                catch (Exception e)
+                {
+                    return false;
                 }
             }
 
@@ -800,22 +799,22 @@ namespace AltinnCore.Common.Services.Implementation
             string serviceImplementationPath = implementationDirectory + _settings.ServiceImplementationFileName;
             File.WriteAllText(
                 serviceImplementationPath,
-                File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(serviceImplementationPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             string calculationHandlerPath = _settings.GetCalculationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.CalculationHandlerFileName;
             File.WriteAllText(
                 calculationHandlerPath,
-                File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(calculationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             string validationHandlerPath = _settings.GetValidationPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ValidationHandlerFileName;
             File.WriteAllText(
                 validationHandlerPath,
-                File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(validationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             string instansiationHandlerPath = implementationDirectory + _settings.InstantiationHandlerFileName;
             File.WriteAllText(
                 instansiationHandlerPath,
-                File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, original.Elements.Values.First(el => el.ParentElement == null).TypeName));
+                File.ReadAllText(instansiationHandlerPath).Replace(oldRoot ?? CodeGeneration.DefaultServiceModelName, newRoot ?? CodeGeneration.DefaultServiceModelName));
 
             return true;
         }
