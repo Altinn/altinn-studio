@@ -26,6 +26,9 @@ data:
         server grafana.grafana.svc.cluster.local:80;
       }
 
+      upstream dataservice {
+        server altinn-dataservice:5010;
+      }
       server {
         listen 80;
         server_name dev.altinn.studio;
@@ -86,6 +89,12 @@ data:
           proxy_pass          http://designer/designerapi/;
           proxy_set_header  	Host dev.altinn.studio;
           proxy_set_header 	  X-Forwarded-For $remote_addr;
+        }
+
+        location /dataserviceapi/ {
+            proxy_pass         http://dataservice/dataserviceapi/;
+            proxy_set_header  	Host dev.altinn.studio;
+            proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
         location / {
