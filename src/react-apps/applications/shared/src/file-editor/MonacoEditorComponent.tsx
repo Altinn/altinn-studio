@@ -38,6 +38,21 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       code: props.value,
     };
   }
+  
+  public componentDidMount(){
+    document.addEventListener("keydown", this.escFunction, false);
+  }
+
+  public componentWillUnmount(){
+    document.removeEventListener("keydown", this.escFunction, false);
+  }
+
+  public escFunction = (e: any) => {
+    if(e.keyCode === 27 && document.activeElement.tabIndex === 0) {
+      const tabable = document.querySelectorAll('#fileEditorCancel');
+      tabable[0].focus();
+    }
+  }
 
   public editorWillMount = (monaco: any) => {
     monaco.languages.setMonarchTokensProvider('plaintext', {
@@ -119,30 +134,31 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
         :
         (
           <MonacoEditor
-            theme={'editorTheme'}
-            height={this.props.heightPx ? this.props.heightPx : '100%'}
-            width={this.props.widthPx ? this.props.widthPx : '100%'}
-            value={this.props.value}
-            language={this.props.language}
-            options={
-              {
-                autoClosingBrackets: 'always',
-                autoIndent: true,
-                automaticLayout: true,
-                colorDecorators: true,
-                minimap: {
-                  enabled: false,
-                },
-                cursorBlinking: 'smooth',
-                scrollbar: {
-                  vertical: 'auto',
-                },
-                scrollBeyondLastLine: false,
+              theme={'editorTheme'}
+              height={this.props.heightPx ? this.props.heightPx : '100%'}
+              width={this.props.widthPx ? this.props.widthPx : '100%'}
+              value={this.props.value}
+              language={this.props.language}
+              options={
+                {
+                  autoClosingBrackets: 'always',
+                  autoIndent: true,
+                  automaticLayout: true,
+                  colorDecorators: true,
+                  minimap: {
+                    enabled: false,
+                  },
+                  cursorBlinking: 'smooth',
+                  scrollbar: {
+                    vertical: 'auto',
+                  },
+                  scrollBeyondLastLine: false,
+                }
               }
-            }
-            onChange={this.props.onValueChange}
-            editorWillMount={this.editorWillMount}
-          />
+              onChange={this.props.onValueChange}
+              editorWillMount={this.editorWillMount}
+              tabIndex={0}
+            />
         )
     );
   }

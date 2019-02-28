@@ -292,14 +292,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.props.closeFileEditor}
         >
-          <i className='ai ai-circlecancel' />
+          <i className='ai ai-circlecancel' id="fileEditorCancel" tabIndex={1} />
         </IconButton>
         <IconButton
           type='button'
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.saveFile}
         >
-          <i className='ai ai-circlecheck' />
+          <i className='ai ai-circlecheck' id="fileEditorCheck" tabIndex={2} />
         </IconButton>
       </Grid>
     );
