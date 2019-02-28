@@ -48,10 +48,8 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
   }
 
   public escFunction = (e: any) => {
-    if (document.activeElement) {
-      if (e.keyCode === 27 && document.activeElement.tabIndex === 0) {
-        document.getElementById('#fileEditorCancel').focus();
-      }
+    if (e.keyCode === 27 && document.activeElement.tabIndex === 0) {
+      document.getElementById('fileEditorCancel').focus();
     }
   }
 
@@ -158,7 +156,6 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
             }
             onChange={this.props.onValueChange}
             editorWillMount={this.editorWillMount}
-            tabIndex={0}
           />
         )
     );
