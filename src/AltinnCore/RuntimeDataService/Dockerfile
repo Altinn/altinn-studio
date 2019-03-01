@@ -10,6 +10,6 @@ RUN dotnet publish AltinnCore.Runtime.DataService.csproj -c Release -o /app_outp
 
 FROM microsoft/dotnet:2.1-aspnetcore-runtime AS final
 EXPOSE 5010
-WORKDIR /App
+WORKDIR /app
 COPY --from=build /app_output .
 ENTRYPOINT ["dotnet", "AltinnCore.Runtime.DataService.dll"]

@@ -2,11 +2,11 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: altinn-dataservice
-spec:  
+spec:
   selector:
     matchLabels:
       run: altinn-dataservice
-  replicas: {{ .Values.replicaCount }}      
+  replicas: {{ .Values.replicaCount }}
   template:
     metadata:
       labels:
@@ -51,6 +51,27 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
+          {{- if .Values.volumeMounts}}
+          volumeMounts:
+            {{- range $mount := .Values.volumeMounts}}
+            - name: {{ $mount.name }}
+              mountPath: {{ $mount.mountPath }}
+            {{- end }}
+          {{- end }}
+        {{- if .Values.volumes }}
+      volumes:
+      {{- range $volume := .Values.volumes }}
+        - name: {{ $volume.name }}
+                  {{- if $volume.persistantVolumeClaim }}
+          persistantVolumeClaim:
+            claimName: {{ $volume.persistantVolumeClaim.claimName }}
+          {{- end }}
+          {{- if $volume.secret }}
+          secret:
+            secretName: {{ $volume.secret.secretName }}
+          {{- end }}
+      {{- end }}
+      {{- end }}
       {{- if .Values.image.imagePullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.imagePullSecret }}

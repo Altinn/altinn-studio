@@ -17,7 +17,16 @@ environmentVariables:
       value: Production
     - name: ASPNETCORE_URLS
       value: http://+:5010
-      
+
+volumeMounts:
+  - name: altinn-appsettings
+    mountPath: "/altinn-appsettings"
+
+volumes:
+  - name: altinn-appsettings
+    secret:
+      secretName: altinn-dbsettings-secret
+
 service:
   ports:
     - port: 5010
