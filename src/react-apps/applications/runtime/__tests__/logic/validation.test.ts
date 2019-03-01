@@ -1,4 +1,4 @@
-﻿import 'jest';
+import 'jest';
 import * as validation from '../../src/utils/validation';
 
 describe('>>> utils/validations.ts', () => {
