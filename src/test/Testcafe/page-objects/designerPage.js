@@ -8,7 +8,7 @@ export default class DesignerPage {
     //editor elements
     this.header = Selector("#schema-components").withText("Header");
     this.inputBtn = Selector("#schema-components").withText("Inputfelt");
-    this.dropDown = Selector("#schema-components").withText("Rullegardin");
+    this.dropDown = Selector("#schema-components").withText("DropDown");
     this.checkBoxes = Selector("#schema-components").withText("Avkrysningsboks");
     this.radioButtons = Selector("#schema-components").withText("Radioknapp");
     this.textArea = Selector("#schema-components").withText("Tekstområde");
@@ -30,6 +30,11 @@ export default class DesignerPage {
 
     //"Om" navigation tab selectors
     this.omNavigationTab = Selector('div').withExactText('Om');
+    this.omTjenesteNavn = Selector('#administrationInputServicename > div > div > input');
+    this.omEndreTjenesteNavn = Selector("button > span > span").withExactText("Endre");
+    this.omTjenesteId = Selector('#administrationInputServiceid > div > div > input');
+    this.omLagringsNavn = Selector('#administrationInputReponame > div > div > input');
+    this.omKommentarer = Selector('#administrationInputDescription > div > div > textarea');
     this.omLeftMenuItems = [
       this.leftMenuList.withExactText('Om tjenesten'),
       this.leftMenuList.withExactText('Roller og rettigheter'),

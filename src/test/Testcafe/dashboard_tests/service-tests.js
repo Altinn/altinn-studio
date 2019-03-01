@@ -30,25 +30,6 @@ fixture('Creating/Reading/Updating/Deleting services')
     //await dash.logout();
   })
 
-test('Sync a service with master', async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe03#/aboutservice')
-    .click(designerPage.lageNavigationTab)
-    .click(designerPage.dropDown)
-    .pressKey("enter")
-    .click(designerPage.omNavigationTab)
-    .click(designerPage.lageNavigationTab)
-    .expect(designerPage.delEndringer.exists).ok()
-    .click(designerPage.delEndringer)
-    .expect(designerPage.commitMessageBox.exists).ok()
-    .click(designerPage.commitMessageBox)
-    .typeText(designerPage.commitMessageBox, "Sync service automated test", { replace: true })
-    .expect(designerPage.validerEndringer.exists).ok()
-    .click(designerPage.validerEndringer)
-    .pressKey("tab")
-    .pressKey("enter")
-});
-
 test.skip('Create a new service', async () => {
   await t
     .click(dash.newServiceButton)

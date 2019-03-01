@@ -14,12 +14,13 @@ createTestCafe()
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
       .reporter('junit', stream)
-      .src(['./dashboard_tests/service-tests.js', './designer_tests/navigation-tests.js'])
+      .src(['./dashboard_tests/service-tests.js','./designer_tests/service-designer-tests.js',
+        './designer_tests/navigation-tests.js'])
       .run({
         skipJsErrors: true,
         quarantineMode: false,
         selectorTimeout: 15000,
-        assertionTimeout: 15000,
+        assertionTimeout: 20000,
         pageLoadTimeout: 10000,
         speed: 1,
         debugOnFail: false,
