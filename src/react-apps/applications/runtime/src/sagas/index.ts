@@ -11,7 +11,6 @@ import formDesignerSagas from './formDesigner';
 import formFillerSagas from './formFiller';
 import manageJsonFileSagas from './manageServiceConfiguration';
 import ruleConnectionSagas from './ruleConnection';
-import thirdPartyComponentSagas from './thirdPartyComponents';
 import workflowSagas from './workflow';
 
 function* root(): SagaIterator {
@@ -24,7 +23,6 @@ function* root(): SagaIterator {
   yield fork(appDataSagas);
   yield fork(manageJsonFileSagas);
   yield fork(codeListsSagas);
-  yield fork(thirdPartyComponentSagas);
   yield fork(workflowSagas);
 }
 

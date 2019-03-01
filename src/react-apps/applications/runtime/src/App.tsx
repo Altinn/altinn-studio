@@ -4,7 +4,6 @@ import appDataActionDispatcher from './actions/appDataActions/appDataActionDispa
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
 import formFillerActionDispatchers from './actions/formFillerActions/formFillerActionDispatcher';
 import manageServiceConfigurationActionDispatcher from './actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import ThirdPartyComponentsActionDispatcher from './actions/thirdPartyComponentsActions/thirdPartyComponentsActionDispatcher';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
 import { FormFiller } from './containers/FormFiller';
@@ -82,6 +81,10 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       appDataActionDispatcher.fetchLanguage(
         `${altinnWindow.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb');
 
+      // Fetch thirdParty Components
+      appDataActionDispatcher.fetchThirdPartyComponents(
+        `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/ThirdPartyComponents.json`);
+
     } else {
       // ALTINN STUDIO
       if (window.location.hash.split('#/')[1] && window.location.hash.split('#/')[1].toLowerCase() === PREVIEW) {
@@ -113,9 +116,6 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       // Fetch the CodeLists
       appDataActionDispatcher.fetchCodeLists(
         `${altinnWindow.location.origin}/designer/${servicePath}/CodeList/CodeLists`);
-      // Fetch thirdParty Components
-      ThirdPartyComponentsActionDispatcher.fetchThirdPartyComponents(
-        `${altinnWindow.location.origin}/designer/${servicePath}/UIEditor/GetThirdPartyComponents`);
       // Fetch language
       appDataActionDispatcher.fetchLanguage(
         `${altinnWindow.location.origin}/designerapi/Language/GetLanguageAsJSON`, 'nb');

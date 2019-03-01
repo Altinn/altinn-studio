@@ -32,3 +32,8 @@ export const FETCH_CODE_LISTS_REJECTED: string = `${moduleName}.FETCH_CODE_LISTS
 export const FETCH_LANGUAGE: string = `${moduleName}.FETCH_LANGUAGE`;
 export const FETCH_LANGUAGE_FULFILLED: string = `${moduleName}.FETCH_LANGUAGE_FULFILLED`;
 export const FETCH_LANGUAGE_REJECTED: string = `${moduleName}.FETCH_LANGUAGE_REJECTED`;
+
+// All fetch third party components actions
+export const FETCH_THIRD_PARTY_COMPONENTS: string = `${moduleName}.FETCH_THIRD_PARTY_COMPONENTS`;
+export const FETCH_THIRD_PARTY_COMPONENTS_FULFILLED: string = `${moduleName}.FETCH_THIRD_PARTY_COMPONENTS_FULFILLED`;
+export const FETCH_THIRD_PARTY_COMPONENTS_REJECTED: string = `${moduleName}.FETCH_THIRD_PARTY_COMPONENTS_REJECTED`;

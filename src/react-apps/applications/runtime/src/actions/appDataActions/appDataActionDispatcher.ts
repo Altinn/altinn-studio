@@ -42,6 +42,9 @@ export interface IAppConfigActionDispatchers extends ActionCreatorsMapObject {
   fetchCodeLists: (url: string) => AppDataActions.IFetchCodeListsAction;
   fetchCodeListsFulfilled: (codeList: any) => AppDataActions.IFetchCodeListsFulfilled;
   fetchCodeListsRejected: (error: Error) => AppDataActions.IFetchCodeListsRejected;
+  fetchThirdPartyComponents: (location: string) => AppDataActions.IFetchThirdPartyComponent;
+  fetchThirdPartyComponentsFulfilled: (components: any) => AppDataActions.IFetchThirdPartyComponentFulfilled;
+  fetchThirdPartyComponentsRejected: (error: Error) => AppDataActions.IFetchThirdPartyComponentRejected;
 }
 
 /**
@@ -66,6 +69,9 @@ const actions: IAppConfigActionDispatchers = {
   fetchLanguage: AppDataActions.fetchLanguageAction,
   fetchLanguageFulfilled: AppDataActions.fetchLanguageFulfilledAction,
   fetchLanguageRecjeted: AppDataActions.fetchLanguageRejectedAction,
+  fetchThirdPartyComponents: AppDataActions.fetchThirdPartyComponents,
+  fetchThirdPartyComponentsFulfilled: AppDataActions.fetchThirdPartyComponentsFulfilled,
+  fetchThirdPartyComponentsRejected: AppDataActions.fetchThirdPartyComponentsRejected,
 
 };
 
