@@ -7,7 +7,7 @@ import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDe
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { renderValidationMessagesForComponent } from '../utils/render';
-import GenericComponent from './GenericComponent';
+import { GenericComponentWrapper } from './GenericComponent';
 
 const styles = createStyles({
 
@@ -117,7 +117,7 @@ class FormComponent extends React.Component<
   public renderComponent(): JSX.Element {
     const isValid = this.isComponentValid();
     return (
-      <GenericComponent
+      <GenericComponentWrapper
         id={this.props.id}
         component={this.props.component}
         isValid={isValid}
@@ -324,7 +324,7 @@ const makeMapStateToProps = () => {
         ? state.formFiller.validationResults[props.id]
         : null,
     textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.thirdPartyComponents.components,
+    thirdPartyComponents: state.appData.thirdPartyComponents.components,
     dataModel: state.appData.dataModel.model,
   });
   return mapStateToProps;

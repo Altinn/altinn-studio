@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { connect } from 'react-redux';
 import { thirdPartyComponentWithElementHandler } from '../containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import components from './';
@@ -9,17 +10,16 @@ export interface IGenericComponentProps {
   isValid: boolean;
   formData: any;
   designMode: boolean;
-  thirdPartyComponents?: any;
   validationMessages?: IComponentValidations;
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
+  thirdPartyComponents?: any;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps> {
 
   public renderThirdPartyComponent = (): JSX.Element => {
-    const [packageName, component] =
-      this.props.component.textResourceBindings.title.split('.');
+    const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
     if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName]
       || !this.props.thirdPartyComponents[packageName][component]) {
       return null;
@@ -32,7 +32,6 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
     if (this.props.component.component === 'ThirdParty') {
       return this.renderThirdPartyComponent();
     }
-
     const TagName = formComponentWithHandlers(components.find((c: any) => c.name ===
       this.props.component.component).Tag);
     return (
@@ -48,5 +47,12 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
     );
   }
 }
+const makeMapStateToProps = () => {
+  const mapStateToProps = (state: IAppState, props: IGenericComponentProps): IGenericComponentProps => ({
+    ...props,
+    thirdPartyComponents: state.appData.thirdPartyComponents.components,
+  });
+  return mapStateToProps;
+};
 
-export default GenericComponent;
+export const GenericComponentWrapper = connect(makeMapStateToProps)(GenericComponent);

@@ -185,17 +185,22 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets React file name
         /// </summary>
-        public string RuntimeAppFileName { get; set; } = "runtime.js";
+        public string ReactAppFileName { get; set; } = "react-app.js";
 
         /// <summary>
         /// Gets or sets React CSS file name
         /// </summary>
-        public string RuntimeAppCssFileName { get; set; } = "runtime.css";
+        public string ReactAppCssFileName { get; set; } = "react-app.css";
 
         /// <summary>
         /// Gets or sets styles config file name for service
         /// </summary>
         public string ServiceStylesConfigFileName { get; set; } = "Styles.json";
+
+        /// <summary>
+        /// Gets or sets config file name for service
+        /// </summary>
+        public string ServiceConfigFileName { get; set; } = "config.json";
 
         /// <summary>
         /// Gets or sets default Bootstrap url

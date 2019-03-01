@@ -74,7 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The newly created repository</returns>
         public async Task<Repository> CreateRepository(string owner, CreateRepoOption createRepoOption)
         {
-            AltinnCore.RepositoryClient.Model.Repository repository = null;
+            AltinnCore.RepositoryClient.Model.Repository repository = new Repository();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
             string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == owner ? "/user/repos" : "/org/" + owner + "/repos";
             Uri endpointUrl = new Uri(GetApiBaseUrl() + urlEnd);
