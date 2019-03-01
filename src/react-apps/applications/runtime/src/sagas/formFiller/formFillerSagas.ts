@@ -80,7 +80,8 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
       (err.response.data.status === 1 || err.response.data.status === 2)) {
       // Update validationError state if response contains validation errors
       const state: IAppState = yield select();
-      const validationResults = Validator.mapApiValidationResultToLayout(err.response.data.validationResult, state.formDesigner.layout);
+      const validationResults =
+        Validator.mapApiValidationResultToLayout(err.response.data.validationResult, state.formDesigner.layout);
       yield call(FormFillerActionDispatcher.updateValidationErrors, validationResults);
       yield call(FormFillerActionDispatcher.submitFormDataRejected, err);
     } else {
