@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as ActionTypes from '../thirdPartyComponentsActionTypes';
+import * as ActionTypes from '../../appDataActionTypes';
 
 export interface IFetchThirdPartyComponent extends Action {
   location: string;

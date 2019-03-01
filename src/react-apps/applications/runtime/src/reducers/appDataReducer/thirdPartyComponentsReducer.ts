@@ -1,8 +1,12 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { IFetchThirdPartyComponentFulfilled, IFetchThirdPartyComponentRejected } from '../../actions/thirdPartyComponentsActions/actions';
-import * as ThirdPartyComponentsActionTypes from '../../actions/thirdPartyComponentsActions/thirdPartyComponentsActionTypes';
-import { IThirdPartyComponentsState } from './index';
+import * as AppDataActions from '../../actions/appDataActions/actions';
+import * as AppDataActionTypes from '../../actions/appDataActions/appDataActionTypes';
+
+export interface IThirdPartyComponentsState {
+  components: any;
+  error: Error;
+}
 
 const initialState: IThirdPartyComponentsState = {
   components: null,
@@ -17,17 +21,17 @@ const thirdPartyComponentsReducer: Reducer<IThirdPartyComponentsState> = (
     return state;
   }
   switch (action.type) {
-    case ThirdPartyComponentsActionTypes.FETCH_THIRD_PARTY_COMPONENTS_FULFILLED: {
+    case AppDataActionTypes.FETCH_THIRD_PARTY_COMPONENTS_FULFILLED: {
       return update<IThirdPartyComponentsState>(state, {
         $merge: {
-          components: (action as IFetchThirdPartyComponentFulfilled).components,
+          components: (action as AppDataActions.IFetchThirdPartyComponentFulfilled).components,
         },
       });
     }
-    case ThirdPartyComponentsActionTypes.FETCH_THIRD_PARTY_COMPONENTS_REJECTED: {
+    case AppDataActionTypes.FETCH_THIRD_PARTY_COMPONENTS_REJECTED: {
       return update<IThirdPartyComponentsState>(state, {
         $set: {
-          error: (action as IFetchThirdPartyComponentRejected).error,
+          error: (action as AppDataActions.IFetchThirdPartyComponentRejected).error,
         },
       });
     }

@@ -6,6 +6,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using AltinnCore.Common.Factories.ModelFactory.Manatee.Json;
+using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
@@ -32,7 +33,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </summary>
         /// <param name="xsdReader">Reader for the XSD to convert</param>
         /// <param name="logger">logger</param>
-        public XsdToJsonSchema(XmlReader xsdReader, ILogger<XsdToJsonSchema> logger)
+        public XsdToJsonSchema(XmlReader xsdReader, ILogger<XsdToJsonSchema> logger = null)
         {
             this.xsdReader = xsdReader;
             this._logger = logger;
@@ -45,7 +46,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
         /// </summary>
         /// <param name="schema">the schema</param>
         /// <param name="logger">the logger</param>
-        public XsdToJsonSchema(XmlSchema schema, ILogger<XsdToJsonSchema> logger)
+        public XsdToJsonSchema(XmlSchema schema, ILogger<XsdToJsonSchema> logger = null)
         {
             mainXsd = schema;
             this._logger = logger;
@@ -1709,19 +1710,38 @@ namespace AltinnCore.Common.Factories.ModelFactory
 
         private void LogInfo(string msg)
         {
-            _logger.LogInformation(msg);
+            if (_logger != null)
+            {
+                _logger.LogInformation(msg);
+            }
+
             Trace.WriteLine("Info: " + msg);
         }
 
         private void LogError(string msg)
         {
-            _logger.LogError(msg);
+            if (_logger != null)
+            {
+                _logger.LogError(msg);
+            }
+
             Trace.WriteLine("Error: " + msg);
         }
 
         private static void ValidationCallback(object sender, ValidationEventArgs args)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Returns a sanitized name. It removes - in names since these are not allowed in C#. Hence,
+        /// Inntekt-grp-22384 will become Inntektgrp22384
+        /// </summary>
+        /// <param name="name">the name to sanitize</param>
+        /// <returns>the santized name</returns>
+        public static string SanitizeName(string name)
+        {
+            return name.Replace("-", string.Empty);
         }
     }
 }
