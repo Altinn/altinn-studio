@@ -24,6 +24,7 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
+
     mockComponents = {
       componentId_1: {
         component: 'Input',
@@ -44,6 +45,7 @@ describe('>>> utils/validations.ts', () => {
         },
       },
     };
+
     mockLayoutState = {
       components: mockComponents,
       containers: {},
@@ -56,6 +58,7 @@ describe('>>> utils/validations.ts', () => {
       activeContainer: '',
       activeList: [],
     };
+
     mockMatch = {
       componentId_1: {
         simpleBinding: {
