@@ -64,6 +64,7 @@ export interface IFileEditorState {
   valueDiff: boolean;
   valueOriginal: string;
   fileEditorCancelRef: any;
+  fileEditorSaveRef: any;
 }
 
 const styles = createStyles({
@@ -136,6 +137,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       valueDiff: false,
       valueOriginal: '',
       fileEditorCancelRef: React.createRef(),
+      fileEditorSaveRef: React.createRef(),
     };
   }
 
@@ -319,12 +321,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <Grid
           item={true}
         >
+        <div ref={this.state.fileEditorSaveRef}>
           <AltinnButton
             btnText='Lagre fil'
             disabled={!this.state.valueDiff}
             onClickFunction={this.saveFile}
             secondaryButton={true}
           />
+        </div>
         </Grid>
       </Grid>
     );
@@ -450,7 +454,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             language={language.name}
             onValueChange={this.onValueChange}
             value={this.state.value}
-            escRef={this.state.fileEditorCancelRef}
+            escRef={this.props.showSaveButton ? this.state.fileEditorSaveRef : this.state.fileEditorCancelRef}
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />

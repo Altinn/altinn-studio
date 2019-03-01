@@ -52,7 +52,11 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
 
   public escFunction = (e: any) => {
     if (e.keyCode === 27 && this.state.fileEditorFocus) {
-      this.props.escRef.current.focus();
+      if (this.props.escRef.current.children.length > 0) {
+        this.props.escRef.current.children[0].focus();
+      } else {
+        this.props.escRef.current.focus();
+      }
     }
   }
 
