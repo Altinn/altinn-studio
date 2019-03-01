@@ -41,7 +41,6 @@ const validationFunctions: any = {
   pattern,
 };
 
-
 export function validateDataModel(
   formData: any,
   dataModelFieldElement: IDataModelFieldElement,
