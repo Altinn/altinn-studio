@@ -100,7 +100,7 @@ namespace AltinnCore.UnitTest.Common
         {
             JsonSerializer serializer = new JsonSerializer();
             JsonValue json = serializer.Serialize(jsonSchema);
-            File.WriteAllText(filename, json.ToString());
+            File.WriteAllText(filename, json.GetIndentedString());
         }
 
         private static bool JsonDiff(JsonSchema schema1, JsonSchema schema2)

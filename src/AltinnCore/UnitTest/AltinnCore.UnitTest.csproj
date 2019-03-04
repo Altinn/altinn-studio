@@ -53,6 +53,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="Common\jsd\service-model.schema.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Common\xsd\boligsparingForUngdom_v1_1.xsd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
