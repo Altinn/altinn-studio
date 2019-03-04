@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
