@@ -8,7 +8,7 @@ export default class DesignerPage {
     //editor elements
     this.header = Selector("#schema-components").withText("Header");
     this.inputBtn = Selector("#schema-components").withText("Inputfelt");
-    this.dropDown = Selector("#schema-components").withText("DropDown");
+    this.dropDown = Selector("#schema-components").withText("Dropdown");
     this.checkBoxes = Selector("#schema-components").withText("Avkrysningsboks");
     this.radioButtons = Selector("#schema-components").withText("Radioknapp");
     this.textArea = Selector("#schema-components").withText("Tekstområde");
