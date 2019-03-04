@@ -8,7 +8,8 @@
     "gulp-develop": "gulp develop",
     "gulp-install-deps": "gulp install-react-app-dependencies",
     "gulp-copy-files": "gulp copy-files",
-    "gulp-build-ux-editor": "gulp build-ux-editor"
+    "gulp-build-ux-editor": "gulp build-ux-editor",
+    "gulp-develop-dashboard": "gulp develop-dashboard"
   },
   "devDependencies": {
     "chokidar": "2.0.3",
