@@ -72,6 +72,10 @@ class FormComponent extends React.Component<
     document.addEventListener('mousedown', this.handleClick);
   }
 
+  public componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClick);
+  }
+
   public setWrapperRef = (node: any) => {
     if (node) {
       this.setState({
@@ -89,7 +93,7 @@ class FormComponent extends React.Component<
     const order = this.props.order[key].indexOf(this.props.id);
 
     if (this.state.wrapperRef && !this.state.wrapperRef.contains(event.target) &&
-        order === 0) {
+      order === 0) {
       this.handleActiveListChange({});
     }
   }
@@ -176,9 +180,9 @@ class FormComponent extends React.Component<
   }
 
   public handleActiveListChange = (obj: any) => {
-    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
+    if (Object.keys(obj).length === 0 && obj.constructor === Object && this.props.activeList.length > 0) {
       FormDesignerActionDispatchers.deleteActiveListAction();
-    } else  {
+    } else {
       FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
     }
     this.props.sendListToParent(this.props.activeList);
@@ -191,18 +195,18 @@ class FormComponent extends React.Component<
   public render(): JSX.Element {
     return (
       <div ref={this.setWrapperRef}>
-      <EditContainer
-        component={this.props.component}
-        id={this.props.id}
-        firstInActiveList={this.props.firstInActiveList}
-        lastInActiveList={this.props.lastInActiveList}
-        sendItemToParent={this.handleActiveListChange}
-        singleSelected={this.props.singleSelected}
-      >
-        <div onClick={this.disableEditOnClickForAddedComponent}>
-          {this.renderLabel()}
-        </div>
-      </EditContainer>
+        <EditContainer
+          component={this.props.component}
+          id={this.props.id}
+          firstInActiveList={this.props.firstInActiveList}
+          lastInActiveList={this.props.lastInActiveList}
+          sendItemToParent={this.handleActiveListChange}
+          singleSelected={this.props.singleSelected}
+        >
+          <div onClick={this.disableEditOnClickForAddedComponent}>
+            {this.renderLabel()}
+          </div>
+        </EditContainer>
       </div>
     );
   }
