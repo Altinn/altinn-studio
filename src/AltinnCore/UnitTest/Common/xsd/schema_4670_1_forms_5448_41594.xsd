@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+	<xsd:annotation>
+		<xsd:documentation>
+			<xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+			<xsd:attribute name="XSD-generatorversjon" fixed="2.0.17" />
+			<xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+			<xsd:attribute name="generert" fixed="2016-12-12T09:47:50.496+01:00" />
+			<xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+			<xsd:attribute name="namespace" fixed="http://seres.no/xsd/KYV/SoknadsskjemaGodsoverforing_M/2016" />
+			<xsd:attribute name="meldingsnavn" fixed="melding" />
+			<xsd:attribute name="domenenavn" fixed="KYV" />
+			<xsd:attribute name="modellnavn" fixed="SoknadsskjemaGodsoverforing_M" />
+			<xsd:attribute name="metamodellversjon" fixed="1.2" />
+			<xsd:attribute name="guid" fixed="true" />
+			<xsd:attribute name="orid" fixed="false" />
+			<xsd:attribute name="nillable" fixed="true" />
+			<xsd:attribute name="tillat-gjenbruk" fixed="true" />
+			<xsd:attribute name="elementtype" fixed="true" />
+			<xsd:attribute name="forvaltningsdata" fixed="true" />
+			<xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+			<xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+			<xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+			<xsd:attribute name="sem-ref" fixed="false" />
+			<xsd:attribute name="kodebibliotek" fixed="false" />
+			<xsd:attribute name="spraak" fixed="" />
+			<xsd:attribute name="XSD-variant" fixed="Altinn 1.3.1" />
+		</xsd:documentation>
+	</xsd:annotation>
+	<xsd:element name="melding" type="SoknadsskjemaGodsoverforing_M" />
+	<xsd:complexType name="SoknadsskjemaGodsoverforing_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/KYV/Meldingsmodell/SøknadsskjemaGodsoverføring_M/632638">
+		<xsd:sequence>
+			<xsd:element name="Metainformasjon" type="Metainformasjon" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/Meldingsdel/632636" />
+			<xsd:element name="OpplysningerOmProsjektet" type="OpplysningerOmProsjektet" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/OpplysningerOmTiltaket/632771" />
+			<xsd:element name="Nytteeffekt" type="Nytteeffekt" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/Nytteeffekt/633393" />
+			<xsd:element name="Vilkaar" type="Vilkaar" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/Vilkår/633390" />
+		</xsd:sequence>
+		<xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+		<xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="5448" />
+		<xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="41594" />
+		<xsd:anyAttribute />
+	</xsd:complexType>
+	<xsd:complexType name="Metainformasjon" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/Meldingsdel/632636">
+		<xsd:sequence>
+			<xsd:element name="foretak" type="Foretak" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/KYV/Relasjonsegenskap/foretak/632790" />
+			<xsd:element name="kontaktperson" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/kontaktperson/632789" />
+			<xsd:element name="telefon" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/telefon/632788" />
+			<xsd:element name="epost" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/epost/632787" />
+			<xsd:element name="medsokere" type="Tekst" nillable="true" minOccurs="0" maxOccurs="unbounded" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/medsøkere/632786" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Foretak" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/KYV/Dataobjekttype/Foretak/632785">
+		<xsd:sequence>
+			<xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/organisasjonsnummer/632784" />
+			<xsd:element name="firmanavn" type="Navn" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/firmanavn/632783" />
+			<xsd:element name="kontoinformasjon" type="Kontoinformasjon" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/KYV/Relasjonsegenskap/kontoinformasjon/632781" />
+			<xsd:element name="adresse" type="Adresse" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/KYV/Relasjonsegenskap/adresse/634675" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Kontoinformasjon" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/KYV/Dataobjekttype/Kontoinformasjon/632774">
+		<xsd:sequence>
+			<xsd:element name="kontonummer" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/kontonummer/632773" />
+			<xsd:element name="bankid" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/bankid/632772" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Adresse" seres:elementtype="Dataobjekttype" seres:guid="http://seres.no/guid/KYV/Dataobjekttype/Adresse/634674">
+		<xsd:sequence>
+			<xsd:element name="postadresse" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/postadresse/634673" />
+			<xsd:element name="postnummer" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/postnummer/634672" />
+			<xsd:element name="poststed" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/poststed/634671" />
+			<xsd:element name="land" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/land/634670" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="OpplysningerOmProsjektet" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/OpplysningerOmTiltaket/632771">
+		<xsd:sequence>
+			<xsd:element name="utfyllendeBeskrivelseAvTiltaket" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/UtfyllendeBeskrivelseAvTiltaket/632770" />
+			<xsd:element name="kortPresentasjonAvProsjektet" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/KortPresentasjonAvProsjektet/632793" />
+			<xsd:element name="erNyttProsjekt" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/alternativ/632792" />
+			<xsd:element name="erSjoJernbaneBruktIdag" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/påvirkerIkkeKonkurranse/633395" />
+			<xsd:element name="beskrivSjoJernbaneBruktIdag" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/kommentarKonkurranse/633394" />
+			<xsd:element name="forklarEksisterendeJernbaneTilbud" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/forklarEksisterendeJernbaneTilbud/634669" />
+			<xsd:element name="erEksisterendeSjoTilbud" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/erEksisterendeSjoTilbud/634668" />
+			<xsd:element name="erEksisterendeJernbaneTilbud" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/erEksisterendeJernbaneTilbud/634667" />
+			<xsd:element name="forklarEksisterendeSjoTilbud" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/forklarEksisterendeSjoTilbud/634666" />
+			<xsd:element name="andreOpplysninger" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Nytteeffekt" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/Nytteeffekt/633393">
+		<xsd:sequence>
+			<xsd:element name="beskrivelse" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/beskrivelse/633392" />
+			<xsd:element name="beregning" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/beregning/633391" />
+			<xsd:element name="startSted" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/startSted/634665" />
+			<xsd:element name="stopSted" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/stopSted/634664" />
+			<xsd:element name="mengde" type="Tekst" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/mengde/634663" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="Vilkaar" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/KYV/Meldingsdel/Vilkår/633390">
+		<xsd:sequence>
+			<xsd:element name="vilkaarErAkseptert" type="Alternativ" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/KYV/Dataegenskap/vilkårErAkseptert/633389" />
+			<xsd:element name="vilkaar" type="Vilkaar" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" seres:guid="http://seres.no/guid/KYV/Relasjonsegenskap/vilkaar/634662" />
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:simpleType name="Organisasjonsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/KYV/Dataenkeltype/Organisasjonsnummer/632680">
+		<xsd:restriction base="RestriksjonOrganisasjonsnummer" />
+	</xsd:simpleType>
+	<xsd:simpleType name="RestriksjonOrganisasjonsnummer" seres:elementtype="Verdirestriksjon" seres:guid="http://seres.no/guid/KYV/Verdirestriksjon/RestriksjonOrganisasjonsnummer/632640">
+		<xsd:restriction base="xsd:string" />
+	</xsd:simpleType>
+	<xsd:simpleType name="Navn" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/KYV/Dataenkeltype/Navn/632670">
+		<xsd:restriction base="xsd:token" />
+	</xsd:simpleType>
+	<xsd:simpleType name="Tekst" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/KYV/Dataenkeltype/Tekst/632791">
+		<xsd:restriction base="xsd:string" />
+	</xsd:simpleType>
+	<xsd:simpleType name="Alternativ" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/KYV/Dataenkeltype/Alternativ/632794">
+		<xsd:restriction base="xsd:boolean" />
+	</xsd:simpleType>
+</xsd:schema>

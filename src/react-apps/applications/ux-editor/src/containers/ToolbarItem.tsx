@@ -48,6 +48,7 @@ export class ToolbarItem extends React.Component<IToolbarItemProps, null> {
           <ToolbarItemComponent
             onClick={onClick}
             componentType={componentType}
+            thirdPartyLabel={this.props.text}
           />
         </DraggableToolbarItem>
       </div>

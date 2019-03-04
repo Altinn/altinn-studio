@@ -21,10 +21,6 @@
             <span id="filebtn">Velg XSD</span>
             <input type="file" name="thefile" id="thefile" accept=".xsd" style="display:none;" />
         </label>
-        <label id="secondaryFilelabel" class="btn btn-secondary form-control-label" for="secondaryFiles">
-            <span id="secondaryFileBtn">Velg flere XSD'er</span>
-            <input type="file" name="secondaryFiles" id="secondaryFiles" multiple accept=".xsd" style="display:none;" disabled />
-        </label>
         <label id="submitLabel" class="form-control-label btn disabled" disabled>
             <span>Last opp</span>
             <input type="submit" id="submit" value="Last opp" style="display:none;" disabled />
@@ -45,15 +41,6 @@
                 $("#filelabel").addClass("disabled");
                 $("#submitLabel").removeClass("disabled").addClass("btn-primary").prop("disabled", false);
                 $("#submit").prop("disabled", false);
-                $("#secondaryFiles").prop("disabled", false);
-            });
-            $("#secondaryFiles").change(function () {
-                var fileName = $(this).val();
-                if ( fileName.substr( 0, 12 ) === "C:\\fakepath\\" ) {
-					fileName = fileName.substr( 12 );
-				}
-                $("#secondaryFileBtn").text(fileName);
-                $("#secondaryFilelabel").addClass("disabled");
             });
         });
     </script>

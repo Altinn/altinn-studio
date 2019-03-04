@@ -41,6 +41,7 @@ export interface IEditModalContentProps {
   handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
   language: any;
   classes: any;
+  thirdPartyComponents?: any;
 }
 
 export interface IEditModalContentState {
@@ -420,6 +421,19 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           </Grid >
         );
       }
+      case 'ThirdParty': {
+        const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
+        if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName] ||
+          !this.props.thirdPartyComponents[packageName][component]) {
+          return null;
+        }
+        return (
+          <div>
+            <span className='a-btn-icon-text'>{packageName} - {component}</span>
+            {this.props.thirdPartyComponents[packageName][component]}
+          </div>
+        );
+      }
 
       case 'TextArea': {
         const component = (this.state.component as IFormTextAreaComponent);
@@ -533,6 +547,7 @@ const mapStateToProps = (
     language: state.appData.language.language,
     textResources: state.appData.textResources.resources,
     codeListResources: state.appData.codeLists.codeLists,
+    thirdPartyComponents: state.thirdPartyComponents.components,
     ...props,
   };
 };

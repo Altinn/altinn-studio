@@ -9,6 +9,7 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using NUnit.Framework;
 using Xunit;
 
 namespace AltinnCore.UnitTest.Designer
@@ -37,11 +38,11 @@ namespace AltinnCore.UnitTest.Designer
                     xmlDocument = d;
                 });
 
-            ModelController controller = new ModelController(moqRepository.Object);           
+            ModelController controller = new ModelController(moqRepository.Object, new TestLoggerFactory());
 
             IFormFile formFile = AsMockIFormFile("Designer/Edag-latin1.xsd");
 
-            ActionResult result = controller.Upload("Org", "service2", formFile, null);
+            ActionResult result = controller.Upload("Org", "service2", formFile);
 
             Assert.NotNull(serviceMetadata);
 
@@ -58,6 +59,7 @@ namespace AltinnCore.UnitTest.Designer
             Dictionary<string, Dictionary<string, string>> dictionary = null;
 
             Dictionary<string, Dictionary<string, string>> existingDictionary = new Dictionary<string, Dictionary<string, string>>();
+            ServiceMetadata serviceMetadata = null;
 
             Mock<IRepository> moqRepository = new Mock<IRepository>();
             moqRepository.Setup(r => r.SaveServiceTexts(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, Dictionary<string, string>>>()))        
@@ -66,20 +68,29 @@ namespace AltinnCore.UnitTest.Designer
                     dictionary = d;
                 });
             moqRepository.Setup(r => r.GetServiceTexts(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(existingDictionary);                
+                .Returns(existingDictionary);
 
-            ModelController controller = new ModelController(moqRepository.Object);
+            moqRepository.Setup(r => r.CreateModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<ServiceMetadata>(), It.IsAny<XDocument>()))
+                .Returns(true)
+                .Callback<string, string, ServiceMetadata, XDocument>((o, s, m, d) =>
+                {
+                    serviceMetadata = m;
+                });
+
+            ModelController controller = new ModelController(moqRepository.Object, new TestLoggerFactory());
 
             IFormFile formFile = AsMockIFormFile("Common/xsd/ServiceModel.xsd");
 
-            ActionResult result = controller.Upload("Org", "service2", formFile, null);
+            ActionResult result = controller.Upload("Org", "service2", formFile);
 
-            Assert.NotNull(dictionary);
+            Assert.True(serviceMetadata.Elements.ContainsKey("Skjema.Skattyterinforgrp5801.Kontaktgrp5803.KontaktpersonPostnummerdatadef10441.value"));
 
-            string lookupValue = dictionary.GetValueOrDefault("5801.Skattyterinforgrp5801.Label").GetValueOrDefault("nb-NO");
+            Assert.NotNull(dictionary);        
+
+            string lookupValue = dictionary.GetValueOrDefault("10441.KontaktpersonPostnummerdatadef10441.Label").GetValueOrDefault("nb-NO");
 
             // Text should be without extra withespaces
-            Assert.Equal("Informasjon om skattyter", lookupValue);           
+            Assert.Equal("Postnummer", lookupValue);           
         }
 
         private IFormFile AsMockIFormFile(string file)

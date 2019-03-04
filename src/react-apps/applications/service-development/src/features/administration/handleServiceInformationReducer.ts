@@ -1,6 +1,6 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import { ICommit, IRepository, IServiceDescription, IServiceName } from '../../types/global';
+import { ICommit, IRepository, IServiceDescription, IServiceId, IServiceName } from '../../types/global';
 import * as handleServiceInformationActions from './handleServiceInformationActions';
 import * as handleServiceInformationActionTypes from './handleServiceInformationActionTypes';
 
@@ -8,6 +8,7 @@ export interface IHandleServiceInformationState {
   repositoryInfo: IRepository;
   serviceNameObj: IServiceName;
   serviceDescriptionObj: IServiceDescription;
+  serviceIdObj: IServiceId;
   initialCommit: ICommit;
 }
 
@@ -19,6 +20,10 @@ const initialState: IHandleServiceInformationState = {
   },
   serviceDescriptionObj: {
     description: '',
+    saving: false,
+  },
+  serviceIdObj: {
+    serviceId: '',
     saving: false,
   },
   initialCommit: null,
@@ -92,40 +97,66 @@ const handleServiceInformationReducer: Reducer<IHandleServiceInformationState> =
         },
       });
     }
-    case handleServiceInformationActionTypes.FETCH_SERVICE_DESCRIPTION_FULFILLED: {
-      const { description } = action as handleServiceInformationActions.IFetchServiceDescriptionFulfilled;
-      return update<IHandleServiceInformationState>(state, {
-        serviceDescriptionObj: {
-          description: {
-            $set: description,
+    case handleServiceInformationActionTypes.FETCH_SERVICE_CONFIG_FULFILLED: {
+      const { serviceConfig } = action as handleServiceInformationActions.IFetchServiceConfigFulfilled;
+      if (serviceConfig) {
+        return update<IHandleServiceInformationState>(state, {
+          serviceDescriptionObj: {
+            description: {
+              $set: serviceConfig.serviceDescription || '',
+            },
           },
-        },
-      });
+          serviceIdObj: {
+            serviceId: {
+              $set: serviceConfig.serviceId || '',
+            },
+          },
+        });
+      }
     }
-    case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION: {
+    case handleServiceInformationActionTypes.SAVE_SERVICE_CONFIG: {
       return update<IHandleServiceInformationState>(state, {
         serviceDescriptionObj: {
           saving: {
             $set: true,
           },
         },
+        serviceIdObj: {
+          saving: {
+            $set: true,
+          },
+        },
       });
     }
-    case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION_REJECTED: {
+    case handleServiceInformationActionTypes.SAVE_SERVICE_CONFIG_REJECTED: {
       return update<IHandleServiceInformationState>(state, {
         serviceDescriptionObj: {
           saving: {
             $set: false,
           },
         },
+        serviceIdObj: {
+          saving: {
+            $set: false,
+          },
+        },
       });
     }
-    case handleServiceInformationActionTypes.SAVE_SERVICE_DESCRIPTION_FULFILLED: {
-      const { newServiceDescription } = action as handleServiceInformationActions.ISaveServiceDescriptionFulfilled;
+    case handleServiceInformationActionTypes.SAVE_SERVICE_CONFIG_FULFILLED: {
+      const { newServiceDescription, newServiceId } =
+        action as handleServiceInformationActions.ISaveServiceConfigFulfilled;
       return update<IHandleServiceInformationState>(state, {
         serviceDescriptionObj: {
           description: {
             $set: newServiceDescription,
+          },
+          saving: {
+            $set: false,
+          },
+        },
+        serviceIdObj: {
+          serviceId: {
+            $set: newServiceId,
           },
           saving: {
             $set: false,
