@@ -46,7 +46,6 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         validationResults,
       } = action as FormFillerActions.IUpdateFormDataActionFulfilled;
       if (validationResults && Object.keys(validationResults).length > 0) {
-        console.log('validation results:', validationResults);
         return update<IFormFillerState>(state, {
           formData: {
             $apply: () => ({
