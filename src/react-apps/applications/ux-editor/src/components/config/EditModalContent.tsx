@@ -1,8 +1,8 @@
 import { Grid, withStyles } from '@material-ui/core';
-import Checkbox from '@material-ui/core/Checkbox';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
@@ -21,11 +21,6 @@ export const customInput = {
 };
 
 const styles = {
-  checkbox: {
-    paddingLeft: '0px',
-    paddingRight: '6px',
-    paddingTop: '6px',
-  },
   gridItem: {
     marginTop: '24px',
   },
@@ -386,11 +381,11 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             direction={'column'}
           >
             <Grid item={true} xs={12}>
-              {this.props.language.ux_editor.modal_configure_address_component_simplified}
-              <Checkbox
+              <AltinnCheckBox
                 checked={(this.state.component as IFormAddressComponent).simplified}
-                onChange={this.handleToggleAddressSimple}
+                onChangeFunction={this.handleToggleAddressSimple}
               />
+              {this.props.language.ux_editor.modal_configure_address_component_simplified}
             </Grid>
             {Object.keys(AddressKeys).map((value: AddressKeys) => {
               const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
@@ -457,10 +452,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               {getLanguageFromKey('ux_editor.modal_properties_read_only_description', this.props.language)}
             </Grid>
             <Grid item={true}>
-              <Checkbox
-                classes={{ root: this.props.classes.checkbox }}
+              <AltinnCheckBox
                 checked={!!component.readOnly}
-                onChange={this.handleReadOnlyChange}
+                onChangeFunction={this.handleReadOnlyChange}
               />
               {getLanguageFromKey('ux_editor.modal_properties_read_only', this.props.language)}
             </Grid>
