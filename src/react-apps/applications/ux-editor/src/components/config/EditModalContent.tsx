@@ -431,7 +431,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       }
 
       case 'TextArea': {
-        const component = (this.state.component as IFormTextAreaComponent);
+        const { component } = this.props;
         return (
           <Grid item={true} xs={12}>
             {renderSelectDataModelBinding(
@@ -469,7 +469,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   }
 
   public handleReadOnlyChange = (event: object, checked: boolean) => {
-    const component = this.props.component as IFormTextAreaComponent;
+    const component = this.props.component;
     component.readOnly = checked;
     this.setState({
       component,
