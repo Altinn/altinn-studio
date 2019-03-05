@@ -13,6 +13,8 @@ export interface IInputState {
   value: string;
 }
 
+
+
 export class DatepickerComponent
   extends React.Component<IInputProps, IInputState> {
 
@@ -33,18 +35,32 @@ export class DatepickerComponent
     this.props.handleDataChange(this.state.value);
   }
 
+  public componentDidMount() {
+    (window as any).initDatePicker();
+  }
+
   public render() {
+    console.log('required: ', this.props.component);
     return (
-      <input
-        id={this.props.id}
-        type={this.props.component.type}
-        onBlur={this.onDataChangeSubmit}
-        onChange={this.onDataChanged}
-        disabled={this.props.component.disabled}
-        required={this.props.component.required}
-        className={this.props.isValid ? 'form-control' : 'form-control validation-error'}
-        value={this.state.value}
-      />
+      <div className='form-group a-form-group a-form-group-datepicker'>
+        <div className='input-group'>
+          <input
+            type='text'
+            id={this.props.id}
+            className={+ this.props.isValid ?
+              'form-control a-hasButton date' :
+              'form-control a-hasButton date validation-error'}
+            onBlur={this.onDataChangeSubmit}
+            onChange={this.onDataChanged}
+            disabled={this.props.component.disabled}
+            required={this.props.component.required}
+            value={this.state.value}
+          />
+          <div className='input-group-prepend a-icon-right'>
+            <i className='ai ai-date' />
+          </div>
+        </div>
+      </div>
     );
   }
 }
