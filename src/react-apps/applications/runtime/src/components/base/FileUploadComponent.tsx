@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Dropzone from 'react-dropzone';
 
 export interface IFileUploadProps {
   id: string;
@@ -12,7 +13,27 @@ export interface IFileUploadState {
   title: string;
   component: string;
   description: string;
+  files: any;
 }
+
+const baseStyle = {
+  width: 200,
+  height: 200,
+  borderWidth: 2,
+  borderColor: '#666',
+  borderStyle: 'dashed',
+  borderRadius: 5,
+};
+const activeStyle = {
+  borderStyle: 'solid',
+  borderColor: '#6c6',
+  backgroundColor: '#eee',
+};
+const rejectStyle = {
+  borderStyle: 'solid',
+  borderColor: '#c66',
+  backgroundColor: '#eee',
+};
 
 export class FileUploadComponent
   extends React.Component<IFileUploadProps, IFileUploadState> {
@@ -21,25 +42,36 @@ export class FileUploadComponent
     this.props.handleDataChange(e.target.value);
   }
 
+  public onDrop = (acceptedFiles: any, rejectedFiles: any) => {
+    console.log('files:', acceptedFiles);
+    this.setState({
+      ...this.state,
+      files: acceptedFiles,
+    });
+  }
+
   public render() {
-    const descriptionKey = this.props.component.textResourceBindings.title;
     return (
-      <div className='js-attachmentForm'>
-        <label className='a-btn a-btn-action a-iconRight a-custom-fileupload mb-0 mt-1 a-js-uploadAttachment'>
-          <input
-            id={this.props.id}
-            type='file'
-            name='file'
-            onChange={this.onDataChanged}
-            className={this.props.isValid ? 'a-js-certificateContainer sr-only' : 'a-js-certificateContainer sr-only validation-error'}
-          />
-          Add a file
-          {// TODO: should fetch text using getTextResource() prop
-            descriptionKey
-          }
-          <i className='ai ai-upload' />
-        </label>
-      </div>
+      <Dropzone onDrop={this.onDrop}>
+        {({ getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject, acceptedFiles, rejectedFiles}) => {
+          let styles = {...baseStyle};
+          styles = isDragActive ? {...styles, ...activeStyle} : styles;
+          styles = isDragReject ? {...styles, ...rejectStyle} : styles;
+
+          return(
+            <div
+              {...getRootProps()}
+              style={styles}
+            >
+              <input {...getInputProps()} />
+              <div>
+                {isDragAccept ? 'Drop' : 'Drag'} files here...
+              </div>
+              {isDragReject && <div>Unsupported file type...</div>}
+            </div>
+          );
+        }}
+      </Dropzone>
     );
   }
 }
