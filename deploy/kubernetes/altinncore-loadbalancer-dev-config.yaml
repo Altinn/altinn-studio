@@ -91,8 +91,8 @@ data:
           proxy_set_header 	  X-Forwarded-For $remote_addr;
         }
 
-        location /dataserviceapi/ {
-            proxy_pass         http://dataservice/dataserviceapi/;
+        location /dataservice/ {
+            proxy_pass         http://dataservice/dataservice/;
             proxy_set_header  	Host dev.altinn.studio;
             proxy_set_header 	  X-Forwarded-For $remote_addr;
         }

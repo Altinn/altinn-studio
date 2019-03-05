@@ -31,9 +31,9 @@ namespace AltinnCore.DataService.Controllers
         /// Save the form data
         /// </summary>
         /// <param name="fileName">the file name for for attachment</param>
-        /// <returns>The get response</returns>        
+        /// <returns>The get response</returns>
         /// <returns>If the request was successful or not</returns>
-        // GET dataserviceapi/instances/{instanceId}/attachments/{fileName}/
+        // GET dataservice/instances/{instanceId}/attachments/{fileName}/
         [HttpGet("{fileName}")]
         public async Task<ActionResult> Get(string fileName)
         {
@@ -57,7 +57,7 @@ namespace AltinnCore.DataService.Controllers
         /// </summary>
         /// <param name="attachment">the attachment data to be stored</param>
         /// <returns>If the request was successful or not</returns>
-        // POST dataserviceapi/instances/{instanceid}/attachments/
+        // POST dataservice/instances/{instanceid}/attachments/
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Data attachment)
         {

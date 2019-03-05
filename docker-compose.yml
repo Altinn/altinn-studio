@@ -127,4 +127,4 @@ services:
       - "5010:5010"
     build:
       context: .
-      dockerfile: src/AltinnCore/RuntimeDataService/Dockerfile
+      dockerfile: src/AltinnCore/DataService/Dockerfile
