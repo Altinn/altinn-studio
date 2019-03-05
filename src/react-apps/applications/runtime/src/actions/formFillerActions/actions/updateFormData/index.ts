@@ -12,11 +12,11 @@ export interface IUpdateFormDataActionFulfilled extends Action {
   formData: any;
   componentID: string;
   dataModelBinding: string;
-  validationErrors: any[];
+  validationResults: IComponentValidations;
 }
 
-export interface IUpdateValidationErrors extends Action {
-  validationErrors: {};
+export interface IUpdateValidationResults extends Action {
+  validationResults: IValidationResults;
 }
 
 export interface IUpdateFormDataActionRejected extends Action {
@@ -52,14 +52,14 @@ export function updateFormDataActionFulfilled(
   componentID: string,
   formData: any,
   dataModelBinding: string,
-  validationErrors: any[],
+  validationResults: IComponentValidations,
 ): IUpdateFormDataActionFulfilled {
   return {
     type: ActionTypes.UPDATE_FORM_DATA_FULFILLED,
     formData,
     componentID,
     dataModelBinding,
-    validationErrors,
+    validationResults,
   };
 }
 

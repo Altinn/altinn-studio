@@ -13,7 +13,7 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
     componentID: string,
     formData: any,
     dataModelBinding: string,
-    validationErrors: any[],
+    validationResults: IComponentValidations,
   ) => formFillerActions.IUpdateFormDataActionFulfilled;
   updateFormDataRejected: (
     error: Error,
@@ -24,7 +24,7 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   fetchFormData: (url: string) => formFillerActions.IFetchFormDataAction;
   fetchFormDataFulfilled: (formData: any) => formFillerActions.IFetchFormDataActionFulfilled;
   fetchFormDataRejected: (error: Error) => formFillerActions.IFetchFormDataActionRejected;
-  updateValidationErrors: (validationErrors: {}) => formFillerActions.IUpdateValidationErrors;
+  updateValidationErrors: (validationResults: IValidationResults) => formFillerActions.IUpdateValidationResults;
   resetFormData: (url: string) => formFillerActions.IResetFormDataAction;
   resetFormDataFulfilled: (formData: any) => formFillerActions.IResetFormDataActionFulfilled;
   runSingleFieldValidation: (url: string, componentId: any) => formFillerActions.IRunSingleFieldValidationAction;

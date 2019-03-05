@@ -539,9 +539,11 @@ namespace AltinnCore.Runtime.Controllers
         {
             apiResult.ValidationResult = new ApiValidationResult
             {
-                Errors = new Dictionary<string, List<string>>(),
-                Warnings = new Dictionary<string, List<string>>(),
+                Messages = new Dictionary<string, ApiValidationMessages>()
             };
+
+            bool containsErrors = false;
+            bool containsWarnings = false;
             foreach (string modelKey in modelState.Keys)
             {
                 ModelState.TryGetValue(modelKey, out ModelStateEntry entry);
@@ -552,36 +554,54 @@ namespace AltinnCore.Runtime.Controllers
                     {
                         if (error.ErrorMessage.StartsWith(_generalSettings.SoftValidationPrefix))
                         {
+                            containsWarnings = true;
+
+                            // Remove prefix for soft validation
                             string errorMesssage = error.ErrorMessage.Substring(9);
-                            if (apiResult.ValidationResult.Warnings.ContainsKey(modelKey))
+                            if (apiResult.ValidationResult.Messages.ContainsKey(modelKey))
                             {
-                                apiResult.ValidationResult.Warnings[modelKey].Add(ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO"));
+                                apiResult.ValidationResult.Messages[modelKey].Warnings.Add(ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO"));
                             }
                             else
                             {
-                                apiResult.ValidationResult.Warnings.Add(modelKey, new List<string> { ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO") });
+                                apiResult.ValidationResult.Messages.Add(modelKey, new ApiValidationMessages
+                                {
+                                    Errors = new List<string>(),
+                                    Warnings = new List<string>
+                                    {
+                                        ServiceTextHelper.GetServiceText(errorMesssage, serviceContext.ServiceText, null, "nb-NO")
+                                    }
+                                });
                             }
                         }
                         else
                         {
-                            if (apiResult.ValidationResult.Errors.ContainsKey(modelKey))
+                            containsErrors = true;
+                            if (apiResult.ValidationResult.Messages.ContainsKey(modelKey))
                             {
-                                apiResult.ValidationResult.Errors[modelKey].Add(ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO"));
+                                apiResult.ValidationResult.Messages[modelKey].Errors.Add(ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO"));
                             }
                             else
                             {
-                                apiResult.ValidationResult.Errors.Add(modelKey, new List<string> { ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO") });
+                                apiResult.ValidationResult.Messages.Add(modelKey, new ApiValidationMessages
+                                {
+                                    Errors = new List<string>
+                                    {
+                                        ServiceTextHelper.GetServiceText(error.ErrorMessage, serviceContext.ServiceText, null, "nb-NO")
+                                    },
+                                    Warnings = new List<string>(),
+                                });
                             }
                         }
                     }
                 }
             }
 
-            if (apiResult.ValidationResult.Errors.Count > 0)
+            if (containsErrors)
             {
                 apiResult.Status = ApiStatusType.ContainsError;
             }
-            else if (apiResult.ValidationResult.Warnings.Count > 0)
+            else if (containsWarnings)
             {
                 apiResult.Status = ApiStatusType.ContainsWarnings;
             }

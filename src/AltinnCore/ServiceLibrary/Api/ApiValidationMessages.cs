@@ -5,21 +5,16 @@ namespace AltinnCore.ServiceLibrary.Api
     /// <summary>
     /// Defines the validation result for a model state
     /// </summary>
-    public class ApiValidationResult
+    public class ApiValidationMessages
     {
         /// <summary>
         /// Gets or sets the collection of errors
         /// </summary>
-        public Dictionary<string, List<string>> Errors { get; set; }
+        public List<string> Errors { get; set; }
 
         /// <summary>
         /// Gets or sets the collection of warnings
         /// </summary>
-        public Dictionary<string, List<string>> Warnings { get; set; }
-
-        /// <summary>
-        /// Gets or sets the collection of errors
-        /// </summary>
-        public Dictionary<string, ApiValidationMessages> Messages { get; set; }
+        public List<string> Warnings { get; set; }
     }
 }

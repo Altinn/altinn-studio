@@ -4,6 +4,7 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/lib/Creatable';
 import { customInput } from '../components/config/EditModalContent';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
+import MessageComponent, { MessageType } from '../components/message/MessageComponent';
 import { formatCreateTextLabel, getTextResource, truncate } from './language';
 
 export const styles = {
@@ -107,3 +108,41 @@ export function renderSelectTextFromResources(
   );
 }
 
+export function renderValidationMessagesForComponent(
+  validationMessages: IComponentBindingValidation,
+  id: string,
+): JSX.Element[] {
+  if (!validationMessages) {
+    return null;
+  }
+
+  const validationMessageElements: JSX.Element[] = [];
+  if (validationMessages.errors && validationMessages.errors.length > 0) {
+    validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));
+  }
+
+  if (validationMessages.warnings && validationMessages.warnings.length > 0) {
+    validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `info_${id}`, 'info'));
+  }
+
+  return validationMessageElements.length > 0 ? validationMessageElements : null;
+}
+
+export function renderValidationMessages(messages: string[], id: string, messageType: MessageType) {
+  return (
+    <MessageComponent
+      messageType={messageType}
+      style={{display: 'block', width: 'fit-content'}}
+      key={'messageType'}
+      id={id}
+    >
+    <ol>
+      {messages.map((message: string, idx: number) => {
+        return (
+          <li key={idx}>{message}</li>
+        );
+      })}
+      </ol>
+    </MessageComponent>
+  );
+}

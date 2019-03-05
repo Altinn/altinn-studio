@@ -10,6 +10,7 @@ export interface IGenericComponentProps {
   isValid: boolean;
   formData: any;
   designMode: boolean;
+  validationMessages?: IComponentValidations;
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
   thirdPartyComponents?: any;
@@ -41,6 +42,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
         formData={this.props.formData}
         getTextResource={this.props.getTextResource}
         handleDataChange={this.props.handleDataChange}
+        validationMessages={this.props.validationMessages}
       />
     );
   }
