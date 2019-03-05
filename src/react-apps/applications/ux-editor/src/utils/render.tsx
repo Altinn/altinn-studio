@@ -11,6 +11,7 @@ export const styles = {
     marginTop: '2.4rem',
     fontSize: '1.6rem',
     lineHeight: '3.2rem',
+    color: '#000000',
   },
 };
 
