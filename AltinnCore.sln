@@ -27,7 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.Runtime.DataService", "src\AltinnCore\RuntimeDataService\AltinnCore.Runtime.DataService.csproj", "{676C7F57-3C42-44DA-B306-3F12D8A06686}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AltinnCore.DataService", "src\AltinnCore\DataService\AltinnCore.DataService.csproj", "{F72A6FF8-58D7-4052-B51B-B426D35C4927}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -63,10 +63,10 @@ Global
 		{18975209-493B-40BE-A5DD-A05399B91708}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18975209-493B-40BE-A5DD-A05399B91708}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18975209-493B-40BE-A5DD-A05399B91708}.Release|Any CPU.Build.0 = Release|Any CPU
-		{676C7F57-3C42-44DA-B306-3F12D8A06686}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{676C7F57-3C42-44DA-B306-3F12D8A06686}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{676C7F57-3C42-44DA-B306-3F12D8A06686}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{676C7F57-3C42-44DA-B306-3F12D8A06686}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F72A6FF8-58D7-4052-B51B-B426D35C4927}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F72A6FF8-58D7-4052-B51B-B426D35C4927}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F72A6FF8-58D7-4052-B51B-B426D35C4927}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F72A6FF8-58D7-4052-B51B-B426D35C4927}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Runtime.DataService.Configuration;
-using AltinnCore.Runtime.DataService.Models;
-using AltinnCore.Runtime.DataService.Repository;
+using AltinnCore.DataService.Configuration;
+using AltinnCore.DataService.Models;
+using AltinnCore.DataService.Repository;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Runtime.DataService
+namespace AltinnCore.DataService
 {
     /// <summary>
     /// database startup
@@ -43,8 +43,8 @@ namespace AltinnCore.Runtime.DataService
         {
             services.Configure<AzureCosmosSettings>(Configuration.GetSection("AzureCosmosSettings"));
             services.Configure<AzureStorageConfiguration>(Configuration.GetSection("AzureStorageConfiguration"));
-            services.AddSingleton<IFormDataRepository, FormDataRepository>();
-            services.AddSingleton<IReporteeElementRepository, ReporteeElementRepository>();
+            services.AddSingleton<IDataRepository, DataRepository>();
+            services.AddSingleton<IInstanceRepository, InstanceRepository>();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddMvc().AddControllersAsServices();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace AltinnCore.Runtime.DataService.Configuration
+namespace AltinnCore.DataService.Configuration
 {
     /// <summary>
     /// Settings for Azure storage

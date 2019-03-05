@@ -4,12 +4,12 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
-namespace AltinnCore.Runtime.DataService.Models
+namespace AltinnCore.DataService.Models
 {
     /// <summary>
-    /// Model for the reportee element
+    /// Model for the instance
     /// </summary>
-    public class ReporteeElement
+    public class Instance
     {
         /// <summary>
         /// unique id
@@ -18,7 +18,7 @@ namespace AltinnCore.Runtime.DataService.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// owner of the reportee element
+        /// owner of the instance
         /// </summary>
         [JsonProperty(PropertyName = "reporteeId")]
         public string ReporteeId { get; set; }
@@ -30,61 +30,55 @@ namespace AltinnCore.Runtime.DataService.Models
         public string ServiceId { get; set; }
 
         /// <summary>
-        /// Id of the reportee element
+        /// Type of the instance
         /// </summary>
-        [JsonProperty(PropertyName = "reporteeElementId")]
-        public string ReporteeElementId { get; set; }
+        [JsonProperty(PropertyName = "instanceType")]
+        public string InstanceType { get; set; }
 
         /// <summary>
-        /// Type of the reportee element
+        /// status of the instance
         /// </summary>
-        [JsonProperty(PropertyName = "reporteeElementType")]
-        public string ReporteeElementType { get; set; }
+        [JsonProperty(PropertyName = "instanceStatus")]
+        public string InstanceStatus { get; set; }
 
         /// <summary>
-        /// status of the reportee element
-        /// </summary>
-        [JsonProperty(PropertyName = "reporteeElementStatus")]
-        public string ReporteeElementStatus { get; set; }
-
-        /// <summary>
-        /// create date and time for the reportee element
+        /// create date and time for the instance
         /// </summary>
         [JsonProperty(PropertyName = "createdDateTime")]
         public DateTime CreatedDateTime { get; set; }
 
         /// <summary>
-        /// reportee id of the user who created the reportee element
+        /// reportee id of the user who created the instance
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
         public string CreatedBy { get; set; }
 
         /// <summary>
-        /// last changed date time for the reportee element
+        /// last changed date time for the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedDateTime")]
         public DateTime LastChangedDateTime { get; set; }
 
         /// <summary>
-        /// reportee id of the user who last changed the reportee element
+        /// reportee id of the user who last changed the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
 
         /// <summary>
-        /// Due date to submit the form(reportee element)
+        /// Due date to submit the form(instance)
         /// </summary>
         [JsonProperty(PropertyName = "dueDateTime")]
         public DateTime DueDateTime { get; set; }
 
         /// <summary>
-        /// date time to show the reportee element in inbox
+        /// date time to show the instance in inbox
         /// </summary>
         [JsonProperty(PropertyName = "visibleDateTime")]
         public DateTime VisibleDateTime { get; set; }
 
         /// <summary>
-        /// title of the reportee element
+        /// title of the instance
         /// </summary>
         [JsonProperty(PropertyName = "title")]
         public string Title { get; set; }
@@ -126,22 +120,28 @@ namespace AltinnCore.Runtime.DataService.Models
         public bool IsArchived { get; set; }
 
         /// <summary>
-        /// Gets or sets the number of forms associated with the reportee element
+        /// Gets or sets the number of forms associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "numberOfForms")]
         public int NumberOfForms { get; set; }
 
         /// <summary>
-        /// Gets or sets the form ids associated with the reportee element
+        /// Gets or sets the form ids associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "formId")]
         public string[] FormId { get; set; }
 
         /// <summary>
-        /// the attachment list associated witht the reportee element
+        /// Gets or sets the form ids associated with the instance
+        /// </summary>
+        [JsonProperty(PropertyName = "forms")]
+        public Form[] Forms { get; set; }
+
+        /// <summary>
+        /// the attachment list associated witht the instance
         /// </summary>
         [JsonProperty(PropertyName = "attachments")]
-        public Attachments ReporteeElementAttachment { get; set; }
+        public Attachments[] InstanceAttachment { get; set; }
 
         /// <summary>
         /// the correspondence message 
@@ -176,14 +176,14 @@ namespace AltinnCore.Runtime.DataService.Models
         /// <summary>
         /// Gets or sets the attachment name 
         /// </summary>
-        [JsonProperty(PropertyName = "attachmentName")]
-        public string AttachmentName { get; set; }
+        [JsonProperty(PropertyName = "name")]
+        public string Name { get; set; }
 
         /// <summary>
-        /// Gets or sets the path where the attachment is stored
+        /// Gets or sets the attachment name 
         /// </summary>
-        [JsonProperty(PropertyName = "attachmentPath")]
-        public string AttachmentPath { get; set; }
+        [JsonProperty(PropertyName = "fileNameInStorage")]
+        public string FileNameInStorage { get; set; }
     }
 
     /// <summary>
@@ -230,13 +230,13 @@ namespace AltinnCore.Runtime.DataService.Models
         /// <summary>
         /// Gets or sets content type of the attachment file
         /// </summary>
-        [JsonProperty(PropertyName = "formUrl")]
-        public string FormUrl { get; set; }
-
-        /// <summary>
-        /// Gets or sets content type of the attachment file
-        /// </summary>
         [JsonProperty(PropertyName = "formType")]
         public string FormType { get; set; }
+
+        /// <summary>
+        /// Gets or sets the attachment name 
+        /// </summary>
+        [JsonProperty(PropertyName = "fileNameInStorage")]
+        public string FileNameInStorage { get; set; }
     }
 }
