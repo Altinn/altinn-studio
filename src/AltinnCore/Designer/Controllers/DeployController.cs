@@ -85,7 +85,7 @@ namespace AltinnCore.Designer.Controllers
                     {
                         definition = new
                         {
-                            id = 12,
+                            id = 5,
                         },
                         parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\"",
                     };
