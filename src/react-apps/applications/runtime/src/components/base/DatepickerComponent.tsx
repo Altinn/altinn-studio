@@ -13,8 +13,6 @@ export interface IInputState {
   value: string;
 }
 
-
-
 export class DatepickerComponent
   extends React.Component<IInputProps, IInputState> {
 
@@ -40,7 +38,6 @@ export class DatepickerComponent
   }
 
   public render() {
-    console.log('required: ', this.props.component);
     return (
       <div className='form-group a-form-group a-form-group-datepicker'>
         <div className='input-group'>
