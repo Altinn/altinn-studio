@@ -63,8 +63,8 @@ export interface IFileEditorState {
   value: string;
   valueDiff: boolean;
   valueOriginal: string;
-  fileEditorCancelRef: any;
-  fileEditorSaveRef: any;
+  fileEditorCancelRef: React.RefObject<HTMLDivElement>;
+  fileEditorSaveRef: React.RefObject<HTMLDivElement>;
 }
 
 const styles = createStyles({
@@ -136,8 +136,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       value: '',
       valueDiff: false,
       valueOriginal: '',
-      fileEditorCancelRef: React.createRef(),
-      fileEditorSaveRef: React.createRef(),
+      fileEditorCancelRef: React.createRef<HTMLDivElement>(),
+      fileEditorSaveRef: React.createRef<HTMLDivElement>(),
     };
   }
 
@@ -296,14 +296,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.props.closeFileEditor}
         >
-          <i className='ai ai-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={1} />
+          <i className='ai ai-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={0} />
         </IconButton>
         <IconButton
           type='button'
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.saveFile}
         >
-          <i className='ai ai-circlecheck' id='fileEditorCheck' tabIndex={2} />
+          <i className='ai ai-circlecheck' id='fileEditorCheck' tabIndex={0} />
         </IconButton>
       </Grid>
     );
@@ -321,7 +321,10 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <Grid
           item={true}
         >
-        <div ref={this.state.fileEditorSaveRef}>
+        <div
+          ref={this.state.fileEditorSaveRef}
+          tabIndex={0}
+        >
           <AltinnButton
             btnText='Lagre fil'
             disabled={!this.state.valueDiff}

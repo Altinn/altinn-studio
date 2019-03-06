@@ -21,6 +21,7 @@ export interface IMonacoEditorComponentProps {
 export interface IMonacoEditorComponentState {
   code: string;
   fileEditorFocus: boolean;
+  monacoWrapperRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface IMonacoEditorComponentWindow extends Window {
@@ -39,25 +40,8 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     this.state = {
       code: props.value,
       fileEditorFocus: false,
+      monacoWrapperRef: React.createRef<HTMLDivElement>(),
     };
-  }
-
-  public componentDidMount() {
-    document.addEventListener('keydown', this.escFunction, false);
-  }
-
-  public componentWillUnmount() {
-    document.removeEventListener('keydown', this.escFunction, false);
-  }
-
-  public escFunction = (e: any) => {
-    if (e.keyCode === 27 && this.state.fileEditorFocus) {
-      if (this.props.escRef.current.children.length > 0) {
-        this.props.escRef.current.children[0].focus();
-      } else {
-        this.props.escRef.current.focus();
-      }
-    }
   }
 
   public editorWillMount = (monaco: any) => {
@@ -105,10 +89,26 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
       },
     });
   }
-  public setFileEditorFocus = () => {
+  public setFileEditorFocus = (type: string) => (e: any) => {
+    const status = (type === 'focus') ? true : false;
+
     this.setState({
-      fileEditorFocus: !this.state.fileEditorFocus,
+      fileEditorFocus: status,
     });
+  }
+  public handleKeyPress = (e: any) => {
+    const textArea = this.state.monacoWrapperRef.current.firstChild.children[0].children[0].children[3];
+    if (e.key === 'Enter') {
+      textArea.focus();
+    } else if (e.keyCode === 9 ) {
+      textArea.tabIndex = '-1';
+    } else if (e.keyCode === 27 && this.state.fileEditorFocus) {
+      if (this.props.escRef.current.children.length > 0) {
+        this.props.escRef.current.children[0].focus();
+      } else {
+        this.props.escRef.current.focus();
+      }
+    }
   }
 
   public render() {
@@ -145,9 +145,11 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
         :
         (
           <div
+            ref={this.state.monacoWrapperRef}
             tabIndex={0}
-            onFocus={this.setFileEditorFocus}
-            onBlur={this.setFileEditorFocus}
+            onFocus={this.setFileEditorFocus('focus')}
+            onBlur={this.setFileEditorFocus('blur')}
+            onKeyDown={this.handleKeyPress}
           >
             <MonacoEditor
               theme={'editorTheme'}
