@@ -245,7 +245,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleDescriptionChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              this.props.component.textResourceBindings.description)}
           </Grid>
         );
       }
