@@ -218,4 +218,17 @@ declare global {
     id: string;
     value: string;
   }
+
+  export interface IComponentBindingValidation {
+    errors?: string[];
+    warnings?: string[];
+  }
+
+  export interface IComponentValidations {
+    [id: string]: IComponentBindingValidation;
+  }
+
+  export interface IValidationResults {
+    [id: string]: IComponentValidations;
+  }
 }

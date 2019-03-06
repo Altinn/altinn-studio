@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
   id: string;
@@ -7,6 +8,7 @@ export interface IRadioButtonsContainerProps {
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid?: boolean;
+  validationMessages?: IComponentValidations;
   designMode: boolean;
 }
 
@@ -45,6 +47,10 @@ export class RadioButtonContainerComponent
     this.props.handleDataChange(selectedValue);
   }
 
+  public isOptionSelected = (option: string) => {
+    return this.state.selected === option;
+  }
+
   public render() {
     const { options } = this.props.component;
     const optionsLength = (options) ? options.length : 0;
@@ -59,13 +65,9 @@ export class RadioButtonContainerComponent
             ' form-check-stacked' :
             ' form-check-inline'
           )
-          +
-          (this.props.isValid ?
-            '' :
-            ' validation-error'
-          )
         }
         id={this.props.id}
+        style={isStacked ? {} : {alignItems: 'start'}}
       >
         {options.map((option, index) => (
           <div
@@ -77,11 +79,14 @@ export class RadioButtonContainerComponent
               type='radio'
               name={'radio-' + this.props.id + '-' + index}
               className='custom-control-input'
-              checked={this.state.selected === option.value}
+              checked={this.isOptionSelected(option.value)}
             />
             <label className='custom-control-label pl-3'>
               {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
             </label>
+            {this.props.validationMessages && this.isOptionSelected(option.value) &&
+              renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
+                this.props.component.id)}
           </div>
         ))}
       </div>

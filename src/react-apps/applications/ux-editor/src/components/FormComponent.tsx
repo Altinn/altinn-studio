@@ -180,7 +180,7 @@ class FormComponent extends React.Component<
   }
 
   public handleActiveListChange = (obj: any) => {
-    if (Object.keys(obj).length === 0 && obj.constructor === Object && this.props.activeList.length > 0) {
+    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
       FormDesignerActionDispatchers.deleteActiveListAction();
     } else {
       FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);

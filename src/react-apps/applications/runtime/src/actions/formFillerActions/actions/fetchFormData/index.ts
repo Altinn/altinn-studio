@@ -1,6 +1,6 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../../formFillerActionTypes';
-import { IUpdateValidationErrors } from '../updateFormData';
+import { IUpdateValidationResults } from '../updateFormData';
 
 export interface IFetchFormDataAction extends Action {
   url: string;
@@ -35,9 +35,9 @@ export function fetchFormDataActionRejected(error: Error): IFetchFormDataActionR
   };
 }
 
-export function updateValidationErrors(validationErrors: {}): IUpdateValidationErrors {
+export function updateValidationErrors(validationErrors: {}): IUpdateValidationResults {
   return {
     type: ActionTypes.UPDATE_VALIDATIONERRORS,
-    validationErrors,
+    validationResults: validationErrors,
   };
 }
