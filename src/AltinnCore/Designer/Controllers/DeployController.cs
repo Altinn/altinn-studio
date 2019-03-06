@@ -108,7 +108,7 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    string environment = Environment.GetEnvironmentVariable("GiteaApiEndpoint") ?? _settings.ApiEndPointHost;
+                    string environment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
                     object buildContent = new
                     {
                         definition = new
