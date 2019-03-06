@@ -1,7 +1,7 @@
 import * as React from 'react';
 import '../../styles/InputComponent.css';
 
-export interface IInputProps {
+export interface IDatepickerProps {
   id: string;
   component: IFormComponent;
   formData: any;
@@ -9,14 +9,14 @@ export interface IInputProps {
   isValid?: boolean;
 }
 
-export interface IInputState {
+export interface IDatePickerState {
   value: string;
 }
 
 export class DatepickerComponent
-  extends React.Component<IInputProps, IInputState> {
+  extends React.Component<IDatepickerProps, IDatePickerState> {
 
-  constructor(_props: IInputProps, _state: IInputState) {
+  constructor(_props: IDatepickerProps, _state: IDatePickerState) {
     super(_props, _state);
     this.state = {
       value: _props.formData ? _props.formData : '',
