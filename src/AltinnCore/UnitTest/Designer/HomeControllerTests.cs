@@ -178,7 +178,7 @@ namespace AltinnCore.UnitTest.Designer
             Moq.Mock<ISourceControl> moqSourceControl = GetMoqSourceControlForIndexTest();
 
             moqGiteaWrappeer.Setup(g => g.GetUserNameFromUI()).ReturnsAsync("Test");
-            moqGiteaWrappeer.Setup(g => g.GetSessionAppKey()).ReturnsAsync("Test");
+            moqGiteaWrappeer.Setup(g => g.GetSessionAppKey(null)).ReturnsAsync("Test");
 
             AltinnCore.Designer.Controllers.HomeController controller = new AltinnCore.Designer.Controllers.HomeController(
             moqRepository.Object,
