@@ -463,7 +463,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The deploy app token</returns>
         public string GetDeployToken()
         {
-            return _gitea.GetSessionAppKey().Result;
+            string deployToken = _httpContextAccessor.HttpContext.Request.Cookies[_settings.DeployCookieName];
+            if (deployToken == null)
+            {
+                deployToken = _gitea.GetSessionAppKey("AltinnDeployToken").Result;
+                _httpContextAccessor.HttpContext.Response.Cookies.Append(_settings.DeployCookieName, deployToken);
+            }
+
+            return deployToken;
         }
 
         /// <summary>
