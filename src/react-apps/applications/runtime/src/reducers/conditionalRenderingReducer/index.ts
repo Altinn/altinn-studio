@@ -20,23 +20,6 @@ const conditionalRenderingReducer: Reducer<any> = (
     return state;
   }
   switch (action.type) {
-    case ConditionalRenderingActionTypes.ADD_CONDITIONAL_RENDERING_FULFILLED: {
-      const { newConnection } = action as ConditionalRenderingActions.IAddConditionalRenderingFulfilled;
-      return update<any>(state, {
-        $apply: () => ({
-          ...state,
-          ...newConnection,
-        }),
-      });
-    }
-    case ConditionalRenderingActionTypes.DEL_CONDITIONAL_RENDERING_FULFILLED: {
-      const { newConnectionObj } = action as ConditionalRenderingActions.IDelConditionalRenderingFulfilled;
-      return update<any>(state, {
-        $apply: () => ({
-          ...newConnectionObj,
-        }),
-      });
-    }
     case ManageJsonFileActionTypes.FETCH_JSON_FILE_FULFILLED: {
       const { data } = action as ManageJsonFileActions.IFetchJsonFileFulfilledAction;
       return update<any>(state, {

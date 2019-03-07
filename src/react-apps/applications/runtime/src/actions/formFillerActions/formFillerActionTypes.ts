@@ -30,3 +30,8 @@ export const RUN_SINGLE_FIELD_VALIDATION_REJECTED: string = `${moduleName}.RUN_S
 export const COMPLETE_AND_SEND_IN_FORM: string = `${moduleName}.COMPLETE_AND_SEND_IN_FORM`;
 export const COMPLETE_AND_SEND_IN_FORM_FULFILLED: string = `${moduleName}.COMPLETE_AND_SEND_IN_FORM_FULFILLED`;
 export const COMPLETE_AND_SEND_IN_FORM_REJECTED: string = `${moduleName}.COMPLETE_AND_SEND_IN_FORM_REJECTED`;
+
+// Fetch form layout actions
+export const FETCH_FORM_LAYOUT: string = `${moduleName}.FETCH_FORM_LAYOUT`;
+export const FETCH_FORM_LAYOUT_FULFILLED: string = `${moduleName}.FETCH_FORM_LAYOUT_FULFILLED`;
+export const FETCH_FORM_LAYOUT_REJECTED: string = `${moduleName}.FETCH_FORM_LAYOUT_REJECTED`;

@@ -20,23 +20,6 @@ const ruleConnectionReducer: Reducer<any> = (
     return state;
   }
   switch (action.type) {
-    case RuleConnectionActionTypes.ADD_RULE_CONNECTION_FULFILLED: {
-      const { newConnection } = action as RuleConnectionActions.IAddRuleConnectionFulfilled;
-      return update<any>(state, {
-        $apply: () => ({
-          ...state,
-          ...newConnection,
-        }),
-      });
-    }
-    case RuleConnectionActionTypes.DEL_RULE_CONNECTION_FULFILLED: {
-      const { newConnectionObj } = action as RuleConnectionActions.IDelRuleConnectionFulfilled;
-      return update<any>(state, {
-        $apply: () => ({
-          ...newConnectionObj,
-        }),
-      });
-    }
     case ManageJsonFileActionTypes.FETCH_JSON_FILE_FULFILLED: {
       const { data } = action as ManageJsonFileActions.IFetchJsonFileFulfilledAction;
       return update<any>(state, {

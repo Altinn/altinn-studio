@@ -8,12 +8,14 @@ export interface IFormFillerState {
   validationResults: IValidationResults;
   unsavedChanges: boolean;
   apiResult?: any;
+  formLayout: IFormDesignerLayout;
 }
 
 const initialState: IFormFillerState = {
   formData: {},
   validationResults: {},
   unsavedChanges: false,
+  formLayout: null,
 };
 
 const formFillerReducer: Reducer<IFormFillerState> = (
@@ -103,6 +105,24 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         },
         validationResults: {
           $set: {},
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.FETCH_FORM_LAYOUT_FULFILLED): {
+      const { formLayout } = action as FormFillerActions.IFetchFormLayoutFulfilledAction;
+      return update<IFormFillerState>(state, {
+        formLayout: {
+          $set: formLayout,
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.FETCH_FORM_LAYOUT_REJECTED): {
+      const { error } = action as FormFillerActions.IFetchFormLayoutRejectedAction;
+      return update<IFormFillerState>(state, {
+        error: {
+          $set: error,
         },
       });
     }

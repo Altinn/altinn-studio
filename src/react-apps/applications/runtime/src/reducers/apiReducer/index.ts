@@ -1,7 +1,5 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as ApiActions from '../../actions/apiActions/actions';
-import * as ApiActionTypes from '../../actions/apiActions/apiActionTypes';
 
 import * as ManageJsonFileActions from '../../actions/manageServiceConfigurationActions/actions';
 import * as ManageJsonFileActionTypes from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionTypes';
@@ -93,29 +91,6 @@ const apiReducer: Reducer<IApiState> = (
   }
 
   switch (action.type) {
-    case ApiActionTypes.ADD_API_CONNECTION_FULFILLED: {
-      const { newConnection } = action as ApiActions.IAddApiConnectionFulfilled;
-      return update<any>(state, {
-        connections: {
-          $apply: () => ({
-            ...state.connections,
-            ...newConnection,
-          }),
-        },
-      });
-    }
-
-    case ApiActionTypes.DELETE_API_CONNECTION_FULFILLED: {
-      const { newConnectionsObj } = action as ApiActions.IDelApiConnectionFulfilled;
-      return update<any>(state, {
-        connections: {
-          $apply: () => ({
-            ...newConnectionsObj,
-          }),
-        },
-      });
-    }
-
     case ManageJsonFileActionTypes.FETCH_JSON_FILE_FULFILLED: {
       const { data } = action as ManageJsonFileActions.IFetchJsonFileFulfilledAction;
       return update<any>(state, {

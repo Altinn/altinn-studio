@@ -9,7 +9,6 @@ export interface IGenericComponentProps {
   component: FormComponentType;
   isValid: boolean;
   formData: any;
-  designMode: boolean;
   validationMessages?: IComponentValidations;
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;

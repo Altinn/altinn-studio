@@ -3,12 +3,6 @@ import { store } from '../../store';
 import * as ApiActions from './actions';
 
 export interface IApiActionDispatchers extends ActionCreatorsMapObject {
-  addApiConnection: (newConnection: any) => ApiActions.IAddApiConnection;
-  addApiConnectionFulfilled: (newConnection: any) => ApiActions.IAddApiConnectionFulfilled;
-  addApiConnectionRejected: (error: Error) => ApiActions.IAddApiConnectionRejected;
-  delApiConnection: (connectionId: any) => ApiActions.IDelApiConnection;
-  delApiConnectionFulfilled: (newConnectionsObj: any) => ApiActions.IDelApiConnectionFulfilled;
-  delApiConnectionRejected: (error: Error) => ApiActions.IDelApiConnectionRejected;
   checkIfApiShouldFetch: (
     lastUpdatedComponentId: string,
     lastUpdatedDataBinding: IDataModelFieldElement,
@@ -21,12 +15,6 @@ export interface IApiActionDispatchers extends ActionCreatorsMapObject {
 }
 
 const actions: IApiActionDispatchers = {
-  addApiConnection: ApiActions.addApiConnection,
-  addApiConnectionFulfilled: ApiActions.addApiConnectionFulfilled,
-  addApiConnectionRejected: ApiActions.addApiConnectionRejected,
-  delApiConnection: ApiActions.delApiConnection,
-  delApiConnectionFulfilled: ApiActions.delApiConnectionFulfilled,
-  delApiConnectionRejected: ApiActions.delApiConnectionRejected,
   checkIfApiShouldFetch: ApiActions.checkIfApiShouldFetch,
   fetchApiListResponse: ApiActions.fetchApiListResponse,
 };
@@ -34,6 +22,6 @@ const actions: IApiActionDispatchers = {
 const ApiActionDispatchers: IApiActionDispatchers = bindActionCreators<
   any,
   IApiActionDispatchers
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 
 export default ApiActionDispatchers;

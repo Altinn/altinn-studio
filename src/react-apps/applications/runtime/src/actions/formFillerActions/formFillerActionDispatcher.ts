@@ -30,11 +30,18 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   runSingleFieldValidation: (url: string, componentId: any) => formFillerActions.IRunSingleFieldValidationAction;
   runSingleFieldValidationFulfilled: (
     validationErrors: any,
-    ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
+  ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
   runSingleFieldValidationRejected: (error: Error) => formFillerActions.IRunSingleFieldValidationActionRejected;
   completeAndSendInForm: (url: any) => formFillerActions.ICompleteAndSendInForm;
   completeAndSendInFormFulfilled: () => Action;
   completeAndSendInFormRejected: () => Action;
+  fetchFormLayout: (url: string) => FormDesignerActions.IFetchFormLayoutAction;
+  fetchFormLayoutFulfilled: (
+    formLayout: any,
+  ) => FormDesignerActions.IFetchFormLayoutFulfilledAction;
+  fetchFormLayoutRejected: (
+    error: Error,
+  ) => FormDesignerActions.IFetchFormLayoutRejectedAction;
 }
 
 const actions: IFormFillerActionDispatchers = {

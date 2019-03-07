@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import * as ActionTypes from '../../formDesignerActionTypes';
+import * as ActionTypes from '../../formFillerActionTypes';
 
 export interface IFetchFormLayoutAction extends Action {
   url: string;

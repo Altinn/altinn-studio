@@ -4,76 +4,16 @@ import * as ApiActions from '../../actions/apiActions/actions';
 import ApiActionDispatchers from '../../actions/apiActions/apiActionDispatcher';
 import * as ApiActionTypes from '../../actions/apiActions/apiActionTypes';
 import ErrorActionDispatchers from '../../actions/errorActions/errorActionDispatcher';
-import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
-import ServiceConfigActionDispatchers from '../../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
 import appConfig from '../../appConfig';
 import { IApiState } from '../../reducers/apiReducer';
 import { IAppDataState } from '../../reducers/appDataReducer';
-import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { checkIfAxiosError, get } from '../../utils/networking';
-import { getSaveServiceConfigurationUrl } from '../../utils/urlHelper';
 
-const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 const selectFormFiller = (state: IAppState): IFormFillerState => state.formFiller;
 const selectApi = (state: IAppState): IApiState => state.serviceConfigurations.APIs;
 const selectAppData = (state: IAppState): IAppDataState => state.appData;
-
-function* addApiConnectionSaga({ newConnection }: ApiActions.IAddApiConnection): SagaIterator {
-  try {
-    yield call(ApiActionDispatchers.addApiConnectionFulfilled, newConnection);
-    const saveServiceConfigurationUrl: string = yield call(getSaveServiceConfigurationUrl);
-    yield call(
-      ServiceConfigActionDispatchers.saveJsonFile,
-      saveServiceConfigurationUrl,
-    );
-  } catch (err) {
-    yield call(ApiActionDispatchers.addApiConnectionRejected, err);
-  }
-}
-
-export function* watchAddApiConnectionSaga(): SagaIterator {
-  yield takeLatest(
-    ApiActionTypes.ADD_API_CONNECTION,
-    addApiConnectionSaga,
-  );
-}
-
-function* delApiConnectionSaga({ connectionId }: ApiActions.IDelApiConnection): SagaIterator {
-  try {
-    // get state
-    const apiState: IApiState = yield select(selectApi);
-
-    // create array
-    const connectionsArray = Object.keys(apiState.connections);
-
-    // filter out the "connectionID" to delete
-    const newConnectionsArray = connectionsArray.filter((connection: any) => connection !== connectionId);
-
-    // create new object with newConnectionsArray content
-    const newConnectionsObj = newConnectionsArray.reduce((acc: any, connection: any) => {
-      acc[connection] = apiState.connections[connection];
-      return acc;
-    }, {});
-
-    yield call(ApiActionDispatchers.delApiConnectionFulfilled, newConnectionsObj);
-    const saveServiceConfigurationUrl: string = yield call(getSaveServiceConfigurationUrl);
-    yield call(
-      ServiceConfigActionDispatchers.saveJsonFile,
-      saveServiceConfigurationUrl,
-    );
-  } catch (err) {
-    yield call(ApiActionDispatchers.delApiConnectionRejected, err);
-  }
-}
-
-export function* watchDelApiConnectionSaga(): SagaIterator {
-  yield takeLatest(
-    ApiActionTypes.DELETE_API_CONNECTION,
-    delApiConnectionSaga,
-  );
-}
 
 function* checkIfApisShouldFetchSaga({
   lastUpdatedDataBinding,
@@ -88,7 +28,6 @@ function* checkIfApisShouldFetchSaga({
     const formFillerState: IFormFillerState = yield select(selectFormFiller);
     const apiState: IApiState = yield select(selectApi);
     const appDataState: IAppDataState = yield select(selectAppData);
-    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     for (const connection in apiState.connections) {
       if (!connection) {
         continue;
@@ -102,7 +41,7 @@ function* checkIfApisShouldFetchSaga({
         // Do check for APIs returning single values
         yield call(apiCheckValue, connectionDef, lastUpdatedDataBinding, lastUpdatedDataValue,
           formFillerState.formData, apiState.externalApisById,
-          formDesignerState.layout.components, appDataState.dataModel.model, repeating, dataModelGroup, index);
+          formFillerState.formLayout.components, appDataState.dataModel.model, repeating, dataModelGroup, index);
       }
     }
   } catch (err) {
@@ -120,7 +59,7 @@ export function* watchCheckIfApisShouldFetchSaga(): SagaIterator {
 
 function* fetchApiListResponseSaga(): SagaIterator {
   const apiState: IApiState = yield select(selectApi);
-  const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
+  const formFillerState: IFormFillerState = yield select(selectFormFiller);
 
   for (const connection in apiState.connections) {
     if (!connection) {
@@ -132,7 +71,7 @@ function* fetchApiListResponseSaga(): SagaIterator {
       apiState.externalApisById[connectionDef.externalApiId].type : 'codelist';
     if (apiType === 'list' || apiType === 'codelist') {
       yield call(apiFetchList, connectionDef, apiState.externalApisById,
-        formDesignerState.layout.components);
+        formFillerState.formLayout.components);
     }
   }
 }
@@ -202,7 +141,7 @@ function* apiFetchList(connectionDef: any, externalApisById: any, components: IF
     });
 
     mappedComponent.component.options = options;
-    yield call(FormDesignerActionDispatchers.updateFormComponent, mappedComponent.component, mappedComponent.id);
+    // yield call(FormDesignerActionDispatchers.updateFormComponent, mappedComponent.component, mappedComponent.id);
 
   } catch (err) {
     if (checkIfAxiosError(err)) {
