@@ -90,18 +90,19 @@ class MonacoEditorComponent extends React.Component<IMonacoEditorComponentProps,
     });
   }
   public setFileEditorFocus = (type: string) => (e: any) => {
-    const status = (type === 'focus') ? true : false;
+    const status = (type === 'focus');
 
     this.setState({
       fileEditorFocus: status,
     });
   }
   public handleKeyPress = (e: any) => {
-    const textArea = this.state.monacoWrapperRef.current.firstChild.children[0].children[0].children[3];
+    const divElement = this.state.monacoWrapperRef.current.firstChild as HTMLDivElement;
+    const txtArea = divElement.children[0].children[0].children[3] as HTMLTextAreaElement;
     if (e.key === 'Enter') {
-      textArea.focus();
+      txtArea.focus();
     } else if (e.keyCode === 9 ) {
-      textArea.tabIndex = '-1';
+      txtArea.tabIndex = -1;
     } else if (e.keyCode === 27 && this.state.fileEditorFocus) {
       if (this.props.escRef.current.children.length > 0) {
         this.props.escRef.current.children[0].focus();
