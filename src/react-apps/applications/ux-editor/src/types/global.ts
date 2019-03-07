@@ -82,6 +82,7 @@ declare global {
     disabled?: boolean;
     required?: boolean;
     hidden?: boolean;
+    readOnly?: boolean;
   }
 
   export interface IFormHeaderComponent extends IFormComponent {
@@ -126,6 +127,7 @@ declare global {
   }
 
   export type FormComponentType =
+    | IFormComponent
     | IFormHeaderComponent
     | IFormInputComponent
     | IFormCheckboxComponent

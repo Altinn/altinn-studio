@@ -97,8 +97,8 @@ function* checkIfApisShouldFetchSaga({
       const connectionDef = apiState.connections[connection];
       const apiType = connectionDef.externalApiId ?
         apiState.externalApisById[connectionDef.externalApiId].type : 'codelist';
-      if (apiType !== 'list' || apiType !== 'codelist' && formFillerState.validationErrors
-        && Object.keys(formFillerState.validationErrors).length === 0) {
+      if (apiType !== 'list' || apiType !== 'codelist' && formFillerState.validationResults
+        && Object.keys(formFillerState.validationResults).length === 0) {
         // Do check for APIs returning single values
         yield call(apiCheckValue, connectionDef, lastUpdatedDataBinding, lastUpdatedDataValue,
           formFillerState.formData, apiState.externalApisById,

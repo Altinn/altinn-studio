@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
+import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -227,20 +227,21 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
   }
 }
 
-const getErrorList = (errors: any) => {
-  const errorList: string[] = [];
-  // tslint:disable-next-line:forin
-  for (const error in errors) {
-    const errorMessage = errors[error].join(', ');
-    errorList.push(errorMessage);
+const getErrorList = (validations: IValidationResults) => {
+  const unmappedValidations = validations.unmapped;
+  if (!unmappedValidations) {
+    return null;
   }
-  return errorList;
+
+  return Object.keys(unmappedValidations).map((validationKey) => {
+    return unmappedValidations[validationKey].errors.join(', ');
+  });
 };
 
 const mapStateToProps = (state: IAppState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
     language: state.appData.language.language,
-    errorList: getErrorList(state.formFiller.validationErrors),
+    errorList: getErrorList(state.formFiller.validationResults),
     ...props,
   };
 };
