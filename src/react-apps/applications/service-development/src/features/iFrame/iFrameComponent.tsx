@@ -1,0 +1,48 @@
+
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import * as React from 'react';
+import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+export interface IIFrameComponentProvidedProps {
+  iframeEndingUrl: string;
+  classes: any;
+}
+
+export interface IIFrameComponentProps extends IIFrameComponentProvidedProps {
+}
+
+export interface IIFrameComponentState {
+}
+
+const theme = createMuiTheme(altinnTheme);
+
+const styles = createStyles({
+  iFrameLayout: {
+    [theme.breakpoints.down('sm')]: {
+      height: `calc(100vh - 55px)`,
+    },
+    [theme.breakpoints.up('md')]: {
+      height: `calc(100vh - 110px)`,
+    },
+    width: '100%',
+    border: 0,
+  },
+});
+
+export class IFrameComponent extends
+  React.Component<IIFrameComponentProps, IIFrameComponentState> {
+
+  public render() {
+    const { classes } = this.props;
+    const altinnWindow: any = window;
+    const { org, service } = altinnWindow;
+    const url = `${altinnWindow.location.origin}/designer/${org}/${service}/${this.props.iframeEndingUrl}`;
+    return (
+      <div className={classes.mainLayout}>
+        <iframe className={classes.iFrameLayout} src={url}></iframe>
+      </div>
+    );
+  }
+}
+
+
+export const IFrame = withStyles(styles)(IFrameComponent);
