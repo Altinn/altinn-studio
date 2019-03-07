@@ -9,13 +9,13 @@ const theme = createMuiTheme(altinnTheme);
 export interface IMonacoEditorComponentProps {
   classes: any;
   createCompletionSuggestions?: (monaco: any, filterText: string) => any[];
+  escRef: any;
   heightPx?: any;
   isLoading?: boolean;
   language: string;
   onValueChange: (value: string) => void;
   value: string;
   widthPx?: any;
-  escRef: any;
 }
 
 export interface IMonacoEditorComponentState {
