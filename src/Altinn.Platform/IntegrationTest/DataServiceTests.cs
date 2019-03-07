@@ -2,11 +2,11 @@ using System;
 using System.Net.Http;
 using System.Text;
 using Altinn.Platform.Storage.Models;
-using AltinnCore.Test.Integration.Fixtures;
+using Altinn.Platform.Test.Integration.Fixtures;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace AltinnCore.Runtime.Test.Integration
+namespace Altinn.Platform.Test.Integration
 {
     /// <summary>
     ///  Tests dataservice REST api.
