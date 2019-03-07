@@ -1,16 +1,9 @@
-
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 export interface IIFrameComponentProvidedProps {
   iframeEndingUrl: string;
   classes: any;
-}
-
-export interface IIFrameComponentProps extends IIFrameComponentProvidedProps {
-}
-
-export interface IIFrameComponentState {
 }
 
 const theme = createMuiTheme(altinnTheme);
@@ -29,7 +22,7 @@ const styles = createStyles({
 });
 
 export class IFrameComponent extends
-  React.Component<IIFrameComponentProps, IIFrameComponentState> {
+  React.Component<IIFrameComponentProvidedProps, any> {
 
   public render() {
     const { classes } = this.props;
