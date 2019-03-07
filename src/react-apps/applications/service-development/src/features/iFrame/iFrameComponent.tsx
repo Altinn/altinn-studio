@@ -38,11 +38,10 @@ export class IFrameComponent extends
     const url = `${altinnWindow.location.origin}/designer/${org}/${service}/${this.props.iframeEndingUrl}`;
     return (
       <div className={classes.mainLayout}>
-        <iframe className={classes.iFrameLayout} src={url}></iframe>
+        <iframe className={classes.iFrameLayout} src={url} />
       </div>
     );
   }
 }
-
 
 export const IFrame = withStyles(styles)(IFrameComponent);
