@@ -19,7 +19,7 @@ const styles = createStyles({
   paper: {
     borderTop: '1px solid ' + altinnTheme.altinnPalette.primary.greyMedium,
     background: altinnTheme.altinnPalette.primary.greyLight,
-    top: 146,
+    top: 110,
     width: 240,
     position: 'absolute',
   },
@@ -27,7 +27,7 @@ const styles = createStyles({
     overflowY: 'scroll',
     height: 'inherit',
     marginTop: '0px',
-    maxHeight: `calc(100vh - 146px)`,
+    maxHeight: `calc(100vh - 110px)`,
   },
 });
 

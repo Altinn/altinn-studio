@@ -14,6 +14,16 @@
   <script src="~/designer/js/lib/monaco-editor/vs/loader.js" asp-append-version="true"></script>
 }
 
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
+}
+
+<script>
+    window.org = '@org';
+    window.service = '@service';
+</script>
+
 <!-- These imports are imported multiple times, we will need to clean up afterwards -->
 <link rel="stylesheet" href="~/designer/css/bootstrap.min.css">
 <link rel="stylesheet" href="~/designer/css/react/service-development.css">
