@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using Altinn.Platform.Storage;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Azure.KeyVault;
@@ -18,7 +19,7 @@ namespace AltinnCore.Test.Integration.Fixtures
         private readonly TestServer testServer;
 
         /// <summary>
-        /// The client.
+        /// Gets the client.
         /// </summary>
         public HttpClient Client { get; }
 
@@ -27,10 +28,10 @@ namespace AltinnCore.Test.Integration.Fixtures
         /// </summary>
         public DataServiceFixture()
         {
-            string[] args = new string[2];
+            string[] args = { };
 
             ConfigurationBuilder config = new ConfigurationBuilder();
-            Configuration(config, GetContentRootPath());
+            Program.LoadConfigurationSettings(config, GetContentRootPath(), args);
 
             IWebHostBuilder builder = new WebHostBuilder()
                 .UseContentRoot(GetContentRootPath())
@@ -40,30 +41,6 @@ namespace AltinnCore.Test.Integration.Fixtures
 
             testServer = new TestServer(builder);
             Client = testServer.CreateClient();
-        }
-
-        private void Configuration(ConfigurationBuilder config, string path)
-        {
-            config.SetBasePath(path);
-            config.AddJsonFile(path + "/appsettings.json", optional: false, reloadOnChange: true);
-
-            config.AddEnvironmentVariables();
-            //config.AddCommandLine(args);
-            IConfiguration stageOneConfig = config.Build();
-            string appId = stageOneConfig.GetValue<string>("kvSetting:ClientId:0");
-            string tenantId = stageOneConfig.GetValue<string>("kvSetting:TenantId:0");
-            string appKey = stageOneConfig.GetValue<string>("kvSetting:ClientSecret:0");
-            string keyVaultEndpoint = stageOneConfig.GetValue<string>("kvSetting:SecretUri:0");
-            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
-                && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
-            {
-                AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
-                KeyVaultClient keyVaultClient = new KeyVaultClient(
-                    new KeyVaultClient.AuthenticationCallback(
-                        azureServiceTokenProvider.KeyVaultTokenCallback));
-                config.AddAzureKeyVault(
-                    keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-            }
         }
 
         private string GetContentRootPath()
