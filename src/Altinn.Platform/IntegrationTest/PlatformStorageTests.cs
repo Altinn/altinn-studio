@@ -11,16 +11,16 @@ namespace Altinn.Platform.Test.Integration
     /// <summary>
     ///  Tests dataservice REST api.
     /// </summary>
-    public class DataServiceTests : IClassFixture<DataServiceFixture>
+    public class PlatformStorageTests : IClassFixture<PlatformStorageFixture>
     {
-        private readonly DataServiceFixture fixture;
+        private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataServiceTests"/> class.
+        /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        public DataServiceTests(DataServiceFixture fixture)
+        public PlatformStorageTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
