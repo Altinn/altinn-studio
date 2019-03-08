@@ -9,7 +9,7 @@ createTestCafe()
     const stream = fs.createWriteStream('junit.xml');
 
     return runner
-      .browsers(['chrome:headless'])
+      .browsers(['chrome'])
       .concurrency(1)
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
