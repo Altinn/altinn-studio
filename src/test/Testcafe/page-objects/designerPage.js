@@ -29,7 +29,7 @@ export default class DesignerPage {
     this.leftMenuList = Selector('li'); //all unordered list elements to be filtered
 
     //"Om" navigation tab selectors
-    this.omNavigationTab = Selector('div').withExactText('Om');
+    this.omNavigationTab = Selector('div > a').withExactText('Om');
     this.omTjenesteNavn = Selector('#administrationInputServicename > div > div > input');
     this.omEndreTjenesteNavn = Selector("button > span > span").withExactText("Endre");
     this.omTjenesteId = Selector('#administrationInputServiceid > div > div > input');
@@ -60,13 +60,13 @@ export default class DesignerPage {
     ];
 
     //"teste" navigation tab selectors
-    this.testeNavigationTab = Selector('div').withExactText('Teste');
+    this.testeNavigationTab = Selector('div > a').withExactText('Teste');
     this.testeLeftMenuItems = [
       this.leftMenuList.withExactText('Test')
     ];
 
     //"publisere" navigation tab selectors
-    this.publisereNavigationTab = Selector('div').withExactText('Publisere');
+    this.publisereNavigationTab = Selector('div > a').withExactText('Publisere');
     this.publisereLeftMenuItems = [
       this.leftMenuList.withExactText('Produksjonsette'),
       this.leftMenuList.withExactText('Status')
