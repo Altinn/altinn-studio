@@ -479,8 +479,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             {component.hasCustomFileEndings &&
               <Grid item={true} xs={12}>
                 <AltinnInputField
-                  id={'id'}
-                  onChangeFunction={this.handleHasCustomFileEndingsChange}
+                  id={'modal-properties-valid-file-endings'}
+                  onChangeFunction={this.handleValidFileEndingsChange}
+                  inputValue={component.validFileEndings}
                   inputDescription={getLanguageFromKey(
                     'ux_editor.modal_properties_valid_file_endings_helper', this.props.language)}
                   inputFieldStyling={{ width: '100%' }}
@@ -490,8 +491,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             }
             <Grid item={true} xs={12}>
               <AltinnInputField
-                id={''}
-                onChangeFunction={this.handleHasCustomFileEndingsChange}
+                id={'modal-properties-maximum-files'}
+                onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
+                inputValue={component.maxNumberOfAttachments}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
                 inputDescriptionStyling={{ marginTop: '24px' }}
@@ -500,8 +502,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             </Grid>
             <Grid item={true} xs={12}>
               <AltinnInputField
-                id={''}
-                onChangeFunction={this.handleHasCustomFileEndingsChange}
+                id={'modal-properties-file-size'}
+                onChangeFunction={this.handleMaxFileSizeInMBChange}
+                inputValue={component.maxFileSizeInMB}
                 inputDescription={getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -517,6 +520,33 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return null;
       }
     }
+  }
+
+  public handleValidFileEndingsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.validFileEndings = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleMaxFileSizeInMBChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.maxFileSizeInMB = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleMaxNumberOfAttachmentsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.maxNumberOfAttachments = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
   }
 
   public handleDisplayModeChange = (event: any) => {
