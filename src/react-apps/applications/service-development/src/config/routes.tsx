@@ -2,6 +2,8 @@ import AltinnInformationCard from '../../../shared/src/components/AltinnInformat
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import { Administration } from '../features/administration/components/Administration';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
+import { IFrame } from '../features/iFrame/iFrameComponent';
+import RedirectComponent from '../features/iFrame/RedirectComponent';
 
 export const routes = [
   {
@@ -25,7 +27,7 @@ export const routes = [
     activeSubHeaderSelection: 'Språk',
     activeLeftMenuSelection: 'Tekst',
     menu: 'language',
-    subapp: AltinnInformationCard,
+    subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',
@@ -34,6 +36,7 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
+      iframeEndingUrl: 'Text',
     },
   },
   {
@@ -42,7 +45,7 @@ export const routes = [
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test',
     menu: 'test',
-    subapp: AltinnInformationCard,
+    subapp: RedirectComponent,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',
@@ -51,6 +54,7 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
+      redirectUrl: 'runtime/ManualTesting/Users/',
     },
   },
   {
@@ -152,7 +156,7 @@ export const routes = [
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'Datamodell',
     menu: 'create',
-    subapp: AltinnInformationCard,
+    subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',
@@ -161,6 +165,7 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
+      iframeEndingUrl: 'Model',
     },
   },
   {
@@ -178,6 +183,24 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
+    },
+  },
+  {
+    path: '/code',
+    exact: true,
+    activeSubHeaderSelection: 'Lage',
+    activeLeftMenuSelection: 'Kode',
+    menu: 'create',
+    subapp: IFrame,
+    props: {
+      headerTextKey: 'shared.wip_title',
+      subtext1TextKey: 'shared.wip_subtext_1',
+      subtext2TextKey: 'shared.wip_subtext_2',
+      linkTextKey: 'shared.wip_link_text',
+      urlKey: 'shared.wip_link_github_url',
+      imageSource: '../../designer/img/illustration-help-circle.svg',
+      shadow: true,
+      iframeEndingUrl: 'Rules/Code',
     },
   },
   {
@@ -203,7 +226,7 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Produksjonsette',
     menu: 'publish',
-    subapp: AltinnInformationCard,
+    subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',
@@ -212,6 +235,7 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
+      iframeEndingUrl: 'Deploy',
     },
   },
   {

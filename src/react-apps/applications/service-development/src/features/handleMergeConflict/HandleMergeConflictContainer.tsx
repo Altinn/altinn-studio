@@ -29,10 +29,10 @@ const styles = () => createStyles({
   },
   boxTop: {
     [theme.breakpoints.down('sm')]: {
-      height: `calc(100vh - 50px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
+      height: `calc(100vh - 50px - 120px - 200px)`,
     },
     [theme.breakpoints.up('md')]: {
-      height: `calc(100vh - 50px - 120px - 200px - 36px)`, // TODO: remove 36 when old top menu is removed
+      height: `calc(100vh - 50px - 120px - 200px)`,
     },
   },
   boxBottom: {

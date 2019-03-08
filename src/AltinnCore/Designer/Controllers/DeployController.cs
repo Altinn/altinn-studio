@@ -3,11 +3,15 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
+using AltinnCore.RepositoryClient.Model;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Designer.Controllers
@@ -20,18 +24,30 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly ISourceControl _sourceControl;
         private IConfiguration _configuration;
+        private readonly IGitea _giteaAPI;
+        private ILogger<DeployController> _logger;
+        private readonly ServiceRepositorySettings _settings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeployController"/> class
         /// </summary>
         /// <param name="sourceControl">The source control service</param>
         /// <param name="configuration">The configuration service</param>
+        /// <param name="giteaAPI">The gitea api service</param>
+        /// <param name="logger">The logger</param>
+        /// <param name="settings">The settings service</param>
         public DeployController(
             ISourceControl sourceControl,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IGitea giteaAPI,
+            ILogger<DeployController> logger,
+            IOptions<ServiceRepositorySettings> settings)
         {
             _sourceControl = sourceControl;
             _configuration = configuration;
+            _giteaAPI = giteaAPI;
+            _logger = logger;
+            _settings = settings.Value;
         }
 
         /// <summary>
@@ -75,19 +91,31 @@ namespace AltinnCore.Designer.Controllers
             string credentials = _configuration["AccessTokenDevOps"];
 
             string result = string.Empty;
+            Branch masterBranch = _giteaAPI.GetBranch(org, service, "master").Result;
+            if (masterBranch == null)
+            {
+                _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
+                return Json(new
+                {
+                    Success = true,
+                    Message = "Deployment failed: unable to find latest commit",
+                });
+            }
+
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                    string environment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
                     object buildContent = new
                     {
                         definition = new
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"SERVICE_ORG\":\"{org}\",\"SERVICE_REPO\":\"{service}\",\"SERVICE_TOKEN\":\"{_sourceControl.GetAppToken()}\",\"system.debug\":\"false\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{environment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -102,6 +130,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
                 return Json(new
                 {
                     Success = true,
