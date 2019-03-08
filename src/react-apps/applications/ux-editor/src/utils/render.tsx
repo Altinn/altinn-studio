@@ -10,7 +10,7 @@ export const styles = {
   inputHelper: {
     marginTop: '2.4rem',
     fontSize: '1.6rem',
-    lineHeight: '3.2rem',
+    lineHeight: 'auto',
   },
 };
 
@@ -106,4 +106,3 @@ export function renderSelectTextFromResources(
     </div>
   );
 }
-
