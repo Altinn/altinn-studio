@@ -32,6 +32,12 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetAppToken();
 
         /// <summary>
+        /// Returns the deploy token for the repository
+        /// </summary>
+        /// <returns>The token</returns>
+        string GetDeployToken();
+
+        /// <summary>
         /// Add all changes in service repo and push to remote
         /// </summary>
         /// <param name="commitInfo">the commit information for the service</param>

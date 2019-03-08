@@ -1,8 +1,9 @@
-import { Grid } from '@material-ui/core';
-import Checkbox from '@material-ui/core/Checkbox';
+import { Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
+import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
 import { AddressKeys, getTextResourceByAddressKey } from '../advanced/AddressComponent';
@@ -19,6 +20,12 @@ export const customInput = {
   }),
 };
 
+const styles = {
+  gridItem: {
+    marginTop: '24px',
+  },
+};
+
 export interface IEditModalContentProps {
   component: FormComponentType;
   dataModel?: IDataModelFieldElement[];
@@ -28,6 +35,7 @@ export interface IEditModalContentProps {
   cancelEdit?: () => void;
   handleComponentUpdate?: (updatedComponent: FormComponentType) => void;
   language: any;
+  classes: any;
   thirdPartyComponents?: any;
 }
 
@@ -73,11 +81,8 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
   public handleTitleChange = (e: any): void => {
     const updatedComponent = this.state.component;
     updatedComponent.textResourceBindings.title = e ? e.value : null;
-    this.setState((state) => {
-      return {
-        ...state,
-        component: updatedComponent,
-      };
+    this.setState({
+      component: updatedComponent,
     });
     this.props.handleComponentUpdate(updatedComponent);
   }
@@ -147,6 +152,9 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     const updatedComponent = this.props.component;
     updatedComponent.textResourceBindings.description
       = selectedText ? selectedText.value : null;
+    this.setState({
+      component: updatedComponent,
+    });
     this.props.handleComponentUpdate(updatedComponent);
   }
 
@@ -217,7 +225,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.handleDescriptionChange,
               this.props.textResources,
               this.props.language,
-              this.props.component.textResourceBindings.title)}
+              this.props.component.textResourceBindings.description)}
           </Grid>
         );
       }
@@ -373,11 +381,11 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
             direction={'column'}
           >
             <Grid item={true} xs={12}>
-              {this.props.language.ux_editor.modal_configure_address_component_simplified}
-              <Checkbox
+              <AltinnCheckBox
                 checked={(this.state.component as IFormAddressComponent).simplified}
-                onChange={this.handleToggleAddressSimple}
+                onChangeFunction={this.handleToggleAddressSimple}
               />
+              {this.props.language.ux_editor.modal_configure_address_component_simplified}
             </Grid>
             {Object.keys(AddressKeys).map((value: AddressKeys) => {
               const simple: boolean = (this.state.component as IFormAddressComponent).simplified;
@@ -416,9 +424,41 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         }
         return (
           <div>
-          <span className='a-btn-icon-text'>{packageName} - {component}</span>
-          {this.props.thirdPartyComponents[packageName][component]}
+            <span className='a-btn-icon-text'>{packageName} - {component}</span>
+            {this.props.thirdPartyComponents[packageName][component]}
           </div>
+        );
+      }
+
+      case 'TextArea': {
+        const { component } = this.props;
+        return (
+          <Grid item={true} xs={12}>
+            {renderSelectDataModelBinding(
+              this.props.component.dataModelBindings,
+              this.handleDataModelChange,
+              this.props.language)}
+            {renderSelectTextFromResources('modal_properties_label_helper',
+              this.handleTitleChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.title)}
+            {renderSelectTextFromResources('modal_properties_description_helper',
+              this.handleDescriptionChange,
+              this.props.textResources,
+              this.props.language,
+              this.props.component.textResourceBindings.description)}
+            <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
+              {getLanguageFromKey('ux_editor.modal_properties_read_only_description', this.props.language)}
+            </Grid>
+            <Grid item={true}>
+              <AltinnCheckBox
+                checked={!!component.readOnly}
+                onChangeFunction={this.handleReadOnlyChange}
+              />
+              {getLanguageFromKey('ux_editor.modal_properties_read_only', this.props.language)}
+            </Grid>
+          </Grid>
         );
       }
 
@@ -426,6 +466,15 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return null;
       }
     }
+  }
+
+  public handleReadOnlyChange = (event: object, checked: boolean) => {
+    const component = this.props.component;
+    component.readOnly = checked;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
   }
 
   public handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
@@ -497,4 +546,4 @@ const mapStateToProps = (
   };
 };
 
-export const EditModalContent = connect(mapStateToProps)(EditModalContentComponent);
+export const EditModalContent = withStyles(styles)(connect(mapStateToProps)(EditModalContentComponent));

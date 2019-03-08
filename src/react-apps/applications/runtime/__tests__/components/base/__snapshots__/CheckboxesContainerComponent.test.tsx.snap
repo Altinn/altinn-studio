@@ -4,6 +4,11 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> C
 <div
   className="form-check a-form-checkboxes pl-0 form-check-inline"
   id="mock-id"
+  style={
+    Object {
+      "alignItems": "start",
+    }
+  }
 >
   <div
     className="custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3"
