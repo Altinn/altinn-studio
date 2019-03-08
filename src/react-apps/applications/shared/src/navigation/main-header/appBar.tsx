@@ -83,6 +83,15 @@ const styles = createStyles({
   topRightService: {
     paddingRight: 22,
   },
+  aImgStyling: {
+    'borderBottom': 'none',
+    '&:hover': {
+      borderBottom: 'none',
+    },
+    '&:active': {
+      borderBottom: 'none',
+    },
+  },
 });
 
 class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComponentState> {
@@ -111,6 +120,8 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       showBreadcrumbOnTablet,
     } = this.props;
 
+    const altinnWindow: any = window;
+
     return (
       <div className={classes.root}>
         <AppBar
@@ -123,7 +134,9 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
             <Grid container={true} direction='row' alignItems='center' justify='space-between'>
               <Grid xs={true} item={true} container={true}>
                 <Grid item={true}>
-                  <img src='/designer/img/altinn_logo_header.png' />
+                  <a href={altinnWindow.location.origin} className={classes.aImgStyling}>
+                    <img src='/designer/img/altinn_logo_header.png' />
+                  </a>
                 </Grid>
                 <Hidden mdUp>
                   {!showBreadcrumbOnTablet ? null : (
