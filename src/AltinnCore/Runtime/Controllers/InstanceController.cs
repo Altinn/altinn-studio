@@ -34,6 +34,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
+        private readonly IInstance _instance;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -49,6 +50,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
+        /// <param name="instanceSI">the instance service handler</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -60,7 +62,8 @@ namespace AltinnCore.Runtime.Controllers
             IArchive archiveService,
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI)
+            IWorkflowSI workflowSI,
+            IInstance instanceSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -73,6 +76,7 @@ namespace AltinnCore.Runtime.Controllers
             _testdata = testDataService;
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
+            _instance = instanceSI;
         }
 
         /// <summary>
@@ -349,6 +353,8 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Org,
                     startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
+
+                _instance.SaveInstance(serviceModel);
 
                 ServiceState currentState = _workflowSI.InitializeService(formID, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(formID, startServiceModel.Org, startServiceModel.Service, currentState.State);

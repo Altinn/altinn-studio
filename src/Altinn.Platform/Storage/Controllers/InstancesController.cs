@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Storage.Controllers
 {
-    [Route("dataservice/reportees/{reporteeId}/[controller]")]
+    [Route("api/v1/[controller]")]
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
@@ -24,7 +24,7 @@ namespace Altinn.Platform.Storage.Controllers
             _instanceRepository = instanceRepository;
         }
 
-        // GET dataservice/reportees/{reporteeId}/instances/
+        // GET api/v1/instances/
         [HttpGet]
         public async Task<ActionResult> Get(int reporteeId)
         {
@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
-        // GET dataservice/reportees/{reporteeId}<controller>/{instanceId}
+        // GET api/v1/{instanceId}
         [HttpGet("{instanceId}")]
         public async Task<ActionResult> Get(int reporteeId, Guid instanceId)
         {
@@ -50,7 +50,7 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
-        // POST dataservice/reportees/{reporteeId}/instances
+        // POST api/v1/instances
         [HttpPost]
         public async Task<ActionResult> Post([FromBody]Instance Instance)
         {
@@ -63,13 +63,13 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
-        // PUT dataservice/reportees/{reporteeId}/<controller>/5
+        // PUT api/v1/<controller>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody]string value)
         {
         }
 
-        // DELETE dataservice/reportees/{reporteeId}/<controller>/5
+        // DELETE api/v1/<controller>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {

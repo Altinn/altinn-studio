@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="item">the form data</param>
         /// <returns>The instance inserted into collection</returns>
-        Task<string> InsertInstanceIntoCollectionAsync(Instance item);
+        Task<Instance> InsertInstanceIntoCollectionAsync(Instance item);
 
         /// <summary>
         /// update existing instance
