@@ -61,6 +61,29 @@ namespace AltinnCore.Common.Helpers
         }
 
         /// <summary>
+        /// Gets the Developer App token id from cookie
+        /// </summary>
+        /// <param name="context">The Http Context</param>
+        /// <returns>The developer app token</returns>
+        public static string GetDeveloperAppTokenId(HttpContext context)
+        {
+            string accessTokenId = null;
+
+            if (context.User != null)
+            {
+                foreach (Claim claim in context.User.Claims)
+                {
+                    if (claim.Type.Equals(AltinnCoreClaimTypes.DeveloperTokenId))
+                    {
+                        accessTokenId = claim.Value;
+                    }
+                }
+            }
+
+            return accessTokenId;
+        }
+
+        /// <summary>
         /// Returns the designer cookie 
         /// </summary>
         /// <param name="context">Httpcontext with request</param>
