@@ -5,7 +5,7 @@ exports[`>>> AltinnRadioButtonGroup.tsx +++ Should match snapshot with all param
   className="AltinnRadioGroup-altinnRadioGroupWrapper-2"
 >
   <p
-    className="MuiTypography-root-6 AltinnRadioGroup-altinnRadioGroupLabel-3 MuiTypography-body1-15"
+    className="MuiTypography-root-6 AltinnRadioGroup-altinnRadioGroupDescription-3 MuiTypography-body1-15"
   >
     mock-description
   </p>
