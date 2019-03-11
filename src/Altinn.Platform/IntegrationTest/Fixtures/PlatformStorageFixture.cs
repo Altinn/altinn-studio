@@ -14,7 +14,7 @@ namespace Altinn.Platform.Test.Integration.Fixtures
     /// <summary>
     /// Starts the data service in pllace
     /// </summary>
-    public class DataServiceFixture : IDisposable
+    public class PlatformStorageFixture : IDisposable
     {
         private readonly TestServer testServer;
 
@@ -24,9 +24,9 @@ namespace Altinn.Platform.Test.Integration.Fixtures
         public HttpClient Client { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataServiceFixture"/> class.
+        /// Initializes a new instance of the <see cref=PlatformStorageFixture"/> class.
         /// </summary>
-        public DataServiceFixture()
+        public PlatformStorageFixture()
         {
             string[] args = { };
 
