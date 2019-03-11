@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services;
@@ -527,6 +529,41 @@ namespace AltinnCore.Runtime.Controllers
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
 
             return Ok(serviceModel);
+        }
+
+        /// <summary>
+        /// Uploads a single file attachment
+        /// </summary>
+        /// <param name="reportee">The reportee</param>
+        /// <param name="org">The organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instance ID</param>
+        /// <param name="fileName">The name of the file to be uploaded</param>
+        [Authorize]
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        public async Task<IActionResult> UploadAttachment(string reportee, string org, string service, string instanceId, string fileName)
+        {
+            Guid guid = Guid.NewGuid();
+            string pathToSaveTo = _settings.GetTestdataForPartyPath(
+                org,
+                service,
+                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "{0}/{1}/{2}/{3}";
+            Directory.CreateDirectory(string.Format(pathToSaveTo, reportee, instanceId, guid, string.Empty));
+            if (string.IsNullOrEmpty(fileName))
+            {
+                fileName = "testfile.txt";
+            }
+
+            string fileToWriteTo = string.Format(pathToSaveTo, reportee, instanceId, guid, fileName);
+
+            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            {
+                await Request.StreamFile(streamToWriteTo);
+                streamToWriteTo.Flush();
+            }
+
+            return Ok();
         }
 
         /// <summary>
