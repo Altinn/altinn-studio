@@ -4,6 +4,11 @@ exports[`>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot >>>
 <div
   className="form-check a-radioButtons pl-0 form-check-inline"
   id="mock-id"
+  style={
+    Object {
+      "alignItems": "start",
+    }
+  }
 >
   <div
     className="custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio"

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AltinnCore.ServiceLibrary
@@ -39,35 +39,13 @@ namespace AltinnCore.ServiceLibrary
         public List<SelectListItem> PrefillList { get; set; }
 
         /// <summary>
-        /// Gets the organization the current service belongs to
+        /// Gets or sets the organization the current service belongs to
         /// </summary>
-        public string Org
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 2)
-                {
-                    return string.Empty;
-                }
-
-                return ServiceID.Split('_')[0];
-            }
-        }
+        public string Org { get; set; }
 
         /// <summary>
-        /// Gets the name of the service being instantiated
+        /// Gets or sets the name of the service being instantiated
         /// </summary>
-        public string Service
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(ServiceID) || ServiceID.Split('_').Length != 2)
-                {
-                    return string.Empty;
-                }
-
-                return ServiceID.Split('_')[1];
-            }
-        }
+        public string Service { get; set; }
     }
 }

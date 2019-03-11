@@ -1,0 +1,21 @@
+version: '3.4'
+
+networks:
+  altinnplatform_network:
+    external: false
+
+services:
+  altinn_platform_storage:
+    container_name: altinn-platform-storage
+    image: altinnplatformstorage:latest
+    restart: always
+    networks:
+      - altinnplatform_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5010
+    ports:
+      - "5010:5010"
+    build:
+      context: .
+      dockerfile: Storage/Dockerfile

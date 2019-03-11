@@ -26,8 +26,13 @@ describe('>>> containers/WorkflowStep.tsx --- Snapshot', () => {
         },
       },
       formFiller: {
-        validationErrors: {
-          'mock-component-id': ['mock-error-message'],
+        validationResults: {
+          'mock-component-id': {
+            simpleBinding: {
+              errors: ['mock-error-message'],
+              warnings: ['mock-warning-message'],
+            },
+          },
         },
       },
     };

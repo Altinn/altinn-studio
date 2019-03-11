@@ -12,7 +12,7 @@ import { Preview } from './Preview';
 import { WorkflowStep, WorkflowSteps } from './WorkflowStep';
 
 export interface IFormFillerProps {
-  validationErrors: any[];
+  validationResults: IValidationResults;
   unsavedChanges: boolean;
   connections: any;
   dataModelElements: IDataModelFieldElement[];
@@ -97,7 +97,8 @@ export class FormFillerComponent extends React.Component<IFormFillerProps, IForm
   }
 
   public renderSubmitButton = () => {
-    const disabled = (this.props.formDataCount > 0 && Object.keys(this.props.validationErrors).length !== 0)
+    const disabled = (this.props.formDataCount > 0 &&
+      (this.props.validationResults !== null && Object.keys(this.props.validationResults).length !== 0))
       || this.props.unsavedChanges || this.props.formDataCount === 0;
     return (
       <button
@@ -141,7 +142,7 @@ const makeMapStateToProps = () => {
   const GetValidationErrors = makeGetValidationErrorsSelector();
   const mapStateToProps = (state: IAppState, empty: any): IFormFillerProps => {
     return {
-      validationErrors: GetValidationErrors(state),
+      validationResults: GetValidationErrors(state),
       unsavedChanges: GetUnsavedChanges(state),
       connections: GetApiConnections(state),
       dataModelElements: GetDataModel(state),

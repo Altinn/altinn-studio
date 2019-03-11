@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
   id: string;
@@ -7,6 +8,7 @@ export interface ICheckboxContainerProps {
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid: boolean;
+  validationMessages: IComponentValidations;
   designMode: boolean;
 }
 
@@ -50,6 +52,10 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     this.props.handleDataChange(newSelected.join());
   }
 
+  public isOptionSelected = (option: string) => {
+    return this.state.selected.includes(option);
+  }
+
   public render() {
     const { options } = this.props.component;
     const optionsLength = (options) ? options.length : 0;
@@ -61,13 +67,10 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
           (isStacked ?
             ' form-check-stacked' :
             ' form-check-inline'
-          ) +
-          (this.props.isValid ?
-            '' :
-            ' validation-error'
           )
         }
         id={this.props.id}
+        style={isStacked ? {} : {alignItems: 'start'}}
       >
         {options.map((option, index) => (
           <div
@@ -80,11 +83,12 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               className='custom-control-input'
               value={option.value}
               name={'checkbox-' + this.props.id + '-' + index}
-              checked={
-                this.state.selected[index] === option.value
-              }
+              checked={this.isOptionSelected(option.value)}
             />
             <label className='pl-3 custom-control-label'>{option.label}</label>
+            {this.props.validationMessages && this.isOptionSelected(option.value) &&
+              renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
+                this.props.component.id)}
           </div>
         ))}
       </div>

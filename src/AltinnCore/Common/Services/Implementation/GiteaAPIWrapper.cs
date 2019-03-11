@@ -380,17 +380,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// This is the only  way (currently) to generate a APP key without involving the user in 
         /// </summary>
         /// <returns>A newly generated token</returns>
-        public async Task<string> GetSessionAppKey()
+        public async Task<string> GetSessionAppKey(string keyName = null)
         {
             string csrf = GetCsrf().Result;
 
-            DeleteCurrentAppKeys(csrf);
+            DeleteCurrentAppKeys(csrf, keyName);
 
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
           
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
-            formValues.Add(new KeyValuePair<string, string>("name", "AltinnStudioAppKey"));
+            formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
 
             FormUrlEncodedContent content = new FormUrlEncodedContent(formValues);
 
@@ -426,7 +426,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        private async void DeleteCurrentAppKeys(string csrf)
+        private async void DeleteCurrentAppKeys(string csrf, string keyName = null)
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
             List<string> appKeyIds = new List<string>();
@@ -437,7 +437,7 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
-                    appKeyIds = FindAllAppKeysId(htmlContent);
+                    appKeyIds = FindAllAppKeysId(htmlContent, keyName);
                 }
             }
 
@@ -466,7 +466,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        private List<string> FindAllAppKeysId(string htmlContent)
+        private List<string> FindAllAppKeysId(string htmlContent, string keyName = null)
         {
             List<string> htmlValues = new List<string>();
             HtmlAgilityPack.HtmlDocument htmlDocument = new HtmlAgilityPack.HtmlDocument();
@@ -478,7 +478,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             foreach (HtmlAgilityPack.HtmlNode keyNode in nodes)
             {
-                if (keyNode.OuterHtml.Contains("AltinnStudioAppKey"))
+                if (keyNode.OuterHtml.Contains(keyName == null ? "AltinnStudioAppKey" : keyName))
                 {
                     // Returns the button node
                     HtmlAgilityPack.HtmlNode deleteButtonNode = keyNode.SelectSingleNode("./div/button");

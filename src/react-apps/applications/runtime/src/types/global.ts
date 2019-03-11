@@ -79,6 +79,7 @@ declare global {
     disabled?: boolean;
     required?: boolean;
     hidden?: boolean;
+    readOnly?: boolean;
   }
 
   export interface IFormHeaderComponent extends IFormComponent {
@@ -112,6 +113,11 @@ declare global {
 
   export interface IFormFileUploaderComponent extends IFormComponent {
     description: string;
+    hasCustomFileEndings: boolean;
+    maxFileSizeInMB: number;
+    displayMode: string;
+    maxNumberOfAttachments: number;
+    validFileEndings?: string;
   }
 
   export interface IDataModelBindings {
@@ -123,6 +129,7 @@ declare global {
   }
 
   export type FormComponentType =
+    | IFormComponent
     | IFormHeaderComponent
     | IFormInputComponent
     | IFormCheckboxComponent
@@ -215,5 +222,18 @@ declare global {
   export interface ITextResource {
     id: string;
     value: string;
+  }
+
+  export interface IComponentBindingValidation {
+    errors?: string[];
+    warnings?: string[];
+  }
+
+  export interface IComponentValidations {
+    [id: string]: IComponentBindingValidation;
+  }
+
+  export interface IValidationResults {
+    [id: string]: IComponentValidations;
   }
 }

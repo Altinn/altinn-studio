@@ -80,7 +80,7 @@ namespace AltinnCore.Designer.Controllers
         public List<Organization> Organizations()
         {
             List<Organization> orglist = _giteaApi.GetUserOrganizations().Result;
-            return orglist;
+            return orglist == null ? new List<Organization>() : orglist;
         }
 
         /// <summary>
