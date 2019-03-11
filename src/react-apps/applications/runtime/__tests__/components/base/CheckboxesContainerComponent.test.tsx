@@ -43,6 +43,7 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         designMode={mockDesignMode}
+        validationMessages={{}}
       />,
     );
     expect(rendered).toMatchSnapshot();
