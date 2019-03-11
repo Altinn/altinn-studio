@@ -542,27 +542,16 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         [HttpPost]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> UploadAttachment(string reportee, string org, string service, string instanceId, string fileName)
+        public async Task<IActionResult> UploadAttachment(int reportee, string org, string service, int instanceId, string fileName)
         {
-            Guid guid = Guid.NewGuid();
-            string pathToSaveTo = _settings.GetTestdataForPartyPath(
-                org,
-                service,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + "{0}/{1}/{2}/{3}";
-            Directory.CreateDirectory(string.Format(pathToSaveTo, reportee, instanceId, guid, string.Empty));
             if (string.IsNullOrEmpty(fileName))
             {
-                fileName = "testfile.txt";
+                ApiResult apiResult = new ApiResult();
+                Response.StatusCode = 500;
+                return new ObjectResult(apiResult);
             }
 
-            string fileToWriteTo = string.Format(pathToSaveTo, reportee, instanceId, guid, fileName);
-
-            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
-            {
-                await Request.StreamFile(streamToWriteTo);
-                streamToWriteTo.Flush();
-            }
-
+            await _form.SaveFormAttachment(Request, instanceId, org, service, reportee, fileName);
             return Ok();
         }
 

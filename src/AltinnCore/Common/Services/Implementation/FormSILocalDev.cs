@@ -144,5 +144,28 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
         }
+
+        /// <summary>
+        /// This method saves a form attachment
+        /// </summary>
+        /// <param name="request">The request containing the attachment data</param>
+        /// <param name="formId">The form id</param>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="attachmentName">The file name for the attachment</param>
+        public async Task SaveFormAttachment(HttpRequest request, int formId, string org, string service, int partyId, string attachmentName)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Guid guid = Guid.NewGuid();
+            string pathToSaveTo = _settings.GetTestdataForPartyPath(org, service, developer) + "{0}/{1}/{2}/{3}";
+            Directory.CreateDirectory(string.Format(pathToSaveTo, partyId, formId, guid, string.Empty));
+            string fileToWriteTo = string.Format(pathToSaveTo, partyId, formId, guid, attachmentName);
+            using (Stream streamToWriteTo = File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            {
+                await request.StreamFile(streamToWriteTo);
+                streamToWriteTo.Flush();
+            }
+        }
     }
 }

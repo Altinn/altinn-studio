@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using System;
+using System.Threading.Tasks;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -18,6 +20,17 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId for the reportee</param>
         void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId);
+
+        /// <summary>
+        /// This method saves a form attachment
+        /// </summary>
+        /// <param name="request">The request containing the attachment data</param>
+        /// <param name="formId">The form id</param>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="attachmentName">The file name for the attachment</param>
+        Task SaveFormAttachment(HttpRequest request, int formId, string org, string service, int partyId, string attachmentName);
 
         /// <summary>
         /// Returns the Form model for a given from.
