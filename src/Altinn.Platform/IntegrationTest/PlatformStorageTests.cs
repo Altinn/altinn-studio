@@ -37,8 +37,8 @@ namespace Altinn.Platform.Test.Integration
 
             Instance instanceData = new Instance
             {
-                ReporteeId = "666",
-                ServiceId = "sailor",
+                InstanceOwnerId = "666",
+                ApplicationId = "sailor",
                 CreatedDateTime = creationTimestamp,
             };
 
@@ -55,8 +55,8 @@ namespace Altinn.Platform.Test.Integration
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
-            Assert.Equal("666", actual.ReporteeId);
-            Assert.Equal("sailor", actual.ServiceId);
+            Assert.Equal("666", actual.InstanceOwnerId);
+            Assert.Equal("sailor", actual.ApplicationId);
             Assert.Equal(creationTimestamp, actual.CreatedDateTime);
         }
 
@@ -79,7 +79,7 @@ namespace Altinn.Platform.Test.Integration
         {
             Data formData = new Data();
             formData.FileName = "u2.json";
-            formData.FormDataXml = "<message>42</message>";
+            formData.ContentType = "<message>42</message>";
 
             string url = string.Format("dataservice/instances/{0}/forms", "guid123");
 

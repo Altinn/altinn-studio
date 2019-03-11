@@ -15,25 +15,68 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// unique Id 
         /// </summary>
+        [JsonProperty(PropertyName = "id")]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// users filename
+        /// </summary>
         [JsonProperty(PropertyName = "fileName")]
         public string FileName { get; set; }
 
         /// <summary>
-        /// form data in xml format
+        /// contentType of file in blob
         /// </summary>
-        [JsonProperty(PropertyName = "formDataXml")]
-        public string FormDataXml { get; set; }
+        [JsonProperty(PropertyName = "contentType")]
+        public string ContentType { get; set; }
 
         /// <summary>
-        /// form data in xml format
+        /// path to blob storage
         /// </summary>
-        [JsonProperty(PropertyName = "attachmentData")]
-        public string AttachmentData { get; set; }
+        [JsonProperty(PropertyName = "storageUrl")]
+        public string StorageUrl { get; set; }
 
         /// <summary>
-        /// form data in xml format
+        /// Size of file in bytes
         /// </summary>
-        [JsonProperty(PropertyName = "dataType")]
-        public string DataType { get; set; }
+        [JsonProperty(PropertyName = "fileSize")]
+        public int FileSize { get; set; }
+
+        /// <summary>
+        /// Signature
+        /// </summary>
+        [JsonProperty(PropertyName = "signature")]
+        public string Signature { get; set; }
+
+        /// <summary>
+        /// Size of file in bytes
+        /// </summary>
+        [JsonProperty(PropertyName = "isLocked")]
+        public bool IsLocked { get; set; }
+
+        /// <summary>
+        /// create date and time for the instance
+        /// </summary>
+        [JsonProperty(PropertyName = "createdDateTime")]
+        public DateTime CreatedDateTime { get; set; }
+
+        /// <summary>
+        /// reportee id of the user who created the instance
+        /// </summary>
+        [JsonProperty(PropertyName = "createdBy")]
+        public string CreatedBy { get; set; }
+
+        /// <summary>
+        /// last changed date time for the instance
+        /// </summary>
+        [JsonProperty(PropertyName = "lastChangedDateTime")]
+        public DateTime LastChangedDateTime { get; set; }
+
+        /// <summary>
+        /// reportee id of the user who last changed the instance
+        /// </summary>
+        [JsonProperty(PropertyName = "lastChangedBy")]
+        public string LastChangedBy { get; set; }
+
     }
 }

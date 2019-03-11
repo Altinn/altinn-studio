@@ -71,7 +71,7 @@ namespace Altinn.Platform.Storage.Controllers
         // POST dataservice/instances/{instanceid}/forms/
         public async Task<ActionResult> Post([FromBody] Data formData)
         {
-            if (formData == null || string.IsNullOrEmpty(formData.FileName) || string.IsNullOrEmpty(formData.FormDataXml))
+            if (formData == null || string.IsNullOrEmpty(formData.FileName) || string.IsNullOrEmpty(formData.ContentType))
             {
                 return BadRequest();
             }
@@ -80,7 +80,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             // var xmlData = JsonConvert.SerializeObject(formData.FormDataXml);
             StreamWriter writer = new StreamWriter(formDataStream);
-            writer.Write(formData.FormDataXml);
+            writer.Write(formData.ContentType);
             writer.Flush();
             formDataStream.Position = 0;
 

@@ -61,7 +61,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] Data attachment)
         {
-            if (attachment == null || string.IsNullOrEmpty(attachment.FileName) || string.IsNullOrEmpty(attachment.AttachmentData))
+            if (attachment == null || string.IsNullOrEmpty(attachment.FileName) || string.IsNullOrEmpty(attachment.StorageUrl))
             {
                 return BadRequest();
             }
@@ -70,7 +70,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             // var xmlData = JsonConvert.SerializeObject(formData.FormDataXml);
             StreamWriter writer = new StreamWriter(attachmentDataStream);
-            writer.Write(attachment.AttachmentData);
+            writer.Write(attachment.StorageUrl);
             writer.Flush();
             attachmentDataStream.Position = 0;
 
