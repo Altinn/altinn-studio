@@ -37,25 +37,26 @@ namespace Altinn.Platform.Test.Integration
 
             Instance instanceData = new Instance
             {
-                InstanceOwnerId = "666",
+                InstanceOwnerId = 666,
                 ApplicationId = "sailor",
+                ApplicationOwnerId = "BRREG",
                 CreatedDateTime = creationTimestamp,
             };
 
-            HttpResponseMessage postResponse = await client.PostAsync("/dataservice/reportees/666/instances", instanceData.AsJson());
+            HttpResponseMessage postResponse = await client.PostAsync("/api/v1/instances?instanceOwnerId=666", instanceData.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
             string newId = await postResponse.Content.ReadAsStringAsync();
 
             Assert.NotNull(newId);
 
-            HttpResponseMessage getResponse = await client.GetAsync("/dataservice/reportees/666/instances/" + newId);
+            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "/?instanceOwnerId=666");
 
             getResponse.EnsureSuccessStatusCode();
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
-            Assert.Equal("666", actual.InstanceOwnerId);
+            Assert.Equal(666, actual.InstanceOwnerId);
             Assert.Equal("sailor", actual.ApplicationId);
             Assert.Equal(creationTimestamp, actual.CreatedDateTime);
         }

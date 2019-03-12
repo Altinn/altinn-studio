@@ -30,7 +30,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">owner of the instances</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// GET api/v1/instances/
-        [HttpGet("{instanceOwnerId}")]
+        [HttpGet]
         public async Task<ActionResult> Get(int instanceOwnerId)
         {
             var result = await _instanceRepository.GetInstancesFromCollectionAsync(instanceOwnerId);
@@ -64,15 +64,22 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance into the instance collection
         /// </summary>
-        /// <param name="instance">instance</param>
+        /// <param name="metadata">instance</param>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <returns>instance object</returns>
         /// POST api/v1/instances
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody]Instance instance, int instanceOwnerId)
+        public async Task<ActionResult> Post([FromBody] Instance metadata, int instanceOwnerId)
         {
-            instance.CreatedBy = instanceOwnerId;
-            instance.CreatedDateTime = DateTime.UtcNow;
+            Instance instance = new Instance
+            {
+                InstanceOwnerId = instanceOwnerId.ToString(),
+                ApplicationId = metadata.ApplicationId,
+                ApplicationOwnerId = metadata.ApplicationOwnerId,
+                CreatedBy = instanceOwnerId,
+                CreatedDateTime = DateTime.UtcNow,
+            };
+
             var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {
@@ -91,7 +98,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns></returns>
         /// PUT api/v1/<controller>/5
         [HttpPut("{instanceId}")]
-        public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody]Instance instance)
+        public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
         {
             instance.LastChangedBy = instanceOwnerId;
             instance.LastChangedDateTime = DateTime.UtcNow;

@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Models
         /// owner of the instance
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
-        public int InstanceOwnerId { get; set; }
+        public string InstanceOwnerId { get; set; }
 
         /// <summary>
         /// id of the service
