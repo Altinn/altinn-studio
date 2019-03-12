@@ -38,13 +38,13 @@ namespace AltinnCore.Common.Services.Implementation
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class
+        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class.
         /// </summary>
-        /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
-        /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
-        /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
-        /// <param name="partManager">The part manager</param>
-        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="settings">The repository setting service needed (set in startup.cs).</param>
+        /// <param name="repositoryService">The repository service needed (set in startup.cs).</param>
+        /// <param name="compilationService">The service compilation service needed (set in startup.cs).</param>
+        /// <param name="partManager">The part manager.</param>
+        /// <param name="httpContextAccessor">the http context accessor.</param>
         public ExecutionSIContainer(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
