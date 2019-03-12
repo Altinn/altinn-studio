@@ -43,7 +43,7 @@ test.skip('Create a new service', async () => {
 test('Search for only my users services', async () => {
   await t
     .click(dash.serviceSearch)
-    .typeText(dash.serviceSearch, "testcafe")
+    .typeText(dash.serviceSearch, "autotest")
     .pressKey("enter")
     .expect(dash.rettigheterMelding.exists).ok()
 });

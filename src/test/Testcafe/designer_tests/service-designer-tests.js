@@ -23,7 +23,7 @@ fixture('GUI service designer tests')
 
 test('Sync a service with master', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe05#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.dropDown)
     .pressKey("enter")
@@ -55,7 +55,7 @@ test('About page items and editing', async () => {
     .pressKey('ctrl+a')
     .pressKey('backspace')
     .typeText(designer.omTjenesteNavn, 'testcafe' + '_' + randNumTwo.toString())
-    .expect(designer.omTjenesteNavn.getAttribute("value")).eql("testcafe05" + "_" + randNumTwo.toString())
+    .expect(designer.omTjenesteNavn.getAttribute("value")).eql("autotest" + "_" + randNumTwo.toString())
     .expect(designer.omLagringsNavn.getAttribute("value")).notContains(randNumTwo.toString())
     .pressKey('tab')
     .click(designer.omTjenesteId)

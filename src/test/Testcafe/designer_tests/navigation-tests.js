@@ -23,7 +23,7 @@ fixture('Navigating the Service designer')
   .beforeEach(async t => {
     await common.login(testUser.userEmail, testUser.password, loginPage);
     await waitForReact();
-    await t.navigateTo(app.baseUrl + 'designer/AutoTest/testcafe05#/aboutservice')
+    await t.navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/aboutservice')
     //app.before();
   })
   .after(async () => {
