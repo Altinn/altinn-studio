@@ -14,7 +14,7 @@ using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
-
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Options;
@@ -31,6 +31,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IRepository _repository;
         private readonly ServiceRepositorySettings _settings;
         private readonly CustomRoslynCompilationService _compilation;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionSIIntegrationTest"/> class
@@ -39,16 +40,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="packageRepository">The service package repository</param>
         /// <param name="repository">The repository </param>
+        /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionSIIntegrationTest(
             IViewCompiler roslynCompilationService,
             IOptions<ServiceRepositorySettings> repositorySettings,
             IServicePackageRepository packageRepository,
-            IRepository repository)
+            IRepository repository,
+            IHostingEnvironment hostingEnvironment)
         {
             _packageRepository = packageRepository;
             _repository = repository;
             _settings = repositorySettings.Value;
             _compilation = (CustomRoslynCompilationService)roslynCompilationService;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         /// <summary>
@@ -213,6 +217,32 @@ namespace AltinnCore.Common.Services.Implementation
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeApp()
+        {
+            byte[] fileContent = null;
+            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeStyle()
+        {
+            byte[] fileContent = null;
+            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
         }
     }
 }

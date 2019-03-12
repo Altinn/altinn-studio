@@ -1821,10 +1821,10 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialStyles(string org, DirectoryInfo targetDirectory)
         {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeAppCssFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeCssFileName);
             if (!File.Exists(destFileName))
             {
-                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.RuntimeAppCssFileName, org);
+                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.RuntimeCssFileName, org);
                 if (sourceFile != null && sourceFile.Exists)
                 {
                     sourceFile.CopyTo(destFileName);
@@ -1833,7 +1833,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             StylesConfig stylesConfig = new StylesConfig();
             stylesConfig.InternalStyles = new List<string>();
-            stylesConfig.InternalStyles.Add(_settings.RuntimeAppCssFileName);
+            stylesConfig.InternalStyles.Add(_settings.RuntimeCssFileName);
             stylesConfig.ExternalStyles = new List<string>();
             stylesConfig.ExternalStyles.Add(_settings.DefaultBootstrapUrl);
 

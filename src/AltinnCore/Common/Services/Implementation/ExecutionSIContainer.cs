@@ -22,6 +22,7 @@ namespace AltinnCore.Common.Services.Implementation
     using System.Text;
     using AltinnCore.Common.Helpers;
     using AltinnCore.Common.Helpers.Extensions;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
 
     /// <summary>
@@ -34,6 +35,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
@@ -42,18 +44,20 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
-        /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionSIContainer(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             ApplicationPartManager partManager,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         /// <summary>
@@ -272,6 +276,32 @@ namespace AltinnCore.Common.Services.Implementation
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeApp()
+        {
+            byte[] fileContent = null;
+            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeStyle()
+        {
+            byte[] fileContent = null;
+            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
         }
     }
 }

@@ -195,7 +195,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets React CSS file name
         /// </summary>
-        public string RuntimeAppCssFileName { get; set; } = "runtime.css";
+        public string RuntimeCssFileName { get; set; } = "runtime.css";
 
         /// <summary>
         /// Gets or sets styles config file name for service

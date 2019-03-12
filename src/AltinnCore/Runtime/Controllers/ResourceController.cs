@@ -47,6 +47,38 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
+        /// Method to retrieve the runtime app
+        /// </summary>
+        /// <returns>File content with content type set</returns>
+        public IActionResult GetRuntimeApp()
+        {
+            byte[] fileContent = _execution.GetRuntimeApp();
+
+            if (fileContent != null)
+            {
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType("js"));
+            }
+
+            return StatusCode(404);
+        }
+
+        /// <summary>
+        /// Method to retrieve the runtime app
+        /// </summary>
+        /// <returns>File content with content type set</returns>
+        public IActionResult GetRuntimeStyles()
+        {
+            byte[] fileContent = _execution.GetRuntimeStyle();
+
+            if (fileContent != null)
+            {
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType("js"));
+            }
+
+            return StatusCode(404);
+        }
+
+        /// <summary>
         /// Method to retrieve textresources
         /// </summary>
         /// <param name="org">the organisation</param>

@@ -81,5 +81,17 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="path">The path of the file to open</param>
         /// <returns>The filestream for the given paths file</returns>
         FileStream GetFileStream(string path);
+
+        /// <summary>
+        /// Method that fetches the runtime app
+        /// </summary>
+        /// <returns>The filestream for the runtime app file</returns>
+        byte[] GetRuntimeApp();
+
+        /// <summary>
+        /// Method that fetches the runtime style file
+        /// </summary>
+        /// <returns>The filestream for the runtime style file</returns>
+        byte[] GetRuntimeStyle();
     }
 }

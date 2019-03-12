@@ -17,7 +17,7 @@
     var script = document.createElement('script');
     var service = window.location.pathname.split('/');
     script.type = 'text/javascript';
-    script.src = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3] + '/runtime.js';
+    script.src = window.location.origin + '/runtime/api/resource/GetRuntimeApp';
     window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
     window.org = service[2];
     window.service = service[3];
@@ -27,8 +27,7 @@
 
   function loadStyles() {
     var service = window.location.pathname.split('/');
-    var resourcesUrl = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3];
-    var stylesConfigUrl = resourcesUrl + '/Styles.json';
+    var resourcesUrl = window.location.origin + '/runtime/api/resource/GetRuntimeStyles';
     var xmlhttp = new XMLHttpRequest();
 
     xmlhttp.onreadystatechange = function () {
@@ -37,7 +36,7 @@
         loadServiceStyles(stylesConfig, resourcesUrl);
       }
     };
-    xmlhttp.open("GET", stylesConfigUrl, true);
+    xmlhttp.open("GET", resourcesUrl, true);
     xmlhttp.send();
 
     function loadServiceStyles(stylesConfig, resourcesUrl) {
