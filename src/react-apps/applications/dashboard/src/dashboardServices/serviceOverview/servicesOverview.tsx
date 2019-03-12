@@ -78,9 +78,7 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
 };
 
 const getListOfServicesExcludingCodelist = (services: any) => {
-  return services.filter((service: any) => {
-    return service.name !== 'codelists';
-  });
+  return services.filter((service: any) => service.name !== 'codelists');
 };
 
 const getCurrentUsersName = (user: any) => {
