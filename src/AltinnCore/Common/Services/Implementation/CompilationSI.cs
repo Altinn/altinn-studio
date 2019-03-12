@@ -44,12 +44,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="CompilationSI"/> class.
         /// </summary>
-        /// <param name="configuration">The configuration</param>
-        /// <param name="partManager">The part manager</param>
-        /// <param name="compilationService">The compilation service</param>
-        /// <param name="repositoryService">The service repository service</param>
-        /// <param name="logger">The logger</param>
-        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="partManager">The part manager.</param>
+        /// <param name="compilationService">The compilation service.</param>
+        /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="httpContextAccessor">the http context accessor.</param>
         public CompilationSI(
             IOptions<ServiceRepositorySettings> configuration,
             ApplicationPartManager partManager,
@@ -67,12 +67,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates a zip-file containing all files necessary for executing a service
+        /// Creates a zip-file containing all files necessary for executing a service.
         /// </summary>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>Was the package creation successful</returns>
-        public bool CreateServicePackage(string org, string service)
+        /// <param name="org">The organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <returns>Was the package creation successful.</returns>
+        public bool CreateServicePackage(string org, string service, bool startServiceFlag)
         {
             ServiceMetadata serviceMetadata = _repository.GetServiceMetaData(org, service);
 
@@ -90,7 +91,7 @@ namespace AltinnCore.Common.Services.Implementation
             Directory.CreateDirectory(packagesDir);
 
             string compileResult = string.Empty;
-            string assemblyName = CreateServiceAssembly(org, service, tempDirPath + "/Assemblies/").AssemblyName;
+            string assemblyName = CreateServiceAssembly(org, service, startServiceFlag, tempDirPath + "/Assemblies/").AssemblyName;
 
             ServicePackageDetails details = new ServicePackageDetails
             {
@@ -112,14 +113,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Creates the service assembly for a service
+        /// Creates the service assembly for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="outputLocation">The directory where the resulting assembly should be saved</param>
-        /// <param name="loadAssemblyContext">Defines if assembly should be loaded in context</param>
-        /// <returns>The assembly name</returns>
-        public CodeCompilationResult CreateServiceAssembly(string org, string service, string outputLocation = null, bool loadAssemblyContext = true)
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <param name="outputLocation">The directory where the resulting assembly should be saved.</param>
+        /// <param name="loadAssemblyContext">Defines if assembly should be loaded in context.</param>
+        /// <returns>The assembly name.</returns>
+        public CodeCompilationResult CreateServiceAssembly(string org, string service, bool startServiceFlag, string outputLocation = null, bool loadAssemblyContext = true)
         {
             CodeCompilationResult compilationResult = new CodeCompilationResult() { CompileStarted = DateTime.Now };
             string assemblykey = org + "_" + service;
@@ -135,7 +137,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            if (_assemblyNames.ContainsKey(assemblykey) && _assemblyNames[assemblykey].CompileStarted > lastChanged && string.IsNullOrWhiteSpace(outputLocation))
+            if (_assemblyNames.ContainsKey(assemblykey) && _assemblyNames[assemblykey].CompileStarted > lastChanged && string.IsNullOrWhiteSpace(outputLocation)
+                && !startServiceFlag)
             {
                 compilationResult = _assemblyNames[assemblykey];
                 return compilationResult;
@@ -273,9 +276,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Read all source documents for a given service and put it in a syntax tree array.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The syntax tree</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The syntax tree.</returns>
         private SyntaxTree[] GetSyntaxTrees(string org, string service)
         {
             List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
