@@ -277,9 +277,10 @@ namespace AltinnCore.Runtime.Controllers
         [HttpPost]
         public async Task<IActionResult> StartService(StartServiceModel startServiceModel)
         {
-            bool startService = true;
+
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
+            bool startService = true;
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(startServiceModel.Org, startServiceModel.Service, startService);
 
             // Get the service context containing metadata about the service
