@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Models
         /// owner of the instance
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
-        public string InstanceOwnerId { get; set; }
+        public int InstanceOwnerId { get; set; }
 
         /// <summary>
         /// id of the service
@@ -45,7 +45,7 @@ namespace Altinn.Platform.Storage.Models
         /// reportee id of the user who created the instance
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
-        public string CreatedBy { get; set; }
+        public int CreatedBy { get; set; }
 
         /// <summary>
         /// last changed date time for the instance
@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.Models
         /// reportee id of the user who last changed the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
-        public string LastChangedBy { get; set; }
+        public int LastChangedBy { get; set; }
 
         /// <summary>
         /// Due date to submit the form(instance)
@@ -112,89 +112,5 @@ namespace Altinn.Platform.Storage.Models
         {
             return JsonConvert.SerializeObject(this);
         }
-    }
-
-    /// <summary>
-    /// attachment model
-    /// </summary>
-    public class Attachments
-    {
-        /// <summary>
-        /// Gets or sets unique id for the attachment
-        /// </summary>
-        [JsonProperty(PropertyName = "attachmentId")]
-        public string AttachmentId { get; set; }
-
-        /// <summary>
-        /// Gets or sets content type of the attachment file
-        /// </summary>
-        [JsonProperty(PropertyName = "contentType")]
-        public string ContentType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the attachment name 
-        /// </summary>
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
-
-        /// <summary>
-        /// Gets or sets the attachment name 
-        /// </summary>
-        [JsonProperty(PropertyName = "fileNameInStorage")]
-        public string FileNameInStorage { get; set; }
-    }
-
-    /// <summary>
-    /// correspondence model
-    /// </summary>
-    public class Correspondence
-    {
-        /// <summary>
-        /// Gets or sets the message title
-        /// </summary>
-        [JsonProperty(PropertyName = "messageTitle")]
-        public string MessageTitle { get; set; }
-
-        /// <summary>
-        /// Gets or sets the summary of the message
-        /// </summary>
-        [JsonProperty(PropertyName = "messageSummary")]
-        public string MessageSummary { get; set; }
-
-        /// <summary>
-        /// Gets or sets the body of the message
-        /// </summary>
-        [JsonProperty(PropertyName = "messageBody")]
-        public string MessageBody { get; set; }
-
-        /// <summary>
-        /// Gets or sets the custom message
-        /// </summary>
-        [JsonProperty(PropertyName = "customMessage")]
-        public string CustomMessage { get; set; }
-    }
-
-    /// <summary>
-    /// Form model
-    /// </summary>
-    public class Form
-    {
-        /// <summary>
-        /// Gets or sets unique id for the attachment
-        /// </summary>
-        [JsonProperty(PropertyName = "formId")]
-        public string FormId { get; set; }
-
-        /// <summary>
-        /// Gets or sets content type of the attachment file
-        /// </summary>
-        [JsonProperty(PropertyName = "formType")]
-        public string FormType { get; set; }
-
-        /// <summary>
-        /// Gets or sets the attachment name 
-        /// </summary>
-        [JsonProperty(PropertyName = "fileNameInStorage")]
-        public string FileNameInStorage { get; set; }
-    }
+    }  
 }
