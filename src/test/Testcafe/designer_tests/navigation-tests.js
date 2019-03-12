@@ -1,4 +1,4 @@
-import { t } from 'testcafe';
+import { t,ClientFunction } from 'testcafe';
 import { waitForReact } from 'testcafe-react-selectors';
 import DesignerPage from '../page-objects/designerPage';
 import CommonPage from '../page-objects/common';
@@ -12,7 +12,9 @@ let dash = new DashBoard();
 let common = new CommonPage();
 let loginPage = new LoginPage();
 let designerPage = new DesignerPage();
+
 const testUser = new TestData('AutoTest', 'automatictestaltinn@brreg.no', 'test123', 'basic');
+const getLocation = ClientFunction(() => document.location.href);
 
 fixture('Navigating the Service designer')
   .page(app.baseUrl)
@@ -21,7 +23,7 @@ fixture('Navigating the Service designer')
   .beforeEach(async t => {
     await common.login(testUser.userEmail, testUser.password, loginPage);
     await waitForReact();
-    await t.navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
+    await t.navigateTo(app.baseUrl + 'designer/AutoTest/testcafe05#/aboutservice')
     //app.before();
   })
   .after(async () => {
@@ -60,14 +62,11 @@ test('Språk tab navigation', async () => {
 test('Teste tab navigation', async () => {
   await t
     .click(designerPage.testeNavigationTab)
-    .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.testeLeftMenuItems[0].visible).ok()
+    .expect(getLocation()).contains('runtime/ManualTesting/Users');
 });
 
 test('Publisere tab navigation', async () => {
   await t
     .click(designerPage.publisereNavigationTab)
-    .hover(designerPage.leftDrawerMenu)
-    .expect(designerPage.publisereLeftMenuItems[0].visible).ok()
-    .expect(designerPage.publisereLeftMenuItems[1].visible).ok()
+    .expect(designerPage.publisereButton.exists).ok()
 });

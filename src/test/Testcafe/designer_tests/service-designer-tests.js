@@ -23,7 +23,7 @@ fixture('GUI service designer tests')
 
 test('Sync a service with master', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe05#/aboutservice')
     .click(designer.lageNavigationTab)
     .click(designer.dropDown)
     .pressKey("enter")
@@ -45,17 +45,17 @@ test('About page items and editing', async () => {
   const randNumTwo = Math.floor(100 + Math.random() *900);
   const randId = Math.floor(100000 + Math.random() * 900000);
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe01#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/testcafe#/uieditor')
     .click(designer.omNavigationTab)
     .expect(designer.omTjenesteNavn.focused).notOk() 
     .click(designer.omTjenesteNavn)
-    .typeText(designer.omTjenesteNavn, 'testcafe01' + '_' + randNumOne.toString())
+    .typeText(designer.omTjenesteNavn, 'testcafe' + '_' + randNumOne.toString())
     .click(designer.omEndreTjenesteNavn)
     .expect(designer.omTjenesteNavn.getAttribute("value")).notContains(randNumOne.toString(), "Endre must be clicked for field to be editable!")
     .pressKey('ctrl+a')
     .pressKey('backspace')
-    .typeText(designer.omTjenesteNavn, 'testcafe01' + '_' + randNumTwo.toString())
-    .expect(designer.omTjenesteNavn.getAttribute("value")).eql("testcafe01" + "_" + randNumTwo.toString())
+    .typeText(designer.omTjenesteNavn, 'testcafe' + '_' + randNumTwo.toString())
+    .expect(designer.omTjenesteNavn.getAttribute("value")).eql("testcafe05" + "_" + randNumTwo.toString())
     .expect(designer.omLagringsNavn.getAttribute("value")).notContains(randNumTwo.toString())
     .pressKey('tab')
     .click(designer.omTjenesteId)
