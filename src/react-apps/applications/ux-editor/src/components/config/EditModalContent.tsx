@@ -209,6 +209,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
           </Grid>
         );
       }
+      case 'Datepicker':
       case 'Input': {
         return (
           <Grid item={true} xs={12}>
