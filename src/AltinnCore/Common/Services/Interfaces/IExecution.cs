@@ -14,7 +14,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determin if the service should run/rerun.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The service implementation.</returns>
         IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag);
 
@@ -23,7 +23,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determin if the service should run/rerun.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The serviceContext.</returns>
         ServiceContext GetServiceContext(string org, string service, bool startServiceFlag);
 

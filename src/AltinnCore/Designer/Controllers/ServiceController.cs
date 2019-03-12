@@ -68,7 +68,7 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determin if the service should run/rerun.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>Redirect to index.</returns>
         [HttpGet]
         public IActionResult CreateServicePackage(string org, string service, bool startServiceFlag)

@@ -71,7 +71,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determin if the service should run/rerun.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>Was the package creation successful.</returns>
         public bool CreateServicePackage(string org, string service, bool startServiceFlag)
         {
@@ -117,7 +117,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
         /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determin if the service should run/rerun.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <param name="outputLocation">The directory where the resulting assembly should be saved.</param>
         /// <param name="loadAssemblyContext">Defines if assembly should be loaded in context.</param>
         /// <returns>The assembly name.</returns>
