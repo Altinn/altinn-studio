@@ -23,7 +23,7 @@ fixture('Navigating the Service designer')
   .beforeEach(async t => {
     await common.login(testUser.userEmail, testUser.password, loginPage);
     await waitForReact();
-    await t.navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/aboutservice')
+    await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
     //app.before();
   })
   .after(async () => {
@@ -65,8 +65,9 @@ test('Teste tab navigation', async () => {
     .expect(getLocation()).contains('runtime/ManualTesting/Users');
 });
 
-test('Publisere tab navigation', async () => {
+test.only('Publisere tab navigation', async () => {
   await t
     .click(designerPage.publisereNavigationTab)
-    .expect(designerPage.publisereButton.exists).ok()
+    .hover(designerPage.publisereButton)
+    .expect(designerPage.publisereButton.visible).ok({timeout:2500})
 });

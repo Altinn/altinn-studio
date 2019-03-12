@@ -8,7 +8,7 @@ export default class DesignerPage {
     //editor elements #schema-components
     this.header = Selector("#schema-components").withText("Header");
     this.inputBtn = Selector("#schema-components").withText("Input");
-    this.dropDown = Selector("span").withText("Dropdown");
+    this.dropDown = Selector("#schema-components").child(1);
     this.checkBoxes = Selector("#schema-components").withText("Avkrysningsboks");
     this.radioButtons = Selector("#schema-components").withText("Radioknapp");
     this.textArea = Selector("#schema-components").withText("Tekstområde");
@@ -67,7 +67,7 @@ export default class DesignerPage {
 
     //"publisere" navigation tab selectors
     this.publisereNavigationTab = Selector('div > a').withExactText('Publisere');
-    this.publisereButton = Selector("#startDeploymentBtn");
+    this.publisereButton = Selector('#startDeploymentBtn'); //.withText('Start deployment');
     this.publisereLeftMenuItems = [
       this.leftMenuList.withExactText('Produksjonsette'),
       this.leftMenuList.withExactText('Status')
