@@ -18,14 +18,16 @@ namespace Altinn.Platform.Storage.Controllers
     public class DataController : Controller
     {
         private readonly IDataRepository _dataRepository;
+        private readonly IInstanceRepository _instanceRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
         /// </summary>
         /// <param name="formRepository">the form data repository handler</param>
-        public DataController(IDataRepository formRepository)
+        public DataController(IDataRepository formRepository, IInstanceRepository instanceRepository)
         {
             _dataRepository = formRepository;
+            _instanceRepository = instanceRepository;
         }
 
         /// <summary>
@@ -75,14 +77,30 @@ namespace Altinn.Platform.Storage.Controllers
         [DisableFormValueModelBinding]
         public async Task<ActionResult> UploadFile(string instanceId, string formId)
         {
+            if (string.IsNullOrEmpty(instanceId) || string.IsNullOrEmpty(formId) || Request.Body == null)
+            {
+                return BadRequest("Missing parameter values: instanceId, formId or file content cannot be null");
+            }
+
             // check if instance id exist and user is allowed to change the instance data
-            // check if data element exists, if so raise exception (Allready exists)
+            Instance instance = GetInstance(instanceId);
+            if (instance == null)
+            {
+                return BadRequest("Provided instanceId is unknown to platform storage service");
+            }
+
+            // check if data element exists, if so raise exception
+            if (instance.Data != null && instance.Data.ContainsKey(formId))
+            {
+                return BadRequest("Data element allready exists, try Put instead of Post");
+            }
+
+            // check metadata
+
             // create new data element, store data in blob
             // update instance
-            if (string.IsNullOrEmpty(instanceId) || string.IsNullOrEmpty(formId) || Request.Body != null)
-            {
-                return BadRequest();
-            }
+
+            string fileName = 
 
             MemoryStream formDataStream = new MemoryStream();
             /*
@@ -100,6 +118,17 @@ namespace Altinn.Platform.Storage.Controllers
             */
 
             return Ok(true);
+        }
+
+        Instance GetInstance(string instanceId)
+        {            
+            return new Instance
+            {
+                Id = instanceId,
+                InstanceOwnerId = "642",
+                ApplicationId = "KNS/sailor",
+                ApplicationOwnerId = "KNS",                
+            };
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
