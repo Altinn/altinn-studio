@@ -21,6 +21,6 @@ WORKDIR /AltinnService
 COPY src/AltinnCore/Testdata /Testdata
 WORKDIR /app
 COPY --from=build /app_output .
-COPY --from=generate-runtime-app /applications/runtime/dist/react-app.js ./wwwroot/runtime/js/react/react-app.js
-COPY --from=generate-runtime-app /applications/runtime/dist/react-app.css ./wwwroot/runtime/css/react/react-app.css
+COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/runtime/js/react/runtime.js
+COPY --from=generate-runtime-app /applications/runtime/dist/runtime.css ./wwwroot/runtime/css/react/runtime.css
 ENTRYPOINT ["dotnet", "AltinnCore.Runtime.dll"]

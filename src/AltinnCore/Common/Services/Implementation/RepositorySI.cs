@@ -160,8 +160,6 @@ namespace AltinnCore.Common.Services.Implementation
             CreateInitialInstansiationHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialDynamicsHandler(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, metaDirectoryInfo);
-            CreateInitialWebApp(serviceMetadata.Org, resourceDirectoryInfo);
-            CreateInitialStyles(serviceMetadata.Org, resourceDirectoryInfo);
             CreateInitialDeploymentFiles(serviceMetadata.Org, serviceMetadata.RepositoryName);
             CreateInitialWorkflow(serviceMetadata.Org, serviceMetadata.RepositoryName);
 
@@ -1808,13 +1806,13 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialWebApp(string org, DirectoryInfo targetDirectory)
         {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeAppFileName);
             if (File.Exists(destFileName))
             {
                 return;
             }
 
-            FileInfo sourceFile = _defaultFileFactory.GetWebAppDefaultFile(_settings.ReactAppFileName, org);
+            FileInfo sourceFile = _defaultFileFactory.GetWebAppDefaultFile(_settings.RuntimeAppFileName, org);
             if (sourceFile != null && sourceFile.Exists)
             {
                 sourceFile.CopyTo(destFileName);
@@ -1823,10 +1821,10 @@ namespace AltinnCore.Common.Services.Implementation
 
         private void CreateInitialStyles(string org, DirectoryInfo targetDirectory)
         {
-            string destFileName = Path.Combine(targetDirectory.FullName, _settings.ReactAppCssFileName);
+            string destFileName = Path.Combine(targetDirectory.FullName, _settings.RuntimeAppCssFileName);
             if (!File.Exists(destFileName))
             {
-                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.ReactAppCssFileName, org);
+                FileInfo sourceFile = _defaultFileFactory.GetWebAppStyleDefaultFile(_settings.RuntimeAppCssFileName, org);
                 if (sourceFile != null && sourceFile.Exists)
                 {
                     sourceFile.CopyTo(destFileName);
@@ -1835,7 +1833,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             StylesConfig stylesConfig = new StylesConfig();
             stylesConfig.InternalStyles = new List<string>();
-            stylesConfig.InternalStyles.Add(_settings.ReactAppCssFileName);
+            stylesConfig.InternalStyles.Add(_settings.RuntimeAppCssFileName);
             stylesConfig.ExternalStyles = new List<string>();
             stylesConfig.ExternalStyles.Add(_settings.DefaultBootstrapUrl);
 

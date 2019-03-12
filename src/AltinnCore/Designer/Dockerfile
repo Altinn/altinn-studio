@@ -34,8 +34,8 @@ COPY --from=altinn-studio-service-development /dist/typescript.worker.js ./wwwro
 COPY --from=altinn-studio-service-development /dist/service-development.css ./wwwroot/designer/css/react/service-development.css
 COPY --from=altinn-studio-dashboard /dist/dashboard.js ./wwwroot/designer/js/react/dashboard.js
 COPY --from=altinn-studio-dashboard /dist/dashboard.css ./wwwroot/designer/css/dashboard.css
-COPY --from=generate-runtime-app /applications/runtime/dist/react-app.js ./wwwroot/designer/js/react/react-app.js
-COPY --from=generate-runtime-app /applications/runtime/dist/react-app.css ./wwwroot/designer/css/react/react-app.css
+COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/designer/js/react/runtime.js
+COPY --from=generate-runtime-app /applications/runtime/dist/runtime.css ./wwwroot/designer/css/react/runtime.css
 RUN mv Templates ..
 RUN mv Testdata ..
 RUN mv Deployment ..
