@@ -215,13 +215,21 @@ namespace AltinnCore.Designer.Controllers
             {
                 return Content(ex.ToString());
             }
-        
-            string accessToken = _giteaApi.GetSessionAppKey().Result;
+
+            _logger.LogInformation("Updating app key for " + userName);
+            KeyValuePair<string, string> accessKeyValuePair = _giteaApi.GetSessionAppKey().Result ?? default(KeyValuePair<string, string>);
             List<Claim> claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
-            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperToken, accessToken, ClaimValueTypes.String, Issuer));
+            if (!accessKeyValuePair.Equals(default(KeyValuePair<string, string>)))
+            {
+                string accessToken = accessKeyValuePair.Value;
+                string accessId = accessKeyValuePair.Key;
+                
+                claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperToken, accessToken, ClaimValueTypes.String, Issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperTokenId, accessId, ClaimValueTypes.String, Issuer));
+            }
 
+            claims.Add(new Claim(AltinnCoreClaimTypes.Developer, userName, ClaimValueTypes.String, Issuer));
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);
 
@@ -282,8 +290,8 @@ namespace AltinnCore.Designer.Controllers
         {
             StringBuilder stringBuilder = new StringBuilder();
             stringBuilder.AppendLine("Debug info");
-            stringBuilder.AppendLine("Environment setting for ServiceRepositorySettings__RepositoryBaseURL: " + Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL"));
-            stringBuilder.AppendLine("Environment setting for GiteaEndpoint: " + Environment.GetEnvironmentVariable("GiteaEndpoint"));
+            stringBuilder.AppendLine("App token is: " + _sourceControl.GetAppToken());
+            stringBuilder.AppendLine("App token id is " + _sourceControl.GetAppTokenId());
             stringBuilder.AppendLine("UserName from service: " + _giteaApi.GetUserNameFromUI().Result);
             return Content(stringBuilder.ToString());
         }

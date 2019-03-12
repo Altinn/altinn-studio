@@ -87,6 +87,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// This is the only  way (currently) to generate a APP key without involving the user in 
         /// </summary>
         /// <returns>A newly generated token</returns>
-        Task<string> GetSessionAppKey(string keyName = null);
+        Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null);
     }
 }
