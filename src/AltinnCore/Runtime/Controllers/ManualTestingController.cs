@@ -134,6 +134,8 @@ namespace AltinnCore.Runtime.Controllers
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
                 ReporteeID = requestContext.Reportee.PartyId,
+                Org = org,
+                Service = service,
             };
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
