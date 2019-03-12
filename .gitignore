@@ -322,6 +322,8 @@ src/react-apps/applications/runtime/dist
 ######### Built react apps ###########
 src/AltinnCore/Designer/wwwroot/designer/css/react
 src/AltinnCore/Designer/wwwroot/designer/js/react
+src/AltinnCore/Runtime/wwwroot/runtime/css/react
+src/AltinnCore/Runtime/wwwroot/runtime/js/react
 src/AltinnCore/Designer/wwwroot/designer/js/lib
 src/AltinnCore/Designer/wwwroot/designer/css/lib
 src/AltinnCore/Designer/wwwroot/designer/css/font-awesome
