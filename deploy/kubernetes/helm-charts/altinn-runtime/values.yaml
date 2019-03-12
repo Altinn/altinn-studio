@@ -59,7 +59,7 @@ volumeMounts:
 
 volumes:
   - name: altinn-runtime-repo-storage
-    persistantVolumeClaim:
+    persistentVolumeClaim:
       claimName: altinn-storage-repo-volume-claim
   - name: altinn-appsettings
     secret:
