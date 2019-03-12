@@ -1,26 +1,8 @@
-import { combineReducers, Reducer, ReducersMapObject } from 'redux';
-import appDataReducer, { IAppDataState } from './appDataReducer';
-import errorReducer, { IErrorState } from './errorReducer';
-import formFillerReducer, { IFormFillerState } from './formFillerReducer';
-import serviceConfigurationReducer, { IServiceConfigurationState } from './serviceConfigurationReducer';
-import workflowReducer, { IWorkflowState } from './workflowReducer';
+import { combineReducers, ReducersMapObject } from 'redux';
 
-export interface IReducers
-  extends IFormDesignerNameSpace<
-  Reducer<IFormFillerState>,
-  Reducer<IServiceConfigurationState>,
-  Reducer<IAppDataState>,
-  Reducer<IErrorState>,
-  Reducer<IWorkflowState>
-  >,
-  ReducersMapObject { }
+export interface IReducers extends ReducersMapObject { }
 
 const reducers: IReducers = {
-  formFiller: formFillerReducer,
-  serviceConfigurations: serviceConfigurationReducer,
-  appData: appDataReducer,
-  errors: errorReducer,
-  workflow: workflowReducer,
 };
 
 export default combineReducers(reducers);
