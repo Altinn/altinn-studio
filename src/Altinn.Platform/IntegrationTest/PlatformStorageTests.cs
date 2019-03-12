@@ -80,11 +80,11 @@ namespace Altinn.Platform.Test.Integration
         {
             Data formData = new Data();
             formData.FileName = "u2.json";
-            formData.ContentType = "<message>42</message>";
+            string fileContent = "{ universe: 42 }";
 
-            string url = string.Format("dataservice/instances/{0}/forms", "guid123");
+            string url = string.Format("api/v1/instances/{0}/data/boatdata", "fgab-3xy123-xxx");
 
-            HttpResponseMessage postResponse = await client.PostAsync(url, formData.AsJson());
+            HttpResponseMessage postResponse = await client.PostAsync(url, fileContent.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
         }
