@@ -20,6 +20,8 @@ import { Toolbar } from './Toolbar';
 
 export interface IFormDesignerProvidedProps {
   classes: any;
+  components: any;
+  activeList: any;
 }
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
@@ -169,6 +171,18 @@ class FormDesigner extends React.Component<
     return editorHeight.toString();
   }
 
+  public getComponent = () => {
+    const componentId = this.props.activeList.length === 1 ? this.props.activeList[0].id : null;
+    if (componentId) {
+      const component = this.props.components[componentId];
+      console.log(componentId, component);
+      if (component.options.length > 0) {
+        return component;
+      }
+    }
+    return componentId;
+  }
+
   public renderLogicEditor = () => {
     const { classes } = this.props;
     return (
@@ -190,6 +204,7 @@ class FormDesigner extends React.Component<
 
   public render() {
     const { classes } = this.props;
+    console.log(this.getComponent());
     return (
       <div className={classes.root}>
         <Grid
@@ -253,6 +268,10 @@ class FormDesigner extends React.Component<
                 <CollapsableMenuComponent
                   header={this.props.language.ux_editor.service_logic_validations}
                   listItems={[
+                    this.getComponent() !== null && {
+                      name: 'hello',
+                      action: null,
+                    },
                     {
                       name: this.props.language.ux_editor.service_logic_edit_validations,
                       action: this.toggleCodeEditor.bind(this, 'Validation'),
@@ -281,7 +300,7 @@ class FormDesigner extends React.Component<
                 />
                 <div className={this.props.classes.divider} />
               </div>
-            </ServiceLogicMenu >
+            </ServiceLogicMenu>
           </Grid>
         </Grid>
       </div>
@@ -295,6 +314,8 @@ const mapsStateToProps = (
 ): IFormDesignerProps => {
   return {
     classes: props.classes,
+    components: state.formDesigner.layout.components,
+    activeList: state.formDesigner.layout.activeList,
     language: state.appData.language.language,
     dataModel: state.appData.dataModel.model,
   };
