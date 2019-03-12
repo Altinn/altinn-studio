@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
@@ -354,7 +355,15 @@ namespace AltinnCore.Runtime.Controllers
                     startServiceModel.Service,
                     requestContext.UserContext.ReporteeId);
 
-                _instance.SaveInstance(serviceModel);
+                Instance instance = new Instance
+                {
+                    ReporteeId = requestContext.UserContext.ReporteeId.ToString(),
+                    ServiceId = startServiceModel.ServiceID,
+                    CreatedBy = requestContext.UserContext.ReporteeId.ToString(),                    
+                    InstanceStatus = "active"
+                };
+
+                _instance.SaveInstance(instance);
 
                 ServiceState currentState = _workflowSI.InitializeService(formID, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(formID, startServiceModel.Org, startServiceModel.Service, currentState.State);

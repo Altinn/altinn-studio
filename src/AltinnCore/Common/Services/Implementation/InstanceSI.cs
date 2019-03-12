@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Services.Interfaces;
 using Newtonsoft.Json;
@@ -15,7 +16,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// This method creates new instance in database
         /// </summary>
-        public object SaveInstance<T>(T dataToSerialize)
+        public async Task<object> SaveInstance<T>(T dataToSerialize)
         {
             using (HttpClient client = new HttpClient())
             {
@@ -32,7 +33,10 @@ namespace AltinnCore.Common.Services.Implementation
                     writer.Write(jsonData);
                     writer.Flush();
                     formDataStream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(formDataStream));
+                    var httpcontent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+
+                    //HttpResponseMessage response = await client.PostAsync(apiUrl, new StreamContent(formDataStream));
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, httpcontent);
                 }
                 catch
                 {
