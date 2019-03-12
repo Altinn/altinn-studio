@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -12,19 +14,18 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the form data
     /// </summary>
-    [Route("dataservice/instances/{instanceId}/[controller]/")]
-    [ApiController]
-    public class FormsController : ControllerBase
+    [Route("api/v1/instances/{instanceId}/[controller]")]
+    public class DataController : Controller
     {
-        private readonly IDataRepository _formRepository;
+        private readonly IDataRepository _dataRepository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FormsController"/> class
+        /// Initializes a new instance of the <see cref="DataController"/> class
         /// </summary>
         /// <param name="formRepository">the form data repository handler</param>
-        public FormsController(IDataRepository formRepository)
+        public DataController(IDataRepository formRepository)
         {
-            _formRepository = formRepository;
+            _dataRepository = formRepository;
         }
 
         /// <summary>
@@ -53,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest();
             }
           
-            var result = await _formRepository.GetDataInStorage(fileName);
+            var result = await _dataRepository.GetDataInStorage(fileName);
 
             if (result == null)
             {
@@ -66,18 +67,25 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Save the form data
         /// </summary>
-        /// <param name="formData">the form data to be stored</param>
+        /// <param name="instanceId">the instance to update</param>
+        /// <param name="formId">the formId to upload data for</param>
         /// <returns>If the request was successful or not</returns>
-        // POST dataservice/instances/{instanceid}/forms/
-        public async Task<ActionResult> Post([FromBody] Data formData)
+        // POST /instances/{instanceId}/data/{formId}        
+        [HttpPost("{formId}")]
+        [DisableFormValueModelBinding]
+        public async Task<ActionResult> UploadFile(string instanceId, string formId)
         {
-            if (formData == null || string.IsNullOrEmpty(formData.FileName) || string.IsNullOrEmpty(formData.ContentType))
+            // check if instance id exist and user is allowed to change the instance data
+            // check if data element exists, if so raise exception (Allready exists)
+            // create new data element, store data in blob
+            // update instance
+            if (string.IsNullOrEmpty(instanceId) || string.IsNullOrEmpty(formId) || Request.Body != null)
             {
                 return BadRequest();
             }
 
             MemoryStream formDataStream = new MemoryStream();
-
+            /*
             // var xmlData = JsonConvert.SerializeObject(formData.FormDataXml);
             StreamWriter writer = new StreamWriter(formDataStream);
             writer.Write(formData.ContentType);
@@ -89,8 +97,24 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 return BadRequest();
             }
+            */
 
-            return Ok(result);
+            return Ok(true);
+        }
+
+        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+        public class DisableFormValueModelBindingAttribute : Attribute, IResourceFilter
+        {
+            public void OnResourceExecuting(ResourceExecutingContext context)
+            {
+                var factories = context.ValueProviderFactories;
+                factories.RemoveType<FormValueProviderFactory>();
+                factories.RemoveType<JQueryFormValueProviderFactory>();
+            }
+
+            public void OnResourceExecuted(ResourceExecutedContext context)
+            {
+            }
         }
     }
 }
