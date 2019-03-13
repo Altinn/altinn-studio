@@ -15,6 +15,7 @@ namespace Altinn.Platform.Test.Integration
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
+        public string instanceId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
@@ -33,21 +34,19 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
         {
-            DateTime creationTimestamp = DateTime.Now;
 
             Instance instanceData = new Instance
             {
-                InstanceOwnerId = 666,
+                InstanceOwnerId = "666",
                 ApplicationId = "sailor",
                 ApplicationOwnerId = "BRREG",
-                CreatedDateTime = creationTimestamp,
             };
 
             HttpResponseMessage postResponse = await client.PostAsync("/api/v1/instances?instanceOwnerId=666", instanceData.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
             string newId = await postResponse.Content.ReadAsStringAsync();
-
+            instanceId = newId;
             Assert.NotNull(newId);
 
             HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "/?instanceOwnerId=666");
@@ -56,9 +55,8 @@ namespace Altinn.Platform.Test.Integration
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
-            Assert.Equal(666, actual.InstanceOwnerId);
+            Assert.Equal("666", actual.InstanceOwnerId);
             Assert.Equal("sailor", actual.ApplicationId);
-            Assert.Equal(creationTimestamp, actual.CreatedDateTime);
         }
 
         /// <summary>
@@ -66,8 +64,22 @@ namespace Altinn.Platform.Test.Integration
         /// </summary>
         /// <param name="url">the url to check</param>
         [Theory]
-        [InlineData("/dataservice/reportees/666/instances")]
+        [InlineData("/api/v1/instances?instanceOwnerId=666")]
         public async void GetInstancesForReportee(string url)
+        {
+            HttpResponseMessage response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        }
+
+        /// <summary>
+        ///  Checks that the Inline data urls returns a proper encoding.
+        /// </summary>
+        /// <param name="url">the url to check</param>
+        [Theory]
+        [InlineData("/api/v1/instances/" + instanceId)]
+        public async void UpdateInstancesForReportee(string url)
         {
             HttpResponseMessage response = await client.GetAsync(url);
 
