@@ -12,6 +12,7 @@ import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
 import { getTextResource, truncate } from '../utils/language';
+import { componentIcons } from './../components';
 
 const styles = createStyles({
   active: {
@@ -122,6 +123,9 @@ const styles = createStyles({
     '&:hover $gridForBtn': {
       visibility: 'visible',
     },
+  },
+  icon: {
+    margin: '0 1.2rem 0 1.2rem',
   },
 });
 
@@ -415,6 +419,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark + ' ' + this.props.classes.formComponentTitle}>
+                      <i className={this.props.classes.icon + ' ' + componentIcons[this.state.component.textResourceBindings.title]} />
                       {this.state.component.textResourceBindings.title ?
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
