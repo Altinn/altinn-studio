@@ -65,7 +65,7 @@ test('Teste tab navigation', async () => {
     .expect(getLocation()).contains('runtime/ManualTesting/Users');
 });
 
-test.only('Publisere tab navigation', async () => {
+test('Publisere tab navigation', async () => {
   await t
     .click(designerPage.publisereNavigationTab)
     .hover(designerPage.publisereButton)
