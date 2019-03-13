@@ -1,6 +1,7 @@
 import { createStyles, List, ListItem, ListItemIcon, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
+import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 
 const styles = createStyles({
@@ -45,10 +46,12 @@ const styles = createStyles({
 export interface ICollapsableMenuProvidedProps {
   classes: any;
   header: string;
+  componentId: string;
   listItems: ICollapsableMenuListItem[];
 }
 
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
+  components: any;
   language: any;
 }
 
@@ -69,6 +72,10 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
     };
   }
 
+  public toggleCheckbox = () => {
+    console.log('hello');
+  }
+
   public toggleMenu = () => {
     this.setState({
       menuIsOpen: !this.state.menuIsOpen,
@@ -80,6 +87,8 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
     }
   }
   public render(): JSX.Element {
+    const component = this.props.components[this.props.componentId];
+    console.log(component);
     return (
       <List className={this.props.classes.list}>
         <ListItem
@@ -95,23 +104,32 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
           </ListItemIcon>
           <span className={this.props.classes.collapseHeader}>{this.props.header}</span>
         </ListItem>
-        {this.state.menuIsOpen && typeof(this.props.listItems[0].name) !== 'undefined'
+        {(component && this.props.header === this.props.language.ux_editor.service_logic_validations) &&
+          <ListItem className={this.props.classes.listItem}>
+            <AltinnCheckBox
+              checked={component.readOnly}
+              onChangeFunction={this.toggleCheckbox}
+            />
+            Hello
+          </ListItem>
+        }
+        {this.state.menuIsOpen && typeof (this.props.listItems[0].name) !== 'undefined'
           && this.props.listItems.map((item, index) => {
-          return (
-            <div key={item.name}>
-              <ListItem  className={this.props.classes.listItem}>
-                <span
-                  className={this.props.classes.link}
-                  onClick={item.action}
-                >
-                  {item.name}
-                </span>
-              </ListItem>
-              {this.props.children}
-            </div>
-          );
-        })
-      }
+            return (
+              <div key={item.name}>
+                <ListItem className={this.props.classes.listItem}>
+                  <span
+                    className={this.props.classes.link}
+                    onClick={item.action}
+                  >
+                    {item.name}
+                  </span>
+                </ListItem>
+                {this.props.children}
+              </div>
+            );
+          })
+        }
       </List>
     );
   }
@@ -122,6 +140,8 @@ const mapStateToProps: (
   props: ICollapsableMenuProvidedProps,
 ) => ICollapsableMenuProps = (state: IAppState, props: ICollapsableMenuProvidedProps) => ({
   classes: props.classes,
+  componentId: props.componentId,
+  components: state.formDesigner.layout.components,
   header: props.header,
   language: state.appData.language.language,
   listItems: props.listItems,
