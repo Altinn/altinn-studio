@@ -1,4 +1,4 @@
-import { Grid, withStyles } from '@material-ui/core';
+import { Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
@@ -518,6 +518,10 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                 inputDescriptionStyling={{ marginTop: '24px' }}
                 type={'number'}
               />
+              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px' }}>
+                {getLanguageFromKey(
+                  'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
+              </Typography>
             </Grid>
           </Grid>
         );
