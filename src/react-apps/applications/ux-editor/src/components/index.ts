@@ -1,5 +1,6 @@
 import { AddressComponent } from './advanced/AddressComponent';
 import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
+import { DatepickerComponent } from './base/DatepickerComponent';
 import { DropdownComponent } from './base/DropdownComponent';
 import { FileUploadComponent } from './base/FileUploadComponent';
 import { HeaderComponent } from './base/HeaderComponent';
@@ -23,6 +24,7 @@ export enum ComponentTypes {
   Header,
   Paragraph,
   Input,
+  Datepicker,
   DropDown,
   CheckBox,
   RadioButton,
@@ -67,6 +69,11 @@ export const schemaComponents: IComponent[] = [
     Tag: InputComponent,
     Type: ComponentTypes.Input,
     Icon: componentIcons.Input,
+  },
+  {
+    name: 'Datepicker',
+    Tag: DatepickerComponent,
+    Type: ComponentTypes.Datepicker,
   },
   {
     name: 'Dropdown',

@@ -119,13 +119,3 @@ services:
     build:
       context: .
       dockerfile: src/AltinnRepositories/Dockerfile
-
-  altinn_runttimedb:
-    container_name: altinn-runtimedb
-    image: altinncoreruntimedb:latest
-    restart: always
-    ports:
-      - "44355:44355"
-    build:
-      context: .
-      dockerfile: src/AltinnCore/RuntimeDb/Dockerfile

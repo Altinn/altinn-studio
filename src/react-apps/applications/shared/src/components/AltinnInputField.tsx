@@ -21,6 +21,8 @@ export interface IAltinnInputFieldComponentProvidedProps {
   placeholder?: any;
   textAreaRows?: number;
   inputHeaderStyling?: object;
+  inputDescriptionStyling?: object;
+  type?: any;
 }
 
 export interface IAltinnInputFieldComponentState {
@@ -83,7 +85,10 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
           </Typography>
         }
         {this.props.inputDescription &&
-          <Typography className={classNames(classes.descriptionInput, { [classes.marginTop_10]: this.props.inputHeader })}>
+          <Typography
+            style={this.props.inputDescriptionStyling}
+            className={classNames(classes.descriptionInput, { [classes.marginTop_10]: this.props.inputHeader })}
+          >
             {this.props.inputDescription}
           </Typography>
         }
@@ -112,6 +117,7 @@ class AltinnInputField extends React.Component<IAltinnInputFieldComponentProvide
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },
             }}
+            type={this.props.type}
           />
 
         </FormControl>

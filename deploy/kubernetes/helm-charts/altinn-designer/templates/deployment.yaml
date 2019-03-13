@@ -62,9 +62,9 @@ spec:
       volumes:
       {{- range $volume := .Values.volumes }}
         - name: {{ $volume.name }}
-          {{- if $volume.persistantVolumeClaim }}
-          persistantVolumeClaim:
-            claimName: {{ $volume.persistantVolumeClaim.claimName }}
+          {{- if $volume.persistentVolumeClaim }}
+          persistentVolumeClaim:
+            claimName: {{ $volume.persistentVolumeClaim.claimName }}
           {{- end }}
           {{- if $volume.secret }}
           secret:

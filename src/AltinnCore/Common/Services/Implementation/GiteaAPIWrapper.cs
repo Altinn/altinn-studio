@@ -380,7 +380,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// This is the only  way (currently) to generate a APP key without involving the user in 
         /// </summary>
         /// <returns>A newly generated token</returns>
-        public async Task<string> GetSessionAppKey(string keyName = null)
+        public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
             string csrf = GetCsrf().Result;
 
@@ -400,8 +400,17 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
+                    string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                    List<string> keys = FindAllAppKeysId(htmlContent, keyName);
+                    _logger.LogInformation("The number of app keys matching keyname " + keyName + " is " + keys.Count());
+                    foreach (string key in keys)
+                    {
+                        _logger.LogInformation("Keyvalue is " + key);
+                    }
 
-                    return GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                    KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
+                    
+                    return keyValuePair;
                 }
             }
 

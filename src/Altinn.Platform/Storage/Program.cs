@@ -27,36 +27,8 @@ namespace Altinn.Platform.Storage
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                config.SetBasePath(basePath);
 
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
-
-                if (basePath == "/")
-                {
-                    config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
-                }
-                else
-                {
-                    config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
-                }
-
-                config.AddEnvironmentVariables();
-                config.AddCommandLine(args);
-                IConfiguration stageOneConfig = config.Build();
-                string appId = stageOneConfig.GetValue<string>("kvSetting:ClientId:0");
-                string tenantId = stageOneConfig.GetValue<string>("kvSetting:TenantId:0");
-                string appKey = stageOneConfig.GetValue<string>("kvSetting:ClientSecret:0");
-                string keyVaultEndpoint = stageOneConfig.GetValue<string>("kvSetting:SecretUri:0");
-                if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
-                    && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
-                {
-                    AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
-                    KeyVaultClient keyVaultClient = new KeyVaultClient(
-                        new KeyVaultClient.AuthenticationCallback(
-                            azureServiceTokenProvider.KeyVaultTokenCallback));
-                    config.AddAzureKeyVault(
-                        keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
-                }
+                LoadConfigurationSettings(config, basePath, args);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -68,5 +40,39 @@ namespace Altinn.Platform.Storage
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
                 .UseStartup<Startup>();
+
+        public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
+        {
+            config.SetBasePath(basePath);
+
+            config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
+
+            if (basePath == "/")
+            {
+                config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);
+            }
+            else
+            {
+                config.AddJsonFile(basePath + "/appsettings.json", optional: false, reloadOnChange: true);
+            }
+
+            config.AddEnvironmentVariables();
+            config.AddCommandLine(args);
+            IConfiguration stageOneConfig = config.Build();
+            string appId = stageOneConfig.GetValue<string>("kvSetting:ClientId:0");
+            string tenantId = stageOneConfig.GetValue<string>("kvSetting:TenantId:0");
+            string appKey = stageOneConfig.GetValue<string>("kvSetting:ClientSecret:0");
+            string keyVaultEndpoint = stageOneConfig.GetValue<string>("kvSetting:SecretUri:0");
+            if (!string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(tenantId)
+                && !string.IsNullOrEmpty(appKey) && !string.IsNullOrEmpty(keyVaultEndpoint))
+            {
+                AzureServiceTokenProvider azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={appId};TenantId={tenantId};AppKey={appKey}");
+                KeyVaultClient keyVaultClient = new KeyVaultClient(
+                    new KeyVaultClient.AuthenticationCallback(
+                        azureServiceTokenProvider.KeyVaultTokenCallback));
+                config.AddAzureKeyVault(
+                    keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+            }
+        }
     }
 }
