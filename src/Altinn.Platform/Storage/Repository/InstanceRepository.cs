@@ -35,9 +35,13 @@ namespace Altinn.Platform.Storage.Repository
             databaseId = _cosmosettings.Database;
             collectionId = _cosmosettings.Collection;
             _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
+
+            DocumentCollection documentCollection = new DocumentCollection { Id = _cosmosettings.Collection };
+            documentCollection.PartitionKey.Paths.Add("/reporteeId");
+
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
-                new DocumentCollection { Id = _cosmosettings.Collection }).GetAwaiter().GetResult();            
+                documentCollection).GetAwaiter().GetResult();            
         }
 
         /// <summary>

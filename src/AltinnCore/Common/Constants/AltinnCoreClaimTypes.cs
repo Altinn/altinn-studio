@@ -39,5 +39,10 @@ namespace AltinnCore.Common.Constants
         /// The app token
         /// </summary>
         public const string DeveloperToken = "DeveloperToken";
+
+        /// <summary>
+        /// The app token id
+        /// </summary>
+        public const string DeveloperTokenId = "DeveloperTokenId";
     }
 }
