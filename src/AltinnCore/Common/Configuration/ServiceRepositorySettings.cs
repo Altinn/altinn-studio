@@ -1,7 +1,7 @@
-using AltinnCore.Common.Models;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using AltinnCore.Common.Models;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Configuration
 {

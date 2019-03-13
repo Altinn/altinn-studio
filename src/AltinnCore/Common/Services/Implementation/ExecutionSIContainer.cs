@@ -19,10 +19,8 @@ namespace AltinnCore.Common.Services.Implementation
     using System.Runtime.Loader;
     using System.Text;
     using AltinnCore.Common.Helpers;
-    using AltinnCore.Common.Helpers.Extensions;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
-    using static AltinnCore.Common.Services.Implementation.RepositorySI;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
