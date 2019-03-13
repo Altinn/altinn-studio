@@ -26,6 +26,15 @@ namespace Altinn.Platform.Test.Integration
             this.client = this.fixture.Client;
         }
 
+        private void SetUser(int id)
+        {
+            string userdata = string.Format("{0}:password", id);
+            var byteArray = Encoding.UTF8.GetBytes(userdata);
+            this.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+                "Basic",
+                Convert.ToBase64String(byteArray));
+        }
+
         /// <summary>
         /// Creates an instance of a service and asks then asks the service to get the instance. Checks if returned object has
         /// same values as object which was sent in.
@@ -37,7 +46,7 @@ namespace Altinn.Platform.Test.Integration
 
             Instance instanceData = new Instance
             {
-                InstanceOwnerId = "666",
+               // InstanceOwnerId = "666",
                 ApplicationId = "sailor",
                 CreatedDateTime = creationTimestamp,
             };
@@ -55,7 +64,7 @@ namespace Altinn.Platform.Test.Integration
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
-            Assert.Equal("666", actual.InstanceOwnerId);
+            //Assert.Equal("666", actual.InstanceOwnerId);
             Assert.Equal("sailor", actual.ApplicationId);
             Assert.Equal(creationTimestamp, actual.CreatedDateTime);
         }
@@ -79,9 +88,13 @@ namespace Altinn.Platform.Test.Integration
         {
             Data formData = new Data();
             formData.FileName = "u2.json";
-            string fileContent = "{ universe: 42 }";
+            string fileContent = "{ 'universe': 42, 'årsjul': 365 }";
+            string instanceData = "{ 'applicationId': 'KNS/sailor' }";
 
-            string url = string.Format("api/v1/instances/{0}/data/boatdata", "fgab-3xy123-xxx");
+            HttpResponseMessage createInstanceResponse = await client.PostAsync("api/v1/instances?applicationId=KNS/sailor&instanceOwnerId=642", instanceData.AsJson());
+            string newId = await createInstanceResponse.Content.ReadAsStringAsync();
+
+            string url = string.Format("api/v1/instances/{0}/data/boatdata?instanceOwnerId=642", newId);
 
             HttpResponseMessage postResponse = await client.PostAsync(url, fileContent.AsJson());
 

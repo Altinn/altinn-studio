@@ -64,15 +64,21 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Inserts new instance into the instance collection
         /// </summary>
-        /// <param name="instance">instance</param>
         /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="applicationId">the applicationid</param>
         /// <returns>instance object</returns>
         /// POST api/v1/instances
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody]Instance instance, int instanceOwnerId)
+        public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {
-            instance.CreatedBy = instanceOwnerId;
-            instance.CreatedDateTime = DateTime.UtcNow;
+            Instance instance = new Instance()
+            {
+                InstanceOwnerId = instanceOwnerId.ToString(),
+                CreatedBy = 0,
+                CreatedDateTime = DateTime.UtcNow,
+                ApplicationId = applicationId,
+            };
+
             var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {

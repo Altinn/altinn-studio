@@ -23,6 +23,14 @@ namespace Altinn.Platform.Storage.Repository
         Task<Instance> GetInstanceFromCollectionAsync(int reporteeId, Guid instanceId);
 
         /// <summary>
+        /// Get an instance details for the given parameters
+        /// </summary>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="instanceOwnerId">the instance owner id</param>
+        /// <returns>The instance for the given parameters</returns>
+        Task<Instance> ReadOneAsync(Guid instanceId, string instanceOwnerId);
+
+        /// <summary>
         /// insert new instance into collection
         /// </summary>
         /// <param name="item">the form data</param>

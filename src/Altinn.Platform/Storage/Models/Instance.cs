@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.Models
         /// owner of the instance
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
-        public int InstanceOwnerId { get; set; }
+        public string InstanceOwnerId { get; set; }
 
         /// <summary>
         /// id of the service
@@ -105,7 +105,7 @@ namespace Altinn.Platform.Storage.Models
         /// Gets or sets the form ids associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "data")]
-        public Dictionary<string, Data> Data { get; set; }
+        public Dictionary<string, Dictionary<string, Data>> Data { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

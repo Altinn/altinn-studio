@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Models
     public class Data
     {
         /// <summary>
-        /// unique Id 
+        /// users filename
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }

@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.Repository
             _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
 
             DocumentCollection documentCollection = new DocumentCollection { Id = _cosmosettings.Collection };
-            documentCollection.PartitionKey.Paths.Add("/reporteeId");
+            documentCollection.PartitionKey.Paths.Add("/instanceOwnerId");
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
@@ -103,6 +103,41 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     throw;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Get the instance based on the input parameters
+        /// </summary>
+        /// <param name="instanceId">the id of the Instance</param>
+        /// <param name="instanceOwnerId">the partition key</param>
+        /// <returns>the instance for the given parameters</returns>
+        public async Task<Instance> ReadOneAsync(Guid instanceId, string instanceOwnerId)
+        {
+            try
+            {                
+                var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
+              
+                Instance instance = await _client.ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId) });
+
+                return instance;
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception e)
+            {
+                var msg = e.Message;
+
+                return null;
             }
         }
 

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
@@ -14,7 +17,8 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the form data
     /// </summary>
-    [Route("api/v1/instances/{instanceId}/[controller]")]
+    [Route("api/v1/instances/{instanceId:guid}/[controller]")]
+    [ApiController]
     public class DataController : Controller
     {
         private readonly IDataRepository _dataRepository;
@@ -75,60 +79,114 @@ namespace Altinn.Platform.Storage.Controllers
         // POST /instances/{instanceId}/data/{formId}        
         [HttpPost("{formId}")]
         [DisableFormValueModelBinding]
-        public async Task<ActionResult> UploadFile(string instanceId, string formId)
+        public async Task<IActionResult> UploadData(Guid instanceId, string formId, string instanceOwnerId)
         {
-            if (string.IsNullOrEmpty(instanceId) || string.IsNullOrEmpty(formId) || Request.Body == null)
+            if (instanceId == null || string.IsNullOrEmpty(formId) || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, formId or file content cannot be null");
             }
 
-            // check if instance id exist and user is allowed to change the instance data
-            Instance instance = GetInstance(instanceId);
+            // check if instance id exist and user is allowed to change the instance data            
+            Instance instance = await _instanceRepository.ReadOneAsync(instanceId, instanceOwnerId);
             if (instance == null)
             {
-                return BadRequest("Provided instanceId is unknown to platform storage service");
+                return NotFound("Provided instanceId is unknown to platform storage service");              
             }
 
             // check if data element exists, if so raise exception
             if (instance.Data != null && instance.Data.ContainsKey(formId))
             {
-                return BadRequest("Data element allready exists, try Put instead of Post");
+                return Forbid("Data element allready exists, try Put instead of Post");
             }
 
             // check metadata
+            ApplicationInformation appInfo = GetApplicationInformation(instance.ApplicationId);
+            if (appInfo == null || !appInfo.Forms.ContainsKey(formId))
+            {
+                return Forbid("Application information has not registered a form with this formId");
+            }
+
+            FormDefinition form = appInfo.Forms[formId];
 
             // create new data element, store data in blob
-            // update instance
+            Data newData = new Data();
+           
+            // update data record
+            newData.ContentType = Request.ContentType;
+            newData.Id = Guid.NewGuid().ToString();
 
-            string fileName = "";
+            string fileName = instance.ApplicationId + "/" + instanceId + "/data/" + formId + "/" + newData.Id;
+            newData.StorageUrl = fileName;
 
-            MemoryStream formDataStream = new MemoryStream();
-            /*
-            // var xmlData = JsonConvert.SerializeObject(formData.FormDataXml);
-            StreamWriter writer = new StreamWriter(formDataStream);
-            writer.Write(formData.ContentType);
-            writer.Flush();
-            formDataStream.Position = 0;
-
-            var result = await _formRepository.CreateDataInStorage(formDataStream, formData.FileName);
-            if (!result)
+            if (instance.Data == null)
             {
-                return BadRequest();
+                instance.Data = new Dictionary<string, Dictionary<string, Data>>();
             }
-            */
 
-            return Ok(true);
+            if (!instance.Data.ContainsKey(formId))
+            {
+                instance.Data[formId] = new Dictionary<string, Data>();
+            }
+
+            instance.Data[formId][newData.Id] = newData;
+
+            // store file as blob
+            await _dataRepository.CreateDataInStorage(Request.Body, fileName);
+
+            // update instance
+            Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+
+            return Ok(result);
+        }
+
+        private string GetInstanceOwnerId()
+        {
+            string userId = User.Identity.Name;
+            if (string.IsNullOrEmpty(userId))
+            {
+                return "642";
+            }
+            else
+            {
+                return userId;
+            }
+            
+        }
+
+        private void SaveInstance(Instance instance)
+        {
+            throw new NotImplementedException();
+        }
+
+        private ApplicationInformation GetApplicationInformation(string applicationId)
+        {
+            string json = @"{
+                'applicationId': 'KNS/sailor',
+                'applicationOwnerId': 'KNS',
+                'forms': {
+                    'boatdata': {
+                        'contentType': 'application/schema+json'
+                    }
+                }
+                }";
+
+            // dummy data TODO call repository
+            return JsonConvert.DeserializeObject<ApplicationInformation>(json);           
+            
         }
 
         Instance GetInstance(string instanceId)
-        {            
-            return new Instance
-            {
-                Id = instanceId,
-                InstanceOwnerId = "642",
-                ApplicationId = "KNS/sailor",
-                ApplicationOwnerId = "KNS",                
-            };
+        {
+            string json = @"{
+                'instanceOwnerId': '642',
+                'applicationId': 'KNS/sailor',
+                'applicationOwnerId': 'KNS'
+            }";
+
+            Instance instance = JsonConvert.DeserializeObject<Instance>(json);
+            instance.Id = instanceId;
+
+            return instance; 
         }
 
         [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
