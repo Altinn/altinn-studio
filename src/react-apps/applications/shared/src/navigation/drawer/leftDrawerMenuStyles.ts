@@ -64,8 +64,8 @@ export const styles = (theme: Theme) => createStyles({
   paper: {
     position: 'absolute',
     background: altinnTheme.altinnPalette.primary.greyLight,
-    top: 146,
-    height: `calc(100vh - 146px)`,
+    top: 110,
+    height: `calc(100vh - 110px)`,
     overflow: 'hidden',
   },
   listItemText: {

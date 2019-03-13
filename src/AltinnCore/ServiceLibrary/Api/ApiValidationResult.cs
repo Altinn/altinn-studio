@@ -16,5 +16,10 @@ namespace AltinnCore.ServiceLibrary.Api
         /// Gets or sets the collection of warnings
         /// </summary>
         public Dictionary<string, List<string>> Warnings { get; set; }
+
+        /// <summary>
+        /// Gets or sets the collection of errors
+        /// </summary>
+        public Dictionary<string, ApiValidationMessages> Messages { get; set; }
     }
 }

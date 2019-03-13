@@ -51,7 +51,7 @@ const unsavedChangesSelector = (state: IAppState) => {
 };
 
 const validationErrorsSelector = (state: IAppState) => {
-  return state.formFiller.validationErrors;
+  return state.formFiller.validationResults;
 };
 
 const getFormData = () => {
@@ -87,8 +87,8 @@ const getUnsavedChanges = () => {
 const getValidationErrors = () => {
   return createSelector(
     [validationErrorsSelector],
-    (validationErrors: any[]) => {
-      return validationErrors;
+    (validationResults: IValidationResults) => {
+      return validationResults;
     },
   );
 };

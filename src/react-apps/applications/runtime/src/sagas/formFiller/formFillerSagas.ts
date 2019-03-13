@@ -25,8 +25,7 @@ export function* updateFormDataSaga({
       return;
     }
 
-    let validationErrors = [];
-    validationErrors = Validator.validateDataModel(
+    const validationErrors = Validator.validateDataModel(
       formData,
       dataModelElement,
       state.formDesigner.layout.components[componentID],
@@ -80,8 +79,10 @@ export function* submitFormDataSaga({ url, apiMode }: FormFillerActions.ISubmitF
     } else if (err.response && err.response.data &&
       (err.response.data.status === 1 || err.response.data.status === 2)) {
       // Update validationError state if response contains validation errors
-      const validationErrors: any = err.response.data.validationResult.errors;
-      yield call(FormFillerActionDispatcher.updateValidationErrors, validationErrors);
+      const state: IAppState = yield select();
+      const validationResults =
+        Validator.mapApiValidationResultToLayout(err.response.data.validationResult, state.formDesigner.layout);
+      yield call(FormFillerActionDispatcher.updateValidationErrors, validationResults);
       yield call(FormFillerActionDispatcher.submitFormDataRejected, err);
     } else {
       yield call(FormFillerActionDispatcher.submitFormDataRejected, err);

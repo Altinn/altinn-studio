@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="6.986px" height="6.986px" viewBox="0 0 6.986 6.986" enable-background="new 0 0 6.986 6.986" xml:space="preserve">
+<g>
+	<g>
+		<defs>
+			<polyline id="SVGID_1_" points="6.986,0 6.986,6.986 0,6.986 0,0 			"/>
+		</defs>
+		<clipPath id="SVGID_2_">
+			<use xlink:href="#SVGID_1_"  overflow="visible"/>
+		</clipPath>
+		<g clip-path="url(#SVGID_2_)">
+			<rect x="1.608" y="3.31" fill="none" width="6.986" height="6.986"/>
+			<g>
+				<polygon fill="none" points="1.608,3.31 8.594,3.31 8.594,10.296 1.608,10.296 				"/>
+				<polygon fill="#F0EFEF" points="1.608,3.31 1.608,6.845 5.143,3.31 				"/>
+				<polygon fill="#F0EFEF" points="8.594,3.372 1.67,10.296 5.205,10.296 8.594,6.907 				"/>
+			</g>
+		</g>
+		<g clip-path="url(#SVGID_2_)">
+			<rect x="1.608" y="-3.676" fill="none" width="6.986" height="6.986"/>
+			<g>
+				<polygon fill="none" points="1.608,-3.676 8.594,-3.676 8.594,3.31 1.608,3.31 				"/>
+				<polygon fill="#F0EFEF" points="1.608,-3.676 1.608,-0.141 5.143,-3.676 				"/>
+				<polygon fill="#F0EFEF" points="8.594,-3.614 1.67,3.31 5.205,3.31 8.594,-0.079 				"/>
+			</g>
+		</g>
+		<g clip-path="url(#SVGID_2_)">
+			<rect x="-5.378" y="3.31" fill="none" width="6.986" height="6.986"/>
+			<g>
+				<polygon fill="none" points="-5.378,3.31 1.608,3.31 1.608,10.296 -5.378,10.296 				"/>
+				<polygon fill="#F0EFEF" points="-5.378,3.31 -5.378,6.845 -1.843,3.31 				"/>
+				<polygon fill="#F0EFEF" points="1.608,3.372 -5.316,10.296 -1.781,10.296 1.608,6.907 				"/>
+			</g>
+		</g>
+		<g clip-path="url(#SVGID_2_)">
+			<rect x="-5.378" y="-3.676" fill="none" width="6.986" height="6.986"/>
+			<g>
+				<polygon fill="none" points="-5.378,-3.676 1.608,-3.676 1.608,3.31 -5.378,3.31 				"/>
+				<polygon fill="#F0EFEF" points="-5.378,-3.676 -5.378,-0.141 -1.843,-3.676 				"/>
+				<polygon fill="#F0EFEF" points="1.608,-3.614 -5.316,3.31 -1.781,3.31 1.608,-0.079 				"/>
+			</g>
+		</g>
+	</g>
+</g>
+</svg>

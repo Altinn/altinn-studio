@@ -59,14 +59,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the serviceImplementation for a given service
+        /// Returns the serviceImplementation for a given service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The service Implementation</returns>
-        public IServiceImplementation GetServiceImplementation(string org, string service)
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <returns>The service Implementation.</returns>
+        public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
         {
-            string assemblyName = LoadServiceAssembly(org, service);
+            string assemblyName = LoadServiceAssembly(org, service, startServiceFlag);
             string implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + ".ServiceImplementation," + assemblyName;
 
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
@@ -75,14 +76,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the service context made available for the Altinn Core services and views.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The service context</returns>
-        public ServiceContext GetServiceContext(string org, string service)
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <returns>The service context.</returns>
+        public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, service).GetServiceModelType(),
+                ServiceModelType = GetServiceImplementation(org, service, false).GetServiceModelType(),
                 ServiceText = _repository.GetServiceTexts(org, service),
                 ServiceMetaData = _repository.GetServiceMetaData(org, service),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
@@ -98,11 +100,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Generates a new service instanceID for a service
+        /// Generates a new service instanceID for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>A new instanceId</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>A new instanceId.</returns>
         public int GetNewServiceInstanceID(string org, string service)
         {
             int value = 1000;
@@ -112,11 +114,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the list of code list for a service
+        /// Returns the list of code list for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>List of code lists</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>List of code lists.</returns>
         public Dictionary<string, CodeList> GetCodelists(string org, string service)
         {
             Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
@@ -136,12 +138,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return a given code list
+        /// Return a given code list.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="name">The name of the code list</param>
-        /// <returns>The code list</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="name">The name of the code list.</param>
+        /// <returns>The code list.</returns>
         public CodeList GetCodeListByName(string org, string service, string name)
         {
             CodeList codeList = null;
@@ -152,10 +154,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the basic service owner configuration
+        /// Returns the basic service owner configuration.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <returns>The basic service owner configuration</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <returns>The basic service owner configuration.</returns>
         public OrgConfiguration GetServiceOwnerConfiguration(string org)
         {
             OrgConfiguration config;
@@ -174,11 +176,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the basic service configuration
+        /// Returns the basic service configuration.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The basic service configuration</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The basic service configuration.</returns>
         public ServiceConfiguration GetServiceConfiguration(string org, string service)
         {
             ServiceConfiguration config;
@@ -197,12 +199,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets the raw content of a code list
+        /// Gets the raw content of a code list.
         /// </summary>
-        /// <param name="org">The organization code of the service owner</param>
-        /// <param name="service">The service code of the current service</param>
-        /// <param name="name">The name of the code list to retrieve</param>
-        /// <returns>Raw contents of a code list file</returns>
+        /// <param name="org">The organization code of the service owner.</param>
+        /// <param name="service">The service code of the current service.</param>
+        /// <param name="name">The name of the code list to retrieve.</param>
+        /// <returns>Raw contents of a code list file.</returns>
         public string GetCodelist(string org, string service, string name)
         {
             string codeList = _repository.GetCodelist(org, service, name);
@@ -221,9 +223,9 @@ namespace AltinnCore.Common.Services.Implementation
             return _repository.GetServiceResource(org, service, resource);
         }
 
-        private string LoadServiceAssembly(string org, string service)
+        private string LoadServiceAssembly(string org, string service, bool startServiceFlag)
         {
-            var codeCompilationResult = _compilation.CreateServiceAssembly(org, service);
+            var codeCompilationResult = _compilation.CreateServiceAssembly(org, service, startServiceFlag);
             if (!codeCompilationResult.Succeeded)
             {
                 var errorMessages = codeCompilationResult?.CompilationInfo?.Where(e => e.Severity == "Error")
@@ -239,21 +241,21 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the service metadata for a service
+        /// Returns the service metadata for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The service metadata for a service</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The service metadata for a service.</returns>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
             return _repository.GetServiceMetaData(org, service);
         }
 
         /// <summary>
-        /// Method that receives a stream and saves it to the given path
+        /// Method that receives a stream and saves it to the given path.
         /// </summary>
-        /// <param name="path">The path to the file to be saved to</param>
-        /// <param name="streamToSave">The steam to save to the file</param>
+        /// <param name="path">The path to the file to be saved to.</param>
+        /// <param name="streamToSave">The steam to save to the file.</param>
         public void SaveToFile(string path, Stream streamToSave)
         {
             using (Stream stream = File.Open(path, FileMode.Create, FileAccess.ReadWrite))
@@ -263,12 +265,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Method that fetches the users repo, zips it and returns the zip file
+        /// Method that fetches the users repo, zips it and returns the zip file.
         /// </summary>
-        /// <param name="org">The organization for the service</param>
-        /// <param name="service">The name of the service</param>
-        /// <param name="developer">The current developer</param>
-        /// <returns>The zipped file</returns>
+        /// <param name="org">The organization for the service.</param>
+        /// <param name="service">The name of the service.</param>
+        /// <param name="developer">The current developer.</param>
+        /// <returns>The zipped file.</returns>
         public FileStream ZipAndReturnFile(string org, string service, string developer)
         {
             CheckAndUpdateWorkflowFile(org, service, developer);
@@ -284,21 +286,21 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Method that fetches the file of the specified path
+        /// Method that fetches the file of the specified path.
         /// </summary>
-        /// <param name="path">The path of the file to open</param>
-        /// <returns>The filestream for the given paths file</returns>
+        /// <param name="path">The path of the file to open.</param>
+        /// <returns>The filestream for the given paths file.</returns>
         public FileStream GetFileStream(string path)
         {
             return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         /// <summary>
-        /// Method that adds the workflow file to the repository if its not there, or replaces it if its an old version of the workflow file
+        /// Method that adds the workflow file to the repository if its not there, or replaces it if its an old version of the workflow file.
         /// </summary>
-        /// <param name="owner">The owner of the service</param>
-        /// <param name="service">The name of the service</param>
-        /// <param name="developer">The developer of the service</param>
+        /// <param name="owner">The owner of the service.</param>
+        /// <param name="service">The name of the service.</param>
+        /// <param name="developer">The developer of the service.</param>
         private void CheckAndUpdateWorkflowFile(string owner, string service, string developer)
         {
             string workflowFullFilePath = _settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
