@@ -75,6 +75,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceId">the instance to update</param>
         /// <param name="formId">the formId to upload data for</param>
+        /// <param name="instanceOwnerId">instance owner id</param>
         /// <returns>If the request was successful or not</returns>
         // POST /instances/{instanceId}/data/{formId}        
         [HttpPost("{formId}")]
@@ -107,13 +108,19 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             FormDefinition form = appInfo.Forms[formId];
+            DateTime creationTime = DateTime.UtcNow;
 
             // create new data element, store data in blob
-            Data newData = new Data();
-           
-            // update data record
-            newData.ContentType = Request.ContentType;
-            newData.Id = Guid.NewGuid().ToString();
+            Data newData = new Data
+            {
+                // update data record
+                Id = Guid.NewGuid().ToString(),
+                ContentType = Request.ContentType,
+                CreatedBy = User.Identity.Name,
+                CreatedDateTime = creationTime,
+                LastChangedBy = User.Identity.Name,
+                LastChangedDateTime = creationTime,
+            };
 
             string fileName = instance.ApplicationId + "/" + instanceId + "/data/" + formId + "/" + newData.Id;
             newData.StorageUrl = fileName;
@@ -139,25 +146,6 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
-        private string GetInstanceOwnerId()
-        {
-            string userId = User.Identity.Name;
-            if (string.IsNullOrEmpty(userId))
-            {
-                return "642";
-            }
-            else
-            {
-                return userId;
-            }
-            
-        }
-
-        private void SaveInstance(Instance instance)
-        {
-            throw new NotImplementedException();
-        }
-
         private ApplicationInformation GetApplicationInformation(string applicationId)
         {
             string json = @"{
@@ -166,6 +154,9 @@ namespace Altinn.Platform.Storage.Controllers
                 'forms': {
                     'boatdata': {
                         'contentType': 'application/schema+json'
+                    },
+                    'crewlist': {
+                        'contentType': 'application/pdf'
                     }
                 }
                 }";

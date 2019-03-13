@@ -30,7 +30,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">owner of the instances</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// GET api/v1/instances/
-        [HttpGet("{instanceOwnerId}")]
+        [HttpGet]
         public async Task<ActionResult> Get(int instanceOwnerId)
         {
             var result = await _instanceRepository.GetInstancesFromCollectionAsync(instanceOwnerId);
@@ -71,6 +71,11 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost]
         public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {
+            if (string.IsNullOrEmpty(applicationId) || instanceOwnerId == 0)
+            {
+                return BadRequest("Both applicationId and instanceownerid must be set");
+            }
+
             Instance instance = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.ToString(),
@@ -97,7 +102,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns></returns>
         /// PUT api/v1/<controller>/5
         [HttpPut("{instanceId}")]
-        public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody]Instance instance)
+        public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
         {
             instance.LastChangedBy = instanceOwnerId;
             instance.LastChangedDateTime = DateTime.UtcNow;

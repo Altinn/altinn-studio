@@ -68,23 +68,24 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="reporteeId">the id of the reportee</param>
+        /// <param name="instanceOwnerId">the id of the reportee</param>
         /// <param name="instanceId">the id of the Instance</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<Instance> GetInstanceFromCollectionAsync(int reporteeId, Guid instanceId)
+        public async Task<Instance> GetInstanceFromCollectionAsync(int instanceOwnerId, Guid instanceId)
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.id = '{instanceId}'";
+                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.id = '{instanceId.ToString()}'";
 
-                IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId.ToString()) }).AsDocumentQuery();
+                // IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) }).AsDocumentQuery();
 
-                // IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { EnableCrossPartitionQuery = true}).AsDocumentQuery();
+                var query = _client.CreateDocumentQuery<Instance>(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) }).AsDocumentQuery();
+
                 Instance instance = null;
                 while (query.HasMoreResults)
                 {
-                    FeedResponse<Instance> res = await query.ExecuteNextAsync<Instance>();
-                    if (res.Count != 0)
+                    var res = await query.ExecuteNextAsync();
+                    if (res.Any())
                     {
                         instance = res.First();
                         break;
@@ -144,15 +145,15 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Get all the instances for a reportee
         /// </summary>
-        /// <param name="reporteeId">the id of the reportee</param>
+        /// <param name="instanceOwnerId">the id of the reportee</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<List<dynamic>> GetInstancesFromCollectionAsync(int reporteeId)
+        public async Task<List<dynamic>> GetInstancesFromCollectionAsync(int instanceOwnerId)
         {
             try
             {
                 string sqlQuery = $"SELECT * FROM Instance";
 
-                List<dynamic> instances = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId.ToString()) }).ToList();
+                List<dynamic> instances = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) }).ToList();
 
                 return instances;
             }
@@ -172,14 +173,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Update instance for a given form id
         /// </summary>
-        /// <param name="id">the instance id</param>
+        /// <param name="instanceId">the instance id</param>
         /// <param name="item">the instance</param>
         /// <returns>The instance</returns>
-        public async Task<Instance> UpdateInstanceInCollectionAsync(Guid id, Instance item)
+        public async Task<Instance> UpdateInstanceInCollectionAsync(Guid instanceId, Instance item)
         {
             try
             {
-                var document = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, id.ToString()), item);
+                var document = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
                 var data = document.Resource.ToString();
                 var instance = JsonConvert.DeserializeObject<Instance>(data);
                 return instance;

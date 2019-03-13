@@ -15,6 +15,7 @@ namespace Altinn.Platform.Test.Integration
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
+        public string instanceId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
@@ -42,31 +43,29 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
         {
-            DateTime creationTimestamp = DateTime.Now;
 
             Instance instanceData = new Instance
             {
                // InstanceOwnerId = "666",
                 ApplicationId = "sailor",
-                CreatedDateTime = creationTimestamp,
+                ApplicationOwnerId = "BRREG",
             };
 
-            HttpResponseMessage postResponse = await client.PostAsync("/dataservice/reportees/666/instances", instanceData.AsJson());
+            HttpResponseMessage postResponse = await client.PostAsync("/api/v1/instances?instanceOwnerId=666&applicationId=KNS/sailor", instanceData.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
             string newId = await postResponse.Content.ReadAsStringAsync();
-
+            instanceId = newId;
             Assert.NotNull(newId);
 
-            HttpResponseMessage getResponse = await client.GetAsync("/dataservice/reportees/666/instances/" + newId);
+            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "/?instanceOwnerId=666");
 
             getResponse.EnsureSuccessStatusCode();
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
             //Assert.Equal("666", actual.InstanceOwnerId);
-            Assert.Equal("sailor", actual.ApplicationId);
-            Assert.Equal(creationTimestamp, actual.CreatedDateTime);
+            Assert.Equal("KNS/sailor", actual.ApplicationId);
         }
 
         /// <summary>
@@ -74,10 +73,24 @@ namespace Altinn.Platform.Test.Integration
         /// </summary>
         /// <param name="url">the url to check</param>
         [Theory]
-        [InlineData("/dataservice/reportees/666/instances")]
+        [InlineData("/api/v1/instances?instanceOwnerId=666")]
         public async void GetInstancesForReportee(string url)
         {
             HttpResponseMessage response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
+        }
+
+        /// <summary>
+        ///  Checks that the Inline data urls returns a proper encoding.
+        /// </summary>
+        /// <param name="url">the url to check</param>
+        [Theory]
+        [InlineData("/api/v1/instances/")]
+        public async void UpdateInstancesForReportee(string url)
+        {
+            HttpResponseMessage response = await client.GetAsync(url + instanceId);
 
             response.EnsureSuccessStatusCode();
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
