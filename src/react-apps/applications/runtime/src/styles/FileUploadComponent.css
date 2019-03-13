@@ -1,0 +1,47 @@
+.cursor-pointer{
+  cursor: pointer;
+}
+
+.file-upload-text-bold {
+  font-weight: 400;
+  font-size: 1.6rem;
+  margin-bottom: 0.6rem;
+}
+
+.file-upload-text-bold-small {
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin-bottom: 0;
+}
+
+.file-upload-text {
+  font-weight: 300;
+  font-size: 1.6rem;
+}
+
+.blue-underline {
+  border-bottom: 2px solid #1EADF7;
+}
+
+.blue-underline-dotted {
+  border-bottom: 1px dotted #1EADF7;
+}
+
+.file-upload-table-header {
+  font-size: 1.4rem;
+}
+
+.file-upload-table {
+  width: 100%;
+  margin-top: 2.4rem;
+}
+
+.file-upload-table-body {
+  font-weight: 500 !important;
+  font-size: 1.2rem;
+}
+
+.file-upload-table-last-item {
+  float: right;
+  padding-right: 0;
+}
