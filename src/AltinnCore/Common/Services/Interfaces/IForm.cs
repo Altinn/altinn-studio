@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace AltinnCore.Common.Services.Interfaces
@@ -24,13 +25,13 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// This method saves a form attachment
         /// </summary>
-        /// <param name="request">The request containing the attachment data</param>
-        /// <param name="formId">The form id</param>
         /// <param name="org">The organization codefor the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
+        /// <param name="formId">The form id</param>
+        /// <param name="attachmentType">The attachment type id</param>
         /// <param name="attachmentName">The file name for the attachment</param>
-        Task SaveFormAttachment(HttpRequest request, int formId, string org, string service, int partyId, string attachmentName);
+        string GetAttachmentUploadUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName);
 
         /// <summary>
         /// Returns the Form model for a given from.

@@ -286,7 +286,7 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                  name: "apiAttachmentRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{action=UploadAttachment}/{instanceId}/{fileName}",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}",
                  defaults: new { controller = "ServiceAPI" },
                  constraints: new
                  {

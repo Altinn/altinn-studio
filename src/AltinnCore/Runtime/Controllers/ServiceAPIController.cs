@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Attributes;
@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -538,21 +539,13 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="org">The organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="instanceId">The instance ID</param>
+        /// <param name="attachmentType">The attachment type id</param>
         /// <param name="fileName">The name of the file to be uploaded</param>
         [Authorize]
-        [HttpPost]
-        [DisableFormValueModelBinding]
-        public async Task<IActionResult> UploadAttachment(int reportee, string org, string service, int instanceId, string fileName)
+        [HttpGet]
+        public IActionResult GetAttachmentUploadUrl(int reportee, string org, string service, int instanceId, string attachmentType, string fileName)
         {
-            if (string.IsNullOrEmpty(fileName))
-            {
-                ApiResult apiResult = new ApiResult();
-                Response.StatusCode = 500;
-                return new ObjectResult(apiResult);
-            }
-
-            await _form.SaveFormAttachment(Request, instanceId, org, service, reportee, fileName);
-            return Ok();
+            return Content(_form.GetAttachmentUploadUrl(org, service, reportee, instanceId, attachmentType, fileName), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
