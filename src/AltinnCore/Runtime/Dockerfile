@@ -11,7 +11,7 @@ WORKDIR /src/AltinnCore/Runtime
 RUN dotnet build AltinnCore.Runtime.csproj -c Release -o /app_output
 RUN dotnet publish AltinnCore.Runtime.csproj -c Release -o /app_output
 
-# Altinn-Studio runtimeApp
+# Altinn-Studio runtime app
 FROM altinn-runtime-app:latest AS generate-runtime-app
 
 #dotnet:2.1.300-sdk
