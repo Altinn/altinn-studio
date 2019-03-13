@@ -254,6 +254,15 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
+                    name: "runtimeResourceRoute",
+                    template: "runtime/api/runtimeresources/{id}/",
+                    defaults: new { action = "RuntimeResource", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                    });
+
+                routes.MapRoute(
                     name: "metadataRoute",
                     template: "runtime/api/metadata/{org}/{service}/{action=Index}",
                     defaults: new { controller = "Resource" },

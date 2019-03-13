@@ -1831,13 +1831,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            StylesConfig stylesConfig = new StylesConfig();
-            stylesConfig.InternalStyles = new List<string>();
-            stylesConfig.InternalStyles.Add(_settings.RuntimeCssFileName);
-            stylesConfig.ExternalStyles = new List<string>();
-            stylesConfig.ExternalStyles.Add(_settings.DefaultBootstrapUrl);
-
-            string output = JsonConvert.SerializeObject(stylesConfig);
+            string output = _settings.GetStylesConfig();
             string stylesConfigPath = Path.Combine(targetDirectory.FullName, _settings.ServiceStylesConfigFileName);
             if (!File.Exists(stylesConfigPath))
             {
@@ -1895,13 +1889,6 @@ namespace AltinnCore.Common.Services.Implementation
                 Guard.AssertArgumentNotNullOrWhiteSpace(id, nameof(id));
                 return Resources?.Resources?.Where(r => id == r?.Id) ?? new Resource[0];
             }
-        }
-
-        private class StylesConfig
-        {
-            public List<string> InternalStyles { get; set; }
-
-            public List<string> ExternalStyles { get; set; }
         }
     }
 }

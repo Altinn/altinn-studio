@@ -355,23 +355,23 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public byte[] GetRuntimeApp()
+        public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
-            if (File.Exists(path))
+            string path = string.Empty;
+            if (resource == _settings.RuntimeAppFileName)
             {
-                fileContent = File.ReadAllBytes(path);
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
             }
-            
-            return fileContent;
-        }
+            else if (resource == _settings.ServiceStylesConfigFileName)
+            {
+                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
+            }
+            else
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
+            }
 
-        /// <inheritdoc/>
-        public byte[] GetRuntimeStyle()
-        {
-            byte[] fileContent = null;
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
             if (File.Exists(path))
             {
                 fileContent = File.ReadAllBytes(path);

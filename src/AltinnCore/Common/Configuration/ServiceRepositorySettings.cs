@@ -1,4 +1,7 @@
+using AltinnCore.Common.Models;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 
 namespace AltinnCore.Common.Configuration
 {
@@ -276,6 +279,20 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the filename for the generated methods class
         /// </summary>
         public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;
+
+        /// <summary>
+        /// Gets the styles config element
+        /// </summary>
+        public string GetStylesConfig()
+        {
+            StylesConfig stylesConfig = new StylesConfig();
+            stylesConfig.InternalStyles = new List<string>();
+            stylesConfig.InternalStyles.Add(RuntimeCssFileName);
+            stylesConfig.ExternalStyles = new List<string>();
+            stylesConfig.ExternalStyles.Add(DefaultBootstrapUrl);
+
+            return JsonConvert.SerializeObject(stylesConfig);
+        }
 
         /// <summary>
         /// Gets the full path to the org directory

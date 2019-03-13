@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
@@ -11,7 +10,6 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -24,6 +22,7 @@ namespace AltinnCore.Common.Services.Implementation
     using AltinnCore.Common.Helpers.Extensions;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using static AltinnCore.Common.Services.Implementation.RepositorySI;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
@@ -279,23 +278,23 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public byte[] GetRuntimeApp()
+        public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
-            if (File.Exists(path))
+            string path = string.Empty;
+            if (resource == _settings.RuntimeAppFileName)
             {
-                fileContent = File.ReadAllBytes(path);
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            }
+            else if (resource == _settings.ServiceStylesConfigFileName)
+            {
+                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
+            }
+            else
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
             }
 
-            return fileContent;
-        }
-
-        /// <inheritdoc/>
-        public byte[] GetRuntimeStyle()
-        {
-            byte[] fileContent = null;
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
             if (File.Exists(path))
             {
                 fileContent = File.ReadAllBytes(path);

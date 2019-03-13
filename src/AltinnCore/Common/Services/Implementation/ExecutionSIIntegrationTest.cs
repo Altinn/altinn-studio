@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.Loader;
+using System.Text;
 using System.Text.RegularExpressions;
 
 using AltinnCore.Common.Backend;
@@ -220,23 +221,23 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public byte[] GetRuntimeApp()
+        public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
-            if (File.Exists(path))
+            string path = string.Empty;
+            if (resource == _settings.RuntimeAppFileName)
             {
-                fileContent = File.ReadAllBytes(path);
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            }
+            else if (resource == _settings.ServiceStylesConfigFileName)
+            {
+                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
+            }
+            else
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
             }
 
-            return fileContent;
-        }
-
-        /// <inheritdoc/>
-        public byte[] GetRuntimeStyle()
-        {
-            byte[] fileContent = null;
-            string path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
             if (File.Exists(path))
             {
                 fileContent = File.ReadAllBytes(path);

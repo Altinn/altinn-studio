@@ -83,15 +83,11 @@ namespace AltinnCore.Common.Services.Interfaces
         FileStream GetFileStream(string path);
 
         /// <summary>
-        /// Method that fetches the runtime app
+        /// Method that fetches the runtime resources stored in wwwroot
         /// </summary>
-        /// <returns>The filestream for the runtime app file</returns>
-        byte[] GetRuntimeApp();
+        /// <param name="resource">the resource</param>
+        /// <returns>The filestream for the resource file</returns>
+        byte[] GetRuntimeResource(string resource);
 
-        /// <summary>
-        /// Method that fetches the runtime style file
-        /// </summary>
-        /// <returns>The filestream for the runtime style file</returns>
-        byte[] GetRuntimeStyle();
     }
 }
