@@ -100,7 +100,7 @@ namespace Altinn.Platform.Storage.Controllers
             // create new data element, store data in blob
             // update instance
 
-            string fileName = "";
+            string fileName = string.Empty;
 
             MemoryStream formDataStream = new MemoryStream();
             /*
