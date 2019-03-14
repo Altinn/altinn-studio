@@ -18,7 +18,7 @@ namespace AltinnCore.Common.Attributes
         /// <param name="context">The context</param>
         public void OnResourceExecuting(ResourceExecutingContext context)
         {
-            var formValueProviderFactory = context.ValueProviderFactories
+            FormValueProviderFactory formValueProviderFactory = context.ValueProviderFactories
                 .OfType<FormValueProviderFactory>()
                 .FirstOrDefault();
             if (formValueProviderFactory != null)
@@ -26,7 +26,7 @@ namespace AltinnCore.Common.Attributes
                 context.ValueProviderFactories.Remove(formValueProviderFactory);
             }
 
-            var jqueryFormValueProviderFactory = context.ValueProviderFactories
+            JQueryFormValueProviderFactory jqueryFormValueProviderFactory = context.ValueProviderFactories
                 .OfType<JQueryFormValueProviderFactory>()
                 .FirstOrDefault();
             if (jqueryFormValueProviderFactory != null)

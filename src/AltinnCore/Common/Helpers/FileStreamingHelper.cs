@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Common.Helpers
@@ -35,18 +36,17 @@ namespace AltinnCore.Common.Helpers
             // Used to accumulate all the form url encoded key value pairs in the 
             // request.
             KeyValueAccumulator formAccumulator = default(KeyValueAccumulator);
-            string targetFilePath = null;
 
-            var boundary = MultipartRequestHelper.GetBoundary(
+            string boundary = MultipartRequestHelper.GetBoundary(
                 MediaTypeHeaderValue.Parse(request.ContentType),
                 _defaultFormOptions.MultipartBoundaryLengthLimit);
-            var reader = new MultipartReader(boundary, request.Body);
+            MultipartReader reader = new MultipartReader(boundary, request.Body);
 
-            var section = await reader.ReadNextSectionAsync();
+            MultipartSection section = await reader.ReadNextSectionAsync();
             while (section != null)
             {
                 ContentDispositionHeaderValue contentDisposition;
-                var hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+                bool hasContentDispositionHeader = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
 
                 if (hasContentDispositionHeader)
                 {
@@ -62,9 +62,9 @@ namespace AltinnCore.Common.Helpers
 
                         // Do not limit the key name length here because the 
                         // multipart headers length limit is already in effect.
-                        var key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
-                        var encoding = GetEncoding(section);
-                        using (var streamReader = new StreamReader(
+                        StringSegment key = HeaderUtilities.RemoveQuotes(contentDisposition.Name);
+                        Encoding encoding = GetEncoding(section);
+                        using (StreamReader streamReader = new StreamReader(
                             section.Body,
                             encoding,
                             detectEncodingFromByteOrderMarks: true,
@@ -72,7 +72,7 @@ namespace AltinnCore.Common.Helpers
                             leaveOpen: true))
                         {
                             // The value length limit is enforced by MultipartBodyLengthLimit
-                            var value = await streamReader.ReadToEndAsync();
+                            string value = await streamReader.ReadToEndAsync();
                             if (string.Equals(value, "undefined", StringComparison.OrdinalIgnoreCase))
                             {
                                 value = string.Empty;
@@ -94,7 +94,7 @@ namespace AltinnCore.Common.Helpers
             }
 
             // Bind form data to a model
-            var formValueProvider = new FormValueProvider(
+            FormValueProvider formValueProvider = new FormValueProvider(
                 BindingSource.Form,
                 new FormCollection(formAccumulator.GetResults()),
                 CultureInfo.CurrentCulture);
@@ -105,7 +105,7 @@ namespace AltinnCore.Common.Helpers
         private static Encoding GetEncoding(MultipartSection section)
         {
             MediaTypeHeaderValue mediaType;
-            var hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out mediaType);
+            bool hasMediaTypeHeader = MediaTypeHeaderValue.TryParse(section.ContentType, out mediaType);
 
             // UTF-7 is insecure and should not be honored. UTF-8 will succeed in 
             // most cases.
