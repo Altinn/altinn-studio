@@ -32,6 +32,12 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetAppToken();
 
         /// <summary>
+        /// Returns the App token id for the repository
+        /// </summary>
+        /// <returns>The token id</returns>
+        string GetAppTokenId();
+
+        /// <summary>
         /// Returns the deploy token for the repository
         /// </summary>
         /// <returns>The token</returns>

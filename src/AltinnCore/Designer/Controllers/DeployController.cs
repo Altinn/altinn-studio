@@ -115,7 +115,7 @@ namespace AltinnCore.Designer.Controllers
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{environment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{environment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);

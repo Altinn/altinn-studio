@@ -230,16 +230,16 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Presenting a view listing all implementation files
+        /// Presenting a view listing all implementation files.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <returns>The View</returns>
+        /// <param name="org">The organization code for the requested service.</param>
+        /// <param name="service">The service short name for the requested service.</param>
+        /// <returns>The View.</returns>
         [HttpGet]
         public IActionResult Code(string org, string service)
         {
             List<AltinnCoreFile> altinnCoreFiles = _repository.GetImplementationFiles(org, service);
-            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, null, false);
+            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, false, null, false);
 
             // Check to see if any of the files has compiliation errors or warnings
             foreach (AltinnCoreFile coreFile in altinnCoreFiles)
@@ -267,12 +267,12 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Presents a view for a specific implementation file
+        /// Presents a view for a specific implementation file.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
+        /// <param name="org">The organization code for the requested service.</param>
+        /// <param name="service">The service short name for the requested service.</param>
         /// <param name="name">The file Name</param>
-        /// <returns>The View</returns>
+        /// <returns>The View.</returns>
         public IActionResult File(string org, string service, string name)
         {
             ViewBag.FileName = name;
@@ -280,12 +280,12 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// This method returns the content of a file
+        /// This method returns the content of a file.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <param name="name">The file name</param>
-        /// <returns>The content of the file</returns>
+        /// <param name="org">The organization code for the requested service.</param>
+        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="name">The file name.</param>
+        /// <returns>The content of the file.</returns>
         public IActionResult GetFile(string org, string service, string name)
         {
             if (name == "RuleHandler.js")
@@ -301,13 +301,13 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Updates a given
+        /// Updates a given.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <param name="fileName">The file name</param>
-        /// <param name="fileContent">The file content</param>
-        /// <returns>Status code</returns>
+        /// <param name="org">The organization code for the requested service.</param>
+        /// <param name="service">The service short name for the requested service.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="fileContent">The file content.</param>
+        /// <returns>Status code.</returns>
         [HttpPost]
         public IActionResult SaveImplementationFile(string org, string service, string fileName, string fileContent)
         {
@@ -324,14 +324,14 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Compiles the implementation files
+        /// Compiles the implementation files.
         /// </summary>
-        /// <param name="org">The organization code for the requested service</param>
-        /// <param name="service">The service short name for the requested service</param>
-        /// <returns>A View with the result</returns>
+        /// <param name="org">The organization code for the requested service.</param>
+        /// <param name="service">The service short name for the requested service.</param>
+        /// <returns>A View with the result.</returns>
         public IActionResult Compile(string org, string service)
         {
-            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, null, false);
+            CodeCompilationResult compResult = _compilation.CreateServiceAssembly(org, service, false, null, false);
             ViewBag.CompilationResult = compResult;
             return PartialView("CompilationResult");
         }

@@ -45,20 +45,20 @@ namespace AltinnCore.Runtime.Controllers
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ServiceAPIController"/> class
+        /// Initializes a new instance of the <see cref="ServiceAPIController"/> class.
         /// </summary>
-        /// <param name="settings">The repository settings (set in Startup.cs)</param>
-        /// <param name="generalSettings">The general settings (set in Startup.cs)</param>
-        /// <param name="compilationService">The compilation service (set in Startup.cs)</param>
-        /// <param name="authorizationService">The authorization service (set in Startup.cs)</param>
-        /// <param name="logger">The logger (set in Startup.cs)</param>
-        /// <param name="registerService">The register service (set in Startup.cs)</param>
-        /// <param name="formService">The form service</param>
-        /// <param name="repositoryService">The repository service (set in Startup.cs)</param>
-        /// <param name="executionService">The execution service (set in Startup.cs)</param>
-        /// <param name="profileService">The profile service (set in Startup.cs)</param>
-        /// <param name="httpContextAccessor">The http context accessor</param>
-        /// <param name="workflowSI">The workflow service</param>
+        /// <param name="settings">The repository settings (set in Startup.cs).</param>
+        /// <param name="generalSettings">The general settings (set in Startup.cs).</param>
+        /// <param name="compilationService">The compilation service (set in Startup.cs).</param>
+        /// <param name="authorizationService">The authorization service (set in Startup.cs).</param>
+        /// <param name="logger">The logger (set in Startup.cs).</param>
+        /// <param name="registerService">The register service (set in Startup.cs).</param>
+        /// <param name="formService">The form service.</param>
+        /// <param name="repositoryService">The repository service (set in Startup.cs).</param>
+        /// <param name="executionService">The execution service (set in Startup.cs).</param>
+        /// <param name="profileService">The profile service (set in Startup.cs).</param>
+        /// <param name="httpContextAccessor">The http context accessor.</param>
+        /// <param name="workflowSI">The workflow service.</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -89,18 +89,18 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// This method returns the
+        /// This method returns the.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instanceId</param>
-        /// <returns>The Service model as JSON or XML for the given instanceId</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="instanceId">The instanceId.</param>
+        /// <returns>The Service model as JSON or XML for the given instanceId.</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpGet]
         public async Task<IActionResult> Index(string org, string service, int instanceId)
         {
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -110,7 +110,7 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
 
             // Assign data to the ViewBag so it is available to the service views or service implementation
             ViewBag.ServiceContext = serviceContext;
@@ -160,11 +160,11 @@ namespace AltinnCore.Runtime.Controllers
         /// The binding is handled by a custom Model binder to support that
         /// the Deserialization of the ServiceModel will happen inside the controller.
         /// </summary>
-        /// <param name="model">The model as JSON/xml in a string parameter</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="apiMode">The mode that data is submitted</param>
-        /// <returns>The result</returns>
+        /// <param name="model">The model as JSON/xml in a string parameter.</param>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="apiMode">The mode that data is submitted.</param>
+        /// <returns>The result.</returns>
         [Authorize]
         [HttpPost]
         public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, ApiMode apiMode)
@@ -175,7 +175,7 @@ namespace AltinnCore.Runtime.Controllers
             ApiResult apiResult = new ApiResult();
 
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -185,7 +185,7 @@ namespace AltinnCore.Runtime.Controllers
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
 
             // Assign the Requestcontext and ViewBag to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
@@ -289,14 +289,14 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Default action for service api
+        /// Default action for service api.
         /// </summary>
-        /// <param name="model">the api model</param>
-        /// <param name="org">the organisation</param>
-        /// <param name="service">the service</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <param name="apiMode">the mode of the api</param>
-        /// <returns>The api result</returns>
+        /// <param name="model">the api model.</param>
+        /// <param name="org">the organisation.</param>
+        /// <param name="service">the service.</param>
+        /// <param name="instanceId">the instance id.</param>
+        /// <param name="apiMode">the mode of the api.</param>
+        /// <returns>The api result.</returns>
         [Authorize]
         [HttpPut]
         public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
@@ -307,7 +307,7 @@ namespace AltinnCore.Runtime.Controllers
             ApiResult apiResult = new ApiResult();
 
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -321,7 +321,7 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
 
             // Assign the Requestcontext and ViewBag to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
@@ -430,21 +430,21 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// A method to get data for a lookup service that does not require input from user
+        /// A method to get data for a lookup service that does not require input from user.
         /// </summary>
-        /// <param name="reportee">The reportee number (organization number or ssn)</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The lookup result</returns>
+        /// <param name="reportee">The reportee number (organization number or ssn).</param>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The lookup result.</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpGet]
         public async Task<IActionResult> Lookup(string reportee, string org, string service)
         {
             // Load the service implementation for the requested service
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
 
             // Get the service context containing metadata about the service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -474,13 +474,13 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Operation for lookup that posts data to a lookup service that require input
+        /// Operation for lookup that posts data to a lookup service that require input.
         /// </summary>
-        /// <param name="model">The custom model containing the post body</param>
-        /// <param name="reportee">The reportee number (organization number or ssn)</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The lookup result</returns>
+        /// <param name="model">The custom model containing the post body.</param>
+        /// <param name="reportee">The reportee number (organization number or ssn).</param>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The lookup result.</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpPost]
         public async Task<IActionResult> Lookup([FromBody] AltinnCoreApiModel model, string reportee, string org, string service)
@@ -488,10 +488,10 @@ namespace AltinnCore.Runtime.Controllers
             ApiResult apiResult = new ApiResult();
 
             // Load the service implementation for the requested service
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service);
+            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
 
             // Get the service context containing metadata about the service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service);
+            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
 
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -530,11 +530,11 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Method that maps the MVC Model state to the ApiResult for the client
+        /// Method that maps the MVC Model state to the ApiResult for the client.
         /// </summary>
-        /// <param name="modelState">The model state</param>
-        /// <param name="apiResult">The api result</param>
-        /// <param name="serviceContext">The service context</param>
+        /// <param name="modelState">The model state.</param>
+        /// <param name="apiResult">The api result.</param>
+        /// <param name="serviceContext">The service context.</param>
         private void MapModelStateToApiResultForClient(ModelStateDictionary modelState, ApiResult apiResult, ServiceContext serviceContext)
         {
             apiResult.ValidationResult = new ApiValidationResult
@@ -608,11 +608,11 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Method that maps the MVC Model state to the ApiResult
+        /// Method that maps the MVC Model state to the ApiResult.
         /// </summary>
-        /// <param name="modelState">The model state</param>
-        /// <param name="apiResult">The api result</param>
-        /// <param name="serviceContext">The service context</param>
+        /// <param name="modelState">The model state.</param>
+        /// <param name="apiResult">The api result.</param>
+        /// <param name="serviceContext">The service context.</param>
         private void MapModelStateToApiResult(ModelStateDictionary modelState, ApiResult apiResult, ServiceContext serviceContext)
         {
             apiResult.ModelStateEntries = new List<ApiModelStateEntry>();
