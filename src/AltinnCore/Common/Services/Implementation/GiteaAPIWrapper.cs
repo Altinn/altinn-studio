@@ -384,7 +384,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string csrf = GetCsrf().Result;
 
-            DeleteCurrentAppKeys(csrf, keyName);
+            await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
           
