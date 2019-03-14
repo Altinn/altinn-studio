@@ -1,4 +1,5 @@
 import { t,ClientFunction } from 'testcafe';
+import axeCheck from 'axe-testcafe';
 import { waitForReact } from 'testcafe-react-selectors';
 import DesignerPage from '../page-objects/designerPage';
 import CommonPage from '../page-objects/common';
@@ -68,6 +69,9 @@ test('Teste tab navigation', async () => {
 test('Publisere tab navigation', async () => {
   await t
     .click(designerPage.publisereNavigationTab)
-    .hover(designerPage.publisereButton)
-    .expect(designerPage.publisereButton.visible).ok({timeout:2500})
+    .expect(getLocation()).contains('productionsetting');
+});
+
+test('Automated accesibility testing', async t => {
+  axeCheck(t); 
 });

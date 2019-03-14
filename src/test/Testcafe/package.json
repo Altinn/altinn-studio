@@ -10,6 +10,7 @@
   "author": "",
   "license": "3-Clause BSD",
   "devDependencies": {
+    "axe-testcafe": "^1.1.0",
     "cross-env": "^5.2.0",
     "minimist": "^1.2.0",
     "process": "^0.11.10",

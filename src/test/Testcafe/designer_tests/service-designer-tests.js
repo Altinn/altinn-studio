@@ -1,4 +1,5 @@
 import { Selector, t } from 'testcafe';
+import axeCheck from 'axe-testcafe';
 import App from '../app';
 import DashBoard from '../page-objects/DashboardPage';
 import LoginPage from '../page-objects/loginPage';
@@ -67,6 +68,10 @@ test('About page items and editing', async () => {
     .pressKey('backspace')
     .typeText(designer.omKommentarer, 'Lorem ipsum dolor sit amet.')
     .expect(designer.omKommentarer.textContent).contains("Lorem")
+})
+
+test('Automated accessibility test for designer page', async t => {
+  axeCheck(t);
 })
 
 test.skip('Repeating groups', async () => {
