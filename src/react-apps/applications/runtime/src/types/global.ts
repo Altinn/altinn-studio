@@ -236,4 +236,9 @@ declare global {
   export interface IValidationResults {
     [id: string]: IComponentValidations;
   }
+  export interface IAttachment {
+    file: File;
+    uploaded: boolean;
+    id?: string;
+  }
 }

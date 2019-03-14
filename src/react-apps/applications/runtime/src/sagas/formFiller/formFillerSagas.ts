@@ -1,6 +1,6 @@
 import { AxiosRequestConfig } from 'axios';
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, takeLatest, takeEvery } from 'redux-saga/effects';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormFillerActions from '../../actions/formFillerActions/actions/index';
 import FormFillerActionDispatcher from '../../actions/formFillerActions/formFillerActionDispatcher';
@@ -171,4 +171,23 @@ export function* completeAndSendInFormSaga({ url }: FormFillerActions.ICompleteA
 
 export function* watchCompleteAndSendInFormSaga(): SagaIterator {
   yield takeLatest(FormFillerActionTypes.COMPLETE_AND_SEND_IN_FORM, completeAndSendInFormSaga);
+}
+
+export function* uploadAttachmentSaga({ file }: FormFillerActions.IUploadAttachmentAction): SagaIterator {
+  const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+  const { org, service, instanceId, reportee } = altinnWindow;
+  const servicePath = `${org}/${service}`;
+
+  const data = new FormData();
+  data.append('file', file);
+  const url = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
+    `${servicePath}/GetAttachmentUploadUrl/${instanceId}/attachments/${file.name}`;
+
+  const fileUploadLink = yield call(get, url);
+  const response = yield call(post, fileUploadLink.data, null, data);
+  console.log(response);
+}
+
+export function* watchUploadAttachmentSaga(): SagaIterator {
+  yield takeEvery(FormFillerActionTypes.UPLOAD_ATTACHMENT, uploadAttachmentSaga);
 }

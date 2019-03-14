@@ -8,12 +8,14 @@ export interface IFormFillerState {
   validationResults: IValidationResults;
   unsavedChanges: boolean;
   apiResult?: any;
+  attachments: IAttachment[];
 }
 
 const initialState: IFormFillerState = {
   formData: {},
   validationResults: {},
   unsavedChanges: false,
+  attachments: [],
 };
 
 const formFillerReducer: Reducer<IFormFillerState> = (
@@ -104,6 +106,13 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         validationResults: {
           $set: {},
         },
+      });
+    }
+
+    case (FormFillerActionTypes.UPLOAD_ATTACHMENT_FULFILLED): {
+      const { attachment } = action as FormFillerActions.IUploadAttachmentActionFulfilled;
+      return update<IFormFillerState>(state, {
+        attachments: [...state.attachments, attachment],
       });
     }
 

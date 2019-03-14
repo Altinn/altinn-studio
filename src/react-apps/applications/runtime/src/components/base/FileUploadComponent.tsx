@@ -3,6 +3,7 @@ import DropZone from 'react-dropzone';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import '../../styles/FileUploadComponent.css';
+import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
 
 export interface IFileUploadProps {
   id: string;
@@ -46,6 +47,10 @@ const rejectStyle = {
 export class FileUploadComponent
   extends React.Component<IFileUploadProps, IFileUploadState> {
 
+  public static getDerivedStateFromProps(props: IFileUploadProps, state: IFileUploadState): IFileUploadState {
+    return null;
+  }
+
   constructor(props: IFileUploadProps, state: IFileUploadState) {
     super(props, state);
     this.state = {
@@ -62,6 +67,7 @@ export class FileUploadComponent
     const newFiles: IAttachment[] = [];
     acceptedFiles.forEach((file: File) => {
       newFiles.push({ file, uploaded: false });
+      FormFillerActionDispatchers.uploadAttachment(file);
     });
     this.setState({
       attachments: this.state.attachments.concat(newFiles),

@@ -30,11 +30,14 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   runSingleFieldValidation: (url: string, componentId: any) => formFillerActions.IRunSingleFieldValidationAction;
   runSingleFieldValidationFulfilled: (
     validationErrors: any,
-    ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
+  ) => formFillerActions.IRunSingleFieldValidationActionFulfilled;
   runSingleFieldValidationRejected: (error: Error) => formFillerActions.IRunSingleFieldValidationActionRejected;
   completeAndSendInForm: (url: any) => formFillerActions.ICompleteAndSendInForm;
   completeAndSendInFormFulfilled: () => Action;
   completeAndSendInFormRejected: () => Action;
+  uploadAttachment: (file: File) => formFillerActions.IUploadAttachmentAction;
+  uploadAttachmentFulfilled: (attachment: IAttachment) => formFillerActions.IUploadAttachmentActionFulfilled;
+  uploadAttachmentRejected: (error: Error) => formFillerActions.IUploadAttachmentActionRejected;
 }
 
 const actions: IFormFillerActionDispatchers = {
@@ -56,6 +59,9 @@ const actions: IFormFillerActionDispatchers = {
   completeAndSendInForm: formFillerActions.completeAndSendInForm,
   completeAndSendInFormFulfilled: formFillerActions.completeAndSendInFormFulfilled,
   completeAndSendInFormRejected: formFillerActions.completeAndSendInFormRejected,
+  uploadAttachment: formFillerActions.uploadAttachment,
+  uploadAttachmentFulfilled: formFillerActions.uploadAttachmentFulfilled,
+  uploadAttachmentRejected: formFillerActions.uploadAttachmentRejected,
 };
 
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<
