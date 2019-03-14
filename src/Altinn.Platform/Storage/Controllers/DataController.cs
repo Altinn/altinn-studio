@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Controllers
@@ -21,8 +20,10 @@ namespace Altinn.Platform.Storage.Controllers
     [ApiController]
     public class DataController : Controller
     {
+        private static readonly FormOptions _defaultFormOptions = new FormOptions();
+
         private readonly IDataRepository _dataRepository;
-        private readonly IInstanceRepository _instanceRepository;
+        private readonly IInstanceRepository _instanceRepository;        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
@@ -81,7 +82,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPost("{formId}")]
         [DisableFormValueModelBinding]
         public async Task<IActionResult> UploadData(Guid instanceId, string formId, string instanceOwnerId)
-        {
+        {      
             if (instanceId == null || string.IsNullOrEmpty(formId) || Request.Body == null)
             {
                 return BadRequest("Missing parameter values: instanceId, formId or file content cannot be null");
@@ -110,14 +111,50 @@ namespace Altinn.Platform.Storage.Controllers
             FormDefinition form = appInfo.Forms[formId];
             DateTime creationTime = DateTime.UtcNow;
 
+            Stream theStream = null;
+            string contentType = null;
+            string contentFileName = null;
+
+            if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
+            {
+                // Only read the first section of the mulitpart message.
+                MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
+                string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+
+                MultipartReader reader = new MultipartReader(boundary, Request.Body);
+                MultipartSection section = await reader.ReadNextSectionAsync();
+
+                theStream = section.Body;
+                contentType = section.ContentType;
+
+                ContentDispositionHeaderValue contentDisposition;
+                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+
+                if (hasContentDisposition) 
+                {
+                    contentFileName = contentDisposition.FileName.ToString();
+                }                
+            }
+            else
+            {
+                theStream = Request.Body;
+                contentType = Request.ContentType;
+            }
+
+            if (theStream == null)
+            {
+                return BadRequest("No data attachements found");
+            }
+
             // create new data element, store data in blob
             Data newData = new Data
             {
                 // update data record
                 Id = Guid.NewGuid().ToString(),
-                ContentType = Request.ContentType,
+                ContentType = contentType,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
+                FileName = contentFileName,
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
             };
@@ -138,7 +175,7 @@ namespace Altinn.Platform.Storage.Controllers
             instance.Data[formId][newData.Id] = newData;
 
             // store file as blob
-            await _dataRepository.CreateDataInStorage(Request.Body, fileName);
+            await _dataRepository.CreateDataInStorage(theStream, fileName);
 
             // update instance
             Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
@@ -178,21 +215,6 @@ namespace Altinn.Platform.Storage.Controllers
             instance.Id = instanceId;
 
             return instance; 
-        }
-
-        [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-        public class DisableFormValueModelBindingAttribute : Attribute, IResourceFilter
-        {
-            public void OnResourceExecuting(ResourceExecutingContext context)
-            {
-                var factories = context.ValueProviderFactories;
-                factories.RemoveType<FormValueProviderFactory>();
-                factories.RemoveType<JQueryFormValueProviderFactory>();
-            }
-
-            public void OnResourceExecuted(ResourceExecutedContext context)
-            {
-            }
         }
     }
 }

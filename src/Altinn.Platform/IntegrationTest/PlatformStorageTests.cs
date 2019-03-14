@@ -1,6 +1,8 @@
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Test.Integration.Fixtures;
 using Newtonsoft.Json;
@@ -99,19 +101,69 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void StoreAForm()
         {
-            Data formData = new Data();
-            formData.FileName = "u2.json";
-            string fileContent = "{ 'universe': 42, 'årsjul': 365 }";
-            string instanceData = "{ 'applicationId': 'KNS/sailor' }";
+            object jsonContent = new
+            {
+                universe = 42,
+                årsjul = 365,
+                text = "Fem flotte åer er bedre en to ærlige øl!",
+            };
 
-            HttpResponseMessage createInstanceResponse = await client.PostAsync("api/v1/instances?applicationId=KNS/sailor&instanceOwnerId=642", instanceData.AsJson());
-            string newId = await createInstanceResponse.Content.ReadAsStringAsync();
+            // create instance
+            string newId = await CreateInstance("KNS/sailor", 642);
+            Instance instance = await GetInstance(newId, 642);
 
-            string url = string.Format("api/v1/instances/{0}/data/boatdata?instanceOwnerId=642", newId);
+            string url = string.Format("api/v1/instances/{0}/data/boatdata?instanceOwnerId={1}", newId, 642);
 
-            HttpResponseMessage postResponse = await client.PostAsync(url, fileContent.AsJson());
+            // post the file
+            HttpResponseMessage postResponse = await client.PostAsync(url, jsonContent.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
+        }
+
+        [Fact]
+        public async void StoreABinaryFile()
+        {
+            string applicationId = "KNS/sailor";
+            int instanceOwnerId = 641;
+
+            string instanceId = await CreateInstance(applicationId, instanceOwnerId);
+            string urlTemplate = "api/v1/instances/{0}/data/crewlist?instanceOwnerId={1}";
+            string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
+
+            using (Stream input = File.OpenRead("data/binary_file.pdf"))
+            {
+                HttpContent fileStreamContent = new StreamContent(input);
+
+                using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                {
+                    formData.Add(fileStreamContent, "crewlist", "binary_file.pdf");
+                    HttpResponseMessage response = client.PostAsync(requestUri, formData).Result;
+
+                    response.EnsureSuccessStatusCode();
+                }
+            }
+        }
+
+        private async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
+        {
+            string urlTemplate = "api/v1/instances/{0}/?instanceOwnerId={1}";
+            string url = string.Format(urlTemplate, instanceId, instanceOwnerId);
+
+            HttpResponseMessage getInstanceResponse = await client.GetAsync(url);
+            Instance instance = await getInstanceResponse.Content.ReadAsAsync<Instance>();
+
+            return instance;
+        }
+
+        private async Task<string> CreateInstance(string applicationId, int instanceOwnerId)
+        {
+            string urlTemplate = "api/v1/instances?applicationId={0}&instanceOwnerId={1}";
+            string url = string.Format(urlTemplate, applicationId, instanceOwnerId);
+
+            HttpResponseMessage createInstanceResponse = await client.PostAsync(url, string.Empty.AsJson());
+            string newId = await createInstanceResponse.Content.ReadAsStringAsync();
+
+            return newId;
         }
     }
 
