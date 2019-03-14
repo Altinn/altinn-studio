@@ -27,21 +27,48 @@
   border-bottom: 1px dotted #1EADF7;
 }
 
-.file-upload-table-header {
+.file-upload-table > thead > tr > th {
   font-size: 1.4rem;
+  font-weight: 500 !important;
+}
+
+.file-upload-table > tbody > tr > td {
+  padding-top: 1.2rem;
+  padding-bottom: 1.2rem;
+}
+
+.file-upload-table > tbody > tr > td:last-child > div {
+  cursor: pointer;
+  float: right;
+  padding-right: 0;
+}
+
+.file-upload-table > tbody > tr > td:last-child {
+  padding-right: 0;
+}
+
+.file-upload-table > tbody > tr:last-child{
+  border: 0;
 }
 
 .file-upload-table {
   width: 100%;
   margin-top: 2.4rem;
+  border-spacing: 0 1.2rem;
 }
 
-.file-upload-table-body {
+.file-upload-table > tbody {
   font-weight: 500 !important;
   font-size: 1.2rem;
 }
 
-.file-upload-table-last-item {
-  float: right;
-  padding-right: 0;
+.file-upload-button {
+  cursor: pointer;
+  background: 0;
+  font-size: 1.6rem;
+  border-left: 0;
+  border-right: 0;
+  border-top: 0;
+  padding: 0;
+  margin-top: 2.4rem;
 }

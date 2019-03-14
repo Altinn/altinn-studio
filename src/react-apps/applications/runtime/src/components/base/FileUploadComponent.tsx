@@ -1,6 +1,7 @@
 import * as React from 'react';
 import DropZone from 'react-dropzone';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import '../../styles/FileUploadComponent.css';
 
 export interface IFileUploadProps {
@@ -9,13 +10,19 @@ export interface IFileUploadProps {
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
+  language: any;
+}
+
+export interface IAttachment {
+  file: File;
+  uploaded: boolean;
 }
 
 export interface IFileUploadState {
   title: string;
   component: string;
   description: string;
-  files: File[];
+  attachments: IAttachment[];
   showFileUpload: boolean;
 }
 
@@ -42,7 +49,7 @@ export class FileUploadComponent
   constructor(props: IFileUploadProps, state: IFileUploadState) {
     super(props, state);
     this.state = {
-      files: [],
+      attachments: [],
       ...state,
     };
   }
@@ -52,44 +59,60 @@ export class FileUploadComponent
   }
 
   public onDrop = (acceptedFiles: File[], rejectedFiles: File[]) => {
+    const newFiles: IAttachment[] = [];
+    acceptedFiles.forEach((file: File) => {
+      newFiles.push({ file, uploaded: false });
+    });
     this.setState({
-      files: this.state.files.concat(acceptedFiles),
+      attachments: this.state.attachments.concat(newFiles),
+      showFileUpload: (!(acceptedFiles.length > 0)), // if we added a file the uploader should be hidden in simple mode
     });
   }
 
   public handleDeleteFile = (event: any, index: number) => {
-    const newArray = this.state.files.slice();
+    const newArray = this.state.attachments.slice();
     newArray.splice(index, 1);
     this.setState({
-      files: newArray,
+      attachments: newArray,
     });
   }
 
   public renderFileList = (): JSX.Element => {
-    if (!this.state.files || this.state.files.length === 0) {
+    if (!this.state.attachments || this.state.attachments.length === 0) {
       return null;
     }
     return (
       <div id={'altinn-file-list-' + this.props.id}>
-        <table className={'file-upload-table'} cellSpacing={12}>
-          <thead className={'file-upload-table-header'}>
+        <table className={'file-upload-table'}>
+          <thead>
             <tr className={'blue-underline'}>
-              <th>Navn</th>
-              <th>Filstørrelse</th>
-              <th>Status</th>
+              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_name', this.props.language)}</th>
+              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', this.props.language)}</th>
+              <th>{getLanguageFromKey('form_filler.file_uploader_list_header_status', this.props.language)}</th>
               <th />
             </tr>
           </thead>
-          <tbody className={'file-upload-table-body'}>
-            {this.state.files.map((file: File, index: number) => {
+          <tbody>
+            {this.state.attachments.map((attachment: IAttachment, index: number) => {
               return (
                 <tr key={index} className={'blue-underline-dotted'}>
-                  <td>{file.name}</td>
-                  <td>{file.size}</td>
-                  <td>Opplastet</td>
-                  <td className={'file-upload-table-last-item cursor-pointer'} >
+                  <td>{attachment.file.name}</td>
+                  <td>{attachment.file.size}</td>
+                  <td>
+                    {attachment.uploaded &&
+                      getLanguageFromKey('form_filler.file_uploader_list_status_done', this.props.language)}
+                    {!attachment.uploaded &&
+                      <div className='a-loader'>
+                        <div
+                          className='loader loader-ellipsis'
+                          style={{ marginLeft: '1.3rem', marginBottom: '1.6rem' }}
+                        />
+                      </div>}
+                  </td>
+                  <td>
                     <div onClick={this.handleDeleteFile.bind(this, index)}>
-                      Slett vedlegg <i className='ai ai-trash' />
+                      {getLanguageFromKey('form_filler.file_uploader_list_delete', this.props.language)}
+                      <i className='ai ai-trash' />
                     </div>
                   </td>
                 </tr>
@@ -107,16 +130,20 @@ export class FileUploadComponent
       <div className={'container'}>
         <div className='col text-center icon' style={{ marginTop: '3.5rem' }} >
           <i className='ai ai-upload' />
-          <span className='sr-only a-fontSize'>Upload icon</span>
         </div>
         <div className='col text-center'>
-          <p className={'file-upload-text-bold'}>Dra og slipp eller
-            <span className={'file-upload-text-bold blue-underline'}> let etter fil</span>
+          <p className={'file-upload-text-bold'}>
+            {getLanguageFromKey('form_filler.file_uploader_drag', this.props.language)}
+            <span className={'file-upload-text-bold blue-underline'}>
+              {' ' + getLanguageFromKey('form_filler.file_uploader_find', this.props.language)}
+            </span>
           </p>
         </div>
         <div className='col text-center'>
           <p className={'file-upload-text'}>
-            Tillate filformater er: {hasCustomFileEndings ? validFileEndings : 'alle'}
+            {getLanguageFromKey('form_filler.file_uploader_valid_file_format', this.props.language)}
+            {hasCustomFileEndings ? (' ' + validFileEndings) :
+              (' ' + getLanguageFromKey('form_filler.file_upload_valid_file_format_all', this.props.language))}
           </p>
         </div>
       </div>
@@ -125,10 +152,12 @@ export class FileUploadComponent
 
   public renderAddMoreAttachmentsButton = (): JSX.Element => {
     const { displayMode, maxNumberOfAttachments } = this.props.component;
-    // TODO: CHANGE TO EQUALS
-    if (displayMode !== 'simple' && this.state.files.length < maxNumberOfAttachments) {
+    if (displayMode === 'simple' && this.state.attachments.length < maxNumberOfAttachments &&
+      this.state.attachments.length > 0) {
       return (
-        <button className={'a-btn a-btn-link'} onClick={this.handleAddMoreAttachments}>Legg til flere vedlegg</button>
+        <button className={'file-upload-button blue-underline'} onClick={this.handleAddMoreAttachments}>
+          {getLanguageFromKey('form_filler.file_uploader_add_attachment', this.props.language)}
+        </button>
       );
     } else {
       return null;
@@ -136,40 +165,52 @@ export class FileUploadComponent
   }
 
   public handleAddMoreAttachments = () => {
-    // TODO: SHOW FILEUPLOADER
+    this.setState({
+      showFileUpload: true,
+    });
   }
 
   public render() {
-    const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings } = this.props.component;
+    const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings, displayMode } = this.props.component;
+    const showFileUpload =
+      (displayMode !== 'simple' || this.state.attachments.length === 0 || this.state.showFileUpload);
     return (
       <div className={'container'} id={'altinn-fileuploader-' + this.props.id}>
-        <div>
-          <p className={'file-upload-text-bold-small'}>{'Maks filestørrelse ' + maxFileSizeInMB + ' MB'}</p>
-          <DropZone
-            onDrop={this.onDrop}
-            maxSize={maxFileSizeInMB * 1000}
-            disabled={disabled}
-            accept={(hasCustomFileEndings) ? validFileEndings : null}
-          >
-            {({ getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject }) => {
-              let styles = { ...baseStyle };
-              styles = isDragActive ? { ...styles, ...activeStyle } : styles;
-              styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
+        {showFileUpload &&
+          <div>
+            <p className={'file-upload-text-bold-small'}>
+              {
+                getLanguageFromKey('form_filler.file_uploader_max_size', this.props.language)
+                + ' ' + maxFileSizeInMB + ' ' +
+                getLanguageFromKey('form_filler.file_uploader_mb', this.props.language)
+              }
+            </p>
+            <DropZone
+              onDrop={this.onDrop}
+              maxSize={maxFileSizeInMB * 1000 * 1000} // mb to bytes
+              disabled={disabled}
+              accept={(hasCustomFileEndings) ? validFileEndings : null}
+            >
+              {({ getRootProps, getInputProps, isDragActive, isDragAccept, isDragReject }) => {
+                let styles = { ...baseStyle };
+                styles = isDragActive ? { ...styles, ...activeStyle } : styles;
+                styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
 
-              return (
-                <div
-                  {...getRootProps()}
-                  style={styles}
-                >
-                  <input {...getInputProps()} />
-                  {this.renderFileUploadContent()}
-                </div>
-              );
-            }}
-          </DropZone>
-        </div>
-        {this.renderAddMoreAttachmentsButton()}
+                return (
+                  <div
+                    {...getRootProps()}
+                    style={styles}
+                  >
+                    <input {...getInputProps()} />
+                    {this.renderFileUploadContent()}
+                  </div>
+                );
+              }}
+            </DropZone>
+          </div>
+        }
         {this.renderFileList()}
+        {this.renderAddMoreAttachmentsButton()}
       </div>
     );
   }
