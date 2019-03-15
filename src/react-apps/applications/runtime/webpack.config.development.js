@@ -8,7 +8,13 @@ module.exports = {
   devtool: 'eval',
   entry: "./src/index.tsx",
   output: {
-    filename: "react-app.js"
+    filename: "react-app.js",
+    chunkFilename: '[name].bundle.js'
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+    },
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
@@ -89,5 +95,5 @@ module.exports = {
   ],
   devServer: {
     historyApiFallback: true,
-  }
+  },
 }

@@ -1,32 +1,7 @@
 import * as React from 'react';
-import AltinnSpinner from 'Shared/components/AltinnSpinner';
+import ErrorBoundry from './errorHandler/ErrorHandler';
 
-const CreateSpinnerRow = (number: number) => {
-  let spinners = [];
-  for(let i = 0; i < number; i++) {
-    spinners.push(<AltinnSpinner/>);
-  }
-  return spinners;
-}
-
-const CreateSpinners = (rows: number, items: number) => {
-  let spinnerRows = [];
-  for (let i = 0; i < rows; i++) {
-    spinnerRows.push(
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          justifyContent: 'center'
-        }}
-      >
-        {CreateSpinnerRow(items)}
-      </div>
-    );
-  }
-  return spinnerRows;
-}
-
+const Counter = React.lazy(() => import(/* webpackChunkName: "Counter" */'./Counter'));
 
 export default () => (
   <div
@@ -35,6 +10,10 @@ export default () => (
       flexDirection: 'column'
     }}
   >
-    {CreateSpinners(10, 10)}
+    <ErrorBoundry>
+      <React.Suspense fallback={<h4>Loading</h4>}>
+        <Counter />
+      </React.Suspense>
+    </ErrorBoundry>
   </div>
 );

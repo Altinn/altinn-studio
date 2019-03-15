@@ -1,8 +1,13 @@
 {
   "compilerOptions": {
+    "types": [
+      "node"
+    ],
     "baseUrl": "../",
     "paths": {
-      "Shared/*": ["./shared/src/*"]
+      "Shared/*": [
+        "./shared/src/*"
+      ]
     },
     "outDir": "compiled",
     "module": "commonjs",
