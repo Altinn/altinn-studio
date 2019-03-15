@@ -285,6 +285,17 @@ namespace AltinnCore.Runtime
                  });
 
                 routes.MapRoute(
+                 name: "apiAttachmentRoute",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}",
+                 defaults: new { controller = "ServiceAPI" },
+                 constraints: new
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"\d+",
+                 });
+
+                routes.MapRoute(
                     name: "codelistRoute",
                     template: "runtime/api/{controller}/{org}/{service}/{action=Index}/{name}",
                     defaults: new { controller = "Codelist" },

@@ -458,6 +458,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of service developer
+        /// </summary>
+        /// <returns>The app token id</returns>
+        public string GetAppTokenId()
+        {
+            return AuthenticationHelper.GetDeveloperAppTokenId(_httpContextAccessor.HttpContext);
+        }
+
+        /// <summary>
         /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of service developer
         /// </summary>
         /// <returns>The deploy app token</returns>
@@ -466,7 +475,12 @@ namespace AltinnCore.Common.Services.Implementation
             string deployToken = _httpContextAccessor.HttpContext.Request.Cookies[_settings.DeployCookieName];
             if (deployToken == null)
             {
-                deployToken = _gitea.GetSessionAppKey("AltinnDeployToken").Result;
+                KeyValuePair<string, string> deployKeyValuePair = _gitea.GetSessionAppKey("AltinnDeployToken").Result ?? default(KeyValuePair<string, string>);
+                if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
+                {
+                    deployToken = deployKeyValuePair.Value;
+                }
+
                 _httpContextAccessor.HttpContext.Response.Cookies.Append(_settings.DeployCookieName, deployToken);
             }
 
