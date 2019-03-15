@@ -49,7 +49,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="item">the form data</param>
         /// <returns>The deserialized formdata saved to file</returns>
-        public async Task<Instance> InsertInstanceIntoCollectionAsync(Instance item)
+        public async Task<string> InsertInstanceIntoCollectionAsync(Instance item)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.Repository
                 var res = document.Resource;
                 var instance = JsonConvert.DeserializeObject<Instance>(res.ToString());
 
-                return instance;
+                return instance.Id;
             }
             catch (Exception ex)
             {

@@ -18,6 +18,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Stores the form data
         /// </summary>
-        Task<object> SaveInstance<T>(T dataToSerialize);
+        Task<Guid> InstantiateInstance(string applicationId, string instanceOwnerId);
     }
 }

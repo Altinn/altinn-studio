@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
@@ -31,7 +32,7 @@ namespace AltinnCore.ServiceLibrary
         /// <summary>
         /// Gets or sets the service instance id for this request
         /// </summary>
-        public int InstanceId { get; set; }
+        public Guid InstanceId { get; set; }
 
         /// <summary>
         /// Gets or sets the form collection available 
@@ -47,5 +48,19 @@ namespace AltinnCore.ServiceLibrary
         /// Gets or sets the field that triggered a single field validation
         /// </summary>
         public string ValidationTriggerField { get; set; }
+
+        /// <summary>
+        /// Enumerator for react app mode
+        /// </summary>
+        public enum Mode
+        {
+            Studio,
+            Runtime
+        }
+
+        /// <summary>
+        /// Gets or sets the service mode
+        /// </summary>
+        public Mode ServiceMode { get; set; }
     }
 }

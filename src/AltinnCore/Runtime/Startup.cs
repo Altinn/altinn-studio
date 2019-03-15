@@ -218,7 +218,7 @@ namespace AltinnCore.Runtime
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit|GetCurrentState",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"\d+",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -230,7 +230,7 @@ namespace AltinnCore.Runtime
                        action = "EditSPA",
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                       instanceId = @"\d+",
+                       instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                    });
 
                 // ---------------------------- API -------------------------- //
@@ -282,7 +282,7 @@ namespace AltinnCore.Runtime
                  {
                      controller = "ServiceAPI",
                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"\d+",
+                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                  });
 
                 routes.MapRoute(

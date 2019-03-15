@@ -50,11 +50,31 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
+        //// POST api/v1/instances
+        //[HttpPost]
+        //public async Task<ActionResult> Post([FromBody]Instance Instance)
+        //{
+        //    var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(Instance);            
+        //    if (result == null)
+        //    {
+        //        return BadRequest();
+        //    }
+
+        //    return Ok(result);
+        //}
+
         // POST api/v1/instances
         [HttpPost]
-        public async Task<ActionResult> Post([FromBody]Instance Instance)
+        public async Task<ActionResult> Post(string applicationId, string instanceOwnerId)
         {
-            var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(Instance);            
+            Instance instance = new Instance
+            {
+                ReporteeId = instanceOwnerId,
+                CreatedBy = instanceOwnerId,
+                CreatedDateTime = DateTime.UtcNow,
+            };
+
+            var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);
             if (result == null)
             {
                 return BadRequest();

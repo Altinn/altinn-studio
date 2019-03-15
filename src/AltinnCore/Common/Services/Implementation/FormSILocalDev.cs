@@ -39,16 +39,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Method that creates the form model object based on serialized data on disk.
         /// </summary>
-        /// <param name="formID">The formId</param>
+        /// <param name="instanceId">The instance id</param>
         /// <param name="type">The type that form data will be serialized to</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId used to find the party on disc</param>
         /// <param name="developer">The name of the developer if any</param>
         /// <returns>The deserialized form model</returns>
-        public object GetFormModel(int formID, Type type, string org, string service, int partyId, string developer = null)
+        public object GetFormModel(Guid instanceId, Type type, string org, string service, int partyId, string developer = null)
         {
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormModelApiMethod, org, service, developer, partyId)}&formID={formID}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
             using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -119,15 +119,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <typeparam name="T">The input type</typeparam>
         /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="formId">The formId</param>
+        /// <param name="instanceId">The formId</param>
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
-        public void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId)
+        public void SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&formId={formId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
             using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);

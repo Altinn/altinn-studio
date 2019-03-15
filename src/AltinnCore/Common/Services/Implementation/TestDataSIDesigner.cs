@@ -56,7 +56,7 @@ namespace AltinnCore.Common.Services.Implementation
             string[] files = Directory.GetFiles(formDataFilePath);
             foreach (string file in files)
             {
-                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int instanceId))
+                if (Guid.TryParse(Path.GetFileNameWithoutExtension(file), out Guid instanceId))
                 {
                     ServiceInstance serviceInstance = new ServiceInstance()
                     {
