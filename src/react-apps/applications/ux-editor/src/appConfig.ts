@@ -5,6 +5,7 @@ const appConfig = {
       codeListUrlRuntime: `${window.location.origin}/runtime/api/Codelist/{SERVICEPATH}/Index/`,
       servicePathPlaceholder: '{SERVICEPATH}',
     }),
+    SetLoadReact: false,
   },
 };
 

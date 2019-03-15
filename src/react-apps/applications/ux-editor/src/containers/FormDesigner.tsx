@@ -20,12 +20,12 @@ import { Toolbar } from './Toolbar';
 
 export interface IFormDesignerProvidedProps {
   classes: any;
-  components: any;
-  activeList: any;
 }
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
   dataModel: IDataModelFieldElement[];
+  components: any;
+  activeList: any;
 }
 
 type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
@@ -191,6 +191,7 @@ class FormDesigner extends React.Component<
   }
 
   public render() {
+    console.log(React.version);
     const { classes } = this.props;
     return (
       <div className={classes.root}>

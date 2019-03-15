@@ -450,14 +450,14 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.props.language,
               this.props.component.textResourceBindings.description)}
             <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
-              {getLanguageFromKey('ux_editor.modal_properties_read_only_description', this.props.language)}
+              {getLanguageFromKey('ux_editor.read_only_description', this.props.language)}
             </Grid>
             <Grid item={true}>
               <AltinnCheckBox
                 checked={!!component.readOnly}
                 onChangeFunction={this.handleReadOnlyChange}
               />
-              {getLanguageFromKey('ux_editor.modal_properties_read_only', this.props.language)}
+              {getLanguageFromKey('ux_editor.read_only', this.props.language)}
             </Grid>
           </Grid>
         );
