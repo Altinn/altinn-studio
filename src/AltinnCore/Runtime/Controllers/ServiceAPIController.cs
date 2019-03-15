@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services;
@@ -17,6 +19,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -527,6 +530,22 @@ namespace AltinnCore.Runtime.Controllers
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
 
             return Ok(serviceModel);
+        }
+
+        /// <summary>
+        /// Gets url for uploading attachment
+        /// </summary>
+        /// <param name="reportee">The reportee</param>
+        /// <param name="org">The organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instance ID</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="fileName">The name of the file to be uploaded</param>
+        [Authorize]
+        [HttpGet]
+        public IActionResult GetAttachmentUploadUrl(int reportee, string org, string service, int instanceId, string attachmentType, string fileName)
+        {
+            return Content(_form.GetAttachmentUploadUrl(org, service, reportee, instanceId, attachmentType, fileName), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
