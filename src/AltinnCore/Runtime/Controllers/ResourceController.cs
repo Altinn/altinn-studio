@@ -47,6 +47,22 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
+        /// Method to retrieve the runtime resources
+        /// </summary>
+        /// <returns>File content with content type set</returns>
+        public IActionResult RuntimeResource(string id)
+        {
+            byte[] fileContent = _execution.GetRuntimeResource(id);
+
+            if (fileContent != null)
+            {
+                return new FileContentResult(fileContent, MimeTypeMap.GetMimeType(Path.GetExtension(id).ToLower()));
+            }
+
+            return StatusCode(404);
+        }
+
+        /// <summary>
         /// Method to retrieve textresources
         /// </summary>
         /// <param name="org">the organisation</param>

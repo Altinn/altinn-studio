@@ -3,8 +3,8 @@ const run = require('gulp-run-command').default;
 const chokidar = require('chokidar');
 const fs = require('fs');
 
-const jsRuntimeFile = '../../react-apps/applications/runtime/dist/react-app.js';
-const cssRuntimeFile = '../../react-apps/applications/runtime/dist/react-app.css';
+const jsRuntimeFile = '../../react-apps/applications/runtime/dist/runtime.js';
+const cssRuntimeFile = '../../react-apps/applications/runtime/dist/runtime.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
@@ -23,14 +23,14 @@ function copyReactCss(cb) {
 
 function copyRuntimeJs() {
   setTimeout(function () {
-    gulp.src(jsRuntimeFile).pipe(gulp.dest('../Designer/wwwroot/designer/js/react'));
+    gulp.src(jsRuntimeFile).pipe(gulp.dest('../Runtime/wwwroot/runtime/js/react'));
   }, 1000);
   return;
 }
 
 function copyRuntimeCss() {
   setTimeout(function () {
-    gulp.src(cssRuntimeFile).pipe(gulp.dest('../Designer/wwwroot/designer/css/react'));
+    gulp.src(cssRuntimeFile).pipe(gulp.dest('../Runtime/wwwroot/runtime/css/react'));
   }, 1000);
   return;
 }

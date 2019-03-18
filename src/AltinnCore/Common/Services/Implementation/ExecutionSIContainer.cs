@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
@@ -11,7 +10,6 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -21,7 +19,7 @@ namespace AltinnCore.Common.Services.Implementation
     using System.Runtime.Loader;
     using System.Text;
     using AltinnCore.Common.Helpers;
-    using AltinnCore.Common.Helpers.Extensions;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
 
     /// <summary>
@@ -34,26 +32,29 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class.
         /// </summary>
-        /// <param name="settings">The repository setting service needed (set in startup.cs).</param>
-        /// <param name="repositoryService">The repository service needed (set in startup.cs).</param>
-        /// <param name="compilationService">The service compilation service needed (set in startup.cs).</param>
-        /// <param name="partManager">The part manager.</param>
-        /// <param name="httpContextAccessor">the http context accessor.</param>
+        /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
+        /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
+        /// <param name="partManager">The part manager</param>
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionSIContainer(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             ApplicationPartManager partManager,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         /// <summary>
@@ -274,6 +275,32 @@ namespace AltinnCore.Common.Services.Implementation
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeResource(string resource)
+        {
+            byte[] fileContent = null;
+            string path = string.Empty;
+            if (resource == _settings.RuntimeAppFileName)
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            }
+            else if (resource == _settings.ServiceStylesConfigFileName)
+            {
+                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
+            }
+            else
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
+            }
+
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
         }
     }
 }

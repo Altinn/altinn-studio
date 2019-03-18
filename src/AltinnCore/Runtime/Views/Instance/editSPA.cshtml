@@ -17,7 +17,7 @@
     var script = document.createElement('script');
     var service = window.location.pathname.split('/');
     script.type = 'text/javascript';
-    script.src = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3] + '/react-app.js';
+    script.src = window.location.origin + '/runtime/api/runtimeresources/runtime.js';
     window.reportee = document.cookie.replace(/(?:(?:^|.*;\s*)altinncorereportee\s*\=\s*([^;]*).*$)|^.*$/, "$1");;
     window.org = service[2];
     window.service = service[3];
@@ -27,8 +27,8 @@
 
   function loadStyles() {
     var service = window.location.pathname.split('/');
-    var resourcesUrl = window.location.origin + '/runtime/api/resource/' + service[2] + '/' + service[3];
-    var stylesConfigUrl = resourcesUrl + '/Styles.json';
+    var resourcesUrl = window.location.origin + '/runtime/api/runtimeresources/';
+    var stylesConfigUrl = window.location.origin + '/runtime/api/runtimeresources/Styles.json';
     var xmlhttp = new XMLHttpRequest();
 
     xmlhttp.onreadystatechange = function () {

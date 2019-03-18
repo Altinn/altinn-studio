@@ -83,5 +83,13 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="path">The path of the file to open.</param>
         /// <returns>The filestream for the given paths file.</returns>
         FileStream GetFileStream(string path);
+
+        /// <summary>
+        /// Method that fetches the runtime resources stored in wwwroot
+        /// </summary>
+        /// <param name="resource">the resource</param>
+        /// <returns>The filestream for the resource file</returns>
+        byte[] GetRuntimeResource(string resource);
+
     }
 }
