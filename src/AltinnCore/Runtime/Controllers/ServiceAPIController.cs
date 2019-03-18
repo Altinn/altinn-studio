@@ -275,7 +275,7 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
-            Guid instanceId = _execution.GetNewServiceInstanceID(org, service);
+            Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
             this._form.SaveFormModel(

@@ -350,8 +350,7 @@ namespace AltinnCore.Runtime.Controllers
                 if (requestContext.ServiceMode == RequestContext.Mode.Studio)
                 {
                     // Create a new instance Id
-                    //instanceId = _execution.GetNewServiceInstanceID(startServiceModel.Org, startServiceModel.Service);
-                    instanceId = Guid.NewGuid();
+                    instanceId = _execution.GetNewServiceInstanceID();                    
 
                     _form.SaveFormModel(
                         serviceModel,

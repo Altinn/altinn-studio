@@ -54,10 +54,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Create a new instance ID.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
         /// <returns>The new instance ID.</returns>
-        public Guid GetNewServiceInstanceID(string org, string service)
+        public Guid GetNewServiceInstanceID()
         {
             return Guid.NewGuid();
         }
