@@ -1,22 +1,32 @@
 @import '~altinn-designsystem/dist/css/style.dist.tjenester3.min';
 
-input:checked + .slider {
+.fa,
+.fa-stack {
+  font-size: 2.25em;
+  -webkit-font-smoothing: subpixel-antialiased;
+  line-height: 0;
+  width: 1em;
+  text-align: center;
+  vertical-align: middle;
+}
+
+input:checked+.slider {
   background-color: #1EAEF7;
 }
 
-input:checked + .slider:before {
+input:checked+.slider:before {
   -webkit-transform: translateX(26px);
   -ms-transform: translateX(26px);
   transform: translateX(26px);
 }
 
-input:focus + .slider {
+input:focus+.slider {
   box-shadow: 0 0 1px #1EAEF7;
 }
 
 option {
   overflow: 'hidden';
-  text-overflow: 'ellipsis'; 
+  text-overflow: 'ellipsis';
 }
 
 .a-form-label.description-label {
@@ -97,7 +107,7 @@ option {
   height: 34px;
 }
 
-.switch input { 
+.switch input {
   opacity: 0;
   width: 0;
   height: 0;

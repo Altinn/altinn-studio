@@ -105,7 +105,7 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
           className='a-btn a-btn-action a-fullWidthBtn a-btnBigger'
           onClick={this.createNewConnection}
         >
-          <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
+          <i className='fa fa-plus a-blue' onClick={this.createNewConnection} />
           <span className='a-fontSizeXS'>
             {this.props.language.general.add_connection}
           </span>

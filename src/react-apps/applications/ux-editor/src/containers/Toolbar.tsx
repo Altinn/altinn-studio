@@ -267,7 +267,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               disableUnderline: true,
               endAdornment:
                 <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
-                  <i className={'ai ai-search'} />
+                  <i className={'fa fa-search'} />
                 </InputAdornment>,
               classes: { root: classNames(this.props.classes.searchBoxInput) },
             }}

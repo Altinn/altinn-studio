@@ -36,16 +36,17 @@ export enum ComponentTypes {
 }
 
 export const componentIcons = {
-  Header: 'fa fa-tittel',
-  Paragraph: 'fa fa-paragraf',
-  Input: 'fa fa-kortsvar',
-  Dropdown: 'fa fa-nedtrekk',
-  Checkboxes: 'fa fa-sjekkboks',
-  RadioButtons: 'fa fa-radioknapp',
-  TextArea: 'fa fa-langtsvar',
-  FileUpload: 'fa fa-vedlegg',
-  Submit: 'fa fa-knapp',
-  AddressComponent: 'fa fa-adresse',
+  Header: 'fa fa-title',
+  Paragraph: 'fa fa-paragraph',
+  Input: 'fa fa-short-answer',
+  Datepicker: 'fa fa-date',
+  Dropdown: 'fa fa-drop-down',
+  Checkboxes: 'fa fa-checkbox',
+  RadioButtons: 'fa fa-radio-button',
+  TextArea: 'fa fa-long-answer',
+  FileUpload: 'fa fa-attachment',
+  Submit: 'fa fa-button',
+  AddressComponent: 'fa fa-adress',
 };
 
 export const textComponents: IComponent[] = [
@@ -74,6 +75,7 @@ export const schemaComponents: IComponent[] = [
     name: 'Datepicker',
     Tag: DatepickerComponent,
     Type: ComponentTypes.Datepicker,
+    Icon: componentIcons.Datepicker,
   },
   {
     name: 'Dropdown',

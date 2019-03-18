@@ -445,7 +445,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         onClick={this.handleComponentDelete}
                         tabIndex={0}
                       >
-                        <i className='ai ai-circletrash' />
+                        <i className='fa fa-circletrash' />
                       </IconButton>
                     }
                   </Grid>
@@ -458,7 +458,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         onClick={this.handleOpenEdit}
                         tabIndex={0}
                       >
-                        <i className='reg reg-edit' />
+                        <i className='fa fa-edit' />
                       </IconButton>
                     }
                   </Grid>

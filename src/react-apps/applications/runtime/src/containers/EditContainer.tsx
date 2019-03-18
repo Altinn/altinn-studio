@@ -456,7 +456,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         onClick={this.handleOpenEdit}
                         tabIndex={0}
                       >
-                        <i className='reg reg-edit' />
+                        <i className='fa fa-edit' />
                       </IconButton>
                     }
                   </Grid>

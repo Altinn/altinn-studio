@@ -45,7 +45,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
                   position={'end'}
                   classes={{ root: classNames(this.props.classes.searchBoxIcon) }}
                 >
-                  <i className={'ai ai-search'} />
+                  <i className={'fa fa-search'} />
                 </InputAdornment>,
               classes: { root: classNames(this.props.classes.searchBoxInput) },
             }}
