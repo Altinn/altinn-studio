@@ -427,9 +427,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         : this.props.component.component}
                     </div>
                   }
-                  <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                    {this.props.component.component}
-                  </span>
                 </ListItem>
               </div>
             </Grid>
