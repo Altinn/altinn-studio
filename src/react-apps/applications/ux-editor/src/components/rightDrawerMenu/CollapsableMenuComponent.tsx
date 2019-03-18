@@ -1,4 +1,4 @@
-import { createStyles, List, ListItem, withStyles } from '@material-ui/core';
+import { createStyles, List, ListItem, ListItemIcon, withStyles } from '@material-ui/core';
 import * as React from 'react';
 // import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
@@ -50,6 +50,7 @@ export interface ICollapsableMenuProvidedProps {
 }
 
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
+  children: any;
   components: any;
   language: any;
 }
@@ -63,20 +64,52 @@ export interface ICollapsableMenuListItem {
   action?: () => void;
 }
 
-const CollapsableMenus = (props: any) => {
-  const menuIsOpen = React.useState('false');
+const CollapsableMenus = (props: ICollapsableMenuProps) => {
+  const [menuIsOpen, setMenuIsOpen] = React.useState(false);
   const { classes } = props;
 
-  console.log(menuIsOpen);
+  const toggleMenu = () => {
+    setMenuIsOpen(!menuIsOpen);
+  };
+  const handleKeyPress = (e: any) => {
+    if (e.key === 'Enter') {
+      toggleMenu();
+    }
+  };
+
   console.log(props.componentId);
-  console.log(props.listItems);
   return (
     <List className={classes.list}>
       <ListItem
         className={classes.listItem + ' ' + classes.listItemHeader}
       >
-        {props.header}
+        <ListItemIcon
+          className={menuIsOpen ? classes.rotateDown : classes.rotateRight}
+          onClick={toggleMenu}
+          tabIndex={0}
+          onKeyPress={handleKeyPress}
+        >
+          <i className={'ai ai-expand ' + classes.icon} />
+        </ListItemIcon>
+        <span className={classes.collapseHeader}>{props.header}</span>
       </ListItem>
+      {menuIsOpen && typeof (props.listItems[0].name) !== 'undefined'
+        && props.listItems.map((item, index) => {
+          return (
+            <div key={item.name}>
+              <ListItem className={classes.listItem}>
+                <span
+                  className={classes.link}
+                  onClick={item.action}
+                >
+                  {item.name}
+                </span>
+              </ListItem>
+              {props.children}
+            </div>
+          );
+        })
+      }
     </List>
   );
 };

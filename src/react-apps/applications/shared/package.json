@@ -15,7 +15,7 @@
     "diff": "4.0.1",
     "moment": "2.24.0",
     "react-monaco-editor": "0.22.0",
-    "react-router-dom": "4.3.1",
+    "react-router-dom": "4.4.0",
     "react-truncate-markup": "2.0.1"
   },
   "devDependencies": {
@@ -36,9 +36,9 @@
     "jest-enzyme": "7.0.1",
     "jest-junit": "6.1.0",
     "jsdom": "13.2.0",
-    "react": "16.7.0",
-    "react-dom": "16.7.0",
-    "react-test-renderer": "16.7.0",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
+    "react-test-renderer": "^16.8.3",
     "ts-jest": "23.10.5",
     "typescript": "3.1.6"
   },
