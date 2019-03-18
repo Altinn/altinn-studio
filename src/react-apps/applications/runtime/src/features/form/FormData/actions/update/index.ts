@@ -14,9 +14,16 @@ export function updateFormData(field: string, data: any): IUpdateFormData {
   };
 }
 
-export function updateFormDataFulfilled(): Action {
+export interface IUpdateFormDataFulfilled extends Action {
+  field: string;
+  data: any;
+}
+
+export function updateFormDataFulfilled(field: string, data: any): IUpdateFormDataFulfilled {
   return {
     type: actionTypes.UPDATE_FORM_DATA_FULFILLED,
+    field,
+    data,
   };
 }
 

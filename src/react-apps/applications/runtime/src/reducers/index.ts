@@ -3,17 +3,20 @@ import {
   ReducersMapObject,
   Reducer,
 } from 'redux';
-import LayoutReducer, { ILayoutState } from '../features/form/Layout/reducer'
+import FormLayoutReducer, { ILayoutState } from '../features/form/FormLayout/reducer';
+import FormDataReducer, { IFormDataState } from '../features/form/FormData/reducer';
 
-interface IRuntimeState<T1> {
-  layout: T1;
+interface IRuntimeState<T1, T2> {
+  formLayout: T1;
+  formData: T2;
 }
 
-export interface IReducers extends IRuntimeState<Reducer<ILayoutState>>, ReducersMapObject {
+export interface IReducers extends IRuntimeState<Reducer<ILayoutState>, Reducer<IFormDataState>>, ReducersMapObject {
 }
 
 const reducers: IReducers = {
-  layout: LayoutReducer,
+  formLayout: FormLayoutReducer,
+  formData: FormDataReducer,
 };
 
 export default combineReducers(reducers);
