@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Xml.Serialization;
+using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
@@ -145,6 +147,34 @@ namespace AltinnCore.Designer.Controllers
         {
             string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{formId}.xml";
             _execution.SaveToFile(formDataFilePath, Request.Body);
+        }
+
+        /// <summary>
+        /// Method that receives the form attachment from runtime and saves it to designer disk.
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="fileExtension">The name of the attachment</param>
+        /// <returns>The status of the upload</returns>
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, string developer, int partyId, int instanceId, string attachmentType, string fileExtension)
+        {
+            Guid guid = Guid.NewGuid();
+            string pathToSaveTo = _settings.GetTestdataForPartyPath(org, service, developer) + "{0}/{1}/data/{2}/{3}";
+            Directory.CreateDirectory(string.Format(pathToSaveTo, partyId, instanceId, attachmentType, string.Empty));
+            string fileToWriteTo = string.Format(pathToSaveTo, partyId, instanceId, attachmentType, guid.ToString() + fileExtension);
+            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            {
+                await Request.StreamFile(streamToWriteTo);
+                streamToWriteTo.Flush();
+            }
+
+            return Ok();
         }
 
         /// <summary>

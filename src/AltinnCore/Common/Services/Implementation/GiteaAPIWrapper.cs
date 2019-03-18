@@ -384,7 +384,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string csrf = GetCsrf().Result;
 
-            DeleteCurrentAppKeys(csrf, keyName);
+            await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
           
@@ -461,6 +461,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 foreach (string key in appKeys)
                 {
+                    _logger.LogInformation("Deleting appkey with id " + key);
                     List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
                     formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
                     formValues.Add(new KeyValuePair<string, string>("id", key));
