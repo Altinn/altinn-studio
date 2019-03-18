@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -48,8 +49,8 @@ namespace Altinn.Platform.Test.Integration
 
             Instance instanceData = new Instance
             {
-               // InstanceOwnerId = "666",
-                ApplicationId = "sailor",
+                // InstanceOwnerId = "666",
+                ApplicationId = "KNS/sailor",
                 ApplicationOwnerId = "BRREG",
             };
 
@@ -127,6 +128,51 @@ namespace Altinn.Platform.Test.Integration
             int instanceOwnerId = 641;
 
             string instanceId = await CreateInstance(applicationId, instanceOwnerId);
+            string urlTemplate = "api/v1/instances/{0}/data/crewlist?instanceOwnerId={1}";
+            string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
+
+            using (Stream input = File.OpenRead("data/binary_file.pdf"))
+            {
+                HttpContent fileStreamContent = new StreamContent(input);
+
+                using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                {
+                    formData.Add(fileStreamContent, "crewlist", "binary_file.pdf");
+                    HttpResponseMessage response = client.PostAsync(requestUri, formData).Result;
+
+                    response.EnsureSuccessStatusCode();
+                }
+            }
+        }
+
+        [Fact]
+        public async void GetABinaryFile()
+        {
+            string applicationId = "KNS/sailor";
+            int instanceOwnerId = 642;
+
+            string instanceId = await CreateInstance(applicationId, instanceOwnerId);
+            Instance instance = await GetInstance(instanceId, instanceOwnerId);
+
+            UploadBinaryFile(instanceId, instanceOwnerId);
+            instance = await GetInstance(instanceId, instanceOwnerId);
+
+            string dataId = instance.Data["crewlist"].Keys.First();
+
+            string urlTemplate = "api/v1/instances/{0}/data/crewlist/{1}?instanceOwnerId={2}";
+            string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
+
+            using (HttpResponseMessage response = await client.GetAsync(requestUri))
+            using (Stream remoteStream = await response.Content.ReadAsStreamAsync())
+            using (var output = File.Create("test.pdf"))
+            {
+                response.EnsureSuccessStatusCode();
+                await remoteStream.CopyToAsync(output);
+            }
+        }
+
+        private async void UploadBinaryFile(string instanceId, int instanceOwnerId)
+        {
             string urlTemplate = "api/v1/instances/{0}/data/crewlist?instanceOwnerId={1}";
             string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
 

@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Models;
@@ -36,56 +39,96 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Default test api
-        /// </summary>
-        /// <returns>The test return values</returns>
-        // GET dataservice/instances/{instanceId}/forms
-        [HttpGet]
-        public ActionResult<IEnumerable<string>> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        /// <summary>
         /// Save the form data
         /// </summary>
-        /// <param name="fileName">the file name for for form data</param>
+        /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
+        /// <param name="instanceId">the instanceId</param>
+        /// <param name="formId">the form id</param>
+        /// <param name="dataId">the data id</param>
         /// <returns>The get response</returns>        
         /// <returns>If the request was successful or not</returns>
-        // POST dataservice/instances/{instanceId}/forms/{fileName}/
-        [HttpGet("{fileName}")]
-        public async Task<ActionResult> Get(string fileName)
+        // GET instances/{instanceId}/data/{formId}/{dataId}
+        [HttpGet("{formId}/{dataId:guid}")]
+        public async Task<IActionResult> Get(string instanceOwnerId, Guid instanceId, string formId, Guid dataId)
         {
-            if (string.IsNullOrEmpty(fileName))
+            if (string.IsNullOrEmpty(instanceOwnerId) || instanceId == null || string.IsNullOrEmpty(formId) || dataId == null)
             {
-                return BadRequest();
-            }
-          
-            var result = await _dataRepository.GetDataInStorage(fileName);
-
-            if (result == null)
-            {
-                return BadRequest();
+                return BadRequest("Missing parameter values: instanceOwnerId, instanceId, formId or dataId cannot be null");
             }
 
-            return Ok(result);
+            // check if instance id exist and user is allowed to change the instance data            
+            Instance instance = await _instanceRepository.ReadOneAsync(instanceId, instanceOwnerId);
+            if (instance == null)
+            {
+                return NotFound("Provided instanceId is unknown to platform storage service");
+            }
+
+            string storageFileName = instance.ApplicationId + "/" + instanceId + "/data/" + formId + "/" + dataId;
+
+            // check if dataId exists in instance
+            if (instance.Data.ContainsKey(formId))
+            {
+                Dictionary<string, Data> formData = instance.Data[formId];
+                if (formData.ContainsKey(dataId.ToString()))
+                {
+                    Data data = formData[dataId.ToString()];
+
+                    if (string.Equals(data.StorageUrl, storageFileName))
+                    {
+                        Stream dataStream = _dataRepository.GetDataInStorage(storageFileName).Result;
+                        HttpResponseMessage result = new HttpResponseMessage(HttpStatusCode.OK);
+                        dataStream.Position = 0;
+                        result.Content = new StreamContent(dataStream);
+
+                        //result.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(data.ContentType);
+                        //result.Content.Headers.ContentDisposition.FileName = data.FileName;
+
+                        return new DataResult(dataStream, result);
+                    }
+                }                
+            }
+
+            return NotFound("Unable to find requested data item");
+        }
+
+        public class DataResult : IActionResult
+        {
+            Stream dataStream;
+
+            HttpResponseMessage httpResponseMessage;
+
+            public DataResult(Stream data, HttpResponseMessage response)
+            {
+                dataStream = data;
+                httpResponseMessage = response;                
+            }
+
+            public Task<HttpResponseMessage> ExecuteResultAsync(CancellationToken cancellationToken)            
+            {            
+                return Task.FromResult(httpResponseMessage);
+            }
+
+            public Task ExecuteResultAsync(ActionContext context)
+            {
+                return Task.FromResult(httpResponseMessage);
+            }
         }
 
         /// <summary>
         /// Save the form data
         /// </summary>
+        /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceId">the instance to update</param>
         /// <param name="formId">the formId to upload data for</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
         /// <returns>If the request was successful or not</returns>
         // POST /instances/{instanceId}/data/{formId}        
         [HttpPost("{formId}")]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> UploadData(Guid instanceId, string formId, string instanceOwnerId)
+        public async Task<IActionResult> UploadData(string instanceOwnerId, Guid instanceId, string formId)
         {      
-            if (instanceId == null || string.IsNullOrEmpty(formId) || Request.Body == null)
+            if (string.IsNullOrEmpty(instanceOwnerId) || instanceId == null || string.IsNullOrEmpty(formId) || Request.Body == null)
             {
-                return BadRequest("Missing parameter values: instanceId, formId or file content cannot be null");
+                return BadRequest("Missing parameter values: instanceOwnerId, instanceId, formId or file content cannot be null");
             }
 
             // check if instance id exist and user is allowed to change the instance data            

@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Storage.Controllers
 {
+    /// <summary>
+    /// a summary is needed here
+    /// </summary>
     [Route("api/v1/[controller]")]
     public class InstancesController : Controller
     {
@@ -67,8 +70,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="applicationId">the applicationid</param>
         /// <returns>instance object</returns>
-        /// POST api/v1/instances
-        [HttpPost]
+        /// POST api/v1/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}"
+        [HttpPost]        
         public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {
             if (string.IsNullOrEmpty(applicationId) || instanceOwnerId == 0)
@@ -76,11 +79,15 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Both applicationId and instanceownerid must be set");
             }
 
+            DateTime creationTime = DateTime.UtcNow;
+
             Instance instance = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 CreatedBy = 0,
-                CreatedDateTime = DateTime.UtcNow,
+                CreatedDateTime = creationTime,
+                LastChangedBy = 0,
+                LastChangedDateTime = creationTime,
                 ApplicationId = applicationId,
             };
 
