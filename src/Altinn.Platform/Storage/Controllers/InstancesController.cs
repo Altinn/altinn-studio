@@ -32,17 +32,32 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerId">owner of the instances</param>
         /// <returns>list of all instances for given instanceowner</returns>
-        /// GET api/v1/instances/
+        /// GET api/v1/instances
         [HttpGet]
-        public async Task<ActionResult> Get(int instanceOwnerId)
+        public async Task<ActionResult> Get(int instanceOwnerId, string applicationOwnerId)
         {
-            var result = await _instanceRepository.GetInstancesFromCollectionAsync(instanceOwnerId);
-            if (result == null)
+            if (instanceOwnerId != 0)
             {
-                return NotFound();
+                var result = await _instanceRepository.GetInstancesFromCollectionAsync(instanceOwnerId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
+            }
+            else if (!string.IsNullOrEmpty(applicationOwnerId))
+            {       
+                var result = await _instanceRepository.QueryInstancesOnApplicationOwner(applicationOwnerId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
             }
 
-            return Ok(result);
+            return BadRequest();
         }
 
         /// <summary>
@@ -55,7 +70,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceId}")]
         public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
         {
-            var result = await _instanceRepository.GetInstanceFromCollectionAsync(instanceOwnerId, instanceId);
+            var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (result == null)
             {
                 return NotFound();
@@ -132,7 +147,7 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpDelete("{instanceId}")]
         public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId)
         {
-            Instance instance = await _instanceRepository.GetInstanceFromCollectionAsync(instanceOwnerId, instanceId);
+            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
 
             instance.IsDeleted = true;
             instance.LastChangedBy = instanceOwnerId;

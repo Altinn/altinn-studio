@@ -68,31 +68,20 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="instanceOwnerId">the id of the reportee</param>
-        /// <param name="instanceId">the id of the Instance</param>
+        /// <param name="applicationOwnerId">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<Instance> GetInstanceFromCollectionAsync(int instanceOwnerId, Guid instanceId)
+        public async Task<List<Instance>> QueryInstancesOnApplicationOwner(string applicationOwnerId)
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.id = '{instanceId.ToString()}'";
+                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.applicationOwnerId = '{applicationOwnerId}'";
 
-                // IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) }).AsDocumentQuery();
+                List<Instance> instances = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+                    .Where(b => b.ApplicationOwnerId == applicationOwnerId)
+                    .ToList();             
 
-                var query = _client.CreateDocumentQuery<Instance>(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) }).AsDocumentQuery();
-
-                Instance instance = null;
-                while (query.HasMoreResults)
-                {
-                    var res = await query.ExecuteNextAsync();
-                    if (res.Any())
-                    {
-                        instance = res.First();
-                        break;
-                    }
-                }
-
-                return instance;
+                return instances;
             }
             catch (DocumentClientException e)
             {
@@ -113,7 +102,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="instanceId">the id of the Instance</param>
         /// <param name="instanceOwnerId">the partition key</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<Instance> ReadOneAsync(Guid instanceId, string instanceOwnerId)
+        public async Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId)
         {
             try
             {                
@@ -143,9 +132,9 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Get all the instances for a reportee
+        /// Get all the instances for an instanceOwner
         /// </summary>
-        /// <param name="instanceOwnerId">the id of the reportee</param>
+        /// <param name="instanceOwnerId">the id of the instanceOwner</param>
         /// <returns>the instance for the given parameters</returns>
         public async Task<List<dynamic>> GetInstancesFromCollectionAsync(int instanceOwnerId)
         {

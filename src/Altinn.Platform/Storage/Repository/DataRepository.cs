@@ -59,6 +59,7 @@ namespace Altinn.Platform.Storage.Repository
 
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+
             await blockBlob.UploadFromStreamAsync(fileStream);
             return await Task.FromResult(true);
         }
@@ -83,9 +84,12 @@ namespace Altinn.Platform.Storage.Repository
         {
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            CloudBlobClient blobClient = CreateBlobClient(storageCredentials, storageAccount);
+
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+
             await blockBlob.UploadFromStreamAsync(fileStream);
             return await Task.FromResult(true);
         }
