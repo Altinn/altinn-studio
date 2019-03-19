@@ -14,6 +14,7 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using AltinnCore.ServiceLibrary.Workflow;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.Extensions.Options;
@@ -33,6 +34,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly Interfaces.ICompilation _compilation;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly GeneralSettings _generalSettings;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExecutionSILocalDev"/> class
@@ -43,19 +45,22 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="partManager">The part manager</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="generalSettings">the current general settings</param>
+        /// <param name="hostingEnvironment">the hosting environment</param>
         public ExecutionSILocalDev(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             Interfaces.ICompilation compilationService,
             ApplicationPartManager partManager,
             IHttpContextAccessor httpContextAccessor,
-            IOptions<GeneralSettings> generalSettings)
+            IOptions<GeneralSettings> generalSettings,
+            IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _compilation = compilationService;
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings.Value;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         /// <summary>
@@ -349,6 +354,32 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 return false;
             }
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeResource(string resource)
+        {
+            byte[] fileContent = null;
+            string path = string.Empty;
+            if (resource == _settings.RuntimeAppFileName)
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            }
+            else if (resource == _settings.ServiceStylesConfigFileName)
+            {
+                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
+            }
+            else
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
+            }
+
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
         }
     }
 }
