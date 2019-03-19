@@ -1,7 +1,7 @@
 ---
 name: Feature request
 about: Suggest an idea you have for Altinn Studio
-labels: enhancement
+labels: feature-request
 assignees: lvbachmann
 ---
 

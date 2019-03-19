@@ -140,11 +140,11 @@ namespace AltinnCore.Designer.Controllers
             userMessages.Sort();
 
             return new ServiceStatusViewModel
-                       {
-                           ServiceIdentifier = serviceIdentifier,
-                           CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
-                           UserMessages = userMessages,
-                       };
+            {
+                ServiceIdentifier = serviceIdentifier,
+                CodeCompilationMessages = FilterCompilationInfos(compilationResult).ToList(),
+                UserMessages = userMessages,
+            };
         }
 
         private IEnumerable<ServiceStatusViewModel.UserMessage> ServiceMetadataMessages(
@@ -174,7 +174,8 @@ namespace AltinnCore.Designer.Controllers
                 () =>
                     _compilation.CreateServiceAssembly(
                         service.Org,
-                        service.Service);
+                        service.Service,
+                        false);
             return Task<CodeCompilationResult>.Factory.StartNew(compile);
         }
 

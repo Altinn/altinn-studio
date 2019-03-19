@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using AltinnCore.Common.Models;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Configuration
 {
@@ -190,12 +193,12 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets React file name
         /// </summary>
-        public string ReactAppFileName { get; set; } = "react-app.js";
+        public string RuntimeAppFileName { get; set; } = "runtime.js";
 
         /// <summary>
         /// Gets or sets React CSS file name
         /// </summary>
-        public string ReactAppCssFileName { get; set; } = "react-app.css";
+        public string RuntimeCssFileName { get; set; } = "runtime.css";
 
         /// <summary>
         /// Gets or sets styles config file name for service
@@ -276,6 +279,20 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the filename for the generated methods class
         /// </summary>
         public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;
+
+        /// <summary>
+        /// Gets the styles config element
+        /// </summary>
+        public string GetStylesConfig()
+        {
+            StylesConfig stylesConfig = new StylesConfig();
+            stylesConfig.InternalStyles = new List<string>();
+            stylesConfig.InternalStyles.Add(RuntimeCssFileName);
+            stylesConfig.ExternalStyles = new List<string>();
+            stylesConfig.ExternalStyles.Add(DefaultBootstrapUrl);
+
+            return JsonConvert.SerializeObject(stylesConfig);
+        }
 
         /// <summary>
         /// Gets the full path to the org directory

@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61" />    
+    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61" />
     <AdditionalFiles Include="$(SolutionDir)stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
@@ -30,11 +30,11 @@
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <ExcludeFromStyleCop Include="***" Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'" />
   </ItemGroup>
-  
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>bin\Debug\netcoreapp2.1\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>
