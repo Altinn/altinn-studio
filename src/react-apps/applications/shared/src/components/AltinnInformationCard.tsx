@@ -139,7 +139,7 @@ class AltinnInformationCard extends
                       {getLanguageFromKey(this.props.linkTextKey, this.props.language)}
                       <AltinnIcon
                         isActive={true}
-                        iconClass='ai ai-arrowrightup'
+                        iconClass='fa fa-arrowrightup'
                         iconColor={theme.altinnPalette.primary.black}
                       />
                     </a>

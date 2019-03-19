@@ -37,7 +37,7 @@ export class FileUploadComponent
           {// TODO: should fetch text using getTextResource() prop
             descriptionKey
           }
-          <i className='ai ai-upload' />
+          <i className='fa fa-upload' />
         </label>
       </div>
     );

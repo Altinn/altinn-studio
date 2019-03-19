@@ -58,7 +58,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
                   <span className='d-block' />
                 </span>
                 <i
-                  className='ai ai-private-circle-big  a-personSwitcher-icon'
+                  className='fa fa-private-circle-big  a-personSwitcher-icon'
                   aria-hidden='true'
                   style={{ color: '#022F51' }}
                 />
@@ -79,7 +79,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
       >
         <div className='a-iconText a-iconText-background a-iconText-large'>
           <div className='a-iconText-icon'>
-            <i className='ai ai-corp a-icon' aria-hidden='true' />
+            <i className='fa fa-corp a-icon' aria-hidden='true' />
           </div>
           <h1 className='a-iconText-text mb-0'>
             <span className='a-iconText-text-large'>{this.props.header}</span>

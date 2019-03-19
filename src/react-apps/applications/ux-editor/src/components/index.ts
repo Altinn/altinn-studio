@@ -18,6 +18,20 @@ export interface IComponent {
   Icon: string;
 }
 
+// export interface IComponentIcons {
+//   Header: string;
+//   Paragraph: string;
+//   Input: string;
+//   Datepicker: string;
+//   Dropdown: string;
+//   Checkboxes: string;
+//   RadioButtons: string;
+//   TextArea: string;
+//   FileUpload: string;
+//   Submit: string;
+//   AddressComponent: string;
+// }
+
 // The order here should be the same as
 // the exported 'components' list (drag and drop)
 export enum ComponentTypes {
@@ -35,7 +49,7 @@ export enum ComponentTypes {
   AddressComponent,
 }
 
-export const componentIcons = {
+export const componentIcons: any = {
   Header: 'fa fa-title',
   Paragraph: 'fa fa-paragraph',
   Input: 'fa fa-short-answer',
@@ -46,7 +60,7 @@ export const componentIcons = {
   TextArea: 'fa fa-long-answer',
   FileUpload: 'fa fa-attachment',
   Submit: 'fa fa-button',
-  AddressComponent: 'fa fa-adress',
+  AddressComponent: 'fa fa-address',
 };
 
 export const textComponents: IComponent[] = [

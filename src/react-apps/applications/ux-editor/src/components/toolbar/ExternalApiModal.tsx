@@ -71,7 +71,7 @@ class ExternalApiModal extends React.Component<IExternalApiModalProps, IExternal
               className='a-btn a-btn-icon a-btn-transparentWhite'
               onClick={this.selectConnection.bind(this, key)}
             >
-              <i className='ai ai-settings a-btn-icon-symbol' />
+              <i className='fa fa-settings a-btn-icon-symbol' />
               <span className='a-btn-icon-text'>
                 {this.props.connections[key].externalApiId ?
                   this.props.externalApisById[this.props.connections[key].externalApiId].shortname : null}

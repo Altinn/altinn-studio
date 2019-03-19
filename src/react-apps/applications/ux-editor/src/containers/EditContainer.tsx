@@ -419,7 +419,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark + ' ' + this.props.classes.formComponentTitle}>
-                      <i className={this.props.classes.icon + ' ' + componentIcons[this.state.component.textResourceBindings.title]} />
+                      <i
+                        className={
+                          this.props.classes.icon +
+                          ' ' +
+                          componentIcons[this.state.component.textResourceBindings.title]
+                        }
+                      />
                       {this.state.component.textResourceBindings.title ?
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
@@ -478,7 +484,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       onClick={this.handleDiscard}
                       tabIndex={0}
                     >
-                      <i className='ai ai-circlecancel' />
+                      <i className='fa fa-circlecancel' />
                     </IconButton>
                   </Grid>
                   <Grid item={true} xs={12}>
@@ -488,7 +494,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       onClick={this.handleSave}
                       tabIndex={0}
                     >
-                      <i className='ai ai-circlecheck' />
+                      <i className='fa fa-circlecheck' />
                     </IconButton>
                   </Grid>
                 </Grid>
