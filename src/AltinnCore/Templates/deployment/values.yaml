@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  # Change this to the name of your image
-  repository: matsgm/helloworld
+  # Set "repository" name of your image for manual Helm install and upgrade.
+  repository:
   tag: latest
   pullPolicy: Always
   pullSecrets:
@@ -36,6 +36,6 @@ ingress:
     # Additional paths needs to be configured manually
     - path: /servicename
   hosts:
-  # This must match what you have in your host file, or a domain that is used by the traefik public ip
-  # The first hosts entry host is configured automatically during deployment
-    - org.apps.env.altinn.cloud
+  # The first hosts entry host is configured automatically during deployment in Altinn Studio
+  # For manual deploy, or more hosts, configure hosts
+    - example.hostname
