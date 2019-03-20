@@ -37,7 +37,5 @@ COPY --from=generate-service-development /applications/service-development/dist/
 COPY --from=generate-service-development /applications/service-development/js/react/editor.worker.js .
 COPY --from=generate-service-development /applications/service-development/js/react/typescript.worker.js .
 COPY --from=generate-service-development /applications/service-development/dist/service-development.css .
-COPY --from=generate-service-development /applications/ux-editor/dist/ui-editor.js .
-COPY --from=generate-service-development /applications/ux-editor/dist/ui-editor.css .
 
 CMD ["echo", "done"]

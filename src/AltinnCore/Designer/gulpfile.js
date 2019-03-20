@@ -23,10 +23,8 @@ const jsServDevModuleFile3 = '../../react-apps/applications/service-development/
 const jsServDevMonacoWorker1 = '../../react-apps/applications/service-development/js/react/editor.worker.js';
 const jsServDevMonacoWorker2 = '../../react-apps/applications/service-development/js/react/typescript.worker.js';
 const jsDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.js';
-const jsUiEditorFile = '../../react-apps/applications/ux-editor/dist/ui-editor.js';
 const cssServDevFile = '../../react-apps/applications/service-development/dist/service-development.css';
 const cssDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.css';
-const cssUiEditorFile = '../../react-apps/applications/ux-editor/dist/ui-editor.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
