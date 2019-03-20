@@ -20,6 +20,14 @@ describe('>>> components/base/createNewService.tsx', () => {
 
   });
 
+  let consoleError: any;
+
+  beforeAll(() => {
+    consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
+      return {};
+    });
+  });
+
   it('+++ should handle update modal state on open and close', () => {
     const mountedComponent = mount(
       <CreateNewServiceComponent
@@ -257,6 +265,7 @@ describe('>>> components/base/createNewService.tsx', () => {
     expect(instance._isMounted).toBe(true);
     expect(instance.state.isLoading).toBe(false);
     expect(instance.state.repoNamePopperMessage).toBe('dashboard.error_when_creating_service');
+    expect(consoleError).toHaveBeenCalled();
   });
 
   it('+++ should handle successfully creating new service', () => {
