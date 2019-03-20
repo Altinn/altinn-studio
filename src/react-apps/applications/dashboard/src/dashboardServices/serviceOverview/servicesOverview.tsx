@@ -77,6 +77,10 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
+const getListOfServicesExcludingCodelist = (services: any) => {
+  return services.filter((service: any) => service.name !== 'codelists');
+};
+
 const getCurrentUsersName = (user: any) => {
   return user ? user.full_name || user.login : '';
 };
@@ -259,7 +263,7 @@ const mapStateToProps = (
     classes: props.classes,
     width: props.width,
     language: state.language.language,
-    services: state.dashboard.services,
+    services: getListOfServicesExcludingCodelist(state.dashboard.services),
     // tslint:disable-next-line:max-line-length
     allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),

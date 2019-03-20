@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing all actions related to basic configuration of a service
+    /// Controller containing all actions related to basic configuration of a service.
     /// </summary>
     [Authorize]
     public class ServiceController : Controller
@@ -22,9 +22,9 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceController"/> class.
         /// </summary>
-        /// <param name="repositoryService">The service repository service</param>
-        /// <param name="compilationService">the compilation service handler</param>
-        /// <param name="sourceControl">the source control service handler</param>
+        /// <param name="repositoryService">The service repository service.</param>
+        /// <param name="compilationService">the compilation service handler.</param>
+        /// <param name="sourceControl">the source control service handler.</param>
         public ServiceController(IRepository repositoryService, ICompilation compilationService, ISourceControl sourceControl)
         {
             _repository = repositoryService;
@@ -36,9 +36,9 @@ namespace AltinnCore.Designer.Controllers
         /// The index action which will list basic information about the service, as well as
         /// all possible operations on the service.
         /// </summary>
-        /// <param name="org">The current service owner</param>
-        /// <param name="service">The current service</param>
-        /// <returns>A view with basic information and all available operations</returns>
+        /// <param name="org">The current service owner.</param>
+        /// <param name="service">The current service.</param>
+        /// <returns>A view with basic information and all available operations.</returns>
         public IActionResult Index(string org, string service)
         {
             ServiceMetadata metadata = _repository.GetServiceMetaData(org, service);
@@ -64,24 +64,25 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Creates a new service package using all the current service files
+        /// Creates a new service package using all the current service files.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>Redirect to index</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <returns>Redirect to index.</returns>
         [HttpGet]
-        public IActionResult CreateServicePackage(string org, string service)
+        public IActionResult CreateServicePackage(string org, string service, bool startServiceFlag)
         {
-            _compilation.CreateServicePackage(org, service);
+            _compilation.CreateServicePackage(org, service, startServiceFlag);
             return RedirectToAction("Index", new { org, service });
         }
 
         /// <summary>
-        /// List GIT Status for a service
+        /// List GIT Status for a service.
         /// </summary>
-        /// <param name="org">The current service owner</param>
-        /// <param name="service">The current service</param>
-        /// <returns>The view</returns>
+        /// <param name="org">The current service owner.</param>
+        /// <param name="service">The current service.</param>
+        /// <returns>The view.</returns>
         [HttpGet]
         public IActionResult Status(string org, string service)
         {
@@ -92,11 +93,11 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Get the changes in the remote repository
+        /// Get the changes in the remote repository.
         /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="service">the service</param>
-        /// <returns>The service with changes</returns>
+        /// <param name="org">the organisation.</param>
+        /// <param name="service">the service.</param>
+        /// <returns>The service with changes.</returns>
         [HttpGet]
         public IActionResult PullRemoteChanges(string org, string service)
         {
@@ -106,10 +107,10 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// This method pushes changes to remote repository
+        /// This method pushes changes to remote repository.
         /// </summary>
-        /// <param name="commitInfo">The commit info</param>
-        /// <returns>Redirects back to the codelist front page</returns>
+        /// <param name="commitInfo">The commit info.</param>
+        /// <returns>Redirects back to the codelist front page.</returns>
         [HttpPost]
         public IActionResult PushChanges(CommitInfo commitInfo)
         {
@@ -118,11 +119,11 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// clone a repository
+        /// clone a repository.
         /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="service">the service</param>
-        /// <returns>The home app token page or the clone page</returns>
+        /// <param name="org">the organisation.</param>
+        /// <param name="service">the service.</param>
+        /// <returns>The home app token page or the clone page.</returns>
         public IActionResult Clone(string org, string service)
         {
             AltinnStudioViewModel model = new AltinnStudioViewModel();

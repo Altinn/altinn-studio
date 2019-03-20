@@ -254,6 +254,15 @@ namespace AltinnCore.Runtime
                     });
 
                 routes.MapRoute(
+                    name: "runtimeResourceRoute",
+                    template: "runtime/api/runtimeresources/{id}/",
+                    defaults: new { action = "RuntimeResource", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
+                    });
+
+                routes.MapRoute(
                     name: "metadataRoute",
                     template: "runtime/api/metadata/{org}/{service}/{action=Index}",
                     defaults: new { controller = "Resource" },
@@ -277,6 +286,17 @@ namespace AltinnCore.Runtime
                  name: "apiPutRoute",
                  template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
                  defaults: new { action = "Index", controller = "ServiceAPI" },
+                 constraints: new
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"\d+",
+                 });
+
+                routes.MapRoute(
+                 name: "apiAttachmentRoute",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}",
+                 defaults: new { controller = "ServiceAPI" },
                  constraints: new
                  {
                      controller = "ServiceAPI",
