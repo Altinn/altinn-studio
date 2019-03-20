@@ -53,7 +53,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
               </span>
               <i
                 aria-hidden="true"
-                className="ai ai-private-circle-big  a-personSwitcher-icon"
+                className="fa fa-private-circle-big  a-personSwitcher-icon"
                 style={
                   Object {
                     "color": "#022F51",
@@ -108,7 +108,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
                       }
                     >
                       <i
-                        className="ai ai-circle-exclamation a-icon"
+                        className="fa fa-circle-exclamation a-icon"
                       />
                       <span>
                         Mock error report
@@ -194,7 +194,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
                     >
                       <i
                         aria-hidden="true"
-                        className="ai ai-corp a-icon"
+                        className="fa fa-corp a-icon"
                       />
                     </div>
                     <h1

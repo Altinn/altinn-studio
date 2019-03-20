@@ -140,9 +140,9 @@ describe('HandleMergeConflictFileList', () => {
 
     // Expect correct icons to show
     expect(wrapper.find('AltinnIcon')).toHaveLength(mockRepostatus.contentStatus.length);
-    expect(wrapper.find('AltinnIcon').at(0).find('i').hasClass('ai-check')).toBe(true);
-    expect(wrapper.find('AltinnIcon').at(1).find('i').hasClass('ai-circlecancel')).toBe(true);
-    expect(wrapper.find('AltinnIcon').at(2).find('i').hasClass('ai-check')).toBe(true);
+    expect(wrapper.find('AltinnIcon').at(0).find('i').hasClass('fa-check')).toBe(true);
+    expect(wrapper.find('AltinnIcon').at(1).find('i').hasClass('fa-circlecancel')).toBe(true);
+    expect(wrapper.find('AltinnIcon').at(2).find('i').hasClass('fa-check')).toBe(true);
 
   });
 

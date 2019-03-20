@@ -9,7 +9,7 @@
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
     "test": "jest",
     "compile-ts": "tsc",
-    "lint": "tslint -c tslint.json 'src/**/*.{ts,tsx}",
+    "lint": "tslint -c ./../tslint.json 'src/**/*.{ts,tsx}",
     "clean": "rimraf dist compiled",
     "format": "prettier-tslint fix src/**/*.{ts,tsx}",
     "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress",

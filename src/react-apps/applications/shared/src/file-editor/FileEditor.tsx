@@ -296,14 +296,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.props.closeFileEditor}
         >
-          <i className='ai ai-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={0} />
+          <i className='fa fa-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={0} />
         </IconButton>
         <IconButton
           type='button'
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.saveFile}
         >
-          <i className='ai ai-circlecheck' id='fileEditorCheck' tabIndex={0} />
+          <i className='fa fa-circlecheck' id='fileEditorCheck' tabIndex={0} />
         </IconButton>
       </Grid>
     );
@@ -321,17 +321,17 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <Grid
           item={true}
         >
-        <div
-          ref={this.state.fileEditorSaveRef}
-          tabIndex={0}
-        >
-          <AltinnButton
-            btnText='Lagre fil'
-            disabled={!this.state.valueDiff}
-            onClickFunction={this.saveFile}
-            secondaryButton={true}
-          />
-        </div>
+          <div
+            ref={this.state.fileEditorSaveRef}
+            tabIndex={0}
+          >
+            <AltinnButton
+              btnText='Lagre fil'
+              disabled={!this.state.valueDiff}
+              onClickFunction={this.saveFile}
+              secondaryButton={true}
+            />
+          </div>
         </Grid>
       </Grid>
     );
@@ -389,7 +389,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                   {/* Return folder with expand icon */ }
                   return (
                     <React.Fragment key={index}>
-                      {folder} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                      {folder} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                     </React.Fragment>
                   );
                 })
@@ -397,7 +397,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                 :
 
                 <React.Fragment>
-                  <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                 </React.Fragment>
 
               }
@@ -406,7 +406,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
               {!this.props.loadFile ?
 
                 <React.Fragment>
-                  {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  {mode} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                   <Select
                     value={this.state.selectedFile}
                     classes={

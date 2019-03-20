@@ -25,7 +25,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       className=""
     >
       <i
-        className="ai ai-upload ShareChangesCompoenent-color_blueDark-2"
+        className="fa fa-upload ShareChangesCompoenent-color_blueDark-2"
       />
       sync_header.changes_to_share
     </p>
@@ -61,7 +61,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       className="ShareChangesCompoenent-bold-3"
     >
       <i
-        className="ai ai-upload ShareChangesCompoenent-color_blueDark-2"
+        className="fa fa-upload ShareChangesCompoenent-color_blueDark-2"
       />
       sync_header.changes_to_share
     </p>
@@ -97,7 +97,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
       className="ShareChangesCompoenent-bold-3"
     >
       <i
-        className="ai ai-circlecancel ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-fontSize_16-4 ShareChangesCompoenent-marginRight_10-5"
+        className="fa fa-circlecancel ShareChangesCompoenent-color_blueDark-2 ShareChangesCompoenent-fontSize_16-4 ShareChangesCompoenent-marginRight_10-5"
       />
       sync_header.merge_conflict
     </p>
@@ -131,7 +131,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
   >
     <p>
       <i
-        className="ai ai-check ShareChangesCompoenent-color_blueDarker-1"
+        className="fa fa-check ShareChangesCompoenent-color_blueDarker-1"
       />
       sync_header.no_changes_to_share
     </p>

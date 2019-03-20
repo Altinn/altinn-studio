@@ -4,12 +4,18 @@ import * as ConditionalRenderingActions from './actions';
 
 export interface IConditionalRenderingActionDispatcher extends ActionCreatorsMapObject {
   addConditionalRendering: (newConnction: any) => ConditionalRenderingActions.IAddConditionalRendering;
-  addConditionalRenderingFulfilled: (newConnection: any) => ConditionalRenderingActions.IAddConditionalRenderingFulfilled;
+  addConditionalRenderingFulfilled: (
+    newConnection: any,
+  ) => ConditionalRenderingActions.IAddConditionalRenderingFulfilled;
   addConditionalRenderingRejected: (error: Error) => ConditionalRenderingActions.IAddConditionalRenderingRejected;
   delConditionalRendering: (connectionId: any) => ConditionalRenderingActions.IDelConditionalRendering;
-  delConditionalRenderingFulfilled: (newConnectionObj: any) => ConditionalRenderingActions.IDelConditionalRenderingFulfilled;
+  delConditionalRenderingFulfilled: (
+    newConnectionObj: any,
+  ) => ConditionalRenderingActions.IDelConditionalRenderingFulfilled;
   delConditionalRenderingRejected: (error: Error) => ConditionalRenderingActions.IDelConditionalRenderingRejected;
-  checkIfConditionalRulesShouldRun: (repeatingContainerId?: string) => ConditionalRenderingActions.ICheckIfConditionalRulesShouldRun;
+  checkIfConditionalRulesShouldRun: (
+    repeatingContainerId?: string,
+  ) => ConditionalRenderingActions.ICheckIfConditionalRulesShouldRun;
 }
 
 const actions: IConditionalRenderingActionDispatcher = {
@@ -25,6 +31,6 @@ const actions: IConditionalRenderingActionDispatcher = {
 const ConditionalRenderingActionDispatcher: IConditionalRenderingActionDispatcher = bindActionCreators<
   any,
   IConditionalRenderingActionDispatcher
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 
 export default ConditionalRenderingActionDispatcher;

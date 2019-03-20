@@ -241,7 +241,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         className='a-btn a-btn-icon p-0'
         onClick={this.handleContainerDelete}
       >
-        <i className='ai ai-circle-exit a-danger ai-left' />
+        <i className='fa fa-circle-exit a-danger ai-left' />
       </button>
     );
   }
@@ -263,7 +263,7 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         className={'a-btn a-btn-action'}
         onClick={this.handleAddNewGroup}
       >
-        <i className={'ai ai-plus'} />
+        <i className={'fa fa-plus'} />
         <span>
           {this.props.language.ux_editor.repeating_group_add}
         </span>
