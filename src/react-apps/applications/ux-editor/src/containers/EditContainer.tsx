@@ -12,6 +12,7 @@ import { makeGetLayoutComponentsSelector, makeGetLayoutOrderSelector } from '../
 import '../styles/index.css';
 import { getCodeListConnectionForDatamodelBinding } from '../utils/apiConnection';
 import { getTextResource, truncate } from '../utils/language';
+import { componentIcons } from './../components';
 
 const styles = createStyles({
   active: {
@@ -122,6 +123,10 @@ const styles = createStyles({
     '&:hover $gridForBtn': {
       visibility: 'visible',
     },
+  },
+  icon: {
+    color: '#6a6a6a',
+    margin: '0 1.2rem 0 1.2rem',
   },
 });
 
@@ -415,6 +420,13 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                     </Grid>
                     :
                     <div className={this.props.classes.textPrimaryDark + ' ' + this.props.classes.formComponentTitle}>
+                      <i
+                        className={
+                          this.props.classes.icon +
+                          ' ' +
+                          componentIcons[this.state.component.textResourceBindings.title]
+                        }
+                      />
                       {this.state.component.textResourceBindings.title ?
                         truncate(
                           getTextResource(this.state.component.textResourceBindings.title,
@@ -422,9 +434,6 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         : this.props.component.component}
                     </div>
                   }
-                  <span className={this.props.classes.textSecondaryDark + ' ' + this.props.classes.caption}>
-                    {this.props.component.component}
-                  </span>
                 </ListItem>
               </div>
             </Grid>
@@ -443,7 +452,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         onClick={this.handleComponentDelete}
                         tabIndex={0}
                       >
-                        <i className='ai ai-circletrash' />
+                        <i className='fa fa-circletrash' />
                       </IconButton>
                     }
                   </Grid>
@@ -456,7 +465,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         onClick={this.handleOpenEdit}
                         tabIndex={0}
                       >
-                        <i className='reg reg-edit' />
+                        <i className='fa fa-edit' />
                       </IconButton>
                     }
                   </Grid>
@@ -476,7 +485,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       onClick={this.handleDiscard}
                       tabIndex={0}
                     >
-                      <i className='ai ai-circlecancel' />
+                      <i className='fa fa-circlecancel' />
                     </IconButton>
                   </Grid>
                   <Grid item={true} xs={12}>
@@ -486,7 +495,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                       onClick={this.handleSave}
                       tabIndex={0}
                     >
-                      <i className='ai ai-circlecheck' />
+                      <i className='fa fa-circlecheck' />
                     </IconButton>
                   </Grid>
                 </Grid>

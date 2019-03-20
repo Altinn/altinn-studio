@@ -283,8 +283,8 @@ export class AdministrationComponent extends
                 <i
                   className={classNames(classes.iconStyling,
                     {
-                      ['ai ai-corp']: this.props.service.owner.UserType === 2,
-                      ['ai ai-private']: this.props.service.owner.UserType !== 2,
+                      ['fa fa-corp']: this.props.service.owner.UserType === 2,
+                      ['fa fa-private']: this.props.service.owner.UserType !== 2,
                     })}
                   aria-hidden='true'
                 />
