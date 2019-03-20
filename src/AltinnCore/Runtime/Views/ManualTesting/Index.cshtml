@@ -103,11 +103,11 @@
 }
 
 <div class="form-group">
-  <input class="btn btn-primary" type="button" value="Tilbake til Altinn Studio" onclick="redirectToStartPage()" />
+  <input class="btn btn-primary" type="button" value="Tilbake til Altinn Studio" onclick="redirectToServicePage()" />
 </div>
 
 <script>
-  function redirectToStartPage() {
-    window.location.replace(window.location.origin);
+  function redirectToServicePage() {
+    window.location.replace(window.location.origin + "/designer/@org/@service");
   }
 </script>
