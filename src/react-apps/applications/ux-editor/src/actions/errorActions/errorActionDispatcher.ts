@@ -12,5 +12,8 @@ const actions: IErrorActionDispatchers = {
   removeError: ErrorActions.removeErrorMessage,
 };
 
-const ErrorActionDispatchers: IErrorActionDispatchers = bindActionCreators<any, IErrorActionDispatchers>(actions, store.dispatch);
+const ErrorActionDispatchers: IErrorActionDispatchers = bindActionCreators<any, IErrorActionDispatchers>(
+  actions,
+  store.dispatch,
+);
 export default ErrorActionDispatchers;

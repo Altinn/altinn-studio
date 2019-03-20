@@ -4,7 +4,9 @@ import * as ThirdPartyComponentsActions from './actions';
 
 export interface IThirdPartyComponentsActionDispatcher extends ActionCreatorsMapObject {
   fetchThirdPartyComponents: (location: string) => ThirdPartyComponentsActions.IFetchThirdPartyComponent;
-  fetchThirdPartyComponentsFulfilled: (components: any) => ThirdPartyComponentsActions.IFetchThirdPartyComponentFulfilled;
+  fetchThirdPartyComponentsFulfilled: (
+    components: any,
+  ) => ThirdPartyComponentsActions.IFetchThirdPartyComponentFulfilled;
   fetchThirdPartyComponentsRejected: (error: Error) => ThirdPartyComponentsActions.IFetchThirdPartyComponentRejected;
 }
 
@@ -17,6 +19,6 @@ const actions: IThirdPartyComponentsActionDispatcher = {
 const ThirdPartyComponentsActionDispatcher: IThirdPartyComponentsActionDispatcher = bindActionCreators<
   any,
   IThirdPartyComponentsActionDispatcher
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 
 export default ThirdPartyComponentsActionDispatcher;

@@ -31,7 +31,11 @@ export class FileUploadComponent
             type='file'
             name='file'
             onChange={this.onDataChanged}
-            className={this.props.isValid ? 'a-js-certificateContainer sr-only' : 'a-js-certificateContainer sr-only validation-error'}
+            className={
+              this.props.isValid ?
+                'a-js-certificateContainer sr-only' :
+                'a-js-certificateContainer sr-only validation-error'
+            }
           />
           Add a file
           {// TODO: should fetch text using getTextResource() prop
