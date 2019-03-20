@@ -18,20 +18,6 @@ export interface IComponent {
   Icon: string;
 }
 
-// export interface IComponentIcons {
-//   Header: string;
-//   Paragraph: string;
-//   Input: string;
-//   Datepicker: string;
-//   Dropdown: string;
-//   Checkboxes: string;
-//   RadioButtons: string;
-//   TextArea: string;
-//   FileUpload: string;
-//   Submit: string;
-//   AddressComponent: string;
-// }
-
 // The order here should be the same as
 // the exported 'components' list (drag and drop)
 export enum ComponentTypes {
