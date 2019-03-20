@@ -112,7 +112,7 @@ namespace Altinn.Platform.Storage.Repository
                 var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
               
                 Instance instance = await _client
-                    .ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId) });
+                    .ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
 
                 return instance;
             }
@@ -144,11 +144,11 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance";
+                string instanceOwnerIdString = instanceOwnerId.ToString();
 
                 List<Instance> instances = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) })
-                    .Where(i => i.InstanceOwnerId.Equals(instanceOwnerId))
+                    .CreateDocumentQuery<Instance>(_collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerIdString) })
+                    .Where(i => i.InstanceOwnerId.Equals(instanceOwnerIdString))
                     .ToList();
 
                 return instances;

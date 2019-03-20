@@ -107,7 +107,7 @@ namespace Altinn.Platform.Storage.Controllers
                 ApplicationId = applicationId,
             };
 
-            var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
+            string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {
                 return BadRequest();

@@ -69,15 +69,15 @@ namespace Altinn.Platform.Test.Integration
             Assert.Equal(newId, actual.Id);
             //Assert.Equal("666", actual.InstanceOwnerId);
             Assert.Equal("KNS/sailor", actual.ApplicationId);
-        }       
+        }
 
         /// <summary>
         ///  Checks that the Inline data urls returns a proper encoding.
         /// </summary>
         /// <param name="url">the url to check</param>
         [Theory]
-        [InlineData("/api/v1/instances?instanceOwnerId=666")]
-        public async void GetInstancesForReportee(string url)
+        [InlineData("/api/v1/instances/query?instanceOwnerId=666")]
+        public async void GetInstancesForInstanceOwner(string url)
         {
             HttpResponseMessage response = await client.GetAsync(url);
 
@@ -85,19 +85,6 @@ namespace Altinn.Platform.Test.Integration
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
         }
 
-        /// <summary>
-        ///  Checks that the Inline data urls returns a proper encoding.
-        /// </summary>
-        /// <param name="url">the url to check</param>
-        [Theory]
-        [InlineData("/api/v1/instances/")]
-        public async void UpdateInstancesForReportee(string url)
-        {
-            HttpResponseMessage response = await client.GetAsync(url + instanceId);
-
-            response.EnsureSuccessStatusCode();
-            Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
-        }
 
         [Fact]
         public async void StoreAForm()
