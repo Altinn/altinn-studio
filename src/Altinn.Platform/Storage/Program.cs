@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                string basePath = Directory.GetCurrentDirectory();
 
                 LoadConfigurationSettings(config, basePath, args);
             })

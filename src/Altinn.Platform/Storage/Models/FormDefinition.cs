@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Models
@@ -10,14 +7,8 @@ namespace Altinn.Platform.Storage.Models
     /// Model for form data
     /// </summary>
     [Serializable]
-    public class Data
+    public class FormDefinition
     {
-        /// <summary>
-        /// users filename
-        /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public string Id { get; set; }
-
         /// <summary>
         /// users filename
         /// </summary>
@@ -45,14 +36,8 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// Signature
         /// </summary>
-        [JsonProperty(PropertyName = "signature")]
-        public string Signature { get; set; }
-
-        /// <summary>
-        /// Size of file in bytes
-        /// </summary>
-        [JsonProperty(PropertyName = "isLocked")]
-        public bool IsLocked { get; set; }
+        [JsonProperty(PropertyName = "signatureRequired")]
+        public bool SignatureRequired { get; set; }
 
         /// <summary>
         /// create date and time for the instance
@@ -77,6 +62,5 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
-
     }
 }
