@@ -17,7 +17,7 @@ exports[`>>> components/base/FileUploadComponent.tsx --- Snapshot >>> Capture sn
     Add a file
     test-fileuploader
     <i
-      className="ai ai-upload"
+      className="fa fa-upload"
     />
   </label>
 </div>
