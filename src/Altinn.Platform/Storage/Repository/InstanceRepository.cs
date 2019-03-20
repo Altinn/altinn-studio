@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
 {
+    /// <summary>
+    /// Handles instances
+    /// </summary>
     public class InstanceRepository : IInstanceRepository
     {
         private readonly Uri _databaseUri;
@@ -37,7 +40,7 @@ namespace Altinn.Platform.Storage.Repository
             _client.CreateDatabaseIfNotExistsAsync(new Database { Id = _cosmosettings.Database }).GetAwaiter().GetResult();
 
             DocumentCollection documentCollection = new DocumentCollection { Id = _cosmosettings.Collection };
-            documentCollection.PartitionKey.Paths.Add("/reporteeId");
+            documentCollection.PartitionKey.Paths.Add("/instanceOwnerId");
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
@@ -68,30 +71,20 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="reporteeId">the id of the reportee</param>
-        /// <param name="instanceId">the id of the Instance</param>
+        /// <param name="applicationOwnerId">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<Instance> GetInstanceFromCollectionAsync(int reporteeId, Guid instanceId)
+        public async Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId)
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.id = '{instanceId}'";
+                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.applicationOwnerId = '{applicationOwnerId}'";
 
-                IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId.ToString()) }).AsDocumentQuery();
+                List<Instance> instances = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
+                    .Where(b => b.ApplicationOwnerId == applicationOwnerId)
+                    .ToList();             
 
-                // IDocumentQuery<dynamic> query = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { EnableCrossPartitionQuery = true}).AsDocumentQuery();
-                Instance instance = null;
-                while (query.HasMoreResults)
-                {
-                    FeedResponse<Instance> res = await query.ExecuteNextAsync<Instance>();
-                    if (res.Count != 0)
-                    {
-                        instance = res.First();
-                        break;
-                    }
-                }
-
-                return instance;
+                return instances;
             }
             catch (DocumentClientException e)
             {
@@ -107,17 +100,56 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Get all the instances for a reportee
+        /// Get the instance based on the input parameters
         /// </summary>
-        /// <param name="reporteeId">the id of the reportee</param>
+        /// <param name="instanceId">the id of the Instance</param>
+        /// <param name="instanceOwnerId">the partition key</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<List<dynamic>> GetInstancesFromCollectionAsync(int reporteeId)
+        public async Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId)
+        {
+            try
+            {                
+                var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
+              
+                Instance instance = await _client
+                    .ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+
+                return instance;
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception e)
+            {
+                var msg = e.Message;
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get all the instances for an instanceOwner
+        /// </summary>
+        /// <param name="instanceOwnerId">the id of the instanceOwner</param>
+        /// <returns>the instance for the given parameters</returns>
+        public async Task<List<Instance>> GetInstancesOfInstanceOwnerAsync(int instanceOwnerId)
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance";
+                string instanceOwnerIdString = instanceOwnerId.ToString();
 
-                List<dynamic> instances = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(reporteeId.ToString()) }).ToList();
+                List<Instance> instances = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerIdString) })
+                    .Where(i => i.InstanceOwnerId.Equals(instanceOwnerIdString))
+                    .ToList();
 
                 return instances;
             }
@@ -137,14 +169,14 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Update instance for a given form id
         /// </summary>
-        /// <param name="id">the instance id</param>
+        /// <param name="instanceId">the instance id</param>
         /// <param name="item">the instance</param>
         /// <returns>The instance</returns>
-        public async Task<Instance> UpdateInstanceInCollectionAsync(Guid id, Instance item)
+        public async Task<Instance> UpdateInstanceInCollectionAsync(Guid instanceId, Instance item)
         {
             try
             {
-                var document = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, id.ToString()), item);
+                var document = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
                 var data = document.Resource.ToString();
                 var instance = JsonConvert.DeserializeObject<Instance>(data);
                 return instance;

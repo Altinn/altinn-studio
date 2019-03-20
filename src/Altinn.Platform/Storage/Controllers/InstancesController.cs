@@ -10,25 +10,68 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Storage.Controllers
 {
-    [Route("dataservice/reportees/{reporteeId}/[controller]")]
+    /// <summary>
+    /// a summary is needed here
+    /// </summary>
+    [Route("api/v1/[controller]")]
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataController"/> class
+        /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
-        /// <param name="instanceRepository">the form data repository handler</param>
+        /// <param name="instanceRepository">the instance repository handler</param>
         public InstancesController(IInstanceRepository instanceRepository)
         {
             _instanceRepository = instanceRepository;
         }
 
-        // GET dataservice/reportees/{reporteeId}/instances/
-        [HttpGet]
-        public async Task<ActionResult> Get(int reporteeId)
+        /// <summary>
+        /// Get all instances for a given instanceowner
+        /// </summary>
+        /// <param name="instanceOwnerId">owner of the instances</param>
+        /// <param name="applicationOwnerId">application owner</param>
+        /// <returns>list of all instances for given instanceowner</returns>
+        /// GET api/v1/instances
+        [HttpGet("query")]
+        public async Task<ActionResult> Get(int instanceOwnerId, string applicationOwnerId)
         {
-            var result = await _instanceRepository.GetInstancesFromCollectionAsync(reporteeId);
+            if (instanceOwnerId != 0)
+            {
+                var result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
+            }
+            else if (!string.IsNullOrEmpty(applicationOwnerId))
+            {       
+                var result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
+            }
+
+            return BadRequest();
+        }        
+
+        /// <summary>
+        /// Gets an instance for a given instanceid
+        /// </summary>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <returns></returns>
+        /// GET api/v1/instances/{instanceId}
+        [HttpGet("{instanceId:guid}")]
+        public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
+        {
+            var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (result == null)
             {
                 return NotFound();
@@ -37,24 +80,34 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
-        // GET dataservice/reportees/{reporteeId}<controller>/{instanceId}
-        [HttpGet("{instanceId}")]
-        public async Task<ActionResult> Get(int reporteeId, Guid instanceId)
+        /// <summary>
+        /// Inserts new instance into the instance collection
+        /// </summary>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="applicationId">the applicationid</param>
+        /// <returns>instance object</returns>
+        /// POST api/v1/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}"
+        [HttpPost]        
+        public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {
-            var result = await _instanceRepository.GetInstanceFromCollectionAsync(reporteeId, instanceId);
-            if (result == null)
+            if (string.IsNullOrEmpty(applicationId) || instanceOwnerId == 0)
             {
-                return NotFound();
+                return BadRequest("Both applicationId and instanceownerid must be set");
             }
 
-            return Ok(result);
-        }
+            DateTime creationTime = DateTime.UtcNow;
 
-        // POST dataservice/reportees/{reporteeId}/instances
-        [HttpPost]
-        public async Task<ActionResult> Post([FromBody]Instance Instance)
-        {
-            var result = await _instanceRepository.InsertInstanceIntoCollectionAsync(Instance);            
+            Instance instance = new Instance()
+            {
+                InstanceOwnerId = instanceOwnerId.ToString(),
+                CreatedBy = 0,
+                CreatedDateTime = creationTime,
+                LastChangedBy = 0,
+                LastChangedDateTime = creationTime,
+                ApplicationId = applicationId,
+            };
+
+            string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {
                 return BadRequest();
@@ -63,16 +116,50 @@ namespace Altinn.Platform.Storage.Controllers
             return Ok(result);
         }
 
-        // PUT dataservice/reportees/{reporteeId}/<controller>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        /// <summary>
+        /// Updates an instance
+        /// </summary>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instance">instance</param>
+        /// <returns></returns>
+        /// PUT api/v1/<controller>/5
+        [HttpPut("{instanceId}")]
+        public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
         {
+            instance.LastChangedBy = instanceOwnerId;
+            instance.LastChangedDateTime = DateTime.UtcNow;
+            var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
 
-        // DELETE dataservice/reportees/{reporteeId}/<controller>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        /// <summary>
+        /// Delete an instance
+        /// </summary>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <returns>updated instance object</returns>
+        /// DELETE api/v1/<controller>/5
+        [HttpDelete("{instanceId}")]
+        public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId)
         {
+            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
+
+            instance.IsDeleted = true;
+            instance.LastChangedBy = instanceOwnerId;
+            instance.LastChangedDateTime = DateTime.UtcNow;
+            var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
     }
 }

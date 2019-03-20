@@ -53,7 +53,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of service deployment charts
         /// </summary>
-        public const string DEPLOYMENT_FOLDER_NAME = "Deployment/";
+        public const string DEPLOYMENT_FOLDER_NAME = "deployment/";
 
         /// <summary>
         /// Constant for the service binaries

@@ -30,7 +30,7 @@ environmentVariables:
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
-      value: /Deployment
+      value: /Templates/deployment
   production:
     - name: GiteaEndpoint
       value: altinn.studio
@@ -53,7 +53,7 @@ environmentVariables:
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
     - name: GeneralSettings__DeploymentLocation
-      value: /Deployment
+      value: /Templates/deployment
 
 volumeMounts:
   - name: altinn-repo-storage
