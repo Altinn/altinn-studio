@@ -10,6 +10,10 @@ import { RadioButtonContainerComponent } from './base/RadioButtonsContainerCompo
 import { TextAreaComponent } from './base/TextAreaComponent';
 import { SubmitComponent } from './widget/SubmitComponent';
 
+export interface IComponentIcon {
+  [key: string]: string;
+}
+
 export interface IComponent {
   name: string;
   Tag: any;
@@ -35,7 +39,7 @@ export enum ComponentTypes {
   AddressComponent,
 }
 
-export const componentIcons: any = {
+export const componentIcons: IComponentIcon = {
   Header: 'fa fa-title',
   Paragraph: 'fa fa-paragraph',
   Input: 'fa fa-short-answer',
