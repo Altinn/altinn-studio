@@ -31,14 +31,15 @@ namespace Altinn.Platform.Storage.Controllers
         /// Get all instances for a given instanceowner
         /// </summary>
         /// <param name="instanceOwnerId">owner of the instances</param>
+        /// <param name="applicationOwnerId">application owner</param>
         /// <returns>list of all instances for given instanceowner</returns>
         /// GET api/v1/instances
-        [HttpGet]
+        [HttpGet("query")]
         public async Task<ActionResult> Get(int instanceOwnerId, string applicationOwnerId)
         {
             if (instanceOwnerId != 0)
             {
-                var result = await _instanceRepository.GetInstancesFromCollectionAsync(instanceOwnerId);
+                var result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
                 if (result == null)
                 {
                     return NotFound();
@@ -48,7 +49,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(applicationOwnerId))
             {       
-                var result = await _instanceRepository.QueryInstancesOnApplicationOwner(applicationOwnerId);
+                var result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
                 if (result == null)
                 {
                     return NotFound();
@@ -58,7 +59,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return BadRequest();
-        }
+        }        
 
         /// <summary>
         /// Gets an instance for a given instanceid
@@ -67,7 +68,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <returns></returns>
         /// GET api/v1/instances/{instanceId}
-        [HttpGet("{instanceId}")]
+        [HttpGet("{instanceId:guid}")]
         public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
         {
             var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);

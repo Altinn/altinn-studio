@@ -50,7 +50,6 @@ namespace Altinn.Platform.Test.Integration
 
             Instance instanceData = new Instance
             {
-                // InstanceOwnerId = "666",
                 ApplicationId = "KNS/sailor",
                 ApplicationOwnerId = "BRREG",
             };
@@ -62,7 +61,7 @@ namespace Altinn.Platform.Test.Integration
             instanceId = newId;
             Assert.NotNull(newId);
 
-            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "/?instanceOwnerId=666");
+            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "?instanceOwnerId=666");
 
             getResponse.EnsureSuccessStatusCode();
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
@@ -213,7 +212,7 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void queryInstancesOnApplicationOwnerId()
         {
-            string urlTemplate = "api/v1/instances?applicationOwnerId={0}";
+            string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
             string requestUri = string.Format(urlTemplate, "KNS");
 
             HttpResponseMessage response = await client.GetAsync(requestUri);

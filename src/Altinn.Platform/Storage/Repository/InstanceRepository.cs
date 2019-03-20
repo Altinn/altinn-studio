@@ -12,6 +12,9 @@ using Newtonsoft.Json;
 
 namespace Altinn.Platform.Storage.Repository
 {
+    /// <summary>
+    /// Handles instances
+    /// </summary>
     public class InstanceRepository : IInstanceRepository
     {
         private readonly Uri _databaseUri;
@@ -70,7 +73,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="applicationOwnerId">application owner id</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<List<Instance>> QueryInstancesOnApplicationOwner(string applicationOwnerId)
+        public async Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId)
         {
             try
             {
@@ -108,7 +111,8 @@ namespace Altinn.Platform.Storage.Repository
             {                
                 var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
               
-                Instance instance = await _client.ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId) });
+                Instance instance = await _client
+                    .ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId) });
 
                 return instance;
             }
@@ -136,13 +140,16 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="instanceOwnerId">the id of the instanceOwner</param>
         /// <returns>the instance for the given parameters</returns>
-        public async Task<List<dynamic>> GetInstancesFromCollectionAsync(int instanceOwnerId)
+        public async Task<List<Instance>> GetInstancesOfInstanceOwnerAsync(int instanceOwnerId)
         {
             try
             {
                 string sqlQuery = $"SELECT * FROM Instance";
 
-                List<dynamic> instances = _client.CreateDocumentQuery(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) }).ToList();
+                List<Instance> instances = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, sqlQuery, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) })
+                    .Where(i => i.InstanceOwnerId.Equals(instanceOwnerId))
+                    .ToList();
 
                 return instances;
             }

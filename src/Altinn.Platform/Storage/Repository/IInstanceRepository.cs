@@ -12,7 +12,14 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="instanceOwnerId">the owner of the instance</param>
         /// <returns>The list of instances for a reportee</returns>
-        Task<List<Instance>> QueryInstancesFromCollectionAsync(int instanceOwnerId, string applicationOwnerId);
+        Task<List<Instance>> GetInstancesOfInstanceOwnerAsync(int instanceOwnerId);
+
+        /// <summary>
+        /// Gets all the instances for an application owner
+        /// </summary>
+        /// <param name="applicationOwnerId">the application owner</param>
+        /// <returns>The list of instances for a reportee</returns>
+        Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId);
 
         /// <summary>
         /// Get an instance details for the given parameters
