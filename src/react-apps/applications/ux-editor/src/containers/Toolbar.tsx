@@ -20,7 +20,7 @@ const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
-  icon?: string,
+  icon?: string;
   componentType: ComponentTypes;
   actionMethod: (containerId: string, index: number) => void;
 }
