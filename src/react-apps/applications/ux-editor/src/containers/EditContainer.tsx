@@ -125,6 +125,7 @@ const styles = createStyles({
     },
   },
   icon: {
+    color: '#6a6a6a',
     margin: '0 1.2rem 0 1.2rem',
   },
 });
