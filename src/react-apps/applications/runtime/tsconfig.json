@@ -3,11 +3,9 @@
     "types": [
       "node"
     ],
-    "baseUrl": "../",
+    "baseUrl": ".",
     "paths": {
-      "Shared/*": [
-        "./shared/src/*"
-      ]
+      "Shared/*": ["../shared/src/*"]
     },
     "outDir": "compiled",
     "module": "commonjs",

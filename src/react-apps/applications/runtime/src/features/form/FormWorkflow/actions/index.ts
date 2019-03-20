@@ -1,6 +1,7 @@
 import {
   ActionCreatorsMapObject,
   bindActionCreators,
+  Action,
 } from 'redux';
 import { store } from '../../../../store';
 import { WorkflowSteps } from '../typings';
@@ -11,7 +12,9 @@ export interface IFormWorkflowActions extends ActionCreatorsMapObject {
   getCurrentState: (url: string) => WorkflowStateActions.IGetCurrentState;
   getCurrentStateFulfilled: (state: WorkflowSteps) => WorkflowStateActions.IGetCurrentStateFulfilled;
   getCurrentStateRejected: (error: Error) => WorkflowStateActions.IGetCurrentStateRejected;
-  setCurrentState: (state: WorkflowSteps) => WorkflowStateActions.ISetCurrentState;
+  setCurrentState: (url: string, state: WorkflowSteps) => WorkflowStateActions.ISetCurrentState;
+  setCurrentStateFullfilled: () => Action;
+  setCurrentStateRejected: (error: Error) => WorkflowStateActions.ISetCurrentStateRejected;
 }
 
 const actions: IFormWorkflowActions = {
@@ -19,6 +22,8 @@ const actions: IFormWorkflowActions = {
   getCurrentStateFulfilled: WorkflowStateActions.getCurrentStateFulfilled,
   getCurrentStateRejected: WorkflowStateActions.getCurrentStateRejected,
   setCurrentState: WorkflowStateActions.setCurrentState,
+  setCurrentStateFullfilled: WorkflowStateActions.setCurrentStateFulfilled,
+  setCurrentStateRejected: WorkflowStateActions.setCurrentStateRejected,
 }
 
 const WorkflowActions: IFormWorkflowActions = bindActionCreators<any, any>(actions, store.dispatch);

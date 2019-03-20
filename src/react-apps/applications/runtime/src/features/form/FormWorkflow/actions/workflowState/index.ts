@@ -15,7 +15,12 @@ export interface IGetCurrentStateRejected extends Action {
 }
 
 export interface ISetCurrentState extends Action {
+  url: string;
   state: WorkflowSteps;
+}
+
+export interface ISetCurrentStateRejected extends Action {
+  error: Error;
 }
 
 export function getCurrentState(url: string): IGetCurrentState {
@@ -39,9 +44,23 @@ export function getCurrentStateRejected(error: Error): IGetCurrentStateRejected 
   };
 }
 
-export function setCurrentState(state: WorkflowSteps): ISetCurrentState {
+export function setCurrentState(url: string, state: WorkflowSteps): ISetCurrentState {
   return {
     type: ActionTypes.SET_CURRENT_STATE,
+    url,
     state,
+  };
+}
+
+export function setCurrentStateFulfilled(): Action {
+  return {
+    type: ActionTypes.SET_CURRENT_STATE_FULFILLED,
+  };
+}
+
+export function setCurrentStateRejected(error: Error): ISetCurrentStateRejected {
+  return {
+    type: ActionTypes.SET_CURRENT_STATE,
+    error,
   };
 }

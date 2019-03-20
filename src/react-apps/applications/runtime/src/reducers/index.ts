@@ -6,15 +6,15 @@ import {
 import FormLayoutReducer, { ILayoutState } from '../features/form/FormLayout/reducer';
 import FormDataReducer, { IFormDataState } from '../features/form/FormData/reducer';
 
-interface IRuntimeState<T1, T2> {
+export interface IReducers<T1, T2> {
   formLayout: T1;
   formData: T2;
 }
 
-export interface IReducers extends IRuntimeState<Reducer<ILayoutState>, Reducer<IFormDataState>>, ReducersMapObject {
+export interface IRuntimeState extends IReducers<Reducer<ILayoutState>, Reducer<IFormDataState>>, ReducersMapObject {
 }
 
-const reducers: IReducers = {
+const reducers: IRuntimeState = {
   formLayout: FormLayoutReducer,
   formData: FormDataReducer,
 };

@@ -1,9 +1,14 @@
 import { Action } from 'redux';
 import * as actionTypes from '../types';
 
-export function submitFormData(): Action {
+export interface ISumbitDataAction extends Action {
+  url: string;
+}
+
+export function submitFormData(url: string): ISumbitDataAction {
   return {
     type: actionTypes.SUBMIT_FORM_DATA,
+    url,
   };
 }
 
