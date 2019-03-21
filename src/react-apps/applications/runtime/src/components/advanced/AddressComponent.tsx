@@ -1,8 +1,8 @@
-import axios, { AxiosResponse } from 'axios';
+// import axios, { AxiosResponse } from 'axios';
 import update from 'immutability-helper';
 import * as React from 'react';
 
-import '../../styles/AddressComponent.css';
+// import '../../styles/AddressComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IAddressComponentProps {
@@ -73,7 +73,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
 
   public fetchPostPlace: (zipCode: string) => void = (zipCode: string) => {
     if (zipCode.match(new RegExp('^[0-9]{4}$'))) {
-      axios.get('https://api.bring.com/shippingguide/api/postalCode.json', {
+      /*axios.get('https://api.bring.com/shippingguide/api/postalCode.json', {
         params: {
           clientUrl: window.location.href,
           pnr: zipCode,
@@ -101,7 +101,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       });
       this.setState({
         postPlace: 'Laster...',
-      });
+      });*/
     }
   }
 
@@ -148,8 +148,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   }
 
   public joinValidationMessages = (): IComponentValidations => {
-    const {validations} = this.state as any;
-    let {validationMessages} = this.props;
+    const { validations } = this.state as any;
+    let { validationMessages } = this.props;
 
     for (const fieldKey in validations) {
       if (!validations[fieldKey]) {
@@ -203,7 +203,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           />
           {validations ?
             renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
-          : null}
+            : null}
           <div className={'address-component-postplace-zipCode'}>
             <div className={'address-component-zipCode'}>
               <label className={'address-component-label'}>Postnummer</label>
@@ -219,7 +219,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               />
               {validations ?
                 renderValidationMessagesForComponent(validations[AddressKeys.zipCode], `${id}_${AddressKeys.zipCode}`)
-              : null}
+                : null}
             </div>
 
             <div className={'address-component-postplace'}>
@@ -233,7 +233,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
               {validations ?
                 renderValidationMessagesForComponent(validations[AddressKeys.postPlace],
                   `${id}_${AddressKeys.postPlace}`)
-              : null}
+                : null}
             </div>
           </div>
         </div>
@@ -253,7 +253,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
         />
         {validations ?
-            renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
+          renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
           : null}
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
@@ -263,7 +263,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
         />
         {validations ?
-            renderValidationMessagesForComponent(validations[AddressKeys.careOf], `${id}_${AddressKeys.careOf}`)
+          renderValidationMessagesForComponent(validations[AddressKeys.careOf], `${id}_${AddressKeys.careOf}`)
           : null}
         <div className={'address-component-postplace-zipCode'}>
           <div className={'address-component-zipCode'}>
@@ -281,7 +281,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             />
             {validations ?
               renderValidationMessagesForComponent(validations[AddressKeys.zipCode], `${id}_${AddressKeys.zipCode}`)
-            : null}
+              : null}
           </div>
           <div className={'address-component-postplace'}>
             <label className={'address-component-label'}>Poststed</label>
@@ -294,7 +294,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             />
             {validations ?
               renderValidationMessagesForComponent(validations[AddressKeys.postPlace], `${id}_${AddressKeys.postPlace}`)
-            : null}
+              : null}
           </div>
         </div>
         <label className={'address-component-label'}>
@@ -319,7 +319,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         />
         {validations ?
           renderValidationMessagesForComponent(validations[AddressKeys.houseNumber], `${id}_${AddressKeys.houseNumber}`)
-        : null}
+          : null}
       </div>
     );
   }

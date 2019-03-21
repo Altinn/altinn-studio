@@ -58,3 +58,5 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
     }
   }
 }
+
+export default WorkflowReducer;

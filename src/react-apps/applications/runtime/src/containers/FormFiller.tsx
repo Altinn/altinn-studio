@@ -2,6 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { WorkflowSteps } from '../features/form/workflow/typings';
 import FormDataActions from '../features/form/data/actions';
+import { WorkflowStep } from './WorkflorStep';
+import { getTextResource } from '../utils/language';
 
 export interface IFormFillerProps {
   workflowStep: WorkflowSteps;
@@ -14,23 +16,6 @@ export interface IFormFillerProps {
 
 export interface IFormFillerState {
   workflowStep: WorkflowSteps;
-}
-
-const getTextResource = (...params: any) => 'header';
-
-const WorkflowStep = ({ header, step, onStepChange, children }) => {
-  class Step extends React.Component<any, any> {
-    render() {
-      return (
-        <div onClick={() => onStepChange('what')}>
-          {header}
-          {step}
-          {children}
-        </div>
-      )
-    }
-  }
-  return Step;
 }
 
 class FormFillerComponent extends React.Component<IFormFillerProps, IFormFillerState> {

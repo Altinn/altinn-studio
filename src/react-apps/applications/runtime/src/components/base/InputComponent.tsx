@@ -1,5 +1,5 @@
 import * as React from 'react';
-import '../../styles/InputComponent.css';
+// import '../../styles/InputComponent.css';
 
 export interface IInputProps {
   id: string;

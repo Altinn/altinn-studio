@@ -1,5 +1,5 @@
 import * as React from 'react';
-import '../../styles/TextAreaComponent.css';
+// import '../../styles/TextAreaComponent.css';
 
 export interface ITextAreaComponentProps {
   id: string;

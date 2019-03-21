@@ -1,4 +1,4 @@
-import { IAppDataState } from '../reducers/appDataReducer';
+/*import { IAppDataState } from '../reducers/appDataReducer';
 import { IErrorState } from '../reducers/errorReducer';
 import { IFormFillerState } from '../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../reducers/serviceConfigurationReducer';
@@ -192,40 +192,42 @@ declare global {
   /**
    * Defines how each element in the code list element list looks like
    */
-  export interface ICodeListListElement {
-    codeListName: string;
-    org: string;
-    id: number;
-  }
-
-  export interface IAltinnWindow extends Window {
-    org: string;
-    service: string;
-    instanceId: string;
-    reportee: string;
-  }
-
-  export interface IRuleModelFieldElement {
-    type: string;
-    name: string;
-    inputs: any;
-  }
-
-  export interface ITextResource {
-    id: string;
-    value: string;
-  }
-
-  export interface IComponentBindingValidation {
-    errors?: string[];
-    warnings?: string[];
-  }
-
-  export interface IComponentValidations {
-    [id: string]: IComponentBindingValidation;
-  }
-
-  export interface IValidationResults {
-    [id: string]: IComponentValidations;
-  }
+/*
+export interface ICodeListListElement {
+  codeListName: string;
+  org: string;
+  id: number;
 }
+
+export interface IAltinnWindow extends Window {
+  org: string;
+  service: string;
+  instanceId: string;
+  reportee: string;
+}
+
+export interface IRuleModelFieldElement {
+  type: string;
+  name: string;
+  inputs: any;
+}
+
+export interface ITextResource {
+  id: string;
+  value: string;
+}
+
+export interface IComponentBindingValidation {
+  errors?: string[];
+  warnings?: string[];
+}
+
+export interface IComponentValidations {
+  [id: string]: IComponentBindingValidation;
+}
+
+export interface IValidationResults {
+  [id: string]: IComponentValidations;
+}
+}
+*/

@@ -1,21 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import ApiActionDispatchers from '../actions/apiActions/apiActionDispatcher';
-import ConditionalRenderingActionDispatcher from '../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import FormFillerActionDispatchers from '../actions/formFillerActions/formFillerActionDispatcher';
-import RuleConnectionActionDispatchers from '../actions/ruleConnectionActions/ruleConnectionActionDispatcher';
-import { FormComponentWrapper } from '../../src/components/FormComponent';
-import { SwitchComponent } from '../components/widget/SwitchComponent';
-import { makeGetDesignModeSelector } from '../selectors/getAppData';
-import { makeGetFormDataSelector } from '../selectors/getFormData';
-import {
-  makeGetActiveFormContainer,
-  makeGetLayoutComponentsSelector,
-  makeGetLayoutContainerOrder,
-  makeGetLayoutContainersSelector,
-} from '../selectors/getLayoutData';
-import '../styles/index.css';
+import { FormComponentWrapper } from '../components/FormComponent';
+// import '../styles/index.css';
 // import DroppableDraggableComponent from './DroppableDraggableComponent';
 // import DroppableDraggableContainer from './DroppableDraggableContainer';
 
@@ -72,11 +58,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     };
   }
 
-  public handleContainerDelete = (e: any) => {
-    FormDesignerActionDispatchers.deleteFormContainer(this.props.id, this.props.index);
-    e.stopPropagation();
-  }
-
   public handleComponentDataUpdate = (
     id: string,
     dataModelElement: IDataModelFieldElement,
@@ -84,26 +65,29 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   ): void => {
     const dataBindingName = this.isRepeating() ? dataModelElement.DataBindingName.replace(this.props.dataModelGroup,
       this.props.dataModelGroup + `[${this.props.index}]`) : dataModelElement.DataBindingName;
-    FormFillerActionDispatchers.updateFormData(
+    /*ormFillerActionDispatchers.updateFormData(
       id,
       callbackValue,
       dataModelElement,
       dataBindingName,
-    );
+    );*/
     const component = this.props.components[id];
     if (component && component.triggerValidation) {
       const altinnWindow: IAltinnWindow = window as IAltinnWindow;
       const { org, service, instanceId, reportee } = altinnWindow;
+      // TODO: implement this
+      /*
       FormFillerActionDispatchers.runSingleFieldValidation(
         `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
         dataBindingName,
       );
     }
     const repeatingContainerId = this.isRepeating() ? this.props.id : null;
-    ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun(repeatingContainerId);
+    /*ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun(repeatingContainerId);
     RuleConnectionActionDispatchers.checkIfRuleShouldRun(id, dataModelElement, callbackValue, repeatingContainerId);
     ApiActionDispatchers.checkIfApiShouldFetch(id, dataModelElement, callbackValue, this.props.repeating,
-      this.props.dataModelGroup, this.props.index);
+      this.props.dataModelGroup, this.props.index);*/
+    }
   }
 
   public isRepeating = (): boolean => {
@@ -117,26 +101,9 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     return (
       <div
         className={className}
-        onClick={this.changeActiveFormContainer}
         ref={ref}
       >
-        {
-          this.props.designMode && !this.props.baseContainer &&
-          <div className='row'>
-            <div className='col-1'>
-              {this.renderDeleteGroupButton()}
-            </div>
-            <div className='col-3 offset-8 row'>
-              <span className='col-6'>Repeating:</span>
-              <div className='col-5'>
-                <SwitchComponent isChecked={this.props.repeating} toggleChange={this.toggleChange} />
-              </div>
-            </div>
-          </div>
-        }
-
-        {!this.props.itemOrder.length ?
-          this.props.designMode ? this.renderContainerPlaceholder() : null :
+        {!this.props.itemOrder.length ? null :
           this.props.itemOrder.map((id: string, index: number) => (
             this.props.components[id] ?
               this.renderFormComponent(id, index) :
@@ -144,15 +111,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
                 this.renderContainer(id, index)
                 : null
           ))
-        }
-        {
-          !this.props.designMode && this.props.index !== 0 && !this.props.baseContainer &&
-          <button
-            className={'a-btn a-btn-action offset-10'}
-            onClick={this.handleContainerDelete}
-          >
-            <span>{this.props.language.ux_editor.repeating_group_delete}</span>
-          </button>
         }
       </div>
     );
@@ -164,24 +122,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
         {this.renderContent()}
         {this.renderNewGroupButton()}
       </div>
-    );
-  }
-
-  public renderContainerPlaceholder = () => {
-    const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
-    return (
-      <DroppableDraggableComponent
-        onDropComponent={this.props.onDropComponent}
-        onMoveComponent={this.props.onMoveComponent}
-        onDropContainer={this.props.onDropContainer}
-        onMoveContainer={this.props.onMoveContainer}
-        canDrag={false}
-        id={'placeholder'}
-        index={0}
-        containerId={this.props.id}
-      >
-        {this.props.language.ux_editor.container_empty}
-      </DroppableDraggableComponent>
     );
   }
 
@@ -231,21 +171,6 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     */
   }
 
-  public renderDeleteGroupButton = (): JSX.Element => {
-    if (this.props.baseContainer) {
-      return null;
-    }
-    return (
-      <button
-        type='button'
-        className='a-btn a-btn-icon p-0'
-        onClick={this.handleContainerDelete}
-      >
-        <i className='ai ai-circle-exit a-danger ai-left' />
-      </button>
-    );
-  }
-
   public renderNewGroupButton = (): JSX.Element => {
     if (this.props.baseContainer || !this.props.repeating) {
       return null;
@@ -281,52 +206,12 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
     if (this.props.components[id].hidden && !this.props.designMode) {
       return null;
     }
-    const activeListIndex = this.props.activeList.findIndex((listItem: any) => listItem.id === id);
-    if (this.props.designMode) {
-      const DroppableDraggableComponent = require('./DroppableDraggableComponent').default;
-      let canDrag: boolean = true;
-      for (const activeItem of this.state.activeList) {
-        if (activeItem.id === id) {
-          canDrag = false;
-        }
-      }
-      return (
-        <DroppableDraggableComponent
-          canDrag={canDrag}
-          id={id}
-          index={index}
-          key={index}
-          containerId={this.props.id}
-          onDropComponent={this.props.onDropContainer}
-          onMoveComponent={this.props.onMoveComponent}
-          onDropContainer={this.props.onDropContainer}
-          onMoveContainer={this.props.onMoveContainer}
-        >
-          <FormComponentWrapper
-            key={index}
-            id={id}
-            activeList={this.props.activeList}
-            firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
-            lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
-            handleDataUpdate={this.handleComponentDataUpdate}
-            formData={this.getFormData(id)}
-            sendListToParent={this.handleActiveListChange}
-            singleSelected={this.props.activeList.length === 1}
-          />
-        </DroppableDraggableComponent>
-      );
-    }
     return (
       <FormComponentWrapper
         key={index}
         id={id}
-        activeList={this.props.activeList}
-        firstInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true}
-        lastInActiveList={activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true}
         handleDataUpdate={this.handleComponentDataUpdate}
         formData={this.getFormData(id)}
-        sendListToParent={this.handleActiveListChange}
-        singleSelected={this.props.activeList.length === 1}
       />
     );
   }
@@ -353,30 +238,13 @@ export class ContainerComponent extends React.Component<IContainerProps, IContai
   }
 
   public handleAddNewGroup = () => {
-    FormDesignerActionDispatchers.createRepeatingGroup(this.props.id);
-  }
-
-  public changeActiveFormContainer = (e: any) => {
-    e.stopPropagation();
-  }
-  public toggleChange = () => {
-    FormDesignerActionDispatchers.toggleFormContainerRepeat(this.props.id);
+    // FormDesignerActionDispatchers.createRepeatingGroup(this.props.id);
   }
 }
 
 const makeMapStateToProps = () => {
-  const GetFormDataSelector = makeGetFormDataSelector();
-  const GetLayoutContainersSelector = makeGetLayoutContainersSelector();
-  const GetLayoutComponentsSelector = makeGetLayoutComponentsSelector();
-  const GetDesignModeSelector = makeGetDesignModeSelector();
-  const GetActiveFormContainer = makeGetActiveFormContainer();
-  const GetContainersSelector = makeGetLayoutContainersSelector();
-  const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
-  const mapStateToProps = (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
-    const containers = GetContainersSelector(state);
-    const container = containers[props.id];
-    const itemOrder = GetLayoutContainerOrder(state, props.id);
-    return {
+  const mapStateToProps = (state: IRuntimeStore, props: IProvidedContainerProps): IContainerProps => {
+    return null; /*{
       activeList: state.formDesigner.layout.activeList,
       dataModelGroup: container.dataModelGroup,
       repeating: container.repeating,
@@ -394,7 +262,7 @@ const makeMapStateToProps = () => {
       onDropComponent: props.onDropComponent,
       onMoveContainer: props.onMoveContainer,
       onDropContainer: props.onDropContainer,
-    };
+    };*/
   };
   return mapStateToProps;
 };

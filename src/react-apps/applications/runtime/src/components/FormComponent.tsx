@@ -1,15 +1,7 @@
-import {
-  createStyles,
-  withStyles,
-} from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { renderValidationMessagesForComponent } from '../utils/render';
 import { GenericComponentWrapper } from './GenericComponent';
-
-const styles = createStyles({
-});
 
 /**
  * Properties defined for input for wrapper
@@ -18,8 +10,6 @@ export interface IProvidedProps {
   id: string;
   formData: any;
   handleDataUpdate: (id: string, dataModelElement: any, value: any) => void;
-  classes: any;
-  sendListToParent: any;
 }
 
 /**
@@ -229,34 +219,11 @@ class FormComponent extends React.Component<
  * @param props the input props give as input from formFiller component
  */
 const makeMapStateToProps = () => {
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
-    id: props.id,
-    formData: props.formData,
-    classes: props.classes,
-    handleDataUpdate: props.handleDataUpdate,
-    sendListToParent: props.sendListToParent,
-    component: state.formDesigner.layout.components[props.id],
-    order: GetLayoutOrderSelector(state),
-    dataModelElement: state.appData.dataModel.model.find(
-      (element) =>
-        element.DataBindingName ===
-        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
-    connections: state.serviceConfigurations.APIs.connections,
-    externalApi: state.serviceConfigurations.APIs.externalApisById,
-    validationResults:
-      Object.keys(state.formFiller.validationResults).length > 0
-        ? state.formFiller.validationResults[props.id]
-        : null,
-    textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.appData.thirdPartyComponents.components,
-    dataModel: state.appData.dataModel.model,
-  });
+  const mapStateToProps = (state: IRuntimeStore, props: IProvidedProps): IFormElementProps => (null);
   return mapStateToProps;
 };
 
 /**
  * Wrapper made available for other compoments
  */
-export const FormComponentWrapper =
-  withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(FormComponent));
+export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);
