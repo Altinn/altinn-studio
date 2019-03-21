@@ -42,7 +42,7 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CrossPartitionQueryApplicationOwner()
         {
-            string[] owners = { "SKD", "BRREG", "NAV" };
+            string[] owners = { "SKD", "BRREG", "NAV", "DIBK", "ACN", "OSLK", "BRMK", "DIFI", "ASKK" };
 
             logger.Information("CrossPartitionQuery: ApplicationOwnerId");
 
