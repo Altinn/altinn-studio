@@ -55,8 +55,18 @@ namespace Altinn.Platform.Storage.Repository
         {
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            CloudBlobClient blobClient;
+            CloudBlobClient blobClient = CreateBlobClient(storageCredentials, storageAccount);
 
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+
+            await blockBlob.UploadFromStreamAsync(fileStream);
+            return await Task.FromResult(true);
+        }
+
+        private CloudBlobClient CreateBlobClient(StorageCredentials storageCredentials, CloudStorageAccount storageAccount)
+        {
+            CloudBlobClient blobClient;
             if (_storageConfiguration.AccountName.StartsWith("devstoreaccount1"))
             {
                 StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
@@ -66,20 +76,20 @@ namespace Altinn.Platform.Storage.Repository
             {
                 blobClient = storageAccount.CreateCloudBlobClient();
             }
-            
-            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
-            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
-            await blockBlob.UploadFromStreamAsync(fileStream);
-            return await Task.FromResult(true);
+
+            return blobClient;
         }
 
         public async Task<bool> UpdateDataInStorage(Stream fileStream, string fileName)
         {
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+
+            CloudBlobClient blobClient = CreateBlobClient(storageCredentials, storageAccount);
+
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+
             await blockBlob.UploadFromStreamAsync(fileStream);
             return await Task.FromResult(true);
         }
@@ -88,11 +98,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
             CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
-
-            //StorageUri storageUrl = new StorageUri(new Uri(_storageConfiguration.BlobEndPoint));
-            //CloudBlobClient blobClient = new CloudBlobClient(storageUrl, storageCredentials);
-
-            CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+            
+            CloudBlobClient blobClient = CreateBlobClient(storageCredentials, storageAccount);
+           
             CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
             CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
 

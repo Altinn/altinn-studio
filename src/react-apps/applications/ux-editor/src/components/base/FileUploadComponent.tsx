@@ -31,13 +31,17 @@ export class FileUploadComponent
             type='file'
             name='file'
             onChange={this.onDataChanged}
-            className={this.props.isValid ? 'a-js-certificateContainer sr-only' : 'a-js-certificateContainer sr-only validation-error'}
+            className={
+              this.props.isValid ?
+                'a-js-certificateContainer sr-only' :
+                'a-js-certificateContainer sr-only validation-error'
+            }
           />
           Add a file
           {// TODO: should fetch text using getTextResource() prop
             descriptionKey
           }
-          <i className='ai ai-upload' />
+          <i className='fa fa-upload' />
         </label>
       </div>
     );

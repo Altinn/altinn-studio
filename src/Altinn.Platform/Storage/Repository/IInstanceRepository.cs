@@ -10,17 +10,24 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Gets all the instances for a reportee
         /// </summary>
-        /// <param name="reporteeId">the owner of the instance</param>
+        /// <param name="instanceOwnerId">the owner of the instance</param>
         /// <returns>The list of instances for a reportee</returns>
-        Task<List<dynamic>> GetInstancesFromCollectionAsync(int reporteeId);
+        Task<List<Instance>> GetInstancesOfInstanceOwnerAsync(int instanceOwnerId);
 
         /// <summary>
-        /// Get instance details for the given parameters
+        /// Gets all the instances for an application owner
         /// </summary>
-        /// <param name="reporteeId">the owner of the instance</param>
+        /// <param name="applicationOwnerId">the application owner</param>
+        /// <returns>The list of instances for a reportee</returns>
+        Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId);
+
+        /// <summary>
+        /// Get an instance details for the given parameters
+        /// </summary>
         /// <param name="instanceId">the instance id</param>
+        /// <param name="instanceOwnerId">the instance owner id</param>
         /// <returns>The instance for the given parameters</returns>
-        Task<Instance> GetInstanceFromCollectionAsync(int reporteeId, Guid instanceId);
+        Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId);
 
         /// <summary>
         /// insert new instance into collection

@@ -1,9 +1,5 @@
 import { Collapse, createStyles, Theme, withStyles } from '@material-ui/core';
-import FormControl from '@material-ui/core/FormControl';
-import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
-import TextField from '@material-ui/core/TextField';
-import classNames from 'classnames';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
@@ -24,6 +20,7 @@ const THIRD_PARTY_COMPONENT: string = 'ThirdParty';
 
 export interface IToolbarElement {
   label: string;
+  icon?: string;
   componentType: ComponentTypes;
   actionMethod: (containerId: string, index: number) => void;
 }
@@ -97,6 +94,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
     return {
       componentType: c.Type,
       label: c.name,
+      icon: c.Icon,
       actionMethod: (containerId: string, position: number) => {
         FormDesignerActionDispatchers.addFormComponent({
           component: c.name,
@@ -161,9 +159,9 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
                   dataModelBindings: {},
                   ...JSON.parse(JSON.stringify({})),
                 },
-                position,
-                containerId,
-              ),
+                  position,
+                  containerId,
+                ),
             });
           }
         }
@@ -253,8 +251,8 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
 
   public render() {
     return (
-      <div className={'col-sm-12'} id='toolbarz'>
-        <FormControl
+      <div className={'col-sm-12'}>
+        {/* <FormControl
           classes={{ root: classNames(this.props.classes.searchBox) }}
           fullWidth={true}
         >
@@ -265,12 +263,12 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               disableUnderline: true,
               endAdornment:
                 <InputAdornment position={'end'} classes={{ root: classNames(this.props.classes.searchBoxIcon) }}>
-                  <i className={'ai ai-search'} />
+                  <i className={'fa fa-search'} />
                 </InputAdornment>,
               classes: { root: classNames(this.props.classes.searchBoxInput) },
             }}
           />
-        </FormControl>
+        </FormControl> */}
         <List id='collapsable-items' tabIndex={-1}>
 
           <ListSelectorComponent onChange={this.handleComponentListChange} />
@@ -297,6 +295,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               {this.components.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
+                  icon={component.icon}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
@@ -308,6 +307,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               {this.getThirdPartyComponents().map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
+                  icon={component.icon}
                   componentType={component.componentType}
                   onDropAction={component.actionMethod}
                   onClick={this.handleComponentInformationOpen}
@@ -345,6 +345,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               {this.textComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
+                  icon={component.icon}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
@@ -371,6 +372,7 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
               {this.advancedComponents.map((component: IToolbarElement, index: number) => (
                 <ToolbarItem
                   text={component.label}
+                  icon={component.icon}
                   componentType={component.componentType}
                   onClick={this.handleComponentInformationOpen}
                   onDropAction={component.actionMethod}
@@ -410,7 +412,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
       </div >
     );
   }
-
 }
 
 const styles = (theme: Theme) => createStyles({

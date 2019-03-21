@@ -23,7 +23,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         <button
           className="MuiButtonBase-root-173 MuiButton-root-147 MuiButton-contained-158 MuiButton-raised-161 AltinnIconButton-dottedBtn-145"
           disabled={false}
-          id="ceateService"
+          id="createService"
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -42,7 +42,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
             className="MuiButton-label-148"
           >
             <i
-              className="ai ai-circle-plus AltinnIconButton-dottedBtnIcon-146"
+              className="fa fa-circle-plus AltinnIconButton-dottedBtnIcon-146"
             />
             dashboard.new_service
           </span>
@@ -78,7 +78,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
               className="MuiInputAdornment-root-222 AltinnSearchInput-searchBoxIcon-187 MuiInputAdornment-positionEnd-225"
             >
               <i
-                className="ai ai-search"
+                className="fa fa-search"
               />
             </div>
             <input
@@ -200,7 +200,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
         <button
           className="MuiButtonBase-root-173 MuiButton-root-147 MuiButton-contained-158 MuiButton-raised-161 AltinnIconButton-dottedBtn-145"
           disabled={false}
-          id="ceateService"
+          id="createService"
           onBlur={[Function]}
           onClick={[Function]}
           onFocus={[Function]}
@@ -219,7 +219,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
             className="MuiButton-label-148"
           >
             <i
-              className="ai ai-circle-plus AltinnIconButton-dottedBtnIcon-146"
+              className="fa fa-circle-plus AltinnIconButton-dottedBtnIcon-146"
             />
             dashboard.new_service
           </span>
@@ -255,7 +255,7 @@ exports[`>>> components/base/serviceOverview.tsx --- Snapshot +++ Should match s
               className="MuiInputAdornment-root-222 AltinnSearchInput-searchBoxIcon-187 MuiInputAdornment-positionEnd-225"
             >
               <i
-                className="ai ai-search"
+                className="fa fa-search"
               />
             </div>
             <input
