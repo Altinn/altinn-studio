@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using Serilog.Core;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -17,6 +19,9 @@ namespace Altinn.Platform.Storage.Controllers
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
+        private Logger logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -35,7 +40,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of all instances for given instanceowner</returns>
         /// GET api/v1/instances
         [HttpGet("query")]
-        public async Task<ActionResult> Get(int instanceOwnerId, string applicationOwnerId)
+        public async Task<ActionResult> Get(int instanceOwnerId, string applicationOwnerId, string applicationId)
         {
             if (instanceOwnerId != 0)
             {
@@ -50,6 +55,16 @@ namespace Altinn.Platform.Storage.Controllers
             else if (!string.IsNullOrEmpty(applicationOwnerId))
             {       
                 var result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
+                if (result == null)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
+            }
+            else if (!string.IsNullOrEmpty(applicationId))
+            {                
+                var result = await _instanceRepository.GetInstancesOfApplicationAsync(applicationId);
                 if (result == null)
                 {
                     return NotFound();
