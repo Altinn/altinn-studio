@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { WorkflowSteps } from '../../types';
+import { WorkflowSteps } from '../../typings';
 import * as ActionTypes from '../types';
 
 export interface IGetCurrentState extends Action {

@@ -3,8 +3,8 @@ import {
   ReducersMapObject,
   Reducer,
 } from 'redux';
-import FormLayoutReducer, { ILayoutState } from '../features/form/FormLayout/reducer';
-import FormDataReducer, { IFormDataState } from '../features/form/FormData/reducer';
+import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
+import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 
 export interface IReducers<T1, T2> {
   formLayout: T1;

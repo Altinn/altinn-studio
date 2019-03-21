@@ -3,12 +3,14 @@ import * as actionTypes from '../types';
 
 export interface ISumbitDataAction extends Action {
   url: string;
+  apiMode?: string;
 }
 
-export function submitFormData(url: string): ISumbitDataAction {
+export function submitFormData(url: string, apiMode?: string): ISumbitDataAction {
   return {
     type: actionTypes.SUBMIT_FORM_DATA,
     url,
+    apiMode,
   };
 }
 

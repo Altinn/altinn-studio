@@ -2,11 +2,12 @@ import { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
-import FormConfigSagas from '../features/form/FormConfig/sagas';
-import FormDataSagas from '../features/form/FormData/sagas';
-import FormDynamicsSagas from '../features/form/FormDynamics/sagas';
-import FormLayoutSagas from '../features/form/FormLayout/sagas';
-import FormRulesSagas from '../features/form/FormRules/sagas';
+import FormConfigSagas from '../features/form/config/sagas';
+import FormDataSagas from '../features/form/data/sagas';
+import FormDynamicsSagas from '../features/form/dynamics/sagas';
+import FormLayoutSagas from '../features/form/layout/sagas';
+import FormRulesSagas from '../features/form/rules/sagas';
+import FormWorkflowSagas from '../features/form/workflow/sagas';
 
 function* root(): SagaIterator {
   yield fork(FormConfigSagas);
@@ -14,6 +15,7 @@ function* root(): SagaIterator {
   yield fork(FormDynamicsSagas);
   yield fork(FormLayoutSagas);
   yield fork(FormRulesSagas);
+  yield fork(FormWorkflowSagas);
 }
 
 export const initSagas: () => Task = () => sagaMiddleware.run(root);

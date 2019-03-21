@@ -9,12 +9,12 @@ export interface IFormDataActions extends ActionCreatorsMapObject {
   updateFormData: (field: string, data: any) => UpdateFormData.IUpdateFormData;
   updateFormDataFulfilled: (field: string, data: any) => UpdateFormData.IUpdateFormDataFulfilled;
   updateFormDataRejected: (error: Error) => UpdateFormData.IUpdateFormDataRejected;
-  submitFormData: (url: string) => SubmitFormData.ISumbitDataAction;
+  submitFormData: (url: string, apiMode?: string) => SubmitFormData.ISumbitDataAction;
   submitFormDataFulfilled: () => Action;
   submitFormDataRejected: (error: Error) => SubmitFormData.ISubmitFormDataRejected;
   fetchFormData: (url: string) => FetchFormData.IFetchFormData;
   fetchFormDataFulfilled: (formData: any) => FetchFormData.IFetchFormDataFulfilled,
-  fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected 
+  fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected
 };
 
 const actions: IFormDataActions = {
