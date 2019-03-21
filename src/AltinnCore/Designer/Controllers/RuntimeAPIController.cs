@@ -70,7 +70,8 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public FileResult GetFormModel(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}.xml";
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, service, developer);
+            string formDataFilePath = $"{testDataForParty}{partyId}/{instanceId}/data/{instanceId}.xml";
             return File(_execution.GetFileStream(formDataFilePath), "application/xml", $"{instanceId}.xml");
         }
 
@@ -143,10 +144,72 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="partyId">The party id of the test user</param>
         /// <param name="instanceId"> the form id</param>
         [HttpPost]
-        public void SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId)
+        public Guid SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}.xml";
+            //Guid dataId = Guid.NewGuid();
+            //Guid dataId = instanceId;
+            string dataPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data";
+
+            if (!Directory.Exists(dataPath))
+            {
+                System.IO.Directory.CreateDirectory(dataPath);
+            }
+
+            string formDataFilePath = $"{dataPath}/{instanceId}.xml";
             _execution.SaveToFile(formDataFilePath, Request.Body);
+            return instanceId;
+        }
+
+        /// <summary>
+        /// Method that receives the form model from runtime and saves it to designer disk.
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId"> the instance id</param>
+        /// <param name="dataId"> the form id</param>
+        [HttpPut]
+        public void SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId, Guid dataId)
+        {
+            string dataPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data";
+
+            string formDataFilePath = $"{dataPath}/{dataId}.xml";
+            _execution.SaveToFile(formDataFilePath, Request.Body);
+        }
+
+        /// <summary>
+        /// Method that receives the form model from runtime and saves it to designer disk.
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId"> the form id</param>
+        [HttpPost]
+        public void SaveInstanceToFile(string org, string service, string developer, int partyId, Guid instanceId)
+        {
+            string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}";
+            string folderForInstance = System.IO.Path.Combine(testDataForParty, instanceId.ToString());
+            System.IO.Directory.CreateDirectory(folderForInstance);
+            string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
+            _execution.SaveToFile(instanceFilePath, Request.Body);
+        }
+
+        /// <summary>
+        /// Method that gets the instance meta data from disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId"> the form id</param>
+        [HttpGet]
+        public FileResult GetInstanceFromFile(string org, string service, string developer, int partyId, Guid instanceId)
+        {
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, service, developer);
+            string formDataFilePath = $"{testDataForParty}{partyId}/{instanceId}/{instanceId}.json";
+            return File(_execution.GetFileStream(formDataFilePath), "application/json", $"{instanceId}.json");
         }
 
         ///// <summary>
@@ -252,7 +315,7 @@ namespace AltinnCore.Designer.Controllers
                 _logger.LogError("Unable to read workflowfile, unable to find next step name from start event");
             }
                 
-            string stateFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}.state.json";
+            string stateFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.state.json";
             System.IO.File.WriteAllText(stateFilePath, stateJson.ToString(), Encoding.UTF8);
 
             return new ServiceState()
@@ -339,7 +402,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ServiceState GetCurrentState(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}.state.json";
+            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.state.json";
             string currentStateAsString = System.IO.File.ReadAllText(serviceStatePath, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceState>(currentStateAsString);
         }

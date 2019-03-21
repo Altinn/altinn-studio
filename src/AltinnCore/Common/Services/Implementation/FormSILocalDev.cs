@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -125,10 +126,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
-        public void SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
+        public async Task<Guid> SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+            if (dataId != Guid.Empty)
+            {
+                apiUrl = $"{apiUrl}&dataId={dataId}";
+            }
+
             using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -142,7 +148,9 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         throw new Exception("Unable to save form model");
                     }
-                }
+
+                    return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
+                }                
             }
         }
 

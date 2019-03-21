@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.ModelBinding;
@@ -39,6 +40,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IRegister _register;
         private readonly ILogger _logger;
         private readonly IForm _form;
+        private readonly IInstanceLocalDev _instanceLocal;
         private readonly IExecution _execution;
         private readonly IProfile _profile;
         private UserHelper _userHelper;
@@ -74,7 +76,8 @@ namespace AltinnCore.Runtime.Controllers
             IExecution executionService,
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI)
+            IWorkflowSI workflowSI,
+            IInstanceLocalDev instanceLocalSI)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -89,6 +92,7 @@ namespace AltinnCore.Runtime.Controllers
             _userHelper = new UserHelper(_profile, _register);
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
+            _instanceLocal = instanceLocalSI;
         }
 
         /// <summary>
@@ -284,7 +288,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId,
+                Guid.Empty);
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;
@@ -406,7 +411,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId,
+                Guid.Empty);
 
             if (apiMode.Equals(ApiMode.Complete))
             {

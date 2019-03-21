@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Models
@@ -17,26 +18,20 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// owner of the instance
         /// </summary>
-        [JsonProperty(PropertyName = "reporteeId")]
-        public string ReporteeId { get; set; }
+        [JsonProperty(PropertyName = "instanceOwnerId")]
+        public string InstanceOwnerId { get; set; }
 
         /// <summary>
         /// id of the service
         /// </summary>
-        [JsonProperty(PropertyName = "serviceId")]
-        public string ServiceId { get; set; }
+        [JsonProperty(PropertyName = "applicationId")]
+        public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Type of the instance
+        /// service owner code for the service
         /// </summary>
-        [JsonProperty(PropertyName = "instanceType")]
-        public string InstanceType { get; set; }
-
-        /// <summary>
-        /// status of the instance
-        /// </summary>
-        [JsonProperty(PropertyName = "instanceStatus")]
-        public string InstanceStatus { get; set; }
+        [JsonProperty(PropertyName = "applicationOwnerId")]
+        public string ApplicationOwnerId { get; set; }
 
         /// <summary>
         /// create date and time for the instance
@@ -48,7 +43,7 @@ namespace AltinnCore.Common.Models
         /// reportee id of the user who created the instance
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
-        public string CreatedBy { get; set; }
+        public int CreatedBy { get; set; }
 
         /// <summary>
         /// last changed date time for the instance
@@ -60,7 +55,7 @@ namespace AltinnCore.Common.Models
         /// reportee id of the user who last changed the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
-        public string LastChangedBy { get; set; }
+        public int LastChangedBy { get; set; }
 
         /// <summary>
         /// Due date to submit the form(instance)
@@ -77,26 +72,14 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// title of the instance
         /// </summary>
-        [JsonProperty(PropertyName = "title")]
-        public string Title { get; set; }
-
-        /// <summary>
-        /// service owner code for the service
-        /// </summary>
-        [JsonProperty(PropertyName = "serviceOwner")]
-        public string ServiceOwner { get; set; }
+        [JsonProperty(PropertyName = "presentationField")]
+        public string PresentationField { get; set; }
 
         /// <summary>
         /// external system reference if the element is sent from external systems
         /// </summary>
         [JsonProperty(PropertyName = "externalSystemReference")]
         public string ExternalSystemReference { get; set; }
-
-        /// <summary>
-        /// the associated workflow id for the service
-        /// </summary>
-        [JsonProperty(PropertyName = "workflowId")]
-        public string WorkflowId { get; set; }
 
         /// <summary>
         /// name of the current step / status
@@ -113,20 +96,14 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// Gets or sets whether the element is archived
         /// </summary>
-        [JsonProperty(PropertyName = "isArchived")]
-        public bool IsArchived { get; set; }
-
-        /// <summary>
-        /// Gets or sets the number of forms associated with the instance
-        /// </summary>
-        [JsonProperty(PropertyName = "numberOfForms")]
-        public int NumberOfForms { get; set; }
+        [JsonProperty(PropertyName = "isCompleted")]
+        public bool IsCompleted { get; set; }
 
         /// <summary>
         /// Gets or sets the form ids associated with the instance
         /// </summary>
-        [JsonProperty(PropertyName = "formId")]
-        public string[] FormId { get; set; }
+        [JsonProperty(PropertyName = "data")]
+        public Dictionary<string, Dictionary<string, Data>> Data { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()
