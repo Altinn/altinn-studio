@@ -71,7 +71,7 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CrossPartitionQueryApplicationId()
         {
-            string[] applications = { "S123", "S201", "S221" };
+            string[] applications = { "S123", "S201", "S221", "S801", "S701" };
 
             logger.Information("CrossPartitionQuery: ApplicationId");
 
