@@ -15,6 +15,7 @@ interface IToolbarItemProps {
   notDraggable?: boolean;
   onClick: (...args: any) => void;
   componentType: ComponentTypes;
+  icon: string;
 }
 
 const DraggableToolbarItemSpec: DragSourceSpec<IDraggableProps, any> = {
@@ -49,6 +50,7 @@ export class ToolbarItem extends React.Component<IToolbarItemProps, null> {
             onClick={onClick}
             componentType={componentType}
             thirdPartyLabel={this.props.text}
+            icon={this.props.icon}
           />
         </DraggableToolbarItem>
       </div>

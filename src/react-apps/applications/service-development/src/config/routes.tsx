@@ -256,7 +256,7 @@ export const routes = [
     },
   },
   {
-    path: '/designSystem',
+    path: '/designsystem',
     exact: true,
     activeSubHeaderSelection: 'Lage',
     activeLeftMenuSelection: 'GUI',

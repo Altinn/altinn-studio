@@ -97,16 +97,16 @@ export class ServiceCardComponent extends React.Component<IServiceCardComponentP
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
                 <i
                   className={classNames(classes.iconStyling,
-                    { ['ai ai-corp']: service.owner.UserType === 2 },
-                    { ['ai ai-private']: service.owner.UserType !== 2 })}
+                    { ['fa fa-corp']: service.owner.UserType === 2 },
+                    { ['fa fa-private']: service.owner.UserType !== 2 })}
                   aria-hidden='true'
                 />
               </Grid>
               <Grid item={true} xl={1} lg={1} md={1} sm={1} xs={1}>
                 <i
                   className={classNames(classes.iconStyling,
-                    { ['ai ai-read']: service.permissions.push === false },
-                    { ['ai ai-write']: service.permissions.push === true })}
+                    { ['fa fa-read']: service.permissions.push === false },
+                    { ['fa fa-write']: service.permissions.push === true })}
                   aria-hidden='true'
                 />
               </Grid>

@@ -118,7 +118,7 @@ export class HandleMergeConflictFileList extends
                           theme.altinnPalette.primary.blueDark : theme.altinnPalette.primary.green
                         }
                         iconClass={item.fileStatus === 'Conflicted' ?
-                          'ai ai-circlecancel' : 'ai ai-check'
+                          'fa fa-circlecancel' : 'fa fa-check'
                         }
                         iconColor={item.fileStatus === 'Conflicted' ?
                           theme.altinnPalette.primary.blueDarker : theme.altinnPalette.primary.green

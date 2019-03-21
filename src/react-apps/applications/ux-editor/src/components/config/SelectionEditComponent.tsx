@@ -233,7 +233,7 @@ export class SelectionEditComponent
                         className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
                         onClick={this.props.handleRemoveOption.bind(this, index)}
                       >
-                        <i className='ai ai-circletrash' />
+                        <i className='fa fa-circletrash' />
                       </IconButton>
                     </Grid>
                   </Grid>

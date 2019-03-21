@@ -58,7 +58,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
               >
                 <i
                   aria-hidden="true"
-                  className="Connect-ServiceCardComponent--iconStyling-141 ai ai-corp"
+                  className="Connect-ServiceCardComponent--iconStyling-141 fa fa-corp"
                 />
               </div>
               <div
@@ -161,7 +161,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
               >
                 <i
                   aria-hidden="true"
-                  className="Connect-ServiceCardComponent--iconStyling-141 ai ai-corp"
+                  className="Connect-ServiceCardComponent--iconStyling-141 fa fa-corp"
                 />
               </div>
               <div

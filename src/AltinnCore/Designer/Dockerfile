@@ -38,6 +38,5 @@ COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot
 COPY --from=generate-runtime-app /applications/runtime/dist/runtime.css ./wwwroot/designer/css/react/runtime.css
 RUN mv Templates ..
 RUN mv Testdata ..
-RUN mv Deployment ..
 
 ENTRYPOINT ["dotnet", "AltinnCore.Designer.dll"]

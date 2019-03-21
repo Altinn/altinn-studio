@@ -37,7 +37,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -72,7 +72,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-others"
+                className="fa fa-others"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -107,7 +107,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-settings"
+                className="fa fa-settings"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -142,7 +142,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-deadline"
+                className="fa fa-deadline"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -177,7 +177,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -212,7 +212,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is about s
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -269,7 +269,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -304,7 +304,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-settings"
+                className="fa fa-settings"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -339,7 +339,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -374,7 +374,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is create 
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -433,7 +433,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-settings"
+                className="fa fa-settings"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -468,7 +468,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is languag
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-settings"
+                className="fa fa-settings"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -527,7 +527,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-settings"
+                className="fa fa-settings"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -562,7 +562,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",
@@ -619,7 +619,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
               className="MuiListItemIcon-root-73"
             >
               <i
-                className="ai ai-info-circle"
+                className="fa fa-info-circle"
                 style={
                   Object {
                     "color": "rgba(0, 0, 0, 0.54)",

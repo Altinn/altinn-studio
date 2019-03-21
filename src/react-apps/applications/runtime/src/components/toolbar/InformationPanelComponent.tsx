@@ -45,7 +45,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
                   position={'end'}
                   classes={{ root: classNames(this.props.classes.searchBoxIcon) }}
                 >
-                  <i className={'ai ai-search'} />
+                  <i className={'fa fa-search'} />
                 </InputAdornment>,
               classes: { root: classNames(this.props.classes.searchBoxInput) },
             }}
@@ -79,7 +79,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
           }
         </Typography>
         <Typography classes={{ root: classNames(this.props.classes.informationPanelLink) }}>
-          <Link to={'/designSystem'}>{this.props.language.ux_editor.information_more_info_link}</Link>
+          <Link to={'/designsystem'}>{this.props.language.ux_editor.information_more_info_link}</Link>
         </Typography>
       </Popover>
     );

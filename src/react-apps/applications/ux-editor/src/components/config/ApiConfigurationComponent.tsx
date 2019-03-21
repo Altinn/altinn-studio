@@ -358,7 +358,7 @@ class ApiConfiguration extends React.Component<IApiConfigurationProps, IApiConfi
         <div className='modal-header a-modal-header'>
           <div className='a-iconText a-iconText-background a-iconText-large'>
             <div className='a-iconText-icon'>
-              <i className='ai ai-corp a-icon' />
+              <i className='fa fa-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>

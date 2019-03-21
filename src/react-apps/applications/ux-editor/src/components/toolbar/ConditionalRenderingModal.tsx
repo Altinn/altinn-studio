@@ -80,7 +80,7 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
               className='a-btn a-btn-icon a-btn-transparentWhite'
               onClick={this.selectConnection.bind(this, key)}
             >
-              <i className='ai ai-settings a-btn-icon-symbol' />
+              <i className='fa fa-settings a-btn-icon-symbol' />
               <span className='a-btn-icon-text'>
                 {this.props.conditionalRendering[key].selectedFunction}
               </span>
@@ -105,7 +105,7 @@ class ConditionalRenderingModal extends React.Component<IConditionalRenderingMod
           className='a-btn a-btn-action a-fullWidthBtn a-btnBigger'
           onClick={this.createNewConnection}
         >
-          <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
+          <i className='fa fa-plus a-blue' onClick={this.createNewConnection} />
           <span className='a-fontSizeXS'>
             {this.props.language.general.add_connection}
           </span>
