@@ -58,7 +58,7 @@ namespace Altinn.Platform.Storage.Repository
             {
                 var document = await _client.CreateDocumentAsync(_collectionUri, item);
                 var res = document.Resource;
-                var instance = JsonConvert.DeserializeObject<Instance>(res.ToString());
+                Instance instance = JsonConvert.DeserializeObject<Instance>(res.ToString());
 
                 return instance.Id;
             }
