@@ -1,7 +1,9 @@
 import { createStyles, List, ListItem, ListItemIcon, withStyles } from '@material-ui/core';
 import * as React from 'react';
-// import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
+import { connect } from 'react-redux';
+import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
+import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 
 const styles = createStyles({
   collapseHeader: {
@@ -43,6 +45,7 @@ const styles = createStyles({
   },
 });
 export interface ICollapsableMenuProvidedProps {
+  children?: any;
   classes: any;
   header: string;
   componentId: string;
@@ -50,34 +53,46 @@ export interface ICollapsableMenuProvidedProps {
 }
 
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
-  children: any;
-  components: any;
+  components: IFormDesignerComponent;
   language: any;
-}
-
-export interface ICollapsableMenuState {
-  menuIsOpen: boolean;
 }
 
 export interface ICollapsableMenuListItem {
   name: string;
-  action?: () => void;
+  action?: any;
 }
 
 const CollapsableMenus = (props: ICollapsableMenuProps) => {
-  const [menuIsOpen, setMenuIsOpen] = React.useState(false);
+  const [menuIsOpen, setMenuIsOpen] = React.useState(true);
+  const [component, setComponent] = React.useState(props.components[props.componentId]);
   const { classes } = props;
+
+  React.useEffect(() => {
+    setComponent(props.components[props.componentId]);
+  }, [props]);
 
   const toggleMenu = () => {
     setMenuIsOpen(!menuIsOpen);
   };
+
+  const toggleCheckbox = (value: string) => {
+    if (component) {
+      component[value] = !component[value];
+      FormDesignerActionDispatchers.updateFormComponent(
+        component,
+        props.componentId,
+      );
+      setComponent(props.components[props.componentId]);
+      console.log('component ', component);
+    }
+  };
+
   const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
       toggleMenu();
     }
   };
 
-  console.log(props.componentId);
   return (
     <List className={classes.list}>
       <ListItem
@@ -93,6 +108,28 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
         </ListItemIcon>
         <span className={classes.collapseHeader}>{props.header}</span>
       </ListItem>
+      {(component && props.header === props.language.ux_editor.service_logic_validations) &&
+        <div>
+          {component.hasOwnProperty('readOnly') &&
+            <ListItem className={classes.listItem}>
+              <AltinnCheckBox
+                checked={component.readOnly}
+                onChangeFunction={() => toggleCheckbox('readOnly')}
+              />
+              {props.language.ux_editor.read_only}
+            </ListItem>
+          }
+          {component.hasOwnProperty('required') &&
+            <ListItem className={classes.listItem}>
+              <AltinnCheckBox
+                checked={!component.required}
+                onChangeFunction={() => toggleCheckbox('required')}
+              />
+              {props.language.ux_editor.optional}
+            </ListItem>
+          }
+        </div>
+      }
       {menuIsOpen && typeof (props.listItems[0].name) !== 'undefined'
         && props.listItems.map((item, index) => {
           return (
@@ -113,4 +150,19 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
     </List>
   );
 };
-export const CollapsableMenuComponent = withStyles(styles)(CollapsableMenus);
+
+const mapStateToProps: (
+  state: IAppState,
+  props: ICollapsableMenuProvidedProps,
+) => ICollapsableMenuProps = (state: IAppState, props: ICollapsableMenuProvidedProps) => ({
+  children: props.children,
+  classes: props.classes,
+  componentId: props.componentId,
+  components: state.formDesigner.layout.components,
+  header: props.header,
+  language: state.appData.language.language,
+  listItems: props.listItems,
+});
+
+export const CollapsableMenuComponent =
+  withStyles(styles, { withTheme: true })(connect(mapStateToProps)(CollapsableMenus));

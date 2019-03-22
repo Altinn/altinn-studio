@@ -148,8 +148,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
   }
 
   public joinValidationMessages = (): IComponentValidations => {
-    const {validations} = this.state as any;
-    let {validationMessages} = this.props;
+    const { validations } = this.state as any;
+    let { validationMessages } = this.props;
 
     for (const fieldKey in validations) {
       if (!validations[fieldKey]) {
@@ -196,44 +196,48 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             }
           </label>
           <input
-            className={'form-control'}
+            className={'form-control' + (this.props.component.readOnly ? ' disabled' : '')}
             value={address}
             onChange={this.updateField.bind(null, AddressKeys.address)}
             onBlur={this.onBlurField.bind(null, AddressKeys.address)}
+            disabled={this.props.component.readOnly}
           />
           {validations ?
             renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
-          : null}
+            : null}
           <div className={'address-component-postplace-zipCode'}>
             <div className={'address-component-zipCode'}>
               <label className={'address-component-label'}>Postnummer</label>
               <input
                 className={
-                  !validations || !validations.zipCode ?
+                  (!validations || !validations.zipCode ?
                     'address-component-small-inputs form-control' :
-                    'address-component-small-inputs form-control validation-error'
+                    'address-component-small-inputs form-control validation-error')
+                  + (this.props.component.readOnly ? ' disabled' : '')
                 }
                 value={zipCode}
                 onChange={this.updateField.bind(null, AddressKeys.zipCode)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
+                disabled={this.props.component.readOnly}
               />
               {validations ?
                 renderValidationMessagesForComponent(validations[AddressKeys.zipCode], `${id}_${AddressKeys.zipCode}`)
-              : null}
+                : null}
             </div>
 
             <div className={'address-component-postplace'}>
               <label className={'address-component-label'}>Poststed</label>
               <input
-                className={'form-control'}
+                className={'form-control' + (this.props.component.readOnly ? ' disabled' : '')}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AddressKeys.postPlace)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
+                disabled={this.props.component.readOnly}
               />
               {validations ?
                 renderValidationMessagesForComponent(validations[AddressKeys.postPlace],
                   `${id}_${AddressKeys.postPlace}`)
-              : null}
+                : null}
             </div>
           </div>
         </div>
@@ -253,7 +257,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
         />
         {validations ?
-            renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
+          renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
           : null}
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
@@ -263,7 +267,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
         />
         {validations ?
-            renderValidationMessagesForComponent(validations[AddressKeys.careOf], `${id}_${AddressKeys.careOf}`)
+          renderValidationMessagesForComponent(validations[AddressKeys.careOf], `${id}_${AddressKeys.careOf}`)
           : null}
         <div className={'address-component-postplace-zipCode'}>
           <div className={'address-component-zipCode'}>
@@ -281,7 +285,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             />
             {validations ?
               renderValidationMessagesForComponent(validations[AddressKeys.zipCode], `${id}_${AddressKeys.zipCode}`)
-            : null}
+              : null}
           </div>
           <div className={'address-component-postplace'}>
             <label className={'address-component-label'}>Poststed</label>
@@ -294,7 +298,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             />
             {validations ?
               renderValidationMessagesForComponent(validations[AddressKeys.postPlace], `${id}_${AddressKeys.postPlace}`)
-            : null}
+              : null}
           </div>
         </div>
         <label className={'address-component-label'}>
@@ -319,7 +323,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
         />
         {validations ?
           renderValidationMessagesForComponent(validations[AddressKeys.houseNumber], `${id}_${AddressKeys.houseNumber}`)
-        : null}
+          : null}
       </div>
     );
   }

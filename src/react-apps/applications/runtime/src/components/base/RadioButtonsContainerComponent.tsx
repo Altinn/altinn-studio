@@ -1,4 +1,5 @@
 import * as React from 'react';
+import '../../styles/RadioButtonComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
@@ -67,13 +68,15 @@ export class RadioButtonContainerComponent
           )
         }
         id={this.props.id}
-        style={isStacked ? {} : {alignItems: 'start'}}
+        style={isStacked ? {} : { alignItems: 'start' }}
       >
         {options.map((option, index) => (
           <div
-            className='custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
+            className={'custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
+              + (this.props.component.readOnly ? ' no-cursor' : '')}
             key={index}
-            onClick={this.onDataChanged.bind(this, option.value)}
+            onClick={this.props.component.readOnly ?
+              this.onDataChanged.bind(this, option.value) : this.onDataChanged.bind(this, option.value)}
           >
             <input
               type='radio'
@@ -81,7 +84,10 @@ export class RadioButtonContainerComponent
               className='custom-control-input'
               checked={this.isOptionSelected(option.value)}
             />
-            <label className='custom-control-label pl-3'>
+            <label
+              className={this.props.component.readOnly ?
+                'custom-control-label pl-3 disabled-radio-button' : 'custom-control-label pl-3'}
+            >
               {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
             </label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&

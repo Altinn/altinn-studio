@@ -83,6 +83,7 @@ declare global {
     required?: boolean;
     hidden?: boolean;
     readOnly?: boolean;
+    [key: string]: string | any;
   }
 
   export interface IFormHeaderComponent extends IFormComponent {

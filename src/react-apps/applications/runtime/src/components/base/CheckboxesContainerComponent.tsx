@@ -1,4 +1,5 @@
 import * as React from 'react';
+import '../../styles/CheckboxComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
@@ -70,13 +71,14 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
           )
         }
         id={this.props.id}
-        style={isStacked ? {} : {alignItems: 'start'}}
+        style={isStacked ? {} : { alignItems: 'start' }}
       >
         {options.map((option, index) => (
           <div
             key={index}
-            className='custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
-            onClick={this.onDataChanged.bind(this, option.value, index)}
+            className={'custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
+              + (this.props.component.readOnly ? ' no-cursor' : '')}
+            onClick={this.props.component.readOnly ? '' : this.onDataChanged.bind(this, option.value, index)}
           >
             <input
               type='checkbox'
@@ -85,7 +87,12 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               name={'checkbox-' + this.props.id + '-' + index}
               checked={this.isOptionSelected(option.value)}
             />
-            <label className='pl-3 custom-control-label'>{option.label}</label>
+            <label
+              className={this.props.component.readOnly ?
+                'custom-control-label pl-3 disabled-checkbox no-cursor' : 'pl-3 custom-control-label'}
+            >
+              {option.label}
+            </label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&
               renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
                 this.props.component.id)}

@@ -61,6 +61,9 @@ export const schemaComponents: IComponent[] = [
     name: 'Datepicker',
     Tag: DatepickerComponent,
     Type: ComponentTypes.Datepicker,
+    customProperties: {
+      readOnly: false,
+    },
   },
   {
     name: 'Dropdown',
@@ -122,6 +125,7 @@ export const advancedComponents: IComponent[] = [
     Type: ComponentTypes.AddressComponent,
     customProperties: {
       simplified: true,
+      readOnly: false,
     },
   },
 ];

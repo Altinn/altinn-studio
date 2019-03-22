@@ -1,3 +1,11 @@
-.textarea-disabled {
-  background-image: url("/designer/img/DesignSystem/v1/disabled-background.svg") !important;
-}
+.disabled {
+    border: 2px solid #6A6A6A !important;
+    color: #000;
+    background: repeating-linear-gradient(
+      135deg,
+      #efefef,
+      #efefef 2px,
+      #fff 3px,
+      #fff 5px
+    );
+};

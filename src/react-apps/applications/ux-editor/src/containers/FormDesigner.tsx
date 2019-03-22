@@ -191,7 +191,6 @@ class FormDesigner extends React.Component<
   }
 
   public render() {
-    console.log(React.version);
     const { classes } = this.props;
     return (
       <div className={classes.root}>
@@ -225,69 +224,71 @@ class FormDesigner extends React.Component<
             xs={2}
             classes={{ item: classNames(classes.item) }}
           >
-            <ServiceLogicMenu
-              open={this.state.menuOpen}
-              openCloseHandler={this.toggleMenu}
-              button={
-                <Grid
-                  container={true}
-                  direction={'column'}
-                  justify={'center'}
-                  alignItems={'flex-end'}
-                  classes={classes.menuWrapper}
-                >
-                  <IconButton
-                    type='button'
-                    className={this.props.classes.button}
+            <div id={'serviceLogicmenu'}>
+              <ServiceLogicMenu
+                open={this.state.menuOpen}
+                openCloseHandler={this.toggleMenu}
+                button={
+                  <Grid
+                    container={true}
+                    direction={'column'}
+                    justify={'center'}
+                    alignItems={'flex-end'}
+                    classes={classes.menuWrapper}
                   >
-                    <i
-                      className={
-                        (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
-                          this.props.classes.icon) + ' fa fa-logikkutensirkel'
-                      }
-                    />
-                  </IconButton>
-                </Grid>}
-            >
-              <div className={this.props.classes.fullWidth}>
-                <h3 className={this.props.classes.menuHeader}>
-                  {this.props.language.ux_editor.service_logic}
-                </h3>
-                <CollapsableMenuComponent
-                  header={this.props.language.ux_editor.service_logic_validations}
-                  componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
-                  listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_validations,
-                      action: this.toggleCodeEditor.bind(this, 'Validation'),
-                    },
-                  ]}
-                />
-                <CollapsableMenuComponent
-                  header={this.props.language.ux_editor.service_logic_dynamics}
-                  componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
-                  listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_dynamics,
-                      action: this.toggleCodeEditor.bind(this, 'Dynamics'),
-                    }]}
-                >
-                  <RuleModalComponent />
-                  <ConditionalRenderingModalComponent />
-                </CollapsableMenuComponent>
-                <CollapsableMenuComponent
-                  header={this.props.language.ux_editor.service_logic_calculations}
-                  componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
-                  listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_calculations,
-                      action: this.toggleCodeEditor.bind(this, 'Calculation'),
-                    },
-                  ]}
-                />
-                <div className={this.props.classes.divider} />
-              </div>
-            </ServiceLogicMenu>
+                    <IconButton
+                      type='button'
+                      className={this.props.classes.button}
+                    >
+                      <i
+                        className={
+                          (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
+                            this.props.classes.icon) + ' fa fa-logikkutensirkel'
+                        }
+                      />
+                    </IconButton>
+                  </Grid>}
+              >
+                <div className={this.props.classes.fullWidth}>
+                  <h3 className={this.props.classes.menuHeader}>
+                    {this.props.language.ux_editor.service_logic}
+                  </h3>
+                  <CollapsableMenuComponent
+                    header={this.props.language.ux_editor.service_logic_validations}
+                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                    listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_validations,
+                        action: this.toggleCodeEditor.bind(this, 'Validation'),
+                      },
+                    ]}
+                  />
+                  <CollapsableMenuComponent
+                    header={this.props.language.ux_editor.service_logic_dynamics}
+                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                    listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_dynamics,
+                        action: this.toggleCodeEditor.bind(this, 'Dynamics'),
+                      }]}
+                  >
+                    <RuleModalComponent />
+                    <ConditionalRenderingModalComponent />
+                  </CollapsableMenuComponent>
+                  <CollapsableMenuComponent
+                    header={this.props.language.ux_editor.service_logic_calculations}
+                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                    listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_calculations,
+                        action: this.toggleCodeEditor.bind(this, 'Calculation'),
+                      },
+                    ]}
+                  />
+                  <div className={this.props.classes.divider} />
+                </div>
+              </ServiceLogicMenu>
+            </div>
           </Grid>
         </Grid>
       </div>
