@@ -38,10 +38,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState InitializeService(int formId, string owner, string service, int partyId)
+        public ServiceState InitializeService(Guid instanceId, string owner, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(CreateInitialServiceStateMethod, owner, service, developer, partyId)}&formId={formId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(CreateInitialServiceStateMethod, owner, service, developer, partyId)}&instanceId={instanceId}";
             ServiceState returnState = null;
             using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
@@ -68,10 +68,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(int formId, string owner, string service, int partyId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string owner, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(UpdateCurrentStateMethod, owner, service, developer, partyId)}&formId={formId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(UpdateCurrentStateMethod, owner, service, developer, partyId)}&instanceId={instanceId}";
             ServiceState returnState = null;
             using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
@@ -98,24 +98,24 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(int formId, string owner, string service, WorkflowStep currentState)
+        public string GetUrlForCurrentState(Guid instanceId, string owner, string service, WorkflowStep currentState)
         {
             switch (currentState)
             {
                 case WorkflowStep.FormFilling:
                 case WorkflowStep.Submit:
                 case WorkflowStep.Archived:
-                    return $"/runtime/{owner}/{service}/{formId}/#Preview";
+                    return $"/runtime/{owner}/{service}/{instanceId}/#Preview";
                 default:
                     return $"/runtime/{owner}/{service}/ManualTesting";
             }
         }
 
         /// <inheritdoc/>
-        public ServiceState GetCurrentState(int formId, string owner, string service, int partyId)
+        public ServiceState GetCurrentState(Guid instanceId, string owner, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetCurrentStateMethod, owner, service, developer, partyId)}&formId={formId}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetCurrentStateMethod, owner, service, developer, partyId)}&instanceId={instanceId}";
             ServiceState returnState = null;
             using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {

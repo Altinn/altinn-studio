@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
@@ -30,10 +31,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns a new instanceId for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
         /// <returns>The instanceId.</returns>
-        int GetNewServiceInstanceID(string org, string service);
+        Guid GetNewServiceInstanceID();
 
         /// <summary>
         /// Gets the raw content of a code list.

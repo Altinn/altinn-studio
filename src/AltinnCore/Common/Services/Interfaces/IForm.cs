@@ -15,12 +15,12 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <typeparam name="T">The type</typeparam>
         /// <param name="dataToSerialize">The service model to serialize</param>
-        /// <param name="formId">The formId</param>
+        /// <param name="instanceId">The formId</param>
         /// <param name="type">The type for serialization</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId for the reportee</param>
-        void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId);
+        Task<Guid> SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId);
 
         /// <summary>
         /// This method saves a form attachment
@@ -36,14 +36,14 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns the Form model for a given from.
         /// </summary>
-        /// <param name="formId">The formId</param>
+        /// <param name="instanceId">The formId</param>
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
         /// <param name="developer">The name of the developer if any</param>
         /// <returns>The form model</returns>
-        object GetFormModel(int formId, Type type, string org, string service, int partyId, string developer = null);
+        object GetFormModel(Guid instanceId, Type type, string org, string service, int partyId, string developer = null);
 
         /// <summary>
         /// Operation that returns a prefill populated form model

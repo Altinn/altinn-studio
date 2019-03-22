@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.Repository
         /// insert new instance into collection
         /// </summary>
         /// <param name="item">the form data</param>
-        /// <returns>The instance inserted into collection</returns>
+        /// <returns>The instance id</returns>
         Task<string> InsertInstanceIntoCollectionAsync(Instance item);
 
         /// <summary>

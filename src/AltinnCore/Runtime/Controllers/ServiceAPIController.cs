@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.ModelBinding;
@@ -39,6 +40,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IRegister _register;
         private readonly ILogger _logger;
         private readonly IForm _form;
+        private readonly IInstanceLocalDev _instanceLocal;
         private readonly IExecution _execution;
         private readonly IProfile _profile;
         private UserHelper _userHelper;
@@ -74,7 +76,8 @@ namespace AltinnCore.Runtime.Controllers
             IExecution executionService,
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI)
+            IWorkflowSI workflowSI,
+            IInstanceLocalDev instanceLocalSI)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -89,6 +92,7 @@ namespace AltinnCore.Runtime.Controllers
             _userHelper = new UserHelper(_profile, _register);
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
+            _instanceLocal = instanceLocalSI;
         }
 
         /// <summary>
@@ -100,7 +104,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>The Service model as JSON or XML for the given instanceId.</returns>
         [Authorize(Policy = "ServiceRead")]
         [HttpGet]
-        public async Task<IActionResult> Index(string org, string service, int instanceId)
+        public async Task<IActionResult> Index(string org, string service, Guid instanceId)
         {
             // Getting the Service Specific Implementation contained in external DLL migrated from TUL
             IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
@@ -183,7 +187,7 @@ namespace AltinnCore.Runtime.Controllers
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
             // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
@@ -275,7 +279,7 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
-            int instanceId = _execution.GetNewServiceInstanceID(org, service);
+            Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
             this._form.SaveFormModel(
@@ -284,7 +288,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId,
+                Guid.Empty);
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;
@@ -302,7 +307,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>The api result.</returns>
         [Authorize]
         [HttpPut]
-        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, int instanceId, ApiMode apiMode)
+        public async Task<IActionResult> Index([FromBody] AltinnCoreApiModel model, string org, string service, Guid instanceId, ApiMode apiMode)
         {
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
@@ -315,7 +320,7 @@ namespace AltinnCore.Runtime.Controllers
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
             // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
             if (Request.Headers.Keys.Contains(VALIDATION_TRIGGER_FIELD))
@@ -406,7 +411,8 @@ namespace AltinnCore.Runtime.Controllers
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId);
+                requestContext.UserContext.ReporteeId,
+                Guid.Empty);
 
             if (apiMode.Equals(ApiMode.Complete))
             {
@@ -452,7 +458,7 @@ namespace AltinnCore.Runtime.Controllers
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
             // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
@@ -499,7 +505,7 @@ namespace AltinnCore.Runtime.Controllers
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
             // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
