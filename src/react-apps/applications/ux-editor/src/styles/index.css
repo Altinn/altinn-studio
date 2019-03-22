@@ -10,6 +10,10 @@
   vertical-align: middle;
 }
 
+#collapsable-items .fa {
+  font-size: 1.5em;
+}
+
 input:checked+.slider {
   background-color: #1EAEF7;
 }
