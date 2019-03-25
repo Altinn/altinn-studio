@@ -43,6 +43,7 @@ namespace Altinn.Platform.Storage
 
         public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
+            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
             config.SetBasePath(basePath);
 
             config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
