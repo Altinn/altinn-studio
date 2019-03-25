@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Http;
@@ -15,7 +16,7 @@ namespace AltinnCore.Common.Helpers
         /// <param name="queryCollection">The query parameters</param>
         /// <param name="instanceId">The instanceId</param>
         /// <returns>The requestContext</returns>
-        public static RequestContext GetRequestContext(IQueryCollection queryCollection, int instanceId)
+        public static RequestContext GetRequestContext(IQueryCollection queryCollection, Guid instanceId)
         {
             var context = new RequestContext
             {

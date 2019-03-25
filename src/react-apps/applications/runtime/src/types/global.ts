@@ -113,6 +113,11 @@ declare global {
 
   export interface IFormFileUploaderComponent extends IFormComponent {
     description: string;
+    hasCustomFileEndings: boolean;
+    maxFileSizeInMB: number;
+    displayMode: string;
+    maxNumberOfAttachments: number;
+    validFileEndings?: string;
   }
 
   export interface IDataModelBindings {

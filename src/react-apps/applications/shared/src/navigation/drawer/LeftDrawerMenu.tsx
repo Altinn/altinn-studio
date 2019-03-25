@@ -71,7 +71,6 @@ class LeftDrawerMenu extends
   }
 
   public onMouseLeaveListItem = (index: any) => (event: any) => {
-    event.stopPropagation();
     this.setState((state) => {
       return {
         iconColor: {

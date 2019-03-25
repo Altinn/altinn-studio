@@ -228,7 +228,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         <div className='modal-header a-modal-header'>
           <div className='a-iconText a-iconText-background a-iconText-large'>
             <div className='a-iconText-icon'>
-              <i className='ai ai-corp a-icon' />
+              <i className='fa fa-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
@@ -353,7 +353,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                           className='a-btn a-btn-icon'
                           onClick={this.removeFieldMapping.bind(null, key)}
                         >
-                          <i className='ai ai-circle-exit a-danger ai-left' />
+                          <i className='fa fa-circle-exit a-danger ai-left' />
                         </button>
                       </div>
                     </div>

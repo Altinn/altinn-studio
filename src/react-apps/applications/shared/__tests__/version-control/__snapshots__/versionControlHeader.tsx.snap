@@ -31,7 +31,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
           className="FetchChangesComponenet-color_blueDark-100"
         >
           <i
-            className="ai ai-download FetchChangesComponenet-color_blueDark-100"
+            className="fa fa-download FetchChangesComponenet-color_blueDark-100"
           />
            
           sync_header.fetch_changes
@@ -67,7 +67,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
       >
         <p>
           <i
-            className="ai ai-check ShareChangesCompoenent-color_blueDarker-133"
+            className="fa fa-check ShareChangesCompoenent-color_blueDarker-133"
           />
           sync_header.no_changes_to_share
         </p>

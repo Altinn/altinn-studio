@@ -1,4 +1,7 @@
 using System;
+using System.IO;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -12,24 +15,35 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <typeparam name="T">The type</typeparam>
         /// <param name="dataToSerialize">The service model to serialize</param>
-        /// <param name="formId">The formId</param>
+        /// <param name="instanceId">The formId</param>
         /// <param name="type">The type for serialization</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId for the reportee</param>
-        void SaveFormModel<T>(T dataToSerialize, int formId, Type type, string org, string service, int partyId);
+        Task<Guid> SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId);
+
+        /// <summary>
+        /// This method saves a form attachment
+        /// </summary>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="formId">The form id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentName">The file name for the attachment</param>
+        string GetAttachmentUploadUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName);
 
         /// <summary>
         /// Returns the Form model for a given from.
         /// </summary>
-        /// <param name="formId">The formId</param>
+        /// <param name="instanceId">The formId</param>
         /// <param name="type">The type</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
         /// <param name="developer">The name of the developer if any</param>
         /// <returns>The form model</returns>
-        object GetFormModel(int formId, Type type, string org, string service, int partyId, string developer = null);
+        object GetFormModel(Guid instanceId, Type type, string org, string service, int partyId, string developer = null);
 
         /// <summary>
         /// Operation that returns a prefill populated form model

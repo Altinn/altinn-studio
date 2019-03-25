@@ -117,7 +117,7 @@ class SyncModalComponent extends React.Component<ISyncModalComponentProps, ISync
       if (this.props.shouldShowDoneIcon) {
         return (
           <div className={classNames(classes.doneLoadingIcon)}>
-            <i className={classNames('ai ai-circlecheck')} />
+            <i className={classNames('fa fa-circlecheck')} />
           </div>
         );
       }

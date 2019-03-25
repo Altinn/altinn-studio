@@ -4,24 +4,34 @@ about: Create an analysis for a specific area in Altinn Studio
 labels: analysis
 ---
 
-**Description**
-Describe the problem area that needs to be analysed.
+## Description
+> Description of the the problem or area that is to be analysed.
+> Links to relevant resources, documentation or other issues. Screenshots if relevant.
 
-**Links and screenshots**
-Link to relevant resources, documentation or issues. If relevant, add screenshots.
+Lorem ipsum
 
-**Constraints**
-If there are any constraints (technical or funcitonal) that the proposed solution must adhere to, then list those.
+## In scope
+> What's in scope of this analysis?
 
-**Analysis**
-Discuss the solution and alternative solutions.
+Lorem ipsum
 
-**Consequences**
-Describe any (negative) consequences of the proposed solution.
+## Out of scope
+> What's **out** of scope for this analysis?
 
-**Conclusion**
-Short summary of the proposed solution.
+Lorem ipsum
 
-**Tasks**
-- [ ] Verify that this issue is labeled with a correct area label.
+## Constraints
+> Constraints or requirements (technical or functional) that affects this analysis.
+
+Lorem ipsum
+
+## Analysis
+
+Lorem ipsum
+
+## Conclusion
+> Short summary of the proposed solution.
+
+## Tasks
+- [ ] Is this issue labeled with a correct area label?
 - [ ] QA has been done

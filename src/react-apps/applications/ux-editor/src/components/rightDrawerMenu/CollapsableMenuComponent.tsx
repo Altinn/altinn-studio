@@ -104,7 +104,7 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
           tabIndex={0}
           onKeyPress={handleKeyPress}
         >
-          <i className={'ai ai-expand ' + classes.icon} />
+          <i className={'fa fa-expand-alt ' + classes.icon} />
         </ListItemIcon>
         <span className={classes.collapseHeader}>{props.header}</span>
       </ListItem>

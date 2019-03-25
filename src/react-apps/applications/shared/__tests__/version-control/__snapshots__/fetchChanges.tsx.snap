@@ -25,7 +25,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
       className="FetchChangesComponenet-color_blueDark-2"
     >
       <i
-        className="ai ai-download FetchChangesComponenet-color_blueDark-2"
+        className="fa fa-download FetchChangesComponenet-color_blueDark-2"
       />
        
       sync_header.fetch_changes
@@ -62,7 +62,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
       className="FetchChangesComponenet-color_blueDark-2 FetchChangesComponenet-bold-3"
     >
       <i
-        className="ai ai-download FetchChangesComponenet-color_blueDark-2"
+        className="fa fa-download FetchChangesComponenet-color_blueDark-2"
       />
        
       sync_header.fetch_changes

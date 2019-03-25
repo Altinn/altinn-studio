@@ -168,8 +168,8 @@ export class CloneServiceComponent extends React.Component<ICloneServiceComponen
                 <i
                   className={classNames(
                     classes.iconStyling,
-                    { ['ai ai-corp']: repoInfo.owner.UserType === 2 },
-                    { ['ai ai-private']: repoInfo.owner.UserType !== 2 })}
+                    { ['fa fa-corp']: repoInfo.owner.UserType === 2 },
+                    { ['fa fa-private']: repoInfo.owner.UserType !== 2 })}
                   aria-hidden='true'
                 /> {repoInfo.owner.full_name || repoInfo.owner.login}
               </Typography>

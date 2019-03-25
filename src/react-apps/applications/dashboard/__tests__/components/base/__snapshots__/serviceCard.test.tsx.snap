@@ -40,7 +40,7 @@ exports[`>>> components/base/serviceCard.tsx --- Snapshot +++ Should match snaps
         >
           <i
             aria-hidden="true"
-            className="Connect-ServiceCardComponent--iconStyling-4 ai ai-corp"
+            className="Connect-ServiceCardComponent--iconStyling-4 fa fa-corp"
           />
         </div>
         <div
