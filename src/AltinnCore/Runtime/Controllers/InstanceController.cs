@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
@@ -34,6 +36,8 @@ namespace AltinnCore.Runtime.Controllers
         private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
+        private readonly IInstance _instance;
+        private readonly IInstanceLocalDev _instanceLocal;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -49,6 +53,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
+        /// <param name="instanceSI">the instance service handler</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -60,7 +65,9 @@ namespace AltinnCore.Runtime.Controllers
             IArchive archiveService,
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI)
+            IWorkflowSI workflowSI,
+            IInstance instanceSI,
+            IInstanceLocalDev instanceLocalDevSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -73,6 +80,8 @@ namespace AltinnCore.Runtime.Controllers
             _testdata = testDataService;
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
+            _instance = instanceSI;
+            _instanceLocal = instanceLocalDevSI;
         }
 
         /// <summary>
@@ -85,7 +94,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="itemId">the item id</param>
         /// <returns>The react view or the receipt</returns>
         [Authorize(Policy = "InstanceRead")]
-        public IActionResult EditSPA(string org, string service, int instanceId, string view, int? itemId)
+        public IActionResult EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
             // Make sure user cannot edit an archived instance
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
@@ -106,7 +115,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>Returns the Complete and send in View.</returns>
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> CompleteAndSendIn(string org, string service, int instanceId)
+        public async Task<IActionResult> CompleteAndSendIn(string org, string service, Guid instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
@@ -152,7 +161,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>Redirect user to the receipt page.</returns>
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> CompleteAndSendIn(string org, string service, int instanceId, string view)
+        public async Task<IActionResult> CompleteAndSendIn(string org, string service, Guid instanceId, string view)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
@@ -214,7 +223,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="service">The service code for the current service.</param>
         /// <param name="instanceId">The instanceId.</param>
         /// <returns>The receipt view.</returns>
-        public IActionResult Receipt(string org, string service, int instanceId)
+        public IActionResult Receipt(string org, string service, Guid instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
@@ -288,7 +297,7 @@ namespace AltinnCore.Runtime.Controllers
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
             // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
 
             // Populate the reportee information
@@ -340,19 +349,47 @@ namespace AltinnCore.Runtime.Controllers
                     return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
                 }
 
-                // Create a new instance Id
-                int formID = _execution.GetNewServiceInstanceID(startServiceModel.Org, startServiceModel.Service);
+                Guid instanceId;
+                Guid dataId;
+                int instanceOwnerId = requestContext.UserContext.ReporteeId;
+                if (requestContext.ServiceMode == RequestContext.Mode.Studio)
+                {
+                    // Create a new instance document
+                    instanceId = _instanceLocal.InstantiateInstance(startServiceModel.Service, startServiceModel.Org, instanceOwnerId);                    
 
-                _form.SaveFormModel(
-                    serviceModel,
-                    formID,
-                    serviceImplementation.GetServiceModelType(),
-                    startServiceModel.Org,
-                    startServiceModel.Service,
-                    requestContext.UserContext.ReporteeId);
+                    // Save instantiated form model
+                    dataId = await _form.SaveFormModel(
+                        serviceModel,
+                        instanceId,
+                        serviceImplementation.GetServiceModelType(),
+                        startServiceModel.Org,
+                        startServiceModel.Service,
+                        requestContext.UserContext.ReporteeId,
+                        Guid.Empty);
 
-                ServiceState currentState = _workflowSI.InitializeService(formID, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
-                string redirectUrl = _workflowSI.GetUrlForCurrentState(formID, startServiceModel.Org, startServiceModel.Service, currentState.State);
+                    // Update instance with dataId
+                    Instance instance = await _instanceLocal.GetInstance(startServiceModel.Service, startServiceModel.Org, instanceOwnerId, instanceId);
+                    Data data = new Data
+                    {
+                        Id = dataId.ToString(),
+                        ContentType = "application/Xml",
+                        StorageUrl = "data/TestForm/",                        
+                        CreatedBy = instanceOwnerId.ToString(),
+                    };
+                    Dictionary<string, Data> formData = new Dictionary<string, Data>();
+                    formData.Add(dataId.ToString(), data);
+                    instance.Data = new Dictionary<string, Dictionary<string, Data>>();
+                    instance.Data.Add("TestForm", formData);
+
+                    _instanceLocal.SaveInstance(instance, startServiceModel.Service, startServiceModel.Org, instanceOwnerId, instanceId);
+                }
+                else
+                {
+                    instanceId = await _instance.InstantiateInstance(startServiceModel.Service, requestContext.UserContext.ReporteeId.ToString());
+                }
+
+                ServiceState currentState = _workflowSI.InitializeService(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+                string redirectUrl = _workflowSI.GetUrlForCurrentState(instanceId, startServiceModel.Org, startServiceModel.Service, currentState.State);
                 return Redirect(redirectUrl);
             }
 
@@ -377,7 +414,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <returns>An api response containing the current ServiceState.</returns>
         [Authorize]
         [HttpGet]
-        public IActionResult GetCurrentState(string org, string service, int instanceId, int reporteeId)
+        public IActionResult GetCurrentState(string org, string service, Guid instanceId, int reporteeId)
         {
             return new ObjectResult(_workflowSI.GetCurrentState(instanceId, org, service, reporteeId));
         }
@@ -389,7 +426,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="service">the service.</param>
         /// <param name="instanceId">the instance id.</param>
         /// <returns>The api response.</returns>
-        public async Task<IActionResult> ModelValidation(string org, string service, int instanceId)
+        public async Task<IActionResult> ModelValidation(string org, string service, Guid instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
@@ -417,7 +454,7 @@ namespace AltinnCore.Runtime.Controllers
 
             ViewBag.PlatformServices = platformServices;
 
-            // Getting the populated form data from database
+            // Getting the populated form data from disk
             dynamic serviceModel = _form.GetFormModel(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
@@ -450,7 +487,7 @@ namespace AltinnCore.Runtime.Controllers
             return new ObjectResult(apiResult);
         }
 
-        private RequestContext PopulateRequestContext(int instanceId)
+        private RequestContext PopulateRequestContext(Guid instanceId)
         {
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
@@ -466,7 +503,7 @@ namespace AltinnCore.Runtime.Controllers
             return requestContext;
         }
 
-        private void PopulateViewBag(string org, string service, int instanceId, int? itemId, RequestContext requestContext, ServiceContext serviceContext, PlatformServices platformServices)
+        private void PopulateViewBag(string org, string service, Guid instanceId, int? itemId, RequestContext requestContext, ServiceContext serviceContext, PlatformServices platformServices)
         {
             ViewBag.RequestContext = requestContext;
             ViewBag.ServiceContext = serviceContext;

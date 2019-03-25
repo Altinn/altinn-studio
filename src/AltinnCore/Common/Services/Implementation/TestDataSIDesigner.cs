@@ -46,17 +46,19 @@ namespace AltinnCore.Common.Services.Implementation
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
             List<ServiceInstance> formInstances = new List<ServiceInstance>();
-            string formDataFilePath = _settings.GetTestdataForPartyPath(org, service, developer) + partyId;
-            string archiveFolderPath = $"{formDataFilePath}/Archive/";
+            string instancesPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}";
+            string archiveFolderPath = $"{instancesPath}/Archive/";
             if (!Directory.Exists(archiveFolderPath))
             {
                 Directory.CreateDirectory(archiveFolderPath);
             }
 
-            string[] files = Directory.GetFiles(formDataFilePath);
+            string[] files = Directory.GetDirectories(instancesPath);
             foreach (string file in files)
             {
-                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int instanceId))
+                string instance = new DirectoryInfo(file).Name;
+
+                if (Guid.TryParse(instance, out Guid instanceId))
                 {
                     ServiceInstance serviceInstance = new ServiceInstance()
                     {
