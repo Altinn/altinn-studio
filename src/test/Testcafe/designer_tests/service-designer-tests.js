@@ -71,7 +71,15 @@ test('About page items and editing', async () => {
 })
 
 test('Automated accessibility test for designer page', async t => {
+  await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
   axeCheck(t);
+})
+
+test.skip('Create a service using one of each component',async t => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+    .click(designer.lageNavigationTab)
+    .click(designer.header)
 })
 
 test.skip('Repeating groups', async () => {
