@@ -76,7 +76,7 @@ export class RadioButtonContainerComponent
               + (this.props.component.readOnly ? ' no-cursor' : '')}
             key={index}
             onClick={this.props.component.readOnly ?
-              this.onDataChanged.bind(this, option.value) : this.onDataChanged.bind(this, option.value)}
+              null : this.onDataChanged.bind(this, option.value)}
           >
             <input
               type='radio'

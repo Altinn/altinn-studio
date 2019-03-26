@@ -78,7 +78,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
             key={index}
             className={'custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
               + (this.props.component.readOnly ? ' no-cursor' : '')}
-            onClick={this.props.component.readOnly ? '' : this.onDataChanged.bind(this, option.value, index)}
+            onClick={this.props.component.readOnly ? null : this.onDataChanged.bind(this, option.value, index)}
           >
             <input
               type='checkbox'

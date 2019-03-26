@@ -31,7 +31,7 @@ const styles = {
 
 export interface IEditModalContentProps {
   component: FormComponentType;
-  dataModel?: IDataModelFieldElement[];
+  dataModel: IDataModelFieldElement[];
   textResources?: ITextResource[];
   codeListResources?: ICodeListListElement[];
   saveEdit?: (updatedComponent: FormComponentType) => void;
@@ -159,12 +159,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       component: updatedComponent,
     });
     this.props.handleComponentUpdate(updatedComponent);
-  }
-
-  public getTextKeyFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((elem) =>
-      elem.DataBindingName === dataBindingName);
-    return element.Texts.Label;
   }
 
   public handleCodeListChange = (option: ICodeListOption): void => {
@@ -545,16 +539,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.props.textResources,
               this.props.language,
               this.props.component.textResourceBindings.description)}
-            <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
-              {getLanguageFromKey('ux_editor.read_only_description', this.props.language)}
-            </Grid>
-            <Grid item={true}>
-              <AltinnCheckBox
-                checked={!!component.readOnly}
-                onChangeFunction={this.handleReadOnlyChange}
-              />
-              {getLanguageFromKey('ux_editor.read_only', this.props.language)}
-            </Grid>
           </Grid>
         );
       }
@@ -563,6 +547,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return null;
       }
     }
+  }
+
+  public getMinOccursFromDataModel = (dataBindingName: string): number => {
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) =>
+      e.DataBindingName === dataBindingName);
+    return element.MinOccurs;
   }
 
   public handleValidFileEndingsChange = (event: any) => {
@@ -625,16 +615,22 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    this.setState({
-      component: {
-        ...this.state.component,
-        dataModelBindings: dataModelBinding,
-      },
-    });
-    this.props.handleComponentUpdate({
-      ...this.props.component,
-      dataModelBindings: dataModelBinding,
-    });
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 1) {
+      this.setState({
+        component: {
+          ...this.state.component,
+          required: true,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    } else {
+      this.setState({
+        component: {
+          ...this.state.component,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    }
   }
 
   public handleToggleAddressSimple = (event: object, checked: boolean) => {
@@ -684,6 +680,7 @@ const mapStateToProps = (
     textResources: state.appData.textResources.resources,
     codeListResources: state.appData.codeLists.codeLists,
     thirdPartyComponents: state.thirdPartyComponents.components,
+    dataModel: state.appData.dataModel.model,
     ...props,
   };
 };

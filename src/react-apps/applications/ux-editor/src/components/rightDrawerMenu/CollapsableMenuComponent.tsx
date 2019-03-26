@@ -55,6 +55,7 @@ export interface ICollapsableMenuProvidedProps {
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
   components: IFormDesignerComponent;
   language: any;
+  dataModel: IDataModelFieldElement[];
 }
 
 export interface ICollapsableMenuListItem {
@@ -71,6 +72,12 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
     setComponent(props.components[props.componentId]);
   }, [props]);
 
+  const getMinOccursFromDataModel = (dataBindingName: string): boolean => {
+    const element: IDataModelFieldElement = props.dataModel.find((e: IDataModelFieldElement) =>
+      e.DataBindingName === dataBindingName);
+    return element ? element.MinOccurs === 1 : false;
+  };
+
   const toggleMenu = () => {
     setMenuIsOpen(!menuIsOpen);
   };
@@ -83,7 +90,6 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
         props.componentId,
       );
       setComponent(props.components[props.componentId]);
-      console.log('component ', component);
     }
   };
 
@@ -124,6 +130,7 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
               <AltinnCheckBox
                 checked={!component.required}
                 onChangeFunction={() => toggleCheckbox('required')}
+                disabled={getMinOccursFromDataModel(component.dataModelBindings.simpleBinding)}
               />
               {props.language.ux_editor.optional}
             </ListItem>
@@ -162,6 +169,7 @@ const mapStateToProps: (
   header: props.header,
   language: state.appData.language.language,
   listItems: props.listItems,
+  dataModel: state.appData.dataModel.model,
 });
 
 export const CollapsableMenuComponent =
