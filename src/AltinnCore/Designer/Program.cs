@@ -70,7 +70,7 @@ namespace AltinnCore.Designer
             {
                 logging.ClearProviders();
                 Serilog.ILogger logger = new LoggerConfiguration()
-                                .WriteTo.Console()
+                                .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss.ffff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                                 .CreateLogger();
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
