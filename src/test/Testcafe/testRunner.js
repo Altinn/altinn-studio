@@ -22,7 +22,7 @@ createTestCafe()
         selectorTimeout: 15000,
         assertionTimeout: 20000,
         pageLoadTimeout: 10000,
-        speed: 1,
+        speed: 0.9,
         debugOnFail: false,
         stopOnFirstFail: false
       })

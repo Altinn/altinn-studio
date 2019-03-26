@@ -6,17 +6,18 @@ import App from '../app';
 export default class DesignerPage {
   constructor() {
     //editor elements #schema-components
-    this.header = Selector("#schema-texts").withText("Header");
-    this.paragraph = Selector("#schema-texts").withText("Paragraph");
-    this.inputBtn = Selector("#schema-components").withText("Input");
-    this.datePicker = Selector("#schema-components").withText("Datepicker");
-    this.dropDown = Selector("#schema-components").withText("Dropdown");
-    this.checkBoxes = Selector("#schema-components").withText("Checkboxes");
-    this.radioButtons = Selector("#schema-components").withText("RadioButtons");
-    this.textArea = Selector("#schema-components").withText("TextArea");
-    this.fileUpload = Selector("#schema-components").withText("FileUpload");
-    this.submit = Selector("#schema-components").withText("Submit");
-    this.saveButton = Selector("#schema-components").withText("Save");
+    this.inputBtn = Selector("#schema-components").child(0);//.withText("Input");
+    this.datePicker = Selector("#schema-components").child(1);//.withText("Datepicker");
+    this.dropDown = Selector("#schema-components").child(2);//.withText("Dropdown");
+    this.checkBoxes = Selector("#schema-components").child(3);//.withText("Checkboxes");
+    this.radioButtons = Selector("#schema-components").child(4);//.withText("RadioButtons");
+    this.textArea = Selector("#schema-components").child(5);//.withText("TextArea");
+    this.fileUpload = Selector("#schema-components").child(6);//.withText("FileUpload");
+    this.submit = Selector("#schema-components").child(7);//.withText("Submit");
+
+    this.header = Selector("#schema-texts").child(0);//.withText("Header");
+    this.paragraph = Selector("#schema-texts").child(1);//.withText("Paragraph");
+    this.saveButton = Selector("#schema-components");//.withText("Save");
 
     //editor canvas
     this.canvas = Selector('.div').withAttribute('draggable');
