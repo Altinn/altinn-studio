@@ -424,7 +424,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         className={
                           this.props.classes.icon +
                           ' ' +
-                          componentIcons[this.state.component.textResourceBindings.title]
+                          componentIcons[this.state.component.component]
                         }
                       />
                       {this.state.component.textResourceBindings.title ?
