@@ -38,6 +38,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IWorkflowSI _workflowSI;
         private readonly IInstance _instance;
         private readonly IInstanceLocalDev _instanceLocal;
+        private readonly IData _data;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -67,7 +68,8 @@ namespace AltinnCore.Runtime.Controllers
             IHttpContextAccessor httpContextAccessor,
             IWorkflowSI workflowSI,
             IInstance instanceSI,
-            IInstanceLocalDev instanceLocalDevSI)
+            IInstanceLocalDev instanceLocalDevSI,
+            IData dataSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -82,6 +84,7 @@ namespace AltinnCore.Runtime.Controllers
             _workflowSI = workflowSI;
             _instance = instanceSI;
             _instanceLocal = instanceLocalDevSI;
+            _data = dataSI;
         }
 
         /// <summary>
@@ -352,6 +355,7 @@ namespace AltinnCore.Runtime.Controllers
                 Guid instanceId;
                 Guid dataId;
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
+                requestContext.ServiceMode = RequestContext.Mode.Runtime;
                 if (requestContext.ServiceMode == RequestContext.Mode.Studio)
                 {
                     // Create a new instance document
@@ -386,6 +390,15 @@ namespace AltinnCore.Runtime.Controllers
                 else
                 {
                     instanceId = await _instance.InstantiateInstance(startServiceModel.Service, requestContext.UserContext.ReporteeId.ToString());
+
+                    // Save instantiated form model
+                    await _data.InsertData(
+                        serviceModel,
+                        instanceId,
+                        serviceImplementation.GetServiceModelType(),
+                        startServiceModel.Org,
+                        startServiceModel.Service,
+                        requestContext.UserContext.ReporteeId.ToString());
                 }
 
                 ServiceState currentState = _workflowSI.InitializeService(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);

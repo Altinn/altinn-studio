@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -11,9 +12,14 @@ namespace AltinnCore.Common.Services.Interfaces
     public interface IInstance
     {
         /// <summary>
-        /// Gets the instance information
+        /// Gets the instance
         /// </summary>
-        //object GetInstance(Guid instanceId);
+        Task<Instance> GetInstance(string applicationId, string instanceOwnerId, Guid instanceId);
+
+        /// <summary>
+        /// Saves the instance meta data
+        /// </summary>
+        //void SaveInstance<T>(T dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
 
         /// <summary>
         /// Stores the form data

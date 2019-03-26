@@ -101,6 +101,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IWorkflowSI, WorkflowSI>();
             services.AddSingleton<IInstance, InstanceSI>();
             services.AddSingleton<IInstanceLocalDev, InstanceSILocalDev>();
+            services.AddSingleton<IData, DataSI>();
 
             services.AddResponseCompression();
 
