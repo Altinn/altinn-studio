@@ -91,27 +91,27 @@ class CollapsableMenu extends React.Component<ICollapsableMenuProps, ICollapsabl
             tabIndex={0}
             onKeyPress={this.handleKeyPress}
           >
-            <i className={'ai ai-expand ' + this.props.classes.icon} />
+            <i className={'fa fa-expand-alt ' + this.props.classes.icon} />
           </ListItemIcon>
           <span className={this.props.classes.collapseHeader}>{this.props.header}</span>
         </ListItem>
-        {this.state.menuIsOpen && typeof(this.props.listItems[0].name) !== 'undefined'
+        {this.state.menuIsOpen && typeof (this.props.listItems[0].name) !== 'undefined'
           && this.props.listItems.map((item, index) => {
-          return (
-            <div key={item.name}>
-              <ListItem  className={this.props.classes.listItem}>
-                <span
-                  className={this.props.classes.link}
-                  onClick={item.action}
-                >
-                  {item.name}
-                </span>
-              </ListItem>
-              {this.props.children}
-            </div>
-          );
-        })
-      }
+            return (
+              <div key={item.name}>
+                <ListItem className={this.props.classes.listItem}>
+                  <span
+                    className={this.props.classes.link}
+                    onClick={item.action}
+                  >
+                    {item.name}
+                  </span>
+                </ListItem>
+                {this.props.children}
+              </div>
+            );
+          })
+        }
       </List>
     );
   }

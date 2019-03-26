@@ -66,6 +66,7 @@ const styles = ((theme: Theme) => createStyles({
     minWidth: '240px', /* Two columns at 1024px screen size */
   },
   icon: {
+    'lineHeight': '3rem !important',
     'fontSize': '3rem',
     'border': '0.1rem solid ' + altinnTheme.altinnPalette.primary.blueDark,
     'color': altinnTheme.altinnPalette.primary.blueDark,
@@ -240,7 +241,7 @@ class FormDesigner extends React.Component<
                     <i
                       className={
                         (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
-                          this.props.classes.icon) + ' fa fa-logikkutensirkel'
+                          this.props.classes.icon) + ' fa fa-logic-no-circle'
                       }
                     />
                   </IconButton>

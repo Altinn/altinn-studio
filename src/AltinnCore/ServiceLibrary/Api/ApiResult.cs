@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using AltinnCore.ServiceLibrary.Enums;
 
@@ -31,7 +32,7 @@ namespace AltinnCore.ServiceLibrary.Api
         /// <summary>
         /// Gets or sets the InstanceId
         /// </summary>
-        public int InstanceId { get; set; }
+        public Guid InstanceId { get; set; }
 
         /// <summary>
         /// Gets or sets the url for the next step of the workflow

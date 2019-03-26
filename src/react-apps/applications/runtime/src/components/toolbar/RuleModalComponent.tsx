@@ -84,7 +84,7 @@ class RuleModal extends React.Component<IRuleModalProps, IRuleModalState> {
           onClick={this.createNewConnection}
           color='primary'
         >
-          <i className='ai ai-plus a-blue' onClick={this.createNewConnection} />
+          <i className='fa fa-plus a-blue' onClick={this.createNewConnection} />
           <span className='a-fontSizeXS'>
             {this.props.language.general.add_connection}
           </span>

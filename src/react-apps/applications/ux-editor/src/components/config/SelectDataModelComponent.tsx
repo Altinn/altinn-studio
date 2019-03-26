@@ -22,7 +22,7 @@ const customInput = {
   control: (base: any) => ({
     ...base,
     borderRadius: '0 !important',
-  })
+  }),
 };
 
 export class SelectDataModel extends React.Component<
@@ -85,17 +85,17 @@ export class SelectDataModel extends React.Component<
     const dataModelElementNames = [];
     for (const element of this.props.dataModelElements) {
       if (element.DataBindingName) {
-        dataModelElementNames.push({value: element.DataBindingName, label: element.DisplayString});
+        dataModelElementNames.push({ value: element.DataBindingName, label: element.DisplayString });
       }
     }
     return (
-        <Select
-          styles={customInput}
-          options={dataModelElementNames}
-          defaultValue={{value: this.props.selectedElement, label: this.props.selectedElement}}
-          onChange={this.onDataModelChange}
-          noOptionsMessage={this.props.noOptionsMessage}
-        />
+      <Select
+        styles={customInput}
+        options={dataModelElementNames}
+        defaultValue={{ value: this.props.selectedElement, label: this.props.selectedElement }}
+        onChange={this.onDataModelChange}
+        noOptionsMessage={this.props.noOptionsMessage}
+      />
     );
   }
 }

@@ -31,7 +31,9 @@ class Rule extends React.Component<IRuleComponentProps, any> {
   public componentDidMount() {
     if (this.props.connectionId) {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
+        // tslint:disable-next-line:max-line-length
         if (this.props.ruleModelElements[i].name === this.props.ruleConnection[this.props.connectionId].selectedFunction) {
+
           this.setState({
             selectedFunctionNr: i,
           });
@@ -107,7 +109,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
         <div className='modal-header a-modal-header'>
           <div className='a-iconText a-iconText-background a-iconText-large'>
             <div className='a-iconText-icon'>
-              <i className='ai ai-corp a-icon' />
+              <i className='fa fa-corp a-icon' />
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>

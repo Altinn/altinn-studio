@@ -16,6 +16,7 @@ import {
   watchUpdateFormComponentSaga,
 } from './formDesignerSagas';
 
+// tslint:disable-next-line:space-before-function-paren
 export default function* (): SagaIterator {
   yield fork(watchAddFormComponentSaga);
   yield fork(watchAddFormContainerSaga);
