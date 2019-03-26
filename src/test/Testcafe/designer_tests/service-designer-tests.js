@@ -75,7 +75,7 @@ test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
 })
 
-test.only('Create a service using one of each component',async t => {
+test('Create a service using one of each component',async t => {
   //No assertions as of now if the components are added to canvas
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
