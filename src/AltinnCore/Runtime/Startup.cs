@@ -72,10 +72,15 @@ namespace AltinnCore.Runtime
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IInstance, InstanceSILocalDev>();
+                services.AddSingleton<IWorkflowSI, WorkflowSI>();
             }
             else
             {
-                services.AddSingleton<IExecution, ExecutionSIContainer>();
+                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IInstance, InstanceSI>();
+                services.AddSingleton<IData, DataSI>();
+                services.AddSingleton<IWorkflowSI, WorkflowSI>();
             }
 
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
@@ -98,11 +103,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IWorkflowSI, WorkflowSI>();
-            services.AddSingleton<IInstance, InstanceSI>();
-            services.AddSingleton<IInstanceLocalDev, InstanceSILocalDev>();
-            services.AddSingleton<IData, DataSI>();
-
             services.AddResponseCompression();
 
             string repoLocation = null;

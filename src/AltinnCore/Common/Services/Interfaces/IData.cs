@@ -1,8 +1,8 @@
-using AltinnCore.Common.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -21,6 +21,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="applicationOwnerId">The Organization code for the service owner</param>
         /// <param name="applicationId">The service code for the current service</param>
         /// <param name="instanceOwnerId">The partyId for the reportee</param>
-        Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, string instanceOwnerId);
+        Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId);
     }
 }

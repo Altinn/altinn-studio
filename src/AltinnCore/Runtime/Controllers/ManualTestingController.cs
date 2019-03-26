@@ -137,12 +137,10 @@ namespace AltinnCore.Runtime.Controllers
                 Org = org,
                 Service = service,
             };
-            requestContext.ServiceMode = RequestContext.Mode.Runtime;
 
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
                 startServiceModel.ReporteeID = reporteeId;
-                requestContext.ServiceMode = RequestContext.Mode.Runtime;
                 requestContext.Reportee = _register.GetParty(startServiceModel.ReporteeID);
                 requestContext.UserContext.ReporteeId = reporteeId;
                 requestContext.UserContext.Reportee = requestContext.Reportee;

@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="applicationOwnerId">The Organization code for the service owner</param>
         /// <param name="applicationId">The service code for the current service</param>
         /// <param name="instanceOwnerId">The partyId</param>
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, string instanceOwnerId)
+        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string apiUrl = $"http://localhost:5010/api/v1/instances/{instanceId}/data/boatdata?instanceOwnerId={instanceOwnerId}";
             Instance instance;
@@ -60,7 +60,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="applicationOwnerId">The Organization code for the service owner</param>
         /// <param name="applicationId">The service code for the current service</param>
         /// <param name="instanceOwnerId">The partyId</param>
-        public async Task<Guid> UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, string instanceOwnerId, Guid dataId)
+        public async Task<Guid> UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"http://localhost:5010/api/v1/instances/{instanceId}/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
 
