@@ -48,7 +48,7 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
-
+            _logger.LogInformation("Starting GetCurrentUser call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -63,6 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            _logger.LogInformation("Ending GetCurrentUser call");
             return user;
         }
 
@@ -78,7 +79,7 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
             string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == owner ? "/user/repos" : "/org/" + owner + "/repos";
             Uri endpointUrl = new Uri(GetApiBaseUrl() + urlEnd);
-            
+            _logger.LogInformation("Starting CreateRepository call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync<CreateRepoOption>(endpointUrl, createRepoOption);
@@ -94,6 +95,8 @@ namespace AltinnCore.Common.Services.Implementation
 
                 repository.RepositoryCreatedStatus = response.StatusCode;
             }
+
+            _logger.LogInformation("Ending CreateRepository call");
 
             return repository;
         }
@@ -120,6 +123,7 @@ namespace AltinnCore.Common.Services.Implementation
                 giteaUrl = new Uri(giteaUrl.OriginalString + "&q=" + keyWord);
             }
 
+            _logger.LogInformation("Starting SearchRepository call");
             using (HttpClient client = GetApiClient())
             {
                 bool allElementsRetrieved = false;
@@ -176,6 +180,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            _logger.LogInformation("Ending SearchRepository call");
+
             if (repository != null && repository.Data.Any())
             {
                 foreach (Repository repo in repository.Data)
@@ -203,6 +209,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             Uri giteaUrl = new Uri(GetApiBaseUrl() + $"/repos/{owner}/{repository}");
 
+            _logger.LogInformation("Starting GetRepository call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -218,6 +225,8 @@ namespace AltinnCore.Common.Services.Implementation
                     _logger.LogError($"User {AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)} fetching service {owner}/{repository} failed with reponsecode {response.StatusCode}");
                 }
             }
+
+            _logger.LogInformation("Ending GetRepository call");
 
             if (returnRepository != null)
             {
@@ -245,6 +254,7 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<AltinnCore.RepositoryClient.Model.Organization>));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/user/orgs");
 
+            _logger.LogInformation("Starting GetUserOrganizations call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -259,6 +269,8 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            _logger.LogInformation("Ending GetUserOrganizations call");
+
             return organizations;
         }
 
@@ -272,7 +284,7 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Organization));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/orgs/" + name);
-
+            _logger.LogInformation("Starting GetOrganization call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -287,6 +299,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            _logger.LogInformation("Ending GetOrganization call");
             return organization;
         }
 
@@ -301,7 +314,7 @@ namespace AltinnCore.Common.Services.Implementation
             List<Branch> branches = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Branch>));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches");
-
+            _logger.LogInformation("Starting GetBranches call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -316,6 +329,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            _logger.LogInformation("Ending GetBranches call");
             return branches;
         }
 
@@ -331,7 +345,7 @@ namespace AltinnCore.Common.Services.Implementation
             Branch branchinfo = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches/" + branch);
-
+            _logger.LogInformation("Starting GetBranch call");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -346,6 +360,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
+            _logger.LogInformation("Ending GetBranch call");
             return branchinfo;
         }
 
@@ -359,7 +374,6 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/");
-
             using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
