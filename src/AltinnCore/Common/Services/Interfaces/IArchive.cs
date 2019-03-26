@@ -17,7 +17,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">the service</param>
         /// <param name="partyId">the party id</param>
         /// <typeparam name="T">the generic type parameter</typeparam>
-        void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId);
+        void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId);
 
         /// <summary>
         /// Get the archive service model
@@ -28,6 +28,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="service">the service></param>
         /// <param name="partyId">the party id</param>
         /// <returns>The archived service model</returns>
-        object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId);
+        object GetArchivedServiceModel(Guid instanceId, Type type, string org, string service, int partyId);
     }
 }

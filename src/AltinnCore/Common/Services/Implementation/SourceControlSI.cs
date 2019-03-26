@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -457,6 +458,36 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
+        /// Return the App Token id generated to let AltinnCore contact GITEA on behalf of service developer
+        /// </summary>
+        /// <returns>The app token id</returns>
+        public string GetAppTokenId()
+        {
+            return AuthenticationHelper.GetDeveloperAppTokenId(_httpContextAccessor.HttpContext);
+        }
+
+        /// <summary>
+        /// Return the deploy Token generated to let azure devops pipeline clone private GITEA repos on behalf of service developer
+        /// </summary>
+        /// <returns>The deploy app token</returns>
+        public string GetDeployToken()
+        {
+            string deployToken = _httpContextAccessor.HttpContext.Request.Cookies[_settings.DeployCookieName];
+            if (deployToken == null)
+            {
+                KeyValuePair<string, string> deployKeyValuePair = _gitea.GetSessionAppKey("AltinnDeployToken").Result ?? default(KeyValuePair<string, string>);
+                if (!deployKeyValuePair.Equals(default(KeyValuePair<string, string>)))
+                {
+                    deployToken = deployKeyValuePair.Value;
+                }
+
+                _httpContextAccessor.HttpContext.Response.Cookies.Append(_settings.DeployCookieName, deployToken);
+            }
+
+            return deployToken;
+        }
+
+        /// <summary>
         /// Verifies if there exist a developer folder
         /// </summary>
         private void CheckAndCreateDeveloperFolder()
@@ -560,7 +591,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="owner">The owner of the repository.</param>
         /// <param name="repository">The name of the repository.</param>
-        /// <param name="fileName">the entire file path with filen name</param>        
+        /// <param name="fileName">the entire file path with filen name</param>
         public void StageChange(string owner, string repository, string fileName)
         {
             string localServiceRepoFolder = _settings.GetServicePath(owner, repository, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));

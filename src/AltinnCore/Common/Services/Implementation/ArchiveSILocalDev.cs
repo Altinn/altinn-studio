@@ -36,7 +36,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void ArchiveServiceModel<T>(T dataToSerialize, int instanceId, Type type, string org, string service, int partyId)
+        public void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public object GetArchivedServiceModel(int instanceId, Type type, string org, string service, int partyId)
+        public object GetArchivedServiceModel(Guid instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(GetArchivedServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";

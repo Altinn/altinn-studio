@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.Runtime.Authorization
+namespace AltinnCore.Runtime.Authorization
 {
     using System;
     using System.Security.Claims;
@@ -27,7 +27,7 @@
         {
             if (context.Resource is AuthorizationFilterContext mvcContext)
             {
-                if (int.TryParse(mvcContext.RouteData.Values["instanceId"] as string, out int instanceID))
+                if (Guid.TryParse(mvcContext.RouteData.Values["instanceId"] as string, out Guid instanceID))
                 {
                     bool isAuthorized = AuthorizeAccess(context.User, instanceID, requirement.ActionType, out int requiredAuthenticationLevel);
 
@@ -67,7 +67,7 @@
         /// <param name="actionType">The action type to authorize against</param>
         /// <param name="requredAuthLevel">The required authentication level</param>
         /// <returns>Returns a boolean defining if user is authorized</returns>
-        private bool AuthorizeAccess(ClaimsPrincipal user, int instanceID, ActionType actionType, out int requredAuthLevel)
+        private bool AuthorizeAccess(ClaimsPrincipal user, Guid instanceID, ActionType actionType, out int requredAuthLevel)
         {
             // TODO. Call Context Handler to get the following information
             // Who owns the instance, and what is the service for it

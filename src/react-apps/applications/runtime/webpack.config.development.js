@@ -26,6 +26,7 @@ module.exports = {
         }
       }
     },
+    filename: "runtime.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
@@ -100,7 +101,7 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "react-app.css",
+      filename: "runtime.css",
     }),
     new CheckerPlugin(),
   ],

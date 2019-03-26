@@ -66,7 +66,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
         >
           {<i
             className={classNames(
-              'ai ai-circlecancel',
+              'fa fa-circlecancel',
               classes.color_blueDark,
               classes.fontSize_16,
               classes.marginRight_10)}
@@ -80,14 +80,14 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
             { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
           )}
         >
-          {this.props.hasPushRight && <i className={classNames('ai ai-upload', classes.color_blueDark)} />}
+          {this.props.hasPushRight && <i className={classNames('fa fa-upload', classes.color_blueDark)} />}
           {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
         </p>);
     } else {
       return (
         <p>
           <i
-            className={classNames('ai ai-check', classes.color_blueDarker)}
+            className={classNames('fa fa-check', classes.color_blueDarker)}
           />{getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
         </p>);
     }

@@ -81,11 +81,11 @@ const styles = createStyles({
   },
   mainLayout: {
     [theme.breakpoints.down('sm')]: {
-      height: `calc(100vh - 55px - 36px)`, // TODO: remove 36 when old top menu is removed
+      height: `calc(100vh - 55px)`,
       overflowY: 'auto',
     },
     [theme.breakpoints.up('md')]: {
-      height: `calc(100vh - 110px - 36px)`, // TODO: remove 36 when old top menu is removed
+      height: `calc(100vh - 110px)`,
       overflowY: 'auto',
     },
   },
@@ -283,8 +283,8 @@ export class AdministrationComponent extends
                 <i
                   className={classNames(classes.iconStyling,
                     {
-                      ['ai ai-corp']: this.props.service.owner.UserType === 2,
-                      ['ai ai-private']: this.props.service.owner.UserType !== 2,
+                      ['fa fa-corp']: this.props.service.owner.UserType === 2,
+                      ['fa fa-private']: this.props.service.owner.UserType !== 2,
                     })}
                   aria-hidden='true'
                 />

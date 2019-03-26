@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
@@ -11,7 +10,6 @@ using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Razor.Compilation;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -21,7 +19,7 @@ namespace AltinnCore.Common.Services.Implementation
     using System.Runtime.Loader;
     using System.Text;
     using AltinnCore.Common.Helpers;
-    using AltinnCore.Common.Helpers.Extensions;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
 
     /// <summary>
@@ -34,35 +32,39 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHostingEnvironment _hostingEnvironment;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class
+        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class.
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
-        /// <param name="compilationService">The service compilation service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="hostingEnvironment">The hosting environment</param>
         public ExecutionSIContainer(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             ApplicationPartManager partManager,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         /// <summary>
-        /// Returns the serviceImplementation for a given service
+        /// Returns the serviceImplementation for a given service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
         /// <returns>The service Implementation</returns>
-        public IServiceImplementation GetServiceImplementation(string org, string service)
+        public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
         {
             string assemblykey = org + "_" + service;
             string implementationTypeName = null;
@@ -98,14 +100,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Creates the service context made available for the Altinn Core services and views.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The service context</returns>
-        public ServiceContext GetServiceContext(string org, string service)
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
+        /// <returns>The service context.</returns>
+        public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, service).GetServiceModelType(),
+                ServiceModelType = GetServiceImplementation(org, service, startServiceFlag).GetServiceModelType(),
                 ServiceMetaData = _repository.GetServiceMetaData(org, service),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
                 WorkFlow = _repository.GetWorkFlow(org, service),
@@ -120,25 +123,20 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Generates a new service instanceID for a service
+        /// Generates a new service instanceID for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>A new instanceId</returns>
-        public int GetNewServiceInstanceID(string org, string service)
+        /// <returns>A new instanceId.</returns>
+        public Guid GetNewServiceInstanceID()
         {
-            int value = 1000;
-            Random rnd = new Random();
-            value += rnd.Next(1, 999);
-            return value;
+            return Guid.NewGuid();
         }
 
         /// <summary>
-        /// Returns the list of code list for a service
+        /// Returns the list of code list for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>List of code lists</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>List of code lists.</returns>
         public Dictionary<string, CodeList> GetCodelists(string org, string service)
         {
             Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
@@ -149,12 +147,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Return a given code list
+        /// Return a given code list.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="name">The name of the code list</param>
-        /// <returns>The code list</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <param name="name">The name of the code list.</param>
+        /// <returns>The code list.</returns>
         public CodeList GetCodeListByName(string org, string service, string name)
         {
             CodeList codeList = null;
@@ -165,10 +163,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the basic service owner configuration
+        /// Returns the basic service owner configuration.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <returns>The basic service owner configuration</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <returns>The basic service owner configuration.</returns>
         public OrgConfiguration GetServiceOwnerConfiguration(string org)
         {
             OrgConfiguration config;
@@ -178,11 +176,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the basic service configuration
+        /// Returns the basic service configuration.
         /// </summary>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The basic service configuration</returns>
+        /// <param name="org">The organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The basic service configuration.</returns>
         public ServiceConfiguration GetServiceConfiguration(string org, string service)
         {
             ServiceConfiguration config;
@@ -194,12 +192,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Gets the raw content of a code list
+        /// Gets the raw content of a code list.
         /// </summary>
-        /// <param name="org">The organization code of the service owner</param>
-        /// <param name="service">The service code of the current service</param
-        /// <param name="name">The name of the code list to retrieve</param>
-        /// <returns>Raw contents of a code list file</returns>
+        /// <param name="org">The organization code of the service owner.</param>
+        /// <param name="service">The service code of the current service.</param>
+        /// <param name="name">The name of the code list to retrieve.</param>
+        /// <returns>Raw contents of a code list file.</returns>
         public string GetCodelist(string org, string service, string name)
         {
             // Not relevant in a container scenario.
@@ -213,28 +211,28 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (resource == _settings.RuleHandlerFileName)
             {
-              if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
-              {
-                  fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
-              }
+                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
+                {
+                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+                }
             }
             else
             {
-              if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))
-              {
-                  fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource);
-              }
+                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource))
+                {
+                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetResourceFolder() + resource);
+                }
             }
 
             return fileContent;
         }
 
         /// <summary>
-        /// Returns the service metadata for a service
+        /// Returns the service metadata for a service.
         /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <returns>The service metadata for a service</returns>
+        /// <param name="org">The Organization code for the service owner.</param>
+        /// <param name="service">The service code for the current service.</param>
+        /// <returns>The service metadata for a service.</returns>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
@@ -243,12 +241,12 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Get workflow for the service
+        /// Get workflow for the service.
         /// </summary>
-        /// <param name="org">the organisation</param>
-        /// <param name="service">the service</param>
-        /// <param name="edition">the service edition</param>
-        /// <returns>The workflow for the service</returns>
+        /// <param name="org">the organisation.</param>
+        /// <param name="service">the service.</param>
+        /// <param name="edition">the service edition.</param>
+        /// <returns>The workflow for the service.</returns>
         public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.WorkFlowFileName;
@@ -272,6 +270,32 @@ namespace AltinnCore.Common.Services.Implementation
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();
+        }
+
+        /// <inheritdoc/>
+        public byte[] GetRuntimeResource(string resource)
+        {
+            byte[] fileContent = null;
+            string path = string.Empty;
+            if (resource == _settings.RuntimeAppFileName)
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "js", "react", _settings.RuntimeAppFileName);
+            }
+            else if (resource == _settings.ServiceStylesConfigFileName)
+            {
+                return Encoding.UTF8.GetBytes(_settings.GetStylesConfig());
+            }
+            else
+            {
+                path = Path.Combine(_hostingEnvironment.WebRootPath, "runtime", "css", "react", _settings.RuntimeCssFileName);
+            }
+
+            if (File.Exists(path))
+            {
+                fileContent = File.ReadAllBytes(path);
+            }
+
+            return fileContent;
         }
     }
 }

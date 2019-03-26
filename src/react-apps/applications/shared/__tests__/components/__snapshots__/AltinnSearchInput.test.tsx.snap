@@ -15,7 +15,7 @@ exports[`>>> AltinnSearchInput--- Snapshot +++ Should match snapshot with the le
         className="MuiInputAdornment-root-38 AltinnSearchInput-searchBoxIcon-3 MuiInputAdornment-positionEnd-41"
       >
         <i
-          className="ai ai-search"
+          className="fa fa-search"
         />
       </div>
       <input

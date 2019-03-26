@@ -11,3 +11,4 @@ docker-compose.*.yml
 **/obj
 src/react-apps/ux-editor/node_modules
 src/react-apps/ux-editor/compiled
+src/Altinn.Platform

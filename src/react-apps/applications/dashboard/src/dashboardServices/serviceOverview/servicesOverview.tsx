@@ -77,8 +77,12 @@ const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => 
   return allDistinctServiceOwners;
 };
 
+const getListOfServicesExcludingCodelist = (services: any) => {
+  return services.filter((service: any) => service.name !== 'codelists');
+};
+
 const getCurrentUsersName = (user: any) => {
-  return user.full_name || user.login;
+  return user ? user.full_name || user.login : '';
 };
 
 // tslint:disable-next-line:max-line-length
@@ -177,7 +181,7 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
   }
 
   public render() {
-    const { classes, services } = this.props;
+    const { classes, services, currentUserName } = this.props;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -186,17 +190,19 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
               {getLanguageFromKey('dashboard.main_header', this.props.language)}
             </Typography>
           </Grid>
-          <Grid
-            item={true}
-            xl={4}
-            lg={4}
-            md={4}
-            sm={12}
-            xs={12}
-            className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
-          >
-            <CreateNewService />
-          </Grid>
+          {currentUserName &&
+            <Grid
+              item={true}
+              xl={4}
+              lg={4}
+              md={4}
+              sm={12}
+              xs={12}
+              className={classNames({ [classes.textToRight]: isWidthUp('md', this.props.width) })}
+            >
+              <CreateNewService />
+            </Grid>
+          }
         </Grid>
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
@@ -257,7 +263,7 @@ const mapStateToProps = (
     classes: props.classes,
     width: props.width,
     language: state.language.language,
-    services: state.dashboard.services,
+    services: getListOfServicesExcludingCodelist(state.dashboard.services),
     // tslint:disable-next-line:max-line-length
     allDistinctOwners: getListOfDistinctServiceOwners(state.dashboard.services, getCurrentUsersName(state.dashboard.user)),
     selectedOwners: getListOfDistinctServiceOwners(state.dashboard.services),

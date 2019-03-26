@@ -63,6 +63,8 @@ export interface IFileEditorState {
   value: string;
   valueDiff: boolean;
   valueOriginal: string;
+  fileEditorCancelRef: React.RefObject<HTMLDivElement>;
+  fileEditorSaveRef: React.RefObject<HTMLDivElement>;
 }
 
 const styles = createStyles({
@@ -134,6 +136,8 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
       value: '',
       valueDiff: false,
       valueOriginal: '',
+      fileEditorCancelRef: React.createRef<HTMLDivElement>(),
+      fileEditorSaveRef: React.createRef<HTMLDivElement>(),
     };
   }
 
@@ -292,14 +296,14 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.props.closeFileEditor}
         >
-          <i className='ai ai-circlecancel' />
+          <i className='fa fa-circlecancel' ref={this.state.fileEditorCancelRef} id='fileEditorCancel' tabIndex={0} />
         </IconButton>
         <IconButton
           type='button'
           className={this.props.classes.formComponentsBtn + ' ' + this.props.classes.specialBtn}
           onClick={this.saveFile}
         >
-          <i className='ai ai-circlecheck' />
+          <i className='fa fa-circlecheck' id='fileEditorCheck' tabIndex={0} />
         </IconButton>
       </Grid>
     );
@@ -317,12 +321,17 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         <Grid
           item={true}
         >
-          <AltinnButton
-            btnText='Lagre fil'
-            disabled={!this.state.valueDiff}
-            onClickFunction={this.saveFile}
-            secondaryButton={true}
-          />
+          <div
+            ref={this.state.fileEditorSaveRef}
+            tabIndex={0}
+          >
+            <AltinnButton
+              btnText='Lagre fil'
+              disabled={!this.state.valueDiff}
+              onClickFunction={this.saveFile}
+              secondaryButton={true}
+            />
+          </div>
         </Grid>
       </Grid>
     );
@@ -380,7 +389,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                   {/* Return folder with expand icon */ }
                   return (
                     <React.Fragment key={index}>
-                      {folder} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                      {folder} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                     </React.Fragment>
                   );
                 })
@@ -388,7 +397,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                 :
 
                 <React.Fragment>
-                  <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                 </React.Fragment>
 
               }
@@ -397,7 +406,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
               {!this.props.loadFile ?
 
                 <React.Fragment>
-                  {mode} <i className='ai ai-expand' style={{ fontSize: '2rem' }} />
+                  {mode} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                   <Select
                     value={this.state.selectedFile}
                     classes={
@@ -448,6 +457,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
             language={language.name}
             onValueChange={this.onValueChange}
             value={this.state.value}
+            escRef={this.props.showSaveButton ? this.state.fileEditorSaveRef : this.state.fileEditorCancelRef}
           />
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />

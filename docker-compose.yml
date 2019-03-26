@@ -64,7 +64,7 @@ services:
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
       - GeneralSettings:TemplateLocation=/Templates
-      - GeneralSettings:DeploymentLocation=/Deployment
+      - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
@@ -119,13 +119,3 @@ services:
     build:
       context: .
       dockerfile: src/AltinnRepositories/Dockerfile
-
-  altinn_runttimedb:
-    container_name: altinn-runtimedb
-    image: altinncoreruntimedb:latest
-    restart: always
-    ports:
-      - "44355:44355"
-    build:
-      context: .
-      dockerfile: src/AltinnCore/RuntimeDb/Dockerfile

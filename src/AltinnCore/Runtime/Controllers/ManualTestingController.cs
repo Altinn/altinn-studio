@@ -120,7 +120,7 @@ namespace AltinnCore.Runtime.Controllers
                 ZipFile.ExtractToDirectory(zipPath, extractPath);
             }
 
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
@@ -134,10 +134,13 @@ namespace AltinnCore.Runtime.Controllers
                     .Select(x => new SelectListItem { Text = x.PrefillKey + " " + x.LastChanged, Value = x.PrefillKey })
                     .ToList(),
                 ReporteeID = requestContext.Reportee.PartyId,
+                Org = org,
+                Service = service,
             };
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
                 startServiceModel.ReporteeID = reporteeId;
+                requestContext.ServiceMode = RequestContext.Mode.Studio;
                 requestContext.Reportee = _register.GetParty(startServiceModel.ReporteeID);
                 requestContext.UserContext.ReporteeId = reporteeId;
                 requestContext.UserContext.Reportee = requestContext.Reportee;
@@ -158,9 +161,9 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public IActionResult RedirectToCorrectState(string org, string service, int instanceId)
+        public IActionResult RedirectToCorrectState(string org, string service, Guid instanceId)
         {
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, 0);
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
             ServiceState currentState = _workflowSI.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
             string nextUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
