@@ -273,6 +273,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 file.Delete();
             }
+
             directory.Delete();
             return Ok();
         }
@@ -304,11 +305,13 @@ namespace AltinnCore.Designer.Controllers
                     }
 
                 }
+
                 if (attachments.Count > 0)
                 {
                     allAttachments.Add(new { type = typeDirectory.Name, attachments = attachments });
                 }
             }
+
             return Ok(allAttachments);
         }
 
