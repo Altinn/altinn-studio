@@ -196,7 +196,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
         /// <param name="formId">The form id</param>
-        /// <param name="attachmentType">The attachment type id</param>
         public string GetAttachmentListUrl(string org, string service, int partyId, Guid formId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
