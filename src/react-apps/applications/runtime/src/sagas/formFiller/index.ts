@@ -2,6 +2,8 @@ import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import {
   watchCompleteAndSendInFormSaga,
+  watchDeleteAttachmentSaga,
+  watchFetchAttachmentsSaga,
   watchFetchFormDataSaga,
   watchResetFormDataSaga,
   watchRunSingleFieldValidationSaga,
@@ -18,4 +20,6 @@ export default function* (): SagaIterator {
   yield fork(watchRunSingleFieldValidationSaga);
   yield fork(watchCompleteAndSendInFormSaga);
   yield fork(watchUploadAttachmentSaga);
+  yield fork(watchDeleteAttachmentSaga);
+  yield fork(watchFetchAttachmentsSaga);
 }

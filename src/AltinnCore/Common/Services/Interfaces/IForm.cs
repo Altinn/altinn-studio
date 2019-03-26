@@ -34,6 +34,27 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetAttachmentUploadUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName);
 
         /// <summary>
+        /// Gets url of attachment delete
+        /// </summary>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="formId">The form id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentName">The file name for the attachment</param>
+        /// <param name="attachmentId">The id for the attachment</param>
+        string GetAttachmentDeleteUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName, string attachmentId);
+
+        /// <summary>
+        /// Gets url of attachment list
+        /// </summary>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="formId">The form id</param>
+        string GetAttachmentListUrl(string org, string service, int partyId, int formId);
+
+        /// <summary>
         /// Returns the Form model for a given from.
         /// </summary>
         /// <param name="formId">The formId</param>

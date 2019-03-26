@@ -237,8 +237,25 @@ declare global {
     [id: string]: IComponentValidations;
   }
   export interface IAttachment {
-    file: File;
     uploaded: boolean;
-    id?: string;
+    deleting: boolean;
+    name: string;
+    size: number;
+    id: string;
+  }
+
+  export interface IAttachments {
+    [attachmentType: string]: IAttachment[];
+  }
+
+  export interface IAttachmentListApiResponse {
+    type: string;
+    attachments: IAttachmentApiResponse[];
+  }
+
+  export interface IAttachmentApiResponse {
+    name: string;
+    size: number;
+    id: string;
   }
 }

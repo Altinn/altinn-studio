@@ -35,9 +35,43 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
   completeAndSendInForm: (url: any) => formFillerActions.ICompleteAndSendInForm;
   completeAndSendInFormFulfilled: () => Action;
   completeAndSendInFormRejected: () => Action;
-  uploadAttachment: (file: File) => formFillerActions.IUploadAttachmentAction;
-  uploadAttachmentFulfilled: (attachment: IAttachment) => formFillerActions.IUploadAttachmentActionFulfilled;
-  uploadAttachmentRejected: (error: Error) => formFillerActions.IUploadAttachmentActionRejected;
+  uploadAttachment: (
+    file: File,
+    fileType: string,
+    attachmentId: string,
+    componentId: string,
+  ) => formFillerActions.IUploadAttachmentAction;
+  uploadAttachmentFulfilled: (
+    attachment: IAttachment,
+    fileType: string,
+    tmpAttachmentId: string,
+    componentId: string)
+    => formFillerActions.IUploadAttachmentActionFulfilled;
+  uploadAttachmentRejected: (
+    attachmentId: string,
+    attachmentType: string,
+    componentId: string,
+    validationMessages: IComponentValidations,
+  ) => formFillerActions.IUploadAttachmentActionRejected;
+  deleteAttachment: (
+    attachment: IAttachment,
+    attachmentType: string,
+    componentId: string,
+  ) => formFillerActions.IDeleteAttachmentAction;
+  deleteAttachmentFulfilled: (
+    attachmentId: string,
+    attachmentType: string,
+    componentId: string,
+  ) => formFillerActions.IDeleteAttachmentActionFulfilled;
+  deleteAttachmentRejected: (
+    attachment: IAttachment,
+    attachmentType: string,
+    componentId: string,
+    validationMessages: IComponentValidations,
+  ) => formFillerActions.IDeleteAttachmentActionRejected;
+  fetchAttachments: () => formFillerActions.IFetchAttachmentsAction;
+  fetchAttachmentsFulfilled: (attachments: IAttachments) => formFillerActions.IFetchAttachmentsActionFulfilled;
+  fetchAttachmentsRejected: (error: Error) => formFillerActions.IFetchAttachmentsActionRejected;
 }
 
 const actions: IFormFillerActionDispatchers = {
@@ -62,6 +96,12 @@ const actions: IFormFillerActionDispatchers = {
   uploadAttachment: formFillerActions.uploadAttachment,
   uploadAttachmentFulfilled: formFillerActions.uploadAttachmentFulfilled,
   uploadAttachmentRejected: formFillerActions.uploadAttachmentRejected,
+  deleteAttachment: formFillerActions.deleteAttachment,
+  deleteAttachmentFulfilled: formFillerActions.deleteAttachmentFulfilled,
+  deleteAttachmentRejected: formFillerActions.deleteAttachmentRejected,
+  fetchAttachments: formFillerActions.fetchAttachments,
+  fetchAttachmentsFulfilled: formFillerActions.fetchAttachmentsFulfilled,
+  fetchAttachmentsRejected: formFillerActions.fetchAttachmentsRejected,
 };
 
 const FormFillerActionDispatchers: IFormFillerActionDispatchers = bindActionCreators<

@@ -14,7 +14,8 @@ export interface IGenericComponentProps {
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
   thirdPartyComponents?: any;
-  language: any;
+  language?: any;
+  attachments?: IAttachments;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps> {

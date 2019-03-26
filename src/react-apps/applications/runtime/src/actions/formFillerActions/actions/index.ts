@@ -4,3 +4,5 @@ export * from './fetchFormData';
 export * from './runSingleFieldValidation';
 export * from './completeAndSendInForm';
 export * from './uploadAttachment';
+export * from './deleteAttachment';
+export * from './fetchAttachments';

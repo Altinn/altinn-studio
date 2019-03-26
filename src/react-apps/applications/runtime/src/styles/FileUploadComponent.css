@@ -19,6 +19,10 @@
   font-size: 1.6rem;
 }
 
+.file-upload-invalid:focus {
+  outline-color: #E23B53;
+}
+
 .blue-underline {
   border-bottom: 2px solid #1EADF7;
 }
@@ -45,6 +49,7 @@
 
 .file-upload-table > tbody > tr > td:last-child {
   padding-right: 0;
+  width: 15%;
 }
 
 .file-upload-table > tbody > tr:last-child{
