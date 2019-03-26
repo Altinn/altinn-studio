@@ -1,7 +1,8 @@
 import * as React from 'react';
 import FormLayoutActions from './features/form/layout/actions';
 import FormDataActions from './features/form/data/actions';
-import { Preview } from './containers/Preview';
+
+import './app.css';
 
 export interface IAppProps { }
 export interface IAppState { }
@@ -27,7 +28,7 @@ class App extends React.Component<IAppProps, IAppState> {
   public render(): JSX.Element {
     return (
       <div>
-        <Preview />
+        <h1> Hello </h1>
       </div>
     )
   }

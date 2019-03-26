@@ -56,6 +56,9 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
         },
       });
     }
+    default: {
+      return state;
+    }
   }
 }
 
