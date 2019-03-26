@@ -152,7 +152,7 @@ namespace AltinnCore.Common.Services.Implementation
                     }
 
                     return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
-                }                
+                }
             }
         }
 
@@ -165,7 +165,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="formId">The form id</param>
         /// <param name="attachmentType">The attachment type id</param>
         /// <param name="attachmentName">The file name for the attachment</param>
-        public string GetAttachmentUploadUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName)
+        public string GetAttachmentUploadUrl(string org, string service, int partyId, Guid formId, string attachmentType, string attachmentName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}";
@@ -182,7 +182,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="attachmentType">The attachment type id</param>
         /// <param name="attachmentName">The file name for the attachment</param>
         /// <param name="attachmentId">The id for the attachment</param>
-        public string GetAttachmentDeleteUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName, string attachmentId)
+        public string GetAttachmentDeleteUrl(string org, string service, int partyId, Guid formId, string attachmentType, string attachmentName, string attachmentId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(DeleteFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}&attachmentId={attachmentId}";
@@ -197,7 +197,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="partyId">The partyId</param>
         /// <param name="formId">The form id</param>
         /// <param name="attachmentType">The attachment type id</param>
-        public string GetAttachmentListUrl(string org, string service, int partyId, int formId)
+        public string GetAttachmentListUrl(string org, string service, int partyId, Guid formId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormAttachmentsApiMethod, org, service, developer, partyId)}&instanceId={formId}";

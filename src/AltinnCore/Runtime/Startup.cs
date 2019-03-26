@@ -297,24 +297,24 @@ namespace AltinnCore.Runtime
 
                 routes.MapRoute(
                  name: "apiAttachmentRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}/",
                  defaults: new { controller = "ServiceAPI" },
                  constraints: new
                  {
                      controller = "ServiceAPI",
                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"\d+",
+                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                  });
 
                 routes.MapRoute(
                  name: "apiAttachmentDeleteRoute",
-                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentDeleteUrl}/{instanceId}/{attachmentType}/{fileName}/{fileId}",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentDeleteUrl}/{instanceId}/{attachmentType}/{fileName}/{fileId}/",
                  defaults: new { controller = "ServiceAPI" },
                  constraints: new
                  {
                      controller = "ServiceAPI",
                      service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                     instanceId = @"\d+",
+                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                  });
 
                 routes.MapRoute(
