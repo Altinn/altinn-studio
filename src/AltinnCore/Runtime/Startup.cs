@@ -77,7 +77,7 @@ namespace AltinnCore.Runtime
             }
             else
             {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionSIContainer>();
                 services.AddSingleton<IInstance, InstanceSI>();
                 services.AddSingleton<IData, DataSI>();
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
@@ -123,6 +123,7 @@ namespace AltinnCore.Runtime
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions

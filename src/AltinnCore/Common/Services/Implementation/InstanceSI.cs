@@ -4,10 +4,12 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
@@ -20,17 +22,16 @@ namespace AltinnCore.Common.Services.Implementation
         private const string SaveInstanceMethod = "SaveInstanceToFile";
         private const string GetInstanceMethod = "GetInstanceFromFile";
         private readonly IData _data;
+        private readonly PlatformStorageSettings _platformStorageSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceSILocalDev"/> class.
         /// </summary>
-        /// <param name="repositorySettings">repository settings</param>
-        /// <param name="httpContextAccessor">The http context accessor</param>
-        /// <param name="testdataRepositorySettings">Test data repository settings</param>
-        /// <param name="formService">form service</param>
-        public InstanceSI(IData data)
+        /// <param name="data">form service</param>
+        public InstanceSI(IData data, IOptions<PlatformStorageSettings> platformStorageSettings)
         {
             _data = data;
+            _platformStorageSettings = platformStorageSettings.Value;
         }
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             using (HttpClient client = new HttpClient())
             {
-                string apiUrl = $"http://localhost:5010/api/v1/instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+                string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
@@ -85,7 +86,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"http://localhost:5010/api/v1/instances/instanceId:guid/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/api/v1/instances/instanceId:guid/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -118,7 +119,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"http://localhost:5010/api/v1/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/api/v1/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
