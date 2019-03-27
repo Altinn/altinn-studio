@@ -33,7 +33,7 @@ const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => {
       className={classes.altinnCheckBox}
       checked={props.checked}
       onChange={props.onChangeFunction}
-      disabled={props.disabled}
+      disabled={props.disabled ? props.disabled : false}
     />
   );
 };
