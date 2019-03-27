@@ -31,7 +31,7 @@ export class DatepickerComponent
     setTimeout(() => {
       if (!this.myDateCmp.current.value) {
         return;
-      };
+      }
       this.setState({
         value: this.myDateCmp.current.value,
       });
