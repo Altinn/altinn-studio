@@ -3,8 +3,10 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
@@ -14,6 +16,17 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class DataSI : IData
     {
+        private readonly PlatformStorageSettings _platformStorageSettings;
+
+        /// <summary>
+        /// Initializes a new data of the <see cref="DataSI"/> class.
+        /// </summary>
+        /// <param name="data">form service</param>
+        public DataSI(IOptions<PlatformStorageSettings> platformStorageSettings)
+        {
+            _platformStorageSettings = platformStorageSettings.Value;
+        }
+
         /// <summary>
         /// Insert form for the given instance
         /// </summary>
@@ -26,7 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="instanceOwnerId">The partyId</param>
         public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
-            string apiUrl = $"http://localhost:5010/api/v1/instances/{instanceId}/data/boatdata?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/boatdata?instanceOwnerId={instanceOwnerId}";
             Instance instance;
             using (HttpClient client = new HttpClient())
             {
@@ -62,7 +75,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="instanceOwnerId">The partyId</param>
         public async Task<Guid> UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
-            string apiUrl = $"http://localhost:5010/api/v1/instances/{instanceId}/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
 
             using (HttpClient client = new HttpClient())
             {
