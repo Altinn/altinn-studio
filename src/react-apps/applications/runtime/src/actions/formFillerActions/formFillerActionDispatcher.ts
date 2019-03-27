@@ -69,7 +69,7 @@ export interface IFormFillerActionDispatchers extends ActionCreatorsMapObject {
     componentId: string,
     validationMessages: IComponentValidations,
   ) => formFillerActions.IDeleteAttachmentActionRejected;
-  fetchAttachments: () => formFillerActions.IFetchAttachmentsAction;
+  fetchAttachments: () => Action;
   fetchAttachmentsFulfilled: (attachments: IAttachments) => formFillerActions.IFetchAttachmentsActionFulfilled;
   fetchAttachmentsRejected: (error: Error) => formFillerActions.IFetchAttachmentsActionRejected;
 }
