@@ -71,6 +71,7 @@ const styles = (theme: Theme) => createStyles({
     paddingRight: '0px',
   },
   listItem: {
+    cursor: 'grab',
     paddingLeft: '12px',
     paddingRight: '8px',
     paddingTop: '9px',
@@ -91,10 +92,10 @@ const styles = (theme: Theme) => createStyles({
   },
   helpIcon: {
     'color': '#0062BA',
+    'cursor': 'pointer',
     'fontSize': '2em !important',
     '&:hover': {
-      background: '#0062BA',
-      color: 'black',
+      color: '#000000',
     },
   },
 });
