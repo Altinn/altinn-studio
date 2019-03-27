@@ -79,7 +79,6 @@ export class TestingInTestenvironmentContainer extends
               </Typography>
             </Grid>
 
-
             <Grid item={true} xs={11} sm={7} md={7} className={classes.deployPlaceholderStyle}>
 
               <Paper square={true} elevation={1} style={{ padding: 24 }}>
@@ -92,7 +91,6 @@ export class TestingInTestenvironmentContainer extends
                 {/* grid padding */}
               </Grid>
             </Hidden>
-
 
             <Grid item={true} xs={11} sm={7} md={4} className={classes.aboutServicePlaceholderStyle}>
 
