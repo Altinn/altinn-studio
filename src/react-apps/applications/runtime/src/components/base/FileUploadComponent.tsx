@@ -106,16 +106,18 @@ export class FileUploadComponentClass
 
   public handleDeleteFile = (index: number) => {
     const attachmentToDelete = this.state.attachments[index];
+    if (!attachmentToDelete.uploaded) {
+      return;
+    }
     const fileType = this.props.id; // component id used as filetype identifier for now, see issue #1364
     attachmentToDelete.deleting = true;
-    if (attachmentToDelete.uploaded) {
-      FormFillerActionDispatchers.deleteAttachment(attachmentToDelete, fileType, this.props.id);
-    }
     const newList = this.state.attachments.slice();
     newList[index] = attachmentToDelete;
     this.setState({
       attachments: newList,
     });
+    FormFillerActionDispatchers.deleteAttachment(attachmentToDelete, fileType, this.props.id);
+
   }
 
   public getComponentValidations = (): IComponentValidations => {
@@ -233,7 +235,7 @@ export class FileUploadComponentClass
     if (displayMode === 'simple' && !this.state.showFileUpload &&
       (this.state.attachments.length < maxNumberOfAttachments) && this.state.attachments.length > 0) {
       return (
-        <button className={'file-upload-button blue-underline'} onClick={this.handleAddMoreAttachments}>
+        <button className={'file-upload-button blue-underline'} onClick={this.showFileUpload}>
           {getLanguageFromKey('form_filler.file_uploader_add_attachment', this.props.language)}
         </button>
       );
@@ -242,7 +244,7 @@ export class FileUploadComponentClass
     }
   }
 
-  public handleAddMoreAttachments = () => {
+  public showFileUpload = () => {
     this.setState({
       showFileUpload: true,
     });

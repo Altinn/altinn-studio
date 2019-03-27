@@ -1,9 +1,6 @@
 import { Action } from 'redux';
 import * as ActionTypes from '../../formFillerActionTypes';
 
-export interface IFetchAttachmentsAction extends Action {
-}
-
 export interface IFetchAttachmentsActionFulfilled extends Action {
   attachments: IAttachments;
 }
@@ -13,7 +10,7 @@ export interface IFetchAttachmentsActionRejected extends Action {
 }
 
 export function fetchAttachments(
-): IFetchAttachmentsAction {
+): Action {
   return {
     type: ActionTypes.FETCH_ATTACHMENTS,
   };
