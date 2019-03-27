@@ -26,9 +26,7 @@ namespace Altinn.Platform.Storage
             WebHost.CreateDefaultBuilder(args)
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                string basePath = Directory.GetCurrentDirectory();
-
-                LoadConfigurationSettings(config, basePath, args);
+                LoadConfigurationSettings(config, args);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -41,8 +39,9 @@ namespace Altinn.Platform.Storage
             })
                 .UseStartup<Startup>();
 
-        public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
+        public static void LoadConfigurationSettings(IConfigurationBuilder config, string[] args)
         {
+            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
             config.SetBasePath(basePath);
 
             config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
@@ -53,7 +52,7 @@ namespace Altinn.Platform.Storage
             }
             else
             {
-                config.AddJsonFile(basePath + "/appsettings.json", optional: false, reloadOnChange: true);
+                config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
             }
 
             config.AddEnvironmentVariables();

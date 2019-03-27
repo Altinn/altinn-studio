@@ -16,16 +16,6 @@ export interface ITextAreaComponentState {
 export class TextAreaComponent
   extends React.Component<ITextAreaComponentProps, ITextAreaComponentState> {
 
-  public static getDerivedStateFromProps(props: ITextAreaComponentProps, state: ITextAreaComponentState) {
-    if (props.formData !== state.formData) {
-      return {
-        formData: props.formData,
-      };
-    } else {
-      return null;
-    }
-  }
-
   constructor(props: ITextAreaComponentProps, state: ITextAreaComponentState) {
     super(props, state);
     this.state = {
