@@ -57,6 +57,10 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     return this.state.selected.includes(option);
   }
 
+  public emptyFunction = (): string => {
+    return undefined;
+  }
+
   public render() {
     const { options } = this.props.component;
     const optionsLength = (options) ? options.length : 0;
@@ -86,6 +90,7 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               value={option.value}
               name={'checkbox-' + this.props.id + '-' + index}
               checked={this.isOptionSelected(option.value)}
+              onChange={this.emptyFunction}
             />
             <label
               className={this.props.component.readOnly ?

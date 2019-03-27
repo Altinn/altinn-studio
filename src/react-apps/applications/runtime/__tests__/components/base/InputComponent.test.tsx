@@ -18,7 +18,7 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
       id: mockId,
       component: 'Input',
       type: 'text',
-      disabled: false,
+      readOnly: false,
       required: false,
     };
     mockHandleDataChange = () => null;

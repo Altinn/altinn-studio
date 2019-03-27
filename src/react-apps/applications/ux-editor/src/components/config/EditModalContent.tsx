@@ -31,7 +31,7 @@ const styles = {
 
 export interface IEditModalContentProps {
   component: FormComponentType;
-  dataModel: IDataModelFieldElement[];
+  dataModel?: IDataModelFieldElement[];
   textResources?: ITextResource[];
   codeListResources?: ICodeListListElement[];
   saveEdit?: (updatedComponent: FormComponentType) => void;
@@ -522,7 +522,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
       case 'TextArea': {
-        const { component } = this.props;
         return (
           <Grid item={true} xs={12}>
             {renderSelectDataModelBinding(

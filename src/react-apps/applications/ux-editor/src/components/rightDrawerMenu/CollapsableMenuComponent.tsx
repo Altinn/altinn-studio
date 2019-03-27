@@ -82,7 +82,7 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
     setMenuIsOpen(!menuIsOpen);
   };
 
-  const toggleCheckbox = (value: string) => {
+  const toggleCheckbox = React.useCallback((value: string) => {
     if (component) {
       component[value] = !component[value];
       FormDesignerActionDispatchers.updateFormComponent(
@@ -91,7 +91,7 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
       );
       setComponent(props.components[props.componentId]);
     }
-  };
+  }, []);
 
   const handleKeyPress = (e: any) => {
     if (e.key === 'Enter') {
@@ -120,7 +120,7 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
             <ListItem className={classes.listItem}>
               <AltinnCheckBox
                 checked={component.readOnly}
-                onChangeFunction={() => toggleCheckbox('readOnly')}
+                onChangeFunction={toggleCheckbox('readOnly')}
               />
               {props.language.ux_editor.read_only}
             </ListItem>
@@ -129,7 +129,7 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
             <ListItem className={classes.listItem}>
               <AltinnCheckBox
                 checked={!component.required}
-                onChangeFunction={() => toggleCheckbox('required')}
+                onChangeFunction={toggleCheckbox('required')}
                 disabled={getMinOccursFromDataModel(component.dataModelBindings.simpleBinding)}
               />
               {props.language.ux_editor.optional}

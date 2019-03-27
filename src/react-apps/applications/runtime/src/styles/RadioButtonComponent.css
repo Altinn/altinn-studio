@@ -24,7 +24,7 @@
 .no-cursor {
   cursor: default !important;
 }
-.a-custom-radio .custom-control-input:not(checked)~.disabled-radio-button::before {
+.a-custom-radio .custom-control-input:not(:checked)~.disabled-radio-button::before {
   background: repeating-linear-gradient(
     135deg,
     #efefef,
