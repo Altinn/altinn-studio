@@ -17,11 +17,11 @@ export const menu = ([
   {
     key: 'Teste',
     activeSubHeaderSelection: 'Teste',
-    link: '/test',
+    link: '/testingintestenvironment',
   },
   {
     key: 'Publisere',
     activeSubHeaderSelection: 'Publisere',
-    link: '/productionsetting',
+    link: '/publish',
   },
 ]);
