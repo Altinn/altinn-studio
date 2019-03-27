@@ -36,6 +36,9 @@ export interface IFormDesignerState {
 
 const styles = ((theme: Theme) => createStyles({
   root: {
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: theme.sharedStyles.mainPaddingLeft,
+    },
     flexGrow: 1,
     minHeight: 'calc(100vh - 69px)',
   },
