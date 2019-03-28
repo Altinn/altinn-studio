@@ -8,7 +8,6 @@ import { InputComponent } from './base/InputComponent';
 import { ParagraphComponent } from './base/ParagraphComponent';
 import { RadioButtonContainerComponent } from './base/RadioButtonsContainerComponent';
 import { TextAreaComponent } from './base/TextAreaComponent';
-import { SubmitComponent } from './widget/SubmitComponent';
 
 export interface IComponent {
   name: string;
@@ -91,15 +90,6 @@ export const schemaComponents: IComponent[] = [
     name: 'FileUpload',
     Tag: FileUploadComponent,
     Type: ComponentTypes.FileUpload,
-  },
-  {
-    name: 'Submit',
-    Tag: SubmitComponent,
-    Type: ComponentTypes.Submit,
-    customProperties: {
-      textResourceId: 'Standard.Button.Submit',
-      customType: 'Standard',
-    },
   },
 ];
 

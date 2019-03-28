@@ -1,5 +1,15 @@
 {
   "compilerOptions": {
+    "skipLibCheck": true,
+    "types": [
+      "node"
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "Shared/*": [
+        "../shared/src/*"
+      ]
+    },
     "outDir": "compiled",
     "module": "commonjs",
     "target": "es5",
@@ -20,7 +30,7 @@
     "noUnusedLocals": true
   },
   "include": [
-    "./src/**/*",
+    "./runtime/src/**/*",
   ],
   "exclude": [
     "node_modules",

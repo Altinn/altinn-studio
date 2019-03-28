@@ -1,62 +1,24 @@
-import { IAppDataState } from '../reducers/appDataReducer';
-import { IErrorState } from '../reducers/errorReducer';
-import { IFormDesignerState } from '../reducers/formDesignerReducer';
-import { IFormFillerState } from '../reducers/formFillerReducer';
-import { IServiceConfigurationState } from '../reducers/serviceConfigurationReducer';
-import { IWorkflowState } from '../reducers/workflowReducer';
+import { IFormConfigState } from '../features/form/config/reducer';
+import { IFormDataState } from '../features/form/data/reducer';
+import { ILayoutState } from '../features/form/layout/reducer';
+import { IWorkflowState } from '../features/form/workflow/reducer';
 
 declare global {
-  export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5, T6> {
-    formDesigner: T1;
-    formFiller: T2;
-    serviceConfigurations: T3;
-    appData: T4;
-    errors: T5;
-    workflow: T6;
-  }
-  export interface IAppState
-    extends IFormDesignerNameSpace
-    <IFormDesignerState,
-    IFormFillerState,
-    IServiceConfigurationState,
-    IAppDataState,
-    IErrorState,
-    IWorkflowState> { }
-  export interface IAltinnEditableComponent {
-    ModalContent: () => JSX.Element;
+  export interface IRuntimeStore {
+    formLayout: ILayoutState;
+    formData: IFormDataState;
+    formConfig: IFormConfigState;
+    formWorkflow: IWorkflowState;
   }
 
-  export interface IContainerProvidedProps {
-    containerIndex: number;
+  export interface IAltinnWindow extends Window {
+    org: string;
+    service: string;
+    instanceId: string;
+    reportee: string;
   }
 
-  export interface IRowProvidedProps {
-    containerIndex: number;
-    rowIndex: number;
-  }
-
-  export interface IColumnProvidedProps {
-    containerIndex: number;
-    rowIndex: number;
-    columnIndex: number;
-  }
-
-  export interface IOptions {
-    label: string;
-    value: any;
-  }
-
-  export interface ICreateFormContainer {
-    repeating: boolean;
-    dataModelGroup: string;
-    index?: number;
-    hidden?: boolean;
-  }
-
-  export interface ITextResourceBindings {
-    [id: string]: string;
-  }
-
+  // Components Types
   export interface ICreateFormComponent {
     component: string;
     type?: string;
@@ -120,12 +82,13 @@ declare global {
     validFileEndings?: string;
   }
 
-  export interface IDataModelBindings {
-    [id: string]: string;
-  }
-
   export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
+  }
+
+  export interface IOptions {
+    label: string;
+    value: any;
   }
 
   export type FormComponentType =
@@ -140,32 +103,21 @@ declare global {
     | IFormFileUploaderComponent
     | IFormAddressComponent;
 
-  export interface IFormDesignerComponent {
-    [id: string]: IFormComponent;
+
+
+  // Texts 
+  export interface ITextResourceBindings {
+    [id: string]: string;
   }
 
-  export interface IFormDesignerContainer {
-    [id: string]: ICreateFormContainer;
+  export interface ITextResource {
+    id: string;
+    value: string;
   }
 
-  export interface IFormDesignerLayout {
-    components: IFormDesignerComponent;
-    containers: IFormDesignerContainer;
-    order: IFormLayoutOrder;
-  }
-
-  export interface IFormLayoutOrder {
-    [id: string]: string[];
-  }
-
-  export interface IServiceConfiguration {
-
-  }
-
-  export interface ISelectedLayoutElement {
-    elementId: string;
-    elementType: string;
-    indexes: number[];
+  // Datamodel
+  export interface IDataModelBindings {
+    [id: string]: string;
   }
 
   export interface IDataModelFieldElement {
@@ -197,43 +149,13 @@ declare global {
     parentGroup: string;
   }
 
-  /**
-   * Defines how each element in the code list element list looks like
-   */
-  export interface ICodeListListElement {
-    codeListName: string;
-    org: string;
-    id: number;
-  }
-
-  export interface IAltinnWindow extends Window {
-    org: string;
-    service: string;
-    instanceId: string;
-    reportee: string;
-  }
-
-  export interface IRuleModelFieldElement {
-    type: string;
-    name: string;
-    inputs: any;
-  }
-
-  export interface ITextResource {
-    id: string;
-    value: string;
+  // Validations
+  export interface IComponentValidations {
+    [id: string]: IComponentBindingValidation;
   }
 
   export interface IComponentBindingValidation {
     errors?: string[];
     warnings?: string[];
-  }
-
-  export interface IComponentValidations {
-    [id: string]: IComponentBindingValidation;
-  }
-
-  export interface IValidationResults {
-    [id: string]: IComponentValidations;
   }
 }

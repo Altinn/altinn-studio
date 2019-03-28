@@ -1,17 +1,7 @@
-import {
-  createStyles, withStyles,
-} from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
-import { EditContainer } from '../containers/EditContainer';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { renderValidationMessagesForComponent } from '../utils/render';
 import { GenericComponentWrapper } from './GenericComponent';
-
-const styles = createStyles({
-
-});
 
 /**
  * Properties defined for input for wrapper
@@ -19,13 +9,7 @@ const styles = createStyles({
 export interface IProvidedProps {
   id: string;
   formData: any;
-  activeList: any[];
   handleDataUpdate: (id: string, dataModelElement: any, value: any) => void;
-  classes: any;
-  firstInActiveList: boolean;
-  lastInActiveList: boolean;
-  sendListToParent: any;
-  singleSelected: boolean;
 }
 
 /**
@@ -33,7 +17,6 @@ export interface IProvidedProps {
  */
 export interface IFormElementProps extends IProvidedProps {
   component: FormComponentType;
-  designMode: boolean;
   connections: any;
   externalApi: any;
   dataModelElement: IDataModelFieldElement;
@@ -49,7 +32,6 @@ export interface IFormElementProps extends IProvidedProps {
  */
 export interface IFormElementState {
   component: FormComponentType;
-  activeList: any[];
   wrapperRef: any;
 }
 
@@ -65,13 +47,8 @@ class FormComponent extends React.Component<
 
     this.state = {
       component: _props.component,
-      activeList: _props.activeList,
       wrapperRef: '',
     };
-  }
-
-  public componentDidMount() {
-    document.addEventListener('mousedown', this.handleClick);
   }
 
   public setWrapperRef = (node: any) => {
@@ -79,20 +56,6 @@ class FormComponent extends React.Component<
       this.setState({
         wrapperRef: node.parentElement.parentElement,
       });
-    }
-  }
-
-  /*
-  * Handle all types of clicks.
-  * Tracks if the click is outside of the formComponent
-  */
-  public handleClick = () => {
-    const key: any = Object.keys(this.props.order)[0];
-    const order = this.props.order[key].indexOf(this.props.id);
-
-    if (this.state.wrapperRef && !this.state.wrapperRef.contains(event.target) &&
-        order === 0) {
-      this.handleActiveListChange({});
     }
   }
 
@@ -124,7 +87,6 @@ class FormComponent extends React.Component<
         formData={this.props.formData}
         handleDataChange={this.handleComponentDataUpdate}
         getTextResource={this.getTextResource}
-        designMode={this.props.designMode}
         thirdPartyComponents={this.props.thirdPartyComponents}
         validationMessages={this.props.validationResults}
       />
@@ -154,10 +116,7 @@ class FormComponent extends React.Component<
       return null;
     }
     if (this.props.component.textResourceBindings.title) {
-      const label: string =
-        this.props.designMode ?
-          this.props.component.textResourceBindings.title :
-          this.getTextResource(this.props.component.textResourceBindings.title);
+      const label: string = this.getTextResource(this.props.component.textResourceBindings.title);
       return (
         <label className='a-form-label title-label' htmlFor={this.props.id}>
           {label}
@@ -177,10 +136,7 @@ class FormComponent extends React.Component<
       return null;
     }
     if (this.props.component.textResourceBindings.description) {
-      const description: string =
-        this.props.designMode ?
-          this.props.component.textResourceBindings.description :
-          this.getTextResource(this.props.component.textResourceBindings.description);
+      const description: string = this.getTextResource(this.props.component.textResourceBindings.description);
       return (
         <span className='a-form-label description-label'>{description}</span>
       );
@@ -190,56 +146,20 @@ class FormComponent extends React.Component<
   }
 
   /**
-   * Method that allows user to set focus to elements in the compoenent
-   * instead of opening the edit modal on click.
-   */
-  public disableEditOnClickForAddedComponent = (e: any) => {
-    e.stopPropagation();
-  }
-
-  public handleActiveListChange = (obj: any) => {
-    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-      FormDesignerActionDispatchers.deleteActiveListAction();
-    } else  {
-      FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
-    }
-    this.props.sendListToParent(this.props.activeList);
-  }
-
-  /**
    * The React Render method. This is run when this component is included in another component.
    * It is either called from FormFiller or FormDesigner.
    */
   public render(): JSX.Element {
-    if (!this.props.designMode) {
-      return (
-        <div className='row mt-2'>
-          <div className='col'>
-            <div className='a-form-group'>
-              {this.renderLabel()}
-              {this.renderDescription()}
-              {this.renderComponent()}
-              {this.errorMessage()}
-            </div>
+    return (
+      <div className='row mt-2'>
+        <div className='col'>
+          <div className='a-form-group'>
+            {this.renderLabel()}
+            {this.renderDescription()}
+            {this.renderComponent()}
+            {this.errorMessage()}
           </div>
         </div>
-      );
-    }
-    return (
-      <div ref={this.setWrapperRef}>
-      <EditContainer
-        component={this.props.component}
-        id={this.props.id}
-        firstInActiveList={this.props.firstInActiveList}
-        lastInActiveList={this.props.lastInActiveList}
-        sendItemToParent={this.handleActiveListChange}
-        singleSelected={this.props.singleSelected}
-      >
-        <div onClick={this.disableEditOnClickForAddedComponent}>
-          {this.renderLabel()}
-          {this.renderComponent()}
-        </div>
-      </EditContainer>
       </div>
     );
   }
@@ -286,9 +206,9 @@ class FormComponent extends React.Component<
   private errorMessage(): JSX.Element[] {
     if (!this.isSimpleComponent() ||
       !this.hasValidationMessages()) {
-        return null;
+      return null;
     }
-    const { component: {id} } = this.props;
+    const { component: { id } } = this.props;
     return renderValidationMessagesForComponent(this.props.validationResults.simpleBinding, id);
   }
 }
@@ -299,39 +219,11 @@ class FormComponent extends React.Component<
  * @param props the input props give as input from formFiller component
  */
 const makeMapStateToProps = () => {
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const mapStateToProps = (state: IAppState, props: IProvidedProps): IFormElementProps => ({
-    activeList: props.activeList,
-    id: props.id,
-    firstInActiveList: props.firstInActiveList,
-    lastInActiveList: props.lastInActiveList,
-    formData: props.formData,
-    classes: props.classes,
-    handleDataUpdate: props.handleDataUpdate,
-    sendListToParent: props.sendListToParent,
-    singleSelected: props.singleSelected,
-    component: state.formDesigner.layout.components[props.id],
-    order: GetLayoutOrderSelector(state),
-    designMode: state.appData.appConfig.designMode,
-    dataModelElement: state.appData.dataModel.model.find(
-      (element) =>
-        element.DataBindingName ===
-        state.formDesigner.layout.components[props.id].dataModelBindings.simpleBinding),
-    connections: state.serviceConfigurations.APIs.connections,
-    externalApi: state.serviceConfigurations.APIs.externalApisById,
-    validationResults:
-      Object.keys(state.formFiller.validationResults).length > 0
-        ? state.formFiller.validationResults[props.id]
-        : null,
-    textResources: state.appData.textResources.resources,
-    thirdPartyComponents: state.appData.thirdPartyComponents.components,
-    dataModel: state.appData.dataModel.model,
-  });
+  const mapStateToProps = (state: IRuntimeStore, props: IProvidedProps): IFormElementProps => (null);
   return mapStateToProps;
 };
 
 /**
  * Wrapper made available for other compoments
  */
-export const FormComponentWrapper =
-  withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(FormComponent));
+export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);

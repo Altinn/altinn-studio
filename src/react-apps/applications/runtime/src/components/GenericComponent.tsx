@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { thirdPartyComponentWithElementHandler } from '../containers/thirdPartyComponentWithDataHandler';
+import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import components from './';
 
@@ -9,7 +9,6 @@ export interface IGenericComponentProps {
   component: FormComponentType;
   isValid: boolean;
   formData: any;
-  designMode: boolean;
   validationMessages?: IComponentValidations;
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
@@ -48,9 +47,9 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
   }
 }
 const makeMapStateToProps = () => {
-  const mapStateToProps = (state: IAppState, props: IGenericComponentProps): IGenericComponentProps => ({
+  const mapStateToProps = (state: IRuntimeStore, props: IGenericComponentProps): IGenericComponentProps => ({
     ...props,
-    thirdPartyComponents: state.appData.thirdPartyComponents.components,
+    // thirdPartyComponents: state.appData.thirdPartyComponents.components,
   });
   return mapStateToProps;
 };
