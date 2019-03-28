@@ -69,9 +69,9 @@ namespace Altinn.Platform.Storage.Repository
                 ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
                 Document document = createDocumentResponse.Resource;
 
-                Instance formData = JsonConvert.DeserializeObject<Instance>(document.ToString());
+                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
-                return formData.Id;
+                return instance.Id;
             }
             catch (Exception ex)
             {

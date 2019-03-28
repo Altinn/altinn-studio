@@ -43,7 +43,7 @@ exports[`>>> AltinnInformationCard--- Snapshot +++ Should match snapshot with al
               >
                 linktext
                 <i
-                  className="ai ai-arrowrightup"
+                  className="fa fa-arrowrightup"
                   style={
                     Object {
                       "color": undefined,

@@ -141,7 +141,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         >
           <a
             className="AppBarComponent-subHeaderLink-7"
-            href="/test"
+            href="/testingintestenvironment"
             onClick={[Function]}
           >
             Teste
@@ -152,7 +152,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         >
           <a
             className="AppBarComponent-subHeaderLink-7"
-            href="/productionsetting"
+            href="/publish"
             onClick={[Function]}
           >
             Publisere
@@ -608,7 +608,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         >
           <a
             className="AppBarComponent-subHeaderLink-7"
-            href="/test"
+            href="/testingintestenvironment"
             onClick={[Function]}
           >
             Teste
@@ -619,7 +619,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         >
           <a
             className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
-            href="/productionsetting"
+            href="/publish"
             onClick={[Function]}
           >
             Publisere
@@ -772,7 +772,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         >
           <a
             className="AppBarComponent-subHeaderLink-7"
-            href="/test"
+            href="/testingintestenvironment"
             onClick={[Function]}
           >
             Teste
@@ -783,7 +783,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
         >
           <a
             className="AppBarComponent-subHeaderLink-7 AppBarComponent-subHeaderLinkActive-8"
-            href="/productionsetting"
+            href="/publish"
             onClick={[Function]}
           >
             Publisere

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace AltinnCore.ServiceLibrary
 {
@@ -10,7 +10,7 @@ namespace AltinnCore.ServiceLibrary
         /// <summary>
         /// Gets or sets the ID of the service instance
         /// </summary>
-        public int ServiceInstanceID { get; set; }
+        public Guid ServiceInstanceID { get; set; }
 
         /// <summary>
         /// Gets or sets when the service instance was last changed

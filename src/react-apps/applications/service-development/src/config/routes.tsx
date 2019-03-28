@@ -4,6 +4,7 @@ import { Administration } from '../features/administration/components/Administra
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 import RedirectComponent from '../features/iFrame/RedirectComponent';
+import TestingInTestenvironmentContainer from '../features/testing-in-testenvironment/testing-in-testenvironment';
 
 export const routes = [
   {
@@ -56,6 +57,14 @@ export const routes = [
       shadow: true,
       redirectUrl: 'runtime/ManualTesting/Users/',
     },
+  },
+  {
+    path: '/testingintestenvironment',
+    exact: true,
+    activeSubHeaderSelection: 'Teste',
+    activeLeftMenuSelection: 'Test i testmiljø',
+    menu: 'test',
+    subapp: TestingInTestenvironmentContainer,
   },
   {
     path: '/aboutservice',
@@ -221,7 +230,7 @@ export const routes = [
     },
   },
   {
-    path: '/productionsetting',
+    path: '/publish',
     exact: true,
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Produksjonsette',

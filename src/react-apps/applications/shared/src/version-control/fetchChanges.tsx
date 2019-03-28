@@ -66,7 +66,7 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
           )}
         >
           <i
-            className={classNames('ai ai-download', classes.color_blueDark)}
+            className={classNames('fa fa-download', classes.color_blueDark)}
           /> {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
         </p>
       </Button>

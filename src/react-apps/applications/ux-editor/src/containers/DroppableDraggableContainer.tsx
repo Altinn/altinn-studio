@@ -131,7 +131,7 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableContainerProps> = {
 
     }
 
-  }
+  },
 };
 
 export interface IDroppableDraggableContainerProps {

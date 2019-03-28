@@ -48,7 +48,7 @@ const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
         component.props.containerId,
       );
     }
-  }
+  },
 };
 
 const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {

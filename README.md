@@ -5,7 +5,7 @@
 
 An early test version of Altinn Studio is available at https://altinn.studio.
 
-Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio (currently available only in Norwegian).
+Use the [documentation](https://docs.altinn.studio/) to get started using Altinn Studio.
 
 ## Getting Started
 
