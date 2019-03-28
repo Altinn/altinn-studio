@@ -23,7 +23,7 @@ namespace Altinn.Platform.Storage
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-            WebHost.CreateDefaultBuilder(args)
+            WebHost.CreateDefaultBuilder(args)           
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
                 string basePath = Directory.GetCurrentDirectory();
@@ -39,7 +39,8 @@ namespace Altinn.Platform.Storage
 
                 logging.AddProvider(new SerilogLoggerProvider(logger));
             })
-                .UseStartup<Startup>();
+            .UseApplicationInsights()
+            .UseStartup<Startup>();
 
         public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
