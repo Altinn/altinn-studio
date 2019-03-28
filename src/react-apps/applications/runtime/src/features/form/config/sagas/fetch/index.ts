@@ -7,12 +7,16 @@ import {
 } from '../../actions/fetch';
 import * as FormConfigActionTypes from '../../actions/types';
 
-import { get } from 'Shared/utils/networking';
+import { dataModel } from '../../../datamodell/sagas/fetch/testData';
 
-function* fetchFormConfigSaga ({url}: IFetchFormConfig): SagaIterator {
+// import { get } from 'Shared/utils/networking';
+
+function* fetchFormConfigSaga({ url }: IFetchFormConfig): SagaIterator {
   try {
-    const formConfig = yield call(get, url);
-    FormConfigActions.fetchFormConfigFulfilled(formConfig);
+    // const formConfig = yield call(get, url);
+    const { Org, ServiceName, RepositoryName, ServiceId } = dataModel;
+
+    yield call(FormConfigActions.fetchFormConfigFulfilled, Org, ServiceName, RepositoryName, ServiceId);
   } catch (err) {
     FormConfigActions.fetchFormConfigRejected(err);
   }

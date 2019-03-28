@@ -4,7 +4,12 @@ import { store } from '../../../../store';
 
 export interface IFormConfigActions extends ActionCreatorsMapObject {
   fetchFormConfig: (url: string) => FetchActions.IFetchFormConfig;
-  fetchFormConfigFulfilled: (config: any) => FetchActions.IFetchFormConfigFulfilled;
+  fetchFormConfigFulfilled: (
+    org: string,
+    serviceName: string,
+    repositoryName: string,
+    serviceId: string,
+  ) => FetchActions.IFetchFormConfigFulfilled;
   fetchFormConfigRejected: (error: Error) => FetchActions.IFetchFormConfigRejected;
 }
 

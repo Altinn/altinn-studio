@@ -1,6 +1,8 @@
 import * as React from 'react';
 import FormLayoutActions from './features/form/layout/actions';
 import FormDataActions from './features/form/data/actions';
+import FormDataModelActions from './features/form/datamodell/actions';
+import FormWorkflowActions from './features/form/workflow/actions';
 
 import './app.css';
 
@@ -17,11 +19,17 @@ interface IAltinnWindow extends Window {
 class App extends React.Component<IAppProps, IAppState> {
   public componentDidMount() {
     const { org, service, instanceId, reportee } = window as IAltinnWindow;
+    FormDataModelActions.fetchDataModel(
+      `${window.location.origin}/runtime/api/metadata/${org}/${service}/ServiceMetaData`
+    );
     FormLayoutActions.fetchFormLayout(
       `${window.location.origin}/runtime/api/resource/${org}/${service}/FormLayout.json`,
     );
     FormDataActions.fetchFormData(
       `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/Index/${instanceId}`,
+    );
+    FormWorkflowActions.getCurrentState(
+      `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`,
     );
   }
 

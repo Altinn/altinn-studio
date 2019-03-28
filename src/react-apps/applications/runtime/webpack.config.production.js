@@ -9,7 +9,7 @@ module.exports = {
   devtool: false,
   entry: "./src/index.tsx",
   output: {
-    filename: "react-app.js",
+    filename: "runtime.js",
     chunkFilename: '[name].bundle.js'
   },
   optimization: {
@@ -27,7 +27,6 @@ module.exports = {
         }
       }
     },
-    filename: "runtime.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],

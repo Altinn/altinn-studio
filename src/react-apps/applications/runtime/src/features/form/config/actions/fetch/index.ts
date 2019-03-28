@@ -6,7 +6,10 @@ export interface IFetchFormConfig extends Action {
 }
 
 export interface IFetchFormConfigFulfilled extends Action {
-  config: any;
+  org: string;
+  serviceName: string;
+  repositoryName: string;
+  serviceId: string;
 }
 
 export interface IFetchFormConfigRejected extends Action {
@@ -20,10 +23,18 @@ export function fetchFormConfig(url: string): IFetchFormConfig {
   };
 }
 
-export function fetchFormConfigFulfilled(config: any): IFetchFormConfigFulfilled {
+export function fetchFormConfigFulfilled(
+  org: string,
+  serviceName: string,
+  repositoryName: string,
+  serviceId: string,
+): IFetchFormConfigFulfilled {
   return {
     type: ActionTypes.FETCH_FORM_CONFIG_FULFILLED,
-    config,
+    org,
+    serviceId,
+    serviceName,
+    repositoryName,
   };
 }
 

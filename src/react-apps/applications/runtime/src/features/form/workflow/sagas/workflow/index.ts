@@ -11,27 +11,31 @@ import {
   ISetCurrentState,
 } from '../../actions/workflowState';
 
-import {
-  get,
-  post,
-} from 'Shared/utils/networking';
+// import {
+//   get,
+//   post,
+// } from 'Shared/utils/networking';
 
-function * getCurrentStateSaga({url}: IGetCurrentState): SagaIterator {
+function* getCurrentStateSaga({ url }: IGetCurrentState): SagaIterator {
   try {
-    const workflowState = yield call(get, url);
-    yield call(Actions.getCurrentStateFulfilled, workflowState);
+    // const workflowState = yield call(get, url);
+    const workflowState = {
+      state: 1,
+    };
+
+    yield call(Actions.getCurrentStateFulfilled, workflowState.state);
   } catch (err) {
     yield call(Actions.getCurrentStateRejected, err);
   }
 }
 
-export function * watchGetCurrentStateSaga(): SagaIterator {
+export function* watchGetCurrentStateSaga(): SagaIterator {
   yield takeLatest(ActionTypes.GET_CURRENT_STATE, getCurrentStateSaga);
 }
 
-function * setCurrentStateSaga({url, state}: ISetCurrentState): SagaIterator {
+function* setCurrentStateSaga({ url, state }: ISetCurrentState): SagaIterator {
   try {
-    yield call(post,url, state);
+    //  yield call(post, url, state);
     yield call(Actions.setCurrentStateFullfilled);
   } catch (err) {
     yield call(
@@ -41,6 +45,6 @@ function * setCurrentStateSaga({url, state}: ISetCurrentState): SagaIterator {
   }
 }
 
-export function * watchSetCurrentStateSaga(): SagaIterator {
+export function* watchSetCurrentStateSaga(): SagaIterator {
   yield takeLatest(ActionTypes.SET_CURRENT_STATE, setCurrentStateSaga);
 }

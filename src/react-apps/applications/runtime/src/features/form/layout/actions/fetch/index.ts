@@ -13,13 +13,17 @@ export function fetchFormLayout(url: string): IFetchFormLayout {
 }
 
 export interface IFetchFormLayoutFulfilled extends Action {
-  formLayout: any;
+  components: any;
+  containers: any;
+  order: any;
 }
 
-export function fetchFormLayoutFulfilled(formLayout: any): IFetchFormLayoutFulfilled {
+export function fetchFormLayoutFulfilled(components: any, containers: any, order: any): IFetchFormLayoutFulfilled {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_FULFILLED,
-    formLayout,
+    components,
+    containers,
+    order,
   };
 }
 

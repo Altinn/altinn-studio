@@ -8,13 +8,13 @@ module.exports = {
   devtool: 'eval',
   entry: "./src/index.tsx",
   output: {
-    filename: "react-app.js",
+    filename: "runtime.js",
     chunkFilename: '[name].bundle.js'
   },
   optimization: {
     splitChunks: {
       chunks: 'all',
-      maxInitialRequests: Infinity,
+      maxInitialRequests: 5,
       minSize: 0,
       cacheGroups: {
         vendor: {
@@ -25,8 +25,7 @@ module.exports = {
           }
         }
       }
-    },
-    filename: "runtime.js"
+    }
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],

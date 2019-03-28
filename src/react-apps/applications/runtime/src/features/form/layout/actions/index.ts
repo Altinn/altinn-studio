@@ -5,7 +5,7 @@ import * as FetchForm from './fetch';
 
 export interface IFormLayoutActions extends ActionCreatorsMapObject {
   fetchFormLayout: (url: string) => FetchForm.IFetchFormLayout;
-  fetchFormLayoutFulfilled: (formLayout: any) => FetchForm.IFetchFormLayoutFulfilled;
+  fetchFormLayoutFulfilled: (components: any, containers: any, order: any) => FetchForm.IFetchFormLayoutFulfilled;
   fetchFormLayoutRejected: (error: Error) => FetchForm.IFetchFormLayoutRejected;
 }
 

@@ -7,12 +7,16 @@ import {
 } from '../actions/fetch';
 
 export interface ILayoutState {
-  formLayout: any;
+  components: any;
+  containers: any;
+  order: any;
   error: Error;
 };
 
 const initialState: ILayoutState = {
-  formLayout: [],
+  components: null,
+  containers: null,
+  order: null,
   error: null,
 };
 
@@ -26,20 +30,27 @@ const LayoutReducer: Reducer<ILayoutState> = (
 
   switch (action.type) {
     case ActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
-      const { formLayout } = action as IFetchFormLayoutFulfilled;
+      const { components, containers, order } = action as IFetchFormLayoutFulfilled;
       return update<ILayoutState>(state, {
-        $set: {
-          formLayout,
-          error: null,
+        components: {
+          $set: components,
+        },
+        containers: {
+          $set: containers,
+        },
+        order: {
+          $set: order,
+        },
+        error: {
+          $set: null,
         },
       });
     }
     case ActionTypes.FETCH_FORM_LAYOUT_REJECTED: {
       const { error } = action as IFetchFormLayoutRejected;
       return update<ILayoutState>(state, {
-        $set: {
-          formLayout: state.formLayout,
-          error,
+        error: {
+          $set: error,
         },
       });
     }

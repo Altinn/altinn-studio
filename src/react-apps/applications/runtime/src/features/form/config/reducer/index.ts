@@ -7,12 +7,18 @@ import {
 } from '../actions/fetch';
 
 export interface IFormConfigState {
-  config: any;
+  org: string;
+  serviceId: string;
+  serviceName: string;
+  repositoryName: string;
   error: Error;
 }
 
 const initalState: IFormConfigState = {
-  config: {},
+  org: null,
+  serviceId: null,
+  serviceName: null,
+  repositoryName: null,
   error: null,
 };
 
@@ -26,10 +32,19 @@ const FormConfigReducer: Reducer<IFormConfigState> = (
 
   switch (action.type) {
     case ActionTypes.FETCH_FORM_CONFIG_FULFILLED: {
-      const { config } = action as IFetchFormConfigFulfilled;
+      const { org, serviceId, serviceName, repositoryName } = action as IFetchFormConfigFulfilled;
       return update<IFormConfigState>(state, {
-        config: {
-          $set: config,
+        org: {
+          $set: org,
+        },
+        serviceId: {
+          $set: serviceId,
+        },
+        serviceName: {
+          $set: serviceName,
+        },
+        repositoryName: {
+          $set: repositoryName,
         },
       });
     }

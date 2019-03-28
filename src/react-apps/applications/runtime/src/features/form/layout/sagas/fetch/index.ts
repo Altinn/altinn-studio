@@ -5,17 +5,19 @@ import Actions from '../../actions';
 import * as ActionTypes from '../../actions/types';
 import { IFetchFormLayout } from '../../actions/fetch';
 
-import { get } from 'Shared/utils/networking';
+// import { get } from 'Shared/utils/networking';
+import { testData } from './testData';
 
-function * fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
+function* fetchFormLayoutSaga({ }: IFetchFormLayout): SagaIterator {
   try {
-    const formLayout = yield call(get, url);
-    yield call(Actions.fetchFormLayoutFulfilled, formLayout);
+    // const formLayout = yield call(get, url);
+    const { components, containers, order } = testData.data;
+    yield call(Actions.fetchFormLayoutFulfilled, components, containers, order);
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
   }
 }
 
-export function * watchFetchFormLayoutSaga(): SagaIterator {
+export function* watchFetchFormLayoutSaga(): SagaIterator {
   yield takeLatest(ActionTypes.FETCH_FORM_LAYOUT, fetchFormLayoutSaga);
 }

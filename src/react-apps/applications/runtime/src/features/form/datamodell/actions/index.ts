@@ -15,6 +15,6 @@ const actions: IFormDataModelActions = {
   fetchDataModelRejected: fetchActions.fetchDataModelRejected,
 };
 
-const DataModelActions = bindActionCreators<any, any>(actions, store.dispatch);
+const DataModelActions: IFormDataModelActions = bindActionCreators<any, any>(actions, store.dispatch);
 
 export default DataModelActions;
