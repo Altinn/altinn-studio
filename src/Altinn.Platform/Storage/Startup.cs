@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Storage
 {
     /// <summary>
-    /// database startup
+    /// The database startup
     /// </summary>
     public class Startup
     {
