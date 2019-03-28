@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
@@ -240,9 +241,9 @@ namespace AltinnCore.Designer.Controllers
         public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, string developer, int partyId, Guid instanceId, string attachmentType, string attachmentName)
         {
             Guid guid = Guid.NewGuid();
-            string pathToSaveTo = _settings.GetTestdataForPartyPath(org, service, developer) + "{0}/{1}/data/{2}/{3}/{4}";
-            Directory.CreateDirectory(string.Format(pathToSaveTo, partyId, instanceId, attachmentType, guid, string.Empty));
-            string fileToWriteTo = string.Format(pathToSaveTo, partyId, instanceId, attachmentType, guid, attachmentName);
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{guid}/";
+            Directory.CreateDirectory(pathToSaveTo);
+            string fileToWriteTo = $"{pathToSaveTo}/{attachmentName}";
             using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
             {
                 await Request.StreamFile(streamToWriteTo);
@@ -267,8 +268,8 @@ namespace AltinnCore.Designer.Controllers
         [DisableFormValueModelBinding]
         public IActionResult DeleteFormAttachment(string org, string service, string developer, int partyId, Guid instanceId, string attachmentType, string attachmentId)
         {
-            string pathToDelete = _settings.GetTestdataForPartyPath(org, service, developer) + "{0}/{1}/data/{2}/{3}/";
-            DirectoryInfo directory = new DirectoryInfo(string.Format(pathToDelete, partyId, instanceId, attachmentType, attachmentId));
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{attachmentId}";
+            DirectoryInfo directory = new DirectoryInfo(pathToDelete);
             foreach (FileInfo file in directory.EnumerateFiles())
             {
                 file.Delete();
@@ -291,24 +292,24 @@ namespace AltinnCore.Designer.Controllers
         [DisableFormValueModelBinding]
         public IActionResult GetFormAttachments(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            string path = _settings.GetTestdataForPartyPath(org, service, developer) + "{0}/{1}/data/";
-            DirectoryInfo rootDirectory = new DirectoryInfo(string.Format(path, partyId, instanceId));
-            ArrayList allAttachments = new ArrayList();
+            string attachmentsPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/";
+            DirectoryInfo rootDirectory = new DirectoryInfo(attachmentsPath);
+            List<AttachmentList> allAttachments = new List<AttachmentList>();
             foreach (DirectoryInfo typeDirectory in rootDirectory.EnumerateDirectories())
             {
-                ArrayList attachments = new ArrayList();
+                List<Attachment> attachments = new List<Attachment>();
                 foreach (DirectoryInfo fileDirectory in typeDirectory.EnumerateDirectories())
                 {
                     foreach (FileInfo file in fileDirectory.EnumerateFiles())
                     {
-                        attachments.Add(new { id = fileDirectory.Name, name = file.Name, size = file.Length });
+                        attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
                     }
 
                 }
 
                 if (attachments.Count > 0)
                 {
-                    allAttachments.Add(new { type = typeDirectory.Name, attachments = attachments });
+                    allAttachments.Add(new AttachmentList { Type = typeDirectory.Name, Attachments = attachments });
                 }
             }
 

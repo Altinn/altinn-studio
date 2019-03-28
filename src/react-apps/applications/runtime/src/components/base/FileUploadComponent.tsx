@@ -49,6 +49,8 @@ const validationErrorStyle = {
   borderColor: altinnTheme.altinnPalette.primary.red,
 };
 
+export const bytesInOneMB = 1048576;
+
 export class FileUploadComponentClass
   extends React.Component<IFileUploadProps, IFileUploadState> {
 
@@ -82,7 +84,7 @@ export class FileUploadComponentClass
     if (rejectedFiles.length > 0) {
       newValidationMessages = [];
       rejectedFiles.forEach((file) => {
-        if (file.size > (this.props.component.maxFileSizeInMB * 1000 * 1000)) {
+        if (file.size > (this.props.component.maxFileSizeInMB * bytesInOneMB)) {
           newValidationMessages.push(
             file.name +
             getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
@@ -269,7 +271,7 @@ export class FileUploadComponentClass
             </p>
             <DropZone
               onDrop={this.onDrop}
-              maxSize={maxFileSizeInMB * 1000 * 1000} // mb to bytes
+              maxSize={maxFileSizeInMB * bytesInOneMB} // mb to bytes
               disabled={disabled}
               accept={(hasCustomFileEndings) ? validFileEndings : null}
             >
