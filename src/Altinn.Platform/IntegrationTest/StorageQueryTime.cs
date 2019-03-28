@@ -20,6 +20,7 @@ namespace Altinn.Platform.Test.Integration
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         public string instanceId;
+        private const string platformUrl = "http://platform.altinn.cloud";
 
         private Logger logger = new LoggerConfiguration()
         .WriteTo.Console()
@@ -50,7 +51,7 @@ namespace Altinn.Platform.Test.Integration
             {
                 Stopwatch watch = Stopwatch.StartNew();
 
-                string queryURI = "/api/v1/instances/query?applicationOwnerId=" + applicationOwnerId;
+                string queryURI = platformUrl + "/api/v1/instances/query?applicationOwnerId=" + applicationOwnerId;
 
                 HttpResponseMessage response = await client.GetAsync(queryURI);
 
@@ -71,7 +72,7 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CrossPartitionQueryApplicationId()
         {
-            string[] applications = { "S123", "S201", "S221", "S801", "S701" };
+            string[] applications = { "S123", "S201", "S221", "S301", "S401", "S501", "S601", "S000", "S801", "S701" };
 
             logger.Information("CrossPartitionQuery: ApplicationId");
 
@@ -79,7 +80,7 @@ namespace Altinn.Platform.Test.Integration
             {
                 Stopwatch watch = Stopwatch.StartNew();
 
-                string queryURI = "/api/v1/instances/query?applicationId=" + applicationId;
+                string queryURI = platformUrl + "/api/v1/instances/query?applicationId=" + applicationId;
 
                 HttpResponseMessage response = await client.GetAsync(queryURI);
 
@@ -118,7 +119,7 @@ namespace Altinn.Platform.Test.Integration
             {
                 Stopwatch watch = Stopwatch.StartNew();
 
-                string queryURI = "/api/v1/instances/" + instanceId + "?instanceOwnerId=50002126";
+                string queryURI = platformUrl + "/api/v1/instances/" + instanceId + "?instanceOwnerId=50002126";
 
                 HttpResponseMessage response = await client.GetAsync(queryURI);
 
@@ -134,7 +135,7 @@ namespace Altinn.Platform.Test.Integration
         }
 
         /// <summary>
-        /// get one instance and measure time, query within partition
+        /// get one instance and measure time, query within partition.
         /// </summary>
         [Fact]
         public async void InstanceOwnersInstances()
@@ -147,7 +148,7 @@ namespace Altinn.Platform.Test.Integration
             {
                 Stopwatch watch = Stopwatch.StartNew();
 
-                string queryURI = "/api/v1/instances/query?instanceOwnerId=" + instanceOwnerId;
+                string queryURI = platformUrl + "/api/v1/instances/query?instanceOwnerId=" + instanceOwnerId;
 
                 HttpResponseMessage postResponse = await client.GetAsync(queryURI);
 

@@ -1,6 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
@@ -86,11 +85,16 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceId:guid}")]
         public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
         {
+            Stopwatch watch = Stopwatch.StartNew();
+
             var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (result == null)
             {
                 return NotFound();
             }
+
+            watch.Stop();
+            logger.Information("get {instanceid} for {instanceOwner} took {time}ms.", instanceId, instanceOwnerId, watch.ElapsedMilliseconds);
 
             return Ok(result);
         }

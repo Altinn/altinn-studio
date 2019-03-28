@@ -32,7 +32,14 @@ namespace Altinn.Platform.Storage.Repository
         {
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey);
+
+            ConnectionPolicy connectionPolicy = new ConnectionPolicy
+            {
+                ConnectionMode = ConnectionMode.Gateway,
+                ConnectionProtocol = Protocol.Https,
+            };
+
+            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
 
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.Collection);
@@ -59,9 +66,10 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                var document = await _client.CreateDocumentAsync(_collectionUri, item);
-                var res = document.Resource;
-                var formData = JsonConvert.DeserializeObject<Instance>(res.ToString());
+                ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+                Document document = createDocumentResponse.Resource;
+
+                Instance formData = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
                 return formData.Id;
             }
