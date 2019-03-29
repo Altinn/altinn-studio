@@ -51,8 +51,13 @@ const styles = createStyles({
     marginBottom: 30,
   },
   sidebar: {
-    borderLeft: '1px solid ' + theme.altinnPalette.primary.greyMedium,
-    paddingLeft: 10,
+    [theme.breakpoints.down('md')]: {
+      borderLeft: '1px solid ' + theme.altinnPalette.primary.greyMedium,
+      paddingLeft: 10,
+    },
+    [theme.breakpoints.down('sm')]: {
+      paddingLeft: 60,
+    },
   },
   sidebarHeader: {
     marginBottom: 20,
@@ -87,6 +92,7 @@ const styles = createStyles({
     [theme.breakpoints.up('md')]: {
       height: `calc(100vh - 110px)`,
       overflowY: 'auto',
+      paddingLeft: theme.sharedStyles.mainPaddingLeft,
     },
   },
   marginBottom_24: {

@@ -40,9 +40,6 @@ const styles = () => createStyles({
     width: '100%',
   },
   subApp: {
-    [theme.breakpoints.up('md')]: {
-      paddingLeft: 73,
-    },
     background: theme.altinnPalette.primary.greyLight,
     height: '100%',
     width: '100%',

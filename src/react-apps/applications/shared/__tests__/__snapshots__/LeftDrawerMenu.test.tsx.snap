@@ -509,7 +509,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is publish
         className="MuiList-root-57 MuiList-padding-58"
       >
         <a
-          href="/productionsetting"
+          href="/publish"
           onClick={[Function]}
           style={
             Object {
@@ -632,6 +632,41 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
               className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
             >
               Test
+            </div>
+          </li>
+        </a>
+        <a
+          href="/testintestenvironment"
+          onClick={[Function]}
+          style={
+            Object {
+              "borderBottom": 0,
+            }
+          }
+        >
+          <li
+            className="MuiListItem-root-61 LeftDrawerMenu-listItem-1 MuiListItem-default-64 MuiListItem-gutters-69"
+            disabled={false}
+            onMouseEnter={[Function]}
+            onMouseLeave={[Function]}
+          >
+            <div
+              className="MuiListItemIcon-root-73"
+            >
+              <i
+                className="fa fa-integration-test"
+                style={
+                  Object {
+                    "color": "rgba(0, 0, 0, 0.54)",
+                    "fontSize": null,
+                  }
+                }
+              />
+            </div>
+            <div
+              className="MuiListItemText-root-75 LeftDrawerMenu-listItemText-12"
+            >
+              Test i testmiljø
             </div>
           </li>
         </a>
