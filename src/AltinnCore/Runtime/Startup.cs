@@ -72,10 +72,15 @@ namespace AltinnCore.Runtime
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IInstance, InstanceSILocalDev>();
+                services.AddSingleton<IWorkflowSI, WorkflowSI>();
             }
             else
             {
                 services.AddSingleton<IExecution, ExecutionSIContainer>();
+                services.AddSingleton<IInstance, InstanceSI>();
+                services.AddSingleton<IData, DataSI>();
+                services.AddSingleton<IWorkflowSI, WorkflowSI>();
             }
 
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
@@ -98,10 +103,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IWorkflowSI, WorkflowSI>();
-            services.AddSingleton<IInstance, InstanceSI>();
-            services.AddSingleton<IInstanceLocalDev, InstanceSILocalDev>();
-
             services.AddResponseCompression();
 
             string repoLocation = null;
@@ -122,6 +123,7 @@ namespace AltinnCore.Runtime
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
