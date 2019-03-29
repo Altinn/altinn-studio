@@ -212,10 +212,10 @@ export function* watchUploadAttachmentSaga(): SagaIterator {
 }
 
 export function* watchDeleteAttachmentSaga(): SagaIterator {
-  yield takeEvery(FormFillerActionTypes.DELETE_ATTACHMENT, deleteAttachment);
+  yield takeEvery(FormFillerActionTypes.DELETE_ATTACHMENT, deleteAttachmentSaga);
 }
 
-export function* deleteAttachment(
+export function* deleteAttachmentSaga(
   { attachment, attachmentType, componentId }: FormFillerActions.IDeleteAttachmentAction): SagaIterator {
   const state: IAppState = yield select();
   const language = state.appData.language.language;
