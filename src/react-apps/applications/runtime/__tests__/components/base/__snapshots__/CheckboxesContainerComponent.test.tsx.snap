@@ -23,7 +23,7 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> C
       value="test-1"
     />
     <label
-      className="pl-3 custom-control-label"
+      className="custom-control-label pl-3"
     >
       test-label-1
     </label>
@@ -41,7 +41,7 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> C
       value="test-2"
     />
     <label
-      className="pl-3 custom-control-label"
+      className="custom-control-label pl-3"
     >
       test-label-2
     </label>
