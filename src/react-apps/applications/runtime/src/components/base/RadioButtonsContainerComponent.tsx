@@ -1,3 +1,4 @@
+import classNames = require('classnames');
 import * as React from 'react';
 import '../../styles/RadioButtonComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
@@ -79,8 +80,8 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
             onChange={emptyFunction}
           />
           <label
-            className={props.component.readOnly ?
-              'custom-control-label pl-3 disabled-radio-button' : 'custom-control-label pl-3'}
+            className={classNames('custom-control-label', 'pl-3',
+              { 'disabled-radio-button': props.component.readOnly })}
           >
             {props.designMode ? option.label : props.getTextResource(option.label)}
           </label>

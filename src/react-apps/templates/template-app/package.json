@@ -23,7 +23,7 @@
     "react-hot-loader": "4.3.1",
     "react-modal": "3.4.5",
     "react-redux": "5.0.7",
-    "react-router-dom": "^5.0.0",
+    "react-router-dom": "4.3.1",
     "redux": "4.0.0",
     "redux-devtools-extension": "2.13.2",
     "redux-logger": "3.0.6",

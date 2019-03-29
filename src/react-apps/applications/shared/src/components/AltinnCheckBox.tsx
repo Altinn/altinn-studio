@@ -6,6 +6,7 @@ export interface IAltinnCheckBoxComponentProvidedProps extends WithStyles<typeof
   disabled?: boolean;
   id?: any;
   onChangeFunction: any;
+  onKeyPressFunction?: any;
 }
 
 export interface IAltinnCheckBoxComponentState {
@@ -34,6 +35,8 @@ const AltinnCheckBox = (props: IAltinnCheckBoxComponentProvidedProps) => {
       checked={props.checked}
       onChange={props.onChangeFunction}
       disabled={props.disabled ? props.disabled : false}
+      onKeyPress={props.onKeyPressFunction}
+      tabIndex={0}
     />
   );
 };

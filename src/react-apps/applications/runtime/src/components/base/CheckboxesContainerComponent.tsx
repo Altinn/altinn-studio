@@ -1,3 +1,4 @@
+import classNames = require('classnames');
 import * as React from 'react';
 import '../../styles/CheckboxComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
@@ -80,8 +81,8 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
         {options.map((option, index) => (
           <div
             key={index}
-            className={'custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
-              + (this.props.component.readOnly ? ' no-cursor' : '')}
+            className={classNames('custom-control', 'custom-checkbox', 'a-custom-checkbox', 'pl-0', 'pr-4 mr-3',
+              { 'no-cursor': this.props.component.readOnly })}
             onClick={this.props.component.readOnly ? null : this.onDataChanged.bind(this, option.value, index)}
           >
             <input
@@ -93,8 +94,8 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               onChange={this.emptyFunction}
             />
             <label
-              className={this.props.component.readOnly ?
-                'custom-control-label pl-3 disabled-checkbox no-cursor' : 'pl-3 custom-control-label'}
+              className={classNames('custom-control-label', 'pl-3',
+                { 'disabled-checkbox no-cursor': this.props.component.readOnly })}
             >
               {option.label}
             </label>

@@ -35,6 +35,7 @@ exports[`>>> AltinnCheckBox +++ Should match snapshot 1`] = `
       data-indeterminate={false}
       disabled={false}
       onChange={[Function]}
+      tabIndex={0}
       type="checkbox"
     />
   </span>

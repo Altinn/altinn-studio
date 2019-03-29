@@ -73,16 +73,19 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
   }, [props]);
 
   const getMinOccursFromDataModel = (dataBindingName: string): boolean => {
-    const element: IDataModelFieldElement = props.dataModel.find((e: IDataModelFieldElement) =>
-      e.DataBindingName === dataBindingName);
-    return element ? element.MinOccurs === 1 : false;
+    if (dataBindingName) {
+      const element: IDataModelFieldElement = props.dataModel.find((e: IDataModelFieldElement) =>
+        e.DataBindingName === dataBindingName);
+      return element ? element.MinOccurs === 1 : false;
+    }
+    return false;
   };
 
   const toggleMenu = () => {
     setMenuIsOpen(!menuIsOpen);
   };
 
-  const toggleCheckbox = React.useCallback((value: string) => {
+  const toggleCheckbox = (value: string) => () => {
     if (component) {
       component[value] = !component[value];
       FormDesignerActionDispatchers.updateFormComponent(
@@ -91,11 +94,11 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
       );
       setComponent(props.components[props.componentId]);
     }
-  }, []);
+  };
 
-  const handleKeyPress = (e: any) => {
+  const handleKeyPress = (action: any) => (e: any) => {
     if (e.key === 'Enter') {
-      toggleMenu();
+      action();
     }
   };
 
@@ -108,29 +111,37 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
           className={menuIsOpen ? classes.rotateDown : classes.rotateRight}
           onClick={toggleMenu}
           tabIndex={0}
-          onKeyPress={handleKeyPress}
+          onKeyPress={handleKeyPress(toggleMenu)}
         >
           <i className={'fa fa-expand-alt ' + classes.icon} />
         </ListItemIcon>
         <span className={classes.collapseHeader}>{props.header}</span>
       </ListItem>
-      {(component && props.header === props.language.ux_editor.service_logic_validations) &&
+      {menuIsOpen && (component && props.header === props.language.ux_editor.service_logic_validations) &&
         <div>
           {component.hasOwnProperty('readOnly') &&
-            <ListItem className={classes.listItem}>
+            <ListItem
+              className={classes.listItem}
+            >
               <AltinnCheckBox
                 checked={component.readOnly}
                 onChangeFunction={toggleCheckbox('readOnly')}
+                onKeyPressFunction={handleKeyPress(toggleCheckbox('readOnly'))}
               />
               {props.language.ux_editor.read_only}
             </ListItem>
           }
           {component.hasOwnProperty('required') &&
-            <ListItem className={classes.listItem}>
+            <ListItem
+              className={classes.listItem}
+            >
               <AltinnCheckBox
                 checked={!component.required}
                 onChangeFunction={toggleCheckbox('required')}
-                disabled={getMinOccursFromDataModel(component.dataModelBindings.simpleBinding)}
+                onKeyPressFunction={handleKeyPress(toggleCheckbox('required'))}
+                disabled={getMinOccursFromDataModel(component.dataModelBindings ?
+                  (component.dataModelBindings.simpleBinding ? component.dataModelBindings.simpleBinding : null)
+                  : null)}
               />
               {props.language.ux_editor.optional}
             </ListItem>
@@ -145,6 +156,8 @@ const CollapsableMenus = (props: ICollapsableMenuProps) => {
                 <span
                   className={classes.link}
                   onClick={item.action}
+                  tabIndex={0}
+                  onKeyPress={handleKeyPress(item.action)}
                 >
                   {item.name}
                 </span>
