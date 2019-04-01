@@ -30,6 +30,10 @@
     <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DocumentationFile>bin\Debug\netcoreapp2.2\Altinn.Platform.Test.Integration.xml</DocumentationFile>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Update="data\binary_file.pdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
