@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -6,6 +7,7 @@ using System.Xml.Serialization;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
@@ -232,23 +234,86 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="partyId">The party id of the test user</param>
         /// <param name="instanceId">The instance id</param>
         /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="fileExtension">The name of the attachment</param>
-        /// <returns>The status of the upload</returns>
+        /// <param name="attachmentName">The name of the attachment</param>
+        /// <returns>The status of the upload and guid of attachment</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
-        public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, string developer, int partyId, int instanceId, string attachmentType, string fileExtension)
+        public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, string developer, int partyId, Guid instanceId, string attachmentType, string attachmentName)
         {
             Guid guid = Guid.NewGuid();
-            string pathToSaveTo = _settings.GetTestdataForPartyPath(org, service, developer) + "{0}/{1}/data/{2}/{3}";
-            Directory.CreateDirectory(string.Format(pathToSaveTo, partyId, instanceId, attachmentType, string.Empty));
-            string fileToWriteTo = string.Format(pathToSaveTo, partyId, instanceId, attachmentType, guid.ToString() + fileExtension);
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{guid}/";
+            Directory.CreateDirectory(pathToSaveTo);
+            string fileToWriteTo = $"{pathToSaveTo}/{attachmentName}";
             using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
             {
                 await Request.StreamFile(streamToWriteTo);
                 streamToWriteTo.Flush();
             }
 
+            return Ok(new { id = guid });
+        }
+
+        /// <summary>
+        /// Method that removes a form attachment from designer disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentId">The attachment id</param>
+        /// <returns>The status of the deletion</returns>
+        [HttpPost]
+        [DisableFormValueModelBinding]
+        public IActionResult DeleteFormAttachment(string org, string service, string developer, int partyId, Guid instanceId, string attachmentType, string attachmentId)
+        {
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{attachmentId}";
+            DirectoryInfo directory = new DirectoryInfo(pathToDelete);
+            foreach (FileInfo file in directory.EnumerateFiles())
+            {
+                file.Delete();
+            }
+
+            directory.Delete();
             return Ok();
+        }
+
+        /// <summary>
+        /// Method that gets metadata on form attachments form designer disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <returns>A list with attachments metadata ordered by attachmentType</returns>
+        [HttpGet]
+        [DisableFormValueModelBinding]
+        public IActionResult GetFormAttachments(string org, string service, string developer, int partyId, Guid instanceId)
+        {
+            string attachmentsPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/";
+            DirectoryInfo rootDirectory = new DirectoryInfo(attachmentsPath);
+            List<AttachmentList> allAttachments = new List<AttachmentList>();
+            foreach (DirectoryInfo typeDirectory in rootDirectory.EnumerateDirectories())
+            {
+                List<Attachment> attachments = new List<Attachment>();
+                foreach (DirectoryInfo fileDirectory in typeDirectory.EnumerateDirectories())
+                {
+                    foreach (FileInfo file in fileDirectory.EnumerateFiles())
+                    {
+                        attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
+                    }
+
+                }
+
+                if (attachments.Count > 0)
+                {
+                    allAttachments.Add(new AttachmentList { Type = typeDirectory.Name, Attachments = attachments });
+                }
+            }
+
+            return Ok(allAttachments);
         }
 
         /// <summary>
@@ -297,7 +362,7 @@ namespace AltinnCore.Designer.Controllers
             string nextStepName = string.Empty;
             SequenceFlow currentSequenceFlow = workflowModel.Process.SequenceFlow.Find(seq => seq.Id == workflowModel.Process.StartEvent.Outgoing);
             if (currentSequenceFlow != null)
-            { 
+            {
                 Task nextStepObj = workflowModel.Process.Task.Find(task => task.Id == currentSequenceFlow.TargetRef);
                 if (nextStepObj != null)
                 {
@@ -314,7 +379,7 @@ namespace AltinnCore.Designer.Controllers
             {
                 _logger.LogError("Unable to read workflowfile, unable to find next step name from start event");
             }
-                
+
             string stateFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.state.json";
             System.IO.File.WriteAllText(stateFilePath, stateJson.ToString(), Encoding.UTF8);
 

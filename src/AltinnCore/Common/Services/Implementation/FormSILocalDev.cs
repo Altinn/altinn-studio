@@ -24,6 +24,8 @@ namespace AltinnCore.Common.Services.Implementation
         private const string SaveFormModelApiMethod = "SaveFormModel";
         private const string GetPrefillApiMethod = "GetPrefill";
         private const string SaveFormAttachmentApiMethod = "SaveFormAttachment";
+        private const string DeleteFormAttachmentApiMethod = "DeleteFormAttachment";
+        private const string GetFormAttachmentsApiMethod = "GetFormAttachments";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
@@ -150,12 +152,12 @@ namespace AltinnCore.Common.Services.Implementation
                     }
 
                     return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
-                }                
+                }
             }
         }
 
         /// <summary>
-        /// This method saves a form attachment
+        /// This method returns url of attachment upload from designer api
         /// </summary>
         /// <param name="org">The organization codefor the service owner</param>
         /// <param name="service">The service code for the current service</param>
@@ -163,11 +165,41 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="formId">The form id</param>
         /// <param name="attachmentType">The attachment type id</param>
         /// <param name="attachmentName">The file name for the attachment</param>
-        public string GetAttachmentUploadUrl(string org, string service, int partyId, int formId, string attachmentType, string attachmentName)
+        public string GetAttachmentUploadUrl(string org, string service, int partyId, Guid formId, string attachmentType, string attachmentName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string extension = Path.GetExtension(attachmentName);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&fileExtension={extension}";
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}";
+            return apiUrl;
+        }
+
+        /// <summary>
+        /// This method returns url of attachment deletion from designer api
+        /// </summary>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="formId">The form id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentName">The file name for the attachment</param>
+        /// <param name="attachmentId">The id for the attachment</param>
+        public string GetAttachmentDeleteUrl(string org, string service, int partyId, Guid formId, string attachmentType, string attachmentName, string attachmentId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(DeleteFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}&attachmentId={attachmentId}";
+            return apiUrl;
+        }
+
+        /// <summary>
+        /// This method returns url of attachment list from designer api
+        /// </summary>
+        /// <param name="org">The organization codefor the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <param name="formId">The form id</param>
+        public string GetAttachmentListUrl(string org, string service, int partyId, Guid formId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormAttachmentsApiMethod, org, service, developer, partyId)}&instanceId={formId}";
             return apiUrl;
         }
     }
