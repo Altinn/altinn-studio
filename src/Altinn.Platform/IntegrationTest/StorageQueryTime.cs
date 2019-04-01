@@ -1,26 +1,23 @@
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Net.Http;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Test.Integration.Fixtures;
 using Serilog;
 using Serilog.Core;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Altinn.Platform.Test.Integration
 {
     /// <summary>
-    /// class to test query time
+    /// class to test query time.
     /// </summary>
     public class StorageQueryTime : IClassFixture<PlatformStorageFixture>
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         public string instanceId;
-        private const string platformUrl = "http://platform.altinn.cloud";
+        private const string platformUrl = ""; // "http://platform.altinn.cloud";
 
         private Logger logger = new LoggerConfiguration()
         .WriteTo.Console()

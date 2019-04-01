@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.KeyVault;
@@ -26,7 +27,9 @@ namespace Altinn.Platform.Storage
             WebHost.CreateDefaultBuilder(args)           
             .ConfigureAppConfiguration((hostingContext, config) =>
             {
-                LoadConfigurationSettings(config, args);
+                string basePath = Directory.GetCurrentDirectory();
+
+                LoadConfigurationSettings(config, basePath, args);
             })
             .ConfigureLogging((hostingContext, logging) =>
             {
@@ -40,9 +43,8 @@ namespace Altinn.Platform.Storage
             .UseApplicationInsights()
             .UseStartup<Startup>();
 
-        public static void LoadConfigurationSettings(IConfigurationBuilder config, string[] args)
+        public static void LoadConfigurationSettings(IConfigurationBuilder config, string basePath, string[] args)
         {
-            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
             config.SetBasePath(basePath);
 
             config.AddJsonFile(basePath + "altinn-appsettings/altinn-dbsettings-secret.json", optional: true, reloadOnChange: true);
@@ -53,7 +55,7 @@ namespace Altinn.Platform.Storage
             }
             else
             {
-                config.AddJsonFile(Directory.GetCurrentDirectory() + "/appsettings.json", optional: false, reloadOnChange: true);
+                config.AddJsonFile(basePath + "/appsettings.json", optional: false, reloadOnChange: true);
             }
 
             config.AddEnvironmentVariables();
@@ -72,6 +74,12 @@ namespace Altinn.Platform.Storage
                         azureServiceTokenProvider.KeyVaultTokenCallback));
                 config.AddAzureKeyVault(
                     keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
+            }
+
+            string applicationInsights = stageOneConfig.GetValue<string>("ApplicationInsights:InstrumentationKey:0");
+            if (!string.IsNullOrEmpty(applicationInsights))
+            {
+                TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;                
             }
         }
     }
