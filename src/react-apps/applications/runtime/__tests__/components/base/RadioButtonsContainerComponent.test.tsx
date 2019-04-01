@@ -14,13 +14,14 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
   let mockGetTextResource: (resourceKey: string) => string;
   let mockIsValid: boolean;
   let mockDesignMode: boolean;
+  let mockReadOnly: boolean;
 
   beforeEach(() => {
     mockId = 'mock-id';
     mockComponent = {
       id: 'mock-component-id',
       component: 'RadioButtons',
-      readOnly: false,
+      readOnly: mockReadOnly,
       options: [{
         label: 'test-label-1',
         value: 'test-1',
@@ -33,6 +34,7 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
     mockGetTextResource = (resourceKey: string) => 'test';
     mockIsValid = true;
     mockDesignMode = true;
+    mockReadOnly = false;
   });
 
   it('>>> Capture snapshot of RadioButtonsContainerComponent', () => {
