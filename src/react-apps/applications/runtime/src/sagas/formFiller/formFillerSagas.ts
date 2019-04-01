@@ -8,6 +8,7 @@ import * as FormFillerActionTypes from '../../actions/formFillerActions/formFill
 import WorkflowActionDispatcher from '../../actions/workflowActions/worflowActionDispatcher';
 import { getFileUploadComponentValidations } from '../../components/base/FileUploadComponent';
 import { IAppDataState } from '../../reducers/appDataReducer';
+import { mapAttachmentListApiResponseToAttachments } from '../../utils/attachment';
 import { convertDataBindingToModel, convertModelToDataBinding } from '../../utils/databindings';
 import { get, post, put } from '../../utils/networking';
 import * as Validator from '../../utils/validation';
@@ -256,15 +257,8 @@ export function* fetchAttachments(): SagaIterator {
       `${servicePath}/GetAttachmentListUrl/${instanceId}`;
     const attachmentListUrl = yield call(get, getAttachmentListUrl);
     const response = yield call(get, attachmentListUrl);
-    const list: IAttachments = {};
-    response.forEach((attachmentsByType: IAttachmentListApiResponse) => {
-      list[attachmentsByType.type] = [];
-      attachmentsByType.attachments.forEach((attachment) => {
-        list[attachmentsByType.type].push(
-          { ...attachment, uploaded: true, deleting: false });
-      });
-    });
-    yield call(FormFillerActionDispatcher.fetchAttachmentsFulfilled, list);
+    const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
+    yield call(FormFillerActionDispatcher.fetchAttachmentsFulfilled, attachments);
   } catch (err) {
     yield call(FormFillerActionDispatcher.fetchAttachmentsRejected, err);
   }
