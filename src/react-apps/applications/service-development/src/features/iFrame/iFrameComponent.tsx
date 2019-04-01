@@ -8,7 +8,7 @@ export interface IIFrameComponentProvidedProps {
 
 const theme = createMuiTheme(altinnTheme);
 
-const styles = createStyles({
+const styles = () => createStyles({
   iFrameLayout: {
     [theme.breakpoints.down('sm')]: {
       height: `calc(100vh - 55px)`,
@@ -18,6 +18,11 @@ const styles = createStyles({
     },
     width: '100%',
     border: 0,
+  },
+  mainLayout: {
+    [theme.breakpoints.up('md')]: {
+      paddingLeft: theme.sharedStyles.mainPaddingLeft,
+    },
   },
 });
 
