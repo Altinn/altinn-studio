@@ -671,7 +671,7 @@ namespace AltinnCore.Common.Configuration
         /// <param name="service">The name of the service</param>
         /// <param name="developer">The name of the developer of the service</param>
         /// <param name="partyId">The party id of the test user</param>
-        /// <param name="baseEndpoint">If the path should contain the pod to pod link, defaults to true. If set to false the path contains the altinn studio endpoint</param>
+        /// <param name="baseEndpoint"> Will be used as the url base if supplied, defaults to null.</param>
         /// <returns>The url path to the runtime api</returns>
         public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0, string baseEndpoint = null)
         {
