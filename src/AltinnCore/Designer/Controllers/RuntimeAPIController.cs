@@ -340,7 +340,7 @@ namespace AltinnCore.Designer.Controllers
         {
             string workflowFullFilePath = _settings.GetWorkflowPath(org, service, developer) + _settings.WorkflowFileName;
             string workflowData = System.IO.File.ReadAllText(workflowFullFilePath, Encoding.UTF8);
-            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}.state.json";
+            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.state.json";
             string currentStateAsString = System.IO.File.ReadAllText(serviceStatePath, Encoding.UTF8);
             ServiceState currentState = JsonConvert.DeserializeObject<ServiceState>(currentStateAsString);
             Definitions workflowModel = null;

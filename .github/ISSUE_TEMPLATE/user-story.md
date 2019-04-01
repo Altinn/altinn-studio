@@ -13,7 +13,7 @@ Document the need briefly for the story "As a user X I need Y so that Z"
 ## Considerations
 Input (beyond tasks) on how the user story should be solved can be put here.
 
-## Acceptance criterea
+## Acceptance criteria
 - What is allowed/not allowed (negative tesing)
 - Validations
 - Error messages and warnings

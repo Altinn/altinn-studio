@@ -30,6 +30,7 @@ declare module '@material-ui/core/styles/createMuiTheme' {
     };
     sharedStyles: {
       boxShadow: string,
+      mainPaddingLeft: number,
     };
   }
 }
@@ -85,6 +86,9 @@ const theme = {
       h1: {
         fontSize: 36,
       },
+      body1: {
+        fontSize: 16,
+      },
     },
   },
   palette: {
@@ -105,6 +109,7 @@ const theme = {
   },
   sharedStyles: {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
+    mainPaddingLeft: 73,
   },
   typography: {
     htmlFontSize: 16,
