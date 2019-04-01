@@ -576,7 +576,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleMaxFileSizeInMBChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxFileSizeInMB = event.target.value;
+    component.maxFileSizeInMB = (event.target.value >= 0) ? event.target.value : 0;
     this.setState({
       component,
     });
@@ -585,7 +585,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleMaxNumberOfAttachmentsChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxNumberOfAttachments = event.target.value;
+    component.maxNumberOfAttachments = (event.target.value >= 0) ? event.target.value : 0;
     this.setState({
       component,
     });

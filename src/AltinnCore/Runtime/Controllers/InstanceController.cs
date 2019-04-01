@@ -37,7 +37,6 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
         private readonly IInstance _instance;
-        private readonly IInstanceLocalDev _instanceLocal;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -66,8 +65,7 @@ namespace AltinnCore.Runtime.Controllers
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
             IWorkflowSI workflowSI,
-            IInstance instanceSI,
-            IInstanceLocalDev instanceLocalDevSI)
+            IInstance instanceSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -81,7 +79,6 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
-            _instanceLocal = instanceLocalDevSI;
         }
 
         /// <summary>
@@ -351,44 +348,13 @@ namespace AltinnCore.Runtime.Controllers
 
                 Guid instanceId;
                 Guid dataId;
+                WorkflowStep currentStep;
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
-                if (requestContext.ServiceMode == RequestContext.Mode.Studio)
-                {
-                    // Create a new instance document
-                    instanceId = _instanceLocal.InstantiateInstance(startServiceModel.Service, startServiceModel.Org, instanceOwnerId);                    
 
-                    // Save instantiated form model
-                    dataId = await _form.SaveFormModel(
-                        serviceModel,
-                        instanceId,
-                        serviceImplementation.GetServiceModelType(),
-                        startServiceModel.Org,
-                        startServiceModel.Service,
-                        requestContext.UserContext.ReporteeId,
-                        Guid.Empty);
-
-                    // Update instance with dataId
-                    Instance instance = await _instanceLocal.GetInstance(startServiceModel.Service, startServiceModel.Org, instanceOwnerId, instanceId);
-                    Data data = new Data
-                    {
-                        Id = dataId.ToString(),
-                        ContentType = "application/Xml",
-                        StorageUrl = "data/TestForm/",                        
-                        CreatedBy = instanceOwnerId.ToString(),
-                    };
-                    Dictionary<string, Data> formData = new Dictionary<string, Data>();
-                    formData.Add(dataId.ToString(), data);
-                    instance.Data = new Dictionary<string, Dictionary<string, Data>>();
-                    instance.Data.Add("TestForm", formData);
-
-                    _instanceLocal.SaveInstance(instance, startServiceModel.Service, startServiceModel.Org, instanceOwnerId, instanceId);
-                }
-                else
-                {
-                    instanceId = await _instance.InstantiateInstance(startServiceModel.Service, requestContext.UserContext.ReporteeId.ToString());
-                }
-
+                // Create a new instance document
+                instanceId = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
                 ServiceState currentState = _workflowSI.InitializeService(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+
                 string redirectUrl = _workflowSI.GetUrlForCurrentState(instanceId, startServiceModel.Org, startServiceModel.Service, currentState.State);
                 return Redirect(redirectUrl);
             }

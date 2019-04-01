@@ -14,6 +14,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5010
+      - PlatformStorageSettings:ApiEndPoint=http://altinn-platform-storage:5010/api/v1
+      - PlatformStorageSettings:ApiEndPointHost=http://altinn-platform-storage:5010/
     ports:
       - "5010:5010"
     build:
