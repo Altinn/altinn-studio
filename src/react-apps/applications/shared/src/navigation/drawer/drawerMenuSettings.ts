@@ -143,11 +143,17 @@ export const leftDrawerMenuSettings: IDrawerMenu = {
       activeLeftMenuSelection: 'Test',
       iconClass: 'fa fa-info-circle',
     },
+    {
+      displayText: 'Test i testmiljø',
+      navLink: '/testintestenvironment',
+      activeLeftMenuSelection: 'Test',
+      iconClass: 'fa fa-integration-test',
+    },
   ],
   publish: [
     {
       displayText: 'Produksjonsette',
-      navLink: '/productionsetting',
+      navLink: '/publish',
       activeLeftMenuSelection: 'Produksjonsette',
       iconClass: 'fa fa-settings',
     },

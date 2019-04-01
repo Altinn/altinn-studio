@@ -40,7 +40,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IRegister _register;
         private readonly ILogger _logger;
         private readonly IForm _form;
-        private readonly IInstanceLocalDev _instanceLocal;
+        private readonly IInstance _instance;
         private readonly IExecution _execution;
         private readonly IProfile _profile;
         private UserHelper _userHelper;
@@ -77,7 +77,7 @@ namespace AltinnCore.Runtime.Controllers
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
             IWorkflowSI workflowSI,
-            IInstanceLocalDev instanceLocalSI)
+            IInstance instanceSI)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -92,7 +92,7 @@ namespace AltinnCore.Runtime.Controllers
             _userHelper = new UserHelper(_profile, _register);
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
-            _instanceLocal = instanceLocalSI;
+            _instance = instanceSI;
         }
 
         /// <summary>
