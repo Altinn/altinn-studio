@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Register.Configuration;
+using Altinn.Platform.Register.Services.Implementation;
+using Altinn.Platform.Register.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -38,8 +41,13 @@ namespace Altinn.Platform.Register
         /// <param name="services">the service configuration</param>    
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IOrganizations, OrganizationsWrapper>();
+            services.AddSingleton<IPersons, PersonsWrapper>();
+            services.AddSingleton<IParties, PartiesWrapper>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
+            services.AddSingleton(Configuration);
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
         }
 
         /// <summary>

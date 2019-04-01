@@ -1,11 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Register.Model;
 
 namespace Altinn.Platform.Register.Services.Interfaces
 {
-    public class IOrganizations
+    /// <summary>
+    /// Interface handling methods for operations related to organizations
+    /// </summary>
+    public interface IOrganizations
     {
+        /// <summary>
+        /// Method that fetches a organization based on a organization number
+        /// </summary>
+        /// <param name="OrgNr">The organization number</param>
+        /// <returns></returns>
+        Task<Organization> GetOrganization(int OrgNr);
     }
 }

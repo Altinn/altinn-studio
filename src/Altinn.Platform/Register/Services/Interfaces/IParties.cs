@@ -1,11 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Register.Model;
 
 namespace Altinn.Platform.Register.Services.Interfaces
 {
-    public class IParties
+    /// <summary>
+    /// Interface handling methods for operations related to parties
+    /// </summary>
+    public interface IParties
     {
+        /// <summary>
+        /// Method that fetches a party based on a party id
+        /// </summary>
+        /// <param name="partyId">The party id</param>
+        /// <returns></returns>
+        Task<Party> GetParty(int partyId);
     }
 }

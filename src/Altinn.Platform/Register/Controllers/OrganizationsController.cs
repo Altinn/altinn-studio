@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Register.Model;
+using Altinn.Platform.Register.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Register.Controllers
@@ -12,15 +11,26 @@ namespace Altinn.Platform.Register.Controllers
     [Route("api/v1/[controller]")]
     public class OrganizationsController : Controller
     {
+        private readonly IOrganizations _organizationsWrapper;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OrganizationsController"/> class
+        /// </summary>
+        /// <param name="organizationsWrapper">The organizations wrapper</param>
+        public OrganizationsController(IOrganizations organizationsWrapper)
+        {
+            _organizationsWrapper = organizationsWrapper;
+        }
+
         /// <summary>
         /// Gets the organization for a given organization nr
         /// </summary>
         /// <param name="orgNr">The organization nr</param>
         /// <returns>The information about a given organization</returns>
         [HttpGet("{orgNr}")]
-        public IActionResult Get(int orgNr)
+        public Task<Organization> Get(int orgNr)
         {
-            return Ok("Getting organization");
+            return _organizationsWrapper.GetOrganization(orgNr);
         }
     }
 }

@@ -1,11 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Register.Model;
 
 namespace Altinn.Platform.Register.Services.Interfaces
 {
-    public class IPersons
+    /// <summary>
+    /// Interface handling methods for operations related to persons
+    /// </summary>
+    public interface IPersons
     {
+        /// <summary>
+        /// Method that fetches a person based on a  security number
+        /// </summary>
+        /// <param name="ssn">The persons ssn</param>
+        /// <returns></returns>
+        Task<Person> GetPerson(string ssn);
     }
 }
