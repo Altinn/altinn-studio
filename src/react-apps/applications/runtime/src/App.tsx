@@ -85,6 +85,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       appDataActionDispatcher.fetchThirdPartyComponents(
         `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/ThirdPartyComponents.json`);
 
+      formFillerActionDispatchers.fetchAttachments();
     } else {
       // ALTINN STUDIO
       if (window.location.hash.split('#/')[1] && window.location.hash.split('#/')[1].toLowerCase() === PREVIEW) {

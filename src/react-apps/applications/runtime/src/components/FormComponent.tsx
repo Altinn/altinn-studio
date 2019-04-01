@@ -280,7 +280,7 @@ class FormComponent extends React.Component<
   private isSimpleComponent(): boolean {
     const component = this.props.component.component;
     const simpleBinding = this.props.component.dataModelBindings.simpleBinding;
-    return simpleBinding && component !== 'Checkboxes' && component !== 'RadioButtons';
+    return simpleBinding && component !== 'Checkboxes' && component !== 'RadioButtons' && component !== 'FileUpload';
   }
 
   private errorMessage(): JSX.Element[] {

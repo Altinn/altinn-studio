@@ -15,7 +15,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
-  let mockTextResourceBindings: ITextResourceBindings;
+  // let mockTextResourceBindings: ITextResourceBindings;
   let mockIsValid: boolean;
   let mockSimplified: boolean;
   let mockReadOnly: boolean;
@@ -32,7 +32,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
   mockIsValid = true;
   mockSimplified = true;
   mockReadOnly = false;
-  mockTextResourceBindings = [id];
+  // mockTextResourceBindings = 'test';
 
   it('>>> Capture snapshot of AddressComponent', () => {
     const rendered = renderer.create(

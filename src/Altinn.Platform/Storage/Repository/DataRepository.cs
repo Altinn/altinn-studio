@@ -34,6 +34,7 @@ namespace Altinn.Platform.Storage.Repository
         /// Initializes a new instance of the <see cref="DataRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
+        /// <param name="storageConfiguration">the storage configuration</param>
         public DataRepository(IOptions<AzureCosmosSettings> cosmosettings, IOptions<AzureStorageConfiguration> storageConfiguration)
         {
             // Retrieve configuration values from appsettings.json
@@ -48,7 +49,6 @@ namespace Altinn.Platform.Storage.Repository
                 _databaseUri,
                 new DocumentCollection { Id = _cosmosettings.Collection }).GetAwaiter().GetResult();
             _storageConfiguration = storageConfiguration.Value;
-
         }
 
         public async Task<bool> CreateDataInStorage(Stream fileStream, string fileName)

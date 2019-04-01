@@ -19,9 +19,10 @@ export async function get(url: string, options?: any): Promise<any> {
 export async function post(
   url: string,
   options?: AxiosRequestConfig,
+  data?: any,
 ): Promise<any> {
   try {
-    const response: AxiosResponse = await axios.post(url, options ? options : null);
+    const response: AxiosResponse = await axios.post(url, data, options ? options : null);
     return response;
   } catch (err) {
     throw err;
