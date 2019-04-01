@@ -18,6 +18,7 @@ namespace AltinnCore.Common.Services.Implementation
     public class FormSILocalDev : IForm
     {
         private readonly ServiceRepositorySettings _settings;
+        private readonly GeneralSettings _generalSettings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string GetFormModelApiMethod = "GetFormModel";
@@ -33,10 +34,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
-        public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings)
+        public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _generalSettings = generalSettings.Value;
             this._testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
@@ -168,7 +170,8 @@ namespace AltinnCore.Common.Services.Implementation
         public string GetAttachmentUploadUrl(string org, string service, int partyId, Guid formId, string attachmentType, string attachmentName)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}";
+            string baseEndpoint = Environment.GetEnvironmentVariable("GeneralSettings__AltinnStudioEndpoint") ?? _generalSettings.AltinnStudioEndpoint;
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormAttachmentApiMethod, org, service, developer, partyId, baseEndpoint)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}";
             return apiUrl;
         }
 
@@ -185,7 +188,8 @@ namespace AltinnCore.Common.Services.Implementation
         public string GetAttachmentDeleteUrl(string org, string service, int partyId, Guid formId, string attachmentType, string attachmentName, string attachmentId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(DeleteFormAttachmentApiMethod, org, service, developer, partyId)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}&attachmentId={attachmentId}";
+            string baseEndpoint = Environment.GetEnvironmentVariable("GeneralSettings__AltinnStudioEndpoint") ?? _generalSettings.AltinnStudioEndpoint;
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(DeleteFormAttachmentApiMethod, org, service, developer, partyId, baseEndpoint)}&instanceId={formId}&attachmentType={attachmentType}&attachmentName={attachmentName}&attachmentId={attachmentId}";
             return apiUrl;
         }
 
@@ -199,7 +203,8 @@ namespace AltinnCore.Common.Services.Implementation
         public string GetAttachmentListUrl(string org, string service, int partyId, Guid formId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormAttachmentsApiMethod, org, service, developer, partyId)}&instanceId={formId}";
+            string baseEndpoint = Environment.GetEnvironmentVariable("GeneralSettings__AltinnStudioEndpoint") ?? _generalSettings.AltinnStudioEndpoint;
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormAttachmentsApiMethod, org, service, developer, partyId, baseEndpoint)}&instanceId={formId}";
             return apiUrl;
         }
     }
