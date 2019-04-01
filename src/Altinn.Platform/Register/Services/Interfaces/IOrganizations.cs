@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Altinn.Platform.Register.Model;
+using AltinnCore.ServiceLibrary;
 
 namespace Altinn.Platform.Register.Services.Interfaces
 {

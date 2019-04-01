@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
-using Altinn.Platform.Register.Model;
 using Altinn.Platform.Register.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Register.Controllers
