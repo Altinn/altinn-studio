@@ -19,7 +19,7 @@ namespace Altinn.Platform.Test.Integration
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        public string instanceId;
+        private string instanceId;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
@@ -47,7 +47,6 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
         {
-
             Instance instanceData = new Instance
             {
                 ApplicationId = "KNS/sailor",
@@ -67,7 +66,8 @@ namespace Altinn.Platform.Test.Integration
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
-            //Assert.Equal("666", actual.InstanceOwnerId);
+
+            // Assert.Equal("666", actual.InstanceOwnerId);
             Assert.Equal("KNS/sailor", actual.ApplicationId);
         }
 
@@ -84,7 +84,6 @@ namespace Altinn.Platform.Test.Integration
             response.EnsureSuccessStatusCode();
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
         }
-
 
         [Fact]
         public async void StoreAForm()
@@ -197,7 +196,7 @@ namespace Altinn.Platform.Test.Integration
         }
 
         [Fact]
-        public async void queryInstancesOnApplicationOwnerId()
+        public async void QueryInstancesOnApplicationOwnerId()
         {
             string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
             string requestUri = string.Format(urlTemplate, "KNS");

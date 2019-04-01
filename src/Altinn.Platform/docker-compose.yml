@@ -21,3 +21,18 @@ services:
     build:
       context: .
       dockerfile: Storage/Dockerfile
+
+  altinn_platform_register:
+    container_name: altinn-platform-register
+    image: altinnplatformregister:latest
+    restart: always
+    networks:
+      - altinnplatform_network
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5020
+    ports:
+      - "5020:5020"
+    build:
+      context: .
+      dockerfile: Register/Dockerfile
