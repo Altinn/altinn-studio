@@ -23,84 +23,86 @@ const jsServDevModuleFile3 = '../../react-apps/applications/service-development/
 const jsServDevMonacoWorker1 = '../../react-apps/applications/service-development/js/react/editor.worker.js';
 const jsServDevMonacoWorker2 = '../../react-apps/applications/service-development/js/react/typescript.worker.js';
 const jsDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.js';
+const jsUiEditorFile = '../../react-apps/applications/ux-editor/dist/runtime.js';
 const cssServDevFile = '../../react-apps/applications/service-development/dist/service-development.css';
 const cssDashboardFile = '../../react-apps/applications/dashboard/dist/dashboard.css';
+const cssUiEditorFile = '../../react-apps/applications/ux-editor/dist/react-app.css';
 
 let jsWatcher = null;
 let cssWatcher = null;
 
 const copyGlobs = [{
-    src: "node_modules/bootstrap/dist/css/bootstrap*.css",
-    dest: "wwwroot/designer/css/"
-  },
-  {
-    src: "node_modules/jquery-ui-dist/*.js",
-    dest: "wwwroot/designer/js/lib/jquery-ui/"
-  },
-  {
-    src: "node_modules/bootstrap/dist/js/bootstrap*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/json-editor/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/select2/dist/js/select2.full.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/select2/dist/css/select2.css",
-    dest: "wwwroot/designer/css/lib"
-  },
-  {
-    src: "node_modules/jquery/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/requirejs/require.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/underscore/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/requirejs-text/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/js-beautify/js/lib/beautify*.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/sightglass/*.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/rivets/dist/*.js",
-    dest: "wwwroot/designer/js/lib/"
-  },
-  {
-    src: "node_modules/jquery-validation-unobtrusive/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/jquery-validation/dist/*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/popper.js/dist/umd/*.*.js",
-    dest: "wwwroot/designer/js/lib"
-  },
-  {
-    src: "node_modules/monaco-editor/min/**/*.*",
-    dest: "wwwroot/designer/js/lib/monaco-editor"
-  },
-  {
-    src: "node_modules/bootstrap-list-filter/bootstrap-list-filter.min.js",
-    dest: "wwwroot/designer/js/lib"
-  }
+  src: "node_modules/bootstrap/dist/css/bootstrap*.css",
+  dest: "wwwroot/designer/css/"
+},
+{
+  src: "node_modules/jquery-ui-dist/*.js",
+  dest: "wwwroot/designer/js/lib/jquery-ui/"
+},
+{
+  src: "node_modules/bootstrap/dist/js/bootstrap*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/json-editor/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/select2/dist/js/select2.full.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/select2/dist/css/select2.css",
+  dest: "wwwroot/designer/css/lib"
+},
+{
+  src: "node_modules/jquery/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/requirejs/require.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/underscore/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/requirejs-text/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/js-beautify/js/lib/beautify*.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/sightglass/*.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/rivets/dist/*.js",
+  dest: "wwwroot/designer/js/lib/"
+},
+{
+  src: "node_modules/jquery-validation-unobtrusive/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/jquery-validation/dist/*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/popper.js/dist/umd/*.*.js",
+  dest: "wwwroot/designer/js/lib"
+},
+{
+  src: "node_modules/monaco-editor/min/**/*.*",
+  dest: "wwwroot/designer/js/lib/monaco-editor"
+},
+{
+  src: "node_modules/bootstrap-list-filter/bootstrap-list-filter.min.js",
+  dest: "wwwroot/designer/js/lib"
+}
 ];
 
 function copyNodeModulePackages(cb) {
@@ -115,6 +117,7 @@ function cleanNodeModulePackages() {
 function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
+  copyUiEditorJs();
   cb();
   return;
 }
@@ -122,6 +125,7 @@ function copyReactJs(cb) {
 function copyReactCss(cb) {
   copyDashboardCss();
   copyServDevCss();
+  copyUiEditorCss();
   cb();
   return;
 }
@@ -146,6 +150,13 @@ function copyServDevJs() {
   return;
 }
 
+function copyUiEditorJs() {
+  setTimeout(function () {
+    gulp.src(jsUiEditorFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
+  }, 1000);
+  return;
+}
+
 function copyDashboardCss() {
   setTimeout(function () {
     gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
@@ -160,6 +171,13 @@ function copyServDevCss() {
   return;
 }
 
+function copyUiEditorCss() {
+  setTimeout(function () {
+    gulp.src(cssUiEditorFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+  }, 1000);
+  return;
+}
+
 function deleteServDevJs() {
   return del('wwwroot/designer/js/react/service-development.js');
 }
@@ -168,12 +186,21 @@ function deleteDashboardJs() {
   return del('wwwroot/designer/js/react/dashboard.js');
 }
 
+function deleteUiEditorJs() {
+  return del('wwwroot/designer/js/react/runtime.js');
+}
+
+
 function deleteServDevCss() {
   return del('wwwroot/designer/css/react/service-development.css');
 }
 
 function deleteDashboardCss() {
   return del('wwwroot/designer/css/react/dashboard.css');
+}
+
+function deleteUiEditorCss() {
+  return del('wwwroot/designer/css/react/react-app.css');
 }
 
 function setupWatchers(cb) {
@@ -195,6 +222,15 @@ function setupWatchers(cb) {
     }
   }, 1000);
 
+  var checkUiEditorJsFile = setInterval(function () {
+    if (fs.existsSync(jsUiEditorFile)) {
+      jsWatcher = chokidar.watch(jsUiEditorFile);
+      // jsWatcher.on('ready', copyReactJs);
+      jsWatcher.on('change', copyUiEditorJs);
+      clearInterval(checkUiEditorJsFile);
+    }
+  }, 1000);
+
   var checkDashboardCssFile = setInterval(function () {
     if (fs.existsSync(cssDashboardFile)) {
       cssWatcher = chokidar.watch(cssDashboardFile);
@@ -210,6 +246,15 @@ function setupWatchers(cb) {
       // cssWatcher.on('ready', copyReactCss);
       cssWatcher.on('change', copyServDevCss);
       clearInterval(checkServDevCssFile);
+    }
+  }, 1000);
+
+  var checkUiEditorCssFile = setInterval(function () {
+    if (fs.existsSync(cssUiEditorFile)) {
+      cssWatcher = chokidar.watch(cssUiEditorFile);
+      // cssWatcher.on('ready', copyReactCss);
+      cssWatcher.on('change', copyUiEditorCss);
+      clearInterval(checkUiEditorCssFile);
     }
   }, 1000);
 
@@ -229,8 +274,10 @@ gulp.task('copy-files', gulp.series(
 gulp.task('clean', gulp.series(
   deleteServDevCss,
   deleteDashboardCss,
+  deleteUiEditorCss,
   deleteServDevJs,
   deleteDashboardJs,
+  deleteUiEditorJs,
   cleanNodeModulePackages,
   run('npm run clean', {
     cwd: '../../react-apps/applications/dashboard',

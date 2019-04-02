@@ -6,20 +6,22 @@ import App from '../app';
 export default class DesignerPage {
   constructor() {
     //editor elements #schema-components
-    this.inputBtn = Selector("#schema-components").child(0);//.withText("Input");
-    this.datePicker = Selector("#schema-components").child(1);//.withText("Datepicker");
-    this.dropDown = Selector("#schema-components").child(2);//.withText("Dropdown");
-    this.checkBoxes = Selector("#schema-components").child(3);//.withText("Checkboxes");
-    this.radioButtons = Selector("#schema-components").child(4);//.withText("RadioButtons");
-    this.textArea = Selector("#schema-components").child(5);//.withText("TextArea");
-    this.fileUpload = Selector("#schema-components").child(6);//.withText("FileUpload");
-    this.submit = Selector("#schema-components").child(7);//.withText("Submit");
-
-    this.header = Selector("#schema-texts").child(0);//.withText("Header");
-    this.paragraph = Selector("#schema-texts").child(1);//.withText("Paragraph");
-    this.saveButton = Selector("#schema-components");//.withText("Save");
+    this.header = Selector("#schema-components").withText("Header");
+    this.inputBtn = Selector("#schema-components").withText("Input");
+    this.dropDown = Selector("#schema-components").child(1);
+    this.checkBoxes = Selector("#schema-components").withText("Avkrysningsboks");
+    this.radioButtons = Selector("#schema-components").withText("Radioknapp");
+    this.textArea = Selector("#schema-components").withText("Tekstområde");
+    this.fileUpload = Selector("#schema-components").withText("Vedlegg");
+    this.submit = Selector("#schema-components").withText("Submit");
+    this.addContainer = Selector("#schema-components").withText("Container");
+    this.saveButton = Selector("#schema-components").withText("Save");
+    this.addApiConnection = Selector(".d-block").withText("Api connections").child(0);
+    this.addRuleConnection = Selector(".d-block").withText("Rule connections").child(0);
+    this.addConditionalRendering = Selector(".d-block").withText("Conditional Rendering").child(0);
 
     //editor canvas
+
     this.canvas = Selector('.div').withAttribute('draggable');
 
     //left drawer menu

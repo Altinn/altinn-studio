@@ -71,32 +71,7 @@ test('About page items and editing', async () => {
 })
 
 test('Automated accessibility test for designer page', async t => {
-  await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
   axeCheck(t);
-})
-
-test('Create a service using one of each component',async t => {
-  //No assertions as of now if the components are added to canvas
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
-    .click(designer.lageNavigationTab)
-    .wait(1000)
-    .click(designer.submit)
-    .pressKey('enter')
-    .click(designer.fileUpload)
-    .pressKey('enter')
-    .click(designer.textArea)
-    .pressKey('enter')
-    .click(designer.radioButtons)
-    .pressKey('enter')
-    .click(designer.checkBoxes)
-    .pressKey('enter')
-    .click(designer.dropDown)
-    .pressKey('enter')
-    .click(designer.datePicker)
-    .pressKey('enter')
-    .click(designer.inputBtn)
-    .pressKey('enter')
 })
 
 test.skip('Repeating groups', async () => {

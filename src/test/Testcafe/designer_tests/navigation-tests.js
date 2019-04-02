@@ -63,13 +63,13 @@ test('Språk tab navigation', async () => {
 test('Teste tab navigation', async () => {
   await t
     .click(designerPage.testeNavigationTab)
-    .expect(getLocation()).contains('runtime/ManualTesting/Users');
+    .expect(getLocation()).contains('testingintestenvironment');
 });
 
 test('Publisere tab navigation', async () => {
   await t
     .click(designerPage.publisereNavigationTab)
-    .expect(getLocation()).contains('productionsetting');
+    .expect(getLocation()).contains('publish');
 });
 
 test('Automated accesibility testing', async t => {

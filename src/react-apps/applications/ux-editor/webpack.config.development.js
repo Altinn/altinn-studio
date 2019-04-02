@@ -8,7 +8,7 @@ module.exports = {
   devtool: 'eval',
   entry: "./src/index.tsx",
   output: {
-    filename: "ui-editor.js"
+    filename: "react-app.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
@@ -80,7 +80,7 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "ui-editor.css",
+      filename: "react-app.css",
     }),
     new CheckerPlugin(),
   ],
