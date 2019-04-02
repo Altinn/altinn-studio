@@ -150,6 +150,9 @@ declare global {
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;
   }
+  export interface IFormDesignerComponentProps {
+    [id: string]: IProperties;
+  }
 
   export interface IFormDesignerContainer {
     [id: string]: ICreateFormContainer;

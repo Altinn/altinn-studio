@@ -53,7 +53,7 @@ export interface ICollapsableMenuProvidedProps {
 }
 
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
-  components: IProperties;
+  components: IFormDesignerComponentProps;
   language: any;
   dataModel: IDataModelFieldElement[];
 }
