@@ -10,14 +10,15 @@ using Xunit;
 namespace Altinn.Platform.Test.Integration
 {
     /// <summary>
-    /// class to test query time.
+    /// class to test query time for used in correspondance with large test dataset.
     /// </summary>
     public class StorageQueryTime : IClassFixture<PlatformStorageFixture>
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         public string instanceId;
-        private const string platformUrl = ""; // "http://platform.altinn.cloud";
+        private string platformUrl = ""; // "http://platform.altinn.cloud";
+        private readonly bool ignoreTests = true;
 
         private Logger logger = new LoggerConfiguration()
         .WriteTo.Console()
@@ -40,6 +41,11 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CrossPartitionQueryApplicationOwner()
         {
+            if (ignoreTests)
+            {
+                return;
+            }
+
             string[] owners = { "SKD", "BRREG", "NAV", "DIBK", "ACN", "OSLK", "BRMK", "DIFI", "ASKK" };
 
             logger.Information("CrossPartitionQuery: ApplicationOwnerId");
@@ -69,6 +75,11 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void CrossPartitionQueryApplicationId()
         {
+            if (ignoreTests)
+            {
+                return;
+            }
+
             string[] applications = { "S123", "S201", "S221", "S301", "S401", "S501", "S601", "S000", "S801", "S701" };
 
             logger.Information("CrossPartitionQuery: ApplicationId");
@@ -95,11 +106,15 @@ namespace Altinn.Platform.Test.Integration
         }
 
         /// <summary>
-        /// get one instance and measure time, query within partition
+        /// get one instance and measure time, query within partition.
         /// </summary>
         [Fact]
         public async void OneInstance()
         {
+            if (ignoreTests)
+            {
+                return;
+            }
 
             logger.Information("Partition query: Get One instance");
 
@@ -137,6 +152,11 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void InstanceOwnersInstances()
         {
+            if (ignoreTests)
+            {
+                return;
+            }
+
             logger.Information("PartitionQuery: all instances of an InstanceOwner");
 
             string[] instanceOwners = { "50002126", "50002110", "50002000" };
@@ -158,7 +178,6 @@ namespace Altinn.Platform.Test.Integration
 
                 long elapsedMs = watch.ElapsedMilliseconds;
                 logger.Information("Processed {size} instances for instanceOwnerId={owner} in {Elapsed} ms.", size, instanceOwnerId, elapsedMs);
-
             }
         }
     }

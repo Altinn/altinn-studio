@@ -80,6 +80,30 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
+        /// Delets an instance.
+        /// </summary>
+        /// <param name="item">The instance to delete</param>
+        /// <returns>if the item is deleted or not</returns>
+        public async Task<bool> DeleteInstance(Instance item)
+        {
+            try
+            {
+                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id.ToString());
+
+                ResourceResponse<Document> instance = await _client
+                    .DeleteDocumentAsync(
+                        uri.ToString(),
+                        new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Get the instance based on the input parameters
         /// </summary>
         /// <param name="applicationOwnerId">application owner id</param>

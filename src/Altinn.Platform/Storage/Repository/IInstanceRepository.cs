@@ -50,5 +50,12 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="item">the instance</param>
         /// <returns>The updated instance</returns>
         Task<Instance> UpdateInstanceInCollectionAsync(Guid id, Instance item);
+
+        /// <summary>
+        /// Delets an instance.
+        /// </summary>
+        /// <param name="item">The instance to delete</param>
+        /// <returns>if the item is deleted or not</returns>
+        Task<bool> DeleteInstance(Instance item);
     }
 }

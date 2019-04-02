@@ -109,5 +109,20 @@ namespace Altinn.Platform.Storage.Repository
             memoryStream.Position = 0;
             return memoryStream;
         }
+
+        public async Task<bool> DeleteDataInStorage(string fileName)
+        {
+            StorageCredentials storageCredentials = new StorageCredentials(_storageConfiguration.AccountName, _storageConfiguration.AccountKey);
+            CloudStorageAccount storageAccount = new CloudStorageAccount(storageCredentials, true);
+
+            CloudBlobClient blobClient = CreateBlobClient(storageCredentials, storageAccount);
+
+            CloudBlobContainer container = blobClient.GetContainerReference(_storageConfiguration.StorageContainer);
+            CloudBlockBlob blockBlob = container.GetBlockBlobReference(fileName);
+
+            bool result = await blockBlob.DeleteIfExistsAsync();
+
+            return result;
+        }
     }
 }
