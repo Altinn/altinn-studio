@@ -26,7 +26,7 @@ export class DatepickerComponent
     };
   }
 
-  public OnDateChange = () => {
+  public onDateChange = () => {
 
     setTimeout(() => {
       if (!this.myDateCmp.current.value) {
@@ -53,8 +53,8 @@ export class DatepickerComponent
             className={this.props.isValid ?
               'form-control a-hasButton date' :
               'form-control a-hasButton date validation-error'}
-            onBlur={this.OnDateChange}
-            onChange={this.OnDateChange}
+            onBlur={this.onDateChange}
+            onChange={this.onDateChange}
             disabled={this.props.component.disabled}
             required={this.props.component.required}
             value={this.state.value}
