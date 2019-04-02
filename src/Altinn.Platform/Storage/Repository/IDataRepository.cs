@@ -34,5 +34,12 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="fileName">the filename to be used</param>
         /// <returns></returns>
         Task<Stream> GetDataInStorage(string fileName);
+
+        /// <summary>
+        /// Deletes the data element permanently
+        /// </summary>
+        /// <param name="fileName">the file to delete</param>
+        /// <returns></returns>
+        Task<bool> DeleteDataInStorage(string fileName);
     }
 }

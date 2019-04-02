@@ -1,10 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Serilog;
+using Serilog.Core;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 namespace Altinn.Platform.Storage.Controllers
@@ -16,6 +17,9 @@ namespace Altinn.Platform.Storage.Controllers
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
+        private Logger logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
@@ -34,12 +38,12 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>list of all instances for given instanceowner</returns>
         /// GET api/v1/instances
         [HttpGet("query")]
-        public async Task<ActionResult> Get(int instanceOwnerId, string applicationOwnerId)
+        public async Task<ActionResult> GetMany(int instanceOwnerId, string applicationOwnerId, string applicationId)
         {
             if (instanceOwnerId != 0)
             {
                 var result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
-                if (result == null)
+                if (result == null || result.Count == 0)
                 {
                     return NotFound();
                 }
@@ -49,7 +53,17 @@ namespace Altinn.Platform.Storage.Controllers
             else if (!string.IsNullOrEmpty(applicationOwnerId))
             {       
                 var result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
-                if (result == null)
+                if (result == null || result.Count == 0)
+                {
+                    return NotFound();
+                }
+
+                return Ok(result);
+            }
+            else if (!string.IsNullOrEmpty(applicationId))
+            {                
+                var result = await _instanceRepository.GetInstancesOfApplicationAsync(applicationId);
+                if (result == null || result.Count == 0)
                 {
                     return NotFound();
                 }
@@ -70,11 +84,16 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet("{instanceId:guid}")]
         public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
         {
+            Stopwatch watch = Stopwatch.StartNew();
+
             var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (result == null)
             {
                 return NotFound();
             }
+
+            watch.Stop();
+            logger.Information("get {instanceid} for {instanceOwner} took {time}ms.", instanceId, instanceOwnerId, watch.ElapsedMilliseconds);
 
             return Ok(result);
         }
@@ -91,10 +110,12 @@ namespace Altinn.Platform.Storage.Controllers
         {
             if (string.IsNullOrEmpty(applicationId) || instanceOwnerId == 0)
             {
-                return BadRequest("Both applicationId and instanceownerid must be set");
+                return BadRequest("Missing parameter values: applicationId and instanceOwnerId must be set");
             }
 
             DateTime creationTime = DateTime.UtcNow;
+
+            string applicationOwnerId = GetApplicationOwner(applicationId);
 
             Instance instance = new Instance()
             {
@@ -104,6 +125,7 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChangedBy = 0,
                 LastChangedDateTime = creationTime,
                 ApplicationId = applicationId,
+                ApplicationOwnerId = applicationOwnerId,
             };
 
             string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
@@ -113,6 +135,20 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return Ok(result);
+        }
+
+        private string GetApplicationOwner(string applicationId)
+        {
+            string[] parts = applicationId.Split("/");
+
+            if (parts.Length > 1)
+            {
+                return parts[0];
+            }
+            else
+            {
+                return "TEST";
+            }            
         }
 
         /// <summary>
@@ -142,23 +178,43 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceId">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated instance object</returns>
-        /// DELETE api/v1/<controller>/5
+        /// DELETE api/v1/instance/{instanceId}?instanceOwnerId={instanceOwnerId}
         [HttpDelete("{instanceId}")]
-        public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId)
+        public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, bool? hard)
         {
             Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
-
-            instance.IsDeleted = true;
-            instance.LastChangedBy = instanceOwnerId;
-            instance.LastChangedDateTime = DateTime.UtcNow;
-            var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
-            if (result == null)
+            if (instance == null)
             {
+                return NotFound();
+            }
+            else
+            {
+                if (hard.HasValue && hard == true)
+                {
+                    bool deletedOK = await _instanceRepository.DeleteInstance(instance);
+                    if (deletedOK)
+                    {
+                        return Ok(true);
+                    }                    
+                }
+                else
+                {
+                    instance.IsDeleted = true;
+                    instance.LastChangedBy = instanceOwnerId;
+                    instance.LastChangedDateTime = DateTime.UtcNow;
+
+                    var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+                    if (result == null)
+                    {
+                        return Ok(result);
+                    }                            
+                }
+
                 return BadRequest();
             }
 
-            return Ok(result);
         }
     }
 }

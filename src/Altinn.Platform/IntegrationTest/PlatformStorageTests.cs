@@ -15,11 +15,14 @@ namespace Altinn.Platform.Test.Integration
     /// <summary>
     ///  Tests dataservice REST api.
     /// </summary>
-    public class PlatformStorageTests : IClassFixture<PlatformStorageFixture>
+    public class PlatformStorageTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private string instanceId;
+        private readonly string testApplicationOwnerId = "TEST";
+        private readonly string testApplicationId = "TEST/sailor";
+        private readonly int testInstanceOwnerId = 640;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
@@ -31,13 +34,41 @@ namespace Altinn.Platform.Test.Integration
             this.client = this.fixture.Client;
         }
 
-        private void SetUser(int id)
+        /// <summary>
+        /// Make sure repository is cleaned after the tests is run.
+        /// </summary>
+        public void Dispose()
         {
-            string userdata = string.Format("{0}:password", id);
-            var byteArray = Encoding.UTF8.GetBytes(userdata);
-            this.client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
-                "Basic",
-                Convert.ToBase64String(byteArray));
+            string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
+            string requestUri = string.Format(urlTemplate, testApplicationOwnerId);
+
+            HttpResponseMessage response = client.GetAsync(requestUri).Result;
+            string content = response.Content.ReadAsStringAsync().Result;
+
+            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
+
+            foreach (Instance instance in instances)
+            {
+                string url = "api/v1/instances/" + instance.Id;
+
+                if (instance.Data != null)
+                {
+                    foreach (KeyValuePair<string, Dictionary<string, Data>> data in instance.Data)
+                    {
+                        foreach (KeyValuePair<string, Data> file in data.Value)
+                        {
+                            string filename = file.Value.StorageUrl;
+                            string dataUrl = "/data/" + data.Key + "/" + file.Key + "?instanceOwnerId=" + testInstanceOwnerId;
+
+                            string dataDeleteUrl = url + dataUrl;
+
+                            client.DeleteAsync(dataDeleteUrl);
+                        }
+                    }
+                }
+
+                client.DeleteAsync("api/v1/instances/" + instance.Id + "?instanceOwnerId=" + instance.InstanceOwnerId + "&hard=true");
+            }
         }
 
         /// <summary>
@@ -49,36 +80,40 @@ namespace Altinn.Platform.Test.Integration
         {
             Instance instanceData = new Instance
             {
-                ApplicationId = "KNS/sailor",
-                ApplicationOwnerId = "BRREG",
+                ApplicationId = testApplicationId,
             };
 
-            HttpResponseMessage postResponse = await client.PostAsync("/api/v1/instances?instanceOwnerId=666&applicationId=KNS/sailor", instanceData.AsJson());
+            string urlTemplate = "/api/v1/instances?instanceOwnerId={0}&applicationId={1}";
+            string url = string.Format(urlTemplate, testInstanceOwnerId, testApplicationId);
+
+            HttpResponseMessage postResponse = await client.PostAsync(url, instanceData.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
             string newId = await postResponse.Content.ReadAsStringAsync();
             instanceId = newId;
             Assert.NotNull(newId);
 
-            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "?instanceOwnerId=666");
+            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "?instanceOwnerId=" + testInstanceOwnerId);
 
             getResponse.EnsureSuccessStatusCode();
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
 
             Assert.Equal(newId, actual.Id);
 
-            // Assert.Equal("666", actual.InstanceOwnerId);
-            Assert.Equal("KNS/sailor", actual.ApplicationId);
+            Assert.Equal(testInstanceOwnerId.ToString(), actual.InstanceOwnerId);
+            Assert.Equal(testApplicationId, actual.ApplicationId);
         }
 
         /// <summary>
         ///  Checks that the Inline data urls returns a proper encoding.
         /// </summary>
         /// <param name="url">the url to check</param>
-        [Theory]
-        [InlineData("/api/v1/instances/query?instanceOwnerId=666")]
-        public async void GetInstancesForInstanceOwner(string url)
+        [Fact]
+        public async void GetInstancesForInstanceOwner()
         {
+            await CreateInstance(testApplicationId, testInstanceOwnerId);
+
+            string url = "/api/v1/instances/query?instanceOwnerId=" + testInstanceOwnerId;
             HttpResponseMessage response = await client.GetAsync(url);
 
             response.EnsureSuccessStatusCode();
@@ -96,10 +131,10 @@ namespace Altinn.Platform.Test.Integration
             };
 
             // create instance
-            string newId = await CreateInstance("KNS/sailor", 642);
-            Instance instance = await GetInstance(newId, 642);
+            string newId = await CreateInstance(testApplicationId, testInstanceOwnerId);
+            Instance instance = await GetInstance(newId, testInstanceOwnerId);
 
-            string url = string.Format("api/v1/instances/{0}/data/boatdata?instanceOwnerId={1}", newId, 642);
+            string url = string.Format("api/v1/instances/{0}/data/boatdata?instanceOwnerId={1}", newId, testInstanceOwnerId);
 
             // post the file
             HttpResponseMessage postResponse = await client.PostAsync(url, jsonContent.AsJson());
@@ -110,8 +145,8 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void StoreABinaryFile()
         {
-            string applicationId = "KNS/sailor";
-            int instanceOwnerId = 641;
+            string applicationId = testApplicationId;
+            int instanceOwnerId = testInstanceOwnerId;
 
             string instanceId = await CreateInstance(applicationId, instanceOwnerId);
             string urlTemplate = "api/v1/instances/{0}/data/crewlist?instanceOwnerId={1}";
@@ -134,8 +169,8 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void GetABinaryFile()
         {
-            string applicationId = "KNS/sailor";
-            int instanceOwnerId = 642;
+            string applicationId = testApplicationId;
+            int instanceOwnerId = testInstanceOwnerId;
 
             string instanceId = await CreateInstance(applicationId, instanceOwnerId);
             Instance instance = await GetInstance(instanceId, instanceOwnerId);
@@ -161,11 +196,14 @@ namespace Altinn.Platform.Test.Integration
             }
         }
 
+        /// <summary>
+        ///  update an existing data file.
+        /// </summary>
         [Fact]
         public async void UpdateDataFile()
         {
-            string applicationId = "KNS/sailor";
-            int instanceOwnerId = 642;
+            string applicationId = testApplicationId;
+            int instanceOwnerId = testInstanceOwnerId;
 
             string instanceId = await CreateInstance(applicationId, instanceOwnerId);
             Instance instance = await GetInstance(instanceId, instanceOwnerId);
@@ -195,11 +233,17 @@ namespace Altinn.Platform.Test.Integration
             }
         }
 
+        /// <summary>
+        /// get all instances for a given application owner.
+        /// </summary>
         [Fact]
         public async void QueryInstancesOnApplicationOwnerId()
         {
+            await CreateInstance(testApplicationId, testInstanceOwnerId);
+            await CreateInstance(testApplicationId, testInstanceOwnerId);
+
             string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
-            string requestUri = string.Format(urlTemplate, "KNS");
+            string requestUri = string.Format(urlTemplate, testApplicationOwnerId);
 
             HttpResponseMessage response = await client.GetAsync(requestUri);
 

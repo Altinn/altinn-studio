@@ -32,7 +32,15 @@ namespace Altinn.Platform.Storage.Repository
         {
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
-            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey);
+
+            ConnectionPolicy connectionPolicy = new ConnectionPolicy
+            {
+                ConnectionMode = ConnectionMode.Gateway,
+                ConnectionProtocol = Protocol.Https,
+            };
+
+            _client = new DocumentClient(new Uri(_cosmosettings.EndpointUri), _cosmosettings.PrimaryKey, connectionPolicy);
+
             _databaseUri = UriFactory.CreateDatabaseUri(_cosmosettings.Database);
             _collectionUri = UriFactory.CreateDocumentCollectionUri(_cosmosettings.Database, _cosmosettings.Collection);
             databaseId = _cosmosettings.Database;
@@ -44,7 +52,9 @@ namespace Altinn.Platform.Storage.Repository
 
             _client.CreateDocumentCollectionIfNotExistsAsync(
                 _databaseUri,
-                documentCollection).GetAwaiter().GetResult();            
+                documentCollection).GetAwaiter().GetResult();
+
+            _client.OpenAsync();
         }
 
         /// <summary>
@@ -56,15 +66,40 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                var document = await _client.CreateDocumentAsync(_collectionUri, item);
-                var res = document.Resource;
-                Instance instance = JsonConvert.DeserializeObject<Instance>(res.ToString());
+                ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+                Document document = createDocumentResponse.Resource;
+
+                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
 
                 return instance.Id;
             }
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+
+        /// <summary>
+        /// Delets an instance.
+        /// </summary>
+        /// <param name="item">The instance to delete</param>
+        /// <returns>if the item is deleted or not</returns>
+        public async Task<bool> DeleteInstance(Instance item)
+        {
+            try
+            {
+                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id.ToString());
+
+                ResourceResponse<Document> instance = await _client
+                    .DeleteDocumentAsync(
+                        uri.ToString(),
+                        new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
             }
         }
 
@@ -77,13 +112,14 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance WHERE Instance.applicationOwnerId = '{applicationOwnerId}'";
+                string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationOwnerId = '{applicationOwnerId}'";
 
-                List<Instance> instances = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
-                    .Where(b => b.ApplicationOwnerId == applicationOwnerId)
-                    .ToList();             
+                IDocumentQuery<Instance> query = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, sqlQuery, new FeedOptions { EnableCrossPartitionQuery = true })
+                    .AsDocumentQuery();
 
+                FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
+                List<Instance> instances = result.ToList<Instance>();
                 return instances;
             }
             catch (DocumentClientException e)
@@ -96,6 +132,53 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     throw;
                 }
+            }
+            catch (Exception e)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Get the instance based on the input parameters
+        /// </summary>
+        /// <param name="applicationId">application owner id</param>
+        /// <returns>the instance for the given parameters</returns>
+        public async Task<List<Instance>> GetInstancesOfApplicationAsync(string applicationId)
+        {
+            try
+            {
+                // string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationId = '{applicationId}'";
+                FeedOptions feedOptions = new FeedOptions
+                {
+                    EnableCrossPartitionQuery = true,
+                    MaxItemCount = 100,          
+                };
+
+                IDocumentQuery<Instance> query = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                    .Where(i => i.ApplicationId == applicationId)           
+                    .AsDocumentQuery();
+
+                FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
+             
+                List<Instance> instances = result.ToList<Instance>();
+                return instances;
+            }
+            catch (DocumentClientException e)
+            {
+                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    throw;
+                }
+            }
+            catch (Exception e)
+            {
+                return null;
             }
         }
 
@@ -112,7 +195,9 @@ namespace Altinn.Platform.Storage.Repository
                 var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
               
                 Instance instance = await _client
-                    .ReadDocumentAsync<Instance>(uri, new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
+                    .ReadDocumentAsync<Instance>(
+                        uri,
+                        new RequestOptions { PartitionKey = new PartitionKey(instanceOwnerId.ToString()) });
 
                 return instance;
             }
@@ -146,12 +231,21 @@ namespace Altinn.Platform.Storage.Repository
             {
                 string instanceOwnerIdString = instanceOwnerId.ToString();
 
-                List<Instance> instances = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, new FeedOptions { PartitionKey = new PartitionKey(instanceOwnerIdString) })
-                    .Where(i => i.InstanceOwnerId.Equals(instanceOwnerIdString))
-                    .ToList();
+                FeedOptions feedOptions = new FeedOptions
+                {
+                    PartitionKey = new PartitionKey(instanceOwnerIdString),
+                    MaxItemCount = 100,
+                };
 
-                return instances;
+                IQueryable<Instance> filter = _client
+                    .CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                    .Where(i => i.InstanceOwnerId == instanceOwnerIdString);
+
+                IDocumentQuery<Instance> query = filter.AsDocumentQuery<Instance>();
+
+                FeedResponse<Instance> feedResponse = await query.ExecuteNextAsync<Instance>();
+
+                return feedResponse.ToList<Instance>();
             }
             catch (DocumentClientException e)
             {
