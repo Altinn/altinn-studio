@@ -13,6 +13,6 @@ namespace Altinn.Platform.Register.Services.Interfaces
         /// </summary>
         /// <param name="OrgNr">The organization number</param>
         /// <returns></returns>
-        Task<Organization> GetOrganization(int OrgNr);
+        Task<Organization> GetOrganization(string OrgNr);
     }
 }

@@ -28,9 +28,15 @@ namespace Altinn.Platform.Register.Controllers
         /// <param name="orgNr">The organization nr</param>
         /// <returns>The information about a given organization</returns>
         [HttpGet("{orgNr}")]
-        public Task<Organization> Get(int orgNr)
+        public async Task<ActionResult> Get(string orgNr)
         {
-            return _organizationsWrapper.GetOrganization(orgNr);
+            Organization result = await _organizationsWrapper.GetOrganization(orgNr);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
     }
 }

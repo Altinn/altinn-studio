@@ -28,9 +28,15 @@ namespace Altinn.Platform.Register.Controllers
         /// <param name="partyID">The party id</param>
         /// <returns>The information about a given party</returns>
         [HttpGet("{partyID}")]
-        public Task<Party> Get(int partyID)
+        public async Task<ActionResult> Get(int partyID)
         {
-            return _partiesWrapper.GetParty(partyID);
+            Party result = await _partiesWrapper.GetParty(partyID);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
     }
 }

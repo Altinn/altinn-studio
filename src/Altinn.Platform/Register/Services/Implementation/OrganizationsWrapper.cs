@@ -32,7 +32,7 @@ namespace Altinn.Platform.Register.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Organization> GetOrganization(int orgNr)
+        public async Task<Organization> GetOrganization(string orgNr)
         {
             Organization org = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));

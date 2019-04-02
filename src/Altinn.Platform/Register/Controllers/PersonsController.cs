@@ -28,9 +28,15 @@ namespace Altinn.Platform.Register.Controllers
         /// <param name="ssn">The ssn</param>
         /// <returns>The information about a given person</returns>
         [HttpGet("{ssn}")]
-        public Task<Person> Get(string ssn)
+        public async Task<ActionResult> Get(string ssn)
         {
-            return _personsWrapper.GetPerson(ssn);
+            Person result = await _personsWrapper.GetPerson(ssn);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
     }
 }
