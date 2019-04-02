@@ -4,6 +4,7 @@ import update from 'immutability-helper';
 import * as React from 'react';
 
 import '../../styles/AddressComponent.css';
+import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IAddressComponentProps {

@@ -1,8 +1,14 @@
 .validation-error {
   border: 2px solid #E23B53 !important;
 }
+.disabled-date {
+  border: none !important;
+  background-color: transparent !important;
+  color: #000 !important;
+}
 .disabled {
   border: 2px solid #6A6A6A !important;
+  color: #000;
   background: repeating-linear-gradient(
     135deg,
     #efefef,
@@ -10,9 +16,4 @@
     #fff 3px,
     #fff 5px
   );
-}
-.disabled-date {
-  border: none !important;
-  background-color: transparent !important;
-  color: #000 !important;
 }

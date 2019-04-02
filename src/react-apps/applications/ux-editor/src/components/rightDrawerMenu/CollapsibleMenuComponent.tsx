@@ -53,7 +53,7 @@ export interface ICollapsableMenuProvidedProps {
 }
 
 export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
-  components: IFormDesignerComponent;
+  components: IProperties;
   language: any;
   dataModel: IDataModelFieldElement[];
 }
@@ -63,7 +63,7 @@ export interface ICollapsableMenuListItem {
   action?: any;
 }
 
-const CollapsableMenus = (props: ICollapsableMenuProps) => {
+const CollapsibleMenus = (props: ICollapsableMenuProps) => {
   const [menuIsOpen, setMenuIsOpen] = React.useState(true);
   const [component, setComponent] = React.useState(props.components[props.componentId]);
   const { classes } = props;
@@ -185,5 +185,5 @@ const mapStateToProps: (
   dataModel: state.appData.dataModel.model,
 });
 
-export const CollapsableMenuComponent =
-  withStyles(styles, { withTheme: true })(connect(mapStateToProps)(CollapsableMenus));
+export const CollapsibleMenuComponent =
+  withStyles(styles, { withTheme: true })(connect(mapStateToProps)(CollapsibleMenus));

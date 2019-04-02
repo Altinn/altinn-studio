@@ -11,7 +11,7 @@ import VersionControlHeader from '../../../shared/src/version-control/versionCon
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
+import { CollapsibleMenuComponent } from '../components/rightDrawerMenu/CollapsibleMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
@@ -257,7 +257,7 @@ class FormDesigner extends React.Component<
                   <h3 className={this.props.classes.menuHeader}>
                     {this.props.language.ux_editor.service_logic}
                   </h3>
-                  <CollapsableMenuComponent
+                  <CollapsibleMenuComponent
                     header={this.props.language.ux_editor.service_logic_validations}
                     componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
                     listItems={[
@@ -267,7 +267,7 @@ class FormDesigner extends React.Component<
                       },
                     ]}
                   />
-                  <CollapsableMenuComponent
+                  <CollapsibleMenuComponent
                     header={this.props.language.ux_editor.service_logic_dynamics}
                     componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
                     listItems={[
@@ -278,8 +278,8 @@ class FormDesigner extends React.Component<
                   >
                     <RuleModalComponent />
                     <ConditionalRenderingModalComponent />
-                  </CollapsableMenuComponent>
-                  <CollapsableMenuComponent
+                  </CollapsibleMenuComponent>
+                  <CollapsibleMenuComponent
                     header={this.props.language.ux_editor.service_logic_calculations}
                     componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
                     listItems={[

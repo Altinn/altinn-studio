@@ -83,7 +83,6 @@ declare global {
     required?: boolean;
     hidden?: boolean;
     readOnly?: boolean;
-    [key: string]: string | any;
   }
 
   export interface IFormHeaderComponent extends IFormComponent {
@@ -126,6 +125,10 @@ declare global {
 
   export interface IDataModelBindings {
     [id: string]: string;
+  }
+
+  export interface IProperties extends IFormComponent {
+    [key: string]: string | any;
   }
 
   export interface IFormAddressComponent extends IFormComponent {

@@ -3,8 +3,7 @@ import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
-import { AddressComponent, getTextResourceByAddressKey } from '../../../src/components/advanced/AddressComponent';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { AddressComponent } from '../../../src/components/advanced/AddressComponent';
 
 export interface ITextResourceBindings {
   [id: string]: string;

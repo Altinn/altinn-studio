@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createRef } from 'react';
-import '../../styles/InputComponent.css';
+import '../../styles/shared.css';
 
 export interface IDatePickerProps {
   id: string;
