@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Register.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Register.Controllers
@@ -12,15 +11,32 @@ namespace Altinn.Platform.Register.Controllers
     [Route("api/v1/[controller]")]
     public class PartiesController : Controller
     {
+        private readonly IParties _partiesWrapper;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PartiesController"/> class
+        /// </summary>
+        /// <param name="partiesWrapper">The parties wrapper</param>
+        public PartiesController(IParties partiesWrapper)
+        {
+            _partiesWrapper = partiesWrapper;
+        }
+
         /// <summary>
         /// Gets the party for a given party id
         /// </summary>
         /// <param name="partyID">The party id</param>
         /// <returns>The information about a given party</returns>
         [HttpGet("{partyID}")]
-        public IActionResult Get(int partyID)
+        public async Task<ActionResult> Get(int partyID)
         {
-            return Ok("Getting party");
+            Party result = await _partiesWrapper.GetParty(partyID);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
     }
 }
