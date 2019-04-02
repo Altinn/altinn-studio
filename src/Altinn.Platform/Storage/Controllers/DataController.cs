@@ -40,6 +40,36 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
+        /// Deletes a data element.
+        /// </summary>
+        /// <param name="instanceId">the instance owning the data element</param>
+        /// <param name="formId">identifies the type of data element</param>
+        /// <param name="dataId">the instance of the data element</param>
+        /// <param name="instanceOwnerId">the owner of the instance</param>
+        /// <returns></returns>
+        [HttpDelete("{formId}/{dataId:guid}")]
+        public async Task<IActionResult> Delete(Guid instanceId, string formId, Guid dataId, int instanceOwnerId)
+        {
+            // check if instance id exist and user is allowed to change the instance data            
+            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
+            if (instance == null)
+            {
+                return NotFound("Provided instanceId is unknown to platform storage service");
+            }
+
+            string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), formId, dataId.ToString());
+
+            bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
+
+            if (result)
+            {
+                return Ok();
+            }
+
+            return BadRequest();
+        }
+
+        /// <summary>
         /// Save the form data
         /// </summary>
         /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
@@ -64,7 +94,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound("Provided instanceId is unknown to platform storage service");
             }
 
-            string storageFileName = instance.ApplicationId + "/" + instanceId + "/data/" + formId + "/" + dataId;
+            string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), formId, dataId.ToString());
 
             // check if dataId exists in instance
             if (instance.Data.ContainsKey(formId))
@@ -82,13 +112,18 @@ namespace Altinn.Platform.Storage.Controllers
                         {
                             return NotFound();
                         }
-                        
-                        return File(dataStream, data.ContentType, data.FileName);                                                                        
+
+                        return File(dataStream, data.ContentType, data.FileName);
                     }
-                }                
+                }
             }
 
             return NotFound("Unable to find requested data item");
+        }
+
+        public static string DataFileName(string ApplicationId, string instanceId, string formId, string dataId)
+        {
+            return ApplicationId + "/" + instanceId + "/data/" + formId + "/" + dataId;
         }
 
         /// <summary>
@@ -192,7 +227,7 @@ namespace Altinn.Platform.Storage.Controllers
                 instance.Data[formId] = new Dictionary<string, Data>();
             }
 
-            instance.Data[formId][newData.Id] = newData;
+            instance.Data[formId].Add(newData.Id, newData);
 
             // store file as blob
             await _dataRepository.CreateDataInStorage(theStream, fileName);

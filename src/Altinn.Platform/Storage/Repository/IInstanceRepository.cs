@@ -22,6 +22,13 @@ namespace Altinn.Platform.Storage.Repository
         Task<List<Instance>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId);
 
         /// <summary>
+        /// Gets all the instances for an application owner
+        /// </summary>
+        /// <param name="applicationId">the application owner</param>
+        /// <returns>The list of instances for a reportee</returns>
+        Task<List<Instance>> GetInstancesOfApplicationAsync(string applicationId);
+
+        /// <summary>
         /// Get an instance details for the given parameters
         /// </summary>
         /// <param name="instanceId">the instance id</param>
@@ -43,5 +50,12 @@ namespace Altinn.Platform.Storage.Repository
         /// <param name="item">the instance</param>
         /// <returns>The updated instance</returns>
         Task<Instance> UpdateInstanceInCollectionAsync(Guid id, Instance item);
+
+        /// <summary>
+        /// Delets an instance.
+        /// </summary>
+        /// <param name="item">The instance to delete</param>
+        /// <returns>if the item is deleted or not</returns>
+        Task<bool> DeleteInstance(Instance item);
     }
 }
