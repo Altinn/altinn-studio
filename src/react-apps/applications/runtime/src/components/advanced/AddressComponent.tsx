@@ -187,7 +187,6 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     const validations = this.joinValidationMessages();
 
     if (simplified) {
-      console.log('validations ', validations);
       return (
         <div className={'address-component'}>
           <label className={'address-component-label'}>
@@ -252,7 +251,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             this.props.getTextResource(this.props.component.textResourceBindings.address)
         }</label>
         <input
-          className={'form-control'}
+          className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
@@ -262,7 +261,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           : null}
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
-          className={'form-control'}
+          className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
           value={careOf}
           onChange={this.updateField.bind(null, AddressKeys.careOf)}
           onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
@@ -292,7 +291,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <label className={'address-component-label'}>Poststed</label>
             <br />
             <input
-              className={'form-control'}
+              className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
               value={postPlace}
               onChange={this.updateField.bind(null, AddressKeys.postPlace)}
               onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
@@ -313,11 +312,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.
         </p>
         <input
-          className={
-            !validations.houseNumber ?
-              'address-component-small-inputs form-control' :
-              'address-component-small-inputs form-control validation-error'
-          }
+          className={classNames('address-component-small-inputs', 'form-control',
+            {
+              'validation-error': (validations ? validations.houseNumber : false),
+              'disabled': this.props.component.readOnly,
+            })}
           value={houseNumber}
           onChange={this.updateField.bind(null, AddressKeys.houseNumber)}
           onBlur={this.onBlurField.bind(null, AddressKeys.houseNumber)}
