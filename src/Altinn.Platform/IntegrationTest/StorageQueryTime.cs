@@ -16,8 +16,8 @@ namespace Altinn.Platform.Test.Integration
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        public string instanceId;
-        private string platformUrl = ""; // "http://platform.altinn.cloud";
+        private string instanceId;
+        private string platformUrl = string.Empty; // "http://platform.altinn.cloud";
         private readonly bool ignoreTests = true;
 
         private Logger logger = new LoggerConfiguration()

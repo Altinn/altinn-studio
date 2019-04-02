@@ -28,7 +28,7 @@ namespace Altinn.Platform.Test.Integration.Fixtures
             string[] args = { };
 
             ConfigurationBuilder config = new ConfigurationBuilder();
-            Program.LoadConfigurationSettings(config, args);
+            Program.LoadConfigurationSettings(config, GetContentRootPath(), args);
 
             IWebHostBuilder builder = new WebHostBuilder()
                 .UseContentRoot(GetContentRootPath())
