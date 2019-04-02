@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 namespace Altinn.Platform.Storage
 {
     /// <summary>
-    /// database startup
+    /// The database startup
     /// </summary>
     public class Startup
     {
@@ -46,7 +46,7 @@ namespace Altinn.Platform.Storage
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
         }
 
@@ -65,10 +65,10 @@ namespace Altinn.Platform.Storage
             {
                 app.UseExceptionHandler("/Error");
 
-                //app.UseHsts();
+                // app.UseHsts();
             }
 
-            //app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseMvc();
         }
     }

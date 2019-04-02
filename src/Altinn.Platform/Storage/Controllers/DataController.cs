@@ -368,7 +368,6 @@ namespace Altinn.Platform.Storage.Controllers
 
             // dummy data TODO call repository
             return JsonConvert.DeserializeObject<ApplicationInformation>(json);           
-            
         }
     }
 }
