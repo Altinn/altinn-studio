@@ -54,8 +54,8 @@ export class DatepickerComponent
               (this.props.isValid ?
                 'form-control a-hasButton date' :
                 'form-control a-hasButton date validation-error')}
-            onBlur={this.onDataChangeSubmit}
-            onChange={this.onDataChanged}
+            onBlur={this.onDateChange}
+            onChange={this.onDateChange}
             disabled={this.props.component.readOnly}
             required={this.props.component.required}
             value={this.state.value}
