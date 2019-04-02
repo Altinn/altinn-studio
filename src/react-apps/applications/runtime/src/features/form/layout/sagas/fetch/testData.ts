@@ -12,16 +12,13 @@ export const testData: any = {
           "simpleBinding": "utfyllingAvSkjemagrp5809.sporsmalgrp5810.utfyllerFullmaktshaverdatadef25350.value"
         }
       },
-      "f16f9940-cdeb-4706-8fbc-bd979d5d94e1": {
-        "component": "Input",
+      "418af1ce-6e12-4493-99c0-f4aa7ca083d5": {
+        "component": "Header",
         "itemType": "COMPONENT",
         "textResourceBindings": {
-          "title": "25364.VaremerkeForundersokelseNummerdatadef25364.Label",
-          "description": "25364.VaremerkeForundersokelseNummerdatadef25364.Label"
+          "title": "25350.UtfyllerFullmaktshaverdatadef25350.Label"
         },
-        "dataModelBindings": {
-          "simpleBinding": "soknadgrp5823.forundersokelsegrp5828.varemerkeForundersokelseNummerdatadef25364.value"
-        }
+        "dataModelBindings": {}
       }
     },
     "containers": {
@@ -33,7 +30,7 @@ export const testData: any = {
     },
     "order": {
       "d5b9df6d-deda-48c7-95c8-d8598497e5d8": [
-        "f16f9940-cdeb-4706-8fbc-bd979d5d94e1",
+        "418af1ce-6e12-4493-99c0-f4aa7ca083d5",
         "0a100514-7df0-4c05-a453-0132dfc1ac5c"
       ]
     }
