@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="KubernetesClient" Version="1.5.18" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
