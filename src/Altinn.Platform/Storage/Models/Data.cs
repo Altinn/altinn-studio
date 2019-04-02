@@ -77,6 +77,5 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
-
     }
 }

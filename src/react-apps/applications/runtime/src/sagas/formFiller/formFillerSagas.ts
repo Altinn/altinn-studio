@@ -1,12 +1,14 @@
 import { AxiosRequestConfig } from 'axios';
 import { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects';
+import { call, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
 import * as FormFillerActions from '../../actions/formFillerActions/actions/index';
 import FormFillerActionDispatcher from '../../actions/formFillerActions/formFillerActionDispatcher';
 import * as FormFillerActionTypes from '../../actions/formFillerActions/formFillerActionTypes';
 import WorkflowActionDispatcher from '../../actions/workflowActions/worflowActionDispatcher';
+import { getFileUploadComponentValidations } from '../../components/base/FileUploadComponent';
 import { IAppDataState } from '../../reducers/appDataReducer';
+import { mapAttachmentListApiResponseToAttachments } from '../../utils/attachment';
 import { convertDataBindingToModel, convertModelToDataBinding } from '../../utils/databindings';
 import { get, post, put } from '../../utils/networking';
 import * as Validator from '../../utils/validation';
@@ -171,4 +173,93 @@ export function* completeAndSendInFormSaga({ url }: FormFillerActions.ICompleteA
 
 export function* watchCompleteAndSendInFormSaga(): SagaIterator {
   yield takeLatest(FormFillerActionTypes.COMPLETE_AND_SEND_IN_FORM, completeAndSendInFormSaga);
+}
+
+export function* uploadAttachmentSaga(
+  { file, attachmentType, tmpAttachmentId, componentId }: FormFillerActions.IUploadAttachmentAction): SagaIterator {
+  const state: IAppState = yield select();
+  const language = state.appData.language.language;
+  try {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, instanceId, reportee } = altinnWindow;
+    const servicePath = `${org}/${service}`;
+    const data = new FormData();
+    data.append('file', file);
+    const url = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
+      `${servicePath}/GetAttachmentUploadUrl/${instanceId}/${attachmentType}/${file.name}`;
+
+    const fileUploadLink = yield call(get, url);
+    const response = yield call(post, fileUploadLink, null, data);
+    if (response.status === 200) {
+      const attachment: IAttachment
+        = { name: file.name, size: file.size, uploaded: true, id: response.data.id, deleting: false };
+      yield call(FormFillerActionDispatcher.uploadAttachmentFulfilled,
+        attachment, attachmentType, tmpAttachmentId, componentId);
+    } else {
+      const validationMessages = getFileUploadComponentValidations('upload', language);
+      yield call(FormFillerActionDispatcher.uploadAttachmentRejected,
+        tmpAttachmentId, attachmentType, componentId, validationMessages);
+    }
+  } catch (err) {
+    console.error(err);
+    const validationMessages = getFileUploadComponentValidations('upload', language);
+    yield call(FormFillerActionDispatcher.uploadAttachmentRejected,
+      tmpAttachmentId, attachmentType, componentId, validationMessages);
+  }
+}
+
+export function* watchUploadAttachmentSaga(): SagaIterator {
+  yield takeEvery(FormFillerActionTypes.UPLOAD_ATTACHMENT, uploadAttachmentSaga);
+}
+
+export function* watchDeleteAttachmentSaga(): SagaIterator {
+  yield takeEvery(FormFillerActionTypes.DELETE_ATTACHMENT, deleteAttachmentSaga);
+}
+
+export function* deleteAttachmentSaga(
+  { attachment, attachmentType, componentId }: FormFillerActions.IDeleteAttachmentAction): SagaIterator {
+  const state: IAppState = yield select();
+  const language = state.appData.language.language;
+  try {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, instanceId, reportee } = altinnWindow;
+    const servicePath = `${org}/${service}`;
+    const getDeleteUrl = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
+      `${servicePath}/GetAttachmentDeleteUrl/${instanceId}/${attachmentType}/${attachment.name}/${attachment.id}`;
+    const deleteUrl = yield call(get, getDeleteUrl);
+    const response = yield call(post, deleteUrl);
+    if (response.status === 200) {
+      yield call(FormFillerActionDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
+    } else {
+      const validationMessages = getFileUploadComponentValidations('delete', language);
+      yield call(FormFillerActionDispatcher.deleteAttachmentRejected,
+        attachment, attachmentType, componentId, validationMessages);
+
+    }
+  } catch (err) {
+    const validationMessages = getFileUploadComponentValidations('delete', language);
+    yield call(FormFillerActionDispatcher.deleteAttachmentRejected,
+      attachment, attachmentType, componentId, validationMessages);
+    console.error(err);
+  }
+}
+
+export function* watchFetchAttachmentsSaga(): SagaIterator {
+  yield takeLatest(FormFillerActionTypes.FETCH_ATTACHMENTS, fetchAttachments);
+}
+
+export function* fetchAttachments(): SagaIterator {
+  try {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service, instanceId, reportee } = altinnWindow;
+    const servicePath = `${org}/${service}`;
+    const getAttachmentListUrl = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
+      `${servicePath}/GetAttachmentListUrl/${instanceId}`;
+    const attachmentListUrl = yield call(get, getAttachmentListUrl);
+    const response = yield call(get, attachmentListUrl);
+    const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
+    yield call(FormFillerActionDispatcher.fetchAttachmentsFulfilled, attachments);
+  } catch (err) {
+    yield call(FormFillerActionDispatcher.fetchAttachmentsRejected, err);
+  }
 }
