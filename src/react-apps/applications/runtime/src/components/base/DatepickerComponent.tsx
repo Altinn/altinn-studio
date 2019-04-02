@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { createRef } from 'react';
 import '../../styles/InputComponent.css';
 
 export interface IDatePickerProps {
@@ -16,6 +17,8 @@ export interface IDatePickerState {
 export class DatepickerComponent
   extends React.Component<IDatePickerProps, IDatePickerState> {
 
+  private myDateCmp = createRef<HTMLInputElement>();
+
   constructor(_props: IDatePickerProps, _state: IDatePickerState) {
     super(_props, _state);
     this.state = {
@@ -23,14 +26,17 @@ export class DatepickerComponent
     };
   }
 
-  public onDataChanged = (e: any) => {
-    this.setState({
-      value: e.target.value,
-    });
-  }
+  public onDateChange = () => {
 
-  public onDataChangeSubmit = () => {
-    this.props.handleDataChange(this.state.value);
+    setTimeout(() => {
+      if (!this.myDateCmp.current.value) {
+        return;
+      }
+      this.setState({
+        value: this.myDateCmp.current.value,
+      });
+      this.props.handleDataChange(this.state.value);
+    }, 100);
   }
 
   public componentDidMount() {
@@ -47,11 +53,12 @@ export class DatepickerComponent
             className={this.props.isValid ?
               'form-control a-hasButton date' :
               'form-control a-hasButton date validation-error'}
-            onBlur={this.onDataChangeSubmit}
-            onChange={this.onDataChanged}
+            onBlur={this.onDateChange}
+            onChange={this.onDateChange}
             disabled={this.props.component.disabled}
             required={this.props.component.required}
             value={this.state.value}
+            ref={this.myDateCmp}
           />
           <div className='input-group-prepend a-icon-right'>
             <i className='ai ai-date' />
