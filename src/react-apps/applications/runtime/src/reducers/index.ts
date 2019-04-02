@@ -8,22 +8,25 @@ import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
+import FormDynamics, { IFormDynamicState } from '../features/form/dynamics/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5> {
+export interface IReducers<T1, T2, T3, T4, T5, T6> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
   formWorkflow: T4;
   formDataModel: T5;
+  formDynamics: T6;
 }
 
 export interface IRuntimeState extends
   IReducers<
-    Reducer<ILayoutState>,
-    Reducer<IFormDataState>,
-    Reducer<IFormConfigState>,
-    Reducer<IWorkflowState>,
-    Reducer<IDataModelState>
+  Reducer<ILayoutState>,
+  Reducer<IFormDataState>,
+  Reducer<IFormConfigState>,
+  Reducer<IWorkflowState>,
+  Reducer<IDataModelState>,
+  Reducer<IFormDynamicState>
   >,
   ReducersMapObject {
 }
@@ -34,6 +37,7 @@ const reducers: IRuntimeState = {
   formConfig: FormConfigState,
   formWorkflow: FormWorkflowReducer,
   formDataModel: FormDataModel,
+  formDynamics: FormDynamics,
 };
 
 export default combineReducers(reducers);
