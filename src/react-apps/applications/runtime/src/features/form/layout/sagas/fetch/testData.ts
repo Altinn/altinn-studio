@@ -1,19 +1,24 @@
 export const testData: any = {
   "data": {
     "components": {
-      "01ff0066-c50e-4480-beb3-2afaf22fec9a": {
-        "component": "AddressComponent",
+      "0a100514-7df0-4c05-a453-0132dfc1ac5c": {
+        "component": "Input",
         "itemType": "COMPONENT",
         "textResourceBindings": {
-          "title": "AddressComponent",
-          "address": "25395.SokerAdressedatadef25395.Label"
+          "title": "2.KontaktpersonNavndatadef2.Label",
+          "description": "2.KontaktpersonNavndatadef2.Label"
         },
         "dataModelBindings": {
-          "address": "oppfinnergrp5816.informasjonOmOppfinnergrp5817.oppfinnerAdressedatadef25527.value",
-          "zipCode": "oppfinnergrp5816.informasjonOmOppfinnergrp5817.oppfinnerPostnummerdatadef25529.value",
-          "postPlace": "oppfinnergrp5816.informasjonOmOppfinnergrp5817.oppfinnerPoststeddatadef25528.value"
+          "simpleBinding": "utfyllingAvSkjemagrp5809.sporsmalgrp5810.utfyllerFullmaktshaverdatadef25350.value"
+        }
+      },
+      "418af1ce-6e12-4493-99c0-f4aa7ca083d5": {
+        "component": "Header",
+        "itemType": "COMPONENT",
+        "textResourceBindings": {
+          "title": "25350.UtfyllerFullmaktshaverdatadef25350.Label"
         },
-        "simplified": true
+        "dataModelBindings": {}
       }
     },
     "containers": {
@@ -25,7 +30,8 @@ export const testData: any = {
     },
     "order": {
       "d5b9df6d-deda-48c7-95c8-d8598497e5d8": [
-        "01ff0066-c50e-4480-beb3-2afaf22fec9a"
+        "418af1ce-6e12-4493-99c0-f4aa7ca083d5",
+        "0a100514-7df0-4c05-a453-0132dfc1ac5c"
       ]
     }
   }
