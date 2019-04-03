@@ -2,9 +2,11 @@ import { Grid, Hidden, Paper, Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
-import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
+import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 // import VersionControlHeader from '../../../../shared/src/version-control/versionControlHeader';
+
+import DeployPaper from '../components/deployPaper';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -37,21 +39,24 @@ const styles = () => createStyles({
     },
     marginTop: 24,
   },
+  mainGridStyle: {
+    maxWidth: 1340,
+  },
 });
 
-export interface ITestingInTestenvironmentContainerProps extends WithStyles<typeof styles> {
+export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
   language: any;
   name?: any;
   repoStatus: any;
 }
 
-export interface ITestingInTestenvironmentContainerState {
+export interface IDeployToTestContainerState {
 }
 
-export class TestingInTestenvironmentContainer extends
-  React.Component<ITestingInTestenvironmentContainerProps, ITestingInTestenvironmentContainerState> {
+export class DeployToTestContainer extends
+  React.Component<IDeployToTestContainerProps, IDeployToTestContainerState> {
 
-  constructor(_props: ITestingInTestenvironmentContainerProps, _state: ITestingInTestenvironmentContainerState) {
+  constructor(_props: IDeployToTestContainerProps, _state: IDeployToTestContainerState) {
     super(_props, _state);
     this.state = {
 
@@ -69,9 +74,9 @@ export class TestingInTestenvironmentContainer extends
     return (
       <React.Fragment>
         <div className={classes.mainLayout}>
-          <Grid container={true} justify='center'>
+          <Grid container={true} justify='center' className={classes.mainGridStyle}>
             <Grid item={true} xs={11} sm={10} md={11}>
-              <Typography variant='h1'>
+              <Typography variant='h1' style={{ fontWeight: 400 }}>
                 {getLanguageFromKey('testing.testing_in_testenv_title', this.props.language)}
               </Typography>
               <Typography variant='body1' className={classes.ingress}>
@@ -79,27 +84,30 @@ export class TestingInTestenvironmentContainer extends
               </Typography>
             </Grid>
 
-            <Grid item={true} xs={11} sm={7} md={7} className={classes.deployPlaceholderStyle}>
+            <Grid item={true} xs={11} sm={11} md={7} className={classes.deployPlaceholderStyle}>
 
-              <Paper square={true} elevation={1} style={{ padding: 24 }}>
-                Placeholder for Tjenesten er klar til å legges ut i testmiljø
-              </Paper>
+              <DeployPaper
+                titleTypographyVariant='h2'
+                inSync='ready'
+                cSharpCompiles={true}
+                readyForDeployStatus='ready'
+              />
 
             </Grid>
-            <Hidden mdUp={true} xsDown={true}>
-              <Grid item={true} sm={3}>
+            <Hidden mdUp={true} smDown={true}>
+              <Grid item={true} sm={2}>
                 {/* grid padding */}
               </Grid>
             </Hidden>
 
-            <Grid item={true} xs={11} sm={7} md={4} className={classes.aboutServicePlaceholderStyle}>
+            <Grid item={true} xs={11} sm={11} md={4} className={classes.aboutServicePlaceholderStyle}>
 
-              <Paper square={true} elevation={1} style={{ padding: 24 }}>
+              <Paper square={true} elevation={1} style={{ padding: 24, maxWidth: 800 }}>
                 Placeholder for "Tjenesten i testmiljø"
               </Paper>
 
             </Grid>
-            <Hidden mdUp={true} xsDown={true}>
+            <Hidden mdUp={true} smDown={true}>
               <Grid item={true} sm={3}>
                 {/* grid padding */}
               </Grid>
@@ -123,4 +131,4 @@ const makeMapStateToProps = () => {
   return mapStateToProps;
 };
 
-export default withStyles(styles)(connect(makeMapStateToProps)(TestingInTestenvironmentContainer));
+export default withStyles(styles)(connect(makeMapStateToProps)(DeployToTestContainer));

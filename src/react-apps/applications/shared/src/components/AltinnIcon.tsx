@@ -11,6 +11,7 @@ export interface IAltinnIconCompontentProvidedProps {
   isActiveIconColor?: string;
   iconColor: any;
   iconSize?: number;
+  padding?: string;
 }
 
 export interface IAltinnIconComponentState {
@@ -34,6 +35,7 @@ class AltinnIcon extends React.Component<IAltinnIconCompontentProvidedProps, IAl
         style={{
           color: this.props.isActive ? this.props.isActiveIconColor : this.props.iconColor,
           fontSize: this.props.iconSize ? this.props.iconSize : null,
+          padding: this.props.padding ? this.props.padding : null,
         }}
       />
     );

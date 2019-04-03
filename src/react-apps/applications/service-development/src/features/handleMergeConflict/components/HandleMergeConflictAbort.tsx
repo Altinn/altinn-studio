@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
 import AltinnPopover from '../../../../../shared/src/components/AltinnPopover';

@@ -636,7 +636,7 @@ exports[`LeftDrawerMenu.tsx render left drawer menu when mockmenutype is test sh
           </li>
         </a>
         <a
-          href="/testintestenvironment"
+          href="/deploytotest"
           onClick={[Function]}
           style={
             Object {
