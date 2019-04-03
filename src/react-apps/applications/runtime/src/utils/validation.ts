@@ -50,11 +50,11 @@ export function validateDataModel(
   const fieldKey = Object.keys(layoutModelElement.dataModelBindings).find((binding: string) =>
     layoutModelElement.dataModelBindings[binding] === dataModelFieldElement.DataBindingName);
   const componentValidations: IComponentValidations = {
-      [fieldKey]: {
-        errors: [],
-        warnings: [],
-      },
-    };
+    [fieldKey]: {
+      errors: [],
+      warnings: [],
+    },
+  };
 
   // Loop through all restrictions for the data model element and validate
   Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
@@ -133,8 +133,7 @@ export function validateFormData(
       }
     });
 
-    if ((dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1)
-      || (layoutModelElement && layoutModelElement.required)) {
+    if (layoutModelElement && layoutModelElement.required) {
       if (formData[formDataKey].length === 0) {
         validationErrors.push('Field is required');
       }
@@ -203,8 +202,8 @@ function mapValidations(validations: any, layoutComponents: IFormDesignerCompone
       // as unmapped.
       if (validationResult.unmapped) {
         validationResult.unmapped[validationKey] = {
-            ...validationResult.unmapped[validationKey],
-            ...validations[validationKey],
+          ...validationResult.unmapped[validationKey],
+          ...validations[validationKey],
         };
       } else {
         validationResult.unmapped = {

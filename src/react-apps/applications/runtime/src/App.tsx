@@ -9,7 +9,7 @@ import FormDesigner from './containers/FormDesigner';
 import { FormFiller } from './containers/FormFiller';
 
 // tslint:disable-next-line:no-implicit-dependencies
-import { Route } from 'react-router';
+import { Route } from 'react-router-dom';
 import WorkflowActionDispatcher from './actions/workflowActions/worflowActionDispatcher';
 export interface IAppComponentProps { }
 
@@ -85,6 +85,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
       appDataActionDispatcher.fetchThirdPartyComponents(
         `${altinnWindow.location.origin}/runtime/api/resource/${servicePath}/ThirdPartyComponents.json`);
 
+      formFillerActionDispatchers.fetchAttachments();
     } else {
       // ALTINN STUDIO
       if (window.location.hash.split('#/')[1] && window.location.hash.split('#/')[1].toLowerCase() === PREVIEW) {
@@ -139,11 +140,6 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     return (
       <div>
         <ErrorMessageComponent />
-        <Route
-          exact={true}
-          path='/uieditor'
-          render={this.resetFormData}
-        />
         <Route
           exact={true}
           path='/preview'

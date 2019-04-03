@@ -37,7 +37,7 @@ export function fetchFormDataActionRejected(error: Error): IFetchFormDataActionR
 
 export function updateValidationErrors(validationErrors: {}): IUpdateValidationResults {
   return {
-    type: ActionTypes.UPDATE_VALIDATIONERRORS,
+    type: ActionTypes.UPDATE_VALIDATION_ERRORS,
     validationResults: validationErrors,
   };
 }

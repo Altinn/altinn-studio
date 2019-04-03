@@ -48,7 +48,6 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -78,7 +77,6 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
             string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == owner ? "/user/repos" : "/org/" + owner + "/repos";
             Uri endpointUrl = new Uri(GetApiBaseUrl() + urlEnd);
-            
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync<CreateRepoOption>(endpointUrl, createRepoOption);
@@ -272,7 +270,6 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Organization));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/orgs/" + name);
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -301,7 +298,6 @@ namespace AltinnCore.Common.Services.Implementation
             List<Branch> branches = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Branch>));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches");
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -331,7 +327,6 @@ namespace AltinnCore.Common.Services.Implementation
             Branch branchinfo = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches/" + branch);
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -359,7 +354,6 @@ namespace AltinnCore.Common.Services.Implementation
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/");
-
             using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);

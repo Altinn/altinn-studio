@@ -36,6 +36,7 @@ export interface IServiceLogicMenuProvidedProps {
   open: boolean;
   button: any;
   openCloseHandler: any;
+  reference?: React.RefObject<HTMLDivElement>;
 }
 export interface IServiceLogicMenuProps extends IServiceLogicMenuProvidedProps {
   open: boolean;
@@ -73,6 +74,7 @@ class Menu extends React.Component<IServiceLogicMenuProps, IServiceLogicMenuStat
           onClick={this.handleDrawerOpen}
           tabIndex={0}
           onKeyPress={this.handleKeyPress}
+          ref={this.props.reference}
         >
           {this.props.button}
         </div>

@@ -1,4 +1,6 @@
+import classNames = require('classnames');
 import * as React from 'react';
+import '../../styles/RadioButtonComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
@@ -16,80 +18,78 @@ export interface IRadioButtonsContainerState {
   selected: string;
 }
 
-export class RadioButtonContainerComponent
-  extends React.Component<
-  IRadioButtonsContainerProps,
-  IRadioButtonsContainerState
-  > {
-  constructor(props: IRadioButtonsContainerProps, state: IRadioButtonsContainerState) {
-    super(props, state);
+export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
+  const [selected, setSelected] = React.useState('');
+  const { options } = props.component;
+  const optionsLength = (options) ? options.length : 0;
+  const isStacked: boolean = (optionsLength > 2);
+
+  React.useEffect(() => {
+    returnSelected();
+  }, [props]);
+
+  const returnSelected = () => {
     if (
-      !this.props.formData &&
-      this.props.component.preselectedOptionIndex &&
-      this.props.component.options &&
-      this.props.component.preselectedOptionIndex < this.props.component.options.length
+      !props.formData &&
+      props.component.preselectedOptionIndex &&
+      props.component.options &&
+      props.component.preselectedOptionIndex < props.component.options.length
     ) {
-      const preselectedValue = this.props.component.options[this.props.component.preselectedOptionIndex].value;
-      this.state = {
-        selected: preselectedValue,
-      };
+      const preselectedValue = props.component.options[props.component.preselectedOptionIndex].value;
+      setSelected(preselectedValue);
     } else {
-      this.state = {
-        selected: this.props.formData ? this.props.formData : '',
-      };
+      setSelected(props.formData ? props.formData : '');
     }
-  }
+  };
 
-  public onDataChanged = (selectedValue: any) => {
-    this.setState({
-      selected: selectedValue,
-    });
-    this.props.handleDataChange(selectedValue);
-  }
+  const onDataChange = (selectedValue: any) => {
+    setSelected(selectedValue);
+    props.handleDataChange(selectedValue);
+  };
 
-  public isOptionSelected = (option: string) => {
-    return this.state.selected === option;
-  }
+  const emptyFunction = React.useCallback(() => {
+    return undefined;
+  }, []);
 
-  public render() {
-    const { options } = this.props.component;
-    const optionsLength = (options) ? options.length : 0;
-    const isStacked: boolean = (optionsLength > 2);
-
-    return (
-      <div
-        className={
-          'form-check a-radioButtons pl-0'
-          +
-          (isStacked ?
-            ' form-check-stacked' :
-            ' form-check-inline'
-          )
-        }
-        id={this.props.id}
-        style={isStacked ? {} : {alignItems: 'start'}}
-      >
-        {options.map((option, index) => (
-          <div
-            className='custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
-            key={index}
-            onClick={this.onDataChanged.bind(this, option.value)}
+  return (
+    <div
+      className={
+        'form-check a-radioButtons pl-0'
+        +
+        (isStacked ?
+          ' form-check-stacked' :
+          ' form-check-inline'
+        )
+      }
+      id={props.id}
+      style={isStacked ? {} : { alignItems: 'start' }}
+    >
+      {options.map((option, index) => (
+        <div
+          className={'custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
+            + (props.component.readOnly ? ' no-cursor' : '')}
+          key={index}
+          onClick={props.component.readOnly ?
+            null : () => onDataChange(option.value)}
+        >
+          <input
+            type='radio'
+            name={'radio-' + props.id + '-' + index}
+            className='custom-control-input'
+            checked={selected === option.value}
+            onChange={emptyFunction}
+          />
+          <label
+            className={classNames('custom-control-label', 'pl-3',
+              { 'disabled-radio-button': props.component.readOnly })}
           >
-            <input
-              type='radio'
-              name={'radio-' + this.props.id + '-' + index}
-              className='custom-control-input'
-              checked={this.isOptionSelected(option.value)}
-            />
-            <label className='custom-control-label pl-3'>
-              {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
-            </label>
-            {this.props.validationMessages && this.isOptionSelected(option.value) &&
-              renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
-                this.props.component.id)}
-          </div>
-        ))}
-      </div>
-    );
-  }
-}
+            {props.designMode ? option.label : props.getTextResource(option.label)}
+          </label>
+          {props.validationMessages && (selected === option.value) &&
+            renderValidationMessagesForComponent(props.validationMessages.simpleBinding,
+              props.component.id)}
+        </div>
+      ))}
+    </div>
+  );
+};

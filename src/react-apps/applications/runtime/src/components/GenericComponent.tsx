@@ -14,6 +14,8 @@ export interface IGenericComponentProps {
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
   thirdPartyComponents?: any;
+  language?: any;
+  attachments?: IAttachments;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps> {
@@ -43,6 +45,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
         getTextResource={this.props.getTextResource}
         handleDataChange={this.props.handleDataChange}
         validationMessages={this.props.validationMessages}
+        language={this.props.language}
       />
     );
   }
@@ -51,6 +54,7 @@ const makeMapStateToProps = () => {
   const mapStateToProps = (state: IAppState, props: IGenericComponentProps): IGenericComponentProps => ({
     ...props,
     thirdPartyComponents: state.appData.thirdPartyComponents.components,
+    language: state.appData.language.language,
   });
   return mapStateToProps;
 };

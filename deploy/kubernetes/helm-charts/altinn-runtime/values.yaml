@@ -29,6 +29,8 @@ environmentVariables:
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://dev.altinn.studio/
   production:
     - name: GiteaEndpoint
       value: altinn.studio
@@ -52,6 +54,8 @@ environmentVariables:
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://altinn.studio/
 
 volumeMounts:
   - name: altinn-runtime-repo-storage
