@@ -31,6 +31,8 @@ environmentVariables:
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
       value: https://dev.altinn.studio/
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
   production:
     - name: GiteaEndpoint
       value: altinn.studio
@@ -56,6 +58,8 @@ environmentVariables:
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
       value: https://altinn.studio/
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
 
 volumeMounts:
   - name: altinn-runtime-repo-storage
