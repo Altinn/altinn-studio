@@ -1,0 +1,45 @@
+.disabled-radio-button {
+  color: #000;
+  cursor: default !important;
+}
+.disabled-radio-button::before {
+  content: '';
+  border: 2px solid #6A6A6A !important;
+  border-radius: 50%;
+  background: repeating-linear-gradient(
+    135deg,
+    #efefef,
+    #efefef 2px,
+    #fff 3px,
+    #fff 5px
+  );
+  display: inline-block;
+  cursor: default !important;
+}
+.disabled-radio-button::after {
+  cursor: default !important;
+  background-color: transparent !important;
+  pointer-events: none !important;
+}
+.no-cursor {
+  cursor: default !important;
+}
+.a-custom-radio .custom-control-input:not(:checked)~.disabled-radio-button::before {
+  background: repeating-linear-gradient(
+    135deg,
+    #efefef,
+    #efefef 2px,
+    #fff 3px,
+    #fff 5px
+  );
+}
+.a-custom-radio .custom-control-input:checked~.disabled-radio-button::before {
+  background: repeating-linear-gradient(
+    135deg,
+    #efefef,
+    #efefef 2px,
+    #fff 3px,
+    #fff 5px
+  );
+}
+

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import '../../styles/TextAreaComponent.css';
+import '../../styles/shared.css';
 
 export interface ITextAreaComponentProps {
   id: string;
@@ -35,7 +35,7 @@ export class TextAreaComponent
 
   public render() {
     return (
-      <div className={'a-form-group-items input-group p-0' + (this.props.component.readOnly ? ' disabled' : '')} >
+      <div className={'a-form-group-items input-group p-0'} >
         <textarea
           id={this.props.component.id}
           onBlur={this.onBlur}
@@ -43,7 +43,7 @@ export class TextAreaComponent
           disabled={this.props.component.readOnly}
           style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
           className={(this.props.isValid ? 'form-control a-textarea ' : 'form-control validation-error')
-            + (this.props.component.readOnly ? ' textarea-disabled' : '')}
+            + (this.props.component.readOnly ? ' disabled' : '')}
           value={this.state.formData}
         />
       </div>
