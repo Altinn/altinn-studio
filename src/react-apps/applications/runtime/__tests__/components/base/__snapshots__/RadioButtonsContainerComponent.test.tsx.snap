@@ -18,6 +18,7 @@ exports[`>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot >>>
       checked={false}
       className="custom-control-input"
       name="radio-mock-id-0"
+      onChange={[Function]}
       type="radio"
     />
     <label
@@ -34,12 +35,13 @@ exports[`>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot >>>
       checked={false}
       className="custom-control-input"
       name="radio-mock-id-1"
+      onChange={[Function]}
       type="radio"
     />
     <label
       className="custom-control-label pl-3"
     >
-      test-label-1
+      test-label-2
     </label>
   </div>
 </div>

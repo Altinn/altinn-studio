@@ -9,7 +9,7 @@ import FormDesigner from './containers/FormDesigner';
 import { FormFiller } from './containers/FormFiller';
 
 // tslint:disable-next-line:no-implicit-dependencies
-import { Route } from 'react-router';
+import { Route } from 'react-router-dom';
 import WorkflowActionDispatcher from './actions/workflowActions/worflowActionDispatcher';
 export interface IAppComponentProps { }
 
@@ -140,11 +140,6 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
     return (
       <div>
         <ErrorMessageComponent />
-        <Route
-          exact={true}
-          path='/uieditor'
-          render={this.resetFormData}
-        />
         <Route
           exact={true}
           path='/preview'
