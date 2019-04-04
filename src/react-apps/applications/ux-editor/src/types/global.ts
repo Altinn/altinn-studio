@@ -127,6 +127,10 @@ declare global {
     [id: string]: string;
   }
 
+  export interface IProperties extends IFormComponent {
+    [key: string]: string | any;
+  }
+
   export interface IFormAddressComponent extends IFormComponent {
     simplified: boolean;
   }
@@ -145,6 +149,9 @@ declare global {
 
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;
+  }
+  export interface IFormDesignerComponentProps {
+    [id: string]: IProperties;
   }
 
   export interface IFormDesignerContainer {

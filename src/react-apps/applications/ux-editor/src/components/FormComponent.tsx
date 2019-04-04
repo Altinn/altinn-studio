@@ -54,163 +54,122 @@ export interface IFormElementState {
 /**
  * The component constructur
  */
-class FormComponent extends React.Component<
-  IFormElementProps,
-  IFormElementState
-  > {
-  constructor(_props: IFormElementProps, _state: IFormElementState) {
-    super(_props, _state);
 
-    this.state = {
-      component: _props.component,
-      activeList: _props.activeList,
-      wrapperRef: '',
+const FormComponent = (props: IFormElementProps) => {
+  const [wrapperRef, setWrapperRef] = React.useState(null);
+
+  React.useEffect(() => {
+    window.addEventListener('mousedown', handleClick);
+
+    return () => {
+      window.removeEventListener('mousedown', handleClick);
     };
-  }
-
-  public componentDidMount() {
-    document.addEventListener('mousedown', this.handleClick);
-  }
-
-  public componentWillUnmount() {
-    document.removeEventListener('mousedown', this.handleClick);
-  }
-
-  public setWrapperRef = (node: any) => {
-    if (node) {
-      this.setState({
-        wrapperRef: node.parentElement.parentElement,
-      });
-    }
-  }
+  }, []);
 
   /*
   * Handle all types of clicks.
   * Tracks if the click is outside of the formComponent
   */
-  public handleClick = () => {
-    const key: any = Object.keys(this.props.order)[0];
-    const order = this.props.order[key].indexOf(this.props.id);
+  const handleClick = (e: any) => {
+    const serviceLogicMenu = document.getElementById('serviceLogicMenu');
+    if (serviceLogicMenu) {
+      if (!serviceLogicMenu.contains(e.target)) {
+        const key: any = Object.keys(props.order)[0];
+        const order = props.order[key].indexOf(props.id);
 
-    if (this.state.wrapperRef && !this.state.wrapperRef.contains(event.target) &&
-      order === 0) {
-      this.handleActiveListChange({});
+        if (wrapperRef && !wrapperRef.contains(event.target) &&
+          order === 0) {
+          handleActiveListChange({});
+        }
+      }
     }
-  }
+  };
 
-  /**
-   * This is the event handler that triggers the Redux Actions
-   * that is sendt to the different Action dispatcher.
-   * This event handler is used for all form components rendered from this
-   */
-  public handleComponentDataUpdate = (callbackValue: any, key: string = 'simpleBinding'): void => {
-    if (!this.props.component.dataModelBindings || !this.props.component.dataModelBindings[key]) {
-      return;
+  const getWrapperRef = (node: any) => {
+    if (node) {
+      setWrapperRef(node.parentElement.parentElement);
     }
-    const dataModelElement = this.props.dataModel.find(
-      (element) => element.DataBindingName === this.props.component.dataModelBindings[key],
-    );
-    this.props.handleDataUpdate(this.props.id, dataModelElement, callbackValue);
-  }
+  };
 
   /**
    * Return a given textresource from all textresources avaiable
    */
-  public getTextResource = (resourceKey: string): string => {
-    const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
+  const getTextResource = (resourceKey: string): string => {
+    const textResource = props.textResources.find((resource) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
-  }
+  };
 
   /**
    * Render label
    */
-  public renderLabel = (): JSX.Element => {
-    if (this.props.component.component === 'Header' ||
-      this.props.component.component === 'Paragraph' ||
-      this.props.component.component === 'Submit' ||
-      this.props.component.component === 'ThirdParty' ||
-      this.props.component.component === 'AddressComponent') {
+  const renderLabel = (): JSX.Element => {
+    if (props.component.component === 'Header' ||
+      props.component.component === 'Paragraph' ||
+      props.component.component === 'Submit' ||
+      props.component.component === 'ThirdParty' ||
+      props.component.component === 'AddressComponent') {
       return null;
     }
-    if (!this.props.component.textResourceBindings) {
+    if (!props.component.textResourceBindings) {
       return null;
     }
-    if (this.props.component.textResourceBindings.title) {
+    if (props.component.textResourceBindings.title) {
       const label: string =
-        this.props.designMode ?
-          this.props.component.textResourceBindings.title :
-          this.getTextResource(this.props.component.textResourceBindings.title);
+        props.designMode ?
+          props.component.textResourceBindings.title :
+          getTextResource(props.component.textResourceBindings.title);
       return (
-        <label className='a-form-label title-label' htmlFor={this.props.id}>
+        <label className='a-form-label title-label' htmlFor={props.id}>
           {label}
-          {this.props.component.required ? null :
+          {props.component.required ? null :
             // TODO: Get text key from common texts for all services.
-            <span className='label-optional'>{this.getTextResource('(Valgfri)')}</span>
+            <span className='label-optional'>{getTextResource('(Valgfri)')}</span>
           }
         </label>
       );
     }
 
     return null;
-  }
+  };
 
-  public renderDescription = (): JSX.Element => {
-    if (!this.props.component.textResourceBindings) {
-      return null;
+  const handleActiveListChange = (obj: any) => {
+    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
+      FormDesignerActionDispatchers.deleteActiveListAction();
+    } else {
+      FormDesignerActionDispatchers.updateActiveList(obj, props.activeList);
     }
-    if (this.props.component.textResourceBindings.description) {
-      const description: string =
-        this.props.designMode ?
-          this.props.component.textResourceBindings.description :
-          this.getTextResource(this.props.component.textResourceBindings.description);
-      return (
-        <span className='a-form-label description-label'>{description}</span>
-      );
-    }
-
-    return null;
-  }
+    props.sendListToParent(props.activeList);
+  };
 
   /**
    * Method that allows user to set focus to elements in the compoenent
    * instead of opening the edit modal on click.
    */
-  public disableEditOnClickForAddedComponent = (e: any) => {
+  const disableEditOnClickForAddedComponent = (e: any) => {
     e.stopPropagation();
-  }
-
-  public handleActiveListChange = (obj: any) => {
-    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-      FormDesignerActionDispatchers.deleteActiveListAction();
-    } else {
-      FormDesignerActionDispatchers.updateActiveList(obj, this.props.activeList);
-    }
-    this.props.sendListToParent(this.props.activeList);
-  }
+  };
 
   /**
    * The React Render method. This is run when this component is included in another component.
    * It is either called from FormFiller or FormDesigner.
    */
-  public render(): JSX.Element {
-    return (
-      <div ref={this.setWrapperRef}>
-        <EditContainer
-          component={this.props.component}
-          id={this.props.id}
-          firstInActiveList={this.props.firstInActiveList}
-          lastInActiveList={this.props.lastInActiveList}
-          sendItemToParent={this.handleActiveListChange}
-          singleSelected={this.props.singleSelected}
-        >
-          <div onClick={this.disableEditOnClickForAddedComponent}>
-            {this.renderLabel()}
-          </div>
-        </EditContainer>
-      </div>
-    );
-  }
-}
+  return (
+    <div ref={getWrapperRef}>
+      <EditContainer
+        component={props.component}
+        id={props.id}
+        firstInActiveList={props.firstInActiveList}
+        lastInActiveList={props.lastInActiveList}
+        sendItemToParent={handleActiveListChange}
+        singleSelected={props.singleSelected}
+      >
+        <div onClick={disableEditOnClickForAddedComponent}>
+          {renderLabel()}
+        </div>
+      </EditContainer>
+    </div>
+  );
+};
 
 /**
  * Map values from Provided props and store to FormElementProps

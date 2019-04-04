@@ -47,7 +47,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
         isValid={mockIsValid}
       />,
     );
-    expect(wrapper.find('#mock-component-id').hasClass('textarea-disabled')).toBe(false);
+    expect(wrapper.find('#mock-component-id').hasClass('disabled')).toBe(false);
     expect(wrapper.find('#mock-component-id').prop('disabled')).toBe(false);
   });
 
@@ -65,7 +65,7 @@ describe('>>> components/base/TextAreaComponent.tsx', () => {
         isValid={mockIsValid}
       />,
     );
-    expect(wrapper.find('#mock-component-id').hasClass('textarea-disabled')).toBe(true);
+    expect(wrapper.find('#mock-component-id').hasClass('disabled')).toBe(true);
     expect(wrapper.find('#mock-component-id').prop('disabled')).toBe(true);
   });
 
