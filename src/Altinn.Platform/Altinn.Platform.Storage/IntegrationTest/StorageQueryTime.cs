@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http;
 using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Test.Integration.Fixtures;
 using Serilog;
 using Serilog.Core;
 using Xunit;
@@ -12,13 +11,11 @@ namespace Altinn.Platform.Test.Integration
     /// <summary>
     /// class to test query time for used in correspondance with large test dataset.
     /// </summary>
-    public class StorageQueryTime : IClassFixture<PlatformStorageFixture>
+    public class StorageQueryTime
     {
-        private readonly PlatformStorageFixture fixture;
-        private readonly HttpClient client;
-        private string instanceId;
-        private string platformUrl = string.Empty; // "http://platform.altinn.cloud";
-        private readonly bool ignoreTests = true;
+        private readonly HttpClient client = new HttpClient();
+        private string platformUrl = "http://platform.altinn.cloud";
+        private readonly bool ignoreTests = false;
 
         private Logger logger = new LoggerConfiguration()
         .WriteTo.Console()
@@ -26,19 +23,23 @@ namespace Altinn.Platform.Test.Integration
         .CreateLogger();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
+        /// You know, the main class.
         /// </summary>
-        /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        public StorageQueryTime(PlatformStorageFixture fixture)
+        /// <param name="args">the arguments</param>
+        [Fact]
+        public void DoQuery()
         {
-            this.fixture = fixture;
-            this.client = this.fixture.Client;
+            StorageQueryTime storageQuery = new StorageQueryTime();
+
+            storageQuery.CrossPartitionQueryApplicationId();
+            storageQuery.CrossPartitionQueryApplicationOwner();
+            storageQuery.InstanceOwnersInstances();
+            storageQuery.OneInstance();
         }
 
         /// <summary>
         /// perform a cross partition query and measure time
-        /// </summary>
-        [Fact]
+        /// </summary>      
         public async void CrossPartitionQueryApplicationOwner()
         {
             if (ignoreTests)
@@ -46,7 +47,7 @@ namespace Altinn.Platform.Test.Integration
                 return;
             }
 
-            string[] owners = { "SKD", "BRREG", "NAV", "DIBK", "ACN", "OSLK", "BRMK", "DIFI", "ASKK" };
+            string[] owners = { "SKD", "BRREG", "DIBK", "ACN", "OSLK", "BRMK", "DIFI", "ASKK" };
 
             logger.Information("CrossPartitionQuery: ApplicationOwnerId");
 
@@ -72,7 +73,6 @@ namespace Altinn.Platform.Test.Integration
         /// <summary>
         /// perform a cross partition query and measure time
         /// </summary>
-        [Fact]
         public async void CrossPartitionQueryApplicationId()
         {
             if (ignoreTests)
@@ -80,7 +80,7 @@ namespace Altinn.Platform.Test.Integration
                 return;
             }
 
-            string[] applications = { "S123", "S201", "S221", "S301", "S401", "S501", "S601", "S000", "S801", "S701" };
+            string[] applications = { "S123", "S201", "S221", "S301", "S401", "S501", "S601", "S801", "S701" };
 
             logger.Information("CrossPartitionQuery: ApplicationId");
 
@@ -101,14 +101,12 @@ namespace Altinn.Platform.Test.Integration
                 long elapsedMs = watch.ElapsedMilliseconds;
 
                 logger.Information("Processed {Instances} for applicationId={Application} in {Elapsed} ms.", size, applicationId, elapsedMs);
-
             }
         }
 
         /// <summary>
         /// get one instance and measure time, query within partition.
         /// </summary>
-        [Fact]
         public async void OneInstance()
         {
             if (ignoreTests)
@@ -149,7 +147,6 @@ namespace Altinn.Platform.Test.Integration
         /// <summary>
         /// get one instance and measure time, query within partition.
         /// </summary>
-        [Fact]
         public async void InstanceOwnersInstances()
         {
             if (ignoreTests)
