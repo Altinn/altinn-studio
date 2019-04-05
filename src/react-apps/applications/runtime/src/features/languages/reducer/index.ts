@@ -17,7 +17,6 @@ const languageReducer: Reducer<ILanguageState> = (
   state: ILanguageState = initialState,
   action?: Action,
 ): ILanguageState => {
-  console.log(action);
   if (!action) {
     return state;
   }
