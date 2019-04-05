@@ -54,7 +54,7 @@ namespace Altinn.Platform.Storage.Controllers
             Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (instance == null)
             {
-                return NotFound("Provided instanceId is unknown to platform storage service");
+                return NotFound("Provided instanceId is unknown to storage service");
             }
 
             string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), formId, dataId.ToString());
