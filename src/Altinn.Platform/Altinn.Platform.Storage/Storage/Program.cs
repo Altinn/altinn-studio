@@ -12,12 +12,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using Serilog.Core;
 using Serilog.Extensions.Logging;
 
 namespace Altinn.Platform.Storage
 {
     public class Program
     {
+        private static Logger logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
+
         public static void Main(string[] args)
         {
             CreateWebHostBuilder(args).Build().Run();
@@ -76,7 +81,8 @@ namespace Altinn.Platform.Storage
                     keyVaultEndpoint, keyVaultClient, new DefaultKeyVaultSecretManager());
             }
 
-            string applicationInsights = stageOneConfig.GetValue<string>("ApplicationInsights:InstrumentationKey:0");
+            string applicationInsights = stageOneConfig.GetValue<string>("ApplicationInsights:InstrumentationKey");
+            logger.Information("Setting application insights instrumentationKey " + applicationInsights);
             if (!string.IsNullOrEmpty(applicationInsights))
             {
                 TelemetryConfiguration.Active.InstrumentationKey = applicationInsights;                
