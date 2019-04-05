@@ -5,7 +5,6 @@ import { connect } from 'react-redux';
 import { CollapsableMenus } from '../../containers/Toolbar';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
 import AltinnIcon from './../../../../shared/src/components/AltinnIcon';
-import altinnTheme from './../../../../shared/src/theme/altinnStudioTheme';
 
 export interface ICollapsableMenuProvidedProps {
   classes: any;
