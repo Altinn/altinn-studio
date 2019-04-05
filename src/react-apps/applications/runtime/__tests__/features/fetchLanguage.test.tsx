@@ -7,13 +7,28 @@ const mockUrl: string = 'http://altinn3.no/runtime/api/Language/GetLanguageAsJSO
 const mockLanguageCode: string = 'nb';
 
 describe('>>> features/language action', () => {
-  it('+++ should create an action with correct type', () => {
+  it('+++ should create an action with correct type: FETCH_LANGUAGE', () => {
     const expectedAction = {
       type: 'LANGUAGE_DATA.FETCH_LANGUAGE',
       languageCode: mockLanguageCode,
       url: mockUrl,
     };
     expect(LanguageActions.fetchLanguage(mockUrl, mockLanguageCode)).toEqual(expectedAction);
+  });
+  it('+++ should create an action with correct type: FETCH_LANGUAGE_FULFILLED', () => {
+    const expectedAction = {
+      type: 'LANGUAGE_DATA.FETCH_LANGUAGE_FULFILLED',
+      language: {},
+    };
+    expect(LanguageActions.fetchLanguageFulfilled({})).toEqual(expectedAction);
+  });
+  it('+++ should create an action with correct type: FETCH_LANGUAGE_REJECTED', () => {
+    const mockError: Error = new Error();
+    const expectedAction = {
+      type: 'LANGUAGE_DATA.FETCH_LANGUAGE_REJECTED',
+      error: mockError,
+    };
+    expect(LanguageActions.fetchLanguageRecjeted(mockError)).toEqual(expectedAction);
   });
 });
 
