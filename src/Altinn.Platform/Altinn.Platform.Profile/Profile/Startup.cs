@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Profile.Configuration;
+using Altinn.Platform.Profile.Services.Implementation;
+using Altinn.Platform.Profile.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -38,9 +41,11 @@ namespace Altinn.Platform.Profile
         /// <param name="services">the service configuration</param>   
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IUsers, UsersWrapper>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
+            services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
         }
 
         /// <summary>
