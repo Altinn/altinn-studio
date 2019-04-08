@@ -7,6 +7,7 @@ import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 // import VersionControlHeader from '../../../../shared/src/version-control/versionControlHeader';
 
 import DeployPaper from '../components/deployPaper';
+import DeployActionDispacher from '../deployDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -45,12 +46,15 @@ const styles = () => createStyles({
 });
 
 export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
+  deploymentList: any;
   language: any;
+  masterRepoStatus: any;
   name?: any;
   repoStatus: any;
 }
 
 export interface IDeployToTestContainerState {
+  deploySuccess: boolean;
 }
 
 export class DeployToTestContainer extends
@@ -59,18 +63,48 @@ export class DeployToTestContainer extends
   constructor(_props: IDeployToTestContainerProps, _state: IDeployToTestContainerState) {
     super(_props, _state);
     this.state = {
-
+      deploySuccess: null,
     };
   }
 
-  // public componentDidMount() {
-  // }
+  public componentDidMount() {
+    const altinnWindow: any = window;
+    const { org, service } = altinnWindow;
+    DeployActionDispacher.fetchDeployments('at21', org, service);
+    DeployActionDispacher.fetchMasterRepoStatus('TODO', org, service);
+  }
 
   // public componentWillUnmount() {
   // }
 
+  public returnInSyncStatus = (repoStatus: any): any => {
+    switch (repoStatus) {
+      case repoStatus.aheadBy > 0:
+        return 'ahead';
+      case repoStatus.behindBy > 0:
+        return 'behind';
+      default:
+        return 'ready';
+    }
+  }
+
+  public returnMasterRepoAndDeployInSync = (env: string, masterRepoStatus: any, deploymentList: any): any => {
+    // console.log('deploymentList', deploymentList);
+    const image = deploymentList[env].items[0].spec.template.spec.containers[0].image;
+    const imageTag = image.split(':')[1];
+    // console.log('imageTag', imageTag);
+    // console.log('masterRepoStatus.commit.id', masterRepoStatus.commit.id);
+    if (masterRepoStatus !== null && masterRepoStatus.commit.id === imageTag) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   public render() {
     const { classes } = this.props;
+    const { deploySuccess } = this.state;
+
     return (
       <React.Fragment>
         <div className={classes.mainLayout}>
@@ -88,9 +122,15 @@ export class DeployToTestContainer extends
 
               <DeployPaper
                 titleTypographyVariant='h2'
-                inSync='ready'
+                localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
                 cSharpCompiles={true}
-                readyForDeployStatus='ready'
+                masterRepoAndDeployInSync={this.props.deploymentList.at21.items.length > 0 ?
+                  this.returnMasterRepoAndDeployInSync('at21', this.props.masterRepoStatus, this.props.deploymentList)
+                  :
+                  null
+                }
+                deploySuccess={deploySuccess}
+                deployFailedErrorMsg='Some error'
               />
 
             </Grid>
@@ -126,6 +166,9 @@ const makeMapStateToProps = () => {
   ) => {
     return {
       language: state.language,
+      masterRepoStatus: state.deploy.masterRepoStatus,
+      deploymentList: state.deploy.deploymentList,
+      repoStatus: state.handleMergeConflict.repoStatus,
     };
   };
   return mapStateToProps;
