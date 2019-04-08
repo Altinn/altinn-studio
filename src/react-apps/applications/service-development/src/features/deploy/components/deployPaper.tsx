@@ -160,12 +160,12 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               Du kan redigere og dele disse på <a className={classes.link}>
                 siden for tjenestefiler
               <AltinnIcon
-                  isActive={true}
-                  iconClass='ai ai-arrowrightup'
-                  iconColor={theme.altinnPalette.primary.black}
-                  iconSize={30}
-                  padding='0px 0px 4px 0px'
-                />
+                isActive={true}
+                iconClass='ai ai-arrowrightup'
+                iconColor={theme.altinnPalette.primary.black}
+                iconSize={30}
+                padding='0px 0px 4px 0px'
+              />
               </a>
             </Typography>
           </React.Fragment>
@@ -349,8 +349,6 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                 }
 
               </Grid>
-
-
             </React.Fragment>
           )}
         {/* Render the button and help text */}
