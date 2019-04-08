@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Altinn.Platform.Profile.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
@@ -12,7 +9,7 @@ namespace Altinn.Platform.Profile.Controllers
     /// The users controller
     /// </summary>
     [Route("api/v1/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController : Controller
     {
         private readonly IUsers _usersWrapper;
 
@@ -30,7 +27,7 @@ namespace Altinn.Platform.Profile.Controllers
         /// </summary>
         /// <param name="userID">The party id</param>
         /// <returns>The information about a given user</returns>
-        [HttpGet("{userIDList}")]
+        [HttpGet("{userID}")]
         public async Task<ActionResult> Get(int userID)
         {
             UserProfile result = await _usersWrapper.GetUser(userID);
