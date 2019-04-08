@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Altinn.Platform.Profile.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Platform.Profile.Controllers
@@ -12,6 +14,17 @@ namespace Altinn.Platform.Profile.Controllers
     [Route("api/v1/[controller]")]
     public class UsersController : ControllerBase
     {
+        private readonly IUsers _usersWrapper;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UsersController"/> class
+        /// </summary>
+        /// <param name="usersWrapper">The users wrapper</param>
+        public UsersController(IUsers usersWrapper)
+        {
+            _usersWrapper = usersWrapper;
+        }
+
         /// <summary>
         /// Gets the user profile for a given user id
         /// </summary>
@@ -20,7 +33,13 @@ namespace Altinn.Platform.Profile.Controllers
         [HttpGet("{userIDList}")]
         public async Task<ActionResult> Get(int userID)
         {
-            return new string[] { "value1", "value2" };
+            UserProfile result = await _usersWrapper.GetUser(userID);
+            if (result == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(result);
         }
 
     }
