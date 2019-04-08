@@ -1,19 +1,13 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Altinn.Platform.Profile.Configuration;
 using Altinn.Platform.Profile.Services.Implementation;
 using Altinn.Platform.Profile.Services.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 
 namespace Altinn.Platform.Profile
 {
@@ -22,16 +16,13 @@ namespace Altinn.Platform.Profile
     /// </summary>
     public class Startup
     {
-        private readonly ILogger _logger;
-
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class 
         /// </summary>
         /// <param name="configuration">The configuration for the profile component</param>
-        public Startup(IConfiguration configuration, ILogger<Startup> logger)
+        public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            _logger = logger;
         }
 
         /// <summary>
@@ -53,23 +44,19 @@ namespace Altinn.Platform.Profile
             bool shouldUseMock = true;
             if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
             {
-                _logger.LogWarning("GeneralSettings__ShouldUseMock is not null " + Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
                 shouldUseMock = bool.Parse(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
             }
             else
             {
-                _logger.LogWarning("GeneralSettings__ShouldUseMock is null", Configuration["GeneralSettings:ShouldUseMock"]);
                 shouldUseMock = bool.Parse(Configuration["GeneralSettings:ShouldUseMock"]);
             }
 
             if (shouldUseMock)
             {
-                _logger.LogWarning("inside if check", shouldUseMock);
                 services.AddSingleton<IUsers, UsersMockWrapper>();
             }
             else
             {
-                _logger.LogWarning("inside else check" + shouldUseMock);
                 services.AddSingleton<IUsers, UsersWrapper>();
             }
         }
