@@ -46,17 +46,17 @@ namespace Altinn.Platform.Register
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
 
-            string runtimeMode = string.Empty;
+            bool shouldUseMock = true;
             if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
             {
-                runtimeMode = Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock");
+                shouldUseMock = bool.Parse(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
             }
             else
             {
-                runtimeMode = Configuration["GeneralSettings:ShouldUseMock"];
+                shouldUseMock = bool.Parse(Configuration["GeneralSettings:ShouldUseMock"]);
             }
 
-            if (!string.IsNullOrEmpty(runtimeMode) && runtimeMode.Equals("true"))
+            if (shouldUseMock)
             {
                 services.AddSingleton<IOrganizations, OrganizationsMockWrapper>();
                 services.AddSingleton<IPersons, PersonsMockWrapper>();
