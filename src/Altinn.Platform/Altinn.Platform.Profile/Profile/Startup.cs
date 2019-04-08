@@ -52,7 +52,7 @@ namespace Altinn.Platform.Profile
             string shouldUseMock = string.Empty;
             if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
             {
-                _logger.LogWarning("GeneralSettings__ShouldUseMock is not null");
+                _logger.LogWarning("GeneralSettings__ShouldUseMock is not null", Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
                 shouldUseMock = Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock");
             }
             else
@@ -63,10 +63,12 @@ namespace Altinn.Platform.Profile
 
             if (!string.IsNullOrEmpty(shouldUseMock) && shouldUseMock.Equals("true"))
             {
+                _logger.LogWarning("inside if check", shouldUseMock);
                 services.AddSingleton<IUsers, UsersMockWrapper>();
             }
             else
             {
+                _logger.LogWarning("inside else check", shouldUseMock);
                 services.AddSingleton<IUsers, UsersWrapper>();
             }
         }
