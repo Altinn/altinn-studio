@@ -15,6 +15,9 @@ spec:
         app: {{ template "name" . }}
         release: {{ .Release.Name }}
     spec:
+    {{- if .Values.image.serviceAccount}}
+      serviceAccountName: {{ .Values.image.serviceAccount }}
+    {{- end }}
     {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
       {{- range $secret := .Values.image.pullSecrets }}

@@ -20,14 +20,13 @@ namespace KubernetesWrapper.Services.Implementation
              string fieldSelector,
              string labelSelector,
              int? limit,
-             string pretty,
              string resourceVersion,
              int? timeoutSeconds,
-             bool? watch)
+             bool? watch,
+            string pretty)
         {
-            var deployments = await client.ListDeploymentForAllNamespacesAsync(
-                continueParameter, fieldSelector, labelSelector, limit, pretty, resourceVersion, timeoutSeconds, watch
-            );
+
+            var deployments = await client.ListNamespacedDeploymentAsync("default", continueParameter, fieldSelector, labelSelector, limit, resourceVersion, timeoutSeconds, watch, pretty);
             return deployments;
         }
     }

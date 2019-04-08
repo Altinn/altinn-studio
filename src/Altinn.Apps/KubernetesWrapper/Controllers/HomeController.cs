@@ -14,7 +14,7 @@ namespace KubernetesWrapper.Controllers
         [HttpGet]
         public string Get()
         {
-            return "hello";
+            return "hello v3";
         }
     }
 }

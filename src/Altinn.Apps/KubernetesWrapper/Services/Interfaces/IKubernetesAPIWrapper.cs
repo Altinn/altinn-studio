@@ -10,9 +10,10 @@ namespace KubernetesWrapper.Services.Interfaces
             string fieldSelector = null,
             string labelSelector = null,
             int? limit = null,
-            string pretty = null,
             string resourceVersion = null,
             int? timeoutSeconds = null,
-            bool? watch = null);
+            bool? watch = null,
+            string pretty = null
+            );
     }
 }

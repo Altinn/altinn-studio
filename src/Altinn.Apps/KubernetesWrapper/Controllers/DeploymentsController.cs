@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using KubernetesWrapper.Services.Interfaces;
+using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KubernetesWrapper.Controllers
 {
-    [Route("apis/apps/v1/[controller]")]
+    [Route("/[controller]")]
     [ApiController]
     public class DeploymentsController : ControllerBase
     {
@@ -19,11 +21,20 @@ namespace KubernetesWrapper.Controllers
             _apiWrapper = apiWrapper;
         }
 
-        // GET /apis/apps/v1/deployments
+        // GET /deployments
         [HttpGet]
-        public Task<k8s.Models.V1DeploymentList> GetDeployments(string continueParameter, string labelSelector, string fieldSelector)
+        [EnableCors]
+        public async Task<ActionResult> GetDeployments(string continueParameter, string labelSelector, string fieldSelector)
         {
-            return _apiWrapper.GetDeployments(continueParameter, fieldSelector, labelSelector);
+            try
+            {
+                var deployments = await _apiWrapper.GetDeployments(continueParameter, fieldSelector, labelSelector);
+                return Ok(deployments.Items);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
     }
 }
