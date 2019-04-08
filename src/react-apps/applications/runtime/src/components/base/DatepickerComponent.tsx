@@ -27,7 +27,6 @@ export class DatepickerComponent
   }
 
   public onDateChange = () => {
-
     setTimeout(() => {
       if (!this.myDateCmp.current.value) {
         return;
