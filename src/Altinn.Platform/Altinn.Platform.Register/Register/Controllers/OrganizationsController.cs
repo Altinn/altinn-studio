@@ -33,7 +33,7 @@ namespace Altinn.Platform.Register.Controllers
             Organization result = await _organizationsWrapper.GetOrganization(orgNr);
             if (result == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             return Ok(result);
