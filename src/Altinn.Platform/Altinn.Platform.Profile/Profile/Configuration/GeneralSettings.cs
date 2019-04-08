@@ -15,7 +15,7 @@ namespace Altinn.Platform.Profile.Configuration
         /// <summary>
         /// Gets or sets if the solution should use mock or not
         /// </summary>
-        public string ShouldUseMock { get; set; }
+        public bool ShouldUseMock { get; set; }
 
         /// <summary>
         /// Gets the api base url for sbl bridge

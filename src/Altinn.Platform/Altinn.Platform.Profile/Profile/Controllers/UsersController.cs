@@ -33,7 +33,7 @@ namespace Altinn.Platform.Profile.Controllers
             UserProfile result = await _usersWrapper.GetUser(userID);
             if (result == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             return Ok(result);
