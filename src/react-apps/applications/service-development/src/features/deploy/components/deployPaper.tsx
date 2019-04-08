@@ -20,47 +20,35 @@ const styles = () => createStyles({
     padding: 24,
     maxWidth: 800,
   },
-  fontSizeTitle: {
-    fontSize: 20,
-  },
-  checkTitle: {
-    fontSize: 16,
-    fontWeight: 500,
+  checkIconPositionFix: {
+    position: 'relative',
+    top: '-4px',
   },
   bodyTextStyling: {
     marginLeft: 5,
     marginTop: 5,
   },
-  inSyncStyling: {
-
+  deployButtonInfoText: {
+    color: theme.altinnPalette.primary.grey,
   },
-  deployButtonStyling: {
-    margin: '36px 0px 36px 0px',
+  fontSizeTitle: {
+    fontSize: 20,
   },
   link: {
     borderBottom: '1px solid #0062ba',
-  },
-  cSharpFileList: {
-    margin: '5px 0px 10px 10px',
-  },
-  listItemText: {
-    padding: '0px',
-  },
-  deployButtonInfoText: {
-    color: theme.altinnPalette.primary.grey,
   },
   listItemTitle: {
     fontSize: theme.overrides.MuiTypography.body1.fontSize,
     fontWeight: 500,
   },
-  paperStyleRepoInSync: {
-    backgroundColor: theme.altinnPalette.primary.greyLight,
+  paperStyleDeployFailed: {
+    backgroundColor: theme.altinnPalette.primary.redLight,
   },
   paperStyleDeploySuccess: {
     backgroundColor: theme.altinnPalette.primary.greenLight,
   },
-  paperStyleDeployFailed: {
-    backgroundColor: theme.altinnPalette.primary.redLight,
+  paperStyleRepoInSync: {
+    backgroundColor: theme.altinnPalette.primary.greyLight,
   },
 });
 
@@ -160,12 +148,12 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               Du kan redigere og dele disse på <a className={classes.link}>
                 siden for tjenestefiler
               <AltinnIcon
-                isActive={true}
-                iconClass='ai ai-arrowrightup'
-                iconColor={theme.altinnPalette.primary.black}
-                iconSize={30}
-                padding='0px 0px 4px 0px'
-              />
+                  isActive={true}
+                  iconClass='ai ai-arrowrightup'
+                  iconColor={theme.altinnPalette.primary.black}
+                  iconSize={30}
+                  padding='0px 0px 4px 0px'
+                />
               </a>
             </Typography>
           </React.Fragment>
@@ -313,17 +301,21 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                   )
               }
 
-              <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='center'>
+              <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
 
                 {/* Render the repo in sync part */}
                 <Grid item={true} xs={1}>
-                  <AltinnIcon
-                    iconClass={classNames({
-                      ['ai ai-check']: localRepoInSyncWithMaster === 'ready',
-                      ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== 'ready',
-                    })}
-                    iconColor={localRepoInSyncWithMaster === 'ready' ? theme.altinnPalette.primary.green : '#008FD6'}
-                  />
+                  <div className={classNames({ [classes.checkIconPositionFix]: localRepoInSyncWithMaster === 'ready' })}>
+                    <AltinnIcon
+                      iconClass={classNames({
+                        ['ai ai-check']: localRepoInSyncWithMaster === 'ready',
+                        ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== 'ready',
+                      })}
+                      iconColor={localRepoInSyncWithMaster === 'ready' ? theme.altinnPalette.primary.green : '#008FD6'}
+                      padding='0px 0px 7px 0px'
+                    />
+                  </div>
+
                 </Grid>
                 <Grid item={true} xs={11}>
                   {renderInSyncText(localRepoInSyncWithMaster)}
@@ -333,14 +325,17 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                 {!props.masterRepoAndDeployInSync &&
                   <React.Fragment>
                     <Grid item={true} xs={1}>
-                      <AltinnIcon
-                        iconClass={classNames({
-                          ['ai ai-check']: props.cSharpCompiles,
-                          ['fa fa-circle-exclamation']: !props.cSharpCompiles,
-                        })}
-                        iconColor={props.cSharpCompiles ?
-                          theme.altinnPalette.primary.green : theme.altinnPalette.primary.red}
-                      />
+                      <div className={classNames({ [classes.checkIconPositionFix]: props.cSharpCompiles })}>
+                        <AltinnIcon
+                          iconClass={classNames({
+                            ['ai ai-check']: props.cSharpCompiles,
+                            ['fa fa-circle-exclamation']: !props.cSharpCompiles,
+                          })}
+                          iconColor={props.cSharpCompiles ?
+                            theme.altinnPalette.primary.green : theme.altinnPalette.primary.red}
+                          padding='0px 0px 7px 0px'
+                        />
+                      </div>
                     </Grid>
                     <Grid item={true} xs={11}>
                       {renderCSharpCompilesText(props.cSharpCompiles)}
