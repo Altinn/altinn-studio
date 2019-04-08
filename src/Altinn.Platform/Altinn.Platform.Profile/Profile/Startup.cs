@@ -49,19 +49,19 @@ namespace Altinn.Platform.Profile
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
 
-            string shouldUseMock = string.Empty;
+            bool shouldUseMock = true;
             if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
             {
                 _logger.LogWarning("GeneralSettings__ShouldUseMock is not null " + Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
-                shouldUseMock = Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock");
+                shouldUseMock = bool.Parse(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
             }
             else
             {
                 _logger.LogWarning("GeneralSettings__ShouldUseMock is null", Configuration["GeneralSettings:ShouldUseMock"]);
-                shouldUseMock = Configuration["GeneralSettings:ShouldUseMock"];
+                shouldUseMock = bool.Parse(Configuration["GeneralSettings:ShouldUseMock"]);
             }
 
-            if (!string.IsNullOrEmpty(shouldUseMock) && shouldUseMock.Equals("true"))
+            if (shouldUseMock)
             {
                 _logger.LogWarning("inside if check", shouldUseMock);
                 services.AddSingleton<IUsers, UsersMockWrapper>();
