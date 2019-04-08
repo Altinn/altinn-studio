@@ -31,15 +31,3 @@ ingress:
   # The first hosts entry host is configured automatically during deployment in Altinn Studio
   # For manual deploy, or more hosts, configure hosts
     - tdd.apps.at21.altinn.cloud
-
-role:
-  name: kubernetes-read-role
-  apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["get", "list"]
-
-roleBinding:
-  name: kubernetes-read-role-binding
-
-serviceAccount:
-  name: kuberneteswrappersa
