@@ -1,4 +1,6 @@
+import classNames = require('classnames');
 import * as React from 'react';
+import '../../styles/CheckboxComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
@@ -56,6 +58,10 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
     return this.state.selected.includes(option);
   }
 
+  public emptyFunction = (): string => {
+    return undefined;
+  }
+
   public render() {
     const { options } = this.props.component;
     const optionsLength = (options) ? options.length : 0;
@@ -70,13 +76,14 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
           )
         }
         id={this.props.id}
-        style={isStacked ? {} : {alignItems: 'start'}}
+        style={isStacked ? {} : { alignItems: 'start' }}
       >
         {options.map((option, index) => (
           <div
             key={index}
-            className='custom-control custom-checkbox a-custom-checkbox pl-0 pr-4 mr-3'
-            onClick={this.onDataChanged.bind(this, option.value, index)}
+            className={classNames('custom-control', 'custom-checkbox', 'a-custom-checkbox', 'pl-0', 'pr-4 mr-3',
+              { 'no-cursor': this.props.component.readOnly })}
+            onClick={this.props.component.readOnly ? null : this.onDataChanged.bind(this, option.value, index)}
           >
             <input
               type='checkbox'
@@ -84,8 +91,14 @@ export class CheckboxContainerComponent extends React.Component<ICheckboxContain
               value={option.value}
               name={'checkbox-' + this.props.id + '-' + index}
               checked={this.isOptionSelected(option.value)}
+              onChange={this.emptyFunction}
             />
-            <label className='pl-3 custom-control-label'>{option.label}</label>
+            <label
+              className={classNames('custom-control-label', 'pl-3',
+                { 'disabled-checkbox no-cursor': this.props.component.readOnly })}
+            >
+              {option.label}
+            </label>
             {this.props.validationMessages && this.isOptionSelected(option.value) &&
               renderValidationMessagesForComponent(this.props.validationMessages.simpleBinding,
                 this.props.component.id)}

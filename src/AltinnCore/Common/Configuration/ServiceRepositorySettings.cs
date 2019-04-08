@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using AltinnCore.Common.Models;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Configuration
 {
@@ -50,7 +53,7 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Constant for the location of service deployment charts
         /// </summary>
-        public const string DEPLOYMENT_FOLDER_NAME = "Deployment/";
+        public const string DEPLOYMENT_FOLDER_NAME = "deployment/";
 
         /// <summary>
         /// Constant for the service binaries
@@ -190,12 +193,12 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets React file name
         /// </summary>
-        public string ReactAppFileName { get; set; } = "react-app.js";
+        public string RuntimeAppFileName { get; set; } = "runtime.js";
 
         /// <summary>
         /// Gets or sets React CSS file name
         /// </summary>
-        public string ReactAppCssFileName { get; set; } = "react-app.css";
+        public string RuntimeCssFileName { get; set; } = "runtime.css";
 
         /// <summary>
         /// Gets or sets styles config file name for service
@@ -276,6 +279,20 @@ namespace AltinnCore.Common.Configuration
         /// Gets or sets the filename for the generated methods class
         /// </summary>
         public string GeneratedMethodsFileName { get; set; } = GENERATED_METHODS_FILENAME;
+
+        /// <summary>
+        /// Gets the styles config element
+        /// </summary>
+        public string GetStylesConfig()
+        {
+            StylesConfig stylesConfig = new StylesConfig();
+            stylesConfig.InternalStyles = new List<string>();
+            stylesConfig.InternalStyles.Add(RuntimeCssFileName);
+            stylesConfig.ExternalStyles = new List<string>();
+            stylesConfig.ExternalStyles.Add(DefaultBootstrapUrl);
+
+            return JsonConvert.SerializeObject(stylesConfig);
+        }
 
         /// <summary>
         /// Gets the full path to the org directory
@@ -654,10 +671,19 @@ namespace AltinnCore.Common.Configuration
         /// <param name="service">The name of the service</param>
         /// <param name="developer">The name of the developer of the service</param>
         /// <param name="partyId">The party id of the test user</param>
+        /// <param name="baseEndpoint"> Will be used as the url base if supplied, defaults to null.</param>
         /// <returns>The url path to the runtime api</returns>
-        public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0)
+        public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0, string baseEndpoint = null)
         {
-            string runtimeAPIEndPoint = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RuntimeAPIEndPoint") ?? RuntimeAPIEndPoint;
+            string runtimeAPIEndPoint;
+            if (string.IsNullOrEmpty(baseEndpoint))
+            {
+                runtimeAPIEndPoint = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RuntimeAPIEndPoint") ?? RuntimeAPIEndPoint;
+            }
+            else
+            {
+                runtimeAPIEndPoint = baseEndpoint;
+            }
 
             if (partyId == 0)
             {

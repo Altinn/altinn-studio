@@ -90,7 +90,7 @@ export class CodeListComponent extends React.Component<ICodeListComponentProps, 
                         className='a-btn a-btn-icon'
                         onClick={this.props.removeMapping.bind(null, id)}
                       >
-                        <i className='ai ai-circle-exit a-danger ai-left' />
+                        <i className='fa fa-circle-exit a-danger ai-left' />
                       </button>
                     </div>
                   </div>

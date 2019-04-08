@@ -48,7 +48,6 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.User user = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.User));
             Uri endpointUrl = new Uri(GetApiBaseUrl() + "/user");
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
@@ -78,7 +77,6 @@ namespace AltinnCore.Common.Services.Implementation
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Repository));
             string urlEnd = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) == owner ? "/user/repos" : "/org/" + owner + "/repos";
             Uri endpointUrl = new Uri(GetApiBaseUrl() + urlEnd);
-           
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.PostAsJsonAsync<CreateRepoOption>(endpointUrl, createRepoOption);
@@ -131,7 +129,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
 
                 int totalCount = 0;
-               
+
                 while (!allElementsRetrieved)
                 {
                     Uri tempUrl = new Uri(giteaUrl.OriginalString + "&page=" + resultPage);
@@ -154,7 +152,7 @@ namespace AltinnCore.Common.Services.Implementation
                         IEnumerable<string> values;
                         if (response.Headers.TryGetValues("X-Total-Count", out values))
                         {
-                           totalCount = Convert.ToInt32(values.First());
+                            totalCount = Convert.ToInt32(values.First());
                         }
 
                         if (page == resultPage
@@ -272,7 +270,6 @@ namespace AltinnCore.Common.Services.Implementation
             AltinnCore.RepositoryClient.Model.Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(AltinnCore.RepositoryClient.Model.Organization));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/orgs/" + name);
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -301,7 +298,6 @@ namespace AltinnCore.Common.Services.Implementation
             List<Branch> branches = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(List<Branch>));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches");
-         
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -331,7 +327,6 @@ namespace AltinnCore.Common.Services.Implementation
             Branch branchinfo = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repo + "/branches/" + branch);
-
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -353,13 +348,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// This method screen scrapes the user from the profile ui in GITEA.
         /// This was needed when GITEA changed their API policy in 1.5.2 and requiring
         /// only API calls with token. This is currently the only known way to get
-        /// info about the logged in user in GITEA. 
+        /// info about the logged in user in GITEA.
         /// </summary>
         /// <returns>Returns the logged in user</returns>
         public async Task<string> GetUserNameFromUI()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/");
-           
             using (HttpClient client = GetWebHtmlClient(false))
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -377,17 +371,17 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// This method generates a application key in GITEA with
         /// help of screen scraping the Application form in GITEA
-        /// This is the only  way (currently) to generate a APP key without involving the user in 
+        /// This is the only  way (currently) to generate a APP key without involving the user in
         /// </summary>
         /// <returns>A newly generated token</returns>
-        public async Task<string> GetSessionAppKey(string keyName = null)
+        public async Task<KeyValuePair<string, string>?> GetSessionAppKey(string keyName = null)
         {
             string csrf = GetCsrf().Result;
 
-            DeleteCurrentAppKeys(csrf, keyName);
+            await Task.Run(() => DeleteCurrentAppKeys(csrf, keyName));
 
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
-          
+
             List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
             formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
             formValues.Add(new KeyValuePair<string, string>("name", keyName == null ? "AltinnStudioAppKey" : keyName));
@@ -400,8 +394,17 @@ namespace AltinnCore.Common.Services.Implementation
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     string htmlContent = await response.Content.ReadAsStringAsync();
+                    string token = GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                    List<string> keys = FindAllAppKeysId(htmlContent, keyName);
+                    _logger.LogInformation("The number of app keys matching keyname " + keyName + " is " + keys.Count());
+                    foreach (string key in keys)
+                    {
+                        _logger.LogInformation("Keyvalue is " + key);
+                    }
 
-                    return GetStringFromHtmlContent(htmlContent, "<div class=\"ui info message\">\n\t\t<p>", "</p>");
+                    KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(keys.FirstOrDefault() ?? "1", token);
+
+                    return keyValuePair;
                 }
             }
 
@@ -411,7 +414,7 @@ namespace AltinnCore.Common.Services.Implementation
         private async Task<string> GetCsrf()
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
-            
+
             using (HttpClient client = GetWebHtmlClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);
@@ -426,7 +429,7 @@ namespace AltinnCore.Common.Services.Implementation
             return null;
         }
 
-        private async void DeleteCurrentAppKeys(string csrf, string keyName = null)
+        private async Task DeleteCurrentAppKeys(string csrf, string keyName = null)
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications");
             List<string> appKeyIds = new List<string>();
@@ -441,10 +444,10 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            DeleteAllAppKeys(appKeyIds, csrf);
+            await Task.Run(() => DeleteAllAppKeys(appKeyIds, csrf));
         }
 
-        private async void DeleteAllAppKeys(List<string> appKeys, string csrf)
+        private async Task DeleteAllAppKeys(List<string> appKeys, string csrf)
         {
             Uri giteaUrl = BuildGiteaUrl("user/settings/applications/delete");
 
@@ -452,6 +455,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 foreach (string key in appKeys)
                 {
+                    _logger.LogInformation("Deleting appkey with id " + key);
                     List<KeyValuePair<string, string>> formValues = new List<KeyValuePair<string, string>>();
                     formValues.Add(new KeyValuePair<string, string>("_csrf", csrf));
                     formValues.Add(new KeyValuePair<string, string>("id", key));
@@ -595,7 +599,7 @@ namespace AltinnCore.Common.Services.Implementation
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
-                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
+                cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
             }
             else
             {
@@ -607,7 +611,7 @@ namespace AltinnCore.Common.Services.Implementation
 
         private Uri BuildGiteaUrl(string path)
         {
-            Uri giteaUrl; 
+            Uri giteaUrl;
 
             if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {

@@ -212,10 +212,10 @@ export class CreateNewServiceComponent extends React.Component<ICreateNewService
     return (
       <div>
         <AltinnIconButton
-          id={'ceateService'}
+          id={'createService'}
           onclickFunction={this.handleModalOpen}
           btnText={getLanguageFromKey('dashboard.new_service', this.props.language)}
-          iconClass='ai ai-circle-plus'
+          iconClass='fa fa-circle-plus'
         />
         <AltinnModal
           isOpen={this.state.isOpen}

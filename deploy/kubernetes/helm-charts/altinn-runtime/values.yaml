@@ -29,6 +29,10 @@ environmentVariables:
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://dev.altinn.studio/
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
   production:
     - name: GiteaEndpoint
       value: altinn.studio
@@ -52,6 +56,10 @@ environmentVariables:
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://altinn.studio/
+    - name: GeneralSettings__LanguageFilesLocation
+      value: Languages/
 
 volumeMounts:
   - name: altinn-runtime-repo-storage
@@ -59,8 +67,8 @@ volumeMounts:
 
 volumes:
   - name: altinn-runtime-repo-storage
-    persistantVolumeClaim:
-      claimName: altinn-storage-repo-volume-claim
+    persistentVolumeClaim:
+      claimName: altinn-storage-runtime-repo-volume-claim
   - name: altinn-appsettings
     secret:
       secretName: altinn-appsettings-secret

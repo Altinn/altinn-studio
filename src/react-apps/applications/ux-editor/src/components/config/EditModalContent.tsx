@@ -1,8 +1,11 @@
-import { Grid, withStyles } from '@material-ui/core';
+import { Grid, Typography, withStyles } from '@material-ui/core';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
 import AltinnCheckBox from '../../../../shared/src/components/AltinnCheckBox';
+import AltinnInputField from '../../../../shared/src/components/AltinnInputField';
+import AltinnRadio from '../../../../shared/src/components/AltinnRadio';
+import AltinnRadioGroup from '../../../../shared/src/components/AltinnRadioGroup';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { getTextResource, truncate } from '../../utils/language';
 import { renderPropertyLabel, renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
@@ -156,12 +159,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       component: updatedComponent,
     });
     this.props.handleComponentUpdate(updatedComponent);
-  }
-
-  public getTextKeyFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((elem) =>
-      elem.DataBindingName === dataBindingName);
-    return element.Texts.Label;
   }
 
   public handleCodeListChange = (option: ICodeListOption): void => {
@@ -340,7 +337,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
                     className='a-btn a-btn-icon'
                     onClick={this.handleRemoveOption.bind(this, index)}
                   >
-                    <i className='ai ai-circle-exit a-danger ai-left' />
+                    <i className='fa fa-circle-exit a-danger ai-left' />
                   </button>
                 </div>
               </div>
@@ -431,8 +428,100 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
 
+      case 'FileUpload': {
+        const component = (this.props.component as IFormFileUploaderComponent);
+        return (
+          <Grid>
+            <Grid item={true} xs={12}>
+              <AltinnRadioGroup
+                row={true}
+                value={component.displayMode}
+                onChange={this.handleDisplayModeChange}
+              >
+                <AltinnRadio
+                  label={getLanguageFromKey('ux_editor.modal_properties_file_upload_simple', this.props.language)}
+                  value={'simple'}
+                />
+                <AltinnRadio
+                  label={getLanguageFromKey('ux_editor.modal_properties_file_upload_list', this.props.language)}
+                  value={'list'}
+                />
+              </AltinnRadioGroup>
+            </Grid>
+            <Grid item={true} xs={12}>
+              {renderSelectTextFromResources('modal_properties_label_helper',
+                this.handleTitleChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.title)}
+              {renderSelectTextFromResources('modal_properties_description_helper',
+                this.handleDescriptionChange,
+                this.props.textResources,
+                this.props.language,
+                this.props.component.textResourceBindings.description)}
+            </Grid>
+            <Grid item={true} xs={12}>
+              <AltinnRadioGroup
+                row={true}
+                value={component.hasCustomFileEndings ? 'true' : 'false'}
+                onChange={this.handleHasCustomFileEndingsChange}
+              >
+                <AltinnRadio
+                  label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_all', this.props.language)}
+                  value={'false'}
+                />
+                <AltinnRadio
+                  label={getLanguageFromKey(
+                    'ux_editor.modal_properties_valid_file_endings_custom', this.props.language)}
+                  value={'true'}
+                />
+              </AltinnRadioGroup>
+            </Grid>
+
+            {component.hasCustomFileEndings &&
+              <Grid item={true} xs={12}>
+                <AltinnInputField
+                  id={'modal-properties-valid-file-endings'}
+                  onChangeFunction={this.handleValidFileEndingsChange}
+                  inputValue={component.validFileEndings}
+                  inputDescription={getLanguageFromKey(
+                    'ux_editor.modal_properties_valid_file_endings_helper', this.props.language)}
+                  inputFieldStyling={{ width: '100%' }}
+                  inputDescriptionStyling={{ marginTop: '24px' }}
+                />
+              </Grid>
+            }
+            <Grid item={true} xs={12}>
+              <AltinnInputField
+                id={'modal-properties-maximum-files'}
+                onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
+                inputValue={component.maxNumberOfAttachments}
+                inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
+                inputFieldStyling={{ width: '60px' }}
+                inputDescriptionStyling={{ marginTop: '24px' }}
+                type={'number'}
+              />
+            </Grid>
+            <Grid item={true} xs={12}>
+              <AltinnInputField
+                id={'modal-properties-file-size'}
+                onChangeFunction={this.handleMaxFileSizeInMBChange}
+                inputValue={component.maxFileSizeInMB}
+                inputDescription={getLanguageFromKey(
+                  'ux_editor.modal_properties_maximum_file_size', this.props.language)}
+                inputFieldStyling={{ width: '60px' }}
+                inputDescriptionStyling={{ marginTop: '24px' }}
+                type={'number'}
+              />
+              <Typography style={{ fontSize: '1.6rem', display: 'inline-block', marginTop: '23px' }}>
+                {getLanguageFromKey(
+                  'ux_editor.modal_properties_maximum_file_size_helper', this.props.language)}
+              </Typography>
+            </Grid>
+          </Grid>
+        );
+      }
       case 'TextArea': {
-        const { component } = this.props;
         return (
           <Grid item={true} xs={12}>
             {renderSelectDataModelBinding(
@@ -449,16 +538,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.props.textResources,
               this.props.language,
               this.props.component.textResourceBindings.description)}
-            <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
-              {getLanguageFromKey('ux_editor.modal_properties_read_only_description', this.props.language)}
-            </Grid>
-            <Grid item={true}>
-              <AltinnCheckBox
-                checked={!!component.readOnly}
-                onChangeFunction={this.handleReadOnlyChange}
-              />
-              {getLanguageFromKey('ux_editor.modal_properties_read_only', this.props.language)}
-            </Grid>
           </Grid>
         );
       }
@@ -467,6 +546,57 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return null;
       }
     }
+  }
+
+  public getMinOccursFromDataModel = (dataBindingName: string): number => {
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) =>
+      e.DataBindingName === dataBindingName);
+    return element.MinOccurs;
+  }
+
+  public handleValidFileEndingsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.validFileEndings = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleMaxFileSizeInMBChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.maxFileSizeInMB = (event.target.value >= 0) ? event.target.value : 0;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleMaxNumberOfAttachmentsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.maxNumberOfAttachments = (event.target.value >= 0) ? event.target.value : 0;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleDisplayModeChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.displayMode = event.target.value;
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
+  }
+
+  public handleHasCustomFileEndingsChange = (event: any) => {
+    const component = (this.props.component as IFormFileUploaderComponent);
+    component.hasCustomFileEndings = (event.target.value === 'true');
+    this.setState({
+      component,
+    });
+    this.props.handleComponentUpdate(component);
   }
 
   public handleReadOnlyChange = (event: object, checked: boolean) => {
@@ -484,16 +614,22 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    this.setState({
-      component: {
-        ...this.state.component,
-        dataModelBindings: dataModelBinding,
-      },
-    });
-    this.props.handleComponentUpdate({
-      ...this.props.component,
-      dataModelBindings: dataModelBinding,
-    });
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 1) {
+      this.setState({
+        component: {
+          ...this.state.component,
+          required: true,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    } else {
+      this.setState({
+        component: {
+          ...this.state.component,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    }
   }
 
   public handleToggleAddressSimple = (event: object, checked: boolean) => {
@@ -543,6 +679,7 @@ const mapStateToProps = (
     textResources: state.appData.textResources.resources,
     codeListResources: state.appData.codeLists.codeLists,
     thirdPartyComponents: state.thirdPartyComponents.components,
+    dataModel: state.appData.dataModel.model,
     ...props,
   };
 };

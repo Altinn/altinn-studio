@@ -8,7 +8,7 @@ module.exports = {
   devtool: 'eval',
   entry: "./src/index.tsx",
   output: {
-    filename: "react-app.js"
+    filename: "runtime.js"
   },
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
@@ -18,60 +18,60 @@ module.exports = {
   },
   module: {
     rules: [{
-      test: /\.jsx?/,
-      exclude: /node_modules/,
-      use: {
-        loader: "babel-loader",
-      }
-    },
-    {
-      test: /\.html$/,
-      use: [{
-        loader: "html-loader",
-        options: {
-          minimize: true
-        }
-      }]
-    },
-    {
-      test: /\.scss$/,
-      use: [
-        "style-loader",
-        "css-loader",
-        "sass-loader"
-      ]
-    },
-    {
-      test: /\.svg$/,
-      use: {
-        loader: "svg-inline-loader",
-      }
-    },
-    {
-      test: /\.css$/,
-      use: [{
-        loader: MiniCssExtractPlugin.loader,
-        options: {
-          url: false
+        test: /\.jsx?/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
         }
       },
       {
-        loader: "css-loader",
-        options: {
-          url: false
+        test: /\.html$/,
+        use: [{
+          loader: "html-loader",
+          options: {
+            minimize: true
+          }
+        }]
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          "style-loader",
+          "css-loader",
+          "sass-loader"
+        ]
+      },
+      {
+        test: /\.svg$/,
+        use: {
+          loader: "svg-inline-loader",
         }
       },
-      ]
-    },
-    {
-      test: /\.tsx?/,
-      loader: "awesome-typescript-loader",
-    },
-    {
-      enforce: "pre",
-      test: /\.js$/,
-      loader: "source-map-loader",
-    }
+      {
+        test: /\.css$/,
+        use: [{
+            loader: MiniCssExtractPlugin.loader,
+            options: {
+              url: false
+            }
+          },
+          {
+            loader: "css-loader",
+            options: {
+              url: false
+            }
+          },
+        ]
+      },
+      {
+        test: /\.tsx?/,
+        loader: "awesome-typescript-loader",
+      },
+      {
+        enforce: "pre",
+        test: /\.js$/,
+        loader: "source-map-loader",
+      }
     ],
   },
   plugins: [
@@ -80,7 +80,7 @@ module.exports = {
       filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
-      filename: "react-app.css",
+      filename: "runtime.css",
     }),
     new CheckerPlugin(),
   ],

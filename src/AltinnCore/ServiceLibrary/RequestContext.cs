@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
 
@@ -31,7 +32,7 @@ namespace AltinnCore.ServiceLibrary
         /// <summary>
         /// Gets or sets the service instance id for this request
         /// </summary>
-        public int InstanceId { get; set; }
+        public Guid InstanceId { get; set; }
 
         /// <summary>
         /// Gets or sets the form collection available 

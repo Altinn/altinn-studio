@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`>>> AltinnRadioButtonGroup.tsx +++ Should match snapshot with all params  1`] = `
+<div
+  className="AltinnRadioGroup-altinnRadioGroupWrapper-2"
+>
+  <p
+    className="MuiTypography-root-6 AltinnRadioGroup-altinnRadioGroupDescription-3 MuiTypography-body1-15"
+  >
+    mock-description
+  </p>
+  <div
+    className="MuiFormGroup-root-4 AltinnRadioGroup-altinnRadioGroup-1 MuiFormGroup-row-5 mock-classname"
+    id="mock-id"
+    role="radiogroup"
+  />
+</div>
+`;
+
+exports[`>>> AltinnRadioButtonGroup.tsx +++ Should match snapshot with the least amount of params 1`] = `
+<div
+  className="AltinnRadioGroup-altinnRadioGroupWrapper-2"
+>
+  <div
+    className="MuiFormGroup-root-4 AltinnRadioGroup-altinnRadioGroup-1"
+    role="radiogroup"
+  />
+</div>
+`;

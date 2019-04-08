@@ -319,7 +319,11 @@ src/react-apps/applications/runtime/node_modules
 src/react-apps/applications/runtime/compiled
 src/react-apps/applications/runtime/dist
 
-######### Built react apps ###########
+######### Built react apps for runtime ###########
+src/AltinnCore/Runtime/wwwroot/runtime/css/react
+src/AltinnCore/Runtime/wwwroot/runtime/js/react
+
+######### Built react apps for designer ###########
 src/AltinnCore/Designer/wwwroot/designer/css/react
 src/AltinnCore/Designer/wwwroot/designer/js/react
 src/AltinnCore/Designer/wwwroot/designer/js/lib

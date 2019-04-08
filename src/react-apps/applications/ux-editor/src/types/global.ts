@@ -116,10 +116,19 @@ declare global {
 
   export interface IFormFileUploaderComponent extends IFormComponent {
     description: string;
+    hasCustomFileEndings: boolean;
+    maxFileSizeInMB: number;
+    displayMode: string;
+    maxNumberOfAttachments: number;
+    validFileEndings?: string;
   }
 
   export interface IDataModelBindings {
     [id: string]: string;
+  }
+
+  export interface IProperties extends IFormComponent {
+    [key: string]: string | any;
   }
 
   export interface IFormAddressComponent extends IFormComponent {
@@ -140,6 +149,9 @@ declare global {
 
   export interface IFormDesignerComponent {
     [id: string]: IFormComponent;
+  }
+  export interface IFormDesignerComponentProps {
+    [id: string]: IProperties;
   }
 
   export interface IFormDesignerContainer {

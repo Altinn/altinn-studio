@@ -72,10 +72,15 @@ namespace AltinnCore.Runtime
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IInstance, InstanceSILocalDev>();
+                services.AddSingleton<IWorkflowSI, WorkflowSI>();
             }
             else
             {
                 services.AddSingleton<IExecution, ExecutionSIContainer>();
+                services.AddSingleton<IInstance, InstanceSI>();
+                services.AddSingleton<IData, DataSI>();
+                services.AddSingleton<IWorkflowSI, WorkflowSI>();
             }
 
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
@@ -98,8 +103,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddSingleton<IWorkflowSI, WorkflowSI>();
-
             services.AddResponseCompression();
 
             string repoLocation = null;
@@ -120,6 +123,7 @@ namespace AltinnCore.Runtime
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
@@ -217,7 +221,7 @@ namespace AltinnCore.Runtime
                         action = "CompleteAndSendIn|Lookup|ModelValidation|Receipt|StartService|ViewPrint|edit|GetCurrentState",
                         controller = "Instance",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                        instanceId = @"\d+",
+                        instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                     });
 
                 routes.MapRoute(
@@ -229,7 +233,7 @@ namespace AltinnCore.Runtime
                        action = "EditSPA",
                        controller = "Instance",
                        service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
-                       instanceId = @"\d+",
+                       instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
                    });
 
                 // ---------------------------- API -------------------------- //
@@ -251,6 +255,15 @@ namespace AltinnCore.Runtime
                     {
                         controller = "Resource",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                    });
+
+                routes.MapRoute(
+                    name: "runtimeResourceRoute",
+                    template: "runtime/api/runtimeresources/{id}/",
+                    defaults: new { action = "RuntimeResource", controller = "Resource" },
+                    constraints: new
+                    {
+                        controller = "Resource",
                     });
 
                 routes.MapRoute(
@@ -277,6 +290,39 @@ namespace AltinnCore.Runtime
                  name: "apiPutRoute",
                  template: "runtime/api/{reportee}/{org}/{service}/{instanceId}/{apiMode}",
                  defaults: new { action = "Index", controller = "ServiceAPI" },
+                 constraints: new
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                 });
+
+                routes.MapRoute(
+                 name: "apiAttachmentRoute",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentUploadUrl}/{instanceId}/{attachmentType}/{fileName}/",
+                 defaults: new { controller = "ServiceAPI" },
+                 constraints: new
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                 });
+
+                routes.MapRoute(
+                 name: "apiAttachmentDeleteRoute",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentDeleteUrl}/{instanceId}/{attachmentType}/{fileName}/{fileId}/",
+                 defaults: new { controller = "ServiceAPI" },
+                 constraints: new
+                 {
+                     controller = "ServiceAPI",
+                     service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
+                     instanceId = @"^(\{{0,1}([0-9a-fA-F]){8}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){4}-([0-9a-fA-F]){12}\}{0,1})$",
+                 });
+
+                routes.MapRoute(
+                 name: "apiAttachmentListRoute",
+                 template: "runtime/api/{reportee}/{org}/{service}/{action=GetAttachmentListUrl}/{instanceId}/",
+                 defaults: new { controller = "ServiceAPI" },
                  constraints: new
                  {
                      controller = "ServiceAPI",
