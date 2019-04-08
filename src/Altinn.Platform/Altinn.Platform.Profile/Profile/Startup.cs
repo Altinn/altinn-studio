@@ -54,7 +54,7 @@ namespace Altinn.Platform.Profile
             if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
             {
                 _logger.LogWarning("GeneralSettings__ShouldUseMock is not null " + Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
-                shouldUseMock = Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") == "\"true\"" ? true : false;
+                shouldUseMock = bool.Parse(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
             }
             else
             {
