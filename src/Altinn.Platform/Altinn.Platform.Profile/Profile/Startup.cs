@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Altinn.Platform.Profile
 {
@@ -53,7 +54,7 @@ namespace Altinn.Platform.Profile
             if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
             {
                 _logger.LogWarning("GeneralSettings__ShouldUseMock is not null " + Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
-                shouldUseMock = bool.Parse(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
+                shouldUseMock = JsonConvert.DeserializeObject<bool>(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
             }
             else
             {
