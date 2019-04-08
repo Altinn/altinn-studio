@@ -14,8 +14,7 @@ createTestCafe()
       //.speed(0.75)
       .screenshots('./screenshots', { takeOnFails: true })
       .reporter('junit', stream)
-      .src(['./dashboard_tests/service-tests.js','./designer_tests/service-designer-tests.js',
-        './designer_tests/navigation-tests.js'])
+      .src(['./*_tests/*.js'])
       .run({
         skipJsErrors: true,
         quarantineMode: false,

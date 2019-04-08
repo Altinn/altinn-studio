@@ -63,12 +63,14 @@ test('Språk tab navigation', async () => {
 test('Teste tab navigation', async () => {
   await t
     .click(designerPage.testeNavigationTab)
+    .hover(designerPage.leftDrawerMenu)
     .expect(getLocation()).contains('testingintestenvironment');
 });
 
 test('Publisere tab navigation', async () => {
   await t
     .click(designerPage.publisereNavigationTab)
+    .hover(designerPage.leftDrawerMenu)
     .expect(getLocation()).contains('publish');
 });
 
