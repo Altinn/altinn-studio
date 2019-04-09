@@ -16,9 +16,14 @@ namespace Altinn.Platform.Register.Configuration
         public string BridgeApiEndpoint { get; set; }
 
         /// <summary>
+        /// Gets or sets if the solution should use mock or not
+        /// </summary>
+        public bool ShouldUseMock { get; set; }
+
+        /// <summary>
         /// Gets the api base url for sbl bridge
         /// </summary>
-        /// <returns></returns>
+        /// <returns>the api base url</returns>
         public string GetApiBaseUrl()
         {
             return Environment.GetEnvironmentVariable("GeneralSettings__BridgeApiEndpoint") ?? BridgeApiEndpoint;

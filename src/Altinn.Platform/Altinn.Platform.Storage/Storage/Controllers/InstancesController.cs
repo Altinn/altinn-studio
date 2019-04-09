@@ -45,7 +45,7 @@ namespace Altinn.Platform.Storage.Controllers
                 var result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
                 if (result == null || result.Count == 0)
                 {
-                    return NotFound();
+                    return NotFound("Did not find any instances for instanceOwnerId=" + instanceOwnerId);
                 }
 
                 return Ok(result);
@@ -55,7 +55,7 @@ namespace Altinn.Platform.Storage.Controllers
                 var result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
                 if (result == null || result.Count == 0)
                 {
-                    return NotFound();
+                    return NotFound("Did not find any instances for applicationOwnerId=" + applicationOwnerId);
                 }
 
                 return Ok(result);
@@ -65,13 +65,13 @@ namespace Altinn.Platform.Storage.Controllers
                 var result = await _instanceRepository.GetInstancesOfApplicationAsync(applicationId);
                 if (result == null || result.Count == 0)
                 {
-                    return NotFound();
+                    return NotFound("Did not find any instances for applicationId=" + applicationId);
                 }
 
                 return Ok(result);
             }
 
-            return BadRequest();
+            return BadRequest("Unable to perform query");
         }        
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace Altinn.Platform.Storage.Controllers
             var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (result == null)
             {
-                return NotFound();
+                return NotFound("Did not find an instance with instanceId=" + instanceId);
             }
 
             watch.Stop();
@@ -131,7 +131,7 @@ namespace Altinn.Platform.Storage.Controllers
             string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {
-                return BadRequest();
+                return BadRequest("Unable to write new instance to database");
             }
 
             return Ok(result);
@@ -167,7 +167,7 @@ namespace Altinn.Platform.Storage.Controllers
             var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
             if (result == null)
             {
-                return BadRequest();
+                return BadRequest("Couldn't update instanceId=" + instanceId + ". Repository save failed");
             }
 
             return Ok(result);
@@ -187,7 +187,7 @@ namespace Altinn.Platform.Storage.Controllers
             Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (instance == null)
             {
-                return NotFound();
+                return NotFound("Didn't find the object that should be deleted with instanceId="+ instanceId);
             }
             else
             {
@@ -214,7 +214,6 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return BadRequest();
             }
-
         }
     }
 }

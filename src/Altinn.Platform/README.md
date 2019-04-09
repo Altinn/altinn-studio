@@ -19,7 +19,7 @@ These instructions will get you a copy of the platform solution up and running o
 
 ### Installing
 
-Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform
+Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform/Altinn.Platform.Register
 
 ```cmd
 git clone https://github.com/Altinn/altinn-studio
@@ -32,14 +32,6 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The register solution is now available locally at http://localhost:5020/api/v1 and has endpoints:
-
-- organizations/{orgNr}
-
-- parties/{partyId}
-
-- persons/{ssn}
-
 #### Running Altinn Platform Register locally
 
 The Register components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
@@ -50,8 +42,16 @@ Stop the container running Register
 docker stop altinn-platform-register
 ```
 
-Navigate to the altinn-studio/src/Altinn.Platform/Register, and build and run the code from there, or run the solution using you selected code editor
+Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Register, and build and run the code from there, or run the solution using you selected code editor
 
 ```cmd
 dotnet run
 ```
+
+The register solution is now available locally at http://localhost:5020/api/v1 and has endpoints:
+
+- organizations/{orgNr}
+
+- parties/{partyId}
+
+- persons/{ssn}

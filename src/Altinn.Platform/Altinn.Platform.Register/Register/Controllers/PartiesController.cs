@@ -33,7 +33,7 @@ namespace Altinn.Platform.Register.Controllers
             Party result = await _partiesWrapper.GetParty(partyID);
             if (result == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             return Ok(result);

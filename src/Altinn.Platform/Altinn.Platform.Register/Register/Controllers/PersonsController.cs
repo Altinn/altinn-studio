@@ -33,7 +33,7 @@ namespace Altinn.Platform.Register.Controllers
             Person result = await _personsWrapper.GetPerson(ssn);
             if (result == null)
             {
-                return BadRequest();
+                return NotFound();
             }
 
             return Ok(result);
