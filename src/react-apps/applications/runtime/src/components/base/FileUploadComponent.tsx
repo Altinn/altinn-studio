@@ -74,19 +74,18 @@ export class FileUploadComponentClass
     const newFiles: IAttachment[] = [];
     const fileType = this.props.id; // component id used as filetype identifier for now, see issue #1364
     acceptedFiles.forEach((file: File) => {
-      if (this.state.attachments.length < this.props.component.maxNumberOfAttachments) {
+      if ((this.state.attachments.length + newFiles.length) < this.props.component.maxNumberOfAttachments) {
         const tmpId: string = uuid();
         newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
         FormFillerActionDispatchers.uploadAttachment(file, fileType, tmpId, this.props.id);
       }
     });
-    let newValidationMessages: string[];
+    const newValidationMessages: string[] = [];
     if (rejectedFiles.length > 0) {
-      newValidationMessages = [];
       rejectedFiles.forEach((file) => {
         if (file.size > (this.props.component.maxFileSizeInMB * bytesInOneMB)) {
           newValidationMessages.push(
-            file.name +
+            file.name + ' ' +
             getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
         } else {
           newValidationMessages.push(
@@ -102,7 +101,7 @@ export class FileUploadComponentClass
       attachments: this.state.attachments.concat(newFiles),
       // if simple mode, we should hide list on each drop
       showFileUpload,
-      validations: newValidationMessages || [],
+      validations: newValidationMessages,
     });
   }
 
@@ -254,8 +253,8 @@ export class FileUploadComponentClass
 
   public render() {
     const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings, displayMode } = this.props.component;
-    const showFileUpload: boolean =
-      (displayMode !== 'simple' || this.state.attachments.length === 0 || this.state.showFileUpload);
+    const showFileUpload: boolean = (displayMode !== 'simple' || this.state.attachments.length === 0 ||
+      this.state.showFileUpload || this.state.validations.length > 0);
     const validationMessages = this.getComponentValidations();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
     return (
@@ -286,7 +285,7 @@ export class FileUploadComponentClass
                     {...getRootProps()}
                     style={styles}
                     id={'altinn-drop-zone-' + this.props.id}
-                    className={hasValidationMessages ? 'file-upload-invalid' : ''}
+                    className={'file-upload' + (hasValidationMessages ? ' file-upload-invalid' : '')}
                   >
                     <input {...getInputProps()} />
                     {this.renderFileUploadContent()}
