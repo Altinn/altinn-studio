@@ -80,15 +80,15 @@ export class FileUploadComponentClass
         FormFillerActionDispatchers.uploadAttachment(file, fileType, tmpId, this.props.id);
       }
     });
-    const newValidationMessages: string[] = [];
+    const validations: string[] = [];
     if (rejectedFiles.length > 0) {
       rejectedFiles.forEach((file) => {
         if (file.size > (this.props.component.maxFileSizeInMB * bytesInOneMB)) {
-          newValidationMessages.push(
+          validations.push(
             file.name + ' ' +
             getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
         } else {
-          newValidationMessages.push(
+          validations.push(
             getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', this.props.language) + ' ' +
             file.name + ' ' +
             getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', this.props.language));
@@ -101,7 +101,7 @@ export class FileUploadComponentClass
       attachments: this.state.attachments.concat(newFiles),
       // if simple mode, we should hide list on each drop
       showFileUpload,
-      validations: newValidationMessages,
+      validations,
     });
   }
 
@@ -251,11 +251,21 @@ export class FileUploadComponentClass
     });
   }
 
+  public shouldShowFileUpload = (): boolean => {
+    const { displayMode, maxNumberOfAttachments } = this.props.component;
+    const { attachments, showFileUpload } = this.state;
+    if (attachments.length >= maxNumberOfAttachments) {
+      return false;
+    } else {
+      return (displayMode !== 'simple') || (attachments.length === 0) ||
+        (showFileUpload === true);
+    }
+  }
+
   public render() {
-    const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings, displayMode } = this.props.component;
-    const showFileUpload: boolean = (displayMode !== 'simple' || this.state.attachments.length === 0 ||
-      this.state.showFileUpload || this.state.validations.length > 0);
+    const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings } = this.props.component;
     const validationMessages = this.getComponentValidations();
+    const showFileUpload: boolean = this.shouldShowFileUpload();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
     return (
       <div className={'container'} id={'altinn-fileuploader-' + this.props.id}>
