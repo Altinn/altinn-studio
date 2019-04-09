@@ -5,19 +5,19 @@ networks:
     external: false
 
 services:
-  altinn_platform_register:
-    container_name: altinn-platform-register
-    image: altinnplatformregister:latest
+  altinn_platform_profile:
+    container_name: altinn-platform-profile
+    image: altinnplatformprofile:latest
     restart: always
     networks:
       - altinnplatform_network
     environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5030
       - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/api/bridge/
       - GeneralSettings:ShouldUseMock=true
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:5020
     ports:
-      - "5020:5020"
+      - "5030:5030"
     build:
       context: .
-      dockerfile: Register/Dockerfile
+      dockerfile: Profile/Dockerfile
