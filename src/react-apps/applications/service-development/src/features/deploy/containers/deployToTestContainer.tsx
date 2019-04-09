@@ -4,8 +4,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
-// import VersionControlHeader from '../../../../shared/src/version-control/versionControlHeader';
-
+import postMessages from '../../../../../shared/src/utils/postMessages';
 import DeployPaper from '../components/deployPaper';
 import DeployActionDispacher from '../deployDispatcher';
 
@@ -72,28 +71,29 @@ export class DeployToTestContainer extends
     const { org, service } = altinnWindow;
     DeployActionDispacher.fetchDeployments('at21', org, service);
     DeployActionDispacher.fetchMasterRepoStatus('TODO', org, service);
+    window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
   }
 
   // public componentWillUnmount() {
   // }
 
   public returnInSyncStatus = (repoStatus: any): any => {
-    switch (repoStatus) {
-      case repoStatus.aheadBy > 0:
+    if (repoStatus.contentStatus) {
+      if (repoStatus.contentStatus.length > 0) {
         return 'ahead';
-      case repoStatus.behindBy > 0:
+      } else if (repoStatus.behindBy > 0) {
         return 'behind';
-      default:
+      } else {
         return 'ready';
+      }
+    } else {
+      return null;
     }
   }
 
   public returnMasterRepoAndDeployInSync = (env: string, masterRepoStatus: any, deploymentList: any): any => {
-    // console.log('deploymentList', deploymentList);
     const image = deploymentList[env].items[0].spec.template.spec.containers[0].image;
     const imageTag = image.split(':')[1];
-    // console.log('imageTag', imageTag);
-    // console.log('masterRepoStatus.commit.id', masterRepoStatus.commit.id);
     if (masterRepoStatus !== null && masterRepoStatus.commit.id === imageTag) {
       return true;
     } else {
@@ -102,7 +102,7 @@ export class DeployToTestContainer extends
   }
 
   public render() {
-    const { classes } = this.props;
+    const { classes, language } = this.props;
     const { deploySuccess } = this.state;
 
     return (
@@ -131,6 +131,7 @@ export class DeployToTestContainer extends
                 }
                 deploySuccess={deploySuccess}
                 deployFailedErrorMsg='Some error'
+                language={language}
               />
 
             </Grid>

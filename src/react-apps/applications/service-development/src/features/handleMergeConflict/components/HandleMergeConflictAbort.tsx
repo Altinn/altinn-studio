@@ -3,6 +3,7 @@ import AltinnButton from '../../../../../shared/src/components/AltinnButton';
 import AltinnPopover from '../../../../../shared/src/components/AltinnPopover';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import { get } from '../../../../../shared/src/utils/networking';
+import postMessages from '../../../../../shared/src/utils/postMessages';
 
 export interface IHandleMergeConflictAbortProps {
   language: any;
@@ -85,7 +86,7 @@ export class HandleMergeConflictAbort extends
           },
         });
 
-        window.postMessage('forceRepoStatusCheck', window.location.href);
+        window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
         this.handleClose();
 
       } else {

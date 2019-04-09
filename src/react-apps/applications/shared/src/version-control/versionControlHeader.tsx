@@ -3,6 +3,7 @@ import * as React from 'react';
 import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
+import postMessages from '../utils/postMessages';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
 import SyncModalComponent from './syncModal';
@@ -117,7 +118,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public changeToRepoOccured = (event: any) => {
-    if (event.data === 'SAVED' && this._isMounted && !this.state.timeoutIsRunning) {
+    if (event.data === postMessages.filesAreSaved && this._isMounted && !this.state.timeoutIsRunning) {
       this.setState({
         timeoutIsRunning: true,
       });
@@ -186,7 +187,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             },
           });
           // force refetch  files
-          window.postMessage('NEWDATA', window.location.href);
+          window.postMessage(postMessages.refetchFiles, window.location.href);
         } else if (result.repositoryStatus === 'CheckoutConflict') {
           // if pull gives merge conflict, show user needs to commit message
           this.setState({
@@ -287,6 +288,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         });
       }
     });
+    this.forceRepoStatusCheck();
   }
 
   public commitChanges = (commitMessage: string) => {
@@ -333,7 +335,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
                 // tslint:disable-next-line:max-line-length
                 descriptionText: [getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language)],
                 btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
-                btnMethod: this.redirectToMergeConflictPage,
+                btnMethod: this.forceRepoStatusCheck,
               },
             });
           }
@@ -342,7 +344,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public redirectToMergeConflictPage = () => {
+  public forceRepoStatusCheck = () => {
     window.postMessage('forceRepoStatusCheck', window.location.href);
   }
 

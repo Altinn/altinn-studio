@@ -13,6 +13,8 @@ import { TypographyProps } from '@material-ui/core/Typography';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 
+import VersionControlContainer from '../../../../../shared/src/version-control/versionControlHeader';
+
 const theme = createMuiTheme(altinnTheme);
 
 const styles = () => createStyles({
@@ -60,6 +62,7 @@ interface IDeployPaperProps {
   masterRepoAndDeployInSync: boolean;
   deploySuccess?: boolean;
   deployFailedErrorMsg?: any;
+  language: any;
 }
 
 export const DeployPaper = (props: IDeployPaperProps) => {
@@ -88,10 +91,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               Dine endringer vil dermed ikke bli synlige i testmiljøet.
               </Typography>
             <div style={{ marginTop: 20, marginBottom: 20 }}>
-              <AltinnButton
-                btnText='Del endringer'
-                secondaryButton={true}
-                disabled={true}
+              <VersionControlContainer
+                language={props.language}
+                type='shareButton'
               />
             </div>
           </React.Fragment>
@@ -107,10 +109,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               Disse er ikke synlige for deg i Altinn Studio men vil synes i testmiljøet
             </Typography>
             <div style={{ marginTop: 20, marginBottom: 20 }}>
-              <AltinnButton
-                btnText='Hent endringer'
-                secondaryButton={true}
-                disabled={true}
+              <VersionControlContainer
+                language={props.language}
+                type='fetchButton'
               />
             </div>
           </React.Fragment>
