@@ -41,13 +41,33 @@ namespace Altinn.Platform.Register
         /// <param name="services">the service configuration</param>    
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IOrganizations, OrganizationsWrapper>();
-            services.AddSingleton<IPersons, PersonsWrapper>();
-            services.AddSingleton<IParties, PartiesWrapper>();
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             services.AddMvc().AddControllersAsServices();
             services.AddSingleton(Configuration);
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+
+            bool shouldUseMock = true;
+            if (Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock") != null)
+            {
+                shouldUseMock = bool.Parse(Environment.GetEnvironmentVariable("GeneralSettings__ShouldUseMock"));
+            }
+            else
+            {
+                shouldUseMock = bool.Parse(Configuration["GeneralSettings:ShouldUseMock"]);
+            }
+
+            if (shouldUseMock)
+            {
+                services.AddSingleton<IOrganizations, OrganizationsMockWrapper>();
+                services.AddSingleton<IPersons, PersonsMockWrapper>();
+                services.AddSingleton<IParties, PartiesMockWrapper>();
+            }
+            else
+            {
+                services.AddSingleton<IOrganizations, OrganizationsWrapper>();
+                services.AddSingleton<IPersons, PersonsWrapper>();
+                services.AddSingleton<IParties, PartiesWrapper>();
+            }
         }
 
         /// <summary>
