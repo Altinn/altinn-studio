@@ -15,17 +15,17 @@ namespace Altinn.Platform.Profile.Services.Implementation
     /// <summary>
     /// The organization wrapper
     /// </summary>
-    public class UsersWrapper : IUsers
+    public class UserProfilesWrapper : IUserProfiles
     {
         private readonly ILogger _logger;
         private readonly GeneralSettings _generalSettings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UsersWrapper"/> class
+        /// Initializes a new instance of the <see cref="UserProfilesWrapper"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <param name="generalSettings">the general settings</param>
-        public UsersWrapper(ILogger<UsersWrapper> logger, IOptions<GeneralSettings> generalSettings)
+        public UserProfilesWrapper(ILogger<UserProfilesWrapper> logger, IOptions<GeneralSettings> generalSettings)
         {
             _logger = logger;
             _generalSettings = generalSettings.Value;

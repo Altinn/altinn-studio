@@ -6,7 +6,7 @@ namespace Altinn.Platform.Profile.Services.Interfaces
     /// <summary>
     /// Interface handling methods for operations related to users
     /// </summary>
-    public interface IUsers
+    public interface IUserProfiles
     {
         /// <summary>
         /// Method that fetches a user based on a user id

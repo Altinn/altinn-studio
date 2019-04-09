@@ -10,17 +10,17 @@ namespace Altinn.Platform.Profile.Services.Implementation
     /// <summary>
     /// The users wrapper
     /// </summary>
-    public class UsersMockWrapper : IUsers
+    public class UserProfilesMockWrapper : IUserProfiles
     {
         private readonly GeneralSettings _generalSettings;
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="UsersMockWrapper"/> class
+        /// Initializes a new instance of the <see cref="UserProfilesMockWrapper"/> class
         /// </summary>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
-        public UsersMockWrapper(IOptions<GeneralSettings> generalSettings, ILogger<UsersMockWrapper> logger)
+        public UserProfilesMockWrapper(IOptions<GeneralSettings> generalSettings, ILogger<UserProfilesMockWrapper> logger)
         {
             _generalSettings = generalSettings.Value;
             _logger = logger;

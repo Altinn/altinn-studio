@@ -53,11 +53,11 @@ namespace Altinn.Platform.Profile
 
             if (shouldUseMock)
             {
-                services.AddSingleton<IUsers, UsersMockWrapper>();
+                services.AddSingleton<IUserProfiles, UserProfilesMockWrapper>();
             }
             else
             {
-                services.AddSingleton<IUsers, UsersWrapper>();
+                services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
             }
         }
 

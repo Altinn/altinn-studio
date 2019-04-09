@@ -11,15 +11,15 @@ namespace Altinn.Platform.Profile.Controllers
     [Route("api/v1/[controller]")]
     public class UsersController : Controller
     {
-        private readonly IUsers _usersWrapper;
+        private readonly IUserProfiles _userProfilesWrapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UsersController"/> class
         /// </summary>
-        /// <param name="usersWrapper">The users wrapper</param>
-        public UsersController(IUsers usersWrapper)
+        /// <param name="userProfilesWrapper">The users wrapper</param>
+        public UsersController(IUserProfiles userProfilesWrapper)
         {
-            _usersWrapper = usersWrapper;
+            _userProfilesWrapper = userProfilesWrapper;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Altinn.Platform.Profile.Controllers
         [HttpGet("{userID}")]
         public async Task<ActionResult> Get(int userID)
         {
-            UserProfile result = await _usersWrapper.GetUser(userID);
+            UserProfile result = await _userProfilesWrapper.GetUser(userID);
             if (result == null)
             {
                 return NotFound();
@@ -38,6 +38,5 @@ namespace Altinn.Platform.Profile.Controllers
 
             return Ok(result);
         }
-
     }
 }
