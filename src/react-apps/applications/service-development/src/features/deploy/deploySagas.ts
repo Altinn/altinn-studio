@@ -181,9 +181,10 @@ export function* fetchMasterRepoStatusSaga({
   repo,
 }: DeployActions.IFetchMasterRepoStatusAction): SagaIterator {
   try {
-    // const result = yield call(get, url);
+    const result = yield call(get,
+      `/designerapi/Repository/Branch?owner=${org}&repository=${repo}&branch=master`);
 
-    const result = mockedMasterRepoStatus;
+    // const result = mockedMasterRepoStatus;
 
     yield call(DeployDispatchers.fetchMasterRepoStatusFulfilled, result);
   } catch (err) {
