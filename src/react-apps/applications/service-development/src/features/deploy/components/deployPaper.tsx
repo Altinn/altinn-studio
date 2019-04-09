@@ -1,18 +1,14 @@
 /* tslint:disable:max-line-length */
 
-import { Paper, Typography } from '@material-ui/core';
-import classNames from 'classnames';
-import * as React from 'react';
-
-import { Grid } from '@material-ui/core';
-import AltinnIcon from '../../../../../shared/src/components/AltinnIcon';
-// import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
-
+import { Grid, Paper, Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import { TypographyProps } from '@material-ui/core/Typography';
+import classNames from 'classnames';
+import * as React from 'react';
 import AltinnButton from '../../../../../shared/src/components/AltinnButton';
+import AltinnIcon from '../../../../../shared/src/components/AltinnIcon';
+// import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
-
 import VersionControlContainer from '../../../../../shared/src/version-control/versionControlHeader';
 
 const theme = createMuiTheme(altinnTheme);
@@ -66,7 +62,6 @@ interface IDeployPaperProps {
 }
 
 export const DeployPaper = (props: IDeployPaperProps) => {
-  // const classes = useStyles();
   const { classes, localRepoInSyncWithMaster } = props;
 
   const constMockCompileFiles = ['firstFile.cs', 'secondFile.cs', 'thirdFile.cs'];
@@ -361,7 +356,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                 {returnReadyForDeployStatus() &&
                   <Typography variant='body1' className={classes.deployButtonInfoText}>
                     Den tidligere versjonen vil bli overskrevet når du legger ut tjenesten på nytt
-                </Typography>
+                  </Typography>
                 }
               </Grid>
             </Grid>

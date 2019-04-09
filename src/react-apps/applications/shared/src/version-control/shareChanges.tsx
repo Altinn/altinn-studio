@@ -65,7 +65,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
             <AltinnIcon
               iconClass='fa fa-circlecancel'
               iconColor={theme.altinnPalette.primary.blueDark}
-              margin='0px 10px 0px 0px'
+              margin='0px 5px 0px 0px'
               weight={600}
             />
           </Grid>
@@ -85,7 +85,12 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
         <Grid container={true} alignItems='center'>
           <Grid item={true}>
             {this.props.hasPushRight &&
-              <AltinnIcon iconClass='fa fa-upload' iconColor={theme.altinnPalette.primary.blueDark} iconSize={36} />
+              <AltinnIcon
+                iconClass='fa fa-upload'
+                iconColor={theme.altinnPalette.primary.blueDark}
+                margin='0px 5px 0px 0px'
+                weight={this.props.moreThanAnHourSinceLastPush ? 600 : null}
+              />
             }
           </Grid>
           <Grid item={true}>
@@ -105,7 +110,11 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
         <Grid container={true} alignItems='center'>
           <Grid item={true}>
             <div className={classes.checkIconPositionFix}>
-              <AltinnIcon iconClass='ai ai-check' iconColor={theme.altinnPalette.primary.blueDark} iconSize={36} />
+              <AltinnIcon
+                iconClass='ai ai-check'
+                iconColor={theme.altinnPalette.primary.blueDark}
+                iconSize={36}
+              />
             </div>
 
           </Grid>

@@ -371,15 +371,15 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     return (
       <React.Fragment>
         {type === 'header' ? (
-          <Grid container={true} direction='row' className={classes.headerStyling}>
-            <Grid item={true} xs={5}>
+          <Grid container={true} direction='row' className={classes.headerStyling} justify='center'>
+            <Grid item={true} style={{ marginRight: '24px' }}>
               <FetchChangesComponent
                 changesInMaster={this.state.changesInMaster}
                 fetchChanges={this.fetchChanges}
                 language={this.props.language}
               />
             </Grid>
-            <Grid item={true} xs={7}>
+            <Grid item={true}>
               <ShareChangesComponent
                 changesInLocalRepo={this.state.changesInLocalRepo}
                 hasMergeConflict={this.state.mergeConflict}
