@@ -9,6 +9,7 @@ import SyncModalComponent from './syncModal';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
+  type?: 'fetchButton' | 'shareButton' | 'header';
 }
 
 export interface IVersionControlHeaderState {
@@ -345,43 +346,77 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     window.postMessage('forceRepoStatusCheck', window.location.href);
   }
 
+  public renderSyncModalComponent = () => {
+    return (
+      <SyncModalComponent
+        anchorEl={this.state.anchorEl}
+        header={this.state.modalState.header}
+        descriptionText={this.state.modalState.descriptionText}
+        isLoading={this.state.modalState.isLoading}
+        shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+        btnText={this.state.modalState.btnText}
+        shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+        handleClose={this.handleClose}
+        btnClick={this.state.modalState.btnMethod}
+      />
+    );
+  }
+
   public render() {
     const { classes } = this.props;
+    const type = this.props.type || 'header';
+
     return (
       <React.Fragment>
-        <Grid container={true} direction='row' className={classes.headerStyling}>
-          <Grid item={true} xs={5}>
+        {type === 'header' ? (
+          <Grid container={true} direction='row' className={classes.headerStyling}>
+            <Grid item={true} xs={5}>
+              <FetchChangesComponent
+                changesInMaster={this.state.changesInMaster}
+                fetchChanges={this.fetchChanges}
+                language={this.props.language}
+              />
+            </Grid>
+            <Grid item={true} xs={7}>
+              <ShareChangesComponent
+                changesInLocalRepo={this.state.changesInLocalRepo}
+                hasMergeConflict={this.state.mergeConflict}
+                hasPushRight={this.state.hasPushRight}
+                language={this.props.language}
+                moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+                shareChanges={this.shareChanges}
+              />
+            </Grid>
+            {this.renderSyncModalComponent()}
+          </Grid>
+        ) : type === 'fetchButton' ? (
+          <React.Fragment>
             <FetchChangesComponent
-              language={this.props.language}
-              fetchChanges={this.fetchChanges}
               changesInMaster={this.state.changesInMaster}
-            />
-          </Grid>
-          <Grid item={true} xs={7}>
-            <ShareChangesComponent
+              fetchChanges={this.fetchChanges}
               language={this.props.language}
-              shareChanges={this.shareChanges}
-              changesInLocalRepo={this.state.changesInLocalRepo}
-              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
-              hasPushRight={this.state.hasPushRight}
-              hasMergeConflict={this.state.mergeConflict}
             />
-          </Grid>
-          <SyncModalComponent
-            anchorEl={this.state.anchorEl}
-            header={this.state.modalState.header}
-            descriptionText={this.state.modalState.descriptionText}
-            isLoading={this.state.modalState.isLoading}
-            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
-            btnText={this.state.modalState.btnText}
-            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-            handleClose={this.handleClose}
-            btnClick={this.state.modalState.btnMethod}
-          />
-        </Grid>
+            {this.renderSyncModalComponent()}
+          </React.Fragment>
+        ) : type === 'shareButton' ? (
+          <React.Fragment>
+            <ShareChangesComponent
+              buttonOnly={true}
+              changesInLocalRepo={this.state.changesInLocalRepo}
+              hasMergeConflict={this.state.mergeConflict}
+              hasPushRight={this.state.hasPushRight}
+              language={this.props.language}
+              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+              shareChanges={this.shareChanges}
+            />
+            {this.renderSyncModalComponent()}
+          </React.Fragment>
+        ) : null}
       </React.Fragment>
     );
   }
 }
 
 export default withStyles(styles)(VersionControlHeader);
+
+export const VersionControlContainer = withStyles(styles)(VersionControlHeader);
