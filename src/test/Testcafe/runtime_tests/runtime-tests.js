@@ -24,7 +24,7 @@ fixture('Regression tests of services in runtime')
     await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
   })
 
-test.only('Instantiate a service in runtime', async () => {
+test('Instantiate a service in runtime', async () => {
     await t
       .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
       .click(designer.testeNavigationTab)
