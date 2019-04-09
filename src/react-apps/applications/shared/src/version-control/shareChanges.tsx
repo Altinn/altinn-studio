@@ -5,7 +5,6 @@ import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
-
 export interface IShareChangesCompoenentProvidedProps {
   buttonOnly?: boolean;
   changesInLocalRepo: boolean;
