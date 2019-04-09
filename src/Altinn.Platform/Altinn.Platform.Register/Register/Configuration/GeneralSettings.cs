@@ -16,7 +16,7 @@ namespace Altinn.Platform.Register.Configuration
         public string BridgeApiEndpoint { get; set; }
 
         /// <summary>
-        /// Gets or sets if the solution should use mock or not
+        /// Gets or sets if the solution should use mock or not 
         /// </summary>
         public bool ShouldUseMock { get; set; }
 
