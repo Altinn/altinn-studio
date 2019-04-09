@@ -6,25 +6,29 @@ using KubernetesWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+
 
 namespace KubernetesWrapper.Controllers
 {
     /// <summary>
     ///  Controller containing all actions related to kubernetes deployments
     /// </summary>
-    [Route("/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class DeploymentsController : ControllerBase
     {
         private readonly IKubernetesAPIWrapper _apiWrapper;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeploymentsController"/> class
         /// </summary>
         /// <param name="apiWrapper">The kubernetes api wrapper client</param>
-        public DeploymentsController(IKubernetesAPIWrapper apiWrapper)
+        public DeploymentsController(IKubernetesAPIWrapper apiWrapper, ILogger<DeploymentsController> logger)
         {
             _apiWrapper = apiWrapper;
+            _logger = logger;
         }
 
         /// <summary>
@@ -42,9 +46,10 @@ namespace KubernetesWrapper.Controllers
                 var deployments = await _apiWrapper.GetDeployments(null, fieldSelector, labelSelector);
                 return Ok(deployments.Items);
             }
-            catch (Exception e)
+            catch (Exception exception)
             {
-                return StatusCode(500, e.Message);
+                _logger.LogError(exception, "Unable to GetDeployments");
+                return StatusCode(500);
             }
         }
     }

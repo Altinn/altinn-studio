@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using k8s;
 using KubernetesWrapper.Services.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace KubernetesWrapper.Services.Implementation
 {
@@ -10,14 +12,23 @@ namespace KubernetesWrapper.Services.Implementation
     public class IKubernetesAPIWrapperSI : IKubernetesAPIWrapper
     {
         private Kubernetes client;
+        private ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IKubernetesAPIWrapperSI"/> class
         /// </summary>
-        public IKubernetesAPIWrapperSI()
+        public IKubernetesAPIWrapperSI(ILogger<IKubernetesAPIWrapperSI> logger)
         {
-            var config = KubernetesClientConfiguration.InClusterConfig();
-            client = new Kubernetes(config);
+            _logger = logger;
+            try
+            {
+                var config = KubernetesClientConfiguration.InClusterConfig();
+                client = new Kubernetes(config);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Unable to initialize IKubernetesAPIWrapperSI");
+            }
         }
 
         /// <summary>

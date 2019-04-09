@@ -7,6 +7,8 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Extensions.Logging;
 
 namespace KubernetesWrapper
 {
@@ -31,6 +33,16 @@ namespace KubernetesWrapper
         /// <returns>The web host builder</returns>
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureLogging((hostingContext, logging) =>
+                {
+                    logging.ClearProviders();
+                    Serilog.ILogger logger = new LoggerConfiguration()
+                                    .WriteTo.Console()
+                                    .CreateLogger();
+
+                    logging.AddProvider(new SerilogLoggerProvider(logger));
+                })
                 .UseStartup<Startup>();
+
     }
 }
