@@ -22,7 +22,7 @@ const styles = () => createStyles({
   },
   checkIconPositionFix: {
     position: 'relative',
-    top: '-4px',
+    top: '-5px',
   },
   bodyTextStyling: {
     marginLeft: 5,
