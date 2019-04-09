@@ -4,7 +4,7 @@ import * as DeployActions from './deployActions';
 
 /**
  * Define a interface describing the the different Actions available
- * for fetching language and which datamodel those actions expect.
+ * and which datamodel those actions expect.
  */
 export interface IDeployDispatchers extends ActionCreatorsMapObject {
   fetchDeployments: (env: string, org: string, repo: string) => DeployActions.IFetchDeploymentsAction;

@@ -131,31 +131,31 @@ import DeployDispatchers from './deployDispatcher';
 //   ],
 // };
 
-const mockedMasterRepoStatus = {
-  'name': 'master',
-  'commit': {
-    'id': 'b508b414aad0e4c70291883b71b924c94bb87446x',
-    'message': 'fdsff\n',
-    'url': '/matsgm/tjeneste_0319_1346/commit/b42fe0a18bf205765aafc0b1890867f1b8c5f644',
-    'author': {
-      'name': 'matsgm',
-      'email': '@jugglingnutcase',
-      'username': '',
-    },
-    'committer': {
-      'name': 'matsgm',
-      'email': '@jugglingnutcase',
-      'username': '',
-    },
-    'verification': {
-      'verified': false,
-      'reason': 'gpg.error.not_signed_commit',
-      'signature': '',
-      'payload': '',
-    },
-    'timestamp': '2019-03-19T12:47:27Z',
-  },
-};
+// const mockedMasterRepoStatus = {
+//   'name': 'master',
+//   'commit': {
+//     'id': 'b508b414aad0e4c70291883b71b924c94bb87446x',
+//     'message': 'fdsff\n',
+//     'url': '/matsgm/tjeneste_0319_1346/commit/b42fe0a18bf205765aafc0b1890867f1b8c5f644',
+//     'author': {
+//       'name': 'matsgm',
+//       'email': '@jugglingnutcase',
+//       'username': '',
+//     },
+//     'committer': {
+//       'name': 'matsgm',
+//       'email': '@jugglingnutcase',
+//       'username': '',
+//     },
+//     'verification': {
+//       'verified': false,
+//       'reason': 'gpg.error.not_signed_commit',
+//       'signature': '',
+//       'payload': '',
+//     },
+//     'timestamp': '2019-03-19T12:47:27Z',
+//   },
+// };
 
 // FETCHES
 
