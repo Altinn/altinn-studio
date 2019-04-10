@@ -10,6 +10,8 @@ import DeployActionDispacher from '../deployDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
+const env = 'at21';
+
 const styles = () => createStyles({
   mainLayout: {
     paddingTop: 20,
@@ -69,7 +71,7 @@ export class DeployToTestContainer extends
   public componentDidMount() {
     const altinnWindow: any = window;
     const { org, service } = altinnWindow;
-    DeployActionDispacher.fetchDeployments('at21', org, service);
+    DeployActionDispacher.fetchDeployments(env, org, service);
     DeployActionDispacher.fetchMasterRepoStatus('TODO', org, service);
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
   }
@@ -119,10 +121,12 @@ export class DeployToTestContainer extends
 
               <DeployPaper
                 titleTypographyVariant='h2'
+                env={env}
+                deploymentListFetchStatus={this.props.deploymentList[env].fetchStatus}
                 localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
                 cSharpCompiles={true}
-                masterRepoAndDeployInSync={this.props.deploymentList.at21.items.length > 0 ?
-                  this.returnMasterRepoAndDeployInSync('at21', this.props.masterRepoStatus, this.props.deploymentList)
+                masterRepoAndDeployInSync={this.props.deploymentList[env].items.length > 0 ?
+                  this.returnMasterRepoAndDeployInSync(env, this.props.masterRepoStatus, this.props.deploymentList)
                   :
                   null
                 }

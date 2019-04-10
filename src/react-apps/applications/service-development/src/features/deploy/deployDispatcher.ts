@@ -9,7 +9,7 @@ import * as DeployActions from './deployActions';
 export interface IDeployDispatchers extends ActionCreatorsMapObject {
   fetchDeployments: (env: string, org: string, repo: string) => DeployActions.IFetchDeploymentsAction;
   fetchDeploymentsFulfilled: (result: any, env: string) => DeployActions.IFetchDeploymentsFulfilled;
-  fetchDeploymentsRejected: (result: Error) => DeployActions.IFetchDeploymentsRejected;
+  fetchDeploymentsRejected: (result: Error, env: string) => DeployActions.IFetchDeploymentsRejected;
   fetchMasterRepoStatus: (url: string, org: string, repo: string) => DeployActions.IFetchMasterRepoStatusAction;
   fetchMasterRepoStatusFulfilled: (result: any) => DeployActions.IFetchMasterRepoStatusFulfilled;
   fetchMasterRepoStatusRejected: (result: Error) => DeployActions.IFetchMasterRepoStatusRejected;

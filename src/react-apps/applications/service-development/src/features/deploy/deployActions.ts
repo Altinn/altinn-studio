@@ -13,7 +13,8 @@ export interface IFetchDeploymentsFulfilled extends Action {
 }
 
 export interface IFetchDeploymentsRejected extends Action {
-  error: Error;
+  result: Error;
+  env: string;
 }
 
 export function fetchDeploymentsAction(env: string, org: string, repo: string): IFetchDeploymentsAction {
@@ -33,10 +34,11 @@ export function fetchDeploymentsFulfilledAction(result: any, env: string): IFetc
   };
 }
 
-export function fetchDeploymentsRejectedAction(error: Error): IFetchDeploymentsRejected {
+export function fetchDeploymentsRejectedAction(result: Error, env: string): IFetchDeploymentsRejected {
   return {
     type: ActionTypes.FETCH_DEPLOYMENTS_REJECTED,
-    error,
+    result,
+    env,
   };
 }
 

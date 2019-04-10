@@ -12,6 +12,10 @@ const initialState: IDeployState = {
   deploymentList: {
     at21: {
       items: [],
+      fetchStatus: {
+        error: null,
+        success: null,
+      },
     },
   },
   masterRepoStatus: null,
@@ -31,8 +35,31 @@ const deployReducer: Reducer<IDeployState> = (
       return update<IDeployState>(state, {
         deploymentList: {
           [env]: {
+            fetchStatus: {
+              success: {
+                $set: true,
+              },
+            },
             items: {
               $set: result,
+            },
+          },
+        },
+      });
+    }
+
+    case DeployActionTypes.FETCH_DEPLOYMENTS_REJECTED: {
+      const { result, env } = action as DeployActions.IFetchDeploymentsRejected;
+      return update<IDeployState>(state, {
+        deploymentList: {
+          [env]: {
+            fetchStatus: {
+              error: {
+                $set: result.message,
+              },
+              success: {
+                $set: false,
+              },
             },
           },
         },

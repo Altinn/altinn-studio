@@ -18,7 +18,7 @@ export function* fetchDeploymentsSaga({
 
     yield call(DeployDispatchers.fetchDeploymentsFulfilled, result, env);
   } catch (err) {
-    yield call(DeployDispatchers.fetchDeploymentsRejected, err);
+    yield call(DeployDispatchers.fetchDeploymentsRejected, err, env);
   }
 }
 

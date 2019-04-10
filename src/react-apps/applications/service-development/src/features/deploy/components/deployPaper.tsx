@@ -53,12 +53,14 @@ const styles = () => createStyles({
 interface IDeployPaperProps {
   classes: any;
   cSharpCompiles: boolean;
+  deploymentListFetchStatus: any;
   localRepoInSyncWithMaster: 'ahead' | 'behind' | 'ready';
   titleTypographyVariant: TypographyProps['variant'];
   masterRepoAndDeployInSync: boolean;
   deploySuccess?: boolean;
   deployFailedErrorMsg?: any;
   language: any;
+  env: string;
 }
 
 export const DeployPaper = (props: IDeployPaperProps) => {
@@ -198,6 +200,36 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     );
   };
 
+  const renderError = (env: string, error: string) => {
+    return (
+      <React.Fragment>
+        <Typography
+          variant={props.titleTypographyVariant}
+          className={classes.fontSizeTitle}
+        >
+          Det har oppstått et problem
+        </Typography>
+
+        <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
+          <Grid item={true} xs={1}>
+            <AltinnIcon
+              iconClass={'fa fa-circle-exclamation'}
+              iconColor={theme.altinnPalette.primary.red}
+            />
+          </Grid>
+          <Grid item={true} xs={11}>
+            <Typography variant='h2' className={classes.listItemTitle}>
+              Det er noe galt med ditt {env}-miljø. Vennligst kontakt support.
+          </Typography>
+            <Typography variant='body1'>
+              Feilmelding: {error}
+            </Typography>
+          </Grid>
+        </Grid>
+      </React.Fragment>
+    );
+  };
+
   const renderPaperTitle = (title: string, body: string) => {
     return (
       <React.Fragment>
@@ -218,7 +250,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const returnReadyForDeployStatus = () => {
-    if (props.deploySuccess !== true && props.cSharpCompiles && !props.masterRepoAndDeployInSync) {
+    if (props.deploySuccess !== true && props.cSharpCompiles === true && props.masterRepoAndDeployInSync === false) {
       return true;
     } else {
       return false;
@@ -278,70 +310,71 @@ export const DeployPaper = (props: IDeployPaperProps) => {
       >
 
         {props.deploySuccess === true ? renderDeploySuccess(props.deploySuccess) :
-          props.deploySuccess === false ? renderDeployFailedErrorMsg(props.deployFailedErrorMsg) : (
-            <React.Fragment>
-              {props.masterRepoAndDeployInSync === true ?
-                (
-                  // Commit from master is already deployed
-                  renderPaperTitle('Siste versjon av tjenesten ligger i testmiljø', 'Tjenesten som er plassert ut er hentet fra din organisasjon')
-                ) :
-                props.cSharpCompiles === true ?
+          props.deploySuccess === false ? renderDeployFailedErrorMsg(props.deployFailedErrorMsg) :
+            props.deploymentListFetchStatus.success === false ? renderError(props.env, props.deploymentListFetchStatus.error) : (
+              <React.Fragment>
+                {props.masterRepoAndDeployInSync === true ?
                   (
-                    // Ready for deploy (if cSharpCompiles)
-                    renderPaperTitle('Tjenesten er klar til å legges ut i testmiljø', 'Tjenesten som plasseres ut hentes fra organisasjonen')
-                  ) : (
-                    // NOT ready for deploy
-                    renderPaperTitle('Tjenesten er IKKE klar til å legges ut i testmiljø', 'Tjenesten som plasseres ut hentes fra din organisasjon')
-                  )
-              }
-
-              <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
-
-                {/* Render the repo in sync part */}
-                <Grid item={true} xs={1} id='renderInSync'>
-                  <div className={classNames({ [classes.checkIconPositionFix]: localRepoInSyncWithMaster === 'ready' })}>
-                    <AltinnIcon
-                      iconClass={classNames({
-                        ['ai ai-check']: localRepoInSyncWithMaster === 'ready',
-                        ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== 'ready',
-                      })}
-                      iconColor={localRepoInSyncWithMaster === 'ready' ? theme.altinnPalette.primary.green : '#008FD6'}
-                      padding='0px 0px 7px 0px'
-                    />
-                  </div>
-
-                </Grid>
-                <Grid item={true} xs={11}>
-                  {renderInSyncText(localRepoInSyncWithMaster)}
-                </Grid>
-
-                {/* If master repo and deploy is not in sync, render the C# compiles part */}
-                {!props.masterRepoAndDeployInSync &&
-                  <React.Fragment>
-                    <Grid item={true} xs={1} id='rendercSharpCompiles'>
-                      <div className={classNames({ [classes.checkIconPositionFix]: props.cSharpCompiles })}>
-                        <AltinnIcon
-                          iconClass={classNames({
-                            ['ai ai-check']: props.cSharpCompiles,
-                            ['fa fa-circle-exclamation']: !props.cSharpCompiles,
-                          })}
-                          iconColor={props.cSharpCompiles ?
-                            theme.altinnPalette.primary.green : theme.altinnPalette.primary.red}
-                          padding='0px 0px 7px 0px'
-                        />
-                      </div>
-                    </Grid>
-                    <Grid item={true} xs={11}>
-                      {renderCSharpCompilesText(props.cSharpCompiles)}
-                    </Grid>
-                  </React.Fragment>
+                    // Commit from master is already deployed
+                    renderPaperTitle('Siste versjon av tjenesten ligger i testmiljø', 'Tjenesten som er plassert ut er hentet fra din organisasjon')
+                  ) :
+                  props.cSharpCompiles === true ?
+                    (
+                      // Ready for deploy (if cSharpCompiles)
+                      renderPaperTitle('Tjenesten er klar til å legges ut i testmiljø', 'Tjenesten som plasseres ut hentes fra organisasjonen')
+                    ) : (
+                      // NOT ready for deploy
+                      renderPaperTitle('Tjenesten er IKKE klar til å legges ut i testmiljø', 'Tjenesten som plasseres ut hentes fra din organisasjon')
+                    )
                 }
 
-              </Grid>
-            </React.Fragment>
-          )}
+                <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
+
+                  {/* Render the repo in sync part */}
+                  <Grid item={true} xs={1} id='renderInSync'>
+                    <div className={classNames({ [classes.checkIconPositionFix]: localRepoInSyncWithMaster === 'ready' })}>
+                      <AltinnIcon
+                        iconClass={classNames({
+                          ['ai ai-check']: localRepoInSyncWithMaster === 'ready',
+                          ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== 'ready',
+                        })}
+                        iconColor={localRepoInSyncWithMaster === 'ready' ? theme.altinnPalette.primary.green : '#008FD6'}
+                        padding='0px 0px 7px 0px'
+                      />
+                    </div>
+
+                  </Grid>
+                  <Grid item={true} xs={11}>
+                    {renderInSyncText(localRepoInSyncWithMaster)}
+                  </Grid>
+
+                  {/* If master repo and deploy is not in sync, render the C# compiles part */}
+                  {props.masterRepoAndDeployInSync !== true &&
+                    <React.Fragment>
+                      <Grid item={true} xs={1} id='rendercSharpCompiles'>
+                        <div className={classNames({ [classes.checkIconPositionFix]: props.cSharpCompiles })}>
+                          <AltinnIcon
+                            iconClass={classNames({
+                              ['ai ai-check']: props.cSharpCompiles,
+                              ['fa fa-circle-exclamation']: !props.cSharpCompiles,
+                            })}
+                            iconColor={props.cSharpCompiles ?
+                              theme.altinnPalette.primary.green : theme.altinnPalette.primary.red}
+                            padding='0px 0px 7px 0px'
+                          />
+                        </div>
+                      </Grid>
+                      <Grid item={true} xs={11}>
+                        {renderCSharpCompilesText(props.cSharpCompiles)}
+                      </Grid>
+                    </React.Fragment>
+                  }
+
+                </Grid>
+              </React.Fragment>
+            )}
         {/* Render the button and help text */}
-        {props.deploySuccess !== true &&
+        {props.deploySuccess !== true && props.deploymentListFetchStatus.success !== false &&
           <div style={{ marginTop: 20 }}>
             <Grid container={true} alignItems='center'>
               <Grid item={true} xs={12} lg={5} style={{ marginBottom: 10 }}>
