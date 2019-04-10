@@ -1,5 +1,5 @@
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
-import { IDeployState } from '../features/deploy/deployReducer'
+import { IDeployState } from '../features/deploy/deployReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 

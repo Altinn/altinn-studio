@@ -87,6 +87,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
               <AltinnIcon
                 iconClass='fa fa-upload'
                 iconColor={theme.altinnPalette.primary.blueDark}
+                iconSize={14}
                 margin='0px 5px 0px 0px'
                 weight={this.props.moreThanAnHourSinceLastPush ? 600 : null}
               />
@@ -125,7 +126,8 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
               {getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
             </Typography>
           </Grid>
-        </Grid>);
+        </Grid>
+      );
     }
   }
 
