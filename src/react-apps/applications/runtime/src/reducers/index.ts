@@ -9,14 +9,16 @@ import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/r
 import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
 import FormDynamics, { IFormDynamicState } from '../features/form/dynamics/reducer';
+import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6> {
+export interface IReducers<T1, T2, T3, T4, T5, T7> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
   formWorkflow: T4;
   formDataModel: T5;
   formDynamics: T6;
+  language: T7;
 }
 
 export interface IRuntimeState extends
@@ -27,6 +29,7 @@ export interface IRuntimeState extends
   Reducer<IWorkflowState>,
   Reducer<IDataModelState>,
   Reducer<IFormDynamicState>
+  Reducer<ILanguageState>
   >,
   ReducersMapObject {
 }
@@ -38,6 +41,7 @@ const reducers: IRuntimeState = {
   formWorkflow: FormWorkflowReducer,
   formDataModel: FormDataModel,
   formDynamics: FormDynamics,
+  language: LanguageReducer,
 };
 
 export default combineReducers(reducers);
