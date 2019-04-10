@@ -298,7 +298,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
 
                 {/* Render the repo in sync part */}
-                <Grid item={true} xs={1}>
+                <Grid item={true} xs={1} id='renderInSync'>
                   <div className={classNames({ [classes.checkIconPositionFix]: localRepoInSyncWithMaster === 'ready' })}>
                     <AltinnIcon
                       iconClass={classNames({
@@ -318,7 +318,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                 {/* If master repo and deploy is not in sync, render the C# compiles part */}
                 {!props.masterRepoAndDeployInSync &&
                   <React.Fragment>
-                    <Grid item={true} xs={1}>
+                    <Grid item={true} xs={1} id='rendercSharpCompiles'>
                       <div className={classNames({ [classes.checkIconPositionFix]: props.cSharpCompiles })}>
                         <AltinnIcon
                           iconClass={classNames({
@@ -346,6 +346,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
             <Grid container={true} alignItems='center'>
               <Grid item={true} xs={12} lg={5} style={{ marginBottom: 10 }}>
                 <AltinnButton
+                  id='deployButton'
                   btnText='Legg ut tjenesten i testmiljø'
                   disabled={!returnReadyForDeployStatus()}
                 />

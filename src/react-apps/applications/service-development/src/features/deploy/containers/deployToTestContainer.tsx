@@ -74,9 +74,6 @@ export class DeployToTestContainer extends
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
   }
 
-  // public componentWillUnmount() {
-  // }
-
   public returnInSyncStatus = (repoStatus: any): any => {
     if (repoStatus.contentStatus) {
       if (repoStatus.contentStatus.length > 0) {
