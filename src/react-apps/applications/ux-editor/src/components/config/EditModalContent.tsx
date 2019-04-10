@@ -495,7 +495,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <AltinnInputField
                 id={'modal-properties-maximum-files'}
                 onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
-                inputValue={component.maxNumberOfAttachments}
+                inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
                 inputDescriptionStyling={{ marginTop: '24px' }}
@@ -506,7 +506,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <AltinnInputField
                 id={'modal-properties-file-size'}
                 onChangeFunction={this.handleMaxFileSizeInMBChange}
-                inputValue={component.maxFileSizeInMB}
+                inputValue={component.maxFileSizeInMB || 0}
                 inputDescription={getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -574,7 +574,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleMaxNumberOfAttachmentsChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxNumberOfAttachments = (event.target.value >= 0) ? event.target.value : 0;
+    component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
     this.setState({
       component,
     });
