@@ -1,5 +1,6 @@
 import classNames = require('classnames');
 import * as React from 'react';
+import { IFormComponent } from '../../features/form/layout/types';
 import '../../styles/shared.css';
 
 export interface IInputProps {

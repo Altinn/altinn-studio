@@ -24,7 +24,6 @@ const LayoutReducer: Reducer<ILayoutState> = (
   state: ILayoutState = initialState,
   action?: Action,
 ): ILayoutState => {
-  console.log(action);
   if (!action) {
     return state;
   }

@@ -6,11 +6,9 @@ import { IFetchFormLayout } from '../../actions/fetch';
 import * as ActionTypes from '../../actions/types';
 
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
-  console.log('url: ', url);
   try {
     const formLayout = yield call(get, url);
     const { components, containers, order } = formLayout.data;
-    console.log(formLayout);
     if (!formLayout || !formLayout.data) {
       yield call(
         Actions.fetchFormLayoutFulfilled,

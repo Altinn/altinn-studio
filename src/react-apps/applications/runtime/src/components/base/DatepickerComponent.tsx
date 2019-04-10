@@ -1,5 +1,7 @@
 import * as React from 'react';
 import { createRef } from 'react';
+import { IFormComponent } from '../../features/form/layout/types';
+import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
 
 export interface IDatePickerProps {
@@ -27,7 +29,6 @@ export class DatepickerComponent
   }
 
   public onDateChange = () => {
-
     setTimeout(() => {
       if (!this.myDateCmp.current.value) {
         return;
@@ -53,7 +54,7 @@ export class DatepickerComponent
             className={(this.props.component.readOnly ? 'disabled-date ' : '') +
               (this.props.isValid ?
                 'form-control a-hasButton date' :
-                'form-control a-hasButton date validation-error')}
+                'form-control a-hasButton date')}
             onBlur={this.onDateChange}
             onChange={this.onDateChange}
             disabled={this.props.component.readOnly}

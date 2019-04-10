@@ -1,8 +1,10 @@
-// import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosResponse } from 'axios';
+import classNames = require('classnames');
 import update from 'immutability-helper';
 import * as React from 'react';
 
-// import '../../styles/AddressComponent.css';
+import '../../styles/AddressComponent.css';
+import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IAddressComponentProps {
@@ -73,7 +75,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
 
   public fetchPostPlace: (zipCode: string) => void = (zipCode: string) => {
     if (zipCode.match(new RegExp('^[0-9]{4}$'))) {
-      /*axios.get('https://api.bring.com/shippingguide/api/postalCode.json', {
+      axios.get('https://api.bring.com/shippingguide/api/postalCode.json', {
         params: {
           clientUrl: window.location.href,
           pnr: zipCode,
@@ -101,7 +103,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       });
       this.setState({
         postPlace: 'Laster...',
-      });*/
+      });
     }
   }
 
@@ -196,10 +198,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             }
           </label>
           <input
-            className={'form-control'}
+            className={'form-control' + (this.props.component.readOnly ? ' disabled' : '')}
             value={address}
             onChange={this.updateField.bind(null, AddressKeys.address)}
             onBlur={this.onBlurField.bind(null, AddressKeys.address)}
+            disabled={this.props.component.readOnly}
           />
           {validations ?
             renderValidationMessagesForComponent(validations[AddressKeys.address], `${id}_${AddressKeys.address}`)
@@ -208,14 +211,15 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <div className={'address-component-zipCode'}>
               <label className={'address-component-label'}>Postnummer</label>
               <input
-                className={
-                  !validations || !validations.zipCode ?
-                    'address-component-small-inputs form-control' :
-                    'address-component-small-inputs form-control validation-error'
-                }
+                className={classNames('address-component-small-inputs', 'form-control',
+                  {
+                    'validation-error': (validations ? validations.zipCode : false),
+                    'disabled': this.props.component.readOnly,
+                  })}
                 value={zipCode}
                 onChange={this.updateField.bind(null, AddressKeys.zipCode)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
+                disabled={this.props.component.readOnly}
               />
               {validations ?
                 renderValidationMessagesForComponent(validations[AddressKeys.zipCode], `${id}_${AddressKeys.zipCode}`)
@@ -225,10 +229,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <div className={'address-component-postplace'}>
               <label className={'address-component-label'}>Poststed</label>
               <input
-                className={'form-control'}
+                className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
                 value={postPlace}
                 onChange={this.updateField.bind(null, AddressKeys.postPlace)}
                 onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
+                disabled={this.props.component.readOnly}
               />
               {validations ?
                 renderValidationMessagesForComponent(validations[AddressKeys.postPlace],
@@ -247,7 +252,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             this.props.getTextResource(this.props.component.textResourceBindings.address)
         }</label>
         <input
-          className={'form-control'}
+          className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
           value={address}
           onChange={this.updateField.bind(null, AddressKeys.address)}
           onBlur={this.onBlurField.bind(null, AddressKeys.address)}
@@ -257,7 +262,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           : null}
         <label className={'address-component-label'}>c/o eller annen tilleggsadresse</label>
         <input
-          className={'form-control'}
+          className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
           value={careOf}
           onChange={this.updateField.bind(null, AddressKeys.careOf)}
           onBlur={this.onBlurField.bind(null, AddressKeys.careOf)}
@@ -270,11 +275,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <label className={'address-component-label'}>Postnummer</label>
             <br />
             <input
-              className={
-                !validations || !validations.zipCode ?
-                  'address-component-small-inputs form-control' :
-                  'address-component-small-inputs form-control validation-error'
-              }
+              className={classNames('address-component-small-inputs', 'form-control',
+                {
+                  'validation-error': (validations ? validations.zipCode : false),
+                  'disabled': this.props.component.readOnly,
+                })}
               value={zipCode}
               onChange={this.updateField.bind(null, AddressKeys.zipCode)}
               onBlur={this.onBlurField.bind(null, AddressKeys.zipCode)}
@@ -287,7 +292,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
             <label className={'address-component-label'}>Poststed</label>
             <br />
             <input
-              className={'form-control'}
+              className={classNames('form-control', { 'disabled': this.props.component.readOnly })}
               value={postPlace}
               onChange={this.updateField.bind(null, AddressKeys.postPlace)}
               onBlur={this.onBlurField.bind(null, AddressKeys.postPlace)}
@@ -308,11 +313,11 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           Den består av en bokstav og fire tall og skal være ført opp ved/på inngangsdøren din.
         </p>
         <input
-          className={
-            !validations.houseNumber ?
-              'address-component-small-inputs form-control' :
-              'address-component-small-inputs form-control validation-error'
-          }
+          className={classNames('address-component-small-inputs', 'form-control',
+            {
+              'validation-error': (validations ? validations.houseNumber : false),
+              'disabled': this.props.component.readOnly,
+            })}
           value={houseNumber}
           onChange={this.updateField.bind(null, AddressKeys.houseNumber)}
           onBlur={this.onBlurField.bind(null, AddressKeys.houseNumber)}

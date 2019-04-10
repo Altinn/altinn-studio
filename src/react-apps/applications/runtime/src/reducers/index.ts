@@ -1,22 +1,24 @@
 import {
   combineReducers,
-  ReducersMapObject,
   Reducer,
+  ReducersMapObject,
 } from 'redux';
-import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
-import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
-import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import FormConfigState, { IFormConfigState } from '../features/form/config/reducer';
+import FormDataReducer, { IFormDataState } from '../features/form/data/reducer';
 import FormDataModel, { IDataModelState } from '../features/form/datamodell/reducer';
+import FormFileUploadReducer, { IFormFileUploadState } from '../features/form/fileUpload/reducer';
+import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
+import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
   formWorkflow: T4;
   formDataModel: T5;
-  language: T6;
+  formAttachements: T6;
+  language: T7;
 }
 
 export interface IRuntimeState extends
@@ -26,6 +28,7 @@ export interface IRuntimeState extends
   Reducer<IFormConfigState>,
   Reducer<IWorkflowState>,
   Reducer<IDataModelState>,
+  Reducer<IFormFileUploadState>,
   Reducer<ILanguageState>
   >,
   ReducersMapObject {
@@ -37,6 +40,7 @@ const reducers: IRuntimeState = {
   formConfig: FormConfigState,
   formWorkflow: FormWorkflowReducer,
   formDataModel: FormDataModel,
+  formAttachements: FormFileUploadReducer,
   language: LanguageReducer,
 };
 

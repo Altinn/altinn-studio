@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { GenericComponentWrapper } from '../components/GenericComponent';
+import { IFormComponent } from '../features/form/layout/types';
 import { IRuntimeState } from '../reducers';
 
 export interface IContainerProps {
@@ -9,7 +10,6 @@ export interface IContainerProps {
 }
 
 export interface IComponent extends IFormComponent {
-  id: string;
 }
 
 const ContainerComponent = (props: IContainerProps) => {
@@ -17,7 +17,6 @@ const ContainerComponent = (props: IContainerProps) => {
   Object.values(props.components).forEach((obj: any, key: number) => {
     const formComponentIds = Object.keys(props.components);
     obj.id = formComponentIds[key];
-    console.log(obj);
     formComponents.push(obj);
   });
 
@@ -25,7 +24,6 @@ const ContainerComponent = (props: IContainerProps) => {
    * Render label
    */
   const renderLabel = (component: IComponent): JSX.Element => {
-    console.log(component);
     if (component.component === 'Header' ||
       component.component === 'Paragraph' ||
       component.component === 'Submit' ||
@@ -79,7 +77,7 @@ const ContainerComponent = (props: IContainerProps) => {
   };
 
   return (
-    <div>
+    <div className='modal-body'>
       {formComponents.map((formComponent: any) => (
         <div className='row mt-2' key={formComponent.id}>
           <div className='col'>

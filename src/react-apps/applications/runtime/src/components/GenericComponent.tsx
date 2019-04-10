@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
+import { IRuntimeState } from '../reducers';
 import components from './';
 
 export interface IGenericComponentProps {
@@ -13,6 +14,7 @@ export interface IGenericComponentProps {
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
   thirdPartyComponents?: any;
+  language?: any;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps> {
@@ -33,6 +35,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
     }
     const TagName = formComponentWithHandlers(components.find((c: any) => c.name ===
       this.props.component.component).Tag);
+    console.log(this.props.component);
     return (
       <TagName
         id={this.props.id}
@@ -42,14 +45,16 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
         getTextResource={this.props.getTextResource}
         handleDataChange={this.props.handleDataChange}
         validationMessages={this.props.validationMessages}
+        language={this.props.language}
       />
     );
   }
 }
 const makeMapStateToProps = () => {
-  const mapStateToProps = (state: IRuntimeStore, props: IGenericComponentProps): IGenericComponentProps => ({
+  const mapStateToProps = (state: IRuntimeState, props: IGenericComponentProps): IGenericComponentProps => ({
     ...props,
     // thirdPartyComponents: state.appData.thirdPartyComponents.components,
+    language: state.language.language,
   });
   return mapStateToProps;
 };

@@ -48,10 +48,11 @@ export function renderSelectDataModelBinding(
   );
 }
 
-/*export function renderValidationMessagesForComponent(
+export function renderValidationMessagesForComponent(
   validationMessages: IComponentBindingValidation,
   id: string,
 ): JSX.Element[] {
+  /*
   if (!validationMessages) {
     return null;
   }
@@ -66,9 +67,10 @@ export function renderSelectDataModelBinding(
   }
 
   return validationMessageElements.length > 0 ? validationMessageElements : null;
-}*/
-
-/*export function renderValidationMessages(messages: string[], id: string, messageType: MessageType) {
+  */
+}
+/*
+export function renderValidationMessages(messages: string[], id: string, messageType: MessageType) {
   return (
     <MessageComponent
       messageType={messageType}
@@ -85,4 +87,4 @@ export function renderSelectDataModelBinding(
       </ol>
     </MessageComponent>
   );
-}*/
+} */
