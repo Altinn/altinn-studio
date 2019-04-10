@@ -44,7 +44,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
               style={
                 Object {
                   "color": "#0062BA",
-                  "fontSize": null,
+                  "fontSize": 14,
                   "fontWeight": null,
                   "margin": "0px 5px 0px 0px",
                   "padding": null,
