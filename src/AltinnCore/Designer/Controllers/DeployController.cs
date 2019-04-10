@@ -7,6 +7,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
 using AltinnCore.RepositoryClient.Model;
+using Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -63,7 +64,7 @@ namespace AltinnCore.Designer.Controllers
             if (_configuration["AccessTokenDevOps"] == null)
             {
                 ViewBag.ServiceUnavailable = true;
-                return Json(new
+                return Json(new DeploymentResponse
                 {
                     Success = false,
                     Message = "Deployment unavailable",
@@ -77,9 +78,9 @@ namespace AltinnCore.Designer.Controllers
             if (masterBranch == null)
             {
                 _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
-                return Json(new
+                return Json(new DeploymentResponse
                 {
-                    Success = true,
+                    Success = false,
                     Message = "Deployment failed: unable to find latest commit",
                 });
             }
@@ -113,14 +114,14 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
-                return Json(new
+                return Json(new DeploymentResponse
                 {
-                    Success = true,
+                    Success = false,
                     Message = "Deployment failed " + ex,
                 });
             }
 
-            return Json(new
+            return Json(new DeploymentResponse
             {
                 Success = true,
                 BuildId = result,
@@ -156,23 +157,24 @@ namespace AltinnCore.Designer.Controllers
                     }
                 }
             }
+            // Success, Status, StartTime, FinishTime
             catch (Exception ex)
             {
-                return Json(new
+                return Json(new DeploymentStatus
                 {
-                    Success = true,
-                    Status = "Deployment failed " + ex,
+                    Success = false,
+                    Message = "Deployment failed " + ex,
                 });
             }
 
-            return Json(new
+            var deploymentSuccess = (buildModel.Status.Equals("completed") && !buildModel.Status.Equals("failed"));
+
+            return Json(new DeploymentStatus
             {
-                Success = true,
+                Success = deploymentSuccess,
                 Message = "Deployment status: " + buildModel.Status,
-                buildModel.Result,
-                buildModel.Status,
-                buildModel.StartTime,
-                buildModel.FinishTime,
+                StartTime = buildModel.StartTime,
+                FinishTime = buildModel.FinishTime,
             });
         }
     }
