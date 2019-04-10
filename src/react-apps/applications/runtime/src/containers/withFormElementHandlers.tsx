@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { IRuntimeState } from '../reducers';
 
 export interface IFormComponentHandlerProvidedProps {
   id: string;
@@ -9,7 +10,6 @@ export interface IFormComponentHandlerProvidedProps {
 
 export interface IFormComponentHandlerProps extends IFormComponentHandlerProvidedProps {
   textResources: ITextResource[];
-  designMode: boolean;
 }
 
 export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
@@ -27,8 +27,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
 
-      const text = this.props.designMode ? this.props.component.textResourceBindings.title
-        : this.getTextResource(this.props.component.textResourceBindings.title);
+      const text = this.getTextResource(this.props.component.textResourceBindings.title);
 
       return (
         <WrappedComponent
@@ -42,13 +41,12 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     }
   }
 
-  const mapStateToProps: (state: IAppState, props: IFormComponentHandlerProvidedProps) =>
-    IFormComponentHandlerProps = (state: IAppState, props: IFormComponentHandlerProvidedProps):
+  const mapStateToProps: (state: IRuntimeState, props: IFormComponentHandlerProvidedProps) =>
+    IFormComponentHandlerProps = (state: IRuntimeState, props: IFormComponentHandlerProvidedProps):
       IFormComponentHandlerProps => ({
         id: props.id,
-        textResources: state.appData.textResources.resources,
-        designMode: state.appData.appConfig.designMode,
-        component: state.formDesigner.layout.components[props.id],
+        textResources: state.formDataModel.dataModel,
+        component: state.formLayout.components[props.id],
         handleDataUpdate: props.handleDataUpdate,
       });
 

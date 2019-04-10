@@ -71,8 +71,12 @@ export function truncate(s: string, size: number) {
 }
 
 export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
-  const textResource = textResources.find((resource) => resource.id === resourceKey);
-  return textResource ? textResource.value : resourceKey;
+  if (textResources) {
+    console.log(resourceKey, textResources);
+    const textResource = textResources.find((resource) => resource.id === resourceKey);
+    return textResource ? textResource.value : resourceKey;
+  }
+  return null;
 }
 
 export function formatCreateTextLabel(textToCreate: string, language: any): string {

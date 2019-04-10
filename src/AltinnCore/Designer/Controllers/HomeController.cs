@@ -217,14 +217,14 @@ namespace AltinnCore.Designer.Controllers
             }
 
             _logger.LogInformation("Updating app key for " + userName);
-            KeyValuePair<string, string> accessKeyValuePair = _giteaApi.GetSessionAppKey().Result ?? default(KeyValuePair<string, string>);
+            KeyValuePair<string, string> accessKeyValuePair = await _giteaApi.GetSessionAppKey() ?? default(KeyValuePair<string, string>);
             List<Claim> claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             if (!accessKeyValuePair.Equals(default(KeyValuePair<string, string>)))
             {
                 string accessToken = accessKeyValuePair.Value;
                 string accessId = accessKeyValuePair.Key;
-                
+                _logger.LogInformation("Adding key to claims: " + accessId);
                 claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperToken, accessToken, ClaimValueTypes.String, Issuer));
                 claims.Add(new Claim(AltinnCoreClaimTypes.DeveloperTokenId, accessId, ClaimValueTypes.String, Issuer));
             }

@@ -1,9 +1,10 @@
-import { createStyles, ListItem, ListItemIcon, ListItemText, Theme, withStyles } from '@material-ui/core';
+import { createStyles, ListItem, ListItemText, Theme, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import { CollapsableMenus } from '../../containers/Toolbar';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
+import AltinnIcon from './../../../../shared/src/components/AltinnIcon';
 
 export interface ICollapsableMenuProvidedProps {
   classes: any;
@@ -30,22 +31,14 @@ class ToolbarItem extends React.Component<ICollapsableMenuProps> {
         onKeyPress={this.handleKeyPress}
         tabIndex={0}
       >
-        <ListItemIcon
-          classes={{ root: this.props.classes.listItemIcon }}
+        <div
+          className={this.props.classes.listItemIcon}
         >
-
-          <svg
-            width='14'
-            height='9'
-            viewBox='0 0 14 9'
-            fill='none'
-            xmlns='http://www.w3.org/2000/svg'
-            transform={this.props.menuIsOpen ? 'rotate(180)' : ''}
-          >
-            <path d='M6.57895 9L0.0153904 -2.51244e-08L13.1425 8.834e-07L6.57895 9Z' fill='#C9C9C9' />
-          </svg>
-
-        </ListItemIcon>
+          <AltinnIcon
+            iconClass={this.props.menuIsOpen ? 'fa fa-expand-alt fa-rotate-90' : 'fa fa-expand-alt '}
+            iconColor={''}
+          />
+        </div>
         <ListItemText
           classes={{
             root: classNames(this.props.classes.collapsableButtonTextRoot),
@@ -67,7 +60,7 @@ class ToolbarItem extends React.Component<ICollapsableMenuProps> {
 
 const styles = (theme: Theme) => createStyles({
   collapsableButtonText: {
-    fontSize: '14px',
+    fontSize: '16px',
     marginLeft: '6px',
     padding: '0px',
     color: '#022F51',
@@ -82,6 +75,7 @@ const styles = (theme: Theme) => createStyles({
     padding: '0px',
   },
   listItemIcon: {
+    color: 'rgba(0, 0, 0, 0.54)',
     marginLeft: 'auto',
     marginRight: 'auto',
   },

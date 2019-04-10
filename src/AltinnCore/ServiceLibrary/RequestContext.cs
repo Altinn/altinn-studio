@@ -48,19 +48,5 @@ namespace AltinnCore.ServiceLibrary
         /// Gets or sets the field that triggered a single field validation
         /// </summary>
         public string ValidationTriggerField { get; set; }
-
-        /// <summary>
-        /// Enumerator for react app mode
-        /// </summary>
-        public enum Mode
-        {
-            Studio,
-            Runtime
-        }
-
-        /// <summary>
-        /// Gets or sets the service mode
-        /// </summary>
-        public Mode ServiceMode { get; set; }
     }
 }

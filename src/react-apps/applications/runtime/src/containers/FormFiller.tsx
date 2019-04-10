@@ -1,124 +1,100 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { WorkflowSteps } from '../features/form/workflow/typings';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormDataActions from '../features/form/data/actions';
-import { WorkflowStep } from './WorkflorStep';
-import { getTextResource } from '../utils/language';
-
+import { WorkflowSteps } from '../features/form/workflow/typings';
+import { WorkflowStep } from './WorkflowStep';
+import { IRuntimeState } from '../reducers';
+import { Preview } from './Preview';
 export interface IFormFillerProps {
-  workflowStep: WorkflowSteps;
-  unsavedChanges: boolean;
-  language: any;
-  textResources: any;
-  validationResults: any;
   formDataCount: number;
-}
-
-export interface IFormFillerState {
+  textResources: any[];
+  unsavedChanges: boolean;
+  validationResults: any;
   workflowStep: WorkflowSteps;
 }
+const FormFillerComponent = (props: IFormFillerProps) => {
+  const [workflowStep, setWorkFlowStep] = React.useState(props.workflowStep);
 
-class FormFillerComponent extends React.Component<IFormFillerProps, IFormFillerState> {
-  public static getDerivedStateFromProps(props: IFormFillerProps, state: IFormFillerState): IFormFillerState {
-    if (props.workflowStep !== state.workflowStep) {
-      return {
-        workflowStep: props.workflowStep,
-      };
-    } else {
-      return null;
-    }
-  }
+  React.useEffect(() => {
+    setWorkFlowStep(props.workflowStep);
+  }, [props]);
 
-  constructor(props: IFormFillerProps) {
-    super(props);
-    this.state = {
-      workflowStep: props.workflowStep,
-    };
-  }
+  const handleStepChange = (step: WorkflowSteps) => {
+    setWorkFlowStep(step);
+  };
 
-  public componentDidMount() {
-    // ConditionalRenderingActionDispatcher.checkIfConditionalRulesShouldRun();
-  }
-
-  public componentDidUpdate(prevProps: IFormFillerProps) {
-    // if (this.props.connections && this.props.dataModelElements && this.props.dataModelElements.length > 0) {
-    //   ApiActionDispatcher.fetchApiListResponse();
-    // }
-  }
-
-  public saveFormData = () => {
-    // Todo: create global typings for altinn window
-    const altinnWindow: any = window as any;
+  const saveFormData = () => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
     FormDataActions.submitFormData(`
-      ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`
-    );
-  }
+        ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
+  };
 
-  public submitForm = () => {
-    // Todo: create global typings for altinn window
-    const altinnWindow: any = window as any;
+  const submitForm = () => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
     FormDataActions.submitFormData(`
-      ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
-      'Complete',
-    );
-  }
+      ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`, 'Complete');
+  };
 
-  public renderSaveButton = () => {
-    const disabled = !this.props.unsavedChanges;
+  const renderSaveButton = () => {
+    const disabled = !props.unsavedChanges;
     return (
       <button
         type='submit'
         className={disabled ?
           'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
-        onClick={this.saveFormData}
+        onClick={saveFormData}
         disabled={disabled}
       >
-        {this.props.language.general.save}
+        {getLanguageFromKey('general.save', props.textResources)}
       </button>
     );
-  }
-
-  public handleStepChange = (step: WorkflowSteps) => {
-    this.setState({
-      workflowStep: step,
-    });
-  }
-
-  public renderSubmitButton = () => {
-    const disabled = (this.props.formDataCount > 0 &&
-      (this.props.validationResults !== null && Object.keys(this.props.validationResults).length !== 0))
-      || this.props.unsavedChanges || this.props.formDataCount === 0;
+  };
+  const renderSubmitButton = () => {
+    const disabled = (props.formDataCount > 0 &&
+      (props.validationResults !== null && Object.keys(props.validationResults).length !== 0))
+      || props.unsavedChanges || props.formDataCount === 0;
     return (
       <button
         type='submit'
         className={disabled ? 'a-btn a-btn-success disabled' : 'a-btn a-btn-success'}
-        onClick={this.submitForm}
+        onClick={submitForm}
         disabled={disabled}
       >
-        {this.props.language.general.control_submit}
+        {getLanguageFromKey('general.control_submit', props.textResources)}
       </button>
     );
-  }
+  };
 
-  public render() {
-    return (
-      <WorkflowStep
-        header={getTextResource('ServiceName', this.props.textResources)}
-        step={this.state.workflowStep}
-        onStepChange={this.handleStepChange}
-      >
-        <div className='row'>
-          <Preview />
+  return (
+    <WorkflowStep
+      header={getLanguageFromKey('general.ServiceName', props.textResources)}
+      step={workflowStep}
+      onStepChange={handleStepChange}
+    >
+      <div className='row'>
+        <Preview />
+      </div>
+      <div className='row mt-3'>
+        <div className='a-btn-group'>
+          {props.textResources && renderSaveButton()}
+          {props.textResources && renderSubmitButton()}
         </div>
-        <div className='row mt-3'>
-          <div className='a-btn-group'>
-            {this.renderSaveButton()}
-            {this.renderSubmitButton()}
-          </div>
-        </div>
-      </WorkflowStep>
-    );
-  }
-}
+      </div>
+    </WorkflowStep>
+  );
+};
+
+const mapStateToProps = (state: IRuntimeState): IFormFillerProps => {
+  return {
+    formDataCount: 1,
+    textResources: state.language.language,
+    unsavedChanges: false,
+    validationResults: null,
+    workflowStep: state.formWorkflow.state,
+  };
+};
+
+export const FormFiller = connect(mapStateToProps)(FormFillerComponent);

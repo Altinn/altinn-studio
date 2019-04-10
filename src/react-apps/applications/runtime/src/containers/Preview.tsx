@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { IRuntimeState } from '../reducers';
 import { Container } from './Container';
 
 export interface IPreviewProps {
@@ -20,18 +21,15 @@ export class PreviewComponent extends React.Component<
       return null;
     }
     return (
-      <Container
-        id={baseContainerId}
-        baseContainer={true}
-      />
+      <Container />
     );
   }
 }
 
 const makeMapStateToProps = () => {
-  const mapStateToProps = (state: any, empty: any): IPreviewProps => {
+  const mapStateToProps = (state: IRuntimeState, empty: any): IPreviewProps => {
     return {
-      layoutOrder: [],
+      layoutOrder: state.formLayout.order || [],
       components: [],
       containers: [],
     };

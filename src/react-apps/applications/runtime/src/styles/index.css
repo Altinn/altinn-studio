@@ -1,30 +1,21 @@
 @import '~altinn-designsystem/dist/css/style.dist.tjenester3.min';
 
-.fa,
-.fa-stack {
-  font-size: 2.25em;
-  -webkit-font-smoothing: subpixel-antialiased;
-  line-height: 0;
-  width: 1em;
-  text-align: center;
-  vertical-align: middle;
+body {
+  margin: 0;
+  background-color: #1eaef7;
 }
 
-#collapsable-items .fa {
-  font-size: 1.85em;
-}
-
-input:checked+.slider {
+input:checked + .slider {
   background-color: #1EAEF7;
 }
 
-input:checked+.slider:before {
+input:checked + .slider:before {
   -webkit-transform: translateX(26px);
   -ms-transform: translateX(26px);
   transform: translateX(26px);
 }
 
-input:focus+.slider {
+input:focus + .slider {
   box-shadow: 0 0 1px #1EAEF7;
 }
 

@@ -161,12 +161,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
     this.props.handleComponentUpdate(updatedComponent);
   }
 
-  public getTextKeyFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((elem) =>
-      elem.DataBindingName === dataBindingName);
-    return element.Texts.Label;
-  }
-
   public handleCodeListChange = (option: ICodeListOption): void => {
     const updatedComponent = this.props.component;
     updatedComponent.codeListId = option ? option.value.codeListName : undefined;
@@ -501,7 +495,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <AltinnInputField
                 id={'modal-properties-maximum-files'}
                 onChangeFunction={this.handleMaxNumberOfAttachmentsChange}
-                inputValue={component.maxNumberOfAttachments}
+                inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey('ux_editor.modal_properties_maximum_files', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
                 inputDescriptionStyling={{ marginTop: '24px' }}
@@ -512,7 +506,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               <AltinnInputField
                 id={'modal-properties-file-size'}
                 onChangeFunction={this.handleMaxFileSizeInMBChange}
-                inputValue={component.maxFileSizeInMB}
+                inputValue={component.maxFileSizeInMB || 0}
                 inputDescription={getLanguageFromKey(
                   'ux_editor.modal_properties_maximum_file_size', this.props.language)}
                 inputFieldStyling={{ width: '60px' }}
@@ -528,7 +522,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         );
       }
       case 'TextArea': {
-        const { component } = this.props;
         return (
           <Grid item={true} xs={12}>
             {renderSelectDataModelBinding(
@@ -545,16 +538,6 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
               this.props.textResources,
               this.props.language,
               this.props.component.textResourceBindings.description)}
-            <Grid item={true} classes={{ item: this.props.classes.gridItem }}>
-              {getLanguageFromKey('ux_editor.modal_properties_read_only_description', this.props.language)}
-            </Grid>
-            <Grid item={true}>
-              <AltinnCheckBox
-                checked={!!component.readOnly}
-                onChangeFunction={this.handleReadOnlyChange}
-              />
-              {getLanguageFromKey('ux_editor.modal_properties_read_only', this.props.language)}
-            </Grid>
           </Grid>
         );
       }
@@ -563,6 +546,12 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
         return null;
       }
     }
+  }
+
+  public getMinOccursFromDataModel = (dataBindingName: string): number => {
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) =>
+      e.DataBindingName === dataBindingName);
+    return element.MinOccurs;
   }
 
   public handleValidFileEndingsChange = (event: any) => {
@@ -576,7 +565,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleMaxFileSizeInMBChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxFileSizeInMB = event.target.value;
+    component.maxFileSizeInMB = (event.target.value >= 0) ? event.target.value : 0;
     this.setState({
       component,
     });
@@ -585,7 +574,7 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
 
   public handleMaxNumberOfAttachmentsChange = (event: any) => {
     const component = (this.props.component as IFormFileUploaderComponent);
-    component.maxNumberOfAttachments = event.target.value;
+    component.maxNumberOfAttachments = (event.target.value >= 1) ? event.target.value : 1;
     this.setState({
       component,
     });
@@ -625,16 +614,22 @@ class EditModalContentComponent extends React.Component<IEditModalContentProps, 
       dataModelBinding = {};
     }
     dataModelBinding[key] = selectedDataModelElement;
-    this.setState({
-      component: {
-        ...this.state.component,
-        dataModelBindings: dataModelBinding,
-      },
-    });
-    this.props.handleComponentUpdate({
-      ...this.props.component,
-      dataModelBindings: dataModelBinding,
-    });
+    if (this.getMinOccursFromDataModel(selectedDataModelElement) === 1) {
+      this.setState({
+        component: {
+          ...this.state.component,
+          required: true,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    } else {
+      this.setState({
+        component: {
+          ...this.state.component,
+          dataModelBindings: dataModelBinding,
+        },
+      }, () => this.props.handleComponentUpdate(this.state.component));
+    }
   }
 
   public handleToggleAddressSimple = (event: object, checked: boolean) => {
@@ -684,6 +679,7 @@ const mapStateToProps = (
     textResources: state.appData.textResources.resources,
     codeListResources: state.appData.codeLists.codeLists,
     thirdPartyComponents: state.thirdPartyComponents.components,
+    dataModel: state.appData.dataModel.model,
     ...props,
   };
 };
