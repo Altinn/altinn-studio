@@ -51,24 +51,6 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// View for configuration of deployment
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
-        /// <returns>The the index view for deployment</returns>
-        public IActionResult Index(string org, string service, string edition)
-        {
-            ViewBag.ServiceUnavailable = false;
-            if (_configuration["AccessTokenDevOps"] == null)
-            {
-                ViewBag.ServiceUnavailable = true;
-            }
-
-            return View();
-        }
-
-        /// <summary>
         /// Start a new deployment
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
