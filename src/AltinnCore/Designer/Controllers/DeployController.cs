@@ -91,14 +91,14 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    string environment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
+                    string giteaEnvironment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
                     object buildContent = new
                     {
                         definition = new
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{environment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
