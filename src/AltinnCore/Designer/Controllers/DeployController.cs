@@ -141,6 +141,14 @@ namespace AltinnCore.Designer.Controllers
         public async Task<JsonResult> FetchDeploymentStatus([FromBody]dynamic buildId, string org, string service, string edition)
         {
             string credentials = _configuration["AccessTokenDevOps"];
+            if (credentials == null)
+            {
+                return Json(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Deployment unavailable",
+                });
+            }
             BuildModel buildModel = null;
             try
             {
@@ -157,7 +165,6 @@ namespace AltinnCore.Designer.Controllers
                     }
                 }
             }
-            // Success, Status, StartTime, FinishTime
             catch (Exception ex)
             {
                 return Json(new DeploymentStatus
