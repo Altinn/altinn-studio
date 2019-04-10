@@ -1,6 +1,4 @@
-
-import { mount, shallow } from 'enzyme';
-import 'jest';
+import { shallow, mount } from 'enzyme';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
