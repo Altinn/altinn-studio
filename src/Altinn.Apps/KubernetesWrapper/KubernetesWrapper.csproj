@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\" />
-  </ItemGroup>
+    </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="KubernetesClient" Version="1.5.18" />

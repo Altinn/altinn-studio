@@ -17,6 +17,7 @@ namespace KubernetesWrapper.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="IKubernetesAPIWrapperSI"/> class
         /// </summary>
+        /// <param name="logger">The logger</param>
         public IKubernetesAPIWrapperSI(ILogger<IKubernetesAPIWrapperSI> logger)
         {
             _logger = logger;

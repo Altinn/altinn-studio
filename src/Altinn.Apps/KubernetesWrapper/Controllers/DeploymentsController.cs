@@ -8,7 +8,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
-
 namespace KubernetesWrapper.Controllers
 {
     /// <summary>
@@ -25,6 +24,7 @@ namespace KubernetesWrapper.Controllers
         /// Initializes a new instance of the <see cref="DeploymentsController"/> class
         /// </summary>
         /// <param name="apiWrapper">The kubernetes api wrapper client</param>
+        /// <param name="logger">The logger</param>
         public DeploymentsController(IKubernetesAPIWrapper apiWrapper, ILogger<DeploymentsController> logger)
         {
             _apiWrapper = apiWrapper;
