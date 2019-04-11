@@ -24,7 +24,7 @@ fixture('Navigating the Service designer')
   .beforeEach(async t => {
     await common.login(testUser.userEmail, testUser.password, loginPage);
     await waitForReact();
-    await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+    await t.navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/aboutservice')
     //app.before();
   })
   .after(async () => {
@@ -43,7 +43,7 @@ test('Om tab navigation', async () => {
     .expect(designerPage.omLeftMenuItems[5].visible).ok()
 });
 
-test('Lage tab navigation', async () => {
+test.only('Lage tab navigation', async () => {
   await t
     .click(designerPage.lageNavigationTab)
     .hover(designerPage.leftDrawerMenu)

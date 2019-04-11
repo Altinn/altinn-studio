@@ -20,7 +20,7 @@ fixture('Regression tests of services in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
-    t.ctx.serviceName = "runtime_auto_test";
+    t.ctx.serviceName = "runtime_autotest";
     await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
   })
 
