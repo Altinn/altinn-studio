@@ -51,11 +51,18 @@ export const schemaComponents: IComponent[] = [
     name: 'Input',
     Tag: InputComponent,
     Type: ComponentTypes.Input,
+    customProperties: {
+      required: false,
+      readOnly: false,
+    },
   },
   {
     name: 'Datepicker',
     Tag: DatepickerComponent,
     Type: ComponentTypes.Datepicker,
+    customProperties: {
+      readOnly: false,
+    },
   },
   {
     name: 'Dropdown',
@@ -71,6 +78,8 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.CheckBox,
     customProperties: {
       options: [],
+      required: false,
+      readOnly: false,
     },
   },
   {
@@ -79,12 +88,18 @@ export const schemaComponents: IComponent[] = [
     Type: ComponentTypes.RadioButton,
     customProperties: {
       options: [],
+      required: false,
+      readOnly: false,
     },
   },
   {
     name: 'TextArea',
     Tag: TextAreaComponent,
     Type: ComponentTypes.TextArea,
+    customProperties: {
+      required: false,
+      readOnly: false,
+    },
   },
   {
     name: 'FileUpload',
@@ -100,6 +115,7 @@ export const advancedComponents: IComponent[] = [
     Type: ComponentTypes.AddressComponent,
     customProperties: {
       simplified: true,
+      readOnly: false,
     },
   },
 ];

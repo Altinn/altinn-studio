@@ -105,7 +105,7 @@ declare global {
 
 
 
-  // Texts 
+  // Texts
   export interface ITextResourceBindings {
     [id: string]: string;
   }
@@ -157,5 +157,35 @@ declare global {
   export interface IComponentBindingValidation {
     errors?: string[];
     warnings?: string[];
+  }
+
+  export interface IComponentValidations {
+    [id: string]: IComponentBindingValidation;
+  }
+
+  export interface IValidationResults {
+    [id: string]: IComponentValidations;
+  }
+  export interface IAttachment {
+    uploaded: boolean;
+    deleting: boolean;
+    name: string;
+    size: number;
+    id: string;
+  }
+
+  export interface IAttachments {
+    [attachmentType: string]: IAttachment[];
+  }
+
+  export interface IAttachmentListApiResponse {
+    type: string;
+    attachments: IAttachmentApiResponse[];
+  }
+
+  export interface IAttachmentApiResponse {
+    name: string;
+    size: number;
+    id: string;
   }
 }

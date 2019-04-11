@@ -56,7 +56,6 @@ export function renderValidationMessagesForComponent(
   if (!validationMessages) {
     return null;
   }
-
   const validationMessageElements: JSX.Element[] = [];
   if (validationMessages.errors && validationMessages.errors.length > 0) {
     validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));
@@ -65,7 +64,6 @@ export function renderValidationMessagesForComponent(
   if (validationMessages.warnings && validationMessages.warnings.length > 0) {
     validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `message_${id}`, 'message'));
   }
-
   return validationMessageElements.length > 0 ? validationMessageElements : null;
   */
 }

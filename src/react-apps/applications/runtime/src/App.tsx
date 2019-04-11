@@ -4,6 +4,7 @@ import FormDataActions from './features/form/data/actions';
 import FormDataModelActions from './features/form/datamodell/actions';
 import FormLayoutActions from './features/form/layout/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
+import FormDynamicActions from './features/form/dynamics/actions';
 import LanguageActions from './features/languages/actions';
 
 export interface IAppProps { }
@@ -31,6 +32,9 @@ export default () => {
     FormWorkflowActions.getCurrentState(
       `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`,
     );
+    FormDynamicActions.fetchFormDynamics(
+      `${window.location.origin}/runtime/api/resource/${org}/${service}/ServiceConfigurations.json`
+    )
     LanguageActions.fetchLanguage(
       `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb');
   }, []);

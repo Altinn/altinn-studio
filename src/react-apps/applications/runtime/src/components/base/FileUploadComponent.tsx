@@ -9,6 +9,9 @@ import { IAttachment } from '../../features/form/fileUpload/types';
 import '../../styles/FileUploadComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 import { IRuntimeState } from '../../reducers';
+import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
+import '../../styles/FileUploadComponent.css';
+import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IFileUploadProvidedProps {
   id: string;
@@ -119,8 +122,7 @@ export class FileUploadComponentClass
     this.setState({
       attachments: newList,
     });
-    FormFileUploadDispatcher.deleteAttachment(attachmentToDelete, fileType, this.props.id);
-
+    FormFillerActionDispatchers.deleteAttachment(attachmentToDelete, fileType, this.props.id);
   }
 
   public getComponentValidations = (): IComponentValidations => {
@@ -269,7 +271,10 @@ export class FileUploadComponentClass
     const validationMessages = this.getComponentValidations();
     const showFileUpload: boolean = this.shouldShowFileUpload();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
+<<<<<<< HEAD
     console.log(this.props.language);
+=======
+>>>>>>> epic/1425-runtime-app
     return (
       <div className={'container'} id={'altinn-fileuploader-' + this.props.id}>
         {showFileUpload &&
@@ -319,10 +324,17 @@ export class FileUploadComponentClass
   }
 }
 
+<<<<<<< HEAD
 const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
   return {
     ...props,
     attachments: state.formAttachements.attachments[props.id] || [],
+=======
+const mapStateToProps = (state: IAppState, props: IFileUploadProvidedProps): IFileUploadProps => {
+  return {
+    ...props,
+    attachments: state.formFiller.attachments[props.id] || [],
+>>>>>>> epic/1425-runtime-app
   };
 };
 

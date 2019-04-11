@@ -29,6 +29,8 @@ environmentVariables:
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://dev.altinn.studio/
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
   production:
@@ -54,6 +56,8 @@ environmentVariables:
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
+    - name: GeneralSettings__AltinnStudioEndpoint
+      value: https://altinn.studio/
     - name: GeneralSettings__LanguageFilesLocation
       value: Languages/
 

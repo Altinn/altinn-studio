@@ -15,6 +15,7 @@ export interface IGenericComponentProps {
   getTextResource: (key: string) => string;
   thirdPartyComponents?: any;
   language?: any;
+  attachments?: IAttachments;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps> {

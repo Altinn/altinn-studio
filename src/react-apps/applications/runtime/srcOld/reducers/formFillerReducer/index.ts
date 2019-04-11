@@ -9,6 +9,7 @@ export interface IFormFillerState {
   unsavedChanges: boolean;
   apiResult?: any;
   formLayout: IFormDesignerLayout;
+  attachments: IAttachments;
 }
 
 const initialState: IFormFillerState = {
@@ -16,6 +17,7 @@ const initialState: IFormFillerState = {
   validationResults: {},
   unsavedChanges: false,
   formLayout: null,
+  attachments: {},
 };
 
 const formFillerReducer: Reducer<IFormFillerState> = (
@@ -27,7 +29,7 @@ const formFillerReducer: Reducer<IFormFillerState> = (
   }
 
   switch (action.type) {
-    case FormFillerActionTypes.UPDATE_VALIDATIONERRORS:
+    case FormFillerActionTypes.UPDATE_VALIDATION_ERRORS:
     case FormFillerActionTypes.RUN_SINGLE_FIELD_VALIDATION_FULFILLED: {
       const {
         validationResults,
@@ -117,12 +119,109 @@ const formFillerReducer: Reducer<IFormFillerState> = (
         },
       });
     }
+    case (FormFillerActionTypes.UPLOAD_ATTACHMENT): {
+      const { file, attachmentType, tmpAttachmentId, componentId }
+        = action as FormFillerActions.IUploadAttachmentAction;
+      if (!state.attachments[attachmentType]) {
+        state = update<IFormFillerState>(state, {
+          attachments: {
+            [attachmentType]: { $set: [] },
+          },
+        });
+      }
+      return update<IFormFillerState>(state, {
+        attachments: {
+          [attachmentType]: {
+            $push: [{ name: file.name, size: file.size, uploaded: false, id: tmpAttachmentId }],
+          },
+        },
+        validationResults: {
+          [componentId]: {
+            $set: {},
+          },
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.UPLOAD_ATTACHMENT_REJECTED): {
+      const { attachmentType, attachmentId, componentId, validationMessages } =
+        action as FormFillerActions.IUploadAttachmentActionRejected;
+      return update<IFormFillerState>(state, {
+        attachments: {
+          [attachmentType]: {
+            $set: state.attachments[attachmentType].filter((attachment) => attachment.id !== attachmentId),
+          },
+        },
+        validationResults: {
+          [componentId]: {
+            $set: validationMessages,
+          },
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.UPLOAD_ATTACHMENT_FULFILLED): {
+      const { attachment, attachmentType, tmpAttachmentId } =
+        action as FormFillerActions.IUploadAttachmentActionFulfilled;
+      const index = state.attachments[attachmentType].findIndex((item) => item.id === tmpAttachmentId);
+      if (index < 0) {
+        return state;
+      }
+      return update<IFormFillerState>(state, {
+        attachments: {
+          [attachmentType]: {
+            [index]: { $set: attachment },
+          },
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.DELETE_ATTACHMENT_FULFILLED): {
+      const { attachmentId: id, attachmentType } = action as FormFillerActions.IDeleteAttachmentActionFulfilled;
+      return update<IFormFillerState>(state, {
+        attachments: {
+          [attachmentType]: {
+            $set: state.attachments[attachmentType].filter((attachment) => attachment.id !== id),
+          },
+        },
+      });
+    }
+
+    case (FormFillerActionTypes.DELETE_ATTACHMENT_REJECTED): {
+      const { attachment, attachmentType, componentId, validationMessages } =
+        action as FormFillerActions.IDeleteAttachmentActionRejected;
+      const newAttachment = { ...attachment, deleting: false };
+      const index = state.attachments[attachmentType].findIndex((element) => element.id === attachment.id);
+      if (index < 0) {
+        return state;
+      }
+      return update<IFormFillerState>(state, {
+        attachments: {
+          [attachmentType]: {
+            [index]: { $set: newAttachment },
+          },
+        },
+        validationResults: {
+          [componentId]: {
+            $set: validationMessages,
+          },
+        },
+      });
+    }
 
     case (FormFillerActionTypes.FETCH_FORM_LAYOUT_REJECTED): {
       const { error } = action as FormFillerActions.IFetchFormLayoutRejectedAction;
       return update<IFormFillerState>(state, {
         error: {
           $set: error,
+        }
+      });
+    }
+    case (FormFillerActionTypes.FETCH_ATTACHMENTS_FULFILLED): {
+      const { attachments } = action as FormFillerActions.IFetchAttachmentsActionFulfilled;
+      return update<IFormFillerState>(state, {
+        attachments: {
+          $set: attachments,
         },
       });
     }

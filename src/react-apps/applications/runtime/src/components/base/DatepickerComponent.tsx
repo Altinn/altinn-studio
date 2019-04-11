@@ -54,7 +54,11 @@ export class DatepickerComponent
             className={(this.props.component.readOnly ? 'disabled-date ' : '') +
               (this.props.isValid ?
                 'form-control a-hasButton date' :
+<<<<<<< HEAD
                 'form-control a-hasButton date')}
+=======
+                'form-control a-hasButton date validation-error')}
+>>>>>>> epic/1425-runtime-app
             onBlur={this.onDateChange}
             onChange={this.onDateChange}
             disabled={this.props.component.readOnly}

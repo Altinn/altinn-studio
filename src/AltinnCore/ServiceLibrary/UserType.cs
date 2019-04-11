@@ -3,26 +3,41 @@ namespace AltinnCore.ServiceLibrary
     /// <summary>
     /// Enumeration for the available user types
     /// </summary>
-    public enum UserType
+    public enum UserType : int
     {
         /// <summary>
-        /// User identified with social security number
+        /// User type has not been specified
         /// </summary>
-        Identified = 0,
+        None = 0,
 
         /// <summary>
-        /// Self identified user
+        /// User Type is SSN Identified User.
         /// </summary>
-        SelfIdentified = 1,
+        SSNIdentified = 1,
 
         /// <summary>
-        /// Enterprise identified user
+        /// User Type is Self Identified User.
         /// </summary>
-        EnterpriseIdentified = 2,
+        SelfIdentified = 2,
 
         /// <summary>
-        /// Anonymous user
+        /// User Type is EnterpriseIdentified Identified User.
         /// </summary>
-        Anonymous = 3,
+        EnterpriseIdentified = 3,
+
+        /// <summary>
+        /// User Type is Agency User
+        /// </summary>
+        AgencyUser = 4,
+
+        /// <summary>
+        /// User Type is PSAN User
+        /// </summary>
+        PSAN = 5,
+
+        /// <summary>
+        /// User Type is PSA User
+        /// </summary>
+        PSA = 6
     }
 }
