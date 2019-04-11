@@ -19,6 +19,7 @@ namespace AltinnCore.Common.Services.Implementation
     using System.Runtime.Loader;
     using System.Text;
     using AltinnCore.Common.Helpers;
+    using AltinnCore.ServiceLibrary.Models;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
 

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     using System;
     using System.Linq;

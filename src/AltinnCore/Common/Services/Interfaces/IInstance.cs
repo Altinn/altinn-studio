@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Models;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 

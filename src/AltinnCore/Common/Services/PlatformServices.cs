@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json.Linq;
 

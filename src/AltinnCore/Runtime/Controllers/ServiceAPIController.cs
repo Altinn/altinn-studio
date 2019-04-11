@@ -15,6 +15,7 @@ using AltinnCore.Runtime.ModelBinding;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;

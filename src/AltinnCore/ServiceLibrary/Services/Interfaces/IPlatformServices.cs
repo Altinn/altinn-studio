@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace AltinnCore.ServiceLibrary

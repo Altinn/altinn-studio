@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using AltinnCore.ServiceLibrary.Models;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class representing the context for a service

@@ -1,6 +1,6 @@
 using System;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class representing a service instance

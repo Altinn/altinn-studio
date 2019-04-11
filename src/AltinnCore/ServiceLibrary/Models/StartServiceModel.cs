@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Model containing all information needed to instantiate a service

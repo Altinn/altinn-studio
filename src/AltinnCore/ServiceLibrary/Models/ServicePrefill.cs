@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class describing prefill for a service

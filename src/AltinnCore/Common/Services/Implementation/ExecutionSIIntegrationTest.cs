@@ -14,6 +14,7 @@ using AltinnCore.Common.Constants;
 using AltinnCore.Common.Helpers.Extensions;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor.Compilation;

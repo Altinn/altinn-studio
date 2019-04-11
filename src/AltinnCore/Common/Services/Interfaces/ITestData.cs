@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

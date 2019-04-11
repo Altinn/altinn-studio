@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class containing the context / information about a request

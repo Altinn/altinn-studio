@@ -1,6 +1,6 @@
 using AltinnCore.ServiceLibrary.Enums;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class describing a service navigation, used for determining which action was taken by the user

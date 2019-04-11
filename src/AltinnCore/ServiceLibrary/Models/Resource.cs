@@ -1,6 +1,6 @@
 using Newtonsoft.Json;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class representing a resource
