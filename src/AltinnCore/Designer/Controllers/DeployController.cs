@@ -59,12 +59,12 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="edition">The edition code for the current service</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<JsonResult> StartDeployment(string org, string service, string edition)
+        public async Task<IActionResult> StartDeployment(string org, string service, string edition)
         {
             if (_configuration["AccessTokenDevOps"] == null)
             {
                 ViewBag.ServiceUnavailable = true;
-                return Json(new DeploymentResponse
+                return Ok(new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment unavailable",
@@ -78,7 +78,7 @@ namespace AltinnCore.Designer.Controllers
             if (masterBranch == null)
             {
                 _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
-                return Json(new DeploymentResponse
+                return Ok(new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment failed: unable to find latest commit",
@@ -114,14 +114,14 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
-                return Json(new DeploymentResponse
+                return Ok(new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment failed " + ex,
                 });
             }
 
-            return Json(new DeploymentResponse
+            return Ok(new DeploymentStatus
             {
                 Success = true,
                 BuildId = result,
@@ -138,12 +138,12 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="edition">The edition code for the current service</param>
         /// <returns>The build status of the deployment build</returns>
         [HttpPost]
-        public async Task<JsonResult> FetchDeploymentStatus([FromBody]dynamic buildId, string org, string service, string edition)
+        public async Task<IActionResult> FetchDeploymentStatus([FromBody]dynamic buildId, string org, string service, string edition)
         {
             string credentials = _configuration["AccessTokenDevOps"];
             if (credentials == null)
             {
-                return Json(new DeploymentStatus
+                return Ok(new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment unavailable",
@@ -167,7 +167,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new DeploymentStatus
+                return Ok(new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment failed " + ex,
@@ -176,7 +176,7 @@ namespace AltinnCore.Designer.Controllers
 
             var deploymentSuccess = (buildModel.Status.Equals("completed") && !buildModel.Status.Equals("failed"));
 
-            return Json(new DeploymentStatus
+            return Ok(new DeploymentStatus
             {
                 Success = deploymentSuccess,
                 Message = "Deployment status: " + buildModel.Status,

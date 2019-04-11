@@ -8,13 +8,11 @@ namespace Common.Models
         /// <summary>
         /// Success status
         /// </summary>
-        /// <value></value>
         public bool Success { get; set; }
 
         /// <summary>
         /// Response status
         /// </summary>
-        /// <value></value>
         public string Message { get; set; }
 
         /// <summary>
@@ -26,6 +24,10 @@ namespace Common.Models
         /// finish time
         /// </summary>
         public string FinishTime { get; set; }
+        /// <summary>
+        /// The build id for the deployment build
+        /// </summary>
+        public string BuildId { get; set; }
 
     }
 }
