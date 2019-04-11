@@ -755,7 +755,7 @@ namespace AltinnCore.Common.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -775,7 +775,7 @@ namespace AltinnCore.Common.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -1201,7 +1201,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
@@ -1212,7 +1212,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }

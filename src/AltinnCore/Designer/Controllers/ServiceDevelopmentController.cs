@@ -167,7 +167,7 @@ namespace AltinnCore.Designer.Controllers
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }

@@ -1,4 +1,6 @@
-﻿namespace AltinnCore.ServiceLibrary
+using AltinnCore.ServiceLibrary.Enums;
+
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Class representing a reportee

@@ -1,3 +1,5 @@
+using AltinnCore.ServiceLibrary.Enums;
+
 namespace AltinnCore.ServiceLibrary
 {
     /// <summary>

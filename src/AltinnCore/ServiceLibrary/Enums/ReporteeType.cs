@@ -1,4 +1,4 @@
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Enums
 {
     /// <summary>
     /// Enum containing values for the different types of parties

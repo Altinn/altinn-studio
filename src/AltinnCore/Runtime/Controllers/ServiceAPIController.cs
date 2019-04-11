@@ -64,6 +64,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="profileService">The profile service (set in Startup.cs).</param>
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="workflowSI">The workflow service.</param>
+        /// <param name="instanceSI">The instance si</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,

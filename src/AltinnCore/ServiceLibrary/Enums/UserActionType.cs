@@ -1,4 +1,4 @@
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Enums
 {
     /// <summary>
     /// Enumeration for the different actions a user can make when filling out a service

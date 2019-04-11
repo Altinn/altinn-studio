@@ -89,6 +89,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="resource">the resource</param>
         /// <returns>The filestream for the resource file</returns>
         byte[] GetRuntimeResource(string resource);
-
     }
 }

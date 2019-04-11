@@ -113,13 +113,13 @@ namespace AltinnCore.Common.Services.Implementation
             formData.Add(dataId.ToString(), data);
             instance.Data = new Dictionary<string, Dictionary<string, Data>>();
             instance.Data.Add("boatData", formData);
-            UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
 
             return instanceId;
         }
 
         /// <summary>
-        ///Saves instance meta data
+        /// Saves instance meta data
         /// </summary>
         public async Task<Instance> UpdateInstance<T>(T dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
@@ -160,6 +160,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="applicationId">application id</param>
         /// <param name="applicationOwnerId">application owner id</param>
         /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceId">instance id</param>
         /// <returns></returns>
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {

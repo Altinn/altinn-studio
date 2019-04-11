@@ -347,8 +347,6 @@ namespace AltinnCore.Runtime.Controllers
                 }
 
                 Guid instanceId;
-                Guid dataId;
-                WorkflowStep currentStep;
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
                 // Create a new instance document

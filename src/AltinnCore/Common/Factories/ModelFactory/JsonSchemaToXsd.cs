@@ -19,7 +19,6 @@ namespace AltinnCore.Common.Factories.ModelFactory
     {
         private const string XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
         private const string BRREG_NS = "http://www.brreg.no/or";
-        private ILogger<JsonSchemaToXsd> _logger;
 
         private XmlDocument xmlDocument = new XmlDocument();
 

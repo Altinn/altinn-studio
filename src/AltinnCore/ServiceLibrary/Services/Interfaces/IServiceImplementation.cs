@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.ServiceMetadata;

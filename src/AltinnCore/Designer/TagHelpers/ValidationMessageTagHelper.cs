@@ -41,10 +41,16 @@ namespace AltinnCore.Designer.TagHelpers
             }
         }
 
+        /// <summary>
+        /// The view context
+        /// </summary>
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
 
+        /// <summary>
+        /// The generator
+        /// </summary>
         protected IHtmlGenerator Generator { get; }
 
         /// <summary>

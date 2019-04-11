@@ -1,4 +1,6 @@
-﻿namespace AltinnCore.ServiceLibrary
+using AltinnCore.ServiceLibrary.Enums;
+
+namespace AltinnCore.ServiceLibrary
 {
     /// <summary>
     /// Class describing a service navigation, used for determining which action was taken by the user
