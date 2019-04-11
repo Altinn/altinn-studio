@@ -3,13 +3,13 @@ using AltinnCore.ServiceLibrary.Enums;
 namespace AltinnCore.ServiceLibrary.Models.Workflow
 {
     /// <summary>
-    /// Class representing the workflow state
+    /// Class detailing a workflow step
     /// </summary>
-    public class ServiceState
+    public class WorkFlowStep
     {
         /// <summary>
-        /// Gets or sets the state of the service
+        /// Gets or sets the workflow step type
         /// </summary>
-        public WorkflowStep State { get; set; }
+        public StepType StepType { get; set; }
     }
 }

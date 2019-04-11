@@ -1,6 +1,6 @@
 using System.Xml.Serialization;
 
-namespace AltinnCore.ServiceLibrary.Workflow
+namespace AltinnCore.ServiceLibrary.Models.Workflow
 {
     /// <summary>
     /// Class representing the start event of a process
