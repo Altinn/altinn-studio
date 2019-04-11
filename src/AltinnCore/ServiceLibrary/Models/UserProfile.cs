@@ -1,4 +1,5 @@
 using AltinnCore.ServiceLibrary.Enums;
+using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.ServiceLibrary
 {

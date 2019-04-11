@@ -1,6 +1,6 @@
 using AltinnCore.ServiceLibrary.Enums;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class representing a party

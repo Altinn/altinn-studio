@@ -1,7 +1,7 @@
 ﻿using System;
 using AltinnCore.ServiceLibrary.Enums;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// A entity describing a file that is part of a AltinnCore service

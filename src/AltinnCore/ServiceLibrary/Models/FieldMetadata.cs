@@ -1,4 +1,4 @@
-﻿namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Models
 {
     /// <summary>
     /// Class containing the metadata for a service field
