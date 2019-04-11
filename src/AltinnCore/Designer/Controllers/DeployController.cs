@@ -140,14 +140,13 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets deployment status
         /// </summary>
-        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
+        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <returns>The build status of the deployment build</returns>
         [HttpGet]
         public async Task<IActionResult> FetchDeploymentStatus(string org, string service, string buildId)
         {
-
             if (org == null || service == null || buildId == null)
             {
                 return BadRequest(new DeploymentStatus
@@ -166,6 +165,7 @@ namespace AltinnCore.Designer.Controllers
                     Message = "Deployment unavailable",
                 });
             }
+
             BuildModel buildModel = null;
             try
             {
@@ -191,7 +191,7 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            var deploymentSuccess = (buildModel.Status.Equals("completed") && !buildModel.Status.Equals("failed"));
+            var deploymentSuccess = buildModel.Status.Equals("completed") && !buildModel.Status.Equals("failed");
 
             return Ok(new DeploymentStatus
             {
