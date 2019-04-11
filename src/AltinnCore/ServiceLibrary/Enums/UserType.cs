@@ -1,4 +1,4 @@
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Enums
 {
     /// <summary>
     /// Enumeration for the available user types

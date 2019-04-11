@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using AltinnCore.ServiceLibrary.Enums;
 
 namespace AltinnCore.ServiceLibrary
 {
