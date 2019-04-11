@@ -5,7 +5,6 @@ namespace Common.Models
     /// </summary>
     public class DeploymentStatus : DeploymentResponse
     {
-
         /// <summary>
         /// Build status
         /// </summary>
