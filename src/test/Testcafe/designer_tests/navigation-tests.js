@@ -43,7 +43,7 @@ test('Om tab navigation', async () => {
     .expect(designerPage.omLeftMenuItems[5].visible).ok()
 });
 
-test.only('Lage tab navigation', async () => {
+test('Lage tab navigation', async () => {
   await t
     .click(designerPage.lageNavigationTab)
     .hover(designerPage.leftDrawerMenu)
