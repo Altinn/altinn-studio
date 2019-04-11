@@ -3,7 +3,6 @@
 
 using System;
 using AltinnCore.Common.Helpers;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.Rendering;

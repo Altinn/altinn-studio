@@ -5,7 +5,6 @@
 using System;
 using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;

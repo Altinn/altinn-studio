@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;

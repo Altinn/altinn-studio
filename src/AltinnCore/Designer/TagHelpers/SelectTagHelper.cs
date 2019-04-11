@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc.TagHelpers.Internal;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 
 namespace AltinnCore.Designer.TagHelpers

@@ -12,7 +12,6 @@ using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.ModelBinding;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;

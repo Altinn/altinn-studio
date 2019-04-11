@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;

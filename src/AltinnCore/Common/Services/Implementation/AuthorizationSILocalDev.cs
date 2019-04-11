@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
