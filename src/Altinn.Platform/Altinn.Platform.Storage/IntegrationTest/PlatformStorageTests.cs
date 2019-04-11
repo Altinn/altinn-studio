@@ -53,18 +53,15 @@ namespace Altinn.Platform.Test.Integration
 
                 if (instance.Data != null)
                 {
-                    foreach (KeyValuePair<string, Dictionary<string, Data>> data in instance.Data)
+                    foreach (KeyValuePair<string, Data> file in instance.Data)
                     {
-                        foreach (KeyValuePair<string, Data> file in data.Value)
-                        {
-                            string filename = file.Value.StorageUrl;
-                            string dataUrl = "/data/" + data.Key + "/" + file.Key + "?instanceOwnerId=" + testInstanceOwnerId;
+                        string filename = file.Value.StorageUrl;
+                        string dataUrl = "/data/" + file.Key + "?instanceOwnerId=" + testInstanceOwnerId;
 
-                            string dataDeleteUrl = url + dataUrl;
+                        string dataDeleteUrl = url + dataUrl;
 
-                            client.DeleteAsync(dataDeleteUrl);
-                        }
-                    }
+                        client.DeleteAsync(dataDeleteUrl);
+                    }                    
                 }
 
                 client.DeleteAsync("api/v1/instances/" + instance.Id + "?instanceOwnerId=" + instance.InstanceOwnerId + "&hard=true");
@@ -134,7 +131,7 @@ namespace Altinn.Platform.Test.Integration
             string newId = await CreateInstance(testApplicationId, testInstanceOwnerId);
             Instance instance = await GetInstance(newId, testInstanceOwnerId);
 
-            string url = string.Format("api/v1/instances/{0}/data/boatdata?instanceOwnerId={1}", newId, testInstanceOwnerId);
+            string url = string.Format("api/v1/instances/{0}/data?formId=boatdata&instanceOwnerId={1}", newId, testInstanceOwnerId);
 
             // post the file
             HttpResponseMessage postResponse = await client.PostAsync(url, jsonContent.AsJson());
@@ -149,7 +146,7 @@ namespace Altinn.Platform.Test.Integration
             int instanceOwnerId = testInstanceOwnerId;
 
             string instanceId = await CreateInstance(applicationId, instanceOwnerId);
-            string urlTemplate = "api/v1/instances/{0}/data/crewlist?instanceOwnerId={1}";
+            string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
             string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
 
             using (Stream input = File.OpenRead("data/binary_file.pdf"))
@@ -178,9 +175,9 @@ namespace Altinn.Platform.Test.Integration
             UploadBinaryFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
             instance = await GetInstance(instanceId, instanceOwnerId);
 
-            string dataId = instance.Data["crewlist"].Keys.First();
+            string dataId = instance.Data.Keys.First();
 
-            string urlTemplate = "api/v1/instances/{0}/data/crewlist/{1}?instanceOwnerId={2}";
+            string urlTemplate = "api/v1/instances/{0}/data/{1}?instanceOwnerId={2}";
             string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
 
             using (HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))
@@ -212,9 +209,9 @@ namespace Altinn.Platform.Test.Integration
 
             instance = await GetInstance(instanceId, instanceOwnerId);
 
-            string dataId = instance.Data["crewlist"].Keys.First();
+            string dataId = instance.Data.Keys.First();
 
-            string urlTemplate = "api/v1/instances/{0}/data/crewlist/{1}?instanceOwnerId={2}";
+            string urlTemplate = "api/v1/instances/{0}/data/{1}?instanceOwnerId={2}";
             string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
 
             string dataFile = "image.png";
@@ -252,7 +249,7 @@ namespace Altinn.Platform.Test.Integration
 
         private async void UploadBinaryFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
         {
-            string urlTemplate = "api/v1/instances/{0}/data/crewlist?instanceOwnerId={1}";
+            string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
             string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
 
             using (Stream input = File.OpenRead($"data/{fileName}"))
