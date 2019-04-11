@@ -74,22 +74,21 @@ export class FileUploadComponentClass
     const newFiles: IAttachment[] = [];
     const fileType = this.props.id; // component id used as filetype identifier for now, see issue #1364
     acceptedFiles.forEach((file: File) => {
-      if (this.state.attachments.length < this.props.component.maxNumberOfAttachments) {
+      if ((this.state.attachments.length + newFiles.length) < this.props.component.maxNumberOfAttachments) {
         const tmpId: string = uuid();
         newFiles.push({ name: file.name, size: file.size, uploaded: false, id: tmpId, deleting: false });
         FormFillerActionDispatchers.uploadAttachment(file, fileType, tmpId, this.props.id);
       }
     });
-    let newValidationMessages: string[];
+    const validations: string[] = [];
     if (rejectedFiles.length > 0) {
-      newValidationMessages = [];
       rejectedFiles.forEach((file) => {
         if (file.size > (this.props.component.maxFileSizeInMB * bytesInOneMB)) {
-          newValidationMessages.push(
-            file.name +
+          validations.push(
+            file.name + ' ' +
             getLanguageFromKey('form_filler.file_uploader_validation_error_file_size', this.props.language));
         } else {
-          newValidationMessages.push(
+          validations.push(
             getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', this.props.language) + ' ' +
             file.name + ' ' +
             getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', this.props.language));
@@ -102,7 +101,7 @@ export class FileUploadComponentClass
       attachments: this.state.attachments.concat(newFiles),
       // if simple mode, we should hide list on each drop
       showFileUpload,
-      validations: newValidationMessages || [],
+      validations,
     });
   }
 
@@ -252,11 +251,21 @@ export class FileUploadComponentClass
     });
   }
 
+  public shouldShowFileUpload = (): boolean => {
+    const { displayMode, maxNumberOfAttachments } = this.props.component;
+    const { attachments, showFileUpload } = this.state;
+    if (attachments.length >= maxNumberOfAttachments) {
+      return false;
+    } else {
+      return (displayMode !== 'simple') || (attachments.length === 0) ||
+        (showFileUpload === true);
+    }
+  }
+
   public render() {
-    const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings, displayMode } = this.props.component;
-    const showFileUpload: boolean =
-      (displayMode !== 'simple' || this.state.attachments.length === 0 || this.state.showFileUpload);
+    const { maxFileSizeInMB, disabled, validFileEndings, hasCustomFileEndings } = this.props.component;
     const validationMessages = this.getComponentValidations();
+    const showFileUpload: boolean = this.shouldShowFileUpload();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
     return (
       <div className={'container'} id={'altinn-fileuploader-' + this.props.id}>
@@ -286,7 +295,7 @@ export class FileUploadComponentClass
                     {...getRootProps()}
                     style={styles}
                     id={'altinn-drop-zone-' + this.props.id}
-                    className={hasValidationMessages ? 'file-upload-invalid' : ''}
+                    className={'file-upload' + (hasValidationMessages ? ' file-upload-invalid' : '')}
                   >
                     <input {...getInputProps()} />
                     {this.renderFileUploadContent()}

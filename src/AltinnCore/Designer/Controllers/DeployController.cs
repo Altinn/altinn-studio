@@ -7,6 +7,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
 using AltinnCore.RepositoryClient.Model;
+using Common.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -51,37 +52,27 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// View for configuration of deployment
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
-        /// <returns>The the index view for deployment</returns>
-        public IActionResult Index(string org, string service, string edition)
-        {
-            ViewBag.ServiceUnavailable = false;
-            if (_configuration["AccessTokenDevOps"] == null)
-            {
-                ViewBag.ServiceUnavailable = true;
-            }
-
-            return View();
-        }
-
-        /// <summary>
         /// Start a new deployment
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<JsonResult> StartDeployment(string org, string service, string edition)
+        public async Task<IActionResult> StartDeployment(string org, string service)
         {
+            if (org == null || service == null)
+            {
+                return BadRequest(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Org or service not supplied",
+                });
+            }
+
             if (_configuration["AccessTokenDevOps"] == null)
             {
                 ViewBag.ServiceUnavailable = true;
-                return Json(new
+                return Ok(new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment unavailable",
@@ -95,9 +86,9 @@ namespace AltinnCore.Designer.Controllers
             if (masterBranch == null)
             {
                 _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
-                return Json(new
+                return Ok(new DeploymentResponse
                 {
-                    Success = true,
+                    Success = false,
                     Message = "Deployment failed: unable to find latest commit",
                 });
             }
@@ -108,14 +99,14 @@ namespace AltinnCore.Designer.Controllers
                 {
                     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                    string environment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
+                    string giteaEnvironment = Environment.GetEnvironmentVariable("GiteaEndpoint") ?? _settings.ApiEndPointHost;
                     object buildContent = new
                     {
                         definition = new
                         {
                             id = 5,
                         },
-                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{environment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
+                        parameters = $"{{\"APP_OWNER\":\"{org}\",\"APP_REPO\":\"{service}\",\"APP_DEPLOY_TOKEN\":\"{_sourceControl.GetDeployToken()}\",\"GITEA_ENVIRONMENT\":\"{giteaEnvironment}\", \"APP_COMMIT_ID\":\"{masterBranch.Commit.Id}\",\"should_deploy\":\"{true}\"}}\"",
                     };
 
                     string buildjson = JsonConvert.SerializeObject(buildContent);
@@ -131,14 +122,14 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
-                return Json(new
+                return Ok(new DeploymentResponse
                 {
-                    Success = true,
+                    Success = false,
                     Message = "Deployment failed " + ex,
                 });
             }
 
-            return Json(new
+            return Ok(new DeploymentResponse
             {
                 Success = true,
                 BuildId = result,
@@ -149,15 +140,32 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Gets deployment status
         /// </summary>
-        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
+        /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <returns>The build status of the deployment build</returns>
-        [HttpPost]
-        public async Task<JsonResult> FetchDeploymentStatus([FromBody]dynamic buildId, string org, string service, string edition)
+        [HttpGet]
+        public async Task<IActionResult> FetchDeploymentStatus(string org, string service, string buildId)
         {
+            if (org == null || service == null || buildId == null)
+            {
+                return BadRequest(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Org, service or buildId not supplied",
+                });
+            }
+
             string credentials = _configuration["AccessTokenDevOps"];
+            if (credentials == null)
+            {
+                return Ok(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Deployment unavailable",
+                });
+            }
+
             BuildModel buildModel = null;
             try
             {
@@ -176,21 +184,23 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new
+                return Ok(new DeploymentStatus
                 {
-                    Success = true,
-                    Status = "Deployment failed " + ex,
+                    Success = false,
+                    Message = "Deployment failed " + ex,
                 });
             }
 
-            return Json(new
+            var deploymentSuccess = buildModel.Result.Equals("succeeded");
+
+            return Ok(new DeploymentStatus
             {
-                Success = true,
+                Success = deploymentSuccess,
                 Message = "Deployment status: " + buildModel.Status,
-                buildModel.Result,
-                buildModel.Status,
-                buildModel.StartTime,
-                buildModel.FinishTime,
+                StartTime = buildModel.StartTime,
+                FinishTime = buildModel.FinishTime,
+                BuildId = buildId,
+                Status = buildModel.Status,
             });
         }
     }

@@ -9,7 +9,6 @@ import { EditModalContent } from '../components/config/EditModalContent';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
 import { ExternalApiModalComponent } from '../components/toolbar/ExternalApiModal';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
-import { ListSelectorComponent } from '../components/toolbar/ListSelectorComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 import { ToolbarItem } from './ToolbarItem';
@@ -270,8 +269,6 @@ class ToolbarClass extends React.Component<IToolbarProps, IToolbarState> {
           />
         </FormControl> */}
         <List id='collapsable-items' tabIndex={-1}>
-
-          <ListSelectorComponent onChange={this.handleComponentListChange} />
 
           <CollapsableMenuComponent
             menuIsOpen={this.state.componentListOpen}
