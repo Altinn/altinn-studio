@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

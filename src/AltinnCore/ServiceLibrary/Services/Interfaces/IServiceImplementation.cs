@@ -5,7 +5,7 @@ using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
-namespace AltinnCore.ServiceLibrary
+namespace AltinnCore.ServiceLibrary.Services.Interfaces
 {
     /// <summary>
     /// This interface defines all events a service possible can experience

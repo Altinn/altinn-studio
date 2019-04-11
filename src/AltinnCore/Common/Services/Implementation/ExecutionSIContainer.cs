@@ -21,6 +21,7 @@ namespace AltinnCore.Common.Services.Implementation
     using AltinnCore.Common.Helpers;
     using AltinnCore.ServiceLibrary.Models;
     using AltinnCore.ServiceLibrary.Models.Workflow;
+    using AltinnCore.ServiceLibrary.Services.Interfaces;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
 
