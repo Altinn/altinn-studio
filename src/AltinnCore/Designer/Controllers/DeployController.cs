@@ -56,11 +56,19 @@ namespace AltinnCore.Designer.Controllers
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The result of trying to start a new deployment</returns>
         [HttpPost]
-        public async Task<IActionResult> StartDeployment(string org, string service, string edition)
+        public async Task<IActionResult> StartDeployment(string org, string service)
         {
+            if (org == null || service == null)
+            {
+                return BadRequest(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Org or service not supplied",
+                });
+            }
+
             if (_configuration["AccessTokenDevOps"] == null)
             {
                 ViewBag.ServiceUnavailable = true;
@@ -78,7 +86,7 @@ namespace AltinnCore.Designer.Controllers
             if (masterBranch == null)
             {
                 _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
-                return Ok(new DeploymentStatus
+                return Ok(new DeploymentResponse
                 {
                     Success = false,
                     Message = "Deployment failed: unable to find latest commit",
@@ -114,14 +122,14 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
-                return Ok(new DeploymentStatus
+                return Ok(new DeploymentResponse
                 {
                     Success = false,
                     Message = "Deployment failed " + ex,
                 });
             }
 
-            return Ok(new DeploymentStatus
+            return Ok(new DeploymentResponse
             {
                 Success = true,
                 BuildId = result,
@@ -135,11 +143,20 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="buildId">the id of the build for which the deployment status is to be retrieved</param>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="edition">The edition code for the current service</param>
         /// <returns>The build status of the deployment build</returns>
-        [HttpPost]
-        public async Task<IActionResult> FetchDeploymentStatus([FromBody]dynamic buildId, string org, string service, string edition)
+        [HttpGet]
+        public async Task<IActionResult> FetchDeploymentStatus(string org, string service, string buildId)
         {
+
+            if (org == null || service == null || buildId == null)
+            {
+                return BadRequest(new DeploymentStatus
+                {
+                    Success = false,
+                    Message = "Org, service or buildId not supplied",
+                });
+            }
+
             string credentials = _configuration["AccessTokenDevOps"];
             if (credentials == null)
             {
@@ -182,6 +199,8 @@ namespace AltinnCore.Designer.Controllers
                 Message = "Deployment status: " + buildModel.Status,
                 StartTime = buildModel.StartTime,
                 FinishTime = buildModel.FinishTime,
+                BuildId = buildId,
+                Status = buildModel.Status,
             });
         }
     }

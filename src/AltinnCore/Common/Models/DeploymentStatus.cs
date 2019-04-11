@@ -3,17 +3,13 @@ namespace Common.Models
     /// <summary>
     /// Model for deployment status
     /// </summary>
-    public class DeploymentStatus
+    public class DeploymentStatus : DeploymentResponse
     {
-        /// <summary>
-        /// Success status
-        /// </summary>
-        public bool Success { get; set; }
 
         /// <summary>
-        /// Response status
+        /// Build status
         /// </summary>
-        public string Message { get; set; }
+        public string Status { get; set; }
 
         /// <summary>
         /// start time
@@ -24,10 +20,5 @@ namespace Common.Models
         /// finish time
         /// </summary>
         public string FinishTime { get; set; }
-        /// <summary>
-        /// The build id for the deployment build
-        /// </summary>
-        public string BuildId { get; set; }
-
     }
 }
