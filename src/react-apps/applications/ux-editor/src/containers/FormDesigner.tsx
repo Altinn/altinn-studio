@@ -11,7 +11,7 @@ import VersionControlHeader from '../../../shared/src/version-control/versionCon
 import AppDataActionDispatcher from '../actions/appDataActions/appDataActionDispatcher';
 import FormDesignerActionDispatchers from '../actions/formDesignerActions/formDesignerActionDispatcher';
 import ManageServiceConfigurationDispatchers from '../actions/manageServiceConfigurationActions/manageServiceConfigurationActionDispatcher';
-import { CollapsableMenuComponent } from '../components/rightDrawerMenu/CollapsableMenuComponent';
+import { CollapsibleMenuComponent } from '../components/rightDrawerMenu/CollapsibleMenuComponent';
 import { ConditionalRenderingModalComponent } from '../components/toolbar/ConditionalRenderingModal';
 import { RuleModalComponent } from '../components/toolbar/RuleModalComponent';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
@@ -24,6 +24,8 @@ export interface IFormDesignerProvidedProps {
 export interface IFormDesignerProps extends IFormDesignerProvidedProps {
   language: any;
   dataModel: IDataModelFieldElement[];
+  components: any;
+  activeList: any;
 }
 
 type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
@@ -226,66 +228,71 @@ class FormDesigner extends React.Component<
             xs={2}
             classes={{ item: classNames(classes.item) }}
           >
-            <ServiceLogicMenu
-              open={this.state.menuOpen}
-              openCloseHandler={this.toggleMenu}
-              button={
-                <Grid
-                  container={true}
-                  direction={'column'}
-                  justify={'center'}
-                  alignItems={'flex-end'}
-                  classes={classes.menuWrapper}
-                >
-                  <IconButton
-                    type='button'
-                    className={this.props.classes.button}
+            <div id={'serviceLogicmenu'}>
+              <ServiceLogicMenu
+                open={this.state.menuOpen}
+                openCloseHandler={this.toggleMenu}
+                button={
+                  <Grid
+                    container={true}
+                    direction={'column'}
+                    justify={'center'}
+                    alignItems={'flex-end'}
+                    classes={classes.menuWrapper}
                   >
-                    <i
-                      className={
-                        (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
-                          this.props.classes.icon) + ' fa fa-logic-no-circle'
-                      }
-                    />
-                  </IconButton>
-                </Grid>}
-            >
-              <div className={this.props.classes.fullWidth}>
-                <h3 className={this.props.classes.menuHeader}>
-                  {this.props.language.ux_editor.service_logic}
-                </h3>
-                <CollapsableMenuComponent
-                  header={this.props.language.ux_editor.service_logic_validations}
-                  listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_validations,
-                      action: this.toggleCodeEditor.bind(this, 'Validation'),
-                    },
-                  ]}
-                />
-                <CollapsableMenuComponent
-                  header={this.props.language.ux_editor.service_logic_dynamics}
-                  listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_dynamics,
-                      action: this.toggleCodeEditor.bind(this, 'Dynamics'),
-                    }]}
-                >
-                  <RuleModalComponent />
-                  <ConditionalRenderingModalComponent />
-                </CollapsableMenuComponent>
-                <CollapsableMenuComponent
-                  header={this.props.language.ux_editor.service_logic_calculations}
-                  listItems={[
-                    {
-                      name: this.props.language.ux_editor.service_logic_edit_calculations,
-                      action: this.toggleCodeEditor.bind(this, 'Calculation'),
-                    },
-                  ]}
-                />
-                <div className={this.props.classes.divider} />
-              </div>
-            </ServiceLogicMenu >
+                    <IconButton
+                      type='button'
+                      className={this.props.classes.button}
+                    >
+                      <i
+                        className={
+                          (this.state.menuOpen ? this.props.classes.icon + ' ' + this.props.classes.iconActive :
+                            this.props.classes.icon) + ' fa fa-logic-no-circle'
+                        }
+                      />
+                    </IconButton>
+                  </Grid>}
+              >
+                <div className={this.props.classes.fullWidth}>
+                  <h3 className={this.props.classes.menuHeader}>
+                    {this.props.language.ux_editor.service_logic}
+                  </h3>
+                  <CollapsibleMenuComponent
+                    header={this.props.language.ux_editor.service_logic_validations}
+                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                    listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_validations,
+                        action: this.toggleCodeEditor.bind(this, 'Validation'),
+                      },
+                    ]}
+                  />
+                  <CollapsibleMenuComponent
+                    header={this.props.language.ux_editor.service_logic_dynamics}
+                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                    listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_dynamics,
+                        action: this.toggleCodeEditor.bind(this, 'Dynamics'),
+                      }]}
+                  >
+                    <RuleModalComponent />
+                    <ConditionalRenderingModalComponent />
+                  </CollapsibleMenuComponent>
+                  <CollapsibleMenuComponent
+                    header={this.props.language.ux_editor.service_logic_calculations}
+                    componentId={this.props.activeList.length === 1 ? this.props.activeList[0].id : null}
+                    listItems={[
+                      {
+                        name: this.props.language.ux_editor.service_logic_edit_calculations,
+                        action: this.toggleCodeEditor.bind(this, 'Calculation'),
+                      },
+                    ]}
+                  />
+                  <div className={this.props.classes.divider} />
+                </div>
+              </ServiceLogicMenu>
+            </div>
           </Grid>
         </Grid>
       </div>
@@ -299,6 +306,8 @@ const mapsStateToProps = (
 ): IFormDesignerProps => {
   return {
     classes: props.classes,
+    components: state.formDesigner.layout.components,
+    activeList: state.formDesigner.layout.activeList,
     language: state.appData.language.language,
     dataModel: state.appData.dataModel.model,
   };

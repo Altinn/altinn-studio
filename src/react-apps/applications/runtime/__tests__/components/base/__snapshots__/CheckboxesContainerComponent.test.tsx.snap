@@ -18,11 +18,12 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> C
       checked={false}
       className="custom-control-input"
       name="checkbox-mock-id-0"
+      onChange={[Function]}
       type="checkbox"
       value="test-1"
     />
     <label
-      className="pl-3 custom-control-label"
+      className="custom-control-label pl-3"
     >
       test-label-1
     </label>
@@ -35,13 +36,14 @@ exports[`>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot >>> C
       checked={false}
       className="custom-control-input"
       name="checkbox-mock-id-1"
+      onChange={[Function]}
       type="checkbox"
-      value="test-1"
+      value="test-2"
     />
     <label
-      className="pl-3 custom-control-label"
+      className="custom-control-label pl-3"
     >
-      test-label-1
+      test-label-2
     </label>
   </div>
 </div>

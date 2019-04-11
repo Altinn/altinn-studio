@@ -31,6 +31,11 @@ namespace AltinnCore.Common.Configuration
         public string SoftValidationPrefix { get; set; }
 
         /// <summary>
+        /// Gets or sets the altinn studio endpoint
+        /// </summary>
+        public string AltinnStudioEndpoint { get; set; }
+
+        /// <summary>
         /// Gets the path to the service implementation template
         /// </summary>
         public string ServiceImplementationTemplate
@@ -122,7 +127,7 @@ namespace AltinnCore.Common.Configuration
         /// Gets the path to the default project file
         /// </summary>
         public string DefaultProjectFile
-        { 
+        {
             get
             {
                 return TemplateLocation + "/AltinnService/AltinnService.csproj";

@@ -263,6 +263,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
     }, () => {
       this.handleSaveChange(this.state.component);
       this.props.sendItemToParent(this.state.listItem);
+      FormDesignerActionDispatchers.deleteActiveListAction();
     });
   }
   public handleDiscard = (): void => {
@@ -270,6 +271,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
       component: { ...this.props.component },
       isEditMode: false,
     });
+    FormDesignerActionDispatchers.deleteActiveListAction();
   }
 
   public handleSaveChange = (callbackComponent: FormComponentType): void => {
@@ -424,7 +426,7 @@ class Edit extends React.Component<IEditContainerProps, IEditContainerState> {
                         className={
                           this.props.classes.icon +
                           ' ' +
-                          componentIcons[this.state.component.textResourceBindings.title]
+                          componentIcons[this.state.component.component]
                         }
                       />
                       {this.state.component.textResourceBindings.title ?

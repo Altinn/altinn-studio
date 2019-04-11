@@ -1,3 +1,4 @@
+import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
@@ -21,5 +22,16 @@ describe('>>> AltinnCheckBox', () => {
       />,
     );
     expect(rendered).toMatchSnapshot();
+  });
+  it('+++ Should not be disabled on default', () => {
+    const mountedAltinnCheckbox = mount(
+      <AltinnCheckBox
+        onChangeFunction={mockOnChangeFunction}
+        checked={mockChecked}
+      />,
+    );
+    mountedAltinnCheckbox.find({ type: 'checkbox' }).forEach((node) => {
+      expect(node.props().disabled).toBe(false);
+    });
   });
 });

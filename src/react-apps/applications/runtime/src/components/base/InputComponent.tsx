@@ -1,3 +1,4 @@
+import classNames = require('classnames');
 import * as React from 'react';
 // import '../../styles/InputComponent.css';
 
@@ -40,9 +41,11 @@ export class InputComponent
         type={this.props.component.type}
         onBlur={this.onDataChangeSubmit}
         onChange={this.onDataChanged}
-        disabled={this.props.component.disabled}
+        disabled={this.props.component.readOnly}
         required={this.props.component.required}
-        className={this.props.isValid ? 'form-control' : 'form-control validation-error'}
+        className={classNames('form-control',
+          { 'validation-error': !this.props.isValid, 'disabled': this.props.component.readOnly },
+        )}
         value={this.state.value}
       />
     );

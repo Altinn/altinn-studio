@@ -37,7 +37,8 @@ class App extends React.Component<IAppProps, IAppState> {
       `${window.location.origin}/runtime/api/resource/${org}/${service}/ServiceConfigurations.json`
     )
     LanguageActions.fetchLanguage(
-      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb');
+      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb'
+    );
   }
 
   public render(): JSX.Element {

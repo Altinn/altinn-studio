@@ -13,6 +13,8 @@ export interface IGenericComponentProps {
   handleDataChange: (callbackValue: any) => void;
   getTextResource: (key: string) => string;
   thirdPartyComponents?: any;
+  language?: any;
+  attachments?: IAttachments;
 }
 
 class GenericComponent extends React.Component<IGenericComponentProps> {
@@ -42,6 +44,7 @@ class GenericComponent extends React.Component<IGenericComponentProps> {
         getTextResource={this.props.getTextResource}
         handleDataChange={this.props.handleDataChange}
         validationMessages={this.props.validationMessages}
+        language={this.props.language}
       />
     );
   }

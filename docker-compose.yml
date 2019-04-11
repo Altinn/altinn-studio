@@ -66,6 +66,7 @@ services:
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
+      - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
       - "5000:5000"
@@ -96,6 +97,7 @@ services:
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000/
       - ServiceRepositorySettings:ShouldFetchFromDatabase=false
+      - GeneralSettings:AltinnStudioEndpoint=http://altinn3.no/
       - GeneralSettings:LanguageFilesLocation=Languages/
       - TestdataRepositorySettings:RepositoryLocation=/app/Testdata
       - TestdataRepositorySettings:DesignerHost=altinn-designer

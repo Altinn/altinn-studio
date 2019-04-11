@@ -73,12 +73,19 @@ export const schemaComponents: IComponent[] = [
     name: 'Input',
     Tag: InputComponent,
     Type: ComponentTypes.Input,
+    customProperties: {
+      required: false,
+      readOnly: false,
+    },
     Icon: componentIcons.Input,
   },
   {
     name: 'Datepicker',
     Tag: DatepickerComponent,
     Type: ComponentTypes.Datepicker,
+    customProperties: {
+      readOnly: false,
+    },
     Icon: componentIcons.Datepicker,
   },
   {
@@ -97,6 +104,8 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.Checkboxes,
     customProperties: {
       options: [],
+      required: false,
+      readOnly: false,
     },
   },
   {
@@ -106,12 +115,18 @@ export const schemaComponents: IComponent[] = [
     Icon: componentIcons.RadioButtons,
     customProperties: {
       options: [],
+      required: false,
+      readOnly: false,
     },
   },
   {
     name: 'TextArea',
     Tag: TextAreaComponent,
     Type: ComponentTypes.TextArea,
+    customProperties: {
+      required: false,
+      readOnly: false,
+    },
     Icon: componentIcons.TextArea,
   },
   {
@@ -119,6 +134,11 @@ export const schemaComponents: IComponent[] = [
     Tag: FileUploadComponent,
     Type: ComponentTypes.FileUpload,
     Icon: componentIcons.FileUpload,
+    customProperties: {
+      maxFileSizeInMB: 0,
+      maxNumberOfAttachments: 1,
+      displayMode: 'simple',
+    },
   },
   {
     name: 'Submit',
@@ -140,6 +160,7 @@ export const advancedComponents: IComponent[] = [
     Icon: componentIcons.AddressComponent,
     customProperties: {
       simplified: true,
+      readOnly: false,
     },
   },
 ];

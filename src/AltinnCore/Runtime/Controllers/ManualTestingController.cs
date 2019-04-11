@@ -137,10 +137,10 @@ namespace AltinnCore.Runtime.Controllers
                 Org = org,
                 Service = service,
             };
+
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
                 startServiceModel.ReporteeID = reporteeId;
-                requestContext.ServiceMode = RequestContext.Mode.Studio;
                 requestContext.Reportee = _register.GetParty(startServiceModel.ReporteeID);
                 requestContext.UserContext.ReporteeId = reporteeId;
                 requestContext.UserContext.Reportee = requestContext.Reportee;
@@ -238,7 +238,7 @@ namespace AltinnCore.Runtime.Controllers
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, Issuer));
-            if (profile.UserType.Equals(UserType.Identified))
+            if (profile.UserType.Equals(UserType.SSNIdentified))
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.SSN, profile.Party.Person.SSN, ClaimValueTypes.String, Issuer));
             }
