@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 
-namespace Altinn.Platform.Test.Integration.Fixtures
+namespace Altinn.Platform.Storage.Integration.Fixtures
 {
     /// <summary>
     /// Starts the data service in pllace

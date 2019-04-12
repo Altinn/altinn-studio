@@ -163,7 +163,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             // check metadata
-            ApplicationInformation appInfo = GetApplicationInformation(instance.ApplicationId);
+            ApplicationMetadata appInfo = GetApplicationInformation(instance.ApplicationId);
             if (appInfo == null || !appInfo.Forms.ContainsKey(formId))
             {
                 return Forbid("Application information has not registered a form with this formId");
@@ -360,7 +360,7 @@ namespace Altinn.Platform.Storage.Controllers
             return UnprocessableEntity();
         }
 
-        private ApplicationInformation GetApplicationInformation(string applicationId)
+        private ApplicationMetadata GetApplicationInformation(string applicationId)
         {
             string json = @"{
                 'applicationId': 'KNS/sailor',
@@ -376,7 +376,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }";
 
             // dummy data TODO call repository
-            return JsonConvert.DeserializeObject<ApplicationInformation>(json);           
+            return JsonConvert.DeserializeObject<ApplicationMetadata>(json);           
         }
     }
 }

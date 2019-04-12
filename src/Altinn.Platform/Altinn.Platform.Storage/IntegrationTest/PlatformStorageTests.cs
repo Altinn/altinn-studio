@@ -4,13 +4,13 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
+using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Integration.Fixtures;
 using Altinn.Platform.Storage.Models;
-using Altinn.Platform.Test.Integration.Fixtures;
 using Newtonsoft.Json;
 using Xunit;
 
-namespace Altinn.Platform.Test.Integration
+namespace Altinn.Platform.Storage.Integration
 {
     /// <summary>
     ///  Tests dataservice REST api.
@@ -19,6 +19,7 @@ namespace Altinn.Platform.Test.Integration
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
+        private StorageClient storage;
         private string instanceId;
         private readonly string testApplicationOwnerId = "TEST";
         private readonly string testApplicationId = "TEST/sailor";
@@ -32,6 +33,7 @@ namespace Altinn.Platform.Test.Integration
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
+            this.storage = new StorageClient(this.client);
         }
 
         /// <summary>
@@ -108,7 +110,7 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void GetInstancesForInstanceOwner()
         {
-            await CreateInstance(testApplicationId, testInstanceOwnerId);
+            await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
 
             string url = "/api/v1/instances/query?instanceOwnerId=" + testInstanceOwnerId;
             HttpResponseMessage response = await client.GetAsync(url);
@@ -117,6 +119,9 @@ namespace Altinn.Platform.Test.Integration
             Assert.Equal("application/json; charset=utf-8", response.Content.Headers.ContentType.ToString());
         }
 
+        /// <summary>
+        /// Store a json file.
+        /// </summary>
         [Fact]
         public async void StoreAForm()
         {
@@ -128,8 +133,8 @@ namespace Altinn.Platform.Test.Integration
             };
 
             // create instance
-            string newId = await CreateInstance(testApplicationId, testInstanceOwnerId);
-            Instance instance = await GetInstance(newId, testInstanceOwnerId);
+            string newId = await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
+            Instance instance = await storage.GetInstance(newId, testInstanceOwnerId);
 
             string url = string.Format("api/v1/instances/{0}/data?formId=boatdata&instanceOwnerId={1}", newId, testInstanceOwnerId);
 
@@ -139,13 +144,16 @@ namespace Altinn.Platform.Test.Integration
             postResponse.EnsureSuccessStatusCode();
         }
 
+        /// <summary>
+        /// Store a binary file.
+        /// </summary>
         [Fact]
         public async void StoreABinaryFile()
         {
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await CreateInstance(applicationId, instanceOwnerId);
+            string instanceId = await storage.CreateInstance(applicationId, instanceOwnerId);
             string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
             string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
 
@@ -163,17 +171,20 @@ namespace Altinn.Platform.Test.Integration
             }
         }
 
+        /// <summary>
+        /// Read a binary file.
+        /// </summary>
         [Fact]
         public async void GetABinaryFile()
         {
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await CreateInstance(applicationId, instanceOwnerId);
-            Instance instance = await GetInstance(instanceId, instanceOwnerId);
+            string instanceId = await storage.CreateInstance(applicationId, instanceOwnerId);
+            Instance instance = await storage.GetInstance(instanceId, instanceOwnerId);
 
-            UploadBinaryFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
-            instance = await GetInstance(instanceId, instanceOwnerId);
+            storage.CreateDataFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
+            instance = await storage.GetInstance(instanceId, instanceOwnerId);
 
             string dataId = instance.Data.Keys.First();
 
@@ -202,12 +213,12 @@ namespace Altinn.Platform.Test.Integration
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await CreateInstance(applicationId, instanceOwnerId);
-            Instance instance = await GetInstance(instanceId, instanceOwnerId);
+            string instanceId = await storage.CreateInstance(applicationId, instanceOwnerId);
+            Instance instance = await storage.GetInstance(instanceId, instanceOwnerId);
 
-            UploadBinaryFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
+            storage.CreateDataFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
 
-            instance = await GetInstance(instanceId, instanceOwnerId);
+            instance = await storage.GetInstance(instanceId, instanceOwnerId);
 
             string dataId = instance.Data.Keys.First();
 
@@ -236,8 +247,8 @@ namespace Altinn.Platform.Test.Integration
         [Fact]
         public async void QueryInstancesOnApplicationOwnerId()
         {
-            await CreateInstance(testApplicationId, testInstanceOwnerId);
-            await CreateInstance(testApplicationId, testInstanceOwnerId);
+            await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
+            await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
 
             string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
             string requestUri = string.Format(urlTemplate, testApplicationOwnerId);
@@ -246,61 +257,5 @@ namespace Altinn.Platform.Test.Integration
 
             response.EnsureSuccessStatusCode();
         }
-
-        private async void UploadBinaryFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
-        {
-            string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
-            string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
-
-            using (Stream input = File.OpenRead($"data/{fileName}"))
-            {
-                HttpContent fileStreamContent = new StreamContent(input);
-
-                using (MultipartFormDataContent formData = new MultipartFormDataContent())
-                {
-                    formData.Add(fileStreamContent, "crewlist", fileName);
-
-                    HttpResponseMessage response = client.PostAsync(requestUri, formData).Result;
-
-                    response.EnsureSuccessStatusCode();
-                }
-            }
-        }
-
-        private async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
-        {
-            string urlTemplate = "api/v1/instances/{0}/?instanceOwnerId={1}";
-            string url = string.Format(urlTemplate, instanceId, instanceOwnerId);
-
-            HttpResponseMessage getInstanceResponse = await client.GetAsync(url);
-            Instance instance = await getInstanceResponse.Content.ReadAsAsync<Instance>();
-
-            return instance;
-        }
-
-        private async Task<string> CreateInstance(string applicationId, int instanceOwnerId)
-        {
-            string urlTemplate = "api/v1/instances?applicationId={0}&instanceOwnerId={1}";
-            string url = string.Format(urlTemplate, applicationId, instanceOwnerId);
-
-            HttpResponseMessage createInstanceResponse = await client.PostAsync(url, string.Empty.AsJson());
-            string newId = await createInstanceResponse.Content.ReadAsStringAsync();
-
-            return newId;
-        }
-    }
-
-    /// <summary>
-    /// Class to wrap a json object into a StringContent with correct encoding and content type.
-    /// </summary>
-    public static class Extensions
-    {
-        /// <summary>
-        ///  Wrapper method.
-        /// </summary>
-        /// <param name="o">the json object to wrap.</param>
-        /// <returns>a StringContent object.</returns>
-        public static StringContent AsJson(this object o)
-        => new StringContent(JsonConvert.SerializeObject(o), Encoding.UTF8, "application/json");
     }
 }
