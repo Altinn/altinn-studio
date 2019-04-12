@@ -2,8 +2,9 @@ using System.Collections.Generic;
 using System.Xml.Linq;
 
 using AltinnCore.Common.Models;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 
 namespace AltinnCore.Common.Services.Interfaces

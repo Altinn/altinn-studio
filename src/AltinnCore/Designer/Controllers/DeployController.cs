@@ -191,7 +191,7 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            var deploymentSuccess = buildModel.Result.Equals("succeeded");
+            var deploymentSuccess = buildModel.Result != null && buildModel.Result.Equals("succeeded");
 
             return Ok(new DeploymentStatus
             {

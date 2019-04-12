@@ -9,9 +9,9 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Workflow;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Models.Workflow;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -148,8 +148,6 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public Guid SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            //Guid dataId = Guid.NewGuid();
-            //Guid dataId = instanceId;
             string dataPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data";
 
             if (!Directory.Exists(dataPath))
@@ -213,17 +211,6 @@ namespace AltinnCore.Designer.Controllers
             string formDataFilePath = $"{testDataForParty}{partyId}/{instanceId}/{instanceId}.json";
             return File(_execution.GetFileStream(formDataFilePath), "application/json", $"{instanceId}.json");
         }
-
-        ///// <summary>
-        ///// Method that receives the form model from runtime and saves it to designer disk.
-        ///// </summary>
-        ///// <param name="appInstance">the object</param>
-        //[HttpPost]
-        //public void SaveInstance(JObject appInstance)
-        //{
-        //    string formDataFilePath = $"{_settings.GetTestdataForPartyPath(appInstance.Property("org").ToString(), appInstance.Property("service").ToString(), appInstance.Property("developer").ToString())}{appInstance.Property("partyId").ToString()}/{appInstance.Property("instanceId").ToString()}.xml";
-        //    _execution.SaveToFile(formDataFilePath, Request.Body);
-        //}
 
         /// <summary>
         /// Method that receives the form attachment from runtime and saves it to designer disk.
@@ -304,7 +291,6 @@ namespace AltinnCore.Designer.Controllers
                     {
                         attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
                     }
-
                 }
 
                 if (attachments.Count > 0)

@@ -24,6 +24,7 @@ fixture('Regression tests of services in runtime')
     await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
   })
 
+  
 test('Instantiate a service in runtime', async () => {
     await t
       .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
@@ -33,4 +34,21 @@ test('Instantiate a service in runtime', async () => {
       .click(runtime.openManualTestWindow)
       .click(runtime.testUsers[0])
       .click(runtime.startNewButton)
+})
+
+test('Upload files using file component in SBL', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_auto#/testingintestenvironment')
+    .click(designer.testeNavigationTab)
+    .hover(designer.leftDrawerMenu)
+    .click(designer.testeLeftMenuItems[0])
+    .click(runtime.openManualTestWindow)
+    .click(runtime.testUsers[0])
+    .click(runtime.startNewButton)
+    //.expect(runtime.fileDropComponent.visible).ok()
+    .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
+    .expect(runtime.fileDeleteButton.visible).ok()
+    .click(runtime.fileDeleteButton)
+    .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
+    .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
 });
