@@ -4,5 +4,5 @@
   "PhoneNumber": "90000003",
   "Email": "annesophie@altinncore.no",
   "PartyId": "3",
-  "UserType": "Identified" 
+  "UserType": "SSNIdentified"
 }
