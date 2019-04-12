@@ -5,10 +5,10 @@ export default class RunTimePage {
     this.openManualTestWindow = Selector('#manual-test-button');
     //this.privatPerson = Selector("ul").child(0);
     this.testUsers = [
-      Selector('ul').child(0),
-      Selector('ul').child(1),
-      Selector('ul').child(2),
-      Selector('ul').child(3)
+      Selector('div').withText('Ola'),
+      Selector('div').withText('Kari'),
+      Selector('div').withText('Anne'),
+      Selector('div').withText('Pål')
     ];
     this.languageSelection = Selector('#reporteeLanguageSelect');
     this.changeLanguageButton = Selector('.btn.btn-primary').withAttribute('value', 'Oppdater språk');
