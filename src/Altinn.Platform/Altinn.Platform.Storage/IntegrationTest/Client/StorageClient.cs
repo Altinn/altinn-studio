@@ -101,7 +101,7 @@ namespace Altinn.Platform.Storage.Client
 
             response.EnsureSuccessStatusCode();
 
-            Dictionary<string, object> result = await response.Content.ReadAsAsync<Dictionary<string, string>>();
+            Dictionary<string, string> result = await response.Content.ReadAsAsync<Dictionary<string, string>>();
 
             return result;
         }
