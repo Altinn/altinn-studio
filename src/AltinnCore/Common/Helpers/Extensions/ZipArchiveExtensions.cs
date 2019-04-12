@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Helpers.Extensions
         /// </param>
         /// <typeparam name="T">Any object that should be deserialized. </typeparam>
         /// <returns>
-        /// The the object of type T.
+        /// The object of type T.
         /// </returns>
         /// <exception cref="ArgumentException"> File not found in archive.
         /// </exception>
