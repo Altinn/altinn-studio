@@ -11,6 +11,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using AltinnCore.RepositoryClient.Client;
 using AltinnCore.RepositoryClient.Model;
@@ -21,6 +22,7 @@ namespace AltinnCore.RepositoryClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "CS1574:XML comment has cref attribute '{0}' that could not be resolved", Justification = "Justification")]
     public interface IUserApi : IApiAccessor
     {
         #region Synchronous Operations
@@ -1220,6 +1222,7 @@ namespace AltinnCore.RepositoryClient.Api
     /// <summary>
     /// Represents a collection of functions to interact with the API endpoints
     /// </summary>
+    [SuppressMessage("Microsoft.StyleCop.CSharp.DocumentationRules", "CS1574:XML comment has cref attribute '{0}' that could not be resolved", Justification = "Justification")]
     public partial class UserApi : IUserApi
     {
         private AltinnCore.RepositoryClient.Client.ExceptionFactory _exceptionFactory = (name, response) => null;

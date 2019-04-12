@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.ServiceLibrary.Extensions
 {

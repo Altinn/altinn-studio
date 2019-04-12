@@ -1,7 +1,8 @@
 using System;
 using System.IO;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 
 namespace AltinnCore.Common.Services.Interfaces
 {
@@ -89,6 +90,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="resource">the resource</param>
         /// <returns>The filestream for the resource file</returns>
         byte[] GetRuntimeResource(string resource);
-
     }
 }

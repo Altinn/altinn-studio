@@ -32,6 +32,7 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ModelController"/> class
         /// </summary>
         /// <param name="repositoryService">The service Repository Service</param>
+        /// <param name="loggerFactory"> the logger factory</param>
         public ModelController(IRepository repositoryService, ILoggerFactory loggerFactory)
         {
             _repository = repositoryService;

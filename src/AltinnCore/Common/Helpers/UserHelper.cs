@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Security.Claims;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Common.Helpers
