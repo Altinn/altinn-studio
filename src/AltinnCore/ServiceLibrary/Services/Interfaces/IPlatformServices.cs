@@ -11,13 +11,6 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
     public interface IPlatformServices
     {
         /// <summary>
-        /// Gets the available reportees for a given user (identified by <paramref name="userID"/>)
-        /// </summary>
-        /// <param name="userID">The id of the user to get the reportee list for</param>
-        /// <returns>A list of reportees that the given user has access to</returns>
-        List<Reportee> GetReporteeList(int userID);
-
-        /// <summary>
         /// Gets contents of a code list in a format which can be used in asp .net tag helpers for dropdowns
         /// </summary> 
         /// <param name="name">The name of the code list</param>

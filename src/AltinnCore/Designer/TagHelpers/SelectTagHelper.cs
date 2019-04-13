@@ -153,7 +153,7 @@ namespace AltinnCore.Designer.TagHelpers
 
             if (!string.IsNullOrEmpty(CodeList))
             {
-              selectItems =  platFormServices.GetPresentationCodelist(CodeList, TextName, ValueName);
+                selectItems = null;
             }
 
             // Ensure GenerateSelect() _never_ looks anything up in ViewData.

@@ -6,6 +6,7 @@ using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Newtonsoft.Json.Linq;
+using IRegister = AltinnCore.ServiceLibrary.Services.Interfaces.IRegister;
 
 namespace AltinnCore.Common.Services
 {
@@ -18,6 +19,7 @@ namespace AltinnCore.Common.Services
         private readonly IAuthorization _authorization;
         private readonly IRepository _repository;
         private readonly IExecution _execution;
+        private readonly IRegister _register;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformServices" /> class
@@ -25,16 +27,20 @@ namespace AltinnCore.Common.Services
         /// <param name="authorizationService">The Authorization service</param>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="executionService">The execution service</param>
-        /// <param name="org">The current service owner</param>
-        /// <param name="service">The current service</param>
-        public PlatformServices(IAuthorization authorizationService, IRepository repositoryService, IExecution executionService, string org, string service)
+        public PlatformServices(IAuthorization authorizationService, IRepository repositoryService, IExecution executionService)
         {
             _authorization = authorizationService;
             _repository = repositoryService;
             _execution = executionService;
+        }
 
-            Org = org;
-            Service = service;
+        /// <summary>
+        /// The access to the register component through platform services
+        /// </summary>
+        public IRegister Register
+        {
+            get { return _register; }
+            protected set { }
         }
 
         /// <summary>
@@ -46,16 +52,6 @@ namespace AltinnCore.Common.Services
         /// Gets or sets the service
         /// </summary>
         protected string Service { get; set; }
-
-        /// <summary>
-        /// Gets the ReporteeList for a given userID
-        /// </summary>
-        /// <param name="userID">The userID</param>
-        /// <returns>The list of reportee</returns>
-        public List<Reportee> GetReporteeList(int userID)
-        {
-            return _authorization.GetReporteeList(userID);
-        }
 
         /// <summary>
         /// Gets contents of a code list in a format which can be used in asp .net tag helpers for dropdowns
