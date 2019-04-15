@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Altinn.Platform.Storage.Interface\Altinn.Platform.Storage.Interface.csproj" />
+    <ProjectReference Include="..\Storage.Interface\Storage.Interface.csproj" />
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
