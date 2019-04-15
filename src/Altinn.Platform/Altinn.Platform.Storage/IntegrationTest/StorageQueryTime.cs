@@ -10,10 +10,10 @@ using Serilog;
 using Serilog.Core;
 using Xunit;
 
-namespace Altinn.Platform.Storage.Integration
+namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    /// class to test response time for a typical user
+    /// class to test response time for a typical user. To be completed.
     /// </summary>
     public class StorageQueryTime
     {
