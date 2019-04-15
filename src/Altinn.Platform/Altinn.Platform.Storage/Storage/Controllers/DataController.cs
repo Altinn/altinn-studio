@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the form data element
     /// </summary>
-    [Route("api/v1/instances/{instanceId:guid}/[controller]")]
+    [Route("api/storage/v1/instances/{instanceId:guid}/[controller]")]
     [ApiController]
     public class DataController : Controller
     {
@@ -129,13 +129,13 @@ namespace Altinn.Platform.Storage.Controllers
         /// <summary>
         /// Formats a filename for blob storage.
         /// </summary>
-        /// <param name="ApplicationId">the application id</param>
+        /// <param name="applicationId">the application id</param>
         /// <param name="instanceId">the instance id</param>
         /// <param name="dataId">the data id</param>
         /// <returns></returns>
-        public static string DataFileName(string ApplicationId, string instanceId, string dataId)
+        public static string DataFileName(string applicationId, string instanceId, string dataId)
         {
-            return ApplicationId + "/" + instanceId + "/data/" + dataId;
+            return $"{applicationId}/{instanceId}/data/{dataId}";
         }
 
         /// <summary>

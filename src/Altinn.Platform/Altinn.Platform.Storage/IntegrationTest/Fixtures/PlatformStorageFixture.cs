@@ -43,7 +43,7 @@ namespace Altinn.Platform.Storage.Integration.Fixtures
         private string GetContentRootPath()
         {
             var testProjectPath = AppContext.BaseDirectory;
-            var relativePathToHostProject = @"..\..\..\..\Storage";
+            var relativePathToHostProject = @"..\..\..\..\";
 
             return Path.Combine(testProjectPath, relativePathToHostProject);
         }

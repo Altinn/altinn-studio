@@ -30,31 +30,35 @@ namespace Altinn.Platform.Storage.Integration
         /// <summary>
         /// Test a user scenario. Create application, multiple get/put changed data,  
         /// </summary>
-        [Fact]
+        //[Fact]
         public async void TestUserScenario()
         {
             StorageClient storage = new StorageClient(new HttpClient());
             int instanceOwnerId = 42;
 
             // Create application instance
-            string instanceId = await storage.CreateInstance("TEST/sailor", instanceOwnerId);
+            string instanceId = await storage.PostInstances("TEST/sailor", instanceOwnerId);
 
-            Instance instance = await storage.GetInstance(instanceId, instanceOwnerId);
+            Instance instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
             Dictionary<string, string> data = new Dictionary<string, string>();
             data.Add("dataFor", instanceOwnerId.ToString());
 
-            storage.CreateDataFromFile(instanceId, instanceOwnerId, "test.json", "application/json");
-            Instance instanceUpdated = await storage.GetInstance(instanceId, instanceOwnerId);
+            storage.PostDataReadFromFile(instanceId, instanceOwnerId, "test.json", "application/json");
+            Instance instanceUpdated = await storage.GetInstances(instanceId, instanceOwnerId);
             string dataId = instanceUpdated.Data.Keys.First();
 
             for (int i = 0; i < 100; i++)
             {
                 data.Add("field" + i, RandomString(i));
 
-                storage.UpdateData(instanceId, dataId, instanceOwnerId, "test.json", "applicatino/json", data);
+                logger.Information(data["field"+i]);
+
+                /*
+                 storage.PutData(instanceId, dataId, instanceOwnerId, "test.json", "applicatino/json", data);
 
                 var storedData = storage.GetData(instanceId, dataId, instanceOwnerId);
+                */
             }
         }
         

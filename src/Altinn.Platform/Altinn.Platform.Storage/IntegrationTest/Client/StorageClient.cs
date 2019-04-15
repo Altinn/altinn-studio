@@ -16,10 +16,18 @@ namespace Altinn.Platform.Storage.Client
     public class StorageClient
     {
         HttpClient client;
+        private readonly string versionPrefix = "api/storage/v1";
+        private string hostName;
 
-        public StorageClient(HttpClient client)
+        /// <summary>
+        /// Create a client.
+        /// </summary>
+        /// <param name="client">the http client</param>
+        /// <param name="hostName">the host name</param>
+        public StorageClient(HttpClient client, string hostName = "")
         {
             this.client = client;
+            this.hostName = hostName;
         }
 
         /// <summary>
@@ -29,11 +37,10 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceOwnerId">b</param>
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
-        public async void CreateDataFromFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
+        public async Task<bool> PostDataReadFromFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
         {
-            string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
-            string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
-
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            
             using (Stream input = File.OpenRead($"data/{fileName}"))
             {
                 HttpContent fileStreamContent = new StreamContent(input);
@@ -42,11 +49,14 @@ namespace Altinn.Platform.Storage.Client
                 {
                     formData.Add(fileStreamContent, "crewlist", fileName);
 
-                    HttpResponseMessage response = await client.PostAsync(requestUri, formData);
+                    HttpResponseMessage response = await client.PostAsync(hostName + requestUri, formData);
 
                     response.EnsureSuccessStatusCode();
+
+                    return true;
                 }
             }
+
         }
 
         /// <summary>
@@ -57,18 +67,17 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
         /// <param name="content">f</param>
-        public async void CreateData(string instanceId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, object> content)
+        public async void PostData(string instanceId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, object> content)
         {
-            string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
-            string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
-
-            HttpResponseMessage response = await client.PostAsync(requestUri, content.AsJson());
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
 
             response.EnsureSuccessStatusCode();
         }
 
         /// <summary>
-        /// Creates data.
+        /// Updates data.
         /// </summary>
         /// <param name="instanceId">a</param>
         /// <param name="dataId">xx</param>
@@ -76,10 +85,9 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
         /// <param name="content">f</param>
-        public async void UpdateData(string instanceId, string dataId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, string> content)
+        public async void PutData(string instanceId, string dataId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, string> content)
         {
-            string urlTemplate = "api/v1/instances/{0}/data/{1}?formId=crewlist&instanceOwnerId={2}";
-            string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?formId=crewlist&instanceOwnerId={instanceOwnerId}";
 
             HttpResponseMessage response = await client.PutAsync(requestUri, content.AsJson());
 
@@ -94,10 +102,9 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceOwnerId">b</param>
         public async Task<Dictionary<string, string>> GetData(string instanceId, string dataId, int instanceOwnerId)
         {
-            string urlTemplate = "api/v1/instances/{0}/data/{1}?instanceOwnerId={2}";
-            string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
-
-            HttpResponseMessage response = await client.GetAsync(requestUri);
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
 
             response.EnsureSuccessStatusCode();
 
@@ -112,12 +119,11 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceId">a</param>
         /// <param name="instanceOwnerId">b</param>
         /// <returns></returns>
-        public async Task<Instance> GetInstance(string instanceId, int instanceOwnerId)
+        public async Task<Instance> GetInstances(string instanceId, int instanceOwnerId)
         {
-            string urlTemplate = "api/v1/instances/{0}/?instanceOwnerId={1}";
-            string url = string.Format(urlTemplate, instanceId, instanceOwnerId);
-
-            HttpResponseMessage getInstanceResponse = await client.GetAsync(url);
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            
+            HttpResponseMessage getInstanceResponse = await client.GetAsync(hostName + requestUri);
             Instance instance = await getInstanceResponse.Content.ReadAsAsync<Instance>();
 
             return instance;
@@ -129,12 +135,11 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="applicationId">a</param>
         /// <param name="instanceOwnerId">b</param>
         /// <returns></returns>
-        public async Task<string> CreateInstance(string applicationId, int instanceOwnerId)
+        public async Task<string> PostInstances(string applicationId, int instanceOwnerId)
         {
-            string urlTemplate = "api/v1/instances?applicationId={0}&instanceOwnerId={1}";
-            string url = string.Format(urlTemplate, applicationId, instanceOwnerId);
-
-            HttpResponseMessage createInstanceResponse = await client.PostAsync(url, string.Empty.AsJson());
+            string requestUri = $"{versionPrefix}/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+            
+            HttpResponseMessage createInstanceResponse = await client.PostAsync(hostName + requestUri, string.Empty.AsJson());
             string newId = await createInstanceResponse.Content.ReadAsStringAsync();
 
             return newId;

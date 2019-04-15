@@ -25,6 +25,8 @@ namespace Altinn.Platform.Storage.Integration
         private readonly string testApplicationId = "TEST/sailor";
         private readonly int testInstanceOwnerId = 640;
 
+        private readonly string versionPrefix = "/api/storage/v1";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
         /// </summary>
@@ -41,8 +43,7 @@ namespace Altinn.Platform.Storage.Integration
         /// </summary>
         public void Dispose()
         {
-            string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
-            string requestUri = string.Format(urlTemplate, testApplicationOwnerId);
+            string requestUri = $"{versionPrefix}/instances?applicationOwnerId={testApplicationOwnerId}";            
 
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
@@ -51,7 +52,7 @@ namespace Altinn.Platform.Storage.Integration
 
             foreach (Instance instance in instances)
             {
-                string url = "api/v1/instances/" + instance.Id;
+                string url = $"{versionPrefix}/instances/{instance.Id}";
 
                 if (instance.Data != null)
                 {
@@ -66,7 +67,8 @@ namespace Altinn.Platform.Storage.Integration
                     }                    
                 }
 
-                client.DeleteAsync("api/v1/instances/" + instance.Id + "?instanceOwnerId=" + instance.InstanceOwnerId + "&hard=true");
+                string instanceUrl = $"{versionPrefix}/instances/{instance.Id}?instanceOwnerId={instance.InstanceOwnerId}&hard=true";                
+                client.DeleteAsync(instanceUrl);
             }
         }
 
@@ -82,8 +84,7 @@ namespace Altinn.Platform.Storage.Integration
                 ApplicationId = testApplicationId,
             };
 
-            string urlTemplate = "/api/v1/instances?instanceOwnerId={0}&applicationId={1}";
-            string url = string.Format(urlTemplate, testInstanceOwnerId, testApplicationId);
+            string url = $"{versionPrefix}/instances?instanceOwnerId={testInstanceOwnerId}&applicationId={testApplicationId}";            
 
             HttpResponseMessage postResponse = await client.PostAsync(url, instanceData.AsJson());
 
@@ -92,7 +93,7 @@ namespace Altinn.Platform.Storage.Integration
             instanceId = newId;
             Assert.NotNull(newId);
 
-            HttpResponseMessage getResponse = await client.GetAsync("/api/v1/instances/" + newId + "?instanceOwnerId=" + testInstanceOwnerId);
+            HttpResponseMessage getResponse = await client.GetAsync($"{versionPrefix}/instances/{newId}?instanceOwnerId={testInstanceOwnerId}");
 
             getResponse.EnsureSuccessStatusCode();
             Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
@@ -110,9 +111,9 @@ namespace Altinn.Platform.Storage.Integration
         [Fact]
         public async void GetInstancesForInstanceOwner()
         {
-            await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
+            await storage.PostInstances(testApplicationId, testInstanceOwnerId);
 
-            string url = "/api/v1/instances/query?instanceOwnerId=" + testInstanceOwnerId;
+            string url = $"{versionPrefix}/instances?instanceOwnerId={testInstanceOwnerId}";
             HttpResponseMessage response = await client.GetAsync(url);
 
             response.EnsureSuccessStatusCode();
@@ -133,13 +134,13 @@ namespace Altinn.Platform.Storage.Integration
             };
 
             // create instance
-            string newId = await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
-            Instance instance = await storage.GetInstance(newId, testInstanceOwnerId);
+            string newId = await storage.PostInstances(testApplicationId, testInstanceOwnerId);
+            Instance instance = await storage.GetInstances(newId, testInstanceOwnerId);
 
-            string url = string.Format("api/v1/instances/{0}/data?formId=boatdata&instanceOwnerId={1}", newId, testInstanceOwnerId);
+            string requestUri = $"{versionPrefix}/instances/{newId}/data?formId=boatdata&instanceOwnerId={testInstanceOwnerId}";
 
             // post the file
-            HttpResponseMessage postResponse = await client.PostAsync(url, jsonContent.AsJson());
+            HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
         }
@@ -153,10 +154,9 @@ namespace Altinn.Platform.Storage.Integration
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await storage.CreateInstance(applicationId, instanceOwnerId);
-            string urlTemplate = "api/v1/instances/{0}/data?formId=crewlist&instanceOwnerId={1}";
-            string requestUri = string.Format(urlTemplate, instanceId, instanceOwnerId);
-
+            string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            
             using (Stream input = File.OpenRead("data/binary_file.pdf"))
             {
                 HttpContent fileStreamContent = new StreamContent(input);
@@ -180,17 +180,16 @@ namespace Altinn.Platform.Storage.Integration
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await storage.CreateInstance(applicationId, instanceOwnerId);
-            Instance instance = await storage.GetInstance(instanceId, instanceOwnerId);
+            string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
-            storage.CreateDataFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
-            instance = await storage.GetInstance(instanceId, instanceOwnerId);
+            await storage.PostDataReadFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
+            instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
             string dataId = instance.Data.Keys.First();
 
-            string urlTemplate = "api/v1/instances/{0}/data/{1}?instanceOwnerId={2}";
-            string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
-
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            
             using (HttpResponseMessage response = await client.GetAsync(requestUri, HttpCompletionOption.ResponseHeadersRead))
             {
                 if (response.IsSuccessStatusCode)
@@ -213,18 +212,17 @@ namespace Altinn.Platform.Storage.Integration
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await storage.CreateInstance(applicationId, instanceOwnerId);
-            Instance instance = await storage.GetInstance(instanceId, instanceOwnerId);
+            string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
+            Instance instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
-            storage.CreateDataFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
+            await storage.PostDataReadFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
 
-            instance = await storage.GetInstance(instanceId, instanceOwnerId);
+            instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
             string dataId = instance.Data.Keys.First();
 
-            string urlTemplate = "api/v1/instances/{0}/data/{1}?instanceOwnerId={2}";
-            string requestUri = string.Format(urlTemplate, instanceId, dataId, instanceOwnerId);
-
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
+            
             string dataFile = "image.png";
 
             using (Stream input = File.OpenRead($"data/{dataFile}"))
@@ -247,11 +245,10 @@ namespace Altinn.Platform.Storage.Integration
         [Fact]
         public async void QueryInstancesOnApplicationOwnerId()
         {
-            await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
-            await storage.CreateInstance(testApplicationId, testInstanceOwnerId);
+            await storage.PostInstances(testApplicationId, testInstanceOwnerId);
+            await storage.PostInstances(testApplicationId, testInstanceOwnerId);
 
-            string urlTemplate = "api/v1/instances/query?applicationOwnerId={0}";
-            string requestUri = string.Format(urlTemplate, testApplicationOwnerId);
+            string requestUri = $"{versionPrefix}/instances?applicationOwnerId={testApplicationOwnerId}";            
 
             HttpResponseMessage response = await client.GetAsync(requestUri);
 
