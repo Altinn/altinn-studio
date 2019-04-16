@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 
-namespace Altinn.Platform.Test.Integration.Fixtures
+namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 {
     /// <summary>
     /// Starts the data service in pllace
@@ -43,7 +43,7 @@ namespace Altinn.Platform.Test.Integration.Fixtures
         private string GetContentRootPath()
         {
             var testProjectPath = AppContext.BaseDirectory;
-            var relativePathToHostProject = @"..\..\..\..\Storage";
+            var relativePathToHostProject = @"..\..\..\..\";
 
             return Path.Combine(testProjectPath, relativePathToHostProject);
         }
