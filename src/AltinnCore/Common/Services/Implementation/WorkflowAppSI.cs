@@ -9,7 +9,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Workflow;
+using AltinnCore.ServiceLibrary.Models.Workflow;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
