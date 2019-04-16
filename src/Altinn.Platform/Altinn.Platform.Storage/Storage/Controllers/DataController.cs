@@ -17,16 +17,16 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
-    /// api for managing the form data
+    /// api for managing the form data element
     /// </summary>
-    [Route("api/v1/instances/{instanceId:guid}/[controller]")]
+    [Route("api/storage/v1/instances/{instanceId:guid}/[controller]")]
     [ApiController]
     public class DataController : Controller
     {
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
 
         private readonly IDataRepository _dataRepository;
-        private readonly IInstanceRepository _instanceRepository;        
+        private readonly IInstanceRepository _instanceRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
@@ -43,12 +43,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// Deletes a data element.
         /// </summary>
         /// <param name="instanceId">the instance owning the data element</param>
-        /// <param name="formId">identifies the type of data element</param>
         /// <param name="dataId">the instance of the data element</param>
         /// <param name="instanceOwnerId">the owner of the instance</param>
         /// <returns></returns>
-        [HttpDelete("{formId}/{dataId:guid}")]
-        public async Task<IActionResult> Delete(Guid instanceId, string formId, Guid dataId, int instanceOwnerId)
+        [HttpDelete("{dataId:guid}")]
+        public async Task<IActionResult> Delete(Guid instanceId, Guid dataId, int instanceOwnerId)
         {
             // check if instance id exist and user is allowed to change the instance data            
             Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
@@ -57,13 +56,23 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound("Provided instanceId is unknown to storage service");
             }
 
-            string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), formId, dataId.ToString());
+            string dataIdString = dataId.ToString();
 
-            bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
-
-            if (result)
+            if (instance.Data.ContainsKey(dataIdString))
             {
-                return Ok();
+                string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), dataId.ToString());
+
+                bool result = await _dataRepository.DeleteDataInStorage(storageFileName);
+
+                if (result)
+                {
+                    // Update instance record
+                    instance.Data.Remove(dataIdString);
+
+                    Instance storedInstance = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+
+                    return Ok(storedInstance);
+                }
             }
 
             return BadRequest();
@@ -74,56 +83,59 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
         /// <param name="instanceId">the instanceId</param>
-        /// <param name="formId">the form id</param>
         /// <param name="dataId">the data id</param>
-        /// <returns>The get response</returns>        
+        /// <returns>The data file as an asyncronous streame</returns>        
         /// <returns>If the request was successful or not</returns>
-        // GET instances/{instanceId}/data/{formId}/{dataId}
-        [HttpGet("{formId}/{dataId:guid}")]
-        public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceId, string formId, Guid dataId)
+        // GET instances/{instanceId}/data/{dataId}
+        [HttpGet("{dataId:guid}")]
+        public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceId, Guid dataId)
         {
-            if (instanceOwnerId == 0 || instanceId == null || string.IsNullOrEmpty(formId) || dataId == null)
+            if (instanceOwnerId == 0 || instanceId == null || dataId == null)
             {
-                return BadRequest("Missing parameter values: instanceOwnerId, instanceId, formId or dataId cannot be null");
+                return BadRequest("Missing parameter values: neither of instanceId, dataId or instanceOwnerId can be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data            
             Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (instance == null)
             {
-                return NotFound("Provided instanceId is unknown to platform storage service");
+                return NotFound("Provided instanceId and instanceOwnerId is unknown to platform storage service");
             }
 
-            string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), formId, dataId.ToString());
+            string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), dataId.ToString());
+            string dataIdString = dataId.ToString();
 
             // check if dataId exists in instance
-            if (instance.Data.ContainsKey(formId))
+            if (instance.Data.ContainsKey(dataIdString))
             {
-                Dictionary<string, Data> formData = instance.Data[formId];
-                if (formData.ContainsKey(dataId.ToString()))
+                Data data = instance.Data[dataIdString];
+
+                if (string.Equals(data.StorageUrl, storageFileName))
                 {
-                    Data data = formData[dataId.ToString()];
+                    Stream dataStream = await _dataRepository.GetDataInStorage(storageFileName);
 
-                    if (string.Equals(data.StorageUrl, storageFileName))
+                    if (dataStream == null)
                     {
-                        Stream dataStream = await _dataRepository.GetDataInStorage(storageFileName);
-
-                        if (dataStream == null)
-                        {
-                            return NotFound();
-                        }
-
-                        return File(dataStream, data.ContentType, data.FileName);
+                        return NotFound("Unable to read data storage for " + dataIdString);
                     }
+
+                    return File(dataStream, data.ContentType, data.FileName);
                 }
             }
 
             return NotFound("Unable to find requested data item");
         }
 
-        public static string DataFileName(string ApplicationId, string instanceId, string formId, string dataId)
+        /// <summary>
+        /// Formats a filename for blob storage.
+        /// </summary>
+        /// <param name="applicationId">the application id</param>
+        /// <param name="instanceId">the instance id</param>
+        /// <param name="dataId">the data id</param>
+        /// <returns></returns>
+        public static string DataFileName(string applicationId, string instanceId, string dataId)
         {
-            return ApplicationId + "/" + instanceId + "/data/" + formId + "/" + dataId;
+            return $"{applicationId}/{instanceId}/data/{dataId}";
         }
 
         /// <summary>
@@ -133,8 +145,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceId">the instance to update</param>
         /// <param name="formId">the formId to upload data for</param>
         /// <returns>If the request was successful or not</returns>
-        // POST /instances/{instanceId}/data/{formId}        
-        [HttpPost("{formId}")]
+        // POST /instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}      
+        [HttpPost]
         [DisableFormValueModelBinding]
         public async Task<IActionResult> CreateAndUploadData(int instanceOwnerId, Guid instanceId, string formId)
         {
@@ -150,14 +162,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound("Provided instanceId is unknown to platform storage service");
             }
 
-            // check if data element exists, if so raise exception
-            if (instance.Data != null && instance.Data.ContainsKey(formId))
-            {
-                return Forbid("Data element allready exists, try Put instead of Post");
-            }
-
             // check metadata
-            ApplicationInformation appInfo = GetApplicationInformation(instance.ApplicationId);
+            ApplicationMetadata appInfo = GetApplicationInformation(instance.ApplicationId);
             if (appInfo == null || !appInfo.Forms.ContainsKey(formId))
             {
                 return Forbid("Application information has not registered a form with this formId");
@@ -206,6 +212,7 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 // update data record
                 Id = Guid.NewGuid().ToString(),
+                FormId = formId,
                 ContentType = contentType,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
@@ -214,33 +221,37 @@ namespace Altinn.Platform.Storage.Controllers
                 LastChangedDateTime = creationTime,
             };
 
-            string fileName = GetFileName(instanceId, formId, instance, newData);
+            string fileName = DataFileName(instance.ApplicationId, instanceId.ToString(), newData.Id.ToString());
             newData.StorageUrl = fileName;
 
             if (instance.Data == null)
             {
-                instance.Data = new Dictionary<string, Dictionary<string, Data>>();
+                instance.Data = new Dictionary<string, Data>();
             }
 
-            if (!instance.Data.ContainsKey(formId))
+            instance.Data.Add(newData.Id, newData);
+
+            try
             {
-                instance.Data[formId] = new Dictionary<string, Data>();
+                // store file as blob
+                await _dataRepository.CreateDataInStorage(theStream, fileName);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "Unable to create instance data in storage: " + e.Message);
             }
 
-            instance.Data[formId].Add(newData.Id, newData);
+            try
+            {
+                // update instance
+                Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
 
-            // store file as blob
-            await _dataRepository.CreateDataInStorage(theStream, fileName);
-
-            // update instance
-            Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
-
-            return Ok(result);
-        }
-
-        private static string GetFileName(Guid instanceId, string formId, Instance instance, Data newData)
-        {
-            return instance.ApplicationId + "/" + instanceId + "/data/" + formId + "/" + newData.Id;
+                return Ok(result);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "Unable to store instance in storage: " + e.Message);
+            }            
         }
 
         /// <summary>
@@ -248,16 +259,16 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceOwnerId">instance owner id</param>
         /// <param name="instanceId">the instance to update</param>
-        /// <param name="formId">the formId to upload data for</param>
+        /// <param name="dataId">the dataId to upload data to</param>
         /// <returns>If the request was successful or not</returns>
-        // PUT /instances/{instanceId}/data/{formId}/{dataId}?instanceOwnerId=2339      
-        [HttpPut("{formId}/{dataId}")]
+        // PUT /instances/{instanceId}/data/{dataId}?instanceOwnerId=2339      
+        [HttpPut("{dataId}")]
         [DisableFormValueModelBinding]
-        public async Task<IActionResult> OverwriteData(int instanceOwnerId, Guid instanceId, string formId, Guid dataId)
+        public async Task<IActionResult> OverwriteData(int instanceOwnerId, Guid instanceId, Guid dataId)
         {
-            if (instanceOwnerId == 0 || dataId == null || instanceId == null || string.IsNullOrEmpty(formId) || Request.Body == null)
+            if (instanceOwnerId == 0 || dataId == null || instanceId == null || Request.Body == null)
             {
-                return BadRequest("Missing parameter values: instanceOwnerId, instanceId, formId or file content cannot be null");
+                return BadRequest("Missing parameter values: instanceOwnerId, instanceId, datafile or attached file content cannot be empty");
             }
 
             // check if instance id exist and user is allowed to change the instance data            
@@ -267,91 +278,89 @@ namespace Altinn.Platform.Storage.Controllers
                 return NotFound("Provided instanceId is unknown to platform storage service");
             }
 
-            // check that data element exists, if not raise exception
-            if (instance.Data != null && instance.Data.ContainsKey(formId))
+            string dataIdString = dataId.ToString();
+
+            // check that data element exists, if not return not found
+            if (instance.Data != null && instance.Data.ContainsKey(dataIdString))
             {
-                Dictionary<string, Data> formData = instance.Data[formId];
-                if (formData.ContainsKey(dataId.ToString()))
+                Data data = instance.Data[dataIdString];
+
+                if (data == null)
                 {
-                    Data data = formData[dataId.ToString()];
+                    return NotFound("Dataid is not not seen before, try create a new data element");
+                }
 
-                    if (data == null)
+                string storageFileName = DataFileName(instance.ApplicationId.ToString(), instanceId.ToString(), dataIdString);
+
+                if (string.Equals(data.StorageUrl, storageFileName))
+                {
+                    DateTime updateTime = DateTime.UtcNow;
+
+                    Stream theStream = null;
+                    string contentType = null;
+                    string contentFileName = null;
+
+                    if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
                     {
-                        return NotFound();
+                        // Only read the first section of the mulitpart message.
+                        MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
+                        string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
+
+                        MultipartReader reader = new MultipartReader(boundary, Request.Body);
+                        MultipartSection section = await reader.ReadNextSectionAsync();
+
+                        theStream = section.Body;
+                        contentType = section.ContentType;
+
+                        ContentDispositionHeaderValue contentDisposition;
+                        bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+
+                        if (hasContentDisposition)
+                        {
+                            contentFileName = contentDisposition.FileName.ToString();
+                        }
+                    }
+                    else
+                    {
+                        theStream = Request.Body;
+                        contentType = Request.ContentType;
                     }
 
-                    string storageFileName = GetFileName(instanceId, formId, instance, data);
-
-                    if (string.Equals(data.StorageUrl, storageFileName))
+                    if (theStream == null)
                     {
-                        DateTime updateTime = DateTime.UtcNow;
-
-                        Stream theStream = null;
-                        string contentType = null;
-                        string contentFileName = null;
-
-                        if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
-                        {
-                            // Only read the first section of the mulitpart message.
-                            MediaTypeHeaderValue mediaType = MediaTypeHeaderValue.Parse(Request.ContentType);
-                            string boundary = MultipartRequestHelper.GetBoundary(mediaType, _defaultFormOptions.MultipartBoundaryLengthLimit);
-
-                            MultipartReader reader = new MultipartReader(boundary, Request.Body);
-                            MultipartSection section = await reader.ReadNextSectionAsync();
-
-                            theStream = section.Body;
-                            contentType = section.ContentType;
-
-                            ContentDispositionHeaderValue contentDisposition;
-                            bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
-
-                            if (hasContentDisposition)
-                            {
-                                contentFileName = contentDisposition.FileName.ToString();
-                            }
-                        }
-                        else
-                        {
-                            theStream = Request.Body;
-                            contentType = Request.ContentType;
-                        }
-
-                        if (theStream == null)
-                        {
-                            return BadRequest("No data attachements found");
-                        }
-
-                        DateTime changedTime = DateTime.UtcNow;
-
-                        // update data record
-                        data.ContentType = contentType;
-                        data.FileName = contentFileName;
-                        data.LastChangedBy = User.Identity.Name;
-                        data.LastChangedDateTime = changedTime;
-
-                        instance.LastChangedDateTime = changedTime;
-                        instance.LastChangedBy = 0;
-
-                        // store file as blob                      
-                        bool success = await _dataRepository.UpdateDataInStorage(theStream, storageFileName);
-
-                        if (success)
-                        {
-                            // update instance
-                            Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
-
-                            return Ok(result);
-                        }
-
-                        return UnprocessableEntity();
+                        return BadRequest("No data attachements found");
                     }
+
+                    DateTime changedTime = DateTime.UtcNow;
+
+                    // update data record
+                    data.ContentType = contentType;
+                    data.FileName = contentFileName;
+                    data.LastChangedBy = User.Identity.Name;
+                    data.LastChangedDateTime = changedTime;
+
+                    instance.LastChangedDateTime = changedTime;
+                    instance.LastChangedBy = 0;
+
+                    // store file as blob                      
+                    bool success = await _dataRepository.UpdateDataInStorage(theStream, storageFileName);
+
+                    if (success)
+                    {
+                        // update instance
+                        Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+
+                        return Ok(result);
+                    }
+
+                    return UnprocessableEntity();                
                 }
             }
 
             return UnprocessableEntity();
         }
 
-        private ApplicationInformation GetApplicationInformation(string applicationId)
+        private ApplicationMetadata GetApplicationInformation(string applicationId)
         {
             string json = @"{
                 'applicationId': 'KNS/sailor',
@@ -367,7 +376,7 @@ namespace Altinn.Platform.Storage.Controllers
                 }";
 
             // dummy data TODO call repository
-            return JsonConvert.DeserializeObject<ApplicationInformation>(json);           
+            return JsonConvert.DeserializeObject<ApplicationMetadata>(json);           
         }
     }
 }
