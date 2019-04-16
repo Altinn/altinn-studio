@@ -73,14 +73,16 @@ namespace AltinnCore.Runtime
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IInstance, InstanceSILocalDev>();
-                services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IWorkflow, WorkflowSI>();
+                services.AddSingleton<ITestdata, TestdataSILocalDev>();
             }
             else
             {
-                services.AddSingleton<IExecution, ExecutionSIContainer>();
-                services.AddSingleton<IInstance, InstanceSI>();
-                services.AddSingleton<IData, DataSI>();
-                services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IInstance, InstanceAppSI>();
+                services.AddSingleton<IData, DataAppSI>();
+                services.AddSingleton<IWorkflow, WorkflowAppSI>();
+                services.AddSingleton<ITestdata, TestdataAppSI>();
             }
 
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
@@ -97,7 +99,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IRegister, RegisterSILocalDev>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestdata, TestdataSILocalDev>();
             services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();

@@ -10,6 +10,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Workflow;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -26,7 +27,10 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string SaveInstanceMethod = "SaveInstanceToFile";
         private const string GetInstanceMethod = "GetInstanceFromFile";
+        private const string GetFormInstancesApiMethod = "GetFormInstances";
         private readonly IForm _form;
+        private readonly IData _data;
+        private readonly IWorkflow _workflow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceSILocalDev"/> class.
@@ -39,24 +43,30 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
-            IForm formService)            
+            IForm formService,
+            IData data,
+            IWorkflow workflowSI)            
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             this._testdataRepositorySettings = testdataRepositorySettings.Value;
             _form = formService;
+            _workflow = workflowSI;
+            _data = data;
         }
 
         /// <summary>
         /// Generates a new service instanceID for a service.
         /// </summary>
         /// <returns>A new instanceId.</returns>
-        public async Task<Guid> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
+        public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
             Guid instanceId = Guid.NewGuid();
             string applicationId = startServiceModel.Service;
             string applicationOwnerId = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.ReporteeID;
+
+            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
 
             Instance instance = new Instance
             {
@@ -65,7 +75,8 @@ namespace AltinnCore.Common.Services.Implementation
                 ApplicationId = applicationId,
                 CreatedBy = instanceOwnerId,
                 CreatedDateTime = DateTime.UtcNow,
-            };
+                CurrentWorkflowStep = currentState.State.ToString(),
+            };         
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveInstanceMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
@@ -90,32 +101,32 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             // Save instantiated form model
-            Guid dataId = await _form.SaveFormModel(
+            instance = await _data.InsertData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 applicationOwnerId,
                 applicationId,
-                instanceOwnerId,
-                Guid.Empty);
+                instanceOwnerId);
 
             // Update instance with dataId
-            instance = await GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            //instance = await GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId);
 
-            Data data = new Data
-            {
-                Id = dataId.ToString(),
-                ContentType = "application/Xml",
-                StorageUrl = "data/boatdata/",
-                CreatedBy = instanceOwnerId.ToString(),
-            };
-            Dictionary<string, Data> formData = new Dictionary<string, Data>();
-            formData.Add(dataId.ToString(), data);
-            instance.Data = new Dictionary<string, Dictionary<string, Data>>();
-            instance.Data.Add("boatData", formData);
-            UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            //Data data = new Data
+            //{
+            //    Id = dataId.ToString(),
+            //    ContentType = "application/Xml",
+            //    StorageUrl = "data/boatdata/",
+            //    CreatedBy = instanceOwnerId.ToString(),
+            //};
 
-            return instanceId;
+            //Dictionary<string, Data> formData = new Dictionary<string, Data>();
+            //formData.Add(dataId.ToString(), data);
+            //instance.Data = new Dictionary<string, Dictionary<string, Data>>();
+            //instance.Data.Add("boatData", formData);
+            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+
+            return instance;
         }
 
         /// <summary>
@@ -183,6 +194,38 @@ namespace AltinnCore.Common.Services.Implementation
                 }
 
                 return instance;
+            }
+        }
+
+        /// <summary>
+        /// Get instance
+        /// </summary>
+        /// <param name="applicationId">application id</param>
+        /// <param name="applicationOwnerId">application owner id</param>
+        /// <param name="instanceOwnerId">instance owner id</param>
+        /// <returns></returns>
+        public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
+        {
+            List<Instance> instances;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}";
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            {
+                client.BaseAddress = new Uri(apiUrl);
+
+                HttpResponseMessage response = await client.GetAsync(apiUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    string instanceData = await response.Content.ReadAsStringAsync();
+                    instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
+                }
+                else
+                {
+                    throw new Exception("Unable to fetch instance");
+                }
+
+                return instances;
             }
         }
     }

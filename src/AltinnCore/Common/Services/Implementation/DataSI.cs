@@ -4,44 +4,58 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// implementation for data handling
+    /// Service implementation for integration test
     /// </summary>
     public class DataSI : IData
     {
-        private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly ServiceRepositorySettings _settings;
+        private readonly GeneralSettings _generalSettings;
+        private readonly TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private const string GetFormModelApiMethod = "GetFormModel";
+        private const string SaveFormModelApiMethod = "SaveFormModel";
 
         /// <summary>
-        /// Initializes a new data of the <see cref="DataSI"/> class.
+        /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
         /// </summary>
-        /// <param name="data">form service</param>
-        public DataSI(IOptions<PlatformStorageSettings> platformStorageSettings)
+        /// <param name="repositorySettings">The service repository settings</param>
+        /// <param name="httpContextAccessor">The http context accessor</param>
+        /// <param name="testdataRepositorySettings">Test data repository settings</param>
+        public DataSI(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<GeneralSettings> generalSettings)
         {
-            _platformStorageSettings = platformStorageSettings.Value;
+            _settings = repositorySettings.Value;
+            _httpContextAccessor = httpContextAccessor;
+            _generalSettings = generalSettings.Value;
+            this._testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <summary>
-        /// Insert form for the given instance
+        /// This method serialized the form data and store it in test data folder based on serviceId and partyId
         /// </summary>
         /// <typeparam name="T">The input type</typeparam>
         /// <param name="dataToSerialize">The data to serialize</param>
         /// <param name="instanceId">The formId</param>
         /// <param name="type">The type</param>
-        /// <param name="applicationOwnerId">The Organization code for the service owner</param>
-        /// <param name="applicationId">The service code for the current service</param>
-        /// <param name="instanceOwnerId">The partyId</param>
-        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/boatdata?instanceOwnerId={instanceOwnerId}";
             Instance instance;
-            using (HttpClient client = new HttpClient())
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
                 XmlSerializer serializer = new XmlSerializer(type);
@@ -64,20 +78,25 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// update the form 
+        /// This method serialized the form model and store it in test data folder based on serviceId and partyId
         /// </summary>
         /// <typeparam name="T">The input type</typeparam>
         /// <param name="dataToSerialize">The data to serialize</param>
         /// <param name="instanceId">The formId</param>
         /// <param name="type">The type</param>
-        /// <param name="applicationOwnerId">The Organization code for the service owner</param>
-        /// <param name="applicationId">The service code for the current service</param>
-        /// <param name="instanceOwnerId">The partyId</param>
-        public async Task<Guid> UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
+            if (dataId != Guid.Empty)
+            {
+                apiUrl = $"{apiUrl}&dataId={dataId}";
+            }
 
-            using (HttpClient client = new HttpClient())
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
                 client.BaseAddress = new Uri(apiUrl);
                 XmlSerializer serializer = new XmlSerializer(type);
@@ -85,13 +104,13 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     serializer.Serialize(stream, dataToSerialize);
                     stream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
+                    Task<HttpResponseMessage> response = client.PutAsync(apiUrl, new StreamContent(stream));
                     if (!response.Result.IsSuccessStatusCode)
                     {
                         throw new Exception("Unable to save form model");
                     }
 
-                    return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
+                    //return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
                 }
             }
         }

@@ -146,10 +146,8 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="partyId">The party id of the test user</param>
         /// <param name="instanceId"> the form id</param>
         [HttpPost]
-        public Guid SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId)
+        public FileResult SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            //Guid dataId = Guid.NewGuid();
-            //Guid dataId = instanceId;
             string dataPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data";
 
             if (!Directory.Exists(dataPath))
@@ -159,7 +157,11 @@ namespace AltinnCore.Designer.Controllers
 
             string formDataFilePath = $"{dataPath}/{instanceId}.xml";
             _execution.SaveToFile(formDataFilePath, Request.Body);
-            return instanceId;
+
+            string instanceData = GetInstanceFromFile(org, service, developer, partyId, instanceId).ToString();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+            return GetInstanceFromFile(org, service, developer, partyId, instanceId);
         }
 
         /// <summary>
@@ -392,6 +394,22 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
+        /// Method that gets the workflow details of a service
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <returns>The workflow xml</returns>
+        [HttpGet]
+        public string GetWorkflowData(string org, string service, string developer, int partyId)
+        {
+            string workflowFullFilePath = _settings.GetWorkflowPath(org, service, developer) + _settings.WorkflowFileName;
+            string workflowData = System.IO.File.ReadAllText(workflowFullFilePath, Encoding.UTF8);
+            return workflowData;
+        }
+
+        /// <summary>
         /// Method that updates the current state of the service
         /// </summary>
         /// <param name="org">The organization for the service</param>
@@ -467,9 +485,14 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public ServiceState GetCurrentState(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.state.json";
+            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.json";
             string currentStateAsString = System.IO.File.ReadAllText(serviceStatePath, Encoding.UTF8);
-            return JsonConvert.DeserializeObject<ServiceState>(currentStateAsString);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(currentStateAsString);
+            Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep current);
+            return new ServiceState
+            {
+                State = current,
+            };
         }
     }
 }

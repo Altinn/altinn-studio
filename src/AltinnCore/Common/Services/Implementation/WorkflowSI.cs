@@ -15,7 +15,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service that handles functionality used for workflow
     /// </summary>
-    public class WorkflowSI : IWorkflowSI
+    public class WorkflowSI : IWorkflow
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
@@ -23,6 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
         private const string CreateInitialServiceStateMethod = "InitializeServiceState";
         private const string UpdateCurrentStateMethod = "UpdateCurrentState";
         private const string GetCurrentStateMethod = "GetCurrentState";
+        private const string GetWorkflowDataMethod = "GetWorkflowData";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowSI"/> class.
@@ -38,7 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState InitializeService(Guid instanceId, string owner, string service, int partyId)
+        public ServiceState InitializeServiceState(Guid instanceId, string owner, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string apiUrl = $"{_settings.GetRuntimeAPIPath(CreateInitialServiceStateMethod, owner, service, developer, partyId)}&instanceId={instanceId}";
@@ -58,6 +59,38 @@ namespace AltinnCore.Common.Services.Implementation
                         returnState = response.Result.Content.ReadAsAsync<ServiceState>().Result;
                     }
                     catch
+                    {
+                        return returnState;
+                    }
+                }
+            }
+
+            return returnState;
+        }
+
+        /// <inheritdoc/>
+        public ServiceState GetInitialServiceState(string owner, string service, int partyId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetWorkflowDataMethod, owner, service, developer, partyId)}";
+            ServiceState returnState = null;
+            string workflowData;
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                if (!response.Result.IsSuccessStatusCode)
+                {
+                    throw new Exception("Unable initialize service");
+                }
+                else
+                {
+                    try
+                    {
+                        workflowData = response.Result.Content.ReadAsStringAsync().Result;
+                        returnState = WorkflowHelper.GetInitialWorkflowState(workflowData);
+                    }
+                    catch (Exception ex)
                     {
                         return returnState;
                     }
@@ -100,15 +133,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public string GetUrlForCurrentState(Guid instanceId, string owner, string service, WorkflowStep currentState)
         {
-            switch (currentState)
-            {
-                case WorkflowStep.FormFilling:
-                case WorkflowStep.Submit:
-                case WorkflowStep.Archived:
-                    return $"/runtime/{owner}/{service}/{instanceId}/#Preview";
-                default:
-                    return $"/runtime/{owner}/{service}/ManualTesting";
-            }
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, owner, service, currentState);
         }
 
         /// <inheritdoc/>

@@ -121,44 +121,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// This method serialized the form model and store it in test data folder based on serviceId and partyId
-        /// </summary>
-        /// <typeparam name="T">The input type</typeparam>
-        /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
-        public async Task<Guid> SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
-            if (dataId != Guid.Empty)
-            {
-                apiUrl = $"{apiUrl}&dataId={dataId}";
-            }
-
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    serializer.Serialize(stream, dataToSerialize);
-                    stream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (!response.Result.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Unable to save form model");
-                    }
-
-                    return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
-                }
-            }
-        }
-
-        /// <summary>
         /// This method returns url of attachment upload from designer api
         /// </summary>
         /// <param name="org">The organization codefor the service owner</param>

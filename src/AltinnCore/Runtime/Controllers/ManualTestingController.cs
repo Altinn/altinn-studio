@@ -39,7 +39,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IGitea _giteaApi;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -64,7 +64,7 @@ namespace AltinnCore.Runtime.Controllers
             IExecution execution,
             IHttpContextAccessor contextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
-            IWorkflowSI workflowSI)
+            IWorkflow workflowSI)
         {
             _testdata = testdataService;
             _profile = profileService;

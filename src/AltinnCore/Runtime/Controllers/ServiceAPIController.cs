@@ -45,7 +45,8 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IProfile _profile;
         private UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
+        private readonly IData _data;
 
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
 
@@ -76,8 +77,9 @@ namespace AltinnCore.Runtime.Controllers
             IExecution executionService,
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
-            IInstance instanceSI)
+            IWorkflow workflowSI,
+            IInstance instanceSI,
+            IData data)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -93,6 +95,7 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
+            _data = data;
         }
 
         /// <summary>
@@ -282,14 +285,13 @@ namespace AltinnCore.Runtime.Controllers
             Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
-            this._form.SaveFormModel(
+            this._data.InsertData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId,
-                Guid.Empty);
+                requestContext.UserContext.ReporteeId);
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;
@@ -404,8 +406,10 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+
             // Save Formdata to database
-            this._form.SaveFormModel(
+            this._data.UpdateData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),

@@ -7,17 +7,26 @@ namespace AltinnCore.Common.Services.Interfaces
     /// <summary>
     /// Interface for the workflow service
     /// </summary>
-    public interface IWorkflowSI
+    public interface IWorkflow
     {
         /// <summary>
-        /// This method initializes the service and saves the initial status to disk
+        /// This method initializes the service state and saves the initial status to disk
         /// </summary>
         /// <param name="instanceId">The instance id</param>
         /// <param name="owner">The owner of the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId</param>
         /// <returns>The current service state</returns>
-        ServiceState InitializeService(Guid instanceId, string owner, string service, int partyId);
+        ServiceState InitializeServiceState(Guid instanceId, string owner, string service, int partyId);
+
+        /// <summary>
+        /// This method initializes the service state and saves the initial status to disk
+        /// </summary>
+        /// <param name="owner">The owner of the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId</param>
+        /// <returns>The current service state</returns>
+        ServiceState GetInitialServiceState(string owner, string service, int partyId);
 
         /// <summary>
         /// This method returns the correct url given the current state

@@ -35,7 +35,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace AltinnCore.Runtime.Controllers
             IArchive archiveService,
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
+            IWorkflow workflowSI,
             IInstance instanceSI)
         {
             _authorization = authorizationService;
@@ -346,16 +346,16 @@ namespace AltinnCore.Runtime.Controllers
                     return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
                 }
 
-                Guid instanceId;
-                Guid dataId;
-                WorkflowStep currentStep;
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
-                // Create a new instance document
-                instanceId = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
-                ServiceState currentState = _workflowSI.InitializeService(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+                // Create a new instance document                
+                Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
-                string redirectUrl = _workflowSI.GetUrlForCurrentState(instanceId, startServiceModel.Org, startServiceModel.Service, currentState.State);
+                //ServiceState currentState = _workflowSI.InitializeServiceState(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+
+                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
+
+                string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);
             }
 
