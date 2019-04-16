@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 namespace AltinnCore.Common.Models
-
 {
     /// <summary>
     /// Attachment metadata list

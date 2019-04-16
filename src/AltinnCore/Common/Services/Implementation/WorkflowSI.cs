@@ -1,12 +1,11 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Workflow;
+using AltinnCore.ServiceLibrary.Models.Workflow;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 

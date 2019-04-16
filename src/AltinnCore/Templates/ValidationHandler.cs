@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
-
+using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCoreServiceImplementation.Template
 {
