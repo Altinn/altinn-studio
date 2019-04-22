@@ -5,21 +5,21 @@ interface IErrorBoundry {
 }
 
 class ErrorBoundry extends React.Component<any, IErrorBoundry> {
-  state = {
+  private static getDerivedStateFromError(error: Error) {
+    return {
+      hasError: true,
+    };
+  }
+
+  public state = {
     hasError: false,
   };
 
-  static getDerivedStateFromError(error: Error) {
-    return {
-      hasError: true,
-    }
-  }
-
-  componentDidCatch(error: Error, info: any) {
+  public componentDidCatch(error: Error, info: any) {
     console.error(error, info);
   }
 
-  render() {
+  public render() {
     if (this.state.hasError) {
       return (
         <div>

@@ -1,21 +1,17 @@
 import * as React from 'react';
-import { FormFiller } from './containers/FormFiller';
+import FormFiller from './containers/FormFiller';
 import FormDataActions from './features/form/data/actions';
 import FormDataModelActions from './features/form/datamodell/actions';
-import FormLayoutActions from './features/form/layout/actions';
-import FormWorkflowActions from './features/form/workflow/actions';
 import FormDynamicActions from './features/form/dynamics/actions';
+import FormLayoutActions from './features/form/layout/actions';
+import FormResourceActions from './features/form/resources/actions';
+import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
+
+import { IAltinnWindow } from './types';
 
 export interface IAppProps { }
 export interface IAppState { }
-
-interface IAltinnWindow extends Window {
-  org: string;
-  service: string;
-  instanceId: string;
-  reportee: string;
-}
 
 export default () => {
   React.useEffect(() => {
@@ -33,10 +29,15 @@ export default () => {
       `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`,
     );
     FormDynamicActions.fetchFormDynamics(
-      `${window.location.origin}/runtime/api/resource/${org}/${service}/ServiceConfigurations.json`
-    )
+      `${window.location.origin}/runtime/api/resource/${org}/${service}/ServiceConfigurations.json`,
+    );
     LanguageActions.fetchLanguage(
-      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`, 'nb');
+      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
+      'nb',
+    );
+    FormResourceActions.fetchFormResource(
+      `${window.location.origin}/runtime/api/textresources/${org}/${service}`,
+    );
   }, []);
   return (
     <FormFiller />

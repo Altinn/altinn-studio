@@ -2,7 +2,7 @@ import * as React from 'react';
 
 export interface IDropdownProps {
   id: string;
-  component: IFormComponent;
+  component: any;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
@@ -12,7 +12,7 @@ export interface IDropdownProps {
 
 export interface IDropdownState {
   title: string;
-  options: IOptions[];
+  options: any[];
   name: string;
 }
 

@@ -5,12 +5,12 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IRadioButtonsContainerProps {
   id: string;
-  component: IFormRadioButtonComponent;
+  component: any;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid?: boolean;
-  validationMessages?: IComponentValidations;
+  validationMessages?: any;
   designMode: boolean;
 }
 
@@ -64,7 +64,7 @@ export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps
       id={props.id}
       style={isStacked ? {} : { alignItems: 'start' }}
     >
-      {options.map((option, index) => (
+      {options.map((option: any, index: number) => (
         <div
           className={'custom-control custom-radio pl-0 pr-4 mr-3 a-custom-radio'
             + (props.component.readOnly ? ' no-cursor' : '')}

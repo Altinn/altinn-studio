@@ -1,6 +1,6 @@
+import Typography from '@material-ui/core/Typography';
 import * as React from 'react';
-// import MessageComponent, { MessageType } from '../components/message/MessageComponent';
-import { formatCreateTextLabel, getTextResource, truncate } from './language';
+// import MessageComponent, { MessageType } from 'Shared/components/message/MessageComponent';
 
 export const styles = {
   inputHelper: {
@@ -22,7 +22,7 @@ export function noOptionsMessage(language: any): string {
   return language.general.no_options;
 }
 
-export function renderSelectDataModelBinding(
+/*export function renderSelectDataModelBinding(
   dataModelBinding: IDataModelBindings = {},
   onDataModelChange: any,
   language: any,
@@ -46,13 +46,12 @@ export function renderSelectDataModelBinding(
       />
     </div>
   );
-}
+}*/
 
 export function renderValidationMessagesForComponent(
-  validationMessages: IComponentBindingValidation,
+  validationMessages: any,
   id: string,
 ): JSX.Element[] {
-  /*
   if (!validationMessages) {
     return null;
   }
@@ -65,11 +64,15 @@ export function renderValidationMessagesForComponent(
     validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `message_${id}`, 'message'));
   }
   return validationMessageElements.length > 0 ? validationMessageElements : null;
-  */
 }
-/*
-export function renderValidationMessages(messages: string[], id: string, messageType: MessageType) {
+
+export function renderValidationMessages(messages: string[], id: string, messageType: any) {
   return (
+    <div>
+      Error here
+    </div>
+  );
+  /*return (
     <MessageComponent
       messageType={messageType}
       style={{ display: 'block', width: 'fit-content' }}
@@ -84,5 +87,5 @@ export function renderValidationMessages(messages: string[], id: string, message
         })}
       </ol>
     </MessageComponent>
-  );
-} */
+  );*/
+}

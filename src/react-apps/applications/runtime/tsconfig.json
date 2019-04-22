@@ -22,12 +22,7 @@
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "../",
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": false,
-    "noUnusedLocals": true
+    "rootDir": "../"
   },
   "include": [
     "./runtime/src/**/*",

@@ -1,12 +1,11 @@
 import * as React from 'react';
 import { createRef } from 'react';
-import { IFormComponent } from '../../features/form/layout/types';
 import '../../styles/DatepickerComponent.css';
 import '../../styles/shared.css';
 
 export interface IDatePickerProps {
   id: string;
-  component: IFormComponent;
+  component: any;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
@@ -54,11 +53,7 @@ export class DatepickerComponent
             className={(this.props.component.readOnly ? 'disabled-date ' : '') +
               (this.props.isValid ?
                 'form-control a-hasButton date' :
-<<<<<<< HEAD
-                'form-control a-hasButton date')}
-=======
                 'form-control a-hasButton date validation-error')}
->>>>>>> epic/1425-runtime-app
             onBlur={this.onDateChange}
             onChange={this.onDateChange}
             disabled={this.props.component.readOnly}

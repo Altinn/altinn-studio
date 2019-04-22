@@ -1,40 +1,43 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { IRuntimeState } from '../reducers';
+import { GenericComponentWrapper } from '../components/GenericComponent';
 import { Container } from './Container';
 
+import { ILayout } from '../features/form/layout/types';
+import { IRuntimeState } from '../types';
 export interface IPreviewProps {
-  layoutOrder: any;
-  components: any;
-  containers: any;
+  layout: ILayout;
 }
 
-export class PreviewComponent extends React.Component<
-  IPreviewProps,
-  null
-  > {
+export class PreviewComponent extends React.Component<IPreviewProps, null> {
   public render(): JSX.Element {
-    const baseContainerId = Object.keys(this.props.layoutOrder).length > 0 ?
-      Object.keys(this.props.layoutOrder)[0] :
-      null;
-    if (!baseContainerId) {
-      return null;
-    }
+    const { layout } = this.props;
     return (
-      <Container />
+      <>
+        {layout.map((component: any) => {
+          if (component.type === 'Container') {
+            return (
+              <Container
+                {...component}
+              />
+            );
+          } else {
+            return (
+              <GenericComponentWrapper
+                {...component}
+              />
+            );
+          }
+        })}
+      </>
     );
   }
 }
 
-const makeMapStateToProps = () => {
-  const mapStateToProps = (state: IRuntimeState, empty: any): IPreviewProps => {
-    return {
-      layoutOrder: state.formLayout.order || [],
-      components: [],
-      containers: [],
-    };
+const mapStateToProps = (state: IRuntimeState): IPreviewProps => {
+  return {
+    layout: state.formLayout.layout,
   };
-  return mapStateToProps;
 };
 
-export const Preview = connect(makeMapStateToProps)(PreviewComponent);
+export default connect(mapStateToProps)(PreviewComponent);

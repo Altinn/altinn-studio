@@ -1,25 +1,20 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../../../utils/networking';
+// import { get } from '../../../../../utils/networking';
 import Actions from '../../actions';
 import { IFetchFormLayout } from '../../actions/fetch';
 import * as ActionTypes from '../../actions/types';
 
+import { testData } from './testData';
+
 function* fetchFormLayoutSaga({ url }: IFetchFormLayout): SagaIterator {
   try {
-    const formLayout = yield call(get, url);
-    const { components, containers, order } = formLayout.data;
-    if (!formLayout || !formLayout.data) {
-      yield call(
-        Actions.fetchFormLayoutFulfilled,
-        null, null, null,
-      );
-    } else {
-      yield call(
-        Actions.fetchFormLayoutFulfilled,
-        components, containers, order,
-      );
-    }
+    // const formLayout = yield call(get, url);
+    const { layout } = testData.data;
+    yield call(
+      Actions.fetchFormLayoutFulfilled,
+      layout,
+    );
   } catch (err) {
     yield call(Actions.fetchFormLayoutRejected, err);
   }

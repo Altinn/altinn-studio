@@ -9,11 +9,12 @@ import ConfigActions from '../../../config/actions';
 
 // import { get } from 'Shared/utils/networking';
 
-import { dataModel } from './testData';
+import { testData } from './testData';
 
 function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {
     // const dataModel = yield call(get, url);
+    const dataModel: any = testData;
     const {
       Org,
       ServiceName,

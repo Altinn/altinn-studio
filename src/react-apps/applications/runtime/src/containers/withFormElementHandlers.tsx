@@ -1,19 +1,21 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-import { IRuntimeState } from '../reducers';
 
-export interface IFormComponentHandlerProvidedProps {
+import { IRuntimeState } from '../types';
+
+export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
-  component: IFormComponent;
+  dataBinding: string;
+  title: string;
 }
 
-export interface IFormComponentHandlerProps extends IFormComponentHandlerProvidedProps {
-  textResources: ITextResource[];
+export interface IProps extends IProvidedProps {
+  textResources: any[];
 }
 
 export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<any>): React.ComponentClass<any> => {
-  class FormComponentWithHandlers extends React.Component<IFormComponentHandlerProps> {
+  class FormComponentWithHandlers extends React.Component<IProps> {
 
     public handleDataUpdate = (data: any) => this.props.handleDataUpdate(data);
 
@@ -27,28 +29,24 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
 
-      const text = this.getTextResource(this.props.component.textResourceBindings.title);
-
+      const text = this.getTextResource(this.props.title);
       return (
-        <WrappedComponent
-          id={id}
-          handleDataChange={this.handleDataUpdate}
-          text={text}
-          size={this.props.component.size}
-          {...passThroughProps}
-        />
+        <>
+          {text}
+          <WrappedComponent
+            id={id}
+            handleDataChange={this.handleDataUpdate}
+            {...passThroughProps}
+          />
+        </>
       );
     }
   }
 
-  const mapStateToProps: (state: IRuntimeState, props: IFormComponentHandlerProvidedProps) =>
-    IFormComponentHandlerProps = (state: IRuntimeState, props: IFormComponentHandlerProvidedProps):
-      IFormComponentHandlerProps => ({
-        id: props.id,
-        textResources: state.formDataModel.dataModel,
-        component: state.formLayout.components[props.id],
-        handleDataUpdate: props.handleDataUpdate,
-      });
+  const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IProps => ({
+    textResources: state.formResources.languageResource.resources,
+    ...props,
+  });
 
   return connect(mapStateToProps)(FormComponentWithHandlers);
 };

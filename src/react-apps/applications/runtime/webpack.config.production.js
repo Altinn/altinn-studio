@@ -10,9 +10,9 @@ module.exports = {
   entry: "./src/index.tsx",
   output: {
     filename: "runtime.js",
-    chunkFilename: '[name].bundle.js'
+    // chunkFilename: '[name].bundle.js'
   },
-  optimization: {
+  /*optimization: {
     splitChunks: {
       chunks: 'all',
       maxInitialRequests: Infinity,
@@ -27,7 +27,7 @@ module.exports = {
         }
       }
     },
-  },
+  },*/
   resolve: {
     extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
     alias: {

@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface IHeaderProps {
-  component: IFormComponent;
+  component: any;
   text: string;
   size?: string;
 }

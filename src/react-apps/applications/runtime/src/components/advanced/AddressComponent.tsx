@@ -8,13 +8,13 @@ import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface IAddressComponentProps {
-  component: IFormAddressComponent;
+  component: any;
   formData: { [id: string]: string };
   handleDataChange: (value: any, key: string) => void;
   getTextResource: (key: string) => string;
   isValid?: boolean;
   simplified: boolean;
-  validationMessages?: IComponentValidations;
+  validationMessages?: any;
 }
 
 interface IAddressValidationErrors {
@@ -149,7 +149,7 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
     });
   }
 
-  public joinValidationMessages = (): IComponentValidations => {
+  public joinValidationMessages = (): any => {
     const { validations } = this.state as any;
     let { validationMessages } = this.props;
 

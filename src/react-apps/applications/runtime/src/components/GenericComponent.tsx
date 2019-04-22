@@ -2,62 +2,45 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
-import { IRuntimeState } from '../reducers';
+import FormDataActions from '../features/form/data/actions';
 import components from './';
 
-export interface IGenericComponentProps {
+import { IRuntimeState } from '../types';
+
+export interface IProvidedProps {
   id: string;
-  component: FormComponentType;
-  isValid: boolean;
-  formData: any;
-  validationMessages?: IComponentValidations;
-  handleDataChange: (callbackValue: any) => void;
-  getTextResource: (key: string) => string;
-  thirdPartyComponents?: any;
-  language?: any;
-  attachments?: IAttachments;
+  type: string;
+  title: string;
+  dataBinding: string;
 }
 
-class GenericComponent extends React.Component<IGenericComponentProps> {
+export interface IGenericComponentProps extends IProvidedProps {
+  formData: string;
+  isValid: boolean;
+}
 
-  public renderThirdPartyComponent = (): JSX.Element => {
-    const [packageName, component] = this.props.component.textResourceBindings.title.split(' - ');
-    if (!this.props.thirdPartyComponents || !this.props.thirdPartyComponents[packageName]
-      || !this.props.thirdPartyComponents[packageName][component]) {
-      return null;
-    }
-    return thirdPartyComponentWithElementHandler(this.props.thirdPartyComponents[packageName][component],
-      this.props.handleDataChange);
+class GenericComponent extends React.Component<any> {
+
+  public handleDataUpdate = (data: any) => {
+    FormDataActions.updateFormData(this.props.dataBinding, data);
   }
 
   public render() {
-    if (this.props.component.component === 'ThirdParty') {
-      return this.renderThirdPartyComponent();
-    }
-    const TagName = formComponentWithHandlers(components.find((c: any) => c.name ===
-      this.props.component.component).Tag);
-    console.log(this.props.component);
+    const Component = formComponentWithHandlers(components.find((c: any) =>
+      c.name === this.props.type,
+    ).Tag);
     return (
-      <TagName
-        id={this.props.id}
-        component={this.props.component}
-        isValid={this.props.isValid}
-        formData={this.props.formData}
-        getTextResource={this.props.getTextResource}
-        handleDataChange={this.props.handleDataChange}
-        validationMessages={this.props.validationMessages}
-        language={this.props.language}
+      <Component
+        {...this.props}
+        handleDataUpdate={this.handleDataUpdate}
       />
     );
   }
 }
-const makeMapStateToProps = () => {
-  const mapStateToProps = (state: IRuntimeState, props: IGenericComponentProps): IGenericComponentProps => ({
-    ...props,
-    // thirdPartyComponents: state.appData.thirdPartyComponents.components,
-    language: state.language.language,
-  });
-  return mapStateToProps;
-};
+const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => ({
+  formData: state.formData.formData[props.dataBinding],
+  isValid: true,
+  ...props,
+});
 
-export const GenericComponentWrapper = connect(makeMapStateToProps)(GenericComponent);
+export const GenericComponentWrapper = connect(mapStateToProps)(GenericComponent);

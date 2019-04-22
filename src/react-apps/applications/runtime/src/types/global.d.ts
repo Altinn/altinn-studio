@@ -1,7 +1,11 @@
 import { IFormConfigState } from '../features/form/config/reducer';
 import { IFormDataState } from '../features/form/data/reducer';
+import { IDataModelState } from '../features/form/datamodell/reducer';
+import { IFormDynamicState } from '../features/form/dynamics/reducer';
+import { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import { ILayoutState } from '../features/form/layout/reducer';
 import { IWorkflowState } from '../features/form/workflow/reducer';
+import { ILanguageState } from '../features/languages/reducer';
 
 declare global {
   export interface IRuntimeStore {
@@ -9,6 +13,10 @@ declare global {
     formData: IFormDataState;
     formConfig: IFormConfigState;
     formWorkflow: IWorkflowState;
+    formDataModel: IDataModelState;
+    formAttachements: IFormFileUploadState;
+    formDynamics: IFormDynamicState;
+    language: ILanguageState;
   }
 
   export interface IAltinnWindow extends Window {

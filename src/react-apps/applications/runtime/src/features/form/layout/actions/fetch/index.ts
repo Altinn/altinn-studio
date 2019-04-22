@@ -1,4 +1,8 @@
 import { Action } from 'redux';
+import {
+  ILayoutComponent,
+  ILayoutContainer,
+} from '../../types';
 import * as actionTypes from '../types';
 
 export interface IFetchFormLayout extends Action {
@@ -13,17 +17,13 @@ export function fetchFormLayout(url: string): IFetchFormLayout {
 }
 
 export interface IFetchFormLayoutFulfilled extends Action {
-  components: any;
-  containers: any;
-  order: any;
+  layout: [ILayoutComponent | ILayoutContainer];
 }
 
-export function fetchFormLayoutFulfilled(components: any, containers: any, order: any): IFetchFormLayoutFulfilled {
+export function fetchFormLayoutFulfilled(layout: [ILayoutComponent | ILayoutContainer]): IFetchFormLayoutFulfilled {
   return {
     type: actionTypes.FETCH_FORM_LAYOUT_FULFILLED,
-    components,
-    containers,
-    order,
+    layout,
   };
 }
 

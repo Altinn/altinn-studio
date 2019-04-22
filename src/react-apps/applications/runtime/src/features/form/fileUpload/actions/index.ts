@@ -23,7 +23,7 @@ export interface IFileUploadActions extends ActionCreatorsMapObject {
     attachmentId: string,
     attachmentType: string,
     componentId: string,
-    validationMessages: IComponentValidations,
+    validationMessages: any,
   ) => uploadActions.IUploadAttachmentActionRejected;
   deleteAttachment: (
     attachment: IAttachment,
@@ -39,7 +39,7 @@ export interface IFileUploadActions extends ActionCreatorsMapObject {
     attachment: IAttachment,
     attachmentType: string,
     componentId: string,
-    validationMessages: IComponentValidations,
+    validationMessages: any,
   ) => deleteActions.IDeleteAttachmentActionRejected;
   fetchAttachments: () => Action;
   fetchAttachmentsFulfilled: (attachments: IAttachments) => fetchActions.IFetchAttachmentsActionFulfilled;

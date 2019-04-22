@@ -1,6 +1,5 @@
-import update, { extend } from 'immutability-helper';
+import Immutable from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as actionTypes from '../actions/types';
 import {
   IFetchFormDataFulfilled,
   IFetchFormDataRejected,
@@ -8,6 +7,7 @@ import {
 import {
   ISubmitFormDataRejected,
 } from '../actions/submit';
+import * as actionTypes from '../actions/types';
 import {
   IUpdateFormDataFulfilled,
   IUpdateFormDataRejected,
@@ -27,7 +27,7 @@ const initialState: IFormDataState = {
   error: null,
 };
 
-extend('$setField', (params: any, original: IFormData) => {
+Immutable.extend('$setField', (params: any, original: IFormData) => {
   original[params.field] = params.data;
   return original;
 });
@@ -43,7 +43,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
   switch (action.type) {
     case actionTypes.FETCH_FORM_DATA_FULFILLED: {
       const { formData } = action as IFetchFormDataFulfilled;
-      return update<IFormDataState>(state, {
+      return Immutable<IFormDataState>(state, {
         formData: {
           $merge: formData,
         }
@@ -51,7 +51,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
     }
     case actionTypes.FETCH_FORM_DATA_REJECTED: {
       const { error } = action as IFetchFormDataRejected;
-      return update<IFormDataState>(state, {
+      return Immutable<IFormDataState>(state, {
         error: {
           $set: error,
         },
@@ -59,7 +59,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
     }
     case actionTypes.UPDATE_FORM_DATA_FULFILLED: {
       const { field, data } = action as IUpdateFormDataFulfilled;
-      return update<IFormDataState>(state, {
+      return Immutable<IFormDataState>(state, {
         formData: {
           $setField: {
             field,
@@ -70,7 +70,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
     };
     case actionTypes.UPDATE_FORM_DATA_REJECTED: {
       const { error } = action as IUpdateFormDataRejected;
-      return update<IFormDataState>(state, {
+      return Immutable<IFormDataState>(state, {
         error: {
           $set: error,
         },
@@ -78,7 +78,7 @@ const FormDataReducer: Reducer<IFormDataState> = (
     }
     case actionTypes.SUBMIT_FORM_DATA_REJECTED: {
       const { error } = action as ISubmitFormDataRejected;
-      return update<IFormDataState>(state, {
+      return Immutable<IFormDataState>(state, {
         error: {
           $set: error,
         },

@@ -20,7 +20,7 @@ export interface IUploadAttachmentActionRejected extends Action {
   attachmentId: string;
   attachmentType: string;
   componentId: string;
-  validationMessages: IComponentValidations;
+  validationMessages: any;
 }
 
 export function uploadAttachment(
@@ -57,7 +57,7 @@ export function uploadAttachmentRejected(
   attachmentId: string,
   attachmentType: string,
   componentId: string,
-  validationMessages: IComponentValidations,
+  validationMessages: any,
 ): IUploadAttachmentActionRejected {
   return {
     type: ActionTypes.UPLOAD_ATTACHMENT_REJECTED,

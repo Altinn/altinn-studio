@@ -1,22 +1,22 @@
 import update from 'immutability-helper';
 import { Action, Reducer } from 'redux';
-import * as ActionTypes from '../actions/types';
 import {
   IFetchFormLayoutFulfilled,
-  IFetchFormLayoutRejected
+  IFetchFormLayoutRejected,
 } from '../actions/fetch';
+import * as ActionTypes from '../actions/types';
+import {
+  ILayoutComponent,
+  ILayoutContainer,
+} from '../types';
 
 export interface ILayoutState {
-  components: any;
-  containers: any;
-  order: any;
+  layout: [ILayoutComponent | ILayoutContainer];
   error: Error;
-};
+}
 
 const initialState: ILayoutState = {
-  components: null,
-  containers: null,
-  order: null,
+  layout: null,
   error: null,
 };
 
@@ -30,16 +30,10 @@ const LayoutReducer: Reducer<ILayoutState> = (
 
   switch (action.type) {
     case ActionTypes.FETCH_FORM_LAYOUT_FULFILLED: {
-      const { components, containers, order } = action as IFetchFormLayoutFulfilled;
+      const { layout } = action as IFetchFormLayoutFulfilled;
       return update<ILayoutState>(state, {
-        components: {
-          $set: components,
-        },
-        containers: {
-          $set: containers,
-        },
-        order: {
-          $set: order,
+        layout: {
+          $set: layout,
         },
         error: {
           $set: null,

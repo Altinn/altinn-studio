@@ -5,7 +5,7 @@ import FormDataActions from '../../actions';
 import * as FormDataActionTypes from '../../actions/types';
 import { IUpdateFormData } from '../../actions/update';
 
-function* updateFormDataSaga({data, field}: IUpdateFormData): SagaIterator {
+function* updateFormDataSaga({ data, field }: IUpdateFormData): SagaIterator {
   try {
     yield call(FormDataActions.updateFormDataFulfilled, field, data);
   } catch (err) {
@@ -13,6 +13,6 @@ function* updateFormDataSaga({data, field}: IUpdateFormData): SagaIterator {
   }
 }
 
-export function* watchUpdateFormDataSaga (): SagaIterator {
+export function* watchUpdateFormDataSaga(): SagaIterator {
   yield takeLatest(FormDataActionTypes.UPDATE_FORM_DATA, updateFormDataSaga);
 }

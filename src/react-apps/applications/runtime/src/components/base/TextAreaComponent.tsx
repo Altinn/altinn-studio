@@ -1,10 +1,9 @@
 import * as React from 'react';
-import { IFormTextAreaComponent } from '../../features/form/layout/types';
 import '../../styles/shared.css';
 
 export interface ITextAreaComponentProps {
   id: string;
-  component: IFormTextAreaComponent;
+  component: any;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;

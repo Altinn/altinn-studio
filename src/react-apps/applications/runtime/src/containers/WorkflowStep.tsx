@@ -2,7 +2,8 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormFillerActions from '../features/form/data/actions';
-import { IRuntimeState } from '../reducers';
+
+import { IAltinnWindow, IRuntimeState } from '../types';
 
 export interface IWorkflowStepProvidedProps {
   header: string;
@@ -225,25 +226,14 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
             </div>
           </div>
         </div>
-      </ div>
+      </div>
     );
   }
 }
 
-const getErrorList = (validations: IValidationResults) => {
-  const unmappedValidations = validations.unmapped;
-  if (!unmappedValidations) {
-    return null;
-  }
-
-  return Object.keys(unmappedValidations).map((validationKey) => {
-    return unmappedValidations[validationKey].errors.join(', ');
-  });
-};
-
 const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
-    language: state.language.language,
+    language: state.language,
     errorList: null,
     ...props,
   };

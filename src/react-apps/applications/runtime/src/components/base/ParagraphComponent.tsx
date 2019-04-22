@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface IParagraphProps {
-  component: IFormComponent;
+  component: any;
   text: string;
 }
 

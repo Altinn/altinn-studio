@@ -8,16 +8,14 @@ import FormFileUploadDispatcher from '../../features/form/fileUpload/actions';
 import { IAttachment } from '../../features/form/fileUpload/types';
 import '../../styles/FileUploadComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
-import { IRuntimeState } from '../../reducers';
-import FormFillerActionDispatchers from '../../actions/formFillerActions/formFillerActionDispatcher';
-import '../../styles/FileUploadComponent.css';
-import { renderValidationMessagesForComponent } from '../../utils/render';
+
+import { IRuntimeState } from '../../types';
 
 export interface IFileUploadProvidedProps {
   id: string;
-  component: IFormFileUploaderComponent;
+  component: any;
   isValid?: boolean;
-  validationMessages?: IComponentValidations;
+  validationMessages?: any;
   language: any;
 }
 
@@ -122,10 +120,10 @@ export class FileUploadComponentClass
     this.setState({
       attachments: newList,
     });
-    FormFillerActionDispatchers.deleteAttachment(attachmentToDelete, fileType, this.props.id);
+    FormFileUploadDispatcher.deleteAttachment(attachmentToDelete, fileType, this.props.id);
   }
 
-  public getComponentValidations = (): IComponentValidations => {
+  public getComponentValidations = (): any => {
     const { validations } = this.state;
     let { validationMessages } = this.props;
     if (!validationMessages || !validationMessages.simpleBinding) {
@@ -271,10 +269,6 @@ export class FileUploadComponentClass
     const validationMessages = this.getComponentValidations();
     const showFileUpload: boolean = this.shouldShowFileUpload();
     const hasValidationMessages: boolean = validationMessages.simpleBinding.errors.length > 0;
-<<<<<<< HEAD
-    console.log(this.props.language);
-=======
->>>>>>> epic/1425-runtime-app
     return (
       <div className={'container'} id={'altinn-fileuploader-' + this.props.id}>
         {showFileUpload &&
@@ -324,22 +318,15 @@ export class FileUploadComponentClass
   }
 }
 
-<<<<<<< HEAD
 const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
   return {
     ...props,
-    attachments: state.formAttachements.attachments[props.id] || [],
-=======
-const mapStateToProps = (state: IAppState, props: IFileUploadProvidedProps): IFileUploadProps => {
-  return {
-    ...props,
-    attachments: state.formFiller.attachments[props.id] || [],
->>>>>>> epic/1425-runtime-app
+    attachments: state.formAttachments.attachments[props.id] || [],
   };
 };
 
-export function getFileUploadComponentValidations(validationError: string, language: any): IComponentValidations {
-  const componentValidations: IComponentValidations = {
+export function getFileUploadComponentValidations(validationError: string, language: any): any {
+  const componentValidations: any = {
     ['simpleBinding']: {
       errors: [],
       warnings: [],

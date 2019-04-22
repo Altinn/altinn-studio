@@ -5,12 +5,12 @@ import { renderValidationMessagesForComponent } from '../../utils/render';
 
 export interface ICheckboxContainerProps {
   id: string;
-  component: IFormCheckboxComponent;
+  component: any;
   formData: any;
   handleDataChange: (value: any) => void;
   getTextResource: (resourceKey: string) => string;
   isValid: boolean;
-  validationMessages: IComponentValidations;
+  validationMessages: any;
   designMode: boolean;
 }
 

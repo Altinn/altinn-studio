@@ -3,9 +3,11 @@ import { connect } from 'react-redux';
 import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import FormDataActions from '../features/form/data/actions';
 import { WorkflowSteps } from '../features/form/workflow/typings';
+import Preview from './Preview';
 import { WorkflowStep } from './WorkflowStep';
-import { IRuntimeState } from '../reducers';
-import { Preview } from './Preview';
+
+import { IAltinnWindow, IRuntimeState } from '../types';
+
 export interface IFormFillerProps {
   formDataCount: number;
   textResources: any[];
@@ -13,29 +15,32 @@ export interface IFormFillerProps {
   validationResults: any;
   workflowStep: WorkflowSteps;
 }
-const FormFillerComponent = (props: IFormFillerProps) => {
-  const [workflowStep, setWorkFlowStep] = React.useState(props.workflowStep);
+
+const FormFiller = (props: IFormFillerProps) => {
+  const [workflowStep, setWorkflowStep] = React.useState(props.workflowStep);
 
   React.useEffect(() => {
-    setWorkFlowStep(props.workflowStep);
+    setWorkflowStep(props.workflowStep);
   }, [props]);
 
   const handleStepChange = (step: WorkflowSteps) => {
-    setWorkFlowStep(step);
+    setWorkflowStep(step);
   };
 
   const saveFormData = () => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { reportee, org, service, instanceId } = altinnWindow;
-    FormDataActions.submitFormData(`
-        ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`);
+    FormDataActions.submitFormData(
+      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+    );
   };
 
   const submitForm = () => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { reportee, org, service, instanceId } = altinnWindow;
-    FormDataActions.submitFormData(`
-      ${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`, 'Complete');
+    const { reportee, org, service, instanceId } = window as IAltinnWindow;
+    FormDataActions.submitFormData(
+      `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/${instanceId}`,
+      'Complete',
+    );
   };
 
   const renderSaveButton = () => {
@@ -97,4 +102,4 @@ const mapStateToProps = (state: IRuntimeState): IFormFillerProps => {
   };
 };
 
-export const FormFiller = connect(mapStateToProps)(FormFillerComponent);
+export default connect(mapStateToProps)(FormFiller);
