@@ -1,3 +1,5 @@
+using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -7,17 +9,20 @@ namespace Designer.Controllers
     /// Controller for compile API endpoint
     /// </summary>
     [ApiController]
+    [Authorize]
     [Route("api/v1/[controller]")]
     public class CompileController : ControllerBase
     {
         private readonly ILogger _logger;
+        private readonly ICompilation _compilation;
 
         /// <summary>
         /// Initializes a new instance of the CompileController
         /// </summary>
-        public CompileController(ILogger<CompileController> logger)
+        public CompileController(ILogger<CompileController> logger, ICompilation compilation)
         {
             _logger = logger;
+            _compilation = compilation;
         }
 
         /// <summary>
@@ -26,6 +31,7 @@ namespace Designer.Controllers
         /// <param name="org"></param>
         /// <param name="service"></param>
         /// <returns>A compile result</returns>
+        [HttpPost]
         public IActionResult Compile(string org, string service)
         {
             return Ok(org + " " + service);
