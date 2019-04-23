@@ -1,5 +1,6 @@
 import App from '../app';
 import { Selector, t } from 'testcafe';
+import axeCheck from 'axe-testcafe';
 import CommonPage from '../page-objects/common';
 import DashBoard from '../page-objects/DashboardPage';
 import LoginPage from '../page-objects/loginPage';
@@ -45,10 +46,22 @@ test('Upload files using file component in SBL', async () => {
     .click(runtime.openManualTestWindow)
     .click(runtime.testUsers[0])
     .click(runtime.startNewButton)
-    //.expect(runtime.fileDropComponent.visible).ok()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.fileDeleteButton)
+    .expect(runtime.fileDropComponent.exists).ok()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
+})
+
+test('axe UI accessibility test for runtime', async t => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
+    .click(designer.testeNavigationTab)
+    .hover(designer.leftDrawerMenu)
+    .click(designer.testeLeftMenuItems[0])
+    .click(runtime.openManualTestWindow)
+    .click(runtime.testUsers[0])
+    .click(runtime.startNewButton)
+  axeCheck(t);
 });
