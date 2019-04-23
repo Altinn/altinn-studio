@@ -42,7 +42,7 @@ namespace AltinnCore.Common.Services.Implementation
             string textData = File.ReadAllText(path, Encoding.UTF8);
             UserProfile userProfile = JsonConvert.DeserializeObject<UserProfile>(textData);
 
-            userProfile.Party = _registerService.GetParty(userProfile.PartyId);
+            userProfile.Party = _registerService.GetPartyFromTestFile(userProfile.PartyId);
 
             return userProfile;
         }

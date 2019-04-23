@@ -8,10 +8,10 @@ namespace AltinnCore.Common.Services.Interfaces
     public interface IRegister
     {
         /// <summary>
-        /// Operation that returns the Party for a given partyId
+        /// Operation that returns the Party for a given partyId from a testfile
         /// </summary>
         /// <param name="partyId">The partyId</param>
         /// <returns>The party</returns>
-        Party GetParty(int partyId);
+        Party GetPartyFromTestFile(int partyId);
     }
 }

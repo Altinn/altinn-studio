@@ -58,7 +58,7 @@ namespace AltinnCore.Common.Helpers
                 }
             }
 
-            userContext.UserParty = _registerService.GetParty(userContext.PartyId);
+            userContext.UserParty = _registerService.GetPartyFromTestFile(userContext.PartyId);
 
             if (context.Request.Cookies["altinncorereportee"] != null)
             {
@@ -69,7 +69,7 @@ namespace AltinnCore.Common.Helpers
                 userContext.ReporteeId = userContext.PartyId;
             }
 
-            userContext.Reportee = _registerService.GetParty(userContext.ReporteeId);
+            userContext.Reportee = _registerService.GetPartyFromTestFile(userContext.ReporteeId);
             return userContext;
         }
     }

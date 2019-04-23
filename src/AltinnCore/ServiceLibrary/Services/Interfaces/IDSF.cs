@@ -1,6 +1,6 @@
 using AltinnCore.ServiceLibrary.Models;
 
-namespace AltinnCore.Common.Services.Interfaces
+namespace AltinnCore.ServiceLibrary.Services.Interfaces
 {
     /// <summary>
     /// Interface for the resident registration database (DSF: Det sentrale folkeregisteret)

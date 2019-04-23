@@ -33,7 +33,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="partyId">The partyId</param>
         /// <returns>The party</returns>
-        public Party GetParty(int partyId)
+        public Party GetPartyFromTestFile(int partyId)
         {
             string path = _testdataRepositorySettings.RepositoryLocation + TESTDATA_PARTY_DIRECTORY + partyId + @"/" + PARTY_FILENAME;
             string textData = File.ReadAllText(path, Encoding.UTF8);
