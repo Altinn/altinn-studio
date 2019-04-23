@@ -6,6 +6,7 @@ import * as DeployActionTypes from './deployActionTypes';
 export interface IDeployState {
   deploymentList: any;
   masterRepoStatus: any;
+  deployStatus: any;
 }
 
 const initialState: IDeployState = {
@@ -19,6 +20,19 @@ const initialState: IDeployState = {
     },
   },
   masterRepoStatus: null,
+  deployStatus: {
+    at21: {
+      deployStartedSuccess: null,
+      result: {
+        status: null,
+        startTime: null,
+        finishTime: null,
+        success: null,
+        message: null,
+        buildId: null,
+      },
+    },
+  },
 };
 
 const deployReducer: Reducer<IDeployState> = (
@@ -71,6 +85,53 @@ const deployReducer: Reducer<IDeployState> = (
       return update<IDeployState>(state, {
         masterRepoStatus: {
           $set: result,
+        },
+      });
+    }
+
+    case DeployActionTypes.DEPLOY_ALTINN_APP_FULFILLED: {
+      const { result, env } = action as DeployActions.IDeployAltinnAppFulfilled;
+      return update<IDeployState>(state, {
+        deployStatus: {
+          [env]: {
+            result: {
+              $set: result,
+            },
+            deployStartedSuccess: {
+              $set: true,
+            },
+          },
+        },
+      });
+    }
+
+    case DeployActionTypes.DEPLOY_ALTINN_APP_REJECTED: {
+      const { result, env } = action as DeployActions.IDeployAltinnAppRejected;
+      console.error(result);
+      return update<IDeployState>(state, {
+        deployStatus: {
+          [env]: {
+            deployStartedSuccess: {
+              $set: false,
+            },
+          },
+        },
+      });
+    }
+
+    case DeployActionTypes.FETCH_DEPLOY_ALTINN_APP_STATUS_FULFILLED: {
+      const { result, env } = action as DeployActions.IFetchDeployAltinnAppStatusFulfilled;
+      console.log('env', env)
+      return update<IDeployState>(state, {
+        deployStatus: {
+          [env]: {
+            result: {
+              $set: result,
+            },
+            deployStartedSuccess: {
+              $set: null,
+            },
+          },
         },
       });
     }

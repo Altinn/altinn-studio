@@ -1,3 +1,4 @@
+/* tslint:disable:max-line-length */
 const moduleName: string = 'DEPLOY';
 
 export const FETCH_DEPLOYMENTS: string = `${moduleName}.FETCH_DEPLOYMENTS`;
@@ -11,3 +12,7 @@ export const FETCH_MASTER_REPO_STATUS_REJECTED: string = `${moduleName}.FETCH_MA
 export const DEPLOY_ALTINN_APP: string = `${moduleName}.DEPLOY_ALTINN_APP`;
 export const DEPLOY_ALTINN_APP_FULFILLED: string = `${moduleName}.DEPLOY_ALTINN_APP_FULFILLED`;
 export const DEPLOY_ALTINN_APP_REJECTED: string = `${moduleName}.DEPLOY_ALTINN_APP_REJECTED`;
+
+export const FETCH_DEPLOY_ALTINN_APP_STATUS: string = `${moduleName}.FETCH_DEPLOY_ALTINN_APP_STATUS`;
+export const FETCH_DEPLOY_ALTINN_APP_STATUS_FULFILLED: string = `${moduleName}.FETCH_DEPLOY_ALTINN_APP_STATUS_FULFILLED`;
+export const FETCH_DEPLOY_ALTINN_APP_STATUS_REJECTED: string = `${moduleName}.FETCH_DEPLOY_ALTINN_APP_STATUS_REJECTED`;

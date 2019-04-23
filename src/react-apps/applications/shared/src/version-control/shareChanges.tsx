@@ -87,7 +87,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
               <AltinnIcon
                 iconClass='fa fa-upload'
                 iconColor={theme.altinnPalette.primary.blueDark}
-                iconSize={14}
+                iconSize={36}
                 margin='0px 5px 0px 0px'
                 weight={this.props.moreThanAnHourSinceLastPush ? 600 : null}
               />

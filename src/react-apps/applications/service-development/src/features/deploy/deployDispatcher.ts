@@ -1,3 +1,4 @@
+/* tslint:disable:max-line-length */
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../store';
 import * as DeployActions from './deployActions';
@@ -7,12 +8,18 @@ import * as DeployActions from './deployActions';
  * and which datamodel those actions expect.
  */
 export interface IDeployDispatchers extends ActionCreatorsMapObject {
-  fetchDeployments: (env: string, org: string, repo: string) => DeployActions.IFetchDeploymentsAction;
+  fetchDeployments: (env: string, org: string, repo: string) => DeployActions.IFetchDeployments;
   fetchDeploymentsFulfilled: (result: any, env: string) => DeployActions.IFetchDeploymentsFulfilled;
   fetchDeploymentsRejected: (result: Error, env: string) => DeployActions.IFetchDeploymentsRejected;
-  fetchMasterRepoStatus: (url: string, org: string, repo: string) => DeployActions.IFetchMasterRepoStatusAction;
+  fetchMasterRepoStatus: (org: string, repo: string) => DeployActions.IFetchMasterRepoStatus;
   fetchMasterRepoStatusFulfilled: (result: any) => DeployActions.IFetchMasterRepoStatusFulfilled;
   fetchMasterRepoStatusRejected: (result: Error) => DeployActions.IFetchMasterRepoStatusRejected;
+  deployAltinnApp: (env: string, org: string, repo: string) => DeployActions.IDeployAltinnApp;
+  deployAltinnAppFulfilled: (result: any, env: string) => DeployActions.IDeployAltinnAppFulfilled;
+  deployAltinnAppRejected: (result: Error, env: string) => DeployActions.IDeployAltinnAppRejected;
+  fetchDeployAltinnAppStatus: (env: string, org: string, repo: string, buildId: string) => DeployActions.IFetchDeployAltinnAppStatus;
+  fetchDeployAltinnAppStatusFulfilled: (result: any, env: string) => DeployActions.IFetchDeployAltinnAppStatusFulfilled;
+  fetchDeployAltinnAppStatusRejected: (result: Error, env: string) => DeployActions.IFetchDeployAltinnAppStatusRejected;
 }
 
 /**
@@ -26,6 +33,12 @@ const actions: IDeployDispatchers = {
   fetchMasterRepoStatus: DeployActions.fetchMasterRepoStatusAction,
   fetchMasterRepoStatusFulfilled: DeployActions.fetchMasterRepoStatusFulfilledAction,
   fetchMasterRepoStatusRejected: DeployActions.fetchMasterRepoStatusRejectedAction,
+  deployAltinnApp: DeployActions.deployAltinnAppAction,
+  deployAltinnAppFulfilled: DeployActions.deployAltinnAppFulfilledAction,
+  deployAltinnAppRejected: DeployActions.deployAltinnAppRejectedAction,
+  fetchDeployAltinnAppStatus: DeployActions.fetchDeployAltinnAppStatusAction,
+  fetchDeployAltinnAppStatusFulfilled: DeployActions.fetchDeployAltinnAppStatusFulfilledAction,
+  fetchDeployAltinnAppStatusRejected: DeployActions.fetchDeployAltinnAppStatusRejectedAction,
 };
 
 /**

@@ -14,7 +14,6 @@ const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   spinner: {
-    marginTop: '20px',
     color: theme.altinnPalette.primary.blueDark,
     marginRight: 'auto',
     marginLeft: 'auto',

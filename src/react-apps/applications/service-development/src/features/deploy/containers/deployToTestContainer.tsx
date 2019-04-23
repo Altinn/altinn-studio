@@ -10,7 +10,7 @@ import DeployActionDispacher from '../deployDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
-const env = 'at21';
+const environment = 'at21';
 
 const styles = () => createStyles({
   mainLayout: {
@@ -52,6 +52,7 @@ export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
   masterRepoStatus: any;
   name?: any;
   repoStatus: any;
+  deployStatus: any;
 }
 
 export interface IDeployToTestContainerState {
@@ -71,8 +72,8 @@ export class DeployToTestContainer extends
   public componentDidMount() {
     const altinnWindow: any = window;
     const { org, service } = altinnWindow;
-    DeployActionDispacher.fetchDeployments(env, org, service);
-    DeployActionDispacher.fetchMasterRepoStatus('TODO', org, service);
+    DeployActionDispacher.fetchDeployments(environment, org, service);
+    DeployActionDispacher.fetchMasterRepoStatus(org, service);
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
   }
 
@@ -90,8 +91,8 @@ export class DeployToTestContainer extends
     }
   }
 
-  public returnMasterRepoAndDeployInSync = (env: string, masterRepoStatus: any, deploymentList: any): any => {
-    const image = deploymentList[env].items[0].spec.template.spec.containers[0].image;
+  public returnMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, deploymentList: any): any => {
+    const image = deploymentList[letEnv].items[0].spec.template.spec.containers[0].image;
     const imageTag = image.split(':')[1];
     if (masterRepoStatus !== null && masterRepoStatus.commit.id === imageTag) {
       return true;
@@ -100,9 +101,43 @@ export class DeployToTestContainer extends
     }
   }
 
+  public startDeployment = (letEnv: string) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service } = altinnWindow;
+    DeployActionDispacher.deployAltinnApp(letEnv, org, service);
+    this.fetchDeploymentStatusInterval(letEnv);
+  }
+
+  public fetchDeploymentStatusInterval = (letEnv: string) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service } = altinnWindow;
+    const interval = setInterval(() => {
+      console.log('interval')
+      DeployActionDispacher.fetchDeployAltinnAppStatus(
+        letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
+      if (this.props.deployStatus[letEnv].result.finishTime) {
+        console.log('interval clear')
+        clearInterval(interval);
+      }
+    }, 5000);
+  }
+
+  public returnDeploySuccess = (deployStatus: any) => {
+    if (deployStatus.result.finishTime &&
+      deployStatus.result.success === true &&
+      deployStatus.result.status === 'completed') {
+      return true;
+    } else if (deployStatus.result.finishTime &&
+      deployStatus.result.success === false &&
+      deployStatus.result.status === 'completed') {
+      return false;
+    } else {
+      return null;
+    }
+  }
+
   public render() {
     const { classes, language } = this.props;
-    const { deploySuccess } = this.state;
 
     return (
       <React.Fragment>
@@ -121,18 +156,23 @@ export class DeployToTestContainer extends
 
               <DeployPaper
                 titleTypographyVariant='h2'
-                env={env}
-                deploymentListFetchStatus={this.props.deploymentList[env].fetchStatus}
+                env={environment}
+                deploymentListFetchStatus={this.props.deploymentList[environment].fetchStatus}
                 localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
                 cSharpCompiles={true}
-                masterRepoAndDeployInSync={this.props.deploymentList[env].items.length > 0 ?
-                  this.returnMasterRepoAndDeployInSync(env, this.props.masterRepoStatus, this.props.deploymentList)
+                masterRepoAndDeployInSync={this.props.deploymentList[environment].items.length > 0 ?
+                  this.returnMasterRepoAndDeployInSync(
+                    environment,
+                    this.props.masterRepoStatus,
+                    this.props.deploymentList)
                   :
                   null
                 }
-                deploySuccess={deploySuccess}
+                deploySuccess={this.returnDeploySuccess(this.props.deployStatus[environment])}
                 deployFailedErrorMsg='Some error'
                 language={language}
+                onClickStartDeployment={this.startDeployment}
+                deployStatus={this.props.deployStatus[environment]}
               />
 
             </Grid>
@@ -171,6 +211,7 @@ const makeMapStateToProps = () => {
       masterRepoStatus: state.deploy.masterRepoStatus,
       deploymentList: state.deploy.deploymentList,
       repoStatus: state.handleMergeConflict.repoStatus,
+      deployStatus: state.deploy.deployStatus,
     };
   };
   return mapStateToProps;
