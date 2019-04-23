@@ -3,26 +3,28 @@ using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace AltinnCore.Common.Services.Implementation
 {
-    /// <summary>
-    /// Register er service for service development.
-    /// </summary>
+    /// <inheritdoc />
     public class RegisterERAppSI : IER
     {
         private readonly ILogger _logger;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterERAppSI"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
-        public RegisterERAppSI(ILogger<RegisterERAppSI> logger)
+        /// <param name="platformSettings">the platform settings</param>
+        public RegisterERAppSI(ILogger<RegisterERAppSI> logger, PlatformSettings platformSettings)
         {
             _logger = logger;
+            _platformSettings = platformSettings;
         }
 
         /// <inheritdoc />
@@ -31,8 +33,7 @@ namespace AltinnCore.Common.Services.Implementation
             Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
 
-            // TODO: add path to platform to settingsfile
-            Uri endpointUrl = new Uri($"http://platform.altinn.cloud/api/v1/persons/{OrgNr}");
+            Uri endpointUrl = new Uri($"{_platformSettings.ApiBaseEndpoint}v1/organizations/{OrgNr}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

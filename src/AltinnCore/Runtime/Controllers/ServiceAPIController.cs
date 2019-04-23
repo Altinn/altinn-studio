@@ -47,6 +47,7 @@ namespace AltinnCore.Runtime.Controllers
         private UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
+        private readonly IPlatformServices _platformSI;
 
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
 
@@ -66,6 +67,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="workflowSI">The workflow service.</param>
         /// <param name="instanceSI">The instance si</param>
+        /// <param name="platformSI">The platform si</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -79,7 +81,8 @@ namespace AltinnCore.Runtime.Controllers
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
             IWorkflowSI workflowSI,
-            IInstance instanceSI)
+            IInstance instanceSI,
+            IPlatformServices platformSI)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -95,6 +98,7 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
+            _platformSI = platformSI;
         }
 
         /// <summary>
@@ -134,10 +138,9 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
-            serviceImplementation.SetPlatformServices(platformServices);
+            serviceImplementation.SetPlatformServices(_platformSI);
 
-            ViewBag.PlatformServices = platformServices;
+            ViewBag.PlatformServices = _platformSI;
 
             // Getting the Form Data from datastore
             object serviceModel = this._form.GetFormModel(
@@ -202,10 +205,9 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
-            serviceImplementation.SetPlatformServices(platformServices);
+            serviceImplementation.SetPlatformServices(_platformSI);
 
-            ViewBag.PlatformServices = platformServices;
+            ViewBag.PlatformServices = _platformSI;
 
             dynamic serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);
             if (serviceModel == null)
@@ -339,10 +341,9 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
-            serviceImplementation.SetPlatformServices(platformServices);
+            serviceImplementation.SetPlatformServices(_platformSI);
 
-            ViewBag.PlatformServices = platformServices;
+            ViewBag.PlatformServices = _platformSI;
 
             dynamic serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);
             if (serviceModel == null)
@@ -466,9 +467,8 @@ namespace AltinnCore.Runtime.Controllers
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
-            serviceImplementation.SetPlatformServices(platformServices);
-            ViewBag.PlatformServices = platformServices;
+            serviceImplementation.SetPlatformServices(_platformSI);
+            ViewBag.PlatformServices = _platformSI;
 
             // Create a new instance of the service model (a Get to lookup will always create a new service model)
             dynamic serviceModel = serviceImplementation.CreateNewServiceModel();
@@ -513,9 +513,8 @@ namespace AltinnCore.Runtime.Controllers
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
-            serviceImplementation.SetPlatformServices(platformServices);
-            ViewBag.PlatformServices = platformServices;
+            serviceImplementation.SetPlatformServices(_platformSI);
+            ViewBag.PlatformServices = _platformSI;
 
             // Create a new instance of the service model (a Get to lookup will always create a new service model)
             dynamic serviceModel = null;

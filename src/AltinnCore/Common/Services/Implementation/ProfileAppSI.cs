@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -17,14 +18,17 @@ namespace AltinnCore.Common.Services.Implementation
     public class ProfileAppSI : IProfile
     {
         private readonly ILogger _logger;
+        private readonly PlatformSettings _platformSettings; 
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ProfileAppSI"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
-        public ProfileAppSI(ILogger<ProfileAppSI> logger)
+        /// <param name="platformSettings">the platform settings</param>
+        public ProfileAppSI(ILogger<ProfileAppSI> logger, PlatformSettings platformSettings)
         {
             _logger = logger;
+            _platformSettings = platformSettings;
         }
 
         /// <inheritdoc />
@@ -33,8 +37,7 @@ namespace AltinnCore.Common.Services.Implementation
             UserProfile userProfile = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            // TODO: add path to platform to settingsfile
-            Uri endpointUrl = new Uri($"http://platform.altinn.cloud/api/v1/persons/{userId}");
+            Uri endpointUrl = new Uri($"{_platformSettings.ApiBaseEndpoint}v1/users/{userId}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);

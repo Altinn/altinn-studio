@@ -75,15 +75,25 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IInstance, InstanceSILocalDev>();
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IDSF, RegisterDSFSI>();
+                services.AddSingleton<IER, RegisterERSI>();
+                services.AddSingleton<IRegister, RegisterSI>();
+                services.AddSingleton<IProfile, ProfileSI>();
             }
             else
             {
+                // Services added if code is running in app
                 services.AddSingleton<IExecution, ExecutionSIContainer>();
                 services.AddSingleton<IInstance, InstanceSI>();
                 services.AddSingleton<IData, DataSI>();
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IDSF, RegisterDSFAppSI>();
+                services.AddSingleton<IER, RegisterERAppSI>();
+                services.AddSingleton<IRegister, RegisterSI>();
+                services.AddSingleton<IProfile, ProfileSI>();
             }
 
+            services.AddSingleton<IPlatformServices, PlatformSI>();
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
             services.AddSingleton<IAuthorization, AuthorizationSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
@@ -94,8 +104,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormSILocalDev>();
-            services.AddSingleton<IProfile, ProfileSI>();
-            services.AddSingleton<IRegister, RegisterSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ITestdata, TestdataSILocalDev>();
@@ -125,6 +133,7 @@ namespace AltinnCore.Runtime
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
             services.Configure<PlatformStorageSettings>(Configuration.GetSection("PlatformStorageSettings"));
+            services.Configure<PlatformSettings>(Configuration.GetSection("PlatformSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
