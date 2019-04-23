@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "dataservice/instances",
+      "launchUrl": "api/storage/v1/instances",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,7 +20,7 @@
     "Altinn.Platform.Storage": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "dataservice/instances",
+      "launchUrl": "api/storage/v1/instances",
       "applicationUrl": "http://localhost:5010",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

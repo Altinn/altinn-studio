@@ -72,10 +72,10 @@ namespace AltinnCore.Designer.Controllers
             if (_configuration["AccessTokenDevOps"] == null)
             {
                 ViewBag.ServiceUnavailable = true;
-                return Ok(new DeploymentStatus
+                return BadRequest(new DeploymentStatus
                 {
                     Success = false,
-                    Message = "Deployment unavailable",
+                    Message = "Deployment failed: no access token",
                 });
             }
 
@@ -86,7 +86,7 @@ namespace AltinnCore.Designer.Controllers
             if (masterBranch == null)
             {
                 _logger.LogWarning($"Unable to fetch branch information for app owner {org} and app {service}");
-                return Ok(new DeploymentResponse
+                return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
                     Message = "Deployment failed: unable to find latest commit",
@@ -122,7 +122,7 @@ namespace AltinnCore.Designer.Controllers
             catch (Exception ex)
             {
                 _logger.LogWarning($"Unable deploy app {service} for {org} because {ex}");
-                return Ok(new DeploymentResponse
+                return StatusCode(500, new DeploymentResponse
                 {
                     Success = false,
                     Message = "Deployment failed " + ex,
@@ -156,23 +156,12 @@ namespace AltinnCore.Designer.Controllers
                 });
             }
 
-            string credentials = _configuration["AccessTokenDevOps"];
-            if (credentials == null)
-            {
-                return Ok(new DeploymentStatus
-                {
-                    Success = false,
-                    Message = "Deployment unavailable",
-                });
-            }
-
             BuildModel buildModel = null;
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
                     client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", credentials);
 
                     using (HttpResponseMessage response = await client.GetAsync(string.Format("https://dev.azure.com/brreg/altinn-studio/_apis/build/builds/{0}?api-version=5.0-preview.4", buildId)))
                     {
@@ -184,7 +173,7 @@ namespace AltinnCore.Designer.Controllers
             }
             catch (Exception ex)
             {
-                return Ok(new DeploymentStatus
+                return StatusCode(500, new DeploymentStatus
                 {
                     Success = false,
                     Message = "Deployment failed " + ex,

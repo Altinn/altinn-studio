@@ -10,7 +10,7 @@ namespace Altinn.Platform.Storage.Models
     /// Model for application information
     /// </summary>
     [Serializable]
-    public class ApplicationInformation
+    public class ApplicationMetadata
     {
         /// <summary>
         /// unique id
