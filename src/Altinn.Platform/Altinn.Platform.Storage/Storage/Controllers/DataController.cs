@@ -169,7 +169,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return Forbid("Application information has not registered a form with this formId");
             }
 
-            FormDefinition form = appInfo.Forms[formId];
+            ApplicationForm form = appInfo.Forms[formId];
             DateTime creationTime = DateTime.UtcNow;
 
             Stream theStream = null;
