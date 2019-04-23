@@ -57,15 +57,19 @@ export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
 
 export interface IDeployToTestContainerState {
   deploySuccess: boolean;
+  interval: any;
 }
 
 export class DeployToTestContainer extends
   React.Component<IDeployToTestContainerProps, IDeployToTestContainerState> {
 
+  public interval: any = null;
+
   constructor(_props: IDeployToTestContainerProps, _state: IDeployToTestContainerState) {
     super(_props, _state);
     this.state = {
       deploySuccess: null,
+      interval: null,
     };
   }
 
@@ -75,6 +79,36 @@ export class DeployToTestContainer extends
     DeployActionDispacher.fetchDeployments(environment, org, service);
     DeployActionDispacher.fetchMasterRepoStatus(org, service);
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
+
+    // If deployment has started but not finished, start the fetchDeploymentStatusInterval
+    if (this.props.deployStatus[environment].deployStartedSuccess === true &&
+      !this.props.deployStatus[environment].result.finishTime
+    ) {
+      this.fetchDeploymentStatusInterval(environment);
+    }
+
+    // If deploymentList from cluster is returned and master repo is in sync with cluster &&
+    // deploy is started successfylly and finished THEN reset the deployStatus.
+    if (this.props.deploymentList[environment].items.length > 0 &&
+      this.isMasterRepoAndDeployInSync(environment, this.props.masterRepoStatus, this.props.deploymentList) &&
+      this.isDeployFinished(environment)
+    ) {
+      DeployActionDispacher.resetDeploymentStatus(environment);
+    }
+
+  }
+
+  public componentWillUnmount() {
+    clearInterval(this.interval);
+  }
+
+  public isDeployFinished = (letEnv: string): boolean => {
+    if (this.props.deployStatus[letEnv].deployStartedSuccess === true &&
+      this.props.deployStatus[letEnv].result.finishTime) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   public returnInSyncStatus = (repoStatus: any): any => {
@@ -91,7 +125,7 @@ export class DeployToTestContainer extends
     }
   }
 
-  public returnMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, deploymentList: any): any => {
+  public isMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, deploymentList: any): any => {
     const image = deploymentList[letEnv].items[0].spec.template.spec.containers[0].image;
     const imageTag = image.split(':')[1];
     if (masterRepoStatus !== null && masterRepoStatus.commit.id === imageTag) {
@@ -105,9 +139,7 @@ export class DeployToTestContainer extends
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     DeployActionDispacher.deployAltinnApp(letEnv, org, service);
-
     this.fetchDeploymentStatusInterval(letEnv);
-
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
@@ -125,9 +157,10 @@ export class DeployToTestContainer extends
 
       }
     }, 5000);
+    this.interval = interval;
   }
 
-  public returnDeploySuccess = (deployStatus: any) => {
+  public isDeploySuccessful = (deployStatus: any) => {
     if (deployStatus.result.finishTime &&
       deployStatus.result.success === true &&
       deployStatus.result.status === 'completed') {
@@ -168,15 +201,14 @@ export class DeployToTestContainer extends
                 localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
                 cSharpCompiles={true}
                 masterRepoAndDeployInSync={this.props.deploymentList[environment].items.length > 0 ?
-                  this.returnMasterRepoAndDeployInSync(
+                  this.isMasterRepoAndDeployInSync(
                     environment,
                     this.props.masterRepoStatus,
                     this.props.deploymentList)
                   :
                   null
                 }
-                deploySuccess={this.returnDeploySuccess(this.props.deployStatus[environment])}
-                deployFailedErrorMsg='Some error'
+                deploySuccess={this.isDeploySuccessful(this.props.deployStatus[environment])}
                 language={language}
                 onClickStartDeployment={this.startDeployment}
                 deployStatus={this.props.deployStatus[environment]}

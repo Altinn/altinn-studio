@@ -143,3 +143,14 @@ export function fetchDeployAltinnAppStatusRejectedAction(result: Error, env: str
     env,
   };
 }
+
+export interface IResetDeploymentStatus extends Action {
+  env: string;
+}
+export function resetDeploymentStatusAction(env: string):
+  IResetDeploymentStatus {
+  return {
+    type: ActionTypes.RESET_DEPLOYMENT_STATUS,
+    env,
+  };
+}

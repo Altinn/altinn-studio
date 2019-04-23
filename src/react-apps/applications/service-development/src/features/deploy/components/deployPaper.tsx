@@ -57,7 +57,6 @@ interface IDeployPaperProps {
   titleTypographyVariant: TypographyProps['variant'];
   masterRepoAndDeployInSync: boolean;
   deploySuccess?: boolean;
-  deployFailedErrorMsg?: any;
   language: any;
   env: string;
   onClickStartDeployment: any;
@@ -402,6 +401,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
         {/* Render the button and help text */}
         {props.deploySuccess !== true && props.deploymentListFetchStatus.success !== false &&
           <div style={{ marginTop: 20 }}>
+
             {props.deployStatus.deployStartedSuccess === true && !props.deployStatus.result.finishTime ? (
               <Grid container={true} alignItems='center'>
                 <Grid item={true} style={{ marginRight: 10 }}>

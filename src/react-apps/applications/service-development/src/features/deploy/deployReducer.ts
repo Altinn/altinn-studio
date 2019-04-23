@@ -128,9 +128,17 @@ const deployReducer: Reducer<IDeployState> = (
             result: {
               $set: result,
             },
-            deployStartedSuccess: {
-              $set: null,
-            },
+          },
+        },
+      });
+    }
+
+    case DeployActionTypes.RESET_DEPLOYMENT_STATUS: {
+      const { env } = action as DeployActions.IResetDeploymentStatus;
+      return update<IDeployState>(state, {
+        deployStatus: {
+          [env]: {
+            $set: initialState.deployStatus[env],
           },
         },
       });
