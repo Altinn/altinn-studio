@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.ServiceLibrary.Services.Interfaces
@@ -12,6 +13,6 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
         /// </summary>
         /// <param name="OrgNr">the organization number</param>
         /// <returns>The organization for the given organization number</returns>
-        Organization GetOrganization(string OrgNr);
+        Task<Organization> GetOrganization(string OrgNr);
     }
 }

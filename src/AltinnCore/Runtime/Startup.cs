@@ -9,6 +9,7 @@ using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Runtime.Authorization;
 using AltinnCore.Runtime.ModelBinding;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -84,7 +85,7 @@ namespace AltinnCore.Runtime
             }
 
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
-            services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
+            services.AddSingleton<IAuthorization, AuthorizationSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
@@ -93,8 +94,8 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormSILocalDev>();
-            services.AddSingleton<IProfile, ProfileSILocalDev>();
-            services.AddSingleton<IRegister, RegisterSILocalDev>();
+            services.AddSingleton<IProfile, ProfileSI>();
+            services.AddSingleton<IRegister, RegisterSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ITestdata, TestdataSILocalDev>();

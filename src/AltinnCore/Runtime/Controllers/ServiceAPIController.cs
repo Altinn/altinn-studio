@@ -115,7 +115,7 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
@@ -134,7 +134,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
             serviceImplementation.SetPlatformServices(platformServices);
 
             ViewBag.PlatformServices = platformServices;
@@ -190,7 +190,7 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
@@ -202,7 +202,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
             serviceImplementation.SetPlatformServices(platformServices);
 
             ViewBag.PlatformServices = platformServices;
@@ -323,7 +323,7 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
             if (Request.Headers.Keys.Contains(VALIDATION_TRIGGER_FIELD))
             {
@@ -339,7 +339,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
             serviceImplementation.SetPlatformServices(platformServices);
 
             ViewBag.PlatformServices = platformServices;
@@ -461,12 +461,12 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
             serviceImplementation.SetPlatformServices(platformServices);
             ViewBag.PlatformServices = platformServices;
 
@@ -508,12 +508,12 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
+            PlatformServices platformServices = new PlatformServices(_repository, _execution, _register, _profile);
             serviceImplementation.SetPlatformServices(platformServices);
             ViewBag.PlatformServices = platformServices;
 

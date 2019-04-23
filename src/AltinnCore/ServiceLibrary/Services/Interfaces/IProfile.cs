@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.ServiceLibrary.Services.Interfaces
@@ -12,6 +13,6 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
         /// </summary>
         /// <param name="userId">the user id</param>
         /// <returns>The userprofile for the given user id</returns>
-        UserProfile GetUserProfile(int userId);
+        Task<UserProfile> GetUserProfile(int userId);
     }
 }

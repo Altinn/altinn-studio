@@ -10,6 +10,5 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
     /// </summary>
     public interface IPlatformServices
     {
-
     }
 }

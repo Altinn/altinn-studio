@@ -1,13 +1,7 @@
-using System;
-using System.Collections.Generic;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Newtonsoft.Json.Linq;
-using IRegister = AltinnCore.ServiceLibrary.Services.Interfaces.IRegister;
 using IProfile = AltinnCore.ServiceLibrary.Services.Interfaces.IProfile;
+using IRegister = AltinnCore.ServiceLibrary.Services.Interfaces.IRegister;
 
 namespace AltinnCore.Common.Services
 {
@@ -20,7 +14,6 @@ namespace AltinnCore.Common.Services
         private readonly IRepository _repository;
         private readonly IExecution _execution;
         private readonly IRegister _register;
-
         private readonly IProfile _profile;
 
         /// <summary>
@@ -28,10 +21,14 @@ namespace AltinnCore.Common.Services
         /// </summary>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="executionService">The execution service</param>
-        public PlatformServices(IRepository repositoryService, IExecution executionService)
+        /// <param name="register">The register service</param>
+        /// <param name="profile">The profile service</param>
+        public PlatformServices(IRepository repositoryService, IExecution executionService, IRegister register, IProfile profile)
         {
             _repository = repositoryService;
             _execution = executionService;
+            _register = register;
+            _profile = profile;
         }
 
         /// <summary>
@@ -46,7 +43,6 @@ namespace AltinnCore.Common.Services
         /// <summary>
         /// The access to the profile component through platform services
         /// </summary>
-        /// <value></value>
         public IProfile Profile
         {
             get { return _profile; }

@@ -40,7 +40,7 @@ namespace AltinnCore.Common.Services.Implementation
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings.Value;
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <summary>

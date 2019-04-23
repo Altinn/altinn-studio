@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCore.ServiceLibrary.Services.Interfaces
@@ -12,6 +13,6 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
         /// </summary>
         /// <param name="SSN">The social security number</param>
         /// <returns>The person for the given social security number</returns>
-        Person GetPerson(string SSN);
+        Task<Person> GetPerson(string SSN);
     }
 }
