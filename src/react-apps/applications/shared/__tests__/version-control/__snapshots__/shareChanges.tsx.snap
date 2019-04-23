@@ -33,7 +33,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
           style={
             Object {
               "color": "#0062BA",
-              "fontSize": 14,
+              "fontSize": 36,
               "fontWeight": null,
               "margin": "0px 5px 0px 0px",
               "padding": null,
@@ -91,7 +91,7 @@ exports[`>>> components/base/shareChanges.tsx --- Snapshot +++ Should match snap
           style={
             Object {
               "color": "#0062BA",
-              "fontSize": 14,
+              "fontSize": 36,
               "fontWeight": 600,
               "margin": "0px 5px 0px 0px",
               "padding": null,

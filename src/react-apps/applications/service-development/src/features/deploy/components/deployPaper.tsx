@@ -86,7 +86,8 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               {getLanguageFromKey('deploy_to_test.shared_with_org_false', props.language)}
             </Typography>
             <Typography variant='body1'>
-              {getLanguageFromKey('deploy_to_test.changes_will_not_be_visible_in_test_env', props.language)}
+              {getLanguageFromKey('deploy_to_test.shared_with_org_false_changes_will_not_be_visible_in_test_env',
+                props.language)}
             </Typography>
             <div style={{ marginTop: 20, marginBottom: 20 }}>
               <VersionControlContainer

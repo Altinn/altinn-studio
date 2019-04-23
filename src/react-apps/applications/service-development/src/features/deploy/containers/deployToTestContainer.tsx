@@ -105,7 +105,9 @@ export class DeployToTestContainer extends
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     DeployActionDispacher.deployAltinnApp(letEnv, org, service);
+
     this.fetchDeploymentStatusInterval(letEnv);
+
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
@@ -115,9 +117,12 @@ export class DeployToTestContainer extends
       console.log('interval')
       DeployActionDispacher.fetchDeployAltinnAppStatus(
         letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
-      if (this.props.deployStatus[letEnv].result.finishTime) {
+      if (this.props.deployStatus[letEnv].result.finishTime ||
+        this.props.deployStatus[letEnv].deployStartedSuccess === false) {
+
         console.log('interval clear')
         clearInterval(interval);
+
       }
     }, 5000);
   }
@@ -130,6 +135,8 @@ export class DeployToTestContainer extends
     } else if (deployStatus.result.finishTime &&
       deployStatus.result.success === false &&
       deployStatus.result.status === 'completed') {
+      return false;
+    } else if (deployStatus.deployStartedSuccess === false) {
       return false;
     } else {
       return null;

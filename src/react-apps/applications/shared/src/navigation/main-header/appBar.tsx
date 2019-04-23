@@ -120,8 +120,6 @@ class AppBarComponent extends React.Component<IAppBarComponentProps, IAppBarComp
       showBreadcrumbOnTablet,
     } = this.props;
 
-    const altinnWindow: any = window;
-
     return (
       <div className={classes.root}>
         <AppBar

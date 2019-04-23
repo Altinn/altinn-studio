@@ -87,7 +87,7 @@ export function* fetchDeployAltinnAppStatusSaga({
   buildId,
 }: DeployActions.IFetchDeployAltinnAppStatus): SagaIterator {
   try {
-    // const result = yield call(get, `/designer/${org}/${repo}/Deploy/StartDeployment?buildid=${buildId}`);
+    // const result = yield call(get, `/designer/${org}/${repo}/Deploy/FetchDeploymentStatus?buildid=${buildId}`);
 
     const inProgress = {
       "status": "inProgress",
