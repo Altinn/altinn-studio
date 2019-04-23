@@ -20,6 +20,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="partyId">The partyId for the reportee</param>
+        /// <param name="dataId"> The data id</param>
         Task<Guid> SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId);
 
         /// <summary>

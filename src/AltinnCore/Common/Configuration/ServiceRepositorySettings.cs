@@ -381,7 +381,7 @@ namespace AltinnCore.Common.Configuration
 
         /// <summary>
         /// Get the path to rule handler file
-        /// </summary
+        /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
         /// <param name="developer">the developer for the current service</param>

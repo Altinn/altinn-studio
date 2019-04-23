@@ -235,7 +235,7 @@ export const routes = [
     activeSubHeaderSelection: 'Publisere',
     activeLeftMenuSelection: 'Produksjonsette',
     menu: 'publish',
-    subapp: IFrame,
+    subapp: AltinnInformationCard,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',

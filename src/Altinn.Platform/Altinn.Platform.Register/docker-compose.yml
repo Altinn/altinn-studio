@@ -12,7 +12,7 @@ services:
     networks:
       - altinnplatform_network
     environment:
-      - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/bridge/
+      - GeneralSettings:BridgeApiEndpoint=https://at21.altinn.cloud/api/bridge/
       - GeneralSettings:ShouldUseMock=true
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5020
