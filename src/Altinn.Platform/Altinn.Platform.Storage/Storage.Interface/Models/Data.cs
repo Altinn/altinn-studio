@@ -13,10 +13,16 @@ namespace Altinn.Platform.Storage.Models
     public class Data
     {
         /// <summary>
-        /// users filename
+        /// data id
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
+
+        /// <summary>
+        /// the form identifier, tells us what data element this is 
+        /// </summary>
+        [JsonProperty(PropertyName = "formId")]
+        public string FormId { get; set; }
 
         /// <summary>
         /// users filename
