@@ -32,20 +32,22 @@ export class DatepickerComponent
     });
   }
 
-  public ondateBlur = (e: any) => {
+  public ondateBlur = () => {
     setTimeout(() => {
-      if (!this.myDateCmp.current.value) {
+      if (!this.myDateCmp.current.value || this.state.value == this.myDateCmp.current.value) {
         return;
       }
       this.setState({
         value: this.myDateCmp.current.value,
       });
       this.props.handleDataChange(this.state.value);
-    }, 100);
+    }, 200);
   }
 
   public componentDidMount() {
-    (window as any).initDatePicker();
+    let dateFormat = 'dd.mm.yyyy';
+    let dateLanguage = 'no';
+    (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
   }
 
   public render() {

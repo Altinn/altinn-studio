@@ -66,11 +66,6 @@ export const schemaComponents: IComponent[] = [
     },
   },
   {
-    name: 'Datepicker',
-    Tag: DatepickerComponent,
-    Type: ComponentTypes.Datepicker,
-  },
-  {
     name: 'Dropdown',
     Tag: DropdownComponent,
     Type: ComponentTypes.DropDown,
