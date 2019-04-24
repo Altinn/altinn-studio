@@ -7,14 +7,15 @@ import { ILayout } from '../features/form/layout/types';
 import { IRuntimeState } from '../types';
 export interface IPreviewProps {
   layout: ILayout;
+  textResources: any;
 }
 
 export class PreviewComponent extends React.Component<IPreviewProps, null> {
   public render(): JSX.Element {
     const { layout } = this.props;
     return (
-      <>
-        {layout.map((component: any) => {
+      <div className='col-12'>
+        {layout && layout.map((component: any) => {
           if (component.type === 'Container') {
             return (
               <Container
@@ -23,13 +24,19 @@ export class PreviewComponent extends React.Component<IPreviewProps, null> {
             );
           } else {
             return (
-              <GenericComponentWrapper
-                {...component}
-              />
+              <div className='row mt-2' key={component.id}>
+                <div className='col'>
+                  <div className='a-form-group'>
+                    <GenericComponentWrapper
+                      {...component}
+                    />
+                  </div>
+                </div>
+              </div>
             );
           }
         })}
-      </>
+      </div>
     );
   }
 }
@@ -37,6 +44,7 @@ export class PreviewComponent extends React.Component<IPreviewProps, null> {
 const mapStateToProps = (state: IRuntimeState): IPreviewProps => {
   return {
     layout: state.formLayout.layout,
+    textResources: state.formResources.languageResource.resources,
   };
 };
 

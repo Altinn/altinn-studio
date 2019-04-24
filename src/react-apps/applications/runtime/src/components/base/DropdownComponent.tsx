@@ -1,13 +1,13 @@
 import * as React from 'react';
 
 export interface IDropdownProps {
-  id: string;
-  component: any;
-  formData: any;
-  handleDataChange: (value: any) => void;
-  getTextResource: (resourceKey: string) => string;
-  isValid?: boolean;
   designMode: boolean;
+  formData: any;
+  getTextResource: (resourceKey: string) => string;
+  handleDataChange: (value: any) => void;
+  id: string;
+  isValid?: boolean;
+  options: any[];
 }
 
 export interface IDropdownState {
@@ -24,7 +24,6 @@ export class DropdownComponent
   }
 
   public render() {
-    const { options } = this.props.component;
     return (
       <select
         id={this.props.id}
@@ -33,7 +32,7 @@ export class DropdownComponent
           : 'custom-select a-custom-select validation-error'}
         onChange={this.onDataChanged}
       >
-        {options.map((option, index) => (
+        {this.props.options.map((option, index) => (
           <option key={index} value={option.value}>
             {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
           </option>

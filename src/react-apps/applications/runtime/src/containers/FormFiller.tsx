@@ -9,6 +9,7 @@ import { WorkflowStep } from './WorkflowStep';
 import { IAltinnWindow, IRuntimeState } from '../types';
 
 export interface IFormFillerProps {
+  formConfig: any;
   formDataCount: number;
   textResources: any[];
   unsavedChanges: boolean;
@@ -75,7 +76,8 @@ const FormFiller = (props: IFormFillerProps) => {
 
   return (
     <WorkflowStep
-      header={getLanguageFromKey('general.ServiceName', props.textResources)}
+      header={props.formConfig.serviceName ? props.formConfig.serviceName :
+        getLanguageFromKey('general.ServiceName', props.textResources)}
       step={workflowStep}
       onStepChange={handleStepChange}
     >
@@ -94,6 +96,7 @@ const FormFiller = (props: IFormFillerProps) => {
 
 const mapStateToProps = (state: IRuntimeState): IFormFillerProps => {
   return {
+    formConfig: state.formConfig,
     formDataCount: 1,
     textResources: state.language.language,
     unsavedChanges: false,

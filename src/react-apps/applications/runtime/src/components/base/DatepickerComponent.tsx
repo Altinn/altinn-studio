@@ -5,7 +5,8 @@ import '../../styles/shared.css';
 
 export interface IDatePickerProps {
   id: string;
-  component: any;
+  readOnly: boolean;
+  required: boolean;
   formData: any;
   handleDataChange: (value: any) => void;
   isValid?: boolean;
@@ -46,22 +47,22 @@ export class DatepickerComponent
   public render() {
     return (
       <div className='form-group a-form-group a-form-group-datepicker'>
-        <div className={'input-group' + (this.props.component.readOnly ? ' disabled' : '')}>
+        <div className={'input-group' + (this.props.readOnly ? ' disabled' : '')}>
           <input
             type='text'
             id={this.props.id}
-            className={(this.props.component.readOnly ? 'disabled-date ' : '') +
+            className={(this.props.readOnly ? 'disabled-date ' : '') +
               (this.props.isValid ?
                 'form-control a-hasButton date' :
                 'form-control a-hasButton date validation-error')}
             onBlur={this.onDateChange}
             onChange={this.onDateChange}
-            disabled={this.props.component.readOnly}
-            required={this.props.component.required}
+            disabled={this.props.readOnly}
+            required={this.props.required}
             value={this.state.value}
             ref={this.myDateCmp}
           />
-          <div className={'input-group-prepend a-icon-right' + (this.props.component.readOnly ? ' disabled-date' : '')}>
+          <div className={'input-group-prepend a-icon-right' + (this.props.readOnly ? ' disabled-date' : '')}>
             <i className='ai ai-date' />
           </div>
         </div>

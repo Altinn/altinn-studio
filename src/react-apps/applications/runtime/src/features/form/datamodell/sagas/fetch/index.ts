@@ -2,19 +2,19 @@ import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
 
 import DataModelActions from '../../actions';
-import * as ActionTypes from '../../actions/types';
 import { IFetchDataModel } from '../../actions/fetch';
+import * as ActionTypes from '../../actions/types';
 
 import ConfigActions from '../../../config/actions';
 
-// import { get } from 'Shared/utils/networking';
+import { get } from '../../../../../utils/networking';
 
-import { testData } from './testData';
+// import { testData } from './testData';
 
 function* fetchFormDataModelSaga({ url }: IFetchDataModel): SagaIterator {
   try {
-    // const dataModel = yield call(get, url);
-    const dataModel: any = testData;
+    const dataModel = yield call(get, url);
+    // const dataModel: any = testData;
     const {
       Org,
       ServiceName,

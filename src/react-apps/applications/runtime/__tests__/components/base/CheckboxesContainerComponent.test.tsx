@@ -1,4 +1,5 @@
-import { shallow, mount } from 'enzyme';
+import { mount, shallow } from 'enzyme';
+import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
@@ -6,46 +7,43 @@ import { CheckboxContainerComponent } from '../../../src/components/base/Checkbo
 
 describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', () => {
   let mockId: string;
-  let mockComponent: any;
+  let mockOptions: any[];
   // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
+  let mockPreselectedOptionIndex: number;
   let mockIsValid: boolean;
-  let mockDesignMode: boolean;
+  let mockReadOnly: boolean;
 
   beforeEach(() => {
     mockId = 'mock-id';
-    mockComponent = {
-      id: mockId,
-      title: 'test-checkboxescontainer',
-      component: 'Checkboxes',
-      readOnly: false,
-      options: [{
-        label: 'test-label-1',
-        value: 'test-1',
-      }, {
-        label: 'test-label-2',
-        value: 'test-2',
-      }],
-    };
+    mockOptions = [{
+      label: 'test-label-1',
+      value: 'test-1',
+    }, {
+      label: 'test-label-2',
+      value: 'test-2',
+    }];
     mockHandleDataChange = (data: any) => null;
     mockGetTextResource = (resourceKey: string) => 'test';
+    mockPreselectedOptionIndex = null;
     mockIsValid = true;
-    mockDesignMode = true;
+    mockReadOnly = false;
   });
 
   it('>>> Capture snapshot of CheckboxesContainerComponent', () => {
     const rendered = renderer.create(
       <CheckboxContainerComponent
         id={mockId}
-        component={mockComponent}
-        formData={mockFormData}
+        formData={'undefined'}
         handleDataChange={mockHandleDataChange}
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
         validationMessages={{}}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -54,13 +52,14 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
     const shallowCheckbox = shallow(
       <CheckboxContainerComponent
         id={mockId}
-        component={mockComponent}
-        formData={mockFormData}
+        formData={'undefined'}
         handleDataChange={mockHandleDataChange}
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
         validationMessages={{}}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
       />,
     );
     expect(shallowCheckbox.find({ type: 'checkbox' })).toHaveLength(2);
@@ -70,24 +69,14 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
     const shallowCheckbox = shallow(
       <CheckboxContainerComponent
         id={mockId}
-        component={{
-          id: mockId,
-          component: 'Checkboxes',
-          readOnly: true,
-          options: [{
-            label: 'test-label-1',
-            value: 'test-1',
-          }, {
-            label: 'test-label-2',
-            value: 'test-2',
-          }],
-        }}
-        formData={mockFormData}
+        formData={'undefined'}
         handleDataChange={mockHandleDataChange}
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
         validationMessages={{}}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={true}
       />,
     );
     expect(shallowCheckbox.find('.custom-control-label').first().hasClass('disabled-checkbox')).toBe(true);
@@ -96,13 +85,14 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
     const mountedCheckbox = mount(
       <CheckboxContainerComponent
         id={mockId}
-        component={mockComponent}
-        formData={mockFormData}
+        formData={'undefined'}
         handleDataChange={mockHandleDataChange}
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
-        designMode={mockDesignMode}
         validationMessages={{}}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
       />,
     );
     const instance = mountedCheckbox.instance() as CheckboxContainerComponent;
