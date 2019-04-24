@@ -41,7 +41,7 @@ namespace AltinnCore.UnitTest.Common
 
             string metadataAsJson = instanceModel.ToString();
 
-            //File.WriteAllText("edag1.instance-model.json", metadataAsJson);
+            // File.WriteAllText("edag1.instance-model.json", metadataAsJson);
         }
 
         /// <summary>
@@ -116,11 +116,11 @@ namespace AltinnCore.UnitTest.Common
                     {
                         mismatchCount++;
 
-                        //File.WriteAllText(file + ".new.schema.json", instanceModel.GetIndentedString(0));
-                        //File.WriteAllText(file + ".seresParser.schema.json", serviceMetadataValue.GetIndentedString(0));
+                        // File.WriteAllText(file + ".new.schema.json", instanceModel.GetIndentedString(0));
+                        // File.WriteAllText(file + ".seresParser.schema.json", serviceMetadataValue.GetIndentedString(0));
                     }
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     failCount++;
                 }

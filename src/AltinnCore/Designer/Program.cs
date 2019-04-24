@@ -14,7 +14,6 @@ namespace AltinnCore.Designer
 {
     /// <summary>
     /// This is the main method for running this asp.net core application without IIS
-    /// <see href="https://docs.microsoft.com/en-us/aspnet/core/fundamentals/servers/?highlight=kestrel&tabs=aspnetcore2x#kestrel"/>
     /// </summary>
     public class Program
     {

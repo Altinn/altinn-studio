@@ -1,6 +1,6 @@
 using System;
 using AltinnCore.ServiceLibrary.Enums;
-using AltinnCore.ServiceLibrary.Workflow;
+using AltinnCore.ServiceLibrary.Models.Workflow;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

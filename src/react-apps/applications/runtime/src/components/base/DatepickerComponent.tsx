@@ -34,7 +34,7 @@ export class DatepickerComponent
 
   public ondateBlur = () => {
     setTimeout(() => {
-      if (!this.myDateCmp.current.value || this.state.value == this.myDateCmp.current.value) {
+      if (!this.myDateCmp.current.value || this.state.value === this.myDateCmp.current.value) {
         return;
       }
       this.setState({
@@ -45,8 +45,8 @@ export class DatepickerComponent
   }
 
   public componentDidMount() {
-    let dateFormat = 'dd.mm.yyyy';
-    let dateLanguage = 'no';
+    const dateFormat = 'dd.mm.yyyy';
+    const dateLanguage = 'no';
     (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
   }
 

@@ -134,6 +134,11 @@ export const schemaComponents: IComponent[] = [
     Tag: FileUploadComponent,
     Type: ComponentTypes.FileUpload,
     Icon: componentIcons.FileUpload,
+    customProperties: {
+      maxFileSizeInMB: 0,
+      maxNumberOfAttachments: 1,
+      displayMode: 'simple',
+    },
   },
   {
     name: 'Submit',

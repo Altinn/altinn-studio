@@ -6,9 +6,6 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 
-/// <summary>
-///
-/// </summary>
 namespace AltinnCore.Runtime.Controllers
 {
     /// <summary>
