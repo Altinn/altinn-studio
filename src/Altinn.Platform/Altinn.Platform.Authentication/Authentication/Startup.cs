@@ -20,7 +20,7 @@ namespace Altinn.Platform.Authentication
         /// <summary>
         ///  Initializes a new instance of the <see cref="Startup"/> class 
         /// </summary>
-        /// <param name="configuration">The configuration for the register component</param>
+        /// <param name="configuration">The configuration for the authentication component</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
