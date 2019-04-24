@@ -1,4 +1,5 @@
 import { shallow } from 'enzyme';
+import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
@@ -6,33 +7,33 @@ import { InputComponent } from '../../../src/components/base/InputComponent';
 
 describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
   let mockId: string;
-  let mockComponent: any;
-  // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: () => void;
   let mockIsValid: boolean;
+  let mockReadOnly: boolean;
+  let mockRequired: boolean;
+  let mockType: string;
 
   beforeEach(() => {
     mockId = 'mock-id';
-    mockComponent = {
-      id: mockId,
-      component: 'Input',
-      type: 'text',
-      readOnly: false,
-      required: false,
-    };
+    mockFormData = '';
     mockHandleDataChange = () => null;
     mockIsValid = true;
+    mockReadOnly = false;
+    mockRequired = false;
+    mockType = 'text';
   });
 
   it('+++ should match snapshot', () => {
     const rendered = renderer.create(
       <InputComponent
         id={mockId}
-        component={mockComponent}
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
+        readOnly={mockReadOnly}
+        required={mockRequired}
+        type={mockType}
       />,
     );
     expect(rendered).toMatchSnapshot();
@@ -42,10 +43,12 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
     const wrapper = shallow(
       <InputComponent
         id={mockId}
-        component={mockComponent}
         formData={mockFormData}
         handleDataChange={mockHandleDataChange}
         isValid={mockIsValid}
+        readOnly={mockReadOnly}
+        required={mockRequired}
+        type={mockType}
       />,
     );
     const input = wrapper.find('input');

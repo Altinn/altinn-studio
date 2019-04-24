@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 export interface IDropdownProps {
-  designMode: boolean;
   formData: any;
   getTextResource: (resourceKey: string) => string;
   handleDataChange: (value: any) => void;
@@ -34,7 +33,7 @@ export class DropdownComponent
       >
         {this.props.options.map((option, index) => (
           <option key={index} value={option.value}>
-            {this.props.designMode ? option.label : this.props.getTextResource(option.label)}
+            {this.props.getTextResource(option.label)}
           </option>
         ))}
       </select>

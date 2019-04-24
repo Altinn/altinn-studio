@@ -143,7 +143,7 @@ const CollapsibleMenus = (props: ICollapsableMenuProps) => {
                   (component.dataModelBindings.simpleBinding ? component.dataModelBindings.simpleBinding : null)
                   : null)}
               />
-              {props.language.ux_editor.optional}
+              {props.language.general.optional}
             </ListItem>
           }
         </div>
