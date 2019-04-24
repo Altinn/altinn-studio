@@ -7,6 +7,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -21,10 +22,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <param name="platformSettings">the platform settings</param>
-        public RegisterERAppSI(ILogger<RegisterERAppSI> logger, PlatformSettings platformSettings)
+        public RegisterERAppSI(ILogger<RegisterERAppSI> logger, IOptions<PlatformSettings> platformSettings)
         {
             _logger = logger;
-            _platformSettings = platformSettings;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -33,14 +34,13 @@ namespace AltinnCore.Common.Services.Implementation
             Organization organization = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Organization));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.ApiBaseEndpoint}v1/organizations/{OrgNr}");
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/organizations/{OrgNr}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    organization = serializer.ReadObject(stream) as Organization;
+                    organization = await response.Content.ReadAsAsync<Organization>();
                 }
                 else
                 {

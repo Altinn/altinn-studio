@@ -10,5 +10,14 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
     /// </summary>
     public interface IPlatformServices
     {
+        /// <summary>
+        /// The access to register through platform services
+        /// </summary>
+        IRegister Register { get; }
+
+        /// <summary>
+        /// The access to profile through platform services
+        /// </summary>
+        IProfile Profile { get; }
     }
 }

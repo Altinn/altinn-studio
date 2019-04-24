@@ -102,7 +102,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="itemId">the item id</param>
         /// <returns>The react view or the receipt</returns>
         [Authorize(Policy = "InstanceRead")]
-        public async Task<IActionResult> EditSPAAsync(string org, string service, Guid instanceId, string view, int? itemId)
+        public async Task<IActionResult> EditSPA(string org, string service, Guid instanceId, string view, int? itemId)
         {
             // Make sure user cannot edit an archived instance
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
@@ -180,7 +180,7 @@ namespace AltinnCore.Runtime.Controllers
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing
             // the request
-            RequestContext requestContext = await PopulateRequestContextAsync(instanceId);
+            RequestContext requestContext = await PopulateRequestContext(instanceId);
 
             serviceImplementation.SetPlatformServices(_platformSI);
 
@@ -229,7 +229,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="service">The service code for the current service.</param>
         /// <param name="instanceId">The instanceId.</param>
         /// <returns>The receipt view.</returns>
-        public async Task<IActionResult> ReceiptAsync(string org, string service, Guid instanceId)
+        public async Task<IActionResult> Receipt(string org, string service, Guid instanceId)
         {
             // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
             // Will compile code and load DLL in to memory for AltinnCore
@@ -264,7 +264,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="service">The service code for the current service.</param>
         /// <returns>The start service View.</returns>
         [Authorize]
-        public async Task<IActionResult> StartServiceAsync(string org, string service)
+        public async Task<IActionResult> StartService(string org, string service)
         {
             UserContext userContext = await _userHelper.GetUserContext(HttpContext);
             var startServiceModel = new StartServiceModel
@@ -457,7 +457,7 @@ namespace AltinnCore.Runtime.Controllers
             return new ObjectResult(apiResult);
         }
 
-        private async Task<RequestContext> PopulateRequestContextAsync(Guid instanceId)
+        private async Task<RequestContext> PopulateRequestContext(Guid instanceId)
         {
             // Create and populate the RequestContext object and make it available for the service implementation so
             // service developer can implement logic based on information about the request and the user performing

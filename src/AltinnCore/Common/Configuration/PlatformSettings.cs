@@ -12,10 +12,14 @@ namespace AltinnCore.Common.Configuration
         /// <summary>
         /// Gets or sets the url for the API base Endpoint
         /// </summary>
-        public string ApiBaseEndpoint
+        public string ApiBaseEndpoint { get; set; }        
+
+        /// <summary>
+        /// Gets the url for the API base Endpoint
+        /// </summary>
+        public string GetApiBaseEndpoint()
         {
-            get { return Environment.GetEnvironmentVariable("PlatformSettings__ApiBaseEndpoint") ?? ApiBaseEndpoint; }
-            set { ApiBaseEndpoint = value; }
+            return Environment.GetEnvironmentVariable("PlatformSettings__ApiBaseEndpoint") ?? ApiBaseEndpoint;
         }
     }
 }

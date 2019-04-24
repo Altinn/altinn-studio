@@ -7,6 +7,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -21,10 +22,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <param name="platformSettings">the platform settings</param>
-        public RegisterDSFAppSI(ILogger<RegisterDSFAppSI> logger, PlatformSettings platformSettings)
+        public RegisterDSFAppSI(ILogger<RegisterDSFAppSI> logger, IOptions<PlatformSettings> platformSettings)
         {
             _logger = logger;
-            _platformSettings = platformSettings;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc/>
@@ -33,14 +34,13 @@ namespace AltinnCore.Common.Services.Implementation
             Person person = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Person));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.ApiBaseEndpoint}v1/persons/{SSN}");
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/persons/{SSN}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    person = serializer.ReadObject(stream) as Person;
+                    person = await response.Content.ReadAsAsync<Person>();
                 }
                 else
                 {

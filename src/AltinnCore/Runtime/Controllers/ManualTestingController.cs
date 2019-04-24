@@ -163,7 +163,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public async Task<IActionResult> RedirectToCorrectStateAsync(string org, string service, Guid instanceId)
+        public async Task<IActionResult> RedirectToCorrectState(string org, string service, Guid instanceId)
         {
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);

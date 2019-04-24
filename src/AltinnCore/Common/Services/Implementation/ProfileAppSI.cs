@@ -9,6 +9,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
 {
@@ -25,10 +26,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="logger">the logger</param>
         /// <param name="platformSettings">the platform settings</param>
-        public ProfileAppSI(ILogger<ProfileAppSI> logger, PlatformSettings platformSettings)
+        public ProfileAppSI(ILogger<ProfileAppSI> logger, IOptions<PlatformSettings> platformSettings)
         {
             _logger = logger;
-            _platformSettings = platformSettings;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <inheritdoc />
@@ -37,14 +38,13 @@ namespace AltinnCore.Common.Services.Implementation
             UserProfile userProfile = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(UserProfile));
 
-            Uri endpointUrl = new Uri($"{_platformSettings.ApiBaseEndpoint}v1/users/{userId}");
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/users/{userId}");
             using (HttpClient client = new HttpClient())
             {
                 HttpResponseMessage response = await client.GetAsync(endpointUrl);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    Stream stream = await response.Content.ReadAsStreamAsync();
-                    userProfile = serializer.ReadObject(stream) as UserProfile;
+                    userProfile = await response.Content.ReadAsAsync<UserProfile>();
                 }
                 else
                 {

@@ -1,6 +1,12 @@
+using System;
+using System.Net.Http;
+using System.Runtime.Serialization.Json;
 using System.Threading.Tasks;
+using AltinnCore.Common.Configuration;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using IRegister = AltinnCore.ServiceLibrary.Services.Interfaces.IRegister;
 
 namespace AltinnCore.Common.Services.Implementation
@@ -12,16 +18,22 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly IDSF _dsf;
         private readonly IER _er;
+        private readonly ILogger _logger;
+        private readonly PlatformSettings _platformSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RegisterAppSI"/> class
         /// </summary>
         /// <param name="dfs">The dfs</param>
         /// <param name="er">The er</param>
-        public RegisterAppSI(IDSF dfs, IER er)
+        /// <param name="logger">The logger</param>
+        /// <param name="platformSettings">The platform settings</param>
+        public RegisterAppSI(IDSF dfs, IER er, ILogger<RegisterAppSI> logger, IOptions<PlatformSettings> platformSettings)
         {
             _dsf = dfs;
             _er = er;
+            _logger = logger;
+            _platformSettings = platformSettings.Value;
         }
 
         /// <summary>
@@ -43,9 +55,26 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<Party> GetParty(int partyId)
+        public async Task<Party> GetParty(int partyId)
         {
-            throw new System.NotImplementedException();
+            Party party = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Party));
+
+            Uri endpointUrl = new Uri($"{_platformSettings.GetApiBaseEndpoint()}v1/party/{partyId}");
+            using (HttpClient client = new HttpClient())
+            {
+                HttpResponseMessage response = await client.GetAsync(endpointUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    party = await response.Content.ReadAsAsync<Party>();
+                }
+                else
+                {
+                    _logger.LogError($"Getting party with partyID {partyId} failed with statuscode {response.StatusCode}");
+                }
+            }
+
+            return party;
         }
     }
 }
