@@ -13,9 +13,9 @@ services:
       - altinnplatform_network
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:500
+      - ASPNETCORE_URLS=http://+:5050
     ports:
-      - "5030:5030"
+      - "5050:5050"
     build:
       context: .
       dockerfile: Authorization/Dockerfile

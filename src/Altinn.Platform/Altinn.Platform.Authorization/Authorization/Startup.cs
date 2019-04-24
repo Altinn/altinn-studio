@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,16 +12,29 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Platform.Authorization
 {
+    /// <summary>
+    /// Authorization startup.
+    /// </summary>
     public class Startup
     {
+        /// <summary>
+        ///  Initializes a new instance of the <see cref="Startup"/> class
+        /// </summary>
+        /// <param name="configuration">The configuration for the authorization component</param>
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
         }
 
+        /// <summary>
+        /// Gets authorization project configuration.
+        /// </summary>
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// Configure authorization setttings for the service.
+        /// </summary>
+        /// <param name="services">the service configuration.</param>
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<CookiePolicyOptions>(options =>
@@ -31,11 +44,14 @@ namespace Altinn.Platform.Authorization
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// Default configuration for the authorization component.
+        /// </summary>
+        /// <param name="app">the application builder.</param>
+        /// <param name="env">the hosting environment.</param>
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             if (env.IsDevelopment())
@@ -44,21 +60,10 @@ namespace Altinn.Platform.Authorization
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                app.UseExceptionHandler("/Error");
             }
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-            app.UseCookiePolicy();
-
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvc();
         }
     }
 }
