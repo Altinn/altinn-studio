@@ -89,7 +89,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
                 services.AddSingleton<IDSF, RegisterDSFAppSI>();
                 services.AddSingleton<IER, RegisterERAppSI>();
-                services.AddSingleton<IRegister, RegisterSI>();
+                services.AddSingleton<IRegister, RegisterAppSI>();
                 services.AddSingleton<IProfile, ProfileAppSI>();
             }
 
