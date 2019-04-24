@@ -5,7 +5,7 @@
 using System;
 using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
-using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.TagHelpers;
@@ -42,6 +42,9 @@ namespace AltinnCore.Designer.TagHelpers
             }
         }
 
+        /// <summary>
+        /// The view context
+        /// </summary>
         [HtmlAttributeNotBound]
         [ViewContext]
         public ViewContext ViewContext { get; set; }
@@ -53,11 +56,14 @@ namespace AltinnCore.Designer.TagHelpers
         public ModelExpression For { get; set; }
 
         /// <summary>
-        /// 
+        /// The altinn text key
         /// </summary>
         [HtmlAttributeName(AltinnTextKeyAttributeName)]
         public string AltinnTextKey { get; set; }
 
+        /// <summary>
+        /// The generator
+        /// </summary>
         protected IHtmlGenerator Generator { get; }
 
         /// <inheritdoc />
