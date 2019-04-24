@@ -32,7 +32,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
           >
             <div
               className="a-personSwitcher "
-              title="OLA PRIVATPERSON"
+              title="form_filler.placeholder_user"
             >
               <span
                 className="a-personSwitcher-name"
@@ -45,7 +45,7 @@ exports[`>>> containers/WorkflowStep.tsx --- Snapshot +++ should match snapshot 
                     }
                   }
                 >
-                  OLA PRIVATPERSON
+                  form_filler.placeholder_user
                 </span>
                 <span
                   className="d-block"
