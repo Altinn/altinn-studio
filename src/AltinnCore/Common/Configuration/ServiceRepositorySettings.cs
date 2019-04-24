@@ -271,6 +271,11 @@ namespace AltinnCore.Common.Configuration
         public string ProjectFileName { get; set; } = "AltinnService.csproj";
 
         /// <summary>
+        /// Gets or sets the filename for the git ignore file
+        /// </summary>
+        public string GitIgnoreFileName { get; set; } = ".gitignore";
+
+        /// <summary>
         /// Gets or sets the repo search page count used for searching repos
         /// </summary>
         public int RepoSearchPageCount { get; set; } = 1337;
