@@ -164,12 +164,11 @@ namespace Altinn.Platform.Storage.Controllers
 
             // check metadata
             ApplicationMetadata appInfo = GetApplicationInformation(instance.ApplicationId);
-            if (appInfo == null || !appInfo.Forms.ContainsKey(formId))
+            if (appInfo == null || !appInfo.Forms.Exists(f => f.Id.Equals(formId)))
             {
                 return Forbid("Application information has not registered a form with this formId");
             }
 
-            ApplicationForm form = appInfo.Forms[formId];
             DateTime creationTime = DateTime.UtcNow;
 
             Stream theStream = null;
