@@ -87,3 +87,31 @@ The profile solution is now available locally at http://localhost:5030/api/v1 an
 
 - users/{userId}
   - works with 1083, 2772, 2882 and 1536 (testdata)
+
+### Running Altinn Platform Authentication in container
+
+Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform/Altinn.Platform.Authentication
+
+Run all parts of the solution in containers (Make sure docker is running)
+
+```cmd
+docker-compose up -d --build
+```
+
+#### Running Altinn Platform Authentication locally
+
+The Authentication components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
+
+Stop the container running Authentication
+
+```cmd
+docker stop altinn-platform-authentication
+```
+
+Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Authentication, and build and run the code from there, or run the solution using you selected code editor
+
+```cmd
+dotnet run
+```
+
+The profile solution is now available locally at http://localhost:5040.
