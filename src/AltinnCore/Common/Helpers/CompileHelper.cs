@@ -1,8 +1,8 @@
-using System.Threading.Tasks;
 using System;
-using AltinnCore.ServiceLibrary;
-using AltinnCore.Common.Services.Interfaces;
+using System.Threading.Tasks;
 using AltinnCore.Common.Models;
+using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 
 namespace AltinnCore.Common.Helpers
 {
@@ -14,8 +14,8 @@ namespace AltinnCore.Common.Helpers
         /// <summary>
         /// Creates an asynchronous task for compiling an app
         /// </summary>
-        /// <param name="compilation"></param>
-        /// <param name="identifier"></param>
+        /// <param name="compilation">The ICompilation implementation</param>
+        /// <param name="identifier">The service identifier</param>
         /// <returns></returns>
         public static Task<CodeCompilationResult> CompileService(ICompilation compilation, ServiceIdentifier identifier)
         {

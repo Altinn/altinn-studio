@@ -1,13 +1,12 @@
-using AltinnCore.Common.Services.Interfaces;
+using System;
+using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
+using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using AltinnCore.ServiceLibrary;
-using System.Threading.Tasks;
-using System;
-
 
 namespace Designer.Controllers
 {
@@ -34,8 +33,8 @@ namespace Designer.Controllers
         /// <summary>
         /// Compiles the c# service files
         /// </summary>
-        /// <param name="org"></param>
-        /// <param name="app"></param>
+        /// <param name="org">The org</param>
+        /// <param name="app">The app</param>
         /// <returns>A compile result</returns>
         [HttpPost]
         public async Task<IActionResult> Compile(string org, string app)
@@ -44,6 +43,7 @@ namespace Designer.Controllers
             {
                 return BadRequest("Org or service not supplied");
             }
+
             try
             {
                 ServiceIdentifier serviceIdentifier = new ServiceIdentifier { Org = org, Service = app };
