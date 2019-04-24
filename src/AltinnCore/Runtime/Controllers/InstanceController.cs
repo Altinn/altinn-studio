@@ -36,6 +36,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
+        private readonly IData _data;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -52,6 +53,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
         /// <param name="instanceSI">the instance service handler</param>
+        /// <param name="dataSI">the data service handler</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -64,7 +66,8 @@ namespace AltinnCore.Runtime.Controllers
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
             IWorkflow workflowSI,
-            IInstance instanceSI)
+            IInstance instanceSI,
+            IData dataSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -78,6 +81,7 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
+            _data = dataSI;
         }
 
         /// <summary>
@@ -177,8 +181,10 @@ namespace AltinnCore.Runtime.Controllers
             // Assign data to the ViewBag so it is available to the service views or service implementation
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, platformServices);
 
-            // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            // Getting the Form Data
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid.TryParse(instance.Data.Find(m => m.FormId == "boatdata").Id, out Guid dataId);
+            object serviceModel = _data.GetFormData(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
 
             ViewBag.FormID = instanceId;
@@ -191,9 +197,15 @@ namespace AltinnCore.Runtime.Controllers
             if (ModelState.IsValid)
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+
                 if (currentState.State == WorkflowStep.Archived)
                 {
-                    _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                    //instance.CurrentWorkflowStep = currentState.State.ToString();
+                    //instance.IsCompleted = true;
+
+                    // _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
+
+                    await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.ReporteeId, instanceId);
                     apiResult.NextState = currentState.State;
                 }
             }

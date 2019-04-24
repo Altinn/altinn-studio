@@ -35,5 +35,16 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The partyId for the reportee</param>
         /// <param name="dataId">the data id</param>
         void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId);
+
+        /// <summary>
+        /// Gets the form data
+        /// </summary>
+        /// <param name="instanceId">The instanceid</param>
+        /// <param name="type">The type for serialization</param>
+        /// <param name="applicationOwnerId">The Organization code for the service owner</param>
+        /// <param name="applicationId">The service code for the current service</param>
+        /// <param name="instanceOwnerId">The partyId for the reportee</param>
+        /// <param name="dataId">the data id</param>
+        object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId);
     }
 }

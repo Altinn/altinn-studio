@@ -94,10 +94,11 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid id, string owner, string service, int reporteeId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string owner, string service, int instanceOwnerId)
         {
+            ServiceState currentState = GetCurrentState(instanceId, owner, service, instanceOwnerId);
             string workflowData = System.IO.File.ReadAllText("workflow.bpmn", Encoding.UTF8);
-            return WorkflowHelper.GetInitialWorkflowState(workflowData);
+            return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
     }
 }

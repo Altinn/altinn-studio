@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string GetFormModelApiMethod = "GetFormModel";
-        private const string SaveFormModelApiMethod = "SaveFormModel";
+        private const string SaveFormModelApiMethod = "SaveFormModel";        
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
@@ -31,7 +32,11 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
-        public DataSI(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<GeneralSettings> generalSettings)
+        public DataSI(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IHttpContextAccessor httpContextAccessor,
+            IOptions<TestdataRepositorySettings> testdataRepositorySettings,
+            IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -63,16 +68,41 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     serializer.Serialize(stream, dataToSerialize);
                     stream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (!response.Result.IsSuccessStatusCode)
+                    HttpResponseMessage response = await client.PostAsync(apiUrl, new StreamContent(stream));
+                    if (!response.IsSuccessStatusCode)
                     {
                         throw new Exception("Unable to save form model");
                     }
 
-                    string instanceData = await response.Result.Content.ReadAsStringAsync();
+                    string instanceData = await response.Content.ReadAsStringAsync();
                     instance = JsonConvert.DeserializeObject<Instance>(instanceData);
                 }
             }
+
+            // create new data element, store data in disk
+            //Data newData = new Data
+            //{
+            //    // update data record
+            //    Id = Guid.NewGuid().ToString(),
+            //    FormId = "boatdata",
+            //    ContentType = "application/xml",
+            //    CreatedBy = partyId.ToString(),
+            //    CreatedDateTime = DateTime.UtcNow,
+            //    FileName = "formdata.xml",
+            //    LastChangedBy = partyId.ToString(),
+            //    LastChangedDateTime = DateTime.UtcNow,
+            //};
+
+            //string fileName = $"{service}/{instanceId}/data/{newData.Id}";
+            //newData.StorageUrl = fileName;
+
+            //if (instance.Data == null)
+            //{
+            //    instance.Data = new List<Data>();
+            //}
+
+            //instance.Data.Add(newData);
+            //instance = await _instance.UpdateInstance(instance, service, org, partyId, instanceId);
 
             return instance;
         }
@@ -111,6 +141,46 @@ namespace AltinnCore.Common.Services.Implementation
                     }
 
                     //return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets form data from disk
+        /// </summary>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="type">The type that form data will be serialized to</param>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="partyId">The partyId used to find the party on disc</param>
+        /// <param name="dataId">The data id</param>
+        /// <returns>The deserialized form model</returns>
+        public object GetFormData(Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}&dataId={dataId}";
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    try
+                    {
+                        using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
+                        {
+                            return serializer.Deserialize(stream);
+                        }
+                    }
+                    catch
+                    {
+                        return Activator.CreateInstance(type);
+                    }
+                }
+                else
+                {
+                    return Activator.CreateInstance(type);
                 }
             }
         }

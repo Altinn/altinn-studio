@@ -270,9 +270,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                var document = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
-                var data = document.Resource.ToString();
-                var instance = JsonConvert.DeserializeObject<Instance>(data);
+                ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
+                Document document = createDocumentResponse.Resource;
+                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
                 return instance;
             }
             catch (Exception ex)

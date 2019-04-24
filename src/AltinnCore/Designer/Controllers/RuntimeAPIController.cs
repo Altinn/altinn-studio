@@ -68,13 +68,14 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="developer">The current developer</param>
         /// <param name="partyId">The party id of the test user</param>
         /// <param name="instanceId">The form id</param>
+        /// <param name="dataId">the data id</param>
         /// <returns>The form model</returns>
         [HttpGet]
-        public FileResult GetFormModel(string org, string service, string developer, int partyId, Guid instanceId)
+        public FileResult GetFormModel(string org, string service, string developer, int partyId, Guid instanceId, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(org, service, developer);
-            string formDataFilePath = $"{testDataForParty}{partyId}/{instanceId}/data/{instanceId}.xml";
-            return File(_execution.GetFileStream(formDataFilePath), "application/xml", $"{instanceId}.xml");
+            string formDataFilePath = $"{testDataForParty}{partyId}/{instanceId}/data/{dataId}.xml";
+            return File(_execution.GetFileStream(formDataFilePath), "application/xml", $"{dataId}.xml");
         }
 
         /// <summary>
@@ -148,19 +149,51 @@ namespace AltinnCore.Designer.Controllers
         [HttpPost]
         public FileResult SaveFormModel(string org, string service, string developer, int partyId, Guid instanceId)
         {
-            string dataPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data";
+            string testDataForParty = _settings.GetTestdataForPartyPath(org, service, developer);
+            string dataPath = $"{testDataForParty}{partyId}/{instanceId}/data";
 
             if (!Directory.Exists(dataPath))
             {
                 System.IO.Directory.CreateDirectory(dataPath);
             }
 
-            string formDataFilePath = $"{dataPath}/{instanceId}.xml";
+            string instanceFilePath = $"{testDataForParty}{partyId}/{instanceId}/{instanceId}.json";
+
+            FileStream instanceData = _execution.GetFileStream(instanceFilePath);
+            StreamReader reader = new StreamReader(instanceData);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(reader.ReadToEnd());
+            instanceData.Close();
+
+            string dataId = Guid.NewGuid().ToString();
+            Data data = new Data
+            {
+                Id = dataId,
+                FormId = "boatdata",
+                ContentType = "application/Xml",                
+                FileName = $"{dataId}.xml",
+                StorageUrl = $"{service}/{instanceId}/data/{dataId}",
+                CreatedBy = partyId.ToString(),
+                CreatedDateTime = DateTime.UtcNow,
+                LastChangedBy = partyId.ToString(),
+                LastChangedDateTime = DateTime.UtcNow,
+            };
+
+            instance.Data = new List<Data>();
+            instance.Data.Add(data);
+
+            using (MemoryStream stream = new MemoryStream())
+            {
+                var jsonData = JsonConvert.SerializeObject(instance);
+                StreamWriter writer = new StreamWriter(stream);
+                writer.Write(jsonData);
+                writer.Flush();
+                stream.Position = 0;
+                _execution.SaveToFile(instanceFilePath, stream);
+            }             
+
+            string formDataFilePath = $"{dataPath}/{dataId}.xml";
             _execution.SaveToFile(formDataFilePath, Request.Body);
-
-            string instanceData = GetInstanceFromFile(org, service, developer, partyId, instanceId).ToString();
-            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-
+            
             return GetInstanceFromFile(org, service, developer, partyId, instanceId);
         }
 
@@ -196,6 +229,23 @@ namespace AltinnCore.Designer.Controllers
             string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}";
             string folderForInstance = System.IO.Path.Combine(testDataForParty, instanceId.ToString());
             System.IO.Directory.CreateDirectory(folderForInstance);
+            string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
+            _execution.SaveToFile(instanceFilePath, Request.Body);
+        }
+
+        /// <summary>
+        /// Method that receives the form model from runtime and saves it to designer disk.
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="developer">The current developer</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId"> the form id</param>
+        [HttpPut]
+        public void UpdateInstanceInFile(string org, string service, string developer, int partyId, Guid instanceId)
+        {
+            string testDataForParty = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}";
+            string folderForInstance = System.IO.Path.Combine(testDataForParty, instanceId.ToString());
             string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
             _execution.SaveToFile(instanceFilePath, Request.Body);
         }
@@ -481,6 +531,17 @@ namespace AltinnCore.Designer.Controllers
             {
                 State = current,
             };
+        }
+
+        private void MoveToArchive(string archivePath, Guid instanceId, Stream instance)
+        {
+            if (!Directory.Exists(archivePath))
+            {
+                Directory.CreateDirectory(archivePath);
+            }
+
+            string formDataFilePath = $"{archivePath}{instanceId}.xml";
+            _execution.SaveToFile(formDataFilePath, instance);
         }
     }
 }

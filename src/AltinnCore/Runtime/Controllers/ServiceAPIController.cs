@@ -142,14 +142,17 @@ namespace AltinnCore.Runtime.Controllers
 
             ViewBag.PlatformServices = platformServices;
 
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals("boatdata")).Id);
+
             // Getting the Form Data from datastore
-            object serviceModel = this._form.GetFormModel(
+            object serviceModel = this._data.GetFormData(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                dataId);
 
             // Assing the populated service model to the service implementation
             serviceImplementation.SetServiceModel(serviceModel);
@@ -409,7 +412,8 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals("boatdata")).Id);
+            
             // Save Formdata to database
             this._data.UpdateData(
                 serviceModel,
@@ -418,11 +422,14 @@ namespace AltinnCore.Runtime.Controllers
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                Guid.Empty);
+               dataId);
 
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                instance.CurrentWorkflowStep = currentState.State.ToString();
+                await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
+
                 Response.StatusCode = 200;
                 apiResult.InstanceId = instanceId;
                 apiResult.Status = ApiStatusType.Ok;

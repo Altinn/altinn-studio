@@ -5,11 +5,13 @@ using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -30,9 +32,11 @@ namespace AltinnCore.Common.Services.Implementation
         private const string SaveInstanceMethod = "SaveInstanceToFile";
         private const string GetInstanceMethod = "GetInstanceFromFile";
         private const string GetFormInstancesApiMethod = "GetFormInstances";
+        private const string ArchiveInstanceMethod = "ArchiveServiceModel";
         private readonly IForm _form;
         private readonly IData _data;
         private readonly IWorkflow _workflow;
+        private readonly IArchive _archive;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceSILocalDev"/> class.
@@ -47,7 +51,8 @@ namespace AltinnCore.Common.Services.Implementation
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IForm formService,
             IData data,
-            IWorkflow workflowSI)            
+            IWorkflow workflowSI,
+            IArchive archiveSI)            
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -55,6 +60,7 @@ namespace AltinnCore.Common.Services.Implementation
             _form = formService;
             _workflow = workflowSI;
             _data = data;
+            _archive = archiveSI;
         }
 
         /// <summary>
@@ -111,30 +117,13 @@ namespace AltinnCore.Common.Services.Implementation
                 applicationId,
                 instanceOwnerId);
 
-            // Update instance with dataId
-            //instance = await GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId);
-
-            //Data data = new Data
-            //{
-            //    Id = dataId.ToString(),
-            //    ContentType = "application/Xml",
-            //    StorageUrl = "data/boatdata/",
-            //    CreatedBy = instanceOwnerId.ToString(),
-            //};
-
-            //Dictionary<string, Data> formData = new Dictionary<string, Data>();
-            //formData.Add(dataId.ToString(), data);
-            //instance.Data = new Dictionary<string, Dictionary<string, Data>>();
-            //instance.Data.Add("boatData", formData);
-            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
-
             return instance;
         }
 
         /// <summary>
-        ///Saves instance meta data
+        /// Saves instance meta data
         /// </summary>
-        public async Task<Instance> UpdateInstance<T>(T dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
@@ -164,7 +153,16 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            return instance;
+            //if(instance.IsCompleted)
+            //{
+            //    string archiveApiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveInstance, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
+            //    using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            //    {
+
+            //    }
+            //}
+
+            return instance;            
         }
 
         /// <summary>
@@ -229,6 +227,36 @@ namespace AltinnCore.Common.Services.Implementation
 
                 return instances;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId,  int instanceOwnerId, Guid instanceId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string apiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveInstanceMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                XmlSerializer serializer = new XmlSerializer(type);
+                using (MemoryStream stream = new MemoryStream())
+                {
+                    serializer.Serialize(stream, dataToSerialize);
+                    stream.Position = 0;
+                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
+                    if (!response.Result.IsSuccessStatusCode)
+                    {
+                        throw new Exception("Unable to archive service");
+                    }
+                }
+            }
+
+            Instance instance = GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId).Result;
+
+            instance.IsCompleted = true;
+            instance.CurrentWorkflowStep = WorkflowStep.Archived.ToString();
+
+            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            return instance;
         }
     }
 }

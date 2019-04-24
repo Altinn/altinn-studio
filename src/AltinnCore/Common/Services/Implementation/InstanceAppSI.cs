@@ -10,6 +10,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary;
+using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
@@ -23,8 +24,6 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class InstanceAppSI : IInstance
     {
-        private const string SaveInstanceMethod = "SaveInstanceToFile";
-        private const string GetInstanceMethod = "GetInstanceFromFile";
         private readonly IData _data;
         private readonly PlatformStorageSettings _platformStorageSettings;
         private readonly IWorkflow _workflow;
@@ -100,7 +99,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/api/v1/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -129,9 +128,9 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns></returns>
         public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
         {
-            List<Instance> instances;
+            List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/query?instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/?instanceOwnerId={instanceOwnerId}&{applicationOwnerId}&{applicationId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
@@ -141,6 +140,10 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     string instanceData = await response.Content.ReadAsStringAsync();
                     instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
+                }
+                else if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    return instances;
                 }
                 else
                 {
@@ -160,38 +163,42 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="instanceOwnerId">the instance owner id</param>
         /// <param name="instanceId">the instance id</param>
         /// <returns></returns>
-        public async Task<Instance> UpdateInstance<T>(T dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-                using (MemoryStream stream = new MemoryStream())
+                string jsonData = JsonConvert.SerializeObject(dataToSerialize);
+                StringContent httpContent = new StringContent(jsonData, Encoding.UTF8, "application/json");
+                HttpResponseMessage response = await client.PutAsync(apiUrl, httpContent);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    var jsonData = JsonConvert.SerializeObject(dataToSerialize);
-                    StreamWriter writer = new StreamWriter(stream);
-                    writer.Write(jsonData);
-                    writer.Flush();
-                    stream.Position = 0;
-                    HttpResponseMessage response = await client.PutAsJsonAsync(apiUrl, dataToSerialize);
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        string instanceData = await response.Content.ReadAsStringAsync();
-                        instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                    }
-                    else
-                    {
-                        throw new Exception("Unable to update instance");
-                    }
+                    string instanceData = await response.Content.ReadAsStringAsync();
+                    instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                }
+                else
+                {
+                    throw new Exception("Unable to update instance");
                 }
 
                 return instance;
             }
+        }
+
+        /// <inheritdoc/>
+        public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        {
+            Instance instance = GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId).Result;
+
+            instance.IsCompleted = true;
+            instance.CurrentWorkflowStep = WorkflowStep.Archived.ToString();
+
+            instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
+            return instance;
         }
     }
 }

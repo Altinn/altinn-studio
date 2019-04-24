@@ -30,6 +30,11 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// update instance metadata
         /// </summary>
-        Task<Instance> UpdateInstance<T>(T dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
+        Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
+
+        /// <summary>
+        /// update instance metadata
+        /// </summary>
+        Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId);
     }
 }

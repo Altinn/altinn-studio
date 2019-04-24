@@ -54,15 +54,18 @@ namespace AltinnCore.Common.Services.Implementation
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            List<Instance> instances =_instance.GetInstances(service, org, partyId).Result;
-            foreach (Instance instance in instances)
+            List<Instance> instances = _instance.GetInstances(service, org, partyId).Result;
+            if (instances != null && instances.Count > 0)
             {
-                returnList.Add(new ServiceInstance
+                foreach (Instance instance in instances)
                 {
-                    ServiceInstanceID = Guid.Parse(instance.Id),
-                    IsArchived = instance.IsCompleted,
-                    LastChanged = instance.LastChangedDateTime
-                });
+                    returnList.Add(new ServiceInstance
+                    {
+                        ServiceInstanceID = Guid.Parse(instance.Id),
+                        IsArchived = instance.IsCompleted,
+                        LastChanged = instance.LastChangedDateTime
+                    });
+                }
             }
 
             return returnList;

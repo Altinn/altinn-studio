@@ -73,6 +73,7 @@ namespace AltinnCore.Runtime
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IInstance, InstanceSILocalDev>();
+                services.AddSingleton<IData, DataSI>();
                 services.AddSingleton<IWorkflow, WorkflowSI>();
                 services.AddSingleton<ITestdata, TestdataSILocalDev>();
             }
