@@ -75,10 +75,10 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IInstance, InstanceSILocalDev>();
                 services.AddSingleton<IWorkflowSI, WorkflowSI>();
-                services.AddSingleton<IDSF, RegisterDSFSI>();
-                services.AddSingleton<IER, RegisterERSI>();
-                services.AddSingleton<IRegister, RegisterSI>();
-                services.AddSingleton<IProfile, ProfileSI>();
+                services.AddSingleton<IDSF, RegisterDSFStudioSI>();
+                services.AddSingleton<IER, RegisterERStudioSI>();
+                services.AddSingleton<IRegister, RegisterStudioSI>();
+                services.AddSingleton<IProfile, ProfileStudioSI>();
             }
             else
             {
@@ -93,9 +93,9 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IProfile, ProfileAppSI>();
             }
 
-            services.AddSingleton<IPlatformServices, PlatformSI>();
+            services.AddSingleton<IPlatformServices, PlatformStudioSI>();
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
-            services.AddSingleton<IAuthorization, AuthorizationSI>();
+            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();

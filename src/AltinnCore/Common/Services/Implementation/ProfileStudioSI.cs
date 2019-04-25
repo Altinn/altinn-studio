@@ -13,30 +13,30 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service for profile functionality under service development
     /// </summary>
-    public class ProfileSI : IProfile
+    public class ProfileStudioSI : IProfile
     {
         private const string TESDATA_USER_DIRECTORY = @"/User/";
 
         private const string PROFILE_FILENAME = "userprofile.json";
 
-        private RegisterSI _registerService;
+        private RegisterStudioSI _registerService;
 
         private TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IDSF _dsfService;
         private readonly IER _erService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ProfileSI"/> class
+        /// Initializes a new instance of the <see cref="ProfileStudioSI"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">The settings for test data repository</param>
         /// <param name="dsfService">The dsf service</param>
         /// <param name="erService">The er service</param>
-        public ProfileSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IDSF dsfService, IER erService)
+        public ProfileStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IDSF dsfService, IER erService)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _dsfService = dsfService;
             _erService = erService;
-            _registerService = new RegisterSI(testdataRepositorySettings, dsfService, erService);
+            _registerService = new RegisterStudioSI(testdataRepositorySettings, dsfService, erService);
         }
 
         /// <summary>

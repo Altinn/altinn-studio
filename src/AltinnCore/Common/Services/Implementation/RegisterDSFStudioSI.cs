@@ -7,21 +7,21 @@ using Microsoft.Extensions.Logging;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <inheritdoc />
-    public class RegisterERSI : IER
+    public class RegisterDSFStudioSI : IDSF
     {
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegisterERSI"/> class
+        /// Initializes a new instance of the <see cref="RegisterDSFStudioSI"/> class
         /// </summary>
         /// <param name="logger">the logger</param>
-        public RegisterERSI(ILogger<RegisterERSI> logger)
+        public RegisterDSFStudioSI(ILogger<RegisterDSFStudioSI> logger)
         {
             _logger = logger;
         }
 
         /// <inheritdoc />
-        public Task<Organization> GetOrganization(string OrgNr)
+        public Task<Person> GetPerson(string SSN)
         {
             throw new NotImplementedException();
         }

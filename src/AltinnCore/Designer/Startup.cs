@@ -67,15 +67,15 @@ namespace AltinnCore.Designer
             }
 
             services.AddSingleton<IArchive, ArchiveSILocalDev>();
-            services.AddSingleton<IAuthorization, AuthorizationSI>();
+            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormSILocalDev>();
-            services.AddSingleton<IProfile, ProfileSI>();
-            services.AddSingleton<IRegister, RegisterSI>();
+            services.AddSingleton<IProfile, ProfileStudioSI>();
+            services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ITestingRepository, TestingRepository>();

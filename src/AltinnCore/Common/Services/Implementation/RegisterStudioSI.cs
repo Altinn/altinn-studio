@@ -12,7 +12,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Register service for service development. Uses local disk to store register data
     /// </summary>
-    public class RegisterSI : IRegister
+    public class RegisterStudioSI : IRegister
     {
         private const string TESTDATA_PARTY_DIRECTORY = @"/Party/";
 
@@ -23,12 +23,12 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IER _erService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RegisterSI"/> class
+        /// Initializes a new instance of the <see cref="RegisterStudioSI"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
         /// <param name="dsfService">The dsf service</param>
         /// <param name="erService">The er service</param>
-        public RegisterSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IDSF dsfService, IER erService)
+        public RegisterStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IDSF dsfService, IER erService)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _dsfService = dsfService;

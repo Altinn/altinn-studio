@@ -9,7 +9,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// This implements the services available in the platform that can be used by services.
     /// After it is set in production only new methods can be added.
     /// </summary>
-    public class PlatformSI : IPlatformServices
+    public class PlatformStudioSI : IPlatformServices
     {
         private readonly IRepository _repository;
         private readonly IExecution _execution;
@@ -17,13 +17,13 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IProfile _profile;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlatformSI" /> class
+        /// Initializes a new instance of the <see cref="PlatformStudioSI" /> class
         /// </summary>
         /// <param name="repositoryService">The repository service</param>
         /// <param name="executionService">The execution service</param>
         /// <param name="register">The register service</param>
         /// <param name="profile">The profile service</param>
-        public PlatformSI(IRepository repositoryService, IExecution executionService, IRegister register, IProfile profile)
+        public PlatformStudioSI(IRepository repositoryService, IExecution executionService, IRegister register, IProfile profile)
         {
             _repository = repositoryService;
             _execution = executionService;

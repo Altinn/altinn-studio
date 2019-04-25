@@ -12,7 +12,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Authorization service created for service development where test data is located on disk
     /// </summary>
-    public class AuthorizationSI : IAuthorization
+    public class AuthorizationStudioSI : IAuthorization
     {
         private const string TESDATA_USER_DIRECTORY = @"/User/";
 
@@ -21,10 +21,10 @@ namespace AltinnCore.Common.Services.Implementation
         private TestdataRepositorySettings _testdataRepositorySettings;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AuthorizationSI"/> class.
+        /// Initializes a new instance of the <see cref="AuthorizationStudioSI"/> class.
         /// </summary>
         /// <param name="testdataRepositorySettings">Repository settings</param>
-        public AuthorizationSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings)
+        public AuthorizationStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
