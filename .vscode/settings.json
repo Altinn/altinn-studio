@@ -18,5 +18,11 @@
     "**/publish/**": true,
     "**/Debug": true
   },
-  "typescript.surveys.enabled": false
+  "typescript.surveys.enabled": false,
+  "cSpell.words": [
+    "api",
+    "i",
+    "kubernetes",
+    "wrapper"
+  ]
 }

@@ -1707,6 +1707,7 @@ namespace AltinnCore.Common.Services.Implementation
             string servicePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
             File.Copy(_generalSettings.DefaultProjectFile, servicePath + _settings.ProjectFileName);
+            File.Copy(_generalSettings.DefaultGitIgnoreFile, servicePath + _settings.GitIgnoreFileName);
         }
 
         private void CreateInitialServiceImplementation(string org, string service)
