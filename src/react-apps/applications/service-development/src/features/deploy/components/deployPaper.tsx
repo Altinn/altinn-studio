@@ -69,6 +69,34 @@ export const DeployPaper = (props: IDeployPaperProps) => {
 
   const constMockCompileFiles = ['firstFile.cs', 'secondFile.cs', 'thirdFile.cs'];
 
+  const renderRepoInSync = () => {
+    return (
+      <React.Fragment>
+        <Grid item={true} xs={1} id='renderInSync'>
+          <div
+            className={classNames({
+              [classes.checkIconPositionFix]: localRepoInSyncWithMaster === inSyncStatus.ready,
+            })}
+          >
+            <AltinnIcon
+              iconClass={classNames({
+                ['ai ai-check']: localRepoInSyncWithMaster === inSyncStatus.ready,
+                ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== inSyncStatus.ready,
+              })}
+              iconColor={localRepoInSyncWithMaster === inSyncStatus.ready ?
+                theme.altinnPalette.primary.green : '#008FD6'}
+              padding='0px 0px 7px 0px'
+            />
+          </div>
+
+        </Grid>
+        <Grid item={true} xs={11}>
+          {renderInSyncText(localRepoInSyncWithMaster)}
+        </Grid>
+      </React.Fragment>
+    );
+  };
+
   const renderInSyncText = (param: string) => {
     switch (param) {
 
@@ -324,6 +352,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
           props.deploySuccess === false ? renderDeployFailedErrorMsg(props.deployStatus.result.buildId) :
             props.deploymentListFetchStatus.success === false ? renderError(props.env,
               props.deploymentListFetchStatus.error) : (
+                // Render the normal paper
                 <React.Fragment>
                   {props.masterRepoAndDeployInSync === true ?
                     (
@@ -351,27 +380,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                   <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
 
                     {/* Render the repo in sync part */}
-                    <Grid item={true} xs={1} id='renderInSync'>
-                      <div
-                        className={classNames({
-                          [classes.checkIconPositionFix]: localRepoInSyncWithMaster === inSyncStatus.ready,
-                        })}
-                      >
-                        <AltinnIcon
-                          iconClass={classNames({
-                            ['ai ai-check']: localRepoInSyncWithMaster === inSyncStatus.ready,
-                            ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== inSyncStatus.ready,
-                          })}
-                          iconColor={localRepoInSyncWithMaster === inSyncStatus.ready ?
-                            theme.altinnPalette.primary.green : '#008FD6'}
-                          padding='0px 0px 7px 0px'
-                        />
-                      </div>
-
-                    </Grid>
-                    <Grid item={true} xs={11}>
-                      {renderInSyncText(localRepoInSyncWithMaster)}
-                    </Grid>
+                    {renderRepoInSync}
 
                     {/* If master repo and deploy is not in sync, render the C# compiles part */}
                     {props.masterRepoAndDeployInSync !== true &&
@@ -399,7 +408,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                 </React.Fragment>
               )}
 
-        {/* Render the button and help text */}
+        {/* Render the deploy button and help text */}
         {props.deploySuccess !== true && props.deploymentListFetchStatus.success !== false &&
           <div style={{ marginTop: 20 }}>
 
