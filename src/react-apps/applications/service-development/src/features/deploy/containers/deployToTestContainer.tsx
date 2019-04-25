@@ -6,10 +6,11 @@ import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import postMessages from '../../../../../shared/src/utils/postMessages';
 import DeployPaper from '../components/deployPaper';
-import DeployActionDispacher from '../deployDispatcher';
+import DeployActionDispatcher from '../deployDispatcher';
 
 const theme = createMuiTheme(altinnTheme);
 
+// TODO: Implement multiple environment support
 const environment = 'at21';
 
 const styles = () => createStyles({
@@ -46,6 +47,12 @@ const styles = () => createStyles({
   },
 });
 
+export enum inSyncStatus {
+  ahead = 'ahead',
+  behind = 'behind',
+  ready = 'ready',
+}
+
 export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
   deploymentList: any;
   language: any;
@@ -55,9 +62,8 @@ export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
   deployStatus: any;
 }
 
+// TODO: Remove state if unused
 export interface IDeployToTestContainerState {
-  deploySuccess: boolean;
-  interval: any;
 }
 
 export class DeployToTestContainer extends
@@ -68,16 +74,14 @@ export class DeployToTestContainer extends
   constructor(_props: IDeployToTestContainerProps, _state: IDeployToTestContainerState) {
     super(_props, _state);
     this.state = {
-      deploySuccess: null,
-      interval: null,
     };
   }
 
   public componentDidMount() {
     const altinnWindow: any = window;
     const { org, service } = altinnWindow;
-    DeployActionDispacher.fetchDeployments(environment, org, service);
-    DeployActionDispacher.fetchMasterRepoStatus(org, service);
+    DeployActionDispatcher.fetchDeployments(environment, org, service);
+    DeployActionDispatcher.fetchMasterRepoStatus(org, service);
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
 
     // If deployment has started but not finished, start the fetchDeploymentStatusInterval
@@ -93,7 +97,7 @@ export class DeployToTestContainer extends
       this.isMasterRepoAndDeployInSync(environment, this.props.masterRepoStatus, this.props.deploymentList) &&
       this.isDeployFinished(environment)
     ) {
-      DeployActionDispacher.resetDeploymentStatus(environment);
+      DeployActionDispatcher.resetDeploymentStatus(environment);
     }
 
   }
@@ -114,11 +118,11 @@ export class DeployToTestContainer extends
   public returnInSyncStatus = (repoStatus: any): any => {
     if (repoStatus.contentStatus) {
       if (repoStatus.contentStatus.length > 0) {
-        return 'ahead';
+        return inSyncStatus.ahead;
       } else if (repoStatus.behindBy > 0) {
-        return 'behind';
+        return inSyncStatus.behind;
       } else {
-        return 'ready';
+        return inSyncStatus.ready;
       }
     } else {
       return null;
@@ -138,7 +142,7 @@ export class DeployToTestContainer extends
   public startDeployment = (letEnv: string) => {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
-    DeployActionDispacher.deployAltinnApp(letEnv, org, service);
+    DeployActionDispatcher.deployAltinnApp(letEnv, org, service);
     this.fetchDeploymentStatusInterval(letEnv);
   }
 
@@ -147,7 +151,7 @@ export class DeployToTestContainer extends
     const { org, service } = altinnWindow;
     const interval = setInterval(() => {
       console.log('interval')
-      DeployActionDispacher.fetchDeployAltinnAppStatus(
+      DeployActionDispatcher.fetchDeployAltinnAppStatus(
         letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
       if (this.props.deployStatus[letEnv].result.finishTime ||
         this.props.deployStatus[letEnv].deployStartedSuccess === false) {

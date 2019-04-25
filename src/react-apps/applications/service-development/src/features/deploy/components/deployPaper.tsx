@@ -9,6 +9,7 @@ import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlContainer from '../../../../../shared/src/version-control/versionControlHeader';
+import { inSyncStatus } from '../containers/deployToTestContainer';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -53,7 +54,7 @@ interface IDeployPaperProps {
   classes: any;
   cSharpCompiles: boolean;
   deploymentListFetchStatus: any;
-  localRepoInSyncWithMaster: 'ahead' | 'behind' | 'ready';
+  localRepoInSyncWithMaster: inSyncStatus.ahead | inSyncStatus.behind | inSyncStatus.ready;
   titleTypographyVariant: TypographyProps['variant'];
   masterRepoAndDeployInSync: boolean;
   deploySuccess?: boolean;
@@ -71,14 +72,14 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   const renderInSyncText = (param: string) => {
     switch (param) {
 
-      case 'ready':
+      case inSyncStatus.ready:
         return (
           <Typography variant='h2' className={classes.listItemTitle}>
             {getLanguageFromKey('deploy_to_test.shared_with_org_true', props.language)}
           </Typography>
         );
 
-      case 'ahead':
+      case inSyncStatus.ahead:
         return (
           <React.Fragment>
             <Typography variant='h2' className={classes.listItemTitle}>
@@ -97,7 +98,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
           </React.Fragment>
         );
 
-      case 'behind':
+      case inSyncStatus.behind:
         return (
           <React.Fragment>
             <Typography variant='h2' className={classes.listItemTitle}>
@@ -225,7 +226,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                   props.language)}`}
             </Typography>
             <Typography variant='body1'>
-              Feilmelding: {error}
+              {getLanguageFromKey('deploy_to_test.error_message_with_colon', props.language)} {error}
             </Typography>
           </Grid>
         </Grid>
@@ -321,8 +322,8 @@ export const DeployPaper = (props: IDeployPaperProps) => {
 
         {props.deploySuccess === true ? renderDeploySuccess(props.env) :
           props.deploySuccess === false ? renderDeployFailedErrorMsg(props.deployStatus.result.buildId) :
-            props.deploymentListFetchStatus.success === false ?
-              renderError(props.env, props.deploymentListFetchStatus.error) : (
+            props.deploymentListFetchStatus.success === false ? renderError(props.env,
+              props.deploymentListFetchStatus.error) : (
                 <React.Fragment>
                   {props.masterRepoAndDeployInSync === true ?
                     (
@@ -353,15 +354,15 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                     <Grid item={true} xs={1} id='renderInSync'>
                       <div
                         className={classNames({
-                          [classes.checkIconPositionFix]: localRepoInSyncWithMaster === 'ready',
+                          [classes.checkIconPositionFix]: localRepoInSyncWithMaster === inSyncStatus.ready,
                         })}
                       >
                         <AltinnIcon
                           iconClass={classNames({
-                            ['ai ai-check']: localRepoInSyncWithMaster === 'ready',
-                            ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== 'ready',
+                            ['ai ai-check']: localRepoInSyncWithMaster === inSyncStatus.ready,
+                            ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== inSyncStatus.ready,
                           })}
-                          iconColor={localRepoInSyncWithMaster === 'ready' ?
+                          iconColor={localRepoInSyncWithMaster === inSyncStatus.ready ?
                             theme.altinnPalette.primary.green : '#008FD6'}
                           padding='0px 0px 7px 0px'
                         />
@@ -405,7 +406,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
             {props.deployStatus.deployStartedSuccess === true && !props.deployStatus.result.finishTime ? (
               <Grid container={true} alignItems='center'>
                 <Grid item={true} style={{ marginRight: 10 }}>
-                  <AltinnSpinner />
+                  <AltinnSpinner
+                    id='DeploySpinner'
+                  />
                 </Grid>
                 <Grid item={true}>
                   <Typography variant='body1'>

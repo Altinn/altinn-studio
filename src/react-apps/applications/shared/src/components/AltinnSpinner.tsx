@@ -6,6 +6,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnSpinnerComponentProvidedProps {
   classes: any;
+  id?: string;
   spinnerText?: any;
   styleObj?: object;
 }
@@ -33,7 +34,10 @@ class AltinnSpinner extends React.Component<IAltinnSpinnerComponentProvidedProps
     const { classes } = this.props;
     return (
       <div className={classNames(this.props.styleObj)}>
-        <CircularProgress className={classNames(classes.spinner)} />
+        <CircularProgress
+          className={classNames(classes.spinner)}
+          id={this.props.id ? this.props.id : null}
+        />
         {this.props.spinnerText &&
           <Typography className={classNames(classes.spinnerText)}>{this.props.spinnerText}</Typography>
         }
