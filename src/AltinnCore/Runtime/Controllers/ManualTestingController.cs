@@ -14,6 +14,7 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -122,7 +123,7 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             var startServiceModel = new StartServiceModel
@@ -142,7 +143,7 @@ namespace AltinnCore.Runtime.Controllers
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
                 startServiceModel.ReporteeID = reporteeId;
-                requestContext.Reportee = _register.GetParty(startServiceModel.ReporteeID);
+                requestContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
                 requestContext.UserContext.ReporteeId = reporteeId;
                 requestContext.UserContext.Reportee = requestContext.Reportee;
                 HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
@@ -162,10 +163,10 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public IActionResult RedirectToCorrectState(string org, string service, Guid instanceId)
+        public async Task<IActionResult> RedirectToCorrectState(string org, string service, Guid instanceId)
         {
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             ServiceState currentState = _workflowSI.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
             string nextUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
             return Redirect(nextUrl);
@@ -235,7 +236,7 @@ namespace AltinnCore.Runtime.Controllers
                 }
             }
 
-            UserProfile profile = _profile.GetUserProfile(id);
+            UserProfile profile = await _profile.GetUserProfile(id);
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, Issuer));
