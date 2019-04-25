@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
         private const string SaveFormModelApiMethod = "SaveFormModel";        
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="FormSILocalDev"/> class.
+        /// Initializes a new instance of the <see cref="DataSI"/> class.
         /// </summary>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
@@ -41,7 +41,7 @@ namespace AltinnCore.Common.Services.Implementation
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings.Value;
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
         }
 
         /// <summary>
@@ -79,31 +79,6 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            // create new data element, store data in disk
-            //Data newData = new Data
-            //{
-            //    // update data record
-            //    Id = Guid.NewGuid().ToString(),
-            //    FormId = "boatdata",
-            //    ContentType = "application/xml",
-            //    CreatedBy = partyId.ToString(),
-            //    CreatedDateTime = DateTime.UtcNow,
-            //    FileName = "formdata.xml",
-            //    LastChangedBy = partyId.ToString(),
-            //    LastChangedDateTime = DateTime.UtcNow,
-            //};
-
-            //string fileName = $"{service}/{instanceId}/data/{newData.Id}";
-            //newData.StorageUrl = fileName;
-
-            //if (instance.Data == null)
-            //{
-            //    instance.Data = new List<Data>();
-            //}
-
-            //instance.Data.Add(newData);
-            //instance = await _instance.UpdateInstance(instance, service, org, partyId, instanceId);
-
             return instance;
         }
 
@@ -139,8 +114,6 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         throw new Exception("Unable to save form model");
                     }
-
-                    //return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
                 }
             }
         }

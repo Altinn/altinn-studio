@@ -24,6 +24,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string testApplicationOwnerId = "TEST";
         private readonly string testApplicationId = "TEST/sailor";
         private readonly int testInstanceOwnerId = 640;
+        private readonly string formId = "default";
 
         private readonly string versionPrefix = "/api/storage/v1";
 
@@ -48,27 +49,30 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
 
-            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
-
-            foreach (Instance instance in instances)
+            if (response.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                string url = $"{versionPrefix}/instances/{instance.Id}";
+                List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
 
-                if (instance.Data != null)
+                foreach (Instance instance in instances)
                 {
-                    foreach (KeyValuePair<string, Data> file in instance.Data)
+                    string url = $"{versionPrefix}/instances/{instance.Id}";
+
+                    if (instance.Data != null)
                     {
-                        string filename = file.Value.StorageUrl;
-                        string dataUrl = "/data/" + file.Key + "?instanceOwnerId=" + testInstanceOwnerId;
+                        foreach (Data file in instance.Data)
+                        {
+                            string filename = file.StorageUrl;
+                            string dataUrl = "/data/" + file.Id + "?instanceOwnerId=" + testInstanceOwnerId;
 
-                        string dataDeleteUrl = url + dataUrl;
+                            string dataDeleteUrl = url + dataUrl;
 
-                        client.DeleteAsync(dataDeleteUrl);
-                    }                    
+                            client.DeleteAsync(dataDeleteUrl);
+                        }
+                    }
+
+                    string instanceUrl = $"{versionPrefix}/instances/{instance.Id}?instanceOwnerId={instance.InstanceOwnerId}&hard=true";
+                    client.DeleteAsync(instanceUrl);
                 }
-
-                string instanceUrl = $"{versionPrefix}/instances/{instance.Id}?instanceOwnerId={instance.InstanceOwnerId}&hard=true";                
-                client.DeleteAsync(instanceUrl);
             }
         }
 
@@ -137,7 +141,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string newId = await storage.PostInstances(testApplicationId, testInstanceOwnerId);
             Instance instance = await storage.GetInstances(newId, testInstanceOwnerId);
 
-            string requestUri = $"{versionPrefix}/instances/{newId}/data?formId=boatdata&instanceOwnerId={testInstanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{newId}/data?formId={formId}&instanceOwnerId={testInstanceOwnerId}";
 
             // post the file
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, jsonContent.AsJson());
@@ -155,7 +159,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int instanceOwnerId = testInstanceOwnerId;
 
             string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
             
             using (Stream input = File.OpenRead("data/binary_file.pdf"))
             {
@@ -163,7 +167,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 using (MultipartFormDataContent formData = new MultipartFormDataContent())
                 {
-                    formData.Add(fileStreamContent, "crewlist", "binary_file.pdf");
+                    formData.Add(fileStreamContent, formId, "binary_file.pdf");
                     HttpResponseMessage response = client.PostAsync(requestUri, formData).Result;
 
                     response.EnsureSuccessStatusCode();
@@ -186,7 +190,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             await storage.PostDataReadFromFile(instanceId, instanceOwnerId, "binary_file.pdf", "application/pdf");
             instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
-            string dataId = instance.Data.Keys.First();
+            string dataId = instance.Data.Find(m => m.FormId.Equals("default")).Id;
 
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             
@@ -219,7 +223,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
-            string dataId = instance.Data.Keys.First();
+            string dataId = instance.Data.Find(m => m.FormId.Equals("default")).Id;
 
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             
@@ -231,7 +235,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
                 using (MultipartFormDataContent formData = new MultipartFormDataContent())
                 {
-                    formData.Add(fileStreamContent, "crewlist", dataFile);
+                    formData.Add(fileStreamContent, formId, dataFile);
                     HttpResponseMessage response = client.PutAsync(requestUri, formData).Result;
 
                     response.EnsureSuccessStatusCode();

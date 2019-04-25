@@ -368,11 +368,8 @@ namespace Altinn.Platform.Storage.Controllers
                 'applicationId': 'KNS/sailor',
                 'applicationOwnerId': 'KNS',
                 'forms': {
-                    'boatdata': {
+                    'default': {
                         'contentType': 'application/schema+json'
-                    },
-                    'crewlist': {
-                        'contentType': 'application/pdf'
                     }
                 }
                 }";

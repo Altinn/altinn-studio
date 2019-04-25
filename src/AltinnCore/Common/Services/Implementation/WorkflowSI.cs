@@ -102,30 +102,6 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
-            //string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            //string apiUrl = $"{_settings.GetRuntimeAPIPath(UpdateCurrentStateMethod, owner, service, developer, partyId)}&instanceId={instanceId}";
-            //ServiceState returnState = null;
-            //using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            //{
-            //    client.BaseAddress = new Uri(apiUrl);
-            //    Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-            //    if (!response.Result.IsSuccessStatusCode)
-            //    {
-            //        throw new Exception("Unable to update state of service");
-            //    }
-            //    else
-            //    {
-            //        try
-            //        {
-            //            returnState = response.Result.Content.ReadAsAsync<ServiceState>().Result;
-            //        }
-            //        catch
-            //        {
-            //            return returnState;
-            //        }
-            //    }
-            //}
-
             ServiceState currentState = GetCurrentState(instanceId, applicationOwnerId, applicationId, instanceOwnerId);
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

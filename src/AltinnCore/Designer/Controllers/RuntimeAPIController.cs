@@ -31,6 +31,7 @@ namespace AltinnCore.Designer.Controllers
         private readonly IExecution _execution;
         private readonly ITestdata _testdataSI;
         private readonly ILogger _logger;
+        private const string FORM_ID = "default";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RuntimeAPIController"/> class.
@@ -168,7 +169,7 @@ namespace AltinnCore.Designer.Controllers
             Data data = new Data
             {
                 Id = dataId,
-                FormId = "boatdata",
+                FormId = FORM_ID,
                 ContentType = "application/Xml",                
                 FileName = $"{dataId}.xml",
                 StorageUrl = $"{service}/{instanceId}/data/{dataId}",

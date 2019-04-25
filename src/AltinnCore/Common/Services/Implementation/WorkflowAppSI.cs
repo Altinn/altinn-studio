@@ -30,7 +30,7 @@ namespace AltinnCore.Common.Services.Implementation
         private const string GetCurrentStateMethod = "GetCurrentState";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WorkflowSI"/> class.
+        /// Initializes a new instance of the <see cref="WorkflowAppSI"/> class.
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="repositorySettings">The service repository settings</param>

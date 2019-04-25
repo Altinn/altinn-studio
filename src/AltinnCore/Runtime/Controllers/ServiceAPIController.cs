@@ -49,6 +49,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IWorkflow _workflowSI;
         private readonly IData _data;
 
+        private const string FORM_ID = "default";
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
 
         /// <summary>
@@ -143,7 +144,7 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.PlatformServices = platformServices;
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals("boatdata")).Id);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
 
             // Getting the Form Data from datastore
             object serviceModel = this._data.GetFormData(
@@ -412,7 +413,7 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals("boatdata")).Id);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
             
             // Save Formdata to database
             this._data.UpdateData(

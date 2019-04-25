@@ -38,6 +38,8 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IInstance _instance;
         private readonly IData _data;
 
+        private const string FORM_ID = "default";
+
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
         /// </summary>
@@ -183,7 +185,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Getting the Form Data
             Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
-            Guid.TryParse(instance.Data.Find(m => m.FormId == "boatdata").Id, out Guid dataId);
+            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
             object serviceModel = _data.GetFormData(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
 

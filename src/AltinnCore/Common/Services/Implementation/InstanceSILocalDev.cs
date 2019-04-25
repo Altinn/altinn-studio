@@ -153,15 +153,6 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            //if(instance.IsCompleted)
-            //{
-            //    string archiveApiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveInstance, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
-            //    using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            //    {
-
-            //    }
-            //}
-
             return instance;            
         }
 
@@ -171,6 +162,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="applicationId">application id</param>
         /// <param name="applicationOwnerId">application owner id</param>
         /// <param name="instanceOwnerId">instance owner id</param>
+        /// <param name="instanceId">the instance id</param>
         /// <returns></returns>
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {

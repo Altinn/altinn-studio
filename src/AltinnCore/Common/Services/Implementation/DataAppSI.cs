@@ -20,6 +20,8 @@ namespace AltinnCore.Common.Services.Implementation
     {
         private readonly PlatformStorageSettings _platformStorageSettings;
 
+        private const string FORM_ID = "default";
+
         /// <summary>
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
         /// </summary>
@@ -41,7 +43,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="instanceOwnerId">The partyId</param>
         public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId=boatdata&instanceOwnerId={instanceOwnerId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
             Instance instance;
             using (HttpClient client = new HttpClient())
             {
@@ -99,8 +101,6 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         throw new Exception("Unable to save form model");
                     }
-
-                    //return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
                 }
             }
         }

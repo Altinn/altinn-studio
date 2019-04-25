@@ -34,6 +34,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
+        /// <param name="generalSettings">the general settings</param>
         public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;

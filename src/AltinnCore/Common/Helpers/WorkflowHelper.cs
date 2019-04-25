@@ -114,13 +114,6 @@ namespace AltinnCore.Common.Helpers
                 state = nextStepName,
             });
 
-            //if (string.IsNullOrEmpty(nextStepName))
-            //{
-            //    _logger.LogError("Unable to read workflow data, unable to find next step name from current step");
-            //}
-
-            //System.IO.File.WriteAllText(serviceStatePath, stateJson.ToString(), Encoding.UTF8);            
-
             return new ServiceState()
             {
                 State = string.IsNullOrEmpty(nextStepName) ?
