@@ -13,9 +13,9 @@ using Newtonsoft.Json;
 namespace Altinn.Platform.Storage.Repository
 {
     /// <summary>
-    /// Handles instances
+    /// Handles applicationMetadata repository
     /// </summary>
-    public class ApplicationRepository 
+    public class ApplicationRepository : IApplicationRepository
     {
         private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
@@ -58,152 +58,70 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
-        /// <summary>
-        /// To insert new instance into instance collection
-        /// </summary>
-        /// <param name="item">the form data</param>
-        /// <returns>The deserialized formdata saved to file</returns>
-        public async Task<string> InsertIntoCollectionAsync(ApplicationMetadata item)
-        {
-            try
-            {
-                ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
-                Document document = createDocumentResponse.Resource;
+        /// <inheritdoc/>
+        public async Task<ApplicationMetadata> Create(ApplicationMetadata item)
+        {            
+            ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
+            Document document = createDocumentResponse.Resource;
 
-                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+            ApplicationMetadata instance = JsonConvert.DeserializeObject<ApplicationMetadata>(document.ToString());
 
-                return instance.Id;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            return instance;         
         }
 
-        /// <summary>
-        /// Delets an instance.
-        /// </summary>
-        /// <param name="item">The instance to delete</param>
-        /// <returns>if the item is deleted or not</returns>
-        public async Task<bool> Delete(Instance item)
+        /// <inheritdoc/>
+        public async Task<bool> Delete(string applicationId, string applicationOwnerId)
         {
-            try
-            {
-                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id.ToString());
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, applicationId);
 
-                ResourceResponse<Document> instance = await _client
-                    .DeleteDocumentAsync(
-                        uri.ToString(),
-                        new RequestOptions { PartitionKey = new PartitionKey(item.InstanceOwnerId) });
+            ResourceResponse<Document> instance = await _client
+                .DeleteDocumentAsync(
+                    uri.ToString(),
+                    new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
 
-                return true;
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
+            return true;
         }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="applicationOwnerId">application owner id</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<List<ApplicationMetadata>> GetInstancesOfApplicationOwnerAsync(string applicationOwnerId)
-        {
-            try
-            {
-                string sqlQuery = $"SELECT * FROM applications i WHERE i.applicationOwnerId = '{applicationOwnerId}'";
+        /// <inheritdoc/>
+        public async Task<List<ApplicationMetadata>> ListApplications(string applicationOwnerId)
+        {         
+            IDocumentQuery<ApplicationMetadata> query = _client
+                .CreateDocumentQuery<ApplicationMetadata>(_collectionUri,  new FeedOptions { EnableCrossPartitionQuery = true })
+                .Where(i => i.ApplicationOwnerId == applicationOwnerId)
+                .AsDocumentQuery();
 
-                IDocumentQuery<ApplicationMetadata> query = _client
-                    .CreateDocumentQuery<ApplicationMetadata>(_collectionUri, sqlQuery, new FeedOptions { EnableCrossPartitionQuery = true })
-                    .AsDocumentQuery();
+            FeedResponse<ApplicationMetadata> result = await query.ExecuteNextAsync<ApplicationMetadata>();
+            List<ApplicationMetadata> instances = result.ToList<ApplicationMetadata>();
 
-                FeedResponse<ApplicationMetadata> result = await query.ExecuteNextAsync<ApplicationMetadata>();
-                List<ApplicationMetadata> instances = result.ToList<ApplicationMetadata>();
-                return instances;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
+            return instances;          
         }
 
-        /// <summary>
-        /// Get the instance based on the input parameters
-        /// </summary>
-        /// <param name="applicationId">application owner id</param>
-        /// <returns>the instance for the given parameters</returns>
-        public async Task<ApplicationMetadata> GetApplicationAsync(string applicationId)
+        /// <inheritdoc/>
+        public async Task<ApplicationMetadata> FindOne(string applicationId, string applicationOwnerId)
         {
-            try
-            {                
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = true,
-                    MaxItemCount = 100,          
-                };
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, applicationId);
 
-                IDocumentQuery<ApplicationMetadata> query = _client
-                    .CreateDocumentQuery<ApplicationMetadata>(_collectionUri, feedOptions)
-                    .Where(i => i.Id == applicationId)           
-                    .AsDocumentQuery();
-
-                FeedResponse<ApplicationMetadata> result = await query.ExecuteNextAsync<ApplicationMetadata>();
-             
-                ApplicationMetadata application = result.First();
-                return application;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
+            ApplicationMetadata application = await _client
+                .ReadDocumentAsync<ApplicationMetadata>(
+                    uri,
+                    new RequestOptions { PartitionKey = new PartitionKey(applicationOwnerId) });
+                     
+            return application;
         }
 
-        /// <summary>
-        /// Update instance for a given form id
-        /// </summary>
-        /// <param name="applicationId">the instance id</param>
-        /// <param name="item">the instance</param>
-        /// <returns>The instance</returns>
-        public async Task<ApplicationMetadata> UpdateAsync(string applicationId, ApplicationMetadata item)
+        /// <inheritdoc/>
+        public async Task<ApplicationMetadata> Update(ApplicationMetadata item)
         {
-            try
-            {
-                ResourceResponse<Document> document = await _client.ReplaceDocumentAsync(
-                    UriFactory.CreateDocumentUri(databaseId, collectionId, applicationId),
-                    item);
+            Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
+            ResourceResponse<Document> document = await _client.ReplaceDocumentAsync(
+                uri,
+                item);
 
-                var data = document.Resource.ToString();
-                var instance = JsonConvert.DeserializeObject<ApplicationMetadata>(data);
-                return instance;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            string storedApplication = document.Resource.ToString();
+
+            ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(storedApplication);
+
+            return application;
         }
     }
 }

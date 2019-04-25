@@ -27,16 +27,19 @@ namespace Altinn.Platform.Storage.Controllers
 
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
+        private readonly ApplicationRepository _applicationRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
         /// </summary>
         /// <param name="formRepository">the form data repository handler</param>
         /// <param name="instanceRepository">the repository</param>
-        public DataController(IDataRepository formRepository, IInstanceRepository instanceRepository)
+        /// <param name="applicationRepository">the application repository</param>
+        public DataController(IDataRepository formRepository, IInstanceRepository instanceRepository, ApplicationRepository applicationRepository)
         {
             _dataRepository = formRepository;
             _instanceRepository = instanceRepository;
+            _applicationRepository = applicationRepository;
         }
 
         /// <summary>
@@ -361,21 +364,11 @@ namespace Altinn.Platform.Storage.Controllers
 
         private ApplicationMetadata GetApplicationInformation(string applicationId)
         {
-            string json = @"{
-                'applicationId': 'KNS/sailor',
-                'applicationOwnerId': 'KNS',
-                'forms': {
-                    'boatdata': {
-                        'contentType': 'application/schema+json'
-                    },
-                    'crewlist': {
-                        'contentType': 'application/pdf'
-                    }
-                }
-                }";
+            string applicationOwnerId = applicationId.Split("-")[0];
 
-            // dummy data TODO call repository
-            return JsonConvert.DeserializeObject<ApplicationMetadata>(json);           
+            ApplicationMetadata application = _applicationRepository.FindOne(applicationId, applicationOwnerId).Result;
+
+            return application;            
         }
     }
 }
