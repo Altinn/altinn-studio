@@ -40,7 +40,7 @@ Stop the container running Register
 docker stop altinn-platform-register
 ```
 
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Register, and build and run the code from there, or run the solution using you selected code editor
+Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Register/Register, and build and run the code from there, or run the solution using you selected code editor
 
 ```cmd
 dotnet run
@@ -77,7 +77,7 @@ Stop the container running Profile
 docker stop altinn-platform-profile
 ```
 
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Profile, and build and run the code from there, or run the solution using you selected code editor
+Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Profile/Profile, and build and run the code from there, or run the solution using you selected code editor
 
 ```cmd
 dotnet run
@@ -108,10 +108,10 @@ Stop the container running Authentication
 docker stop altinn-platform-authentication
 ```
 
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Authentication, and build and run the code from there, or run the solution using you selected code editor
+Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication, and build and run the code from there, or run the solution using you selected code editor
 
 ```cmd
 dotnet run
 ```
 
-The profile solution is now available locally at http://localhost:5040.
+The authentication solution is now available locally at http://localhost:5040.
