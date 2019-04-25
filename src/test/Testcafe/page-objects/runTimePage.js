@@ -19,6 +19,8 @@ export default class RunTimePage {
     //SBL components
     this.fileDropComponent = Selector('input').withAttribute('type', 'file');//Selector('.file-upload').child(0); 
     this.fileListBox = Selector('[id*="-fileuploader-"]');
-    this.fileDeleteButton =  Selector("#attachment-delete-0");
+    this.fileDeleteButton = Selector('#attachment-delete-0');
+    this.textboxComponent = Selector('textarea')
+    this.addressComponent = Selector('input').withAttribute('type','text');
   }
 }

@@ -54,9 +54,20 @@ test('Upload files using file component in SBL', async () => {
     .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
 })
 
+test.only('Read-only components test in runtime', async () => {
+  await t
+  .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
+  .click(designer.testeNavigationTab)
+  .hover(designer.leftDrawerMenu)
+  .click(designer.testeLeftMenuItems[0])
+  .click(runtime.openManualTestWindow)
+  .click(runtime.testUsers[0])
+  .click(runtime.startNewButton)
+})
+
 test('axe UI accessibility test for runtime', async t => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view_auto#/aboutservice')
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[0])

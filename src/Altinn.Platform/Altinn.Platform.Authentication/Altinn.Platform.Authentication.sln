@@ -1,0 +1,36 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2027
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D40D1681-F01B-4CF6-8BD1-A1714D63EED1}"
+	ProjectSection(SolutionItems) = preProject
+		Altinn3.ruleset = Altinn3.ruleset
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.Platform.Authentication", "Authentication\Altinn.Platform.Authentication.csproj", "{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DFD11A0E-FC6D-4979-87A4-7A7B5DC66695}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF44A1E9-B5B6-4BD0-8AE3-A0D6135E0328}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BF103CE5-1ED5-4A3D-BF81-7FDD1364C939}
+	EndGlobalSection
+EndGlobal
