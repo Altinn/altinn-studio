@@ -24,7 +24,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// service implementation for instance for saving in disk
     /// </summary>
-    public class InstanceSILocalDev : IInstance
+    public class InstanceStudioSI : IInstance
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
@@ -39,13 +39,13 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IArchive _archive;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceSILocalDev"/> class.
+        /// Initializes a new instance of the <see cref="InstanceStudioSI"/> class.
         /// </summary>
         /// <param name="repositorySettings">repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="formService">form service</param>
-        public InstanceSILocalDev(
+        public InstanceStudioSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,

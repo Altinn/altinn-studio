@@ -72,10 +72,10 @@ namespace AltinnCore.Runtime
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
-                services.AddSingleton<IInstance, InstanceSILocalDev>();
-                services.AddSingleton<IData, DataSI>();
-                services.AddSingleton<IWorkflow, WorkflowSI>();
-                services.AddSingleton<ITestdata, TestdataSILocalDev>();
+                services.AddSingleton<IInstance, InstanceStudioSI>();
+                services.AddSingleton<IData, DataStudioSI>();
+                services.AddSingleton<IWorkflow, WorkflowStudioSI>();
+                services.AddSingleton<ITestdata, TestdataStudioSI>();
             }
             else
             {

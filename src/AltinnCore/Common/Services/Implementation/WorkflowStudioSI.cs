@@ -14,7 +14,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service that handles functionality used for workflow
     /// </summary>
-    public class WorkflowSI : IWorkflow
+    public class WorkflowStudioSI : IWorkflow
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
@@ -25,12 +25,12 @@ namespace AltinnCore.Common.Services.Implementation
         private const string GetWorkflowDataMethod = "GetWorkflowData";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="WorkflowSI"/> class.
+        /// Initializes a new instance of the <see cref="WorkflowStudioSI"/> class.
         /// </summary>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
-        public WorkflowSI(IOptions<ServiceRepositorySettings> repositorySettings, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IHttpContextAccessor httpContextAccessor)
+        public WorkflowStudioSI(IOptions<ServiceRepositorySettings> repositorySettings, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;

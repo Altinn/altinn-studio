@@ -17,7 +17,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service implementation for integration test
     /// </summary>
-    public class DataSI : IData
+    public class DataStudioSI : IData
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
@@ -27,12 +27,12 @@ namespace AltinnCore.Common.Services.Implementation
         private const string SaveFormModelApiMethod = "SaveFormModel";        
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DataSI"/> class.
+        /// Initializes a new instance of the <see cref="DataStudioSI"/> class.
         /// </summary>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
-        public DataSI(
+        public DataStudioSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,

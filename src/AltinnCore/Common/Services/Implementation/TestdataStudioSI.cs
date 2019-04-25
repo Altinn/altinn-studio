@@ -17,7 +17,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Services with functionality for test data under service development
     /// </summary>
-    public class TestdataSILocalDev : ITestdata
+    public class TestdataStudioSI : ITestdata
     {
         private const string TESTUSERS_FILENAME = "testusers.json";
 
@@ -33,7 +33,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        public TestdataSILocalDev(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
+        public TestdataStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
         {
             this._testdataRepositorySettings = testdataRepositorySettings.Value;
             this._settings = repositorySettings.Value;
