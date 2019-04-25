@@ -32,6 +32,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new instance of the <see cref="InstanceAppSI"/> class.
         /// </summary>
         /// <param name="data">form service</param>
+        /// <param name="platformStorageSettings">the platform storage settings</param>
+        /// <param name="workflowSI">the workflow service</param>
         public InstanceAppSI(IData data, IOptions<PlatformStorageSettings> platformStorageSettings, IWorkflow workflowSI)
         {
             _data = data;
@@ -79,7 +81,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
 
-            //set initial workflow state
+            // set initial workflow state
             instance.CurrentWorkflowStep = currentState.State.ToString();
 
             instance = await UpdateInstance(instance, applicationId, applicationOwnerId, instanceOwnerId, instanceId);
@@ -141,7 +143,7 @@ namespace AltinnCore.Common.Services.Implementation
                     string instanceData = await response.Content.ReadAsStringAsync();
                     instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
                 }
-                else if(response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     return instances;
                 }

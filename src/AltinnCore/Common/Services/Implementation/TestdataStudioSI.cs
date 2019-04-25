@@ -28,7 +28,7 @@ namespace AltinnCore.Common.Services.Implementation
         private const string GetServicePrefillApiMethod = "GetServicePrefill";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestdataSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="TestdataStudioSI"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>

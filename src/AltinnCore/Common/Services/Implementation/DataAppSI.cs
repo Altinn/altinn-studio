@@ -25,7 +25,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <summary>
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
         /// </summary>
-        /// <param name="data">form service</param>
+        /// <param name="platformStorageSettings">the storage settings</param>
         public DataAppSI(IOptions<PlatformStorageSettings> platformStorageSettings)
         {
             _platformStorageSettings = platformStorageSettings.Value;
@@ -82,6 +82,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="applicationOwnerId">The Organization code for the service owner</param>
         /// <param name="applicationId">The service code for the current service</param>
         /// <param name="instanceOwnerId">The partyId</param>
+        /// <param name="dataId">the data id</param>
         public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";

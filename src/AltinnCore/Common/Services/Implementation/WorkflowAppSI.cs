@@ -35,6 +35,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
+        /// <param name="platformStorageSettings">the platform storage settings</param>
         public WorkflowAppSI(IOptions<ServiceRepositorySettings> repositorySettings, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<PlatformStorageSettings> platformStorageSettings)
         {
             _settings = repositorySettings.Value;

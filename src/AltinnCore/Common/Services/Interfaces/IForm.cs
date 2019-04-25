@@ -10,30 +10,6 @@ namespace AltinnCore.Common.Services.Interfaces
     /// </summary>
     public interface IForm
     {
-        ///// <summary>
-        ///// Stores the form model
-        ///// </summary>
-        ///// <typeparam name="T">The type</typeparam>
-        ///// <param name="dataToSerialize">The service model to serialize</param>
-        ///// <param name="instanceId">The formId</param>
-        ///// <param name="type">The type for serialization</param>
-        ///// <param name="org">The Organization code for the service owner</param>
-        ///// <param name="service">The service code for the current service</param>
-        ///// <param name="partyId">The partyId for the reportee</param>
-        //Task<Guid> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId);
-
-        ///// <summary>
-        ///// Updates the form data
-        ///// </summary>
-        ///// <typeparam name="T">The type</typeparam>
-        ///// <param name="dataToSerialize">The service model to serialize</param>
-        ///// <param name="instanceId">The formId</param>
-        ///// <param name="type">The type for serialization</param>
-        ///// <param name="org">The Organization code for the service owner</param>
-        ///// <param name="service">The service code for the current service</param>
-        ///// <param name="partyId">The partyId for the reportee</param>
-        //void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId);
-
         /// <summary>
         /// This method saves a form attachment
         /// </summary>

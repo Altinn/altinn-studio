@@ -89,7 +89,7 @@ namespace AltinnCore.Common.Services.Implementation
                         workflowData = response.Result.Content.ReadAsStringAsync().Result;
                         returnState = WorkflowHelper.GetInitialWorkflowState(workflowData);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return returnState;
                     }
@@ -123,7 +123,7 @@ namespace AltinnCore.Common.Services.Implementation
                         workflowData = response.Result.Content.ReadAsStringAsync().Result;
                         returnState = WorkflowHelper.UpdateCurrentState(workflowData, currentState);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         return returnState;
                     }

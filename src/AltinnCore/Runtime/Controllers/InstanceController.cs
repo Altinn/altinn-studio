@@ -201,12 +201,7 @@ namespace AltinnCore.Runtime.Controllers
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
 
                 if (currentState.State == WorkflowStep.Archived)
-                {
-                    //instance.CurrentWorkflowStep = currentState.State.ToString();
-                    //instance.IsCompleted = true;
-
-                    // _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
-
+                {                    
                     await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.ReporteeId, instanceId);
                     apiResult.NextState = currentState.State;
                 }
@@ -363,8 +358,6 @@ namespace AltinnCore.Runtime.Controllers
 
                 // Create a new instance document                
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
-
-                //ServiceState currentState = _workflowSI.InitializeServiceState(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
 
                 Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
 

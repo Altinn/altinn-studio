@@ -36,7 +36,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IForm _form;
         private readonly IData _data;
         private readonly IWorkflow _workflow;
-        private readonly IArchive _archive;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceStudioSI"/> class.
@@ -45,14 +44,15 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="formService">form service</param>
+        /// <param name="data">the data service</param>
+        /// <param name="workflowSI">the workflow serviec</param>
         public InstanceStudioSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IForm formService,
             IData data,
-            IWorkflow workflowSI,
-            IArchive archiveSI)            
+            IWorkflow workflowSI)            
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -60,7 +60,6 @@ namespace AltinnCore.Common.Services.Implementation
             _form = formService;
             _workflow = workflowSI;
             _data = data;
-            _archive = archiveSI;
         }
 
         /// <summary>

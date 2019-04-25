@@ -68,6 +68,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="workflowSI">The workflow service.</param>
         /// <param name="instanceSI">The instance si</param>
+        /// <param name="data">the data service</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -423,7 +424,7 @@ namespace AltinnCore.Runtime.Controllers
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-               dataId);
+                dataId);
 
             if (apiMode.Equals(ApiMode.Complete))
             {

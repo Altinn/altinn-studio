@@ -30,11 +30,12 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IInstance _instance;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestdataSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="TestdataAppSI"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="instanceSI">the instance service</param>
         public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI)
         {
             this._testdataRepositorySettings = testdataRepositorySettings.Value;
