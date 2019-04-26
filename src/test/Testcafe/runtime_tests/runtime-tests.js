@@ -54,7 +54,7 @@ test('Upload files using file component in SBL', async () => {
     .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
 })
 
-test.only('Read-only components test in runtime', async () => {
+test('Read-only components test in runtime', async () => {
   await t
   .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
   .click(designer.testeNavigationTab)
