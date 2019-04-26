@@ -46,5 +46,27 @@ mountOptions:
   - file_mode=0755
 parameters:
   skuName: Standard_LRS
-  storageAccount: {nameOfStorageAccount(must be in the same resource group as the cluster)}
-  resourceGroup: {nameOfResourceGroup}
+  storageAccount: altinnt30storageaccount
+  resourceGroup: altinntjenester-tre-null
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:azure-storage-provider
+rules:
+- apiGroups: ['']
+  resources: ['secrets']
+  verbs:     ['get','create']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:azure-storage-provider
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:azure-storage-provider
+subjects:
+- kind: ServiceAccount
+  name: persistent-volume-binder
+  namespace: kube-system
