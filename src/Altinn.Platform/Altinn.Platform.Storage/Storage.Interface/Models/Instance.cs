@@ -105,7 +105,7 @@ namespace Altinn.Platform.Storage.Models
         /// Gets or sets the form ids associated with the instance
         /// </summary>
         [JsonProperty(PropertyName = "data")]
-        public Dictionary<string, Data> Data { get; set; }
+        public List<Data> Data { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()

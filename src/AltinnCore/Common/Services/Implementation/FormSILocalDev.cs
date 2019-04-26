@@ -34,7 +34,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="httpContextAccessor">The http context accessor</param>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
-        /// <param name="generalSettings">The general settings</param>
+        /// <param name="generalSettings">the general settings</param>
         public FormSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;
@@ -117,45 +117,6 @@ namespace AltinnCore.Common.Services.Implementation
                 else
                 {
                     return null;
-                }
-            }
-        }
-
-        /// <summary>
-        /// This method serialized the form model and store it in test data folder based on serviceId and partyId
-        /// </summary>
-        /// <typeparam name="T">The input type</typeparam>
-        /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="dataId">The data id</param>
-        public async Task<Guid> SaveFormModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveFormModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
-            if (dataId != Guid.Empty)
-            {
-                apiUrl = $"{apiUrl}&dataId={dataId}";
-            }
-
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    serializer.Serialize(stream, dataToSerialize);
-                    stream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (!response.Result.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Unable to save form model");
-                    }
-
-                    return Guid.Parse(await response.Result.Content.ReadAsAsync<string>());
                 }
             }
         }
