@@ -46,7 +46,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IProfile _profile;
         private UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
 
@@ -83,7 +83,7 @@ namespace AltinnCore.Runtime.Controllers
             IExecution executionService,
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
+            IWorkflow workflowSI,
             IInstance instanceSI,
             IPlatformServices platformSI,
             IData data)

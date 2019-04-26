@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Runtime.Serialization.Json;
 using System.Text;
@@ -25,9 +26,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly PlatformStorageSettings _platformStorageSettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string CreateInitialServiceStateMethod = "InitializeServiceState";
-        private const string UpdateCurrentStateMethod = "UpdateCurrentState";
-        private const string GetCurrentStateMethod = "GetCurrentState";
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowAppSI"/> class.
@@ -36,25 +35,33 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">The service repository settings</param>
         /// <param name="testdataRepositorySettings">The test data repository settings</param>
         /// <param name="platformStorageSettings">the platform storage settings</param>
-        public WorkflowAppSI(IOptions<ServiceRepositorySettings> repositorySettings, IOptions<TestdataRepositorySettings> testdataRepositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<PlatformStorageSettings> platformStorageSettings)
+        /// <param name="generalSettings">the general settings</param>
+        public WorkflowAppSI(
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            IOptions<TestdataRepositorySettings> testdataRepositorySettings,
+            IHttpContextAccessor httpContextAccessor,
+            IOptions<PlatformStorageSettings> platformStorageSettings,
+            IOptions<GeneralSettings> generalSettings)
         {
             _settings = repositorySettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _platformStorageSettings = platformStorageSettings.Value;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <inheritdoc/>
         public ServiceState GetInitialServiceState(string owner, string service, int reporteeId)
-        {
-            string workflowData = System.IO.File.ReadAllText("workflow.bpmn", Encoding.UTF8);
+        {            
+            // Read the workflow template
+            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
         }
 
         /// <inheritdoc/>
         public ServiceState InitializeServiceState(Guid id, string owner, string service, int reporteeId)
         {
-            string workflowData = System.IO.File.ReadAllText("workflow.bpmn", Encoding.UTF8);
+            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.GetInitialWorkflowState(workflowData);
         }
 
@@ -98,7 +105,7 @@ namespace AltinnCore.Common.Services.Implementation
         public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string owner, string service, int instanceOwnerId)
         {
             ServiceState currentState = GetCurrentState(instanceId, owner, service, instanceOwnerId);
-            string workflowData = System.IO.File.ReadAllText("workflow.bpmn", Encoding.UTF8);
+            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }
     }

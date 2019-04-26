@@ -75,7 +75,7 @@ namespace AltinnCore.Runtime.Controllers
             IHttpContextAccessor httpContextAccessor,
             IWorkflow workflowSI,
             IInstance instanceSI,
-            IPlatformServices platformSI
+            IPlatformServices platformSI,
             IData dataSI)
         {
             _authorization = authorizationService;

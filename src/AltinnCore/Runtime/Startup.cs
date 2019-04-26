@@ -85,11 +85,11 @@ namespace AltinnCore.Runtime
             else
             {
                 // Services added if code is running in app
-                services.AddSingleton<IExecution, ExecutionSIContainer>();
+                services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IDSF, RegisterDSFAppSI>();
                 services.AddSingleton<IER, RegisterERAppSI>();
-                services.AddSingleton<IRegister, RegisterAppSI>();
-                services.AddSingleton<IProfile, ProfileAppSI>();
+                services.AddSingleton<IRegister, RegisterStudioSI>();
+                services.AddSingleton<IProfile, ProfileStudioSI>();
                 services.AddSingleton<IInstance, InstanceAppSI>();
                 services.AddSingleton<IData, DataAppSI>();
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
