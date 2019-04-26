@@ -13,18 +13,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: altinn-storage-repo-volume-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: managed-premium
-  resources:
-    requests:
-      storage: 200Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: altinn-storage-runtime-repo-volume-claim
 spec:
   accessModes:
@@ -33,3 +21,30 @@ spec:
   resources:
     requests:
       storage: 200Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: altinn-storage-repo-premium-volume-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile
+  resources:
+    requests:
+      storage: 200Gi
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: azurefile
+provisioner: kubernetes.io/azure-file
+mountOptions:
+  - dir_mode=0755
+  - file_mode=0755
+parameters:
+  skuName: Standard_LRS
+  storageAccount: {nameOfStorageAccount(must be in the same resource group as the cluster)}
+  resourceGroup: {nameOfResourceGroup}
