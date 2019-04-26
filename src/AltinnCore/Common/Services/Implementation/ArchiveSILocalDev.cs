@@ -7,6 +7,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Services.Implementation
@@ -17,43 +18,44 @@ namespace AltinnCore.Common.Services.Implementation
     public class ArchiveSILocalDev : IArchive
     {
         private readonly ServiceRepositorySettings _settings;
-        private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string ArchiveServiceModelApiMethod = "ArchiveServiceModel";
-        private const string GetArchivedServiceModelApiMethod = "GetArchivedServiceModel";
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ArchiveSILocalDev"/> class
         /// </summary>
         /// <param name="repositorySettings">the repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        /// <param name="testdataRepositorySettings">Test data repository settings</param>
-        public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IOptions<TestdataRepositorySettings> testdataRepositorySettings)
+        /// <param name="logger">The logger</param>
+        public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveSILocalDev> logger)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
-            _testdataRepositorySettings = testdataRepositorySettings.Value;
+            _logger = logger;
         }
 
         /// <inheritdoc/>
         public void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/";
+            if (!Directory.Exists(archiveDirectory))
             {
-                client.BaseAddress = new Uri(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                using (MemoryStream stream = new MemoryStream())
+                Directory.CreateDirectory(archiveDirectory);
+            }
+
+            string formDataFilePath = $"{archiveDirectory}{instanceId}.xml";
+            try
+            {
+                using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
                 {
+                    XmlSerializer serializer = new XmlSerializer(type);
                     serializer.Serialize(stream, dataToSerialize);
-                    stream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (!response.Result.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Unable to archive service model");
-                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unable to archive service model: ", ex);
             }
         }
 
@@ -61,30 +63,19 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetArchivedServiceModel(Guid instanceId, Type type, string org, string service, int partyId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetArchivedServiceModelApiMethod, org, service, developer, partyId)}&instanceId={instanceId}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/{instanceId}.xml";
+
+            XmlSerializer serializer = new XmlSerializer(type);
+            try
             {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                if (response.Result.IsSuccessStatusCode)
+                using (Stream stream = File.Open(formDataFilePath, FileMode.Open, FileAccess.Read))
                 {
-                    XmlSerializer serializer = new XmlSerializer(type);
-                    try
-                    {
-                        using (Stream stream = response.Result.Content.ReadAsStreamAsync().Result)
-                        {
-                            return serializer.Deserialize(stream);
-                        }
-                    }
-                    catch
-                    {
-                        return Activator.CreateInstance(type);
-                    }
+                    return serializer.Deserialize(stream);
                 }
-                else
-                {
-                    return Activator.CreateInstance(type);
-                }
+            }
+            catch
+            {
+                return Activator.CreateInstance(type);
             }
         }
     }
