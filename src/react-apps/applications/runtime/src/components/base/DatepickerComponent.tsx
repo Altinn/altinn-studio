@@ -17,7 +17,7 @@ export interface IDatePickerState {
 export class DatepickerComponent
   extends React.Component<IDatePickerProps, IDatePickerState> {
 
-  private myDateCmp = createRef<HTMLInputElement>();
+  private datePickerRef = createRef<HTMLInputElement>();
 
   constructor(_props: IDatePickerProps, _state: IDatePickerState) {
     super(_props, _state);
@@ -34,17 +34,18 @@ export class DatepickerComponent
 
   public ondateBlur = () => {
     setTimeout(() => {
-      if (!this.myDateCmp.current.value || this.state.value === this.myDateCmp.current.value) {
+      if (!this.datePickerRef.current.value || this.state.value === this.datePickerRef.current.value) {
         return;
       }
       this.setState({
-        value: this.myDateCmp.current.value,
+        value: this.datePickerRef.current.value,
       });
       this.props.handleDataChange(this.state.value);
     }, 200);
   }
 
   public componentDidMount() {
+    // TODO: dateFormat and dateLanguage should be retrieved from either datamodel, formlayout or user language.
     const dateFormat = 'dd.mm.yyyy';
     const dateLanguage = 'no';
     (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
@@ -66,7 +67,7 @@ export class DatepickerComponent
             disabled={this.props.component.readOnly}
             required={this.props.component.required}
             value={this.state.value}
-            ref={this.myDateCmp}
+            ref={this.datePickerRef}
           />
           <div className={'input-group-prepend a-icon-right' + (this.props.component.readOnly ? ' disabled-date' : '')}>
             <i className='ai ai-date' />
