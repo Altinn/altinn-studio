@@ -26,7 +26,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
           >
             <a
               className="AppBarComponent-aImgStyling-10"
-              href="http://localhost"
+              href="/"
             >
               <img
                 src="/designer/img/altinn_logo_header.png"
@@ -191,7 +191,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
           >
             <a
               className="AppBarComponent-aImgStyling-10"
-              href="http://localhost"
+              href="/"
             >
               <img
                 src="/designer/img/altinn_logo_header.png"
@@ -293,7 +293,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
           >
             <a
               className="AppBarComponent-aImgStyling-10"
-              href="http://localhost"
+              href="/"
             >
               <img
                 src="/designer/img/altinn_logo_header.png"
@@ -395,7 +395,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
           >
             <a
               className="AppBarComponent-aImgStyling-10"
-              href="http://localhost"
+              href="/"
             >
               <img
                 src="/designer/img/altinn_logo_header.png"
@@ -497,7 +497,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
           >
             <a
               className="AppBarComponent-aImgStyling-10"
-              href="http://localhost"
+              href="/"
             >
               <img
                 src="/designer/img/altinn_logo_header.png"
@@ -662,7 +662,7 @@ exports[`AppBarComponent - src/navigation/main-header/appBar Snapshot should mat
           >
             <a
               className="AppBarComponent-aImgStyling-10"
-              href="http://localhost"
+              href="/"
             >
               <img
                 src="/designer/img/altinn_logo_header.png"
