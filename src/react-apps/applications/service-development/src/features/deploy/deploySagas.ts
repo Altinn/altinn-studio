@@ -13,8 +13,25 @@ export function* fetchDeploymentsSaga({
 }: DeployActions.IFetchDeployments): SagaIterator {
   try {
     // env = 'at22';
-    const result = yield call(get,
-      `http://${org}.apps.${env}.altinn.cloud/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
+    // const result = yield call(get,
+    //   `http://${org}.apps.${env}.altinn.cloud/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
+
+    const result = [
+      {
+        spec: {
+          template: {
+            spec: {
+              containers: [
+                {
+                  name: 'example-repo',
+                  image: 'tddregistry.azurecr.io/tdd-helloworld:1',
+                },
+              ],
+            },
+          },
+        },
+      },
+    ];
 
     yield call(DeployDispatchers.fetchDeploymentsFulfilled, result, env);
   } catch (err) {

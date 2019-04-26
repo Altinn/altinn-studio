@@ -380,7 +380,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                   <Grid container={true} style={{ marginTop: 24 }} spacing={16} alignItems='flex-start'>
 
                     {/* Render the repo in sync part */}
-                    {renderRepoInSync}
+                    {renderRepoInSync()}
 
                     {/* If master repo and deploy is not in sync, render the C# compiles part */}
                     {props.masterRepoAndDeployInSync !== true &&
