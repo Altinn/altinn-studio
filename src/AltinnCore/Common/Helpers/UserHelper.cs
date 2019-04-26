@@ -1,8 +1,10 @@
 using System;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 
 namespace AltinnCore.Common.Helpers
@@ -31,7 +33,7 @@ namespace AltinnCore.Common.Helpers
         /// </summary>
         /// <param name="context">The HttpContext</param>
         /// <returns>The UserContext</returns>
-        public UserContext GetUserContext(HttpContext context)
+        public async Task<UserContext> GetUserContext(HttpContext context)
         {
             UserContext userContext = new UserContext() { User = context.User };
 
@@ -58,7 +60,7 @@ namespace AltinnCore.Common.Helpers
                 }
             }
 
-            userContext.UserParty = _registerService.GetParty(userContext.PartyId);
+            userContext.UserParty = await _registerService.GetParty(userContext.PartyId);
 
             if (context.Request.Cookies["altinncorereportee"] != null)
             {
@@ -69,7 +71,7 @@ namespace AltinnCore.Common.Helpers
                 userContext.ReporteeId = userContext.PartyId;
             }
 
-            userContext.Reportee = _registerService.GetParty(userContext.ReporteeId);
+            userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
             return userContext;
         }
     }

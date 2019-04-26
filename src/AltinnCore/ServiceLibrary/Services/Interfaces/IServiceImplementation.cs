@@ -30,18 +30,16 @@ namespace AltinnCore.ServiceLibrary.Services.Interfaces
         /// Set context for the current request
         /// </summary>
         /// <param name="requestContext">The current request context</param>
-        /// <param name="viewBag">The current view bag</param>
-        void SetContext(RequestContext requestContext, dynamic viewBag);
+        void SetContext(RequestContext requestContext);
 
         /// <summary>
         /// Sets the Context 
         /// </summary>
         /// <param name="requestContext">The current request context</param>
-        /// <param name="viewBag">The current view bag</param>
         /// <param name="serviceContext">The current service context</param>
         /// <param name="startServiceModel">The start service model</param>
         /// <param name="modelState">The model state</param>
-        void SetContext(RequestContext requestContext, dynamic viewBag, ServiceContext serviceContext, StartServiceModel startServiceModel, ModelStateDictionary modelState);
+        void SetContext(RequestContext requestContext, ServiceContext serviceContext, StartServiceModel startServiceModel, ModelStateDictionary modelState);
 
         /// <summary>
         /// Event that is triggered 
