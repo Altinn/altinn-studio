@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AltinnCore.Common.Backend;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
@@ -11,7 +10,6 @@ using AltinnCore.ServiceLibrary.Api;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
-using AltinnCore.ServiceLibrary.ServiceMetadata;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -38,9 +36,12 @@ namespace AltinnCore.Runtime.Controllers
         private readonly ITestdata _testdata;
         private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
         private readonly IPlatformServices _platformSI;
+        private readonly IData _data;
+
+        private const string FORM_ID = "default";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceController"/> class
@@ -59,6 +60,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="workflowSI">the workflow service handler</param>
         /// <param name="instanceSI">the instance service handler</param>
         /// <param name="platformSI">the platform service handler</param>
+        /// <param name="dataSI">the data service handler</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -71,9 +73,10 @@ namespace AltinnCore.Runtime.Controllers
             IArchive archiveService,
             ITestdata testDataService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
+            IWorkflow workflowSI,
             IInstance instanceSI,
-            IPlatformServices platformSI)
+            IPlatformServices platformSI,
+            IData dataSI)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -90,6 +93,7 @@ namespace AltinnCore.Runtime.Controllers
             _workflowSI = workflowSI;
             _instance = instanceSI;
             _platformSI = platformSI;
+            _data = dataSI;
         }
 
         /// <summary>
@@ -184,8 +188,10 @@ namespace AltinnCore.Runtime.Controllers
             // Assign data to the ViewBag so it is available to the service views or service implementation
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, _platformSI);
 
-            // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            // Getting the Form Data
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
+            object serviceModel = _data.GetFormData(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, dataId);
             serviceImplementation.SetServiceModel(serviceModel);
 
             ViewBag.FormID = instanceId;
@@ -198,9 +204,10 @@ namespace AltinnCore.Runtime.Controllers
             if (ModelState.IsValid)
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+
                 if (currentState.State == WorkflowStep.Archived)
-                {
-                    _archive.ArchiveServiceModel(serviceModel, instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId);
+                {                    
+                    await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.ReporteeId, instanceId);
                     apiResult.NextState = currentState.State;
                 }
             }
@@ -349,14 +356,14 @@ namespace AltinnCore.Runtime.Controllers
                     return RedirectToAction("Lookup", new { org = startServiceModel.Org, service = startServiceModel.Service });
                 }
 
-                Guid instanceId;
                 int instanceOwnerId = requestContext.UserContext.ReporteeId;
 
-                // Create a new instance document
-                instanceId = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
-                ServiceState currentState = _workflowSI.InitializeService(instanceId, startServiceModel.Org, startServiceModel.Service, requestContext.UserContext.ReporteeId);
+                // Create a new instance document                
+                Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
 
-                string redirectUrl = _workflowSI.GetUrlForCurrentState(instanceId, startServiceModel.Org, startServiceModel.Service, currentState.State);
+                Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
+
+                string redirectUrl = _workflowSI.GetUrlForCurrentState(Guid.Parse(instance.Id), startServiceModel.Org, startServiceModel.Service, currentStep);
                 return Redirect(redirectUrl);
             }
 
