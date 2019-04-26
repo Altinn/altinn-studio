@@ -89,14 +89,9 @@ export class DeployToTestContainer extends
       !this.props.deployStatus[environment].result.finishTime
     ) {
       this.fetchDeploymentStatusInterval(environment);
-    }
 
-    // If deploymentList from cluster is returned and master repo is in sync with cluster &&
-    // deploy is started successfylly and finished THEN reset the deployStatus.
-    if (this.props.deploymentList[environment].items.length > 0 &&
-      this.isMasterRepoAndDeployInSync(environment, this.props.masterRepoStatus, this.props.deploymentList) &&
-      this.isDeployFinished(environment)
-    ) {
+      // Else if deployment is finished, then reset deploymentStatus
+    } else if (this.isDeployFinished(environment)) {
       DeployActionDispatcher.resetDeploymentStatus(environment);
     }
 

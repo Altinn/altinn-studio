@@ -81,7 +81,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
             <AltinnIcon
               iconClass={classNames({
                 ['ai ai-check']: localRepoInSyncWithMaster === inSyncStatus.ready,
-                ['fa fa-circle-exclamation']: localRepoInSyncWithMaster !== inSyncStatus.ready,
+                ['fa fa-info-circle']: localRepoInSyncWithMaster !== inSyncStatus.ready,
               })}
               iconColor={localRepoInSyncWithMaster === inSyncStatus.ready ?
                 theme.altinnPalette.primary.green : '#008FD6'}

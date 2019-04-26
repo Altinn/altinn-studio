@@ -63,7 +63,7 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
               iconClass='fa fa-download'
               iconColor={theme.altinnPalette.primary.blueDark}
               iconSize={36}
-              margin='0px 5px 0px 0px'
+              margin='0px 0px 0px 0px'
               weight={this.props.changesInMaster ? 600 : null}
             />
           </Grid>

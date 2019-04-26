@@ -169,7 +169,7 @@ describe('Deploy To Test container', () => {
     expect(wrapper.exists('#renderInSync')).toEqual(true);
     const renderInSync = wrapper.find('#renderInSync');
     expect(renderInSync.exists('.ai-check')).toEqual(false);
-    expect(renderInSync.exists('.fa-circle-exclamation')).toEqual(true);
+    expect(renderInSync.exists('.fa-info-circle')).toEqual(true);
 
     // Assert rendercSharpCompiles part
     expect(wrapper.exists('#rendercSharpCompiles')).toEqual(true);
