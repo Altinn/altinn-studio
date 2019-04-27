@@ -119,46 +119,6 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Action where user can send in reporting service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="instanceId">The instanceId.</param>
-        /// <returns>Returns the Complete and send in View.</returns>
-        [Authorize]
-        [HttpGet]
-        public async Task<IActionResult> CompleteAndSendIn(string org, string service, Guid instanceId)
-        {
-            // Dependency Injection: Getting the Service Specific Implementation based on the service parameter data store
-            // Will compile code and load DLL in to memory for AltinnCore
-            IServiceImplementation serviceImplementation = _execution.GetServiceImplementation(org, service, false);
-
-            // Create and populate the RequestContext object and make it available for the service implementation so
-            // service developer can implement logic based on information about the request and the user performing
-            // the request
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            requestContext.Reportee = requestContext.UserContext.Reportee;
-
-            // Get the serviceContext containing all metadata about current service
-            ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
-
-            serviceImplementation.SetPlatformServices(_platformSI);
-
-            // Identify the correct view
-            // Getting the Form Data from database
-            object serviceModel = _form.GetFormModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.UserContext.ReporteeId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            serviceImplementation.SetServiceModel(serviceModel);
-            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
-
-            ViewBag.FormID = instanceId;
-            ViewBag.ServiceContext = serviceContext;
-
-            await serviceImplementation.RunServiceEvent(ServiceEventType.Validation);
-            return View();
-        }
-
-        /// <summary>
         /// This is the HttpPost version of the CompleteAndSendIn operation that
         /// is triggered when user press the send in option.
         /// </summary>
@@ -424,15 +384,17 @@ namespace AltinnCore.Runtime.Controllers
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
             serviceImplementation.SetPlatformServices(_platformSI);
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid.TryParse(instance.Data.Find(m => m.FormId == FORM_ID).Id, out Guid dataId);
 
             // Getting the populated form data from disk
-            dynamic serviceModel = _form.GetFormModel(
+            dynamic serviceModel = _data.GetFormData(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                dataId);
 
             serviceImplementation.SetServiceModel(serviceModel);
 

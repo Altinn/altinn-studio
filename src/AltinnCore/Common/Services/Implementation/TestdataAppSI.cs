@@ -24,9 +24,8 @@ namespace AltinnCore.Common.Services.Implementation
         private const string TESTUSERS_FILENAME = "testusers.json";
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
+        private readonly ITestdata _testdataSI;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string GetFormInstancesApiMethod = "GetFormInstances";
-        private const string GetServicePrefillApiMethod = "GetServicePrefill";
         private readonly IInstance _instance;
 
         /// <summary>
@@ -36,12 +35,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="instanceSI">the instance service</param>
-        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI)
+        /// <param name="testdata">the testdata service</param>
+        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI, ITestdata testdata)
         {
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
-            this._settings = repositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
+            _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _instance = instanceSI;
+            _testdataSI = testdata;
         }
 
         /// <summary>
@@ -94,30 +95,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of prefill to be used</returns>
         public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null)
         {
-            string apiUrl = _settings.GetRuntimeAPIPath(GetServicePrefillApiMethod, org, service, developer, partyId);
-            List<ServicePrefill> returnList = new List<ServicePrefill>();
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    try
-                    {
-                        returnList = response.Result.Content.ReadAsAsync<List<ServicePrefill>>().Result;
-                    }
-                    catch
-                    {
-                        return returnList;
-                    }
-                }
-                else
-                {
-                    return returnList;
-                }
-            }
-
-            return returnList;
+            return _testdataSI.GetServicePrefill(partyId, org, service, developer);
         }
     }
 }

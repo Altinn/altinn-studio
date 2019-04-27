@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -13,22 +18,30 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Services with functionality for test data under service development
     /// </summary>
-    public class TestdataSIDesigner : ITestdata
+    public class TestdataStudioSI : ITestdata
     {
         private const string TESTUSERS_FILENAME = "testusers.json";
 
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ILogger _logger;
+        private const string GetFormInstancesApiMethod = "GetFormInstances";
+        private const string GetServicePrefillApiMethod = "GetServicePrefill";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestdataSIDesigner"/> class
+        /// Initializes a new instance of the <see cref="TestdataStudioSI"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>
-        public TestdataSIDesigner(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings)
+        /// <param name="httpContextAccessor">the http context accessor</param>
+        /// <param name="logger">the logger</param>
+        public TestdataStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TestdataStudioSI> logger)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _settings = repositorySettings.Value;
+            _httpContextAccessor = httpContextAccessor;
+            _logger = logger;
         }
 
         /// <summary>
@@ -41,39 +54,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The service instance list</returns>
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
-            List<ServiceInstance> formInstances = new List<ServiceInstance>();
-            string instancesPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}";
-            string archiveFolderPath = $"{instancesPath}/Archive/";
-            if (!Directory.Exists(archiveFolderPath))
+            return new List<ServiceInstance>();
+
+            // TODO: WHAT IS GOING ON HERE 
+            string apiUrl = _settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, org, service, developer, partyId);
+            List<ServiceInstance> returnList = new List<ServiceInstance>();
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
-                Directory.CreateDirectory(archiveFolderPath);
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                returnList = response.Result.Content.ReadAsAsync<List<ServiceInstance>>().Result;
             }
 
-            string[] files = Directory.GetDirectories(instancesPath);
-            foreach (string file in files)
-            {
-                string instance = new DirectoryInfo(file).Name;
-
-                if (Guid.TryParse(instance, out Guid instanceId))
-                {
-                    ServiceInstance serviceInstance = new ServiceInstance()
-                    {
-                        ServiceInstanceID = instanceId,
-                        LastChanged = File.GetLastWriteTime(file),
-                    };
-
-                    string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";
-                    if (File.Exists(archiveFilePath))
-                    {
-                        serviceInstance.LastChanged = File.GetLastWriteTime(archiveFilePath);
-                        serviceInstance.IsArchived = true;
-                    }
-
-                    formInstances.Add(serviceInstance);
-                }
-            }
-
-            return formInstances;
+            return returnList;
         }
 
         /// <summary>
@@ -98,25 +91,34 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>A list of prefill to be used</returns>
         public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null)
         {
-            List<ServicePrefill> formInstances = new List<ServicePrefill>();
-            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Prefill/";
-            if (!Directory.Exists(formDataFilePath))
-            {
-                Directory.CreateDirectory(formDataFilePath);
-            }
+            _logger.LogInformation("Method is not implemented yet");
+            return new List<ServicePrefill>();
 
-            string[] files = Directory.GetFiles(formDataFilePath);
-            foreach (string file in files)
+            // TODO: What is going on here
+            string apiUrl = _settings.GetRuntimeAPIPath(GetServicePrefillApiMethod, org, service, developer, partyId);
+            List<ServicePrefill> returnList = new List<ServicePrefill>();
+            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
             {
-                formInstances.Add(
-                    new ServicePrefill()
+                client.BaseAddress = new Uri(apiUrl);
+                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
+                if (response.Result.IsSuccessStatusCode)
+                {
+                    try
                     {
-                        PrefillKey = Path.GetFileNameWithoutExtension(file),
-                        LastChanged = File.GetLastWriteTime(file),
-                    });
+                        returnList = response.Result.Content.ReadAsAsync<List<ServicePrefill>>().Result;
+                    }
+                    catch
+                    {
+                        return returnList;
+                    }
+                }
+                else
+                {
+                    return returnList;
+                }
             }
 
-            return formInstances;
+            return returnList;
         }
     }
 }

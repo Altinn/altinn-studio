@@ -43,18 +43,6 @@ namespace AltinnCore.Common.Services.Interfaces
         string GetAttachmentListUrl(string org, string service, int partyId, Guid formId);
 
         /// <summary>
-        /// Returns the Form model for a given from.
-        /// </summary>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="developer">The name of the developer if any</param>
-        /// <returns>The form model</returns>
-        object GetFormModel(Guid instanceId, Type type, string org, string service, int partyId, string developer = null);
-
-        /// <summary>
         /// Operation that returns a prefill populated form model
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
