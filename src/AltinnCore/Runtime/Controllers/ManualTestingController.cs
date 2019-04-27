@@ -93,7 +93,8 @@ namespace AltinnCore.Runtime.Controllers
         public async Task<IActionResult> Index(string org, string service, int reporteeId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            _execution.CheckAndUpdateWorkflowFile(org, service, developer);
+
+            // _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
