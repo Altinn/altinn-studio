@@ -26,8 +26,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
-        private const string GetFormInstancesApiMethod = "GetFormInstances";
-        private const string GetServicePrefillApiMethod = "GetServicePrefill";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TestdataStudioSI"/> class
@@ -44,35 +42,45 @@ namespace AltinnCore.Common.Services.Implementation
             _logger = logger;
         }
 
-        /// <summary>
-        /// Creates a list of form instances stored on disk for a given partyId and serviceId
-        /// </summary>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">The developer for the current service if any</param>
-        /// <returns>The service instance list</returns>
-        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
+        /// <inheritdoc />
+        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null)
         {
-            return new List<ServiceInstance>();
-
-            // TODO: WHAT IS GOING ON HERE 
-            string apiUrl = _settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, org, service, developer, partyId);
-            List<ServiceInstance> returnList = new List<ServiceInstance>();
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            List<ServiceInstance> formInstances = new List<ServiceInstance>();
+            string instancesPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}";
+            string archiveFolderPath = $"{instancesPath}/Archive/";
+            if (!Directory.Exists(archiveFolderPath))
             {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                returnList = response.Result.Content.ReadAsAsync<List<ServiceInstance>>().Result;
+                Directory.CreateDirectory(archiveFolderPath);
             }
 
-            return returnList;
+            string[] files = Directory.GetDirectories(instancesPath);
+            foreach (string file in files)
+            {
+                string instance = new DirectoryInfo(file).Name;
+
+                if (Guid.TryParse(instance, out Guid instanceId))
+                {
+                    ServiceInstance serviceInstance = new ServiceInstance()
+                    {
+                        ServiceInstanceID = instanceId,
+                        LastChanged = File.GetLastWriteTime(file),
+                    };
+
+                    string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";
+                    if (File.Exists(archiveFilePath))
+                    {
+                        serviceInstance.LastChanged = File.GetLastWriteTime(archiveFilePath);
+                        serviceInstance.IsArchived = true;
+                    }
+
+                    formInstances.Add(serviceInstance);
+                }
+            }
+
+            return formInstances;
         }
 
-        /// <summary>
-        /// Return a list of test users
-        /// </summary>
-        /// <returns>Test users</returns>
+        /// <inheritdoc />
         public List<Testdata> GetTestUsers()
         {
             string path = _testdataRepositorySettings.RepositoryLocation + @"/" + TESTUSERS_FILENAME;
@@ -81,44 +89,11 @@ namespace AltinnCore.Common.Services.Implementation
             return testUser;
         }
 
-        /// <summary>
-        /// Returns a list of prefill instances for a given party and service
-        /// </summary>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">The developer for the current service if any</param>
-        /// <returns>A list of prefill to be used</returns>
-        public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null)
+        /// <inheritdoc />
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null)
         {
             _logger.LogInformation("Method is not implemented yet");
             return new List<ServicePrefill>();
-
-            // TODO: What is going on here
-            string apiUrl = _settings.GetRuntimeAPIPath(GetServicePrefillApiMethod, org, service, developer, partyId);
-            List<ServicePrefill> returnList = new List<ServicePrefill>();
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                if (response.Result.IsSuccessStatusCode)
-                {
-                    try
-                    {
-                        returnList = response.Result.Content.ReadAsAsync<List<ServicePrefill>>().Result;
-                    }
-                    catch
-                    {
-                        return returnList;
-                    }
-                }
-                else
-                {
-                    return returnList;
-                }
-            }
-
-            return returnList;
         }
     }
 }
