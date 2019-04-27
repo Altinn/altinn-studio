@@ -18,7 +18,7 @@ environmentVariables:
     - name: ASPNETCORE_URLS
       value: http://+:5005
     - name: ServiceRepositorySettings__RepositoryLocation
-      value: /AltinnRuntime/Repos/
+      value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000/
     - name: ServiceRepositorySettings__GiteaInternalHost
@@ -45,7 +45,7 @@ environmentVariables:
     - name: ASPNETCORE_URLS
       value: http://+:5005
     - name: ServiceRepositorySettings__RepositoryLocation
-      value: /AltinnRuntime/Repos/
+      value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000/
     - name: ServiceRepositorySettings__GiteaInternalHost
@@ -68,7 +68,7 @@ volumeMounts:
 volumes:
   - name: altinn-runtime-repo-storage
     persistentVolumeClaim:
-      claimName: altinn-storage-repo-volume-claim
+      claimName: altinn-storage-repo-premium-volume-claim
   - name: altinn-appsettings
     secret:
       secretName: altinn-appsettings-secret
