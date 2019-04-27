@@ -27,10 +27,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
-        private const string CreateInitialServiceStateMethod = "InitializeServiceState";
-        private const string UpdateCurrentStateMethod = "UpdateCurrentState";
-        private const string GetCurrentStateMethod = "GetCurrentState";
-        private const string GetWorkflowDataMethod = "GetWorkflowData";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="WorkflowStudioSI"/> class.
@@ -114,16 +110,16 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string owner, string service, WorkflowStep currentState)
+        public string GetUrlForCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, WorkflowStep currentState)
         {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, owner, service, currentState);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, applicationOwnerId, applicationId, currentState);
         }
 
         /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string owner, string service, int partyId)
+        public ServiceState GetCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(owner, service, developer)}{partyId}/{instanceId}/{instanceId}.json";
+            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/{instanceId}.json";
             string currentStateAsString = File.ReadAllText(serviceStatePath, Encoding.UTF8);
             Instance instance = JsonConvert.DeserializeObject<Instance>(currentStateAsString);
             Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep current);

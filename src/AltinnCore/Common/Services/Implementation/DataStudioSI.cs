@@ -53,27 +53,18 @@ namespace AltinnCore.Common.Services.Implementation
             _execution = executionSI;
         }
 
-        /// <summary>
-        /// This method serialized the form data and store it in test data folder based on serviceId and partyId
-        /// </summary>
-        /// <typeparam name="T">The input type</typeparam>
-        /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
-        public Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
+        /// <inheritdoc/>
+        public Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string testDataForParty = _settings.GetTestdataForPartyPath(org, service, developer);
-            string dataPath = $"{testDataForParty}{partyId}/{instanceId}/data";
+            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string dataPath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/data";
             if (!Directory.Exists(dataPath))
             {
                 Directory.CreateDirectory(dataPath);
             }
 
-            string instanceFilePath = $"{testDataForParty}{partyId}/{instanceId}/{instanceId}.json";
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
             FileStream instanceData = _execution.GetFileStream(instanceFilePath);
             StreamReader reader = new StreamReader(instanceData);
             Instance instance = JsonConvert.DeserializeObject<Instance>(reader.ReadToEnd());
@@ -86,10 +77,10 @@ namespace AltinnCore.Common.Services.Implementation
                 FormId = FORM_ID,
                 ContentType = "application/Xml",
                 FileName = $"{dataId}.xml",
-                StorageUrl = $"{service}/{instanceId}/data/{dataId}",
-                CreatedBy = partyId.ToString(),
+                StorageUrl = $"{applicationId}/{instanceId}/data/{dataId}",
+                CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
-                LastChangedBy = partyId.ToString(),
+                LastChangedBy = instanceOwnerId.ToString(),
                 LastChangedDateTime = DateTime.UtcNow,
             };
 
@@ -118,21 +109,11 @@ namespace AltinnCore.Common.Services.Implementation
             return Task.FromResult(instance);
         }
 
-        /// <summary>
-        /// This method serialized the form model and store it in test data folder based on serviceId and partyId
-        /// </summary>
-        /// <typeparam name="T">The input type</typeparam>
-        /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="dataId">the data id</param>
-        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
+        /// <inheritdoc/>
+        public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string dataPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data";
+            string dataPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data";
             string formDataFilePath = $"{dataPath}/{dataId}.xml";
             try
             {
@@ -148,20 +129,11 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Gets form data from disk
-        /// </summary>
-        /// <param name="instanceId">The instance id</param>
-        /// <param name="type">The type that form data will be serialized to</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId used to find the party on disc</param>
-        /// <param name="dataId">The data id</param>
-        /// <returns>The deserialized form model</returns>
-        public object GetFormData(Guid instanceId, Type type, string org, string service, int partyId, Guid dataId)
+        /// <inheritdoc/>
+        public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
-            string testDataForParty = _settings.GetTestdataForPartyPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string formDataFilePath = $"{testDataForParty}{partyId}/{instanceId}/data/{dataId}.xml";
+            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/data/{dataId}.xml";
             XmlSerializer serializer = new XmlSerializer(type);
             try
             {

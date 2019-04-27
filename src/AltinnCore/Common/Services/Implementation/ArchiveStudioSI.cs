@@ -15,19 +15,19 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Implementation for archive service
     /// </summary>
-    public class ArchiveSILocalDev : IArchive
+    public class ArchiveStudioSI : IArchive
     {
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger _logger;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ArchiveSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="ArchiveStudioSI"/> class
         /// </summary>
         /// <param name="repositorySettings">the repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="logger">The logger</param>
-        public ArchiveSILocalDev(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveSILocalDev> logger)
+        public ArchiveStudioSI(IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<ArchiveStudioSI> logger)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -35,10 +35,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string org, string service, int partyId)
+        public void ArchiveServiceModel<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/";
+            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/Archive/";
             if (!Directory.Exists(archiveDirectory))
             {
                 Directory.CreateDirectory(archiveDirectory);
@@ -60,10 +60,10 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public object GetArchivedServiceModel(Guid instanceId, Type type, string org, string service, int partyId)
+        public object GetArchivedServiceModel(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/{instanceId}.xml";
+            string formDataFilePath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/Archive/{instanceId}.xml";
 
             XmlSerializer serializer = new XmlSerializer(type);
             try

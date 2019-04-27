@@ -97,7 +97,7 @@ namespace AltinnCore.Runtime
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
-            services.AddSingleton<IArchive, ArchiveSILocalDev>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<IAuthorizationHandler, InstanceAccessHandler>();
             services.AddSingleton<IAuthorizationHandler, ServiceAccessHandler>();
@@ -106,7 +106,7 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormSILocalDev>();
+            services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<ITestingRepository, TestingRepository>();

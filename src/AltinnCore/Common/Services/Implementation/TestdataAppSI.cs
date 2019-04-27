@@ -24,7 +24,6 @@ namespace AltinnCore.Common.Services.Implementation
         private const string TESTUSERS_FILENAME = "testusers.json";
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
-        private readonly ITestdata _testdataSI;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IInstance _instance;
 
@@ -35,28 +34,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="instanceSI">the instance service</param>
-        /// <param name="testdata">the testdata service</param>
-        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI, ITestdata testdata)
+        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _instance = instanceSI;
-            _testdataSI = testdata;
         }
 
-        /// <summary>
-        /// Creates a list of form instances stored on disk for a given partyId and serviceId
-        /// </summary>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">The developer for the current service if any</param>
-        /// <returns>The service instance list</returns>
-        public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
+        /// <inheritdoc />
+        public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null)
         {
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            List<Instance> instances = _instance.GetInstances(service, org, partyId).Result;
+            List<Instance> instances = _instance.GetInstances(applicationId, applicationOwnerId, instanceOwnerId).Result;
             if (instances != null && instances.Count > 0)
             {
                 foreach (Instance instance in instances)
@@ -73,10 +63,7 @@ namespace AltinnCore.Common.Services.Implementation
             return returnList;
         }
 
-        /// <summary>
-        /// Return a list of test users
-        /// </summary>
-        /// <returns>Test users</returns>
+        /// <inheritdoc />
         public List<Testdata> GetTestUsers()
         {
             string path = _testdataRepositorySettings.RepositoryLocation + @"/" + TESTUSERS_FILENAME;
@@ -85,17 +72,11 @@ namespace AltinnCore.Common.Services.Implementation
             return testUser;
         }
 
-        /// <summary>
-        /// Returns a list of prefill instances for a given party and service
-        /// </summary>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="developer">The developer for the current service if any</param>
-        /// <returns>A list of prefill to be used</returns>
-        public List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null)
+        /// <inheritdoc />
+        public List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null)
         {
-            return _testdataSI.GetServicePrefill(partyId, org, service, developer);
+            // TDOD: to be implemented
+            return new List<ServicePrefill>();
         }
     }
 }

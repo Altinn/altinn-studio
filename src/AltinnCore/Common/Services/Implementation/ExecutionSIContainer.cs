@@ -264,12 +264,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public FileStream ZipAndReturnFile(string org, string service, string developer)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
         public FileStream GetFileStream(string path)
         {
             throw new NotImplementedException();
@@ -299,6 +293,12 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return fileContent;
+        }
+
+        /// <inheritdoc />
+        public void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer)
+        {
+            throw new NotImplementedException();
         }
     }
 }
