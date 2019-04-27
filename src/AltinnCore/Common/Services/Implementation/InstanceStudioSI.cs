@@ -70,7 +70,7 @@ namespace AltinnCore.Common.Services.Implementation
             string applicationOwnerId = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.ReporteeID;
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
+            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
 
             Instance instance = new Instance
             {

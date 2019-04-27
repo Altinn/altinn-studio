@@ -90,9 +90,8 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId, int instanceOwnerId)
+        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
         {
-            // TODO: instanceOwnerId is not used
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string workflowFullFilePath = _settings.GetWorkflowPath(applicationOwnerId, applicationId, developer) + _settings.WorkflowFileName;
             string workflowData = File.ReadAllText(workflowFullFilePath, Encoding.UTF8);

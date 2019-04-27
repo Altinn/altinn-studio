@@ -24,9 +24,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// </summary>
         /// <param name="applicationOwnerId">The application owner id</param>
         /// <param name="applicationId">The application id</param>
-        /// <param name="instanceOwnerId">The instance owner id</param>
         /// <returns>The current service state</returns>
-        ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId, int instanceOwnerId);
+        ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId);
 
         /// <summary>
         /// This method returns the correct url given the current state

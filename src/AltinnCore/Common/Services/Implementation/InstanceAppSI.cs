@@ -79,7 +79,7 @@ namespace AltinnCore.Common.Services.Implementation
                 applicationId,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
+            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
 
             // set initial workflow state
             instance.CurrentWorkflowStep = currentState.State.ToString();

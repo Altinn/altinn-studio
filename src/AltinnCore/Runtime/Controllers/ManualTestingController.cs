@@ -94,6 +94,7 @@ namespace AltinnCore.Runtime.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
+            // TODO: make templates folder available to runtime pod 
             // _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);

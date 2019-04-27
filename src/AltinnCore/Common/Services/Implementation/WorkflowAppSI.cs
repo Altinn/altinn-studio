@@ -51,7 +51,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId, int reporteeId)
+        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
         {            
             // Read the workflow template
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
