@@ -1,5 +1,8 @@
 using System;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace AltinnCore.Common.Authentication.JwtCookie
 {
@@ -45,7 +48,7 @@ namespace AltinnCore.Common.Authentication.JwtCookie
         /// <returns></returns>
         public static AuthenticationBuilder AddJwtCookie(this AuthenticationBuilder builder, string authenticationScheme, string displayName, Action<JwtCookieOptions> configureOptions)
         {
-            // builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<JwtBearerOptions>, JwtBearerPostConfigureOptions>());
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<JwtCookieOptions>, JwtCookiePostConfigureOptions>());
             return builder.AddScheme<JwtCookieOptions, JwtCookieHandler>(authenticationScheme, displayName, configureOptions);
         }
     }

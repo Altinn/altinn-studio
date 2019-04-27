@@ -47,6 +47,12 @@ namespace AltinnCore.Common.Authentication.JwtCookie
         }
 
         /// <summary>
+        /// Creates a new instance of the events instance.
+        /// </summary>
+        /// <returns>A new instance of the events instance.</returns>
+        protected override Task<object> CreateEventsAsync() => Task.FromResult<object>(new JwtCookieEvents());
+
+        /// <summary>
         ///  Handles the authentication of the request 
         /// </summary>
         /// <returns></returns>
@@ -187,7 +193,7 @@ namespace AltinnCore.Common.Authentication.JwtCookie
             jwtToken,
             signInContext.CookieOptions);
 
-            var signedInContext = new JwtCookieSignedInContext(
+            JwtCookieSignedInContext signedInContext = new JwtCookieSignedInContext(
                 Context,
                 Scheme,
                 signInContext.Principal,
@@ -217,7 +223,7 @@ namespace AltinnCore.Common.Authentication.JwtCookie
             JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
             SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
             {
-                Subject = GetIdentity(principal),
+                Subject = new ClaimsIdentity(principal.Identity),
                 Expires = DateTime.UtcNow.AddSeconds(tokenExipry.TotalSeconds),
                 SigningCredentials = GetSigningCredentials()
             };
@@ -226,12 +232,6 @@ namespace AltinnCore.Common.Authentication.JwtCookie
             string tokenstring = tokenHandler.WriteToken(token);
 
             return tokenstring;
-        }
-
-        private ClaimsIdentity GetIdentity(ClaimsPrincipal principal)
-        {
-            ClaimsIdentity identity = new ClaimsIdentity(principal.Identity, principal.Claims);
-            return identity;
         }
 
         private SigningCredentials GetSigningCredentials()
