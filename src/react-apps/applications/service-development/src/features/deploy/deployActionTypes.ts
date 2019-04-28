@@ -18,3 +18,7 @@ export const FETCH_DEPLOY_ALTINN_APP_STATUS_FULFILLED: string = `${moduleName}.F
 export const FETCH_DEPLOY_ALTINN_APP_STATUS_REJECTED: string = `${moduleName}.FETCH_DEPLOY_ALTINN_APP_STATUS_REJECTED`;
 
 export const RESET_DEPLOYMENT_STATUS: string = `${moduleName}.RESET_DEPLOYMENT_STATUS`;
+
+export const FETCH_COMPILE_STATUS: string = `${moduleName}.FETCH_COMPILE_STATUS`;
+export const FETCH_COMPILE_STATUS_FULFILLED: string = `${moduleName}.FETCH_COMPILE_STATUS_FULFILLED`;
+export const FETCH_COMPILE_STATUS_REJECTED: string = `${moduleName}.FETCH_COMPILE_STATUS_REJECTED`;

@@ -5,8 +5,10 @@ import { connect } from 'react-redux';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import postMessages from '../../../../../shared/src/utils/postMessages';
+import { makeGetRepoStatusSelector } from '../../handleMergeConflict/handleMergeConflictSelectors';
 import DeployPaper from '../components/deployPaper';
 import DeployActionDispatcher from '../deployDispatcher';
+import { makeGetCompileStatusResultSelector, makeGetCompileStatusUniqueFilenames } from '../deploySelectors';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -54,27 +56,22 @@ export enum inSyncStatus {
 }
 
 export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
+  compileStatus: any;
+  compileStatusUniqueFilenames: [];
   deploymentList: any;
+  deployStatus: any;
   language: any;
   masterRepoStatus: any;
-  name?: any;
   repoStatus: any;
-  deployStatus: any;
-}
-
-// TODO: Remove state if unused
-export interface IDeployToTestContainerState {
 }
 
 export class DeployToTestContainer extends
-  React.Component<IDeployToTestContainerProps, IDeployToTestContainerState> {
+  React.Component<IDeployToTestContainerProps> {
 
   public interval: any = null;
 
-  constructor(_props: IDeployToTestContainerProps, _state: IDeployToTestContainerState) {
-    super(_props, _state);
-    this.state = {
-    };
+  constructor(_props: IDeployToTestContainerProps) {
+    super(_props);
   }
 
   public componentDidMount() {
@@ -82,6 +79,7 @@ export class DeployToTestContainer extends
     const { org, service } = altinnWindow;
     DeployActionDispatcher.fetchDeployments(environment, org, service);
     DeployActionDispatcher.fetchMasterRepoStatus(org, service);
+    DeployActionDispatcher.fetchCompileStatus(org, service);
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
 
     // If deployment has started but not finished, start the fetchDeploymentStatusInterval
@@ -145,13 +143,11 @@ export class DeployToTestContainer extends
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service } = altinnWindow;
     const interval = setInterval(() => {
-      console.log('interval')
       DeployActionDispatcher.fetchDeployAltinnAppStatus(
         letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
       if (this.props.deployStatus[letEnv].result.finishTime ||
         this.props.deployStatus[letEnv].deployStartedSuccess === false) {
 
-        console.log('interval clear')
         clearInterval(interval);
 
       }
@@ -176,7 +172,7 @@ export class DeployToTestContainer extends
   }
 
   public render() {
-    const { classes, language } = this.props;
+    const { classes, compileStatus, language } = this.props;
 
     return (
       <React.Fragment>
@@ -194,11 +190,14 @@ export class DeployToTestContainer extends
             <Grid item={true} xs={11} sm={11} md={7} className={classes.deployPlaceholderStyle}>
 
               <DeployPaper
-                titleTypographyVariant='h2'
-                env={environment}
+                cSharpCompileStatusSuccess={compileStatus.result && compileStatus.result.succeeded}
+                cSharpCompileStatusUniqueFilenames={this.props.compileStatusUniqueFilenames}
                 deploymentListFetchStatus={this.props.deploymentList[environment].fetchStatus}
+                deployStatus={this.props.deployStatus[environment]}
+                deploySuccess={this.isDeploySuccessful(this.props.deployStatus[environment])}
+                env={environment}
+                language={language}
                 localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
-                cSharpCompiles={true}
                 masterRepoAndDeployInSync={this.props.deploymentList[environment].items.length > 0 ?
                   this.isMasterRepoAndDeployInSync(
                     environment,
@@ -207,10 +206,8 @@ export class DeployToTestContainer extends
                   :
                   null
                 }
-                deploySuccess={this.isDeploySuccessful(this.props.deployStatus[environment])}
-                language={language}
                 onClickStartDeployment={this.startDeployment}
-                deployStatus={this.props.deployStatus[environment]}
+                titleTypographyVariant='h2'
               />
 
             </Grid>
@@ -241,6 +238,9 @@ export class DeployToTestContainer extends
 }
 
 const makeMapStateToProps = () => {
+  const GetCompileStatusSelector = makeGetCompileStatusResultSelector();
+  const GetCompileStatusUniqueFilenames = makeGetCompileStatusUniqueFilenames();
+  const GetRepoStatusSelector = makeGetRepoStatusSelector();
   const mapStateToProps = (
     state: IServiceDevelopmentState,
   ) => {
@@ -248,8 +248,10 @@ const makeMapStateToProps = () => {
       language: state.language,
       masterRepoStatus: state.deploy.masterRepoStatus,
       deploymentList: state.deploy.deploymentList,
-      repoStatus: state.handleMergeConflict.repoStatus,
+      repoStatus: GetRepoStatusSelector(state),
       deployStatus: state.deploy.deployStatus,
+      compileStatus: GetCompileStatusSelector(state),
+      compileStatusUniqueFilenames: GetCompileStatusUniqueFilenames(state),
     };
   };
   return mapStateToProps;

@@ -154,3 +154,36 @@ export function resetDeploymentStatusAction(env: string):
     env,
   };
 }
+
+export interface IFetchCompileStatus extends Action {
+  org: string;
+  repo: string;
+}
+export interface IFetchCompileStatusFulfilled extends Action {
+  result: any;
+}
+export interface IFetchCompileStatusRejected extends Action {
+  result: Error;
+}
+export function fetchCompileStatusAction(org: string, repo: string):
+  IFetchCompileStatus {
+  return {
+    type: ActionTypes.FETCH_COMPILE_STATUS,
+    org,
+    repo,
+  };
+}
+export function fetchCompileStatusFulfilledAction(result: any):
+  IFetchCompileStatusFulfilled {
+  return {
+    type: ActionTypes.FETCH_COMPILE_STATUS_FULFILLED,
+    result,
+  };
+}
+export function fetchCompileStatusRejectedAction(result: Error):
+  IFetchCompileStatusRejected {
+  return {
+    type: ActionTypes.FETCH_COMPILE_STATUS_REJECTED,
+    result,
+  };
+}

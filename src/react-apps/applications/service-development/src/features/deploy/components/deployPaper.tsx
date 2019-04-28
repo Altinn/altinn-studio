@@ -52,22 +52,21 @@ const styles = () => createStyles({
 
 interface IDeployPaperProps {
   classes: any;
-  cSharpCompiles: boolean;
+  cSharpCompileStatusSuccess: boolean;
+  cSharpCompileStatusUniqueFilenames: [];
   deploymentListFetchStatus: any;
-  localRepoInSyncWithMaster: inSyncStatus.ahead | inSyncStatus.behind | inSyncStatus.ready;
-  titleTypographyVariant: TypographyProps['variant'];
-  masterRepoAndDeployInSync: boolean;
-  deploySuccess?: boolean;
-  language: any;
-  env: string;
-  onClickStartDeployment: any;
   deployStatus: any;
+  deploySuccess?: boolean;
+  env: string;
+  language: any;
+  localRepoInSyncWithMaster: inSyncStatus.ahead | inSyncStatus.behind | inSyncStatus.ready;
+  masterRepoAndDeployInSync: boolean;
+  onClickStartDeployment: any;
+  titleTypographyVariant: TypographyProps['variant'];
 }
 
 export const DeployPaper = (props: IDeployPaperProps) => {
   const { classes, localRepoInSyncWithMaster } = props;
-
-  const constMockCompileFiles = ['firstFile.cs', 'secondFile.cs', 'thirdFile.cs'];
 
   const renderRepoInSync = () => {
     return (
@@ -130,7 +129,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
         return (
           <React.Fragment>
             <Typography variant='h2' className={classes.listItemTitle}>
-              {getLanguageFromKey('deploy_to_test.changes_made_by_others_in_your_organisation', props.language)}
+              {getLanguageFromKey('deploy_to_test.changes_made_by_others_in_your_organisation_title', props.language)}
             </Typography>
             <Typography variant='body1'>
               {/* tslint:disable-next-line:max-line-length */}
@@ -151,6 +150,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const renderCSharpCompilesText = (param: boolean) => {
+    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
+    const { org, service } = altinnWindow;
+
     switch (param) {
 
       case true:
@@ -167,7 +169,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
               {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_title', props.language)}
             </Typography>
             <div style={{ margin: '6px 0px 12px 10px' }}>
-              {constMockCompileFiles.map((file) => (
+              {props.cSharpCompileStatusUniqueFilenames.map((file) => (
                 <Typography variant='body1' key={file}>
                   {file}
                 </Typography>
@@ -175,8 +177,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
             </div>
             <Typography variant='body1'>
               {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part1', props.language)}&nbsp;
-              <a className={classes.link}>{getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part2',
-                props.language)}<AltinnIcon
+              <a href={`/${org}/${service}`} className={classes.link} target='_blank'>
+                {/* TODO: Remember to change text when file edit page is available */}
+                {getLanguageFromKey('deploy_to_test.check_csharp_compiles_false_body_part2', props.language)}<AltinnIcon
                   isActive={true}
                   iconClass='ai ai-arrowrightup'
                   iconColor={theme.altinnPalette.primary.black}
@@ -282,7 +285,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const returnReadyForDeployStatus = () => {
-    if (props.deploySuccess !== true && props.cSharpCompiles === true && props.masterRepoAndDeployInSync === false) {
+    if (props.deploySuccess !== true &&
+      props.cSharpCompileStatusSuccess === true &&
+      props.masterRepoAndDeployInSync === false) {
       return true;
     } else {
       return false;
@@ -361,9 +366,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                         props.language), getLanguageFromKey('deploy_to_test.general_service_is_deployed_from_org',
                           props.language))
                     ) :
-                    props.cSharpCompiles === true ?
+                    props.cSharpCompileStatusSuccess === true ?
                       (
-                        // Ready for deploy (if cSharpCompiles)
+                        // Ready for deploy (if cSharpCompileStatusSuccess)
                         renderPaperTitle(getLanguageFromKey('deploy_to_test.service_is_ready_to_deploy_title_true',
                           props.language),
                           getLanguageFromKey('deploy_to_test.general_service_will_be_deployed_from_org',
@@ -386,20 +391,22 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                     {props.masterRepoAndDeployInSync !== true &&
                       <React.Fragment>
                         <Grid item={true} xs={1} id='rendercSharpCompiles'>
-                          <div className={classNames({ [classes.checkIconPositionFix]: props.cSharpCompiles })}>
+                          <div
+                            className={classNames({ [classes.checkIconPositionFix]: props.cSharpCompileStatusSuccess })}
+                          >
                             <AltinnIcon
                               iconClass={classNames({
-                                ['ai ai-check']: props.cSharpCompiles,
-                                ['fa fa-circle-exclamation']: !props.cSharpCompiles,
+                                ['ai ai-check']: props.cSharpCompileStatusSuccess,
+                                ['fa fa-circle-exclamation']: !props.cSharpCompileStatusSuccess,
                               })}
-                              iconColor={props.cSharpCompiles ?
+                              iconColor={props.cSharpCompileStatusSuccess ?
                                 theme.altinnPalette.primary.green : theme.altinnPalette.primary.red}
                               padding='0px 0px 7px 0px'
                             />
                           </div>
                         </Grid>
                         <Grid item={true} xs={11}>
-                          {renderCSharpCompilesText(props.cSharpCompiles)}
+                          {renderCSharpCompilesText(props.cSharpCompileStatusSuccess)}
                         </Grid>
                       </React.Fragment>
                     }

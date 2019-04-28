@@ -4,9 +4,10 @@ import * as DeployActions from './deployActions';
 import * as DeployActionTypes from './deployActionTypes';
 
 export interface IDeployState {
+  compileStatus: any;
   deploymentList: any;
-  masterRepoStatus: any;
   deployStatus: any;
+  masterRepoStatus: any;
 }
 
 const initialState: IDeployState = {
@@ -32,6 +33,13 @@ const initialState: IDeployState = {
         buildId: null,
       },
     },
+  },
+  compileStatus: {
+    fetchStatus: {
+      error: null,
+      success: null,
+    },
+    result: null,
   },
 };
 
@@ -121,7 +129,6 @@ const deployReducer: Reducer<IDeployState> = (
 
     case DeployActionTypes.FETCH_DEPLOY_ALTINN_APP_STATUS_FULFILLED: {
       const { result, env } = action as DeployActions.IFetchDeployAltinnAppStatusFulfilled;
-      console.log('env', env)
       return update<IDeployState>(state, {
         deployStatus: {
           [env]: {
@@ -139,6 +146,41 @@ const deployReducer: Reducer<IDeployState> = (
         deployStatus: {
           [env]: {
             $set: initialState.deployStatus[env],
+          },
+        },
+      });
+    }
+
+    case DeployActionTypes.FETCH_COMPILE_STATUS_FULFILLED: {
+      const { result } = action as DeployActions.IFetchDeployAltinnAppStatusFulfilled;
+      return update<IDeployState>(state, {
+        compileStatus: {
+          fetchStatus: {
+            success: {
+              $set: true,
+            },
+          },
+          result: {
+            $set: result,
+          },
+        },
+      });
+    }
+
+    case DeployActionTypes.FETCH_COMPILE_STATUS_REJECTED: {
+      const { result } = action as DeployActions.IFetchDeployAltinnAppStatusFulfilled;
+      return update<IDeployState>(state, {
+        deployStatus: {
+          compileStatus: {
+            error: {
+              $set: result.message,
+            },
+            success: {
+              $set: false,
+            },
+          },
+          result: {
+            $set: result,
           },
         },
       });

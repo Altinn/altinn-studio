@@ -1,5 +1,6 @@
 /* tslint:disable:object-literal-key-quotes */
 /* tslint:disable:no-string-literal */
+/* tslint:disable:max-line-length */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -9,6 +10,8 @@ import { DeployToTestContainer } from '../src/features/deploy/containers/deployT
 
 describe('Deploy To Test container', () => {
   let mockClasses: any;
+  let mockCompileStatus: any;
+  let mockCompileStatusUniqueFilenames: any;
   let mockDeploymentList: any;
   let mockDeployStatus: any;
   let mockLanguage: any;
@@ -70,11 +73,32 @@ describe('Deploy To Test container', () => {
         'id': '2',
       },
     };
+
+    mockCompileStatus = {
+      fetchStatus: {
+        error: null,
+        success: true,
+      },
+      result: {
+        assemblyName: null,
+        compilationInfo: [],
+        succeeded: true,
+        warnings: 0,
+        errors: 0,
+        timeUsed: '00:00:01.7493568',
+        compileStarted: '2019-04-26T15:26:53.8553131+02:00',
+      },
+    };
+
+    mockCompileStatusUniqueFilenames = [];
+
   });
 
   it('should render "Ready for deploy and all checks passed"', async () => {
     const wrapper = mount(
       <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
@@ -84,7 +108,7 @@ describe('Deploy To Test container', () => {
       />,
     );
 
-    // Language test
+    // Assert Language shared with org
     expect(wrapper.text()).toMatch('shared_with_org_true');
 
     // Assert renderRepoInSync part (local and master is in sync)
@@ -98,6 +122,7 @@ describe('Deploy To Test container', () => {
     const rendercSharpCompiles = wrapper.find('#rendercSharpCompiles');
     expect(rendercSharpCompiles.exists('.ai-check')).toEqual(true);
     expect(rendercSharpCompiles.exists('.fa-circle-exclamation')).toEqual(false);
+    expect(wrapper.text()).toMatch('check_csharp_compiles_true_title');
 
     // Assert the deploy button
     expect(wrapper.exists('#deployButton')).toEqual(true);
@@ -114,6 +139,8 @@ describe('Deploy To Test container', () => {
 
     const wrapper = mount(
       <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
@@ -153,6 +180,8 @@ describe('Deploy To Test container', () => {
 
     const wrapper = mount(
       <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
@@ -183,9 +212,48 @@ describe('Deploy To Test container', () => {
     expect(deployButton.find('button').props()['disabled']).toEqual(false);
   });
 
+  it('should render "Local repo is behind master"', async () => {
+    mockRepoStatus = {
+      behindBy: 1,
+      aheadBy: 0,
+      contentStatus: [],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    };
+
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    // Test language
+    expect(wrapper.text()).toMatch('changes_made_by_others_in_your_organisation_title');
+
+    // Assert renderRepoInSync part
+    expect(wrapper.exists('#renderInSync')).toEqual(true);
+    const renderInSync = wrapper.find('#renderInSync');
+    expect(renderInSync.exists('.ai-check')).toEqual(false);
+    expect(renderInSync.exists('.fa-info-circle')).toEqual(true);
+
+    // Assert the deploy button
+    expect(wrapper.exists('#deployButton')).toEqual(true);
+    const deployButton = wrapper.find('#deployButton');
+    expect(deployButton.find('button').props()['disabled']).toEqual(false);
+  });
+
   it('should correctly render the "Deploy successfully" process', async () => {
     const wrapper = mount(
       <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
@@ -197,7 +265,7 @@ describe('Deploy To Test container', () => {
 
     // Assert the deploy button
     expect(wrapper.exists('button#deployButton')).toEqual(true);
-    let deployButton = wrapper.find('button#deployButton');
+    const deployButton = wrapper.find('button#deployButton');
     expect(deployButton.find('button').props()['disabled']).toEqual(false);
 
     // Assert the altinnspinner
@@ -289,6 +357,8 @@ describe('Deploy To Test container', () => {
   it('should "Fail deployment"', async () => {
     const wrapper = mount(
       <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
@@ -363,6 +433,156 @@ describe('Deploy To Test container', () => {
   it('should unmount and mount during deployment successfully', async () => {
     const wrapper = mount(
       <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    const instance = wrapper.instance() as DeployToTestContainer;
+    const spyOnFetchDeploymentStatusInterval = jest.spyOn(instance, 'fetchDeploymentStatusInterval');
+
+    // Call the componentdDidMount() and assert that fetchDeploymentStatusInterval has not been called
+    instance.componentDidMount();
+    expect(spyOnFetchDeploymentStatusInterval).toHaveBeenCalledTimes(0);
+
+    // Mock deployment inProgress
+    mockDeployStatus = {
+      at21: {
+        deployStartedSuccess: true,
+        result: {
+          'status': 'inProgress',
+          'startTime': '2019-04-11T17:26:12.3887035Z',
+          'finishTime': null,
+          'success': false,
+          'message': 'Deployment status: inProgress',
+          'buildId': '7236',
+        },
+      },
+    };
+    wrapper.setProps({
+      deployStatus: mockDeployStatus,
+    });
+
+    expect(spyOnFetchDeploymentStatusInterval).toHaveBeenCalledTimes(0);
+
+    // Assert the altinnspinner, should be shown
+    expect(wrapper.exists('#DeploySpinner')).toEqual(true);
+
+    wrapper.unmount();
+
+    // Assert the altinnspinner, should be hidden
+    expect(wrapper.exists('#DeploySpinner')).toEqual(false);
+
+    // Mock the mount
+    wrapper.mount();
+    instance.componentDidMount();
+
+    // Assert that the fetchDeploymentStatusInterval has been called
+    expect(spyOnFetchDeploymentStatusInterval).toHaveBeenCalledTimes(1);
+
+    // Assert the altinnspinner, should be shown
+    expect(wrapper.exists('#DeploySpinner')).toEqual(true);
+
+  });
+
+  it('should successfully render "compile success"', async () => {
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    // Assert language
+    expect(wrapper.text()).toMatch('check_csharp_compiles_true_title');
+
+  });
+
+  it('should successfully render "compile failed"', async () => {
+    mockCompileStatus = {
+      fetchStatus: {
+        error: null,
+        success: true,
+      },
+      result: {
+        assemblyName: null,
+        compilationInfo: [
+          {
+            severity: 'Warning',
+            filePath: 'C:/AltinnCore/Repos/matsgm/tdd/compiles/Implementation\\ServiceImplementation.cs',
+            fileName: 'ServiceImplementation.cs',
+            lineNumber: 12,
+            info: 'The using directive for \'AltinnCore.ServiceLibrary.ServiceMetadata\' appeared previously in this namespace',
+            code: 'CS0105',
+            warningLevel: 3,
+          },
+          {
+            severity: 'Error',
+            filePath: 'C:/AltinnCore/Repos/matsgm/tdd/compiles/Implementation\\InstantiationHandler.cs',
+            fileName: 'InstantiationHandler.cs',
+            lineNumber: 11,
+            info: 'The type or namespace name \'SERVICE_MODEL_NAME\' could not be found (are you missing a using directive or an assembly reference?)',
+            code: 'CS0246',
+            warningLevel: 0,
+          },
+        ],
+        succeeded: false,
+        warnings: 1,
+        errors: 1,
+        timeUsed: '00:00:00.2056210',
+        compileStarted: '2019-04-26T15:35:00.7707663+02:00',
+      },
+    };
+
+    mockCompileStatusUniqueFilenames = [
+      'fileName1.cs',
+      'fileName2.cs',
+    ];
+
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    // Assert language
+    expect(wrapper.text()).toMatch('check_csharp_compiles_false_title');
+
+    // Assert rendercSharpCompiles part
+    expect(wrapper.exists('#rendercSharpCompiles')).toEqual(true);
+    const rendercSharpCompiles = wrapper.find('#rendercSharpCompiles');
+    expect(rendercSharpCompiles.exists('.ai-check')).toEqual(false);
+    expect(rendercSharpCompiles.exists('.fa-circle-exclamation')).toEqual(true);
+
+    // Assert files
+    expect(wrapper.text()).toMatch('fileName1.cs');
+    expect(wrapper.text()).toMatch('fileName2.cs');
+  });
+
+  it('should run stop fetchDeploymentStatusInterval() successfully', async () => {
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}

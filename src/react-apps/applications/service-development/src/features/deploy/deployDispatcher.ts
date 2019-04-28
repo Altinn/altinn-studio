@@ -21,6 +21,9 @@ export interface IDeployDispatchers extends ActionCreatorsMapObject {
   fetchDeployAltinnAppStatusFulfilled: (result: any, env: string) => DeployActions.IFetchDeployAltinnAppStatusFulfilled;
   fetchDeployAltinnAppStatusRejected: (result: Error, env: string) => DeployActions.IFetchDeployAltinnAppStatusRejected;
   resetDeploymentStatus: (env: string) => DeployActions.IResetDeploymentStatus;
+  fetchCompileStatus: (org: string, repo: string) => DeployActions.IFetchCompileStatus;
+  fetchCompileStatusFulfilled: (result: any) => DeployActions.IFetchCompileStatusFulfilled;
+  fetchCompileStatusRejected: (result: Error) => DeployActions.IFetchCompileStatusRejected;
 }
 
 /**
@@ -41,6 +44,9 @@ const actions: IDeployDispatchers = {
   fetchDeployAltinnAppStatusFulfilled: DeployActions.fetchDeployAltinnAppStatusFulfilledAction,
   fetchDeployAltinnAppStatusRejected: DeployActions.fetchDeployAltinnAppStatusRejectedAction,
   resetDeploymentStatus: DeployActions.resetDeploymentStatusAction,
+  fetchCompileStatus: DeployActions.fetchCompileStatusAction,
+  fetchCompileStatusFulfilled: DeployActions.fetchCompileStatusFulfilledAction,
+  fetchCompileStatusRejected: DeployActions.fetchCompileStatusRejectedAction,
 };
 
 /**

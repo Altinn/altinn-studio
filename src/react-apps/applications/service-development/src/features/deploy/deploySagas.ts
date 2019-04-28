@@ -12,6 +12,7 @@ export function* fetchDeploymentsSaga({
   repo,
 }: DeployActions.IFetchDeployments): SagaIterator {
   try {
+    // TODO: TLS is missing on cluster. Update after TLS is available.
     // env = 'at22';
     // const result = yield call(get,
     //   `http://${org}.apps.${env}.altinn.cloud/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
@@ -77,12 +78,6 @@ export function* deployAltinnAppSaga({
   try {
     const result = yield call(post, `/designer/${org}/${repo}/Deploy/StartDeployment`);
 
-    // const result = {
-    //   success: true,
-    //   message: 'Deployment status: 7222',
-    //   buildId: '7222',
-    // };
-
     yield call(DeployDispatchers.deployAltinnAppFulfilled, result, env);
   } catch (err) {
     yield call(DeployDispatchers.deployAltinnAppRejected, err, env);
@@ -106,33 +101,6 @@ export function* fetchDeployAltinnAppStatusSaga({
   try {
     const result = yield call(get, `/designer/${org}/${repo}/Deploy/FetchDeploymentStatus?buildid=${buildId}`);
 
-    // const inProgress = {
-    //   "status": "inProgress",
-    //   "startTime": "2019-04-11T17:26:12.3887035Z",
-    //   "finishTime": null,
-    //   "success": false,
-    //   "message": "Deployment status: inProgress",
-    //   "buildId": "7236",
-    // };
-
-    // const failed = {
-    //   "status": "completed",
-    //   "startTime": "2019-04-11T17:44:31.8583703Z",
-    //   "finishTime": "2019-04-11T17:44:53.4667641Z",
-    //   "success": false,
-    //   "message": "Deployment status: completed",
-    //   "buildId": "7237"
-    // };
-
-    // const result = {
-    //   status: 'completed',
-    //   startTime: '2019-04-11T12:52:10.2722025Z',
-    //   finishTime: '2019-04-11T12:52:34.7263946Z',
-    //   success: true,
-    //   message: 'Deployment status: completed',
-    //   buildId: '7222',
-    // };
-
     yield call(DeployDispatchers.fetchDeployAltinnAppStatusFulfilled, result, env);
   } catch (err) {
     yield call(DeployDispatchers.fetchDeployAltinnAppStatusRejected, err, env);
@@ -146,11 +114,34 @@ export function* watchFetchDeployAltinnAppStatusSaga(): SagaIterator {
   );
 }
 
+// FETCH COMPILE STATUS
+export function* fetchCompileStatusSaga({
+  org,
+  repo,
+}: DeployActions.IFetchCompileStatus): SagaIterator {
+  try {
+    const result = yield call(post,
+      `/designer/api/v1/compile?org=${org}&app=${repo}`);
+
+    yield call(DeployDispatchers.fetchCompileStatusFulfilled, result);
+  } catch (err) {
+    yield call(DeployDispatchers.fetchCompileStatusRejected, err);
+  }
+}
+
+export function* watchFetchCompileStatusSaga(): SagaIterator {
+  yield takeLatest(
+    DeployActionTypes.FETCH_COMPILE_STATUS,
+    fetchCompileStatusSaga,
+  );
+}
+
 // WATCHES EXPORT
 export function* deploySagas(): SagaIterator {
   yield fork(watchFetchDeploymentsSaga);
   yield fork(watchFetchMasterRepoStatusSaga);
   yield fork(watchDeployAltinnAppSaga);
   yield fork(watchFetchDeployAltinnAppStatusSaga);
+  yield fork(watchFetchCompileStatusSaga);
   // Insert all watchSagas here
 }
