@@ -6,7 +6,9 @@ using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
@@ -15,29 +17,31 @@ using Newtonsoft.Json;
 namespace AltinnCore.Common.Services.Implementation
 {
     /// <summary>
-    /// Services with functionality for test data under service development
+    /// service implementation for application test data
     /// </summary>
-    public class TestdataSILocalDev : ITestdata
+    public class TestdataAppSI : ITestdata
     {
         private const string TESTUSERS_FILENAME = "testusers.json";
-
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string GetFormInstancesApiMethod = "GetFormInstances";
         private const string GetServicePrefillApiMethod = "GetServicePrefill";
+        private readonly IInstance _instance;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TestdataSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="TestdataAppSI"/> class
         /// </summary>
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        public TestdataSILocalDev(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor)
+        /// <param name="instanceSI">the instance service</param>
+        public TestdataAppSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, IInstance instanceSI)
         {
-            _testdataRepositorySettings = testdataRepositorySettings.Value;
-            _settings = repositorySettings.Value;
+            this._testdataRepositorySettings = testdataRepositorySettings.Value;
+            this._settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
+            _instance = instanceSI;
         }
 
         /// <summary>
@@ -50,13 +54,19 @@ namespace AltinnCore.Common.Services.Implementation
         /// <returns>The service instance list</returns>
         public List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null)
         {
-            string apiUrl = _settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, org, service, developer, partyId);
             List<ServiceInstance> returnList = new List<ServiceInstance>();
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            List<Instance> instances = _instance.GetInstances(service, org, partyId).Result;
+            if (instances != null && instances.Count > 0)
             {
-                client.BaseAddress = new Uri(apiUrl);
-                Task<HttpResponseMessage> response = client.GetAsync(apiUrl);
-                returnList = response.Result.Content.ReadAsAsync<List<ServiceInstance>>().Result;
+                foreach (Instance instance in instances)
+                {
+                    returnList.Add(new ServiceInstance
+                    {
+                        ServiceInstanceID = Guid.Parse(instance.Id),
+                        IsArchived = instance.IsCompleted,
+                        LastChanged = instance.LastChangedDateTime
+                    });
+                }
             }
 
             return returnList;

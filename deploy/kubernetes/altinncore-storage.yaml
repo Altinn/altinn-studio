@@ -13,18 +13,6 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: altinn-storage-repo-volume-claim
-spec:
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: managed-premium
-  resources:
-    requests:
-      storage: 200Gi
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
   name: altinn-storage-runtime-repo-volume-claim
 spec:
   accessModes:
@@ -33,3 +21,52 @@ spec:
   resources:
     requests:
       storage: 200Gi
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: altinn-storage-repo-premium-volume-claim
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: azurefile
+  resources:
+    requests:
+      storage: 200Gi
+
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: azurefile
+provisioner: kubernetes.io/azure-file
+mountOptions:
+  - dir_mode=0755
+  - file_mode=0755
+parameters:
+  skuName: Standard_LRS
+  storageAccount: altinnt30storageaccount
+  resourceGroup: altinntjenester-tre-null
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: system:azure-storage-provider
+rules:
+- apiGroups: ['']
+  resources: ['secrets']
+  verbs:     ['get','create']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: system:azure-storage-provider
+roleRef:
+  kind: ClusterRole
+  apiGroup: rbac.authorization.k8s.io
+  name: system:azure-storage-provider
+subjects:
+- kind: ServiceAccount
+  name: persistent-volume-binder
+  namespace: kube-system

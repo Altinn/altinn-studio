@@ -112,14 +112,23 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                string sqlQuery = $"SELECT * FROM Instance i WHERE i.applicationOwnerId = '{applicationOwnerId}'";
+                List<Instance> instances = new List<Instance>();
+                FeedOptions feedOptions = new FeedOptions
+                {
+                    EnableCrossPartitionQuery = true,
+                };
 
-                IDocumentQuery<Instance> query = _client
-                    .CreateDocumentQuery<Instance>(_collectionUri, sqlQuery, new FeedOptions { EnableCrossPartitionQuery = true })
-                    .AsDocumentQuery();
+                var query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                                .Where(i => i.ApplicationOwnerId == applicationOwnerId)
+                                .AsDocumentQuery();
+                while (query.HasMoreResults)
+                {
+                    foreach (Instance instance in await query.ExecuteNextAsync().ConfigureAwait(false))
+                    {
+                        instances.Add(instance);
+                    }
+                }
 
-                FeedResponse<Instance> result = await query.ExecuteNextAsync<Instance>();
-                List<Instance> instances = result.ToList<Instance>();
                 return instances;
             }
             catch (DocumentClientException e)
@@ -270,9 +279,9 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                var document = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
-                var data = document.Resource.ToString();
-                var instance = JsonConvert.DeserializeObject<Instance>(data);
+                ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
+                Document document = createDocumentResponse.Resource;
+                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
                 return instance;
             }
             catch (Exception ex)

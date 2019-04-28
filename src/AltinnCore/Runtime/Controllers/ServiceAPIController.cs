@@ -46,9 +46,11 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IProfile _profile;
         private UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
         private readonly IPlatformServices _platformSI;
+        private readonly IData _data;
 
+        private const string FORM_ID = "default";
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
 
         /// <summary>
@@ -68,6 +70,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="workflowSI">The workflow service.</param>
         /// <param name="instanceSI">The instance si</param>
         /// <param name="platformSI">The platform si</param>
+        /// <param name="data">the data service</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -80,9 +83,10 @@ namespace AltinnCore.Runtime.Controllers
             IExecution executionService,
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
+            IWorkflow workflowSI,
             IInstance instanceSI,
-            IPlatformServices platformSI)
+            IPlatformServices platformSI,
+            IData data)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -99,6 +103,7 @@ namespace AltinnCore.Runtime.Controllers
             _workflowSI = workflowSI;
             _instance = instanceSI;
             _platformSI = platformSI;
+            _data = data;
         }
 
         /// <summary>
@@ -142,14 +147,17 @@ namespace AltinnCore.Runtime.Controllers
 
             ViewBag.PlatformServices = _platformSI;
 
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
+
             // Getting the Form Data from datastore
-            object serviceModel = this._form.GetFormModel(
+            object serviceModel = this._data.GetFormData(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                dataId);
 
             // Assing the populated service model to the service implementation
             serviceImplementation.SetServiceModel(serviceModel);
@@ -284,14 +292,13 @@ namespace AltinnCore.Runtime.Controllers
             Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
-            this._form.SaveFormModel(
+            this._data.InsertData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId,
-                Guid.Empty);
+                requestContext.UserContext.ReporteeId);
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;
@@ -405,19 +412,25 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
+            
             // Save Formdata to database
-            this._form.SaveFormModel(
+            this._data.UpdateData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                Guid.Empty);
+                dataId);
 
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                instance.CurrentWorkflowStep = currentState.State.ToString();
+                await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
+
                 Response.StatusCode = 200;
                 apiResult.InstanceId = instanceId;
                 apiResult.Status = ApiStatusType.Ok;

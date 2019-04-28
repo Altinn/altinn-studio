@@ -73,8 +73,10 @@ namespace AltinnCore.Runtime
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
                 services.AddSingleton<IExecution, ExecutionSILocalDev>();
-                services.AddSingleton<IInstance, InstanceSILocalDev>();
-                services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IInstance, InstanceStudioSI>();
+                services.AddSingleton<IData, DataStudioSI>();
+                services.AddSingleton<IWorkflow, WorkflowStudioSI>();
+                services.AddSingleton<ITestdata, TestdataStudioSI>();
                 services.AddSingleton<IDSF, RegisterDSFStudioSI>();
                 services.AddSingleton<IER, RegisterERStudioSI>();
                 services.AddSingleton<IRegister, RegisterStudioSI>();
@@ -83,14 +85,15 @@ namespace AltinnCore.Runtime
             else
             {
                 // Services added if code is running in app
-                services.AddSingleton<IExecution, ExecutionSIContainer>();
-                services.AddSingleton<IInstance, InstanceSI>();
-                services.AddSingleton<IData, DataSI>();
-                services.AddSingleton<IWorkflowSI, WorkflowSI>();
+                services.AddSingleton<IExecution, ExecutionSILocalDev>();
                 services.AddSingleton<IDSF, RegisterDSFAppSI>();
                 services.AddSingleton<IER, RegisterERAppSI>();
-                services.AddSingleton<IRegister, RegisterAppSI>();
-                services.AddSingleton<IProfile, ProfileAppSI>();
+                services.AddSingleton<IRegister, RegisterStudioSI>();
+                services.AddSingleton<IProfile, ProfileStudioSI>();
+                services.AddSingleton<IInstance, InstanceAppSI>();
+                services.AddSingleton<IData, DataAppSI>();
+                services.AddSingleton<IWorkflow, WorkflowAppSI>();
+                services.AddSingleton<ITestdata, TestdataAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
@@ -106,7 +109,6 @@ namespace AltinnCore.Runtime
             services.AddSingleton<IForm, FormSILocalDev>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestdata, TestdataSILocalDev>();
             services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();

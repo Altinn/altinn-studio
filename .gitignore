@@ -334,3 +334,5 @@ src/AltinnCore/Designer/wwwroot/designer/css/bootstrap*.css
 
 # Jest test coverage
 coverage
+/deploy/kubernetes/helm-charts/altinn-dataservice-0.1.0.tgz
+/deploy/kubernetes/altinn-dbsettings-secret.json
