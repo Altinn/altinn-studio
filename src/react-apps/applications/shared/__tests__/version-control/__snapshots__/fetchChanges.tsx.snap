@@ -35,7 +35,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
               "color": "#0062BA",
               "fontSize": 36,
               "fontWeight": null,
-              "margin": "0px 5px 0px 0px",
+              "margin": "0px 0px 0px 0px",
               "padding": null,
             }
           }
@@ -93,7 +93,7 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
               "color": "#0062BA",
               "fontSize": 36,
               "fontWeight": 600,
-              "margin": "0px 5px 0px 0px",
+              "margin": "0px 0px 0px 0px",
               "padding": null,
             }
           }
