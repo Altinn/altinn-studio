@@ -76,6 +76,8 @@ namespace AltinnCore.Common.Services.Implementation
                 CreatedBy = instanceOwnerId,
                 CreatedDateTime = DateTime.UtcNow,
                 CurrentWorkflowStep = currentState.State.ToString(),
+                LastChangedDateTime = DateTime.UtcNow,
+                LastChangedBy = instanceOwnerId,
             };         
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

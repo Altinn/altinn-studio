@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
+using AltinnCore.Common.Attributes;
+using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
@@ -16,6 +20,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace AltinnCore.Runtime.Controllers
 {
@@ -40,6 +46,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IInstance _instance;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
+        private readonly ServiceRepositorySettings _settings;
 
         private const string FORM_ID = "default";
 
@@ -61,6 +68,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceSI">the instance service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
+        /// <param name="repositorySettings">the repository settings</param>
         public InstanceController(
             IAuthorization authorizationService,
             ILogger<InstanceController> logger,
@@ -76,7 +84,8 @@ namespace AltinnCore.Runtime.Controllers
             IWorkflow workflowSI,
             IInstance instanceSI,
             IPlatformServices platformSI,
-            IData dataSI)
+            IData dataSI,
+            IOptions<ServiceRepositorySettings> repositorySettings)
         {
             _authorization = authorizationService;
             _logger = logger;
@@ -94,6 +103,7 @@ namespace AltinnCore.Runtime.Controllers
             _instance = instanceSI;
             _platformSI = platformSI;
             _data = dataSI;
+            _settings = repositorySettings.Value;
         }
 
         /// <summary>
@@ -418,6 +428,99 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             return new ObjectResult(apiResult);
+        }
+
+        /// <summary>
+        /// Method that receives the form attachment from runtime and saves it to designer disk.
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentName">The name of the attachment</param>
+        /// <returns>The status of the upload and guid of attachment</returns>
+        [HttpPost]
+        [Authorize]
+        [DisableFormValueModelBinding]
+        public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceId, string attachmentType, string attachmentName)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Guid guid = Guid.NewGuid();
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{guid}/";
+            Directory.CreateDirectory(pathToSaveTo);
+            string fileToWriteTo = $"{pathToSaveTo}/{attachmentName}";
+            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            {
+                await Request.StreamFile(streamToWriteTo);
+                streamToWriteTo.Flush();
+            }
+
+            return Ok(new { id = guid });
+        }
+
+        /// <summary>
+        /// Method that removes a form attachment from designer disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <param name="attachmentType">The attachment type id</param>
+        /// <param name="attachmentId">The attachment id</param>
+        /// <returns>The status of the deletion</returns>
+        [HttpPost]
+        [Authorize]
+        [DisableFormValueModelBinding]
+        public IActionResult DeleteFormAttachment(string org, string service, int partyId, Guid instanceId, string attachmentType, string attachmentId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{attachmentId}";
+            DirectoryInfo directory = new DirectoryInfo(pathToDelete);
+            foreach (FileInfo file in directory.EnumerateFiles())
+            {
+                file.Delete();
+            }
+
+            directory.Delete();
+            return Ok();
+        }
+
+        /// <summary>
+        /// Method that gets metadata on form attachments form designer disk
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <returns>A list with attachments metadata ordered by attachmentType</returns>
+        [HttpGet]
+        [Authorize]
+        [DisableFormValueModelBinding]
+        public IActionResult GetFormAttachments(string org, string service, int partyId, Guid instanceId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string attachmentsPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/";
+            DirectoryInfo rootDirectory = new DirectoryInfo(attachmentsPath);
+            List<AttachmentList> allAttachments = new List<AttachmentList>();
+            foreach (DirectoryInfo typeDirectory in rootDirectory.EnumerateDirectories())
+            {
+                List<Attachment> attachments = new List<Attachment>();
+                foreach (DirectoryInfo fileDirectory in typeDirectory.EnumerateDirectories())
+                {
+                    foreach (FileInfo file in fileDirectory.EnumerateFiles())
+                    {
+                        attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
+                    }
+                }
+
+                if (attachments.Count > 0)
+                {
+                    allAttachments.Add(new AttachmentList { Type = typeDirectory.Name, Attachments = attachments });
+                }
+            }
+
+            return Ok(allAttachments);
         }
 
         private async Task<RequestContext> PopulateRequestContext(Guid instanceId)

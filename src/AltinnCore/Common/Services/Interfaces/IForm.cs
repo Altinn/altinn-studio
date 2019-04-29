@@ -11,38 +11,6 @@ namespace AltinnCore.Common.Services.Interfaces
     public interface IForm
     {
         /// <summary>
-        /// This method saves a form attachment
-        /// </summary>
-        /// <param name="applicationOwnerId">The applicaiton owner id</param>
-        /// <param name="applicationId">The application Id</param>
-        /// <param name="instanceOwnerId">The instance owner id</param>
-        /// <param name="formId">The form id</param>
-        /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="attachmentName">The file name for the attachment</param>
-        string GetAttachmentUploadUrl(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid formId, string attachmentType, string attachmentName);
-
-        /// <summary>
-        /// Gets url of attachment delete
-        /// </summary>
-        /// <param name="applicationOwnerId">The applicaiton owner id</param>
-        /// <param name="applicationId">The application Id</param>
-        /// <param name="instanceOwnerId">The instance owner id</param>
-        /// <param name="formId">The form id</param>
-        /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="attachmentName">The file name for the attachment</param>
-        /// <param name="attachmentId">The id for the attachment</param>
-        string GetAttachmentDeleteUrl(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid formId, string attachmentType, string attachmentName, string attachmentId);
-
-        /// <summary>
-        /// Gets url of attachment list
-        /// </summary>
-        /// <param name="applicationOwnerId">The applicaiton owner id</param>
-        /// <param name="applicationId">The application Id</param>
-        /// <param name="instanceOwnerId">The instance owner id</param>
-        /// <param name="formId">The form id</param>
-        string GetAttachmentListUrl(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid formId);
-
-        /// <summary>
         /// Operation that returns a prefill populated form model
         /// </summary>
         /// <param name="applicationOwnerId">The applicaiton owner id</param>

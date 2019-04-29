@@ -25,8 +25,6 @@ environmentVariables:
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
       value: \"true\"
-    - name: ServiceRepositorySettings__RuntimeAPIEndPoint
-      value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
@@ -51,8 +49,7 @@ environmentVariables:
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: \"true\"
-    - name: ServiceRepositorySettings__RuntimeAPIEndPoint
+
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
