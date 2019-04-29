@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Common.Authentication.JwtCookie
+namespace AltinnCore.Authentication.JwtCookie
 {
     /// <summary>
     /// Extensions for enabling JwtCookie authentication in a Asp.Net Core application

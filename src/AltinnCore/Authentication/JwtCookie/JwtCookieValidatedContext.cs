@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AltinnCore.Common.Authentication.JwtCookie
+namespace AltinnCore.Authentication.JwtCookie
 {
     /// <summary>
     /// This is the context created when a JwtCookie is validated

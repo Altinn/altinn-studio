@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Common.Authentication.JwtCookie
+namespace AltinnCore.Authentication.JwtCookie
 {
     /// <summary>
     /// Post configures the Jwt Cookie options

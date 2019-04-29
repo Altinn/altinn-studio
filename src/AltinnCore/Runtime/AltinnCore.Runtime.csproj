@@ -24,6 +24,7 @@
     <ProjectReference Include="../Common/AltinnCore.Common.csproj" />
     <ProjectReference Include="../ServiceLibrary/AltinnCore.ServiceLibrary.csproj" />
     <ProjectReference Include="../RepositoryClient/AltinnCore.RepositoryClient.csproj" />
+    <ProjectReference Include="..\Authentication\AltinnCore.Authentication.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Http;
 
-namespace AltinnCore.Common.Authentication.JwtCookie
+namespace AltinnCore.Authentication.JwtCookie
 {
     /// <summary>
     ///  Default values used by jwt cookie authentication.

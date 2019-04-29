@@ -13,7 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
-namespace AltinnCore.Common.Authentication.JwtCookie
+namespace AltinnCore.Authentication.JwtCookie
 {
     /// <summary>
     /// This handles a asp.net core application running with JWT tokens in cookie.

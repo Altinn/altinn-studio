@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Authentication.Internal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 
-namespace AltinnCore.Common.Authentication.JwtCookie
+namespace AltinnCore.Authentication.JwtCookie
 {
     /// <summary>
     /// Options for Jwt Cookie authentications
