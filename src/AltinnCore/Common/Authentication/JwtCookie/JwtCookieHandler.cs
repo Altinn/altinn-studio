@@ -60,12 +60,31 @@ namespace AltinnCore.Common.Authentication.JwtCookie
         {
             try
             {
+
                 // Get the cookie from request 
                 string token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
 
+                // If no cookie present 
                 if (string.IsNullOrEmpty(token))
                 {
-                    return AuthenticateResult.NoResult();
+                    string authorization = Request.Headers["Authorization"];
+
+                    // If no authorization header found, nothing to process further
+                    if (string.IsNullOrEmpty(authorization))
+                    {
+                        return AuthenticateResult.NoResult();
+                    }
+
+                    if (authorization.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        token = authorization.Substring("Bearer ".Length).Trim();
+                    }
+
+                    // If no token found, no further work possible
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        return AuthenticateResult.NoResult();
+                    }
                 }
 
                 TokenValidationParameters validationParameters = Options.TokenValidationParameters.Clone();
@@ -203,7 +222,7 @@ namespace AltinnCore.Common.Authentication.JwtCookie
             await Events.SignedIn(signedInContext);
 
             // Only redirect on the login path
-            var shouldRedirect = Options.LoginPath.HasValue && OriginalPath == Options.LoginPath;
+            bool shouldRedirect = Options.LoginPath.HasValue && OriginalPath == Options.LoginPath;
             await ApplyHeaders(shouldRedirect, signedInContext.Properties);
         }
 
