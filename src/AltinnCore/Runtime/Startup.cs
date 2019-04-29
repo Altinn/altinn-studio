@@ -72,7 +72,7 @@ namespace AltinnCore.Runtime
             // Adding services to Dependency Injection TODO: Make this environment specific
             if (string.IsNullOrEmpty(runtimeMode) || !runtimeMode.Equals("ServiceContainer"))
             {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
                 services.AddSingleton<IInstance, InstanceStudioSI>();
                 services.AddSingleton<IData, DataStudioSI>();
                 services.AddSingleton<IWorkflow, WorkflowStudioSI>();
@@ -85,7 +85,7 @@ namespace AltinnCore.Runtime
             else
             {
                 // Services added if code is running in app
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
                 services.AddSingleton<IDSF, RegisterDSFAppSI>();
                 services.AddSingleton<IER, RegisterERAppSI>();
                 services.AddSingleton<IRegister, RegisterStudioSI>();

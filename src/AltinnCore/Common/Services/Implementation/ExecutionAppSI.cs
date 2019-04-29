@@ -24,11 +24,12 @@ namespace AltinnCore.Common.Services.Implementation
     using AltinnCore.ServiceLibrary.Services.Interfaces;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
     /// </summary>
-    public class ExecutionSIContainer : IExecution
+    public class ExecutionAppSI : IExecution
     {
         private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
 
@@ -36,37 +37,35 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
+        private readonly ILogger _logger;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSIContainer"/> class.
+        /// Initializes a new instance of the <see cref="ExecutionAppSI"/> class.
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="partManager">The part manager</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
-        public ExecutionSIContainer(
+        /// <param name="logger">the logger</param>
+        public ExecutionAppSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             ApplicationPartManager partManager,
             IHttpContextAccessor httpContextAccessor,
-            IHostingEnvironment hostingEnvironment)
+            IHostingEnvironment hostingEnvironment,
+            ILogger<ExecutionAppSI> logger)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// Returns the serviceImplementation for a given service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service Implementation</returns>
+        /// <inheritdoc/>
         public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
         {
             string assemblykey = org + "_" + service;
@@ -100,13 +99,7 @@ namespace AltinnCore.Common.Services.Implementation
             return (IServiceImplementation)serviceImplementation;
         }
 
-        /// <summary>
-        /// Creates the service context made available for the Altinn Core services and views.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service context.</returns>
+        /// <inheritdoc/>
         public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
         {
             var context = new ServiceContext
@@ -125,82 +118,13 @@ namespace AltinnCore.Common.Services.Implementation
             return context;
         }
 
-        /// <summary>
-        /// Generates a new service instanceID for a service.
-        /// </summary>
-        /// <returns>A new instanceId.</returns>
+        /// <inheritdoc/>
         public Guid GetNewServiceInstanceID()
         {
             return Guid.NewGuid();
         }
 
-        /// <summary>
-        /// Returns the list of code list for a service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>List of code lists.</returns>
-        public Dictionary<string, CodeList> GetCodelists(string org, string service)
-        {
-            Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
-
-            ServiceMetadata metaData = _repository.GetServiceMetaData(org, service);
-
-            return codeLists;
-        }
-
-        /// <summary>
-        /// Return a given code list.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="name">The name of the code list.</param>
-        /// <returns>The code list.</returns>
-        public CodeList GetCodeListByName(string org, string service, string name)
-        {
-            CodeList codeList = null;
-            string textData = File.ReadAllText(_settings.BaseResourceFolderContainer + _settings.GetCodeListFolder() + name + ".json");
-            codeList = JsonConvert.DeserializeObject<CodeList>(textData);
-
-            return codeList;
-        }
-
-        /// <summary>
-        /// Returns the basic service owner configuration.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <returns>The basic service owner configuration.</returns>
-        public OrgConfiguration GetServiceOwnerConfiguration(string org)
-        {
-            OrgConfiguration config;
-            string textData = File.ReadAllText(_settings.BaseResourceFolderContainer + org + "/" + org + "/config.json");
-            config = JsonConvert.DeserializeObject<OrgConfiguration>(textData);
-            return config;
-        }
-
-        /// <summary>
-        /// Returns the basic service configuration.
-        /// </summary>
-        /// <param name="org">The organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>The basic service configuration.</returns>
-        public ServiceConfiguration GetServiceConfiguration(string org, string service)
-        {
-            ServiceConfiguration config;
-            string textData = null;
-            textData = File.ReadAllText(_settings.BaseResourceFolderContainer + "config.json");
-
-            config = JsonConvert.DeserializeObject<ServiceConfiguration>(textData);
-            return config;
-        }
-
-        /// <summary>
-        /// Gets the raw content of a code list.
-        /// </summary>
-        /// <param name="org">The organization code of the service owner.</param>
-        /// <param name="service">The service code of the current service.</param>
-        /// <param name="name">The name of the code list to retrieve.</param>
-        /// <returns>Raw contents of a code list file.</returns>
+        /// <inheritdoc/>
         public string GetCodelist(string org, string service, string name)
         {
             // Not relevant in a container scenario.
@@ -230,31 +154,12 @@ namespace AltinnCore.Common.Services.Implementation
             return fileContent;
         }
 
-        /// <summary>
-        /// Returns the service metadata for a service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>The service metadata for a service.</returns>
+        /// <inheritdoc/>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
             return JsonConvert.DeserializeObject<ServiceMetadata>(filedata);
-        }
-
-        /// <summary>
-        /// Get workflow for the service.
-        /// </summary>
-        /// <param name="org">the organisation.</param>
-        /// <param name="service">the service.</param>
-        /// <param name="edition">the service edition.</param>
-        /// <returns>The workflow for the service.</returns>
-        public List<WorkFlowStep> GetWorkFlow(string org, string service, string edition)
-        {
-            string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.WorkFlowFileName;
-            string textData = File.ReadAllText(filename, Encoding.UTF8);
-            return JsonConvert.DeserializeObject<List<WorkFlowStep>>(textData);
         }
 
         /// <inheritdoc/>
@@ -286,7 +191,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation("Method CheckAndUpdateWorkflowFile is not implemented for app");
         }
     }
 }

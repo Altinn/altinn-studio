@@ -63,7 +63,7 @@ namespace AltinnCore.Designer
             }
             else
             {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
             }
 
             services.AddSingleton<IArchive, ArchiveStudioSI>();

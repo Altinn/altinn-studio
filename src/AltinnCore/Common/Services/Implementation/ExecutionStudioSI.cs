@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
     /// </summary>
-    public class ExecutionSILocalDev : IExecution
+    public class ExecutionStudioSI : IExecution
     {
         private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
 
@@ -39,7 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="ExecutionStudioSI"/> class
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
@@ -48,7 +48,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="generalSettings">the current general settings</param>
         /// <param name="hostingEnvironment">the hosting environment</param>
-        public ExecutionSILocalDev(
+        public ExecutionStudioSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             Interfaces.ICompilation compilationService,
@@ -98,51 +98,6 @@ namespace AltinnCore.Common.Services.Implementation
         public Guid GetNewServiceInstanceID()
         {            
             return Guid.NewGuid();
-        }
-
-        /// <summary>
-        /// Returns the basic service owner configuration.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <returns>The basic service owner configuration.</returns>
-        public OrgConfiguration GetServiceOwnerConfiguration(string org)
-        {
-            OrgConfiguration config;
-            string textData = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                textData = File.ReadAllText(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + org + "/" + org + "/config.json");
-            }
-            else
-            {
-                textData = File.ReadAllText(_settings.RepositoryLocation + org + "/" + org + "/config.json");
-            }
-
-            config = JsonConvert.DeserializeObject<OrgConfiguration>(textData);
-            return config;
-        }
-
-        /// <summary>
-        /// Returns the basic service configuration.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>The basic service configuration.</returns>
-        public ServiceConfiguration GetServiceConfiguration(string org, string service)
-        {
-            ServiceConfiguration config;
-            string textData = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                textData = File.ReadAllText(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + org + "/" + service + "/config.json");
-            }
-            else
-            {
-                textData = File.ReadAllText(_settings.RepositoryLocation + org + "/" + service + "/config.json");
-            }
-
-            config = JsonConvert.DeserializeObject<ServiceConfiguration>(textData);
-            return config;
         }
 
         /// <inheritdoc/>
