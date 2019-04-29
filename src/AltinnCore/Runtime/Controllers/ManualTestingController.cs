@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
 using AltinnCore.Common.Helpers;
@@ -37,6 +38,7 @@ namespace AltinnCore.Runtime.Controllers
         private UserHelper _userHelper;
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly GeneralSettings _generalSettings;
         private readonly IGitea _giteaApi;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflowSI _workflowSI;
@@ -54,6 +56,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="execution">The executionSI</param>
         /// <param name="testdataRepositorySettings">The test data settings</param>
         /// <param name="workflowSI">The workflowSI</param>
+        /// <param name="generalSettings">General settings</param>
         public ManualTestingController(
             ITestdata testdataService,
             IProfile profileService,
@@ -64,7 +67,8 @@ namespace AltinnCore.Runtime.Controllers
             IExecution execution,
             IHttpContextAccessor contextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
-            IWorkflowSI workflowSI)
+            IWorkflowSI workflowSI,
+            IOptions<GeneralSettings> generalSettings)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -77,6 +81,7 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = contextAccessor;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _workflowSI = workflowSI;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <summary>
@@ -257,16 +262,23 @@ namespace AltinnCore.Runtime.Controllers
 
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                principal,
-                new AuthenticationProperties
-                {
-                    ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
-                    IsPersistent = false,
-                    AllowRefresh = false,
-                });
+            string authenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
+            if (!string.IsNullOrEmpty(_generalSettings.AuthenticationMode) && _generalSettings.AuthenticationMode.Equals("JwtCookie"))
+            {
+                authenticationScheme = JwtCookieDefaults.AuthenticationScheme;
+            }
+
+            await HttpContext.SignInAsync(
+                    authenticationScheme,
+                    principal,
+                    new AuthenticationProperties
+                    {
+                        ExpiresUtc = DateTime.UtcNow.AddMinutes(200),
+                        IsPersistent = false,
+                        AllowRefresh = false,
+                    });
+            
             string goToUrl = "/";
 
             if (!string.IsNullOrEmpty(returnUrl))

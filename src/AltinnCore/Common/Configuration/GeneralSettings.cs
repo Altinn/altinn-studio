@@ -36,6 +36,11 @@ namespace AltinnCore.Common.Configuration
         public string AltinnStudioEndpoint { get; set; }
 
         /// <summary>
+        /// Gets or sets the authentication mode
+        /// </summary>
+        public string AuthenticationMode { get; set; }
+
+        /// <summary>
         /// Gets the path to the service implementation template
         /// </summary>
         public string ServiceImplementationTemplate
