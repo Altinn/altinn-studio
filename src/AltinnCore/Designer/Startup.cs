@@ -71,7 +71,6 @@ namespace AltinnCore.Designer
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormSILocalDev>();
             services.AddSingleton<IProfile, ProfileStudioSI>();
@@ -220,7 +219,7 @@ namespace AltinnCore.Designer
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|DataSource|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|UIEditor|ServiceDevelopment|Deploy)",
+                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|Workflow|UIEditor|ServiceDevelopment|Deploy)",
 
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
