@@ -1,5 +1,5 @@
-@model AltinnCore.ServiceLibrary.StartServiceModel
-@using AltinnCore.ServiceLibrary
+@model AltinnCore.ServiceLibrary.Models.StartServiceModel
+@using AltinnCore.ServiceLibrary.Models
 @using System.Globalization;
 
 @{
@@ -7,7 +7,7 @@
     string org = ViewContext.RouteData.Values["org"] as string;
     string service = ViewContext.RouteData.Values["service"] as string;
 
-    List<AltinnCore.ServiceLibrary.ServiceInstance> instanceList = ViewBag.InstanceList;
+    List<AltinnCore.ServiceLibrary.Models.ServiceInstance> instanceList = ViewBag.InstanceList;
 }
 
 @await Component.InvokeAsync("ServiceStatus", new { org, service })

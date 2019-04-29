@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,6 +10,8 @@ using AltinnCore.ServiceLibrary.ServiceMetadata;
 using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
+using AltinnCore.ServiceLibrary.Models;
 
 namespace AltinnCoreServiceImplementation.Template
 {
