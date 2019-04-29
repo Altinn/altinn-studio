@@ -96,8 +96,8 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     );
   };
 
-  const renderInSyncText = (param: string) => {
-    switch (param) {
+  const renderInSyncText = (inSyncStatusParam: string) => {
+    switch (inSyncStatusParam) {
 
       case inSyncStatus.ready:
         return (
@@ -149,11 +149,10 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     }
   };
 
-  const renderCSharpCompilesText = (param: boolean) => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
+  const renderCSharpCompilesText = (cSharpCompileSuccess: boolean) => {
+    const { org, service } = window as IAltinnWindow;
 
-    switch (param) {
+    switch (cSharpCompileSuccess) {
 
       case true:
         return (
@@ -197,8 +196,8 @@ export const DeployPaper = (props: IDeployPaperProps) => {
   };
 
   const renderDeploySuccess = (env: string) => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
+    const { org, service } = window as IAltinnWindow;
+
     const url = `http://${org}.apps.${env}.altinn.cloud/${service}`;
     return (
       <React.Fragment>

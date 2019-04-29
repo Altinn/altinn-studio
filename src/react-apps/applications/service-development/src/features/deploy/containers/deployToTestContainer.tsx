@@ -75,8 +75,7 @@ export class DeployToTestContainer extends
   }
 
   public componentDidMount() {
-    const altinnWindow: any = window;
-    const { org, service } = altinnWindow;
+    const { org, service } = window as IAltinnWindow;
     DeployActionDispatcher.fetchDeployments(environment, org, service);
     DeployActionDispatcher.fetchMasterRepoStatus(org, service);
     DeployActionDispatcher.fetchCompileStatus(org, service);
@@ -122,7 +121,7 @@ export class DeployToTestContainer extends
     }
   }
 
-  public isMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, deploymentList: any): any => {
+  public isMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, deploymentList: any): boolean => {
     const image = deploymentList[letEnv].items[0].spec.template.spec.containers[0].image;
     const imageTag = image.split(':')[1];
     if (masterRepoStatus !== null && masterRepoStatus.commit.id === imageTag) {
@@ -133,15 +132,13 @@ export class DeployToTestContainer extends
   }
 
   public startDeployment = (letEnv: string) => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
+    const { org, service } = window as IAltinnWindow;
     DeployActionDispatcher.deployAltinnApp(letEnv, org, service);
     this.fetchDeploymentStatusInterval(letEnv);
   }
 
   public fetchDeploymentStatusInterval = (letEnv: string) => {
-    const altinnWindow: IAltinnWindow = window as IAltinnWindow;
-    const { org, service } = altinnWindow;
+    const { org, service } = window as IAltinnWindow;
     const interval = setInterval(() => {
       DeployActionDispatcher.fetchDeployAltinnAppStatus(
         letEnv, org, service, this.props.deployStatus[letEnv].result.buildId);
