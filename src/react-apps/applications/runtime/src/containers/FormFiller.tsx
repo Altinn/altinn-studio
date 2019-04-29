@@ -73,7 +73,6 @@ const FormFiller = (props: IFormFillerProps) => {
       </button>
     );
   };
-
   return (
     <WorkflowStep
       header={props.formConfig.serviceName ? props.formConfig.serviceName :

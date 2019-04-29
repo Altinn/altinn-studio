@@ -50,7 +50,7 @@
     "@types/deepmerge": "2.1.0",
     "@types/dot-object": "1.5.0",
     "@types/enzyme": "3.1.15",
-    "@types/jest": "23.3.13",
+    "@types/jest": "^23.3.13",
     "@types/lodash.isequal": "4.5.3",
     "@types/react": "16.8.3",
     "@types/react-dom": "16.8.3",
@@ -112,7 +112,7 @@
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less)$": "<rootDir>/__mocks__/styleMock.js"
     },
-    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "testRegex": "(/__tests__/*.*.(ts|tsx|js)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",

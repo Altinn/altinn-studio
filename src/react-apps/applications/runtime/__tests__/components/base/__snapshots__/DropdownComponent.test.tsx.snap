@@ -10,12 +10,12 @@ exports[`>>> components/base/DropdownComponent.tsx --- Snapshot >>> Capture snap
   <option
     value="test-1"
   >
-    test
+    test-label-1
   </option>
   <option
-    value="test-1"
+    value="test-2"
   >
-    test
+    test-label-2
   </option>
 </select>
 `;

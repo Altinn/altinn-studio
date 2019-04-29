@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
-
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { IRuntimeState } from '../types';
 
 export interface IProvidedProps {
@@ -38,7 +38,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
           <label className='a-form-label title-label' htmlFor={this.props.id}>
             {label}
             {this.props.required ? null :
-              <span className='label-optional'>({this.props.language.general.optional})</span>
+              <span className='label-optional'>({getLanguageFromKey('general.optional', this.props.language)})</span>
             }
           </label>
         );
@@ -69,12 +69,15 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
+      const text = this.getTextResource(this.props.title);
+
       return (
         <>
           {this.renderLabel()}
           {this.renderDescription()}
           <WrappedComponent
             id={id}
+            text={text}
             handleDataChange={this.handleDataUpdate}
             {...passThroughProps}
           />
