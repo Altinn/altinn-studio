@@ -23,7 +23,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly GeneralSettings _generalSettings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
-        private readonly IExecution _execution;
         private readonly ILogger _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private const string FORM_ID = "default";
@@ -36,21 +35,18 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="testdataRepositorySettings">Test data repository settings</param>
         /// <param name="generalSettings">the general settings</param>
         /// <param name="logger">the logger</param>
-        /// <param name="executionSI">The executionSI</param>
         public DataStudioSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IOptions<GeneralSettings> generalSettings,
-            ILogger<DataStudioSI> logger,
-            IExecution executionSI)
+            ILogger<DataStudioSI> logger)
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _generalSettings = generalSettings.Value;
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _logger = logger;
-            _execution = executionSI;
         }
 
         /// <inheritdoc/>
@@ -65,11 +61,8 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
-            FileStream instanceData = _execution.GetFileStream(instanceFilePath);
-            StreamReader reader = new StreamReader(instanceData);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(reader.ReadToEnd());
-            instanceData.Close();
-
+            string instanceData = File.ReadAllText(instanceFilePath);
+            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             string dataId = Guid.NewGuid().ToString();
             Data data = new Data
             {
@@ -84,26 +77,22 @@ namespace AltinnCore.Common.Services.Implementation
                 LastChangedDateTime = DateTime.UtcNow,
             };
 
-            instance.Data = new List<Data>();
-            instance.Data.Add(data);
-            using (MemoryStream memoryStream = new MemoryStream())
-            {
-                var jsonData = JsonConvert.SerializeObject(instance);
-                StreamWriter writer = new StreamWriter(memoryStream);
-                writer.Write(jsonData);
-                writer.Flush();
-                memoryStream.Position = 0;
-                using (Stream stream = File.Open(instanceFilePath, FileMode.Create, FileAccess.ReadWrite))
-                {
-                    memoryStream.CopyTo(stream);
-                }
-            }
+            instance.Data = new List<Data> { data };
+            string instanceDataAsString = JsonConvert.SerializeObject(instance);
+            File.WriteAllText(instanceFilePath, instanceDataAsString);
 
             string formDataFilePath = $"{dataPath}/{dataId}.xml";
-            using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
+            try
             {
-                XmlSerializer serializer = new XmlSerializer(type);
-                serializer.Serialize(stream, dataToSerialize);
+                using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    XmlSerializer serializer = new XmlSerializer(type);
+                    serializer.Serialize(stream, dataToSerialize);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError("Unable to insert data into xml file: ", ex);
             }
 
             return Task.FromResult(instance);
