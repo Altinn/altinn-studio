@@ -114,6 +114,16 @@ namespace Altinn.Platform.Storage.Controllers
             application.CreatedBy = User.Identity.Name;
             application.CreatedDateTime = creationTime;
             application.LastChangedBy = User.Identity.Name;
+            application.LastChangedDateTime = creationTime;
+            if (application.ValidFrom == DateTime.MinValue)
+            {
+                application.ValidFrom = creationTime;
+            }
+
+            if (application.ValidTo == DateTime.MinValue)
+            {
+                application.ValidTo = DateTime.MaxValue;
+            }
 
             if (application.Forms == null || application.Forms.Count == 0)
             {

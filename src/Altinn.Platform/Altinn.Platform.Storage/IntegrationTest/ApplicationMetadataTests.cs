@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using Serilog.Core;
+using Storage.Interface.Clients;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
@@ -160,6 +161,22 @@ namespace Altinn.Platform.Storage.IntegrationTest
             ApplicationMetadata application2 = JsonConvert.DeserializeObject<ApplicationMetadata>(json2);
 
             Assert.Equal(application.MaxSize, application2.MaxSize);
+        }
+
+        [Fact]
+        public void TestApplicationClient()
+        {
+            ApplicationMetadataClient amc = new ApplicationMetadataClient(client);
+
+            Dictionary<string, string> title = new Dictionary<string, string>
+            {
+                { "nb", "testapplikasjon" },
+                { "en", "Test application" }
+            };
+
+            ApplicationMetadata appMetadata = amc.CreateApplication("TEST-sailor", title);
+
+            Assert.Equal("TEST-sailor", appMetadata.Id);            
         }
     }
 }

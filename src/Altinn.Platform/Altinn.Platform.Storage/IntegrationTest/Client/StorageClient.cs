@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
+using Storage.Interface.Clients;
 
 namespace Altinn.Platform.Storage.Client
 {
@@ -147,19 +148,5 @@ namespace Altinn.Platform.Storage.Client
 
             return newId;
         }
-    }
-
-    /// <summary>
-    /// Class to wrap a json object into a StringContent with correct encoding and content type.
-    /// </summary>
-    public static class Extensions
-    {
-        /// <summary>
-        ///  Wrapper method.
-        /// </summary>
-        /// <param name="o">the json object to wrap.</param>
-        /// <returns>a StringContent object.</returns>
-        public static StringContent AsJson(this object o)
-        => new StringContent(JsonConvert.SerializeObject(o), Encoding.UTF8, "application/json");
     }
 }

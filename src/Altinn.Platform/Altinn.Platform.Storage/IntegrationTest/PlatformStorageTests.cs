@@ -8,6 +8,7 @@ using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
+using Storage.Interface.Clients;
 using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
