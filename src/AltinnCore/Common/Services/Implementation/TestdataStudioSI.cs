@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
+using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Models;
 using Microsoft.AspNetCore.Http;
@@ -25,6 +26,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly ServiceRepositorySettings _settings;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IInstance _instance;
         private readonly ILogger _logger;
 
         /// <summary>
@@ -34,50 +36,36 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="logger">the logger</param>
-        public TestdataStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TestdataStudioSI> logger)
+        /// <param name="instanceSI">the instance si</param>
+        public TestdataStudioSI(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings, IHttpContextAccessor httpContextAccessor, ILogger<TestdataStudioSI> logger, IInstance instanceSI)
         {
             _testdataRepositorySettings = testdataRepositorySettings.Value;
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
+            _instance = instanceSI;
         }
 
         /// <inheritdoc />
         public List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null)
         {
-            List<ServiceInstance> formInstances = new List<ServiceInstance>();
-            string instancesPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}";
-            string archiveFolderPath = $"{instancesPath}/Archive/";
-            if (!Directory.Exists(archiveFolderPath))
+            List<ServiceInstance> returnList = new List<ServiceInstance>();
+            List<Instance> instances = _instance.GetInstances(applicationId, applicationOwnerId, instanceOwnerId).Result;
+            if (instances != null && instances.Count > 0)
             {
-                Directory.CreateDirectory(archiveFolderPath);
-            }
-
-            string[] files = Directory.GetDirectories(instancesPath);
-            foreach (string file in files)
-            {
-                string instance = new DirectoryInfo(file).Name;
-
-                if (Guid.TryParse(instance, out Guid instanceId))
+                foreach (Instance instance in instances)
                 {
-                    ServiceInstance serviceInstance = new ServiceInstance()
+                    returnList.Add(new ServiceInstance
                     {
-                        ServiceInstanceID = instanceId,
-                        LastChanged = File.GetLastWriteTime(file),
-                    };
-
-                    string archiveFilePath = archiveFolderPath + "/" + serviceInstance.ServiceInstanceID + ".xml";
-                    if (File.Exists(archiveFilePath))
-                    {
-                        serviceInstance.LastChanged = File.GetLastWriteTime(archiveFilePath);
-                        serviceInstance.IsArchived = true;
-                    }
-
-                    formInstances.Add(serviceInstance);
+                        ServiceInstanceID = Guid.Parse(instance.Id),
+                        IsArchived = instance.IsCompleted,
+                        LastChanged = instance.LastChangedDateTime
+                    });
                 }
             }
 
-            return formInstances;
+            return returnList;
+            
         }
 
         /// <inheritdoc />

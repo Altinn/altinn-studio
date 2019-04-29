@@ -29,7 +29,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ITestdata _testdataSI;
         private readonly IForm _form;
         private readonly IData _data;
         private readonly IWorkflow _workflow;
@@ -43,15 +42,13 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="formService">form service</param>
         /// <param name="data">the data service</param>
         /// <param name="workflowSI">the workflow serviec</param>
-        /// <param name="testdataSI">the testdata SI</param>
         public InstanceStudioSI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IHttpContextAccessor httpContextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
             IForm formService,
             IData data,
-            IWorkflow workflowSI,
-            ITestdata testdataSI)            
+            IWorkflow workflowSI)            
         {
             _settings = repositorySettings.Value;
             _httpContextAccessor = httpContextAccessor;
@@ -59,7 +56,6 @@ namespace AltinnCore.Common.Services.Implementation
             _form = formService;
             _workflow = workflowSI;
             _data = data;
-            _testdataSI = testdataSI;
         }
 
         /// <inheritdoc/>
@@ -136,11 +132,30 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
         {
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
+            List<Instance> formInstances = new List<Instance>();
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            List<ServiceInstance> serviceInstances = _testdataSI.GetFormInstances(instanceOwnerId, applicationOwnerId, applicationId, developer);
-            string listAsString = JsonConvert.SerializeObject(serviceInstances);
-            return System.Threading.Tasks.Task.FromResult(JsonConvert.DeserializeObject<List<Instance>>(listAsString));
+            string instancesPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}";
+            string archiveFolderPath = $"{instancesPath}/Archive/";
+            if (!Directory.Exists(archiveFolderPath))
+            {
+                Directory.CreateDirectory(archiveFolderPath);
+            }
+
+            string[] files = Directory.GetDirectories(instancesPath);
+            foreach (string file in files)
+            {
+                string instanceFolderName = new DirectoryInfo(file).Name;
+                if (instanceFolderName != "Archive")
+                {
+                    string instanceFileName = $"{instanceFolderName}.json";
+
+                    string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                    formInstances.Add(instance);
+                }
+            }
+
+            return System.Threading.Tasks.Task.FromResult(formInstances);
         }
 
         /// <inheritdoc/>

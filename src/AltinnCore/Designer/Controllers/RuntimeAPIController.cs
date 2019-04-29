@@ -139,27 +139,6 @@ namespace AltinnCore.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that receives the archived service model from runtime and saves it to designer disk.
-        /// </summary>
-        /// <param name="org">The organization for the service</param>
-        /// <param name="service">The name of the service</param>
-        /// <param name="developer">The current developer</param>
-        /// <param name="partyId">The party id of the test user</param>
-        /// <param name="instanceId">The instance id</param>
-        [HttpPost]
-        public void ArchiveServiceModel(string org, string service, string developer, int partyId, Guid instanceId)
-        {
-            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/Archive/";
-            if (!Directory.Exists(archiveDirectory))
-            {
-                Directory.CreateDirectory(archiveDirectory);
-            }
-
-            string formDataFilePath = $"{archiveDirectory}{instanceId}.xml";
-            _execution.SaveToFile(formDataFilePath, Request.Body);
-        }
-
-        /// <summary>
         /// Method that gets the current service state
         /// </summary>
         /// <param name="org">The organization for the service</param>

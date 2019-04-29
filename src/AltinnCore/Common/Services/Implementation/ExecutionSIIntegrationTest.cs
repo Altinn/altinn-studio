@@ -202,18 +202,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void SaveToFile(string path, Stream streamToSave)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public FileStream GetFileStream(string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
         public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;

@@ -101,46 +101,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <summary>
-        /// Returns the list of code list for a service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>List of code lists.</returns>
-        public Dictionary<string, CodeList> GetCodelists(string org, string service)
-        {
-            Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
-
-            ServiceMetadata metaData = _repository.GetServiceMetaData(org, service);
-
-            ////if (metaData.CodeListUsages != null)
-            ////{
-            ////    foreach (CodeListUsage codeListUsage in metaData.CodeListUsages)
-            ////    {
-            ////        // Todo Handle codeList from other sources
-            ////        codeLists.Add(codeListUsage.Name, GetCodeListByName(org, service, codeListUsage.Name));
-            ////    }
-            ////}
-
-            return codeLists;
-        }
-
-        /// <summary>
-        /// Return a given code list.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="name">The name of the code list.</param>
-        /// <returns>The code list.</returns>
-        public CodeList GetCodeListByName(string org, string service, string name)
-        {
-            CodeList codeList = null;
-            string textData = File.ReadAllText(_settings.GetCodelistPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name + ".json");
-            codeList = JsonConvert.DeserializeObject<CodeList>(textData);
-
-            return codeList;
-        }
-
-        /// <summary>
         /// Returns the basic service owner configuration.
         /// </summary>
         /// <param name="org">The Organization code for the service owner.</param>
@@ -225,21 +185,6 @@ namespace AltinnCore.Common.Services.Implementation
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
             return _repository.GetServiceMetaData(org, service);
-        }
-
-        /// <inheritdoc/>
-        public void SaveToFile(string path, Stream streamToSave)
-        {
-            using (Stream stream = File.Open(path, FileMode.Create, FileAccess.ReadWrite))
-            {
-                streamToSave.CopyTo(stream);
-            }
-        }
-
-        /// <inheritdoc/>
-        public FileStream GetFileStream(string path)
-        {
-            return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
         }
 
         /// <inheritdoc/>

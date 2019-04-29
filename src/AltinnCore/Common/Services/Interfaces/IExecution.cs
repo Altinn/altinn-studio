@@ -62,20 +62,6 @@ namespace AltinnCore.Common.Services.Interfaces
         ServiceMetadata GetServiceMetaData(string org, string service);
 
         /// <summary>
-        /// Method that receives a stream and saves it to the given path.
-        /// </summary>
-        /// <param name="path">The path to the file to be saved to.</param>
-        /// <param name="streamToSave">The steam to save to the file.</param>
-        void SaveToFile(string path, Stream streamToSave);
-
-        /// <summary>
-        /// Method that fetches the file of the specified path.
-        /// </summary>
-        /// <param name="path">The path of the file to open.</param>
-        /// <returns>The filestream for the given paths file.</returns>
-        FileStream GetFileStream(string path);
-
-        /// <summary>
         /// Method that fetches the runtime resources stored in wwwroot
         /// </summary>
         /// <param name="resource">the resource</param>
