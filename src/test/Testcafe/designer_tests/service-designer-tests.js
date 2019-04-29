@@ -42,13 +42,13 @@ test('Sync a service with master', async () => {
 });
 
 test('About page items and editing', async () => {
-  const randNumOne = Math.floor(100 + Math.random() *900);
-  const randNumTwo = Math.floor(100 + Math.random() *900);
+  const randNumOne = Math.floor(100 + Math.random() * 900);
+  const randNumTwo = Math.floor(100 + Math.random() * 900);
   const randId = Math.floor(100000 + Math.random() * 900000);
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/uieditor')
     .click(designer.omNavigationTab)
-    .expect(designer.omTjenesteNavn.focused).notOk() 
+    .expect(designer.omTjenesteNavn.focused).notOk()
     .click(designer.omTjenesteNavn)
     .typeText(designer.omTjenesteNavn, 'autotest' + '_' + randNumOne.toString())
     .click(designer.omEndreTjenesteNavn)
@@ -72,6 +72,14 @@ test('About page items and editing', async () => {
 
 test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
+})
+
+test.only('Drag and drop test', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/test123#/uieditor')
+    .expect(designer.inputComponent).ok()
+    .dragToElement(designer.inputComponent, designer.dragToArea)
+    .dragToElement(designer.addressComponent, designer.dragToArea)
 })
 
 test.skip('Repeating groups', async () => {

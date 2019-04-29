@@ -1,4 +1,4 @@
-import { t,ClientFunction } from 'testcafe';
+import { t, ClientFunction } from 'testcafe';
 import axeCheck from 'axe-testcafe';
 import { waitForReact } from 'testcafe-react-selectors';
 import DesignerPage from '../page-objects/designerPage';
@@ -75,5 +75,5 @@ test('Publisere tab navigation', async () => {
 });
 
 test('Automated accesibility testing', async t => {
-  axeCheck(t); 
+  axeCheck(t);
 });

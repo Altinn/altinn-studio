@@ -52,6 +52,21 @@ export default class DesignerPage {
       this.leftMenuList.withExactText('API')
     ];
 
+    //Form components
+    this.inputComponent = Selector(".fa.fa-short-answer").parent(2);
+    this.dateComponent = Selector(".fa.fa-date").parent(2);
+    this.dropdownComponent = Selector(".fa.fa-drop-down").parent(2);
+    this.checkBoxComponent = Selector(".fa.fa-checkbox").parent(2);
+    this.radioButtonComponent = Selector(".fa.fa-radio-button").parent(2);
+    this.textAreaComponent = Selector(".fa.fa-long-answer").parent(2);
+    this.attachmentComponent = Selector(".fa.fa-attachment").parent(2);
+    this.submitComponent = Selector(".fa.fa-button").parent(2);
+    this.headerComponent = Selector(".fa.fa-title").parent(2);
+    this.paragraphComponent = Selector(".fa.fa-paragraph").parent(2);
+    this.addressComponent = Selector(".fa.fa-address").parent(2);
+    this.dragToArea = Selector(".col-12");
+    this.removeComponentIcon = Selector(".fa.fa-circletrash");
+
     //"språk" navigation tab selectors
     this.spraakNavigationTab = Selector('div').withExactText('Språk');
     this.spraakLeftMenuItems = [
@@ -93,6 +108,15 @@ export default class DesignerPage {
 
     for (let i = 0; i < numberToDelete && i < count; i++) {
       await t.click(deleteButtons.nth(i));
+    }
+  }
+
+  async deleteSelectedComponentsMethod() {
+    let deleteSelectedComponent = await this.deleteIcon;
+    let numberOfSelectedComponents = deleteSelectedComponent.length;
+    await t.click(deleteSelectedComponent);
+    for (let i = 0; i < numberOfSelectedComponents; i++) {
+      //await t.click(deleteSelectedComponent.nth(i));
     }
   }
 }
