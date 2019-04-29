@@ -382,13 +382,11 @@ namespace AltinnCore.Runtime
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
                      name: "defaultRoute2",
-                     template: "runtime/{controller}/{action=Index}/{id?}",
-                     defaults: new { controller = "ServiceCatalogue" });
+                     template: "runtime/{controller}/{action=Index}/{id?}");
 
                 routes.MapRoute(
                     name: "defaultRoute",
-                    template: "runtime/{action=Index}/{id?}",
-                    defaults: new { controller = "ServiceCatalogue" });
+                    template: "runtime/{action=Index}/{id?}");
             });
         }
     }
