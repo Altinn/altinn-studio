@@ -18,6 +18,12 @@ namespace AltinnCore.Common.Models
         /// <summary>
         /// users filename
         /// </summary>
+        [JsonProperty(PropertyName = "formId")]
+        public string FormId { get; set; }
+
+        /// <summary>
+        /// users filename
+        /// </summary>
         [JsonProperty(PropertyName = "fileName")]
         public string FileName { get; set; }
 

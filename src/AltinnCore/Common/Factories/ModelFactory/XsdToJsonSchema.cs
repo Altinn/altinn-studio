@@ -189,7 +189,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new NotImplementedException();
             }
 
-            if (item.ElementType != null)
+            if (item.ElementSchemaType != null)
             {
                 throw new NotImplementedException();
             }
@@ -297,7 +297,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 }
             }
 
-            if (item.BaseSchemaType != null)
+            if (item.BaseXmlSchemaType != null)
             {
                 throw new NotImplementedException();
             }
@@ -343,7 +343,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 AppendAnnotated(item, appendToSchema);
             }
 
-            if (item.BaseSchemaType != null)
+            if (item.BaseXmlSchemaType != null)
             {
                 throw new NotImplementedException();
             }
@@ -569,7 +569,7 @@ namespace AltinnCore.Common.Factories.ModelFactory
                 throw new NotImplementedException();
             }
 
-            if (attribute.AttributeType != null)
+            if (attribute.AttributeSchemaType != null)
             {
                 throw new NotImplementedException();
             }

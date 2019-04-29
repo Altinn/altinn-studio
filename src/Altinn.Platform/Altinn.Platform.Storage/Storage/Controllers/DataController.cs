@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
-        private readonly ApplicationRepository _applicationRepository;
+        private readonly IApplicationRepository _applicationRepository;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DataController"/> class
@@ -35,7 +35,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="formRepository">the form data repository handler</param>
         /// <param name="instanceRepository">the repository</param>
         /// <param name="applicationRepository">the application repository</param>
-        public DataController(IDataRepository formRepository, IInstanceRepository instanceRepository, ApplicationRepository applicationRepository)
+        public DataController(IDataRepository formRepository, IInstanceRepository instanceRepository, IApplicationRepository applicationRepository)
         {
             _dataRepository = formRepository;
             _instanceRepository = instanceRepository;
@@ -61,7 +61,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             string dataIdString = dataId.ToString();
 
-            if (instance.Data.ContainsKey(dataIdString))
+            if (instance.Data.Exists(m => m.Id == dataIdString))
             {
                 string storageFileName = DataFileName(instance.ApplicationId, instanceId.ToString(), dataId.ToString());
 
@@ -70,8 +70,8 @@ namespace Altinn.Platform.Storage.Controllers
                 if (result)
                 {
                     // Update instance record
-                    instance.Data.Remove(dataIdString);
-
+                    Data data = instance.Data.Find(m => m.Id == dataIdString);
+                    instance.Data.Remove(data);
                     Instance storedInstance = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
 
                     return Ok(storedInstance);
@@ -109,9 +109,9 @@ namespace Altinn.Platform.Storage.Controllers
             string dataIdString = dataId.ToString();
 
             // check if dataId exists in instance
-            if (instance.Data.ContainsKey(dataIdString))
+            if (instance.Data.Exists(m => m.Id == dataIdString))
             {
-                Data data = instance.Data[dataIdString];
+                Data data = instance.Data.Find(m => m.Id == dataIdString);
 
                 if (string.Equals(data.StorageUrl, storageFileName))
                 {
@@ -209,16 +209,18 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("No data attachements found");
             }
 
+            string dataId = Guid.NewGuid().ToString();
+
             // create new data element, store data in blob
             Data newData = new Data
             {
                 // update data record
-                Id = Guid.NewGuid().ToString(),
+                Id = dataId,
                 FormId = formId,
                 ContentType = contentType,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
-                FileName = contentFileName,
+                FileName = $"{dataId}.xml",
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
             };
@@ -228,10 +230,10 @@ namespace Altinn.Platform.Storage.Controllers
 
             if (instance.Data == null)
             {
-                instance.Data = new Dictionary<string, Data>();
+                instance.Data = new List<Data>();
             }
 
-            instance.Data.Add(newData.Id, newData);
+            instance.Data.Add(newData);
 
             try
             {
@@ -283,9 +285,9 @@ namespace Altinn.Platform.Storage.Controllers
             string dataIdString = dataId.ToString();
 
             // check that data element exists, if not return not found
-            if (instance.Data != null && instance.Data.ContainsKey(dataIdString))
+            if (instance.Data != null && instance.Data.Exists(m => m.Id == dataIdString))
             {
-                Data data = instance.Data[dataIdString];
+                Data data = instance.Data.Find(m => m.Id == dataIdString);
 
                 if (data == null)
                 {
@@ -337,7 +339,7 @@ namespace Altinn.Platform.Storage.Controllers
 
                     // update data record
                     data.ContentType = contentType;
-                    data.FileName = contentFileName;
+                    data.FileName = contentFileName ?? data.FileName;
                     data.LastChangedBy = User.Identity.Name;
                     data.LastChangedDateTime = changedTime;
 

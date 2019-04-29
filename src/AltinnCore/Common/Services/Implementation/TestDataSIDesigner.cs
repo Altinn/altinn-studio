@@ -27,8 +27,8 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositorySettings">Service repository settings</param>
         public TestdataSIDesigner(IOptions<TestdataRepositorySettings> testdataRepositorySettings, IOptions<ServiceRepositorySettings> repositorySettings)
         {
-            this._testdataRepositorySettings = testdataRepositorySettings.Value;
-            this._settings = repositorySettings.Value;
+            _testdataRepositorySettings = testdataRepositorySettings.Value;
+            _settings = repositorySettings.Value;
         }
 
         /// <summary>

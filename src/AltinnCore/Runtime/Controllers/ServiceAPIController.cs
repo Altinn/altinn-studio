@@ -46,8 +46,11 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IProfile _profile;
         private UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
+        private readonly IPlatformServices _platformSI;
+        private readonly IData _data;
 
+        private const string FORM_ID = "default";
         private const string VALIDATION_TRIGGER_FIELD = "ValidationTriggerField";
 
         /// <summary>
@@ -66,6 +69,8 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="httpContextAccessor">The http context accessor.</param>
         /// <param name="workflowSI">The workflow service.</param>
         /// <param name="instanceSI">The instance si</param>
+        /// <param name="platformSI">The platform si</param>
+        /// <param name="data">the data service</param>
         public ServiceAPIController(
             IOptions<ServiceRepositorySettings> settings,
             IOptions<GeneralSettings> generalSettings,
@@ -78,8 +83,10 @@ namespace AltinnCore.Runtime.Controllers
             IExecution executionService,
             IProfile profileService,
             IHttpContextAccessor httpContextAccessor,
-            IWorkflowSI workflowSI,
-            IInstance instanceSI)
+            IWorkflow workflowSI,
+            IInstance instanceSI,
+            IPlatformServices platformSI,
+            IData data)
         {
             _settings = settings.Value;
             _generalSettings = generalSettings.Value;
@@ -95,6 +102,8 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
+            _platformSI = platformSI;
+            _data = data;
         }
 
         /// <summary>
@@ -115,7 +124,7 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
@@ -128,25 +137,27 @@ namespace AltinnCore.Runtime.Controllers
             ViewBag.Service = service;
             ViewBag.FormID = instanceId;
 
-            // Assign the RequestContext and ViewBag to the serviceImplementation so
+            // Assign the RequestContext to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
-            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
-            serviceImplementation.SetPlatformServices(platformServices);
+            serviceImplementation.SetPlatformServices(_platformSI);
 
-            ViewBag.PlatformServices = platformServices;
+            ViewBag.PlatformServices = _platformSI;
+
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
 
             // Getting the Form Data from datastore
-            object serviceModel = this._form.GetFormModel(
+            object serviceModel = this._data.GetFormData(
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+                dataId);
 
             // Assing the populated service model to the service implementation
             serviceImplementation.SetServiceModel(serviceModel);
@@ -190,7 +201,7 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Get the serviceContext containing all metadata about current service
@@ -198,14 +209,11 @@ namespace AltinnCore.Runtime.Controllers
 
             // Assign the Requestcontext and ViewBag to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
-            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
-            serviceImplementation.SetPlatformServices(platformServices);
-
-            ViewBag.PlatformServices = platformServices;
+            serviceImplementation.SetPlatformServices(_platformSI);
 
             dynamic serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);
             if (serviceModel == null)
@@ -284,14 +292,13 @@ namespace AltinnCore.Runtime.Controllers
             Guid instanceId = _execution.GetNewServiceInstanceID();
 
             // Save Formdata to database
-            this._form.SaveFormModel(
+            this._data.InsertData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
-                requestContext.UserContext.ReporteeId,
-                Guid.Empty);
+                requestContext.UserContext.ReporteeId);
 
             apiResult.InstanceId = instanceId;
             apiResult.Status = ApiStatusType.Ok;
@@ -323,7 +330,7 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
             if (Request.Headers.Keys.Contains(VALIDATION_TRIGGER_FIELD))
             {
@@ -333,16 +340,15 @@ namespace AltinnCore.Runtime.Controllers
             // Get the serviceContext containing all metadata about current service
             ServiceContext serviceContext = _execution.GetServiceContext(org, service, false);
 
-            // Assign the Requestcontext and ViewBag to the serviceImplementation so
+            // Assign the Requestcontext to the serviceImplementation so
             // service developer can use the information in any of the service events that is called
-            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
             // Set the platform services to the ServiceImplementation so the AltinnCore service can take
             // use of the plattform services
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
-            serviceImplementation.SetPlatformServices(platformServices);
+            serviceImplementation.SetPlatformServices(_platformSI);
 
-            ViewBag.PlatformServices = platformServices;
+            ViewBag.PlatformServices = _platformSI;
 
             dynamic serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);
             if (serviceModel == null)
@@ -406,19 +412,25 @@ namespace AltinnCore.Runtime.Controllers
                 return Ok(apiResult);
             }
 
+            Instance instance = await _instance.GetInstance(service, org, requestContext.UserContext.ReporteeId, instanceId);
+            Guid dataId = Guid.Parse(instance.Data.Find(m => m.FormId.Equals(FORM_ID)).Id);
+            
             // Save Formdata to database
-            this._form.SaveFormModel(
+            this._data.UpdateData(
                 serviceModel,
                 instanceId,
                 serviceImplementation.GetServiceModelType(),
                 org,
                 service,
                 requestContext.UserContext.ReporteeId,
-                Guid.Empty);
+                dataId);
 
             if (apiMode.Equals(ApiMode.Complete))
             {
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
+                instance.CurrentWorkflowStep = currentState.State.ToString();
+                await _instance.UpdateInstance(instance, service, org, requestContext.UserContext.ReporteeId, instanceId);
+
                 Response.StatusCode = 200;
                 apiResult.InstanceId = instanceId;
                 apiResult.Status = ApiStatusType.Ok;
@@ -461,14 +473,13 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
-            serviceImplementation.SetPlatformServices(platformServices);
-            ViewBag.PlatformServices = platformServices;
+            serviceImplementation.SetPlatformServices(_platformSI);
+            ViewBag.PlatformServices = _platformSI;
 
             // Create a new instance of the service model (a Get to lookup will always create a new service model)
             dynamic serviceModel = serviceImplementation.CreateNewServiceModel();
@@ -476,7 +487,7 @@ namespace AltinnCore.Runtime.Controllers
 
             // Assign the different context information to the service implementation making it possible for
             // the service developer to take use of this information
-            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
             // Run the Data Retriavel event where service developer can potensial load any data without any user input
             await serviceImplementation.RunServiceEvent(AltinnCore.ServiceLibrary.Enums.ServiceEventType.DataRetrieval);
@@ -508,21 +519,20 @@ namespace AltinnCore.Runtime.Controllers
             // service developer can implement logic based on information about the request and the user performing
             // the request
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             // Create platform service and assign to service implementation making it possible for the service implementation
             // to use plattform services. Also make it avaiable in ViewBag so it can be used from Views
-            PlatformServices platformServices = new PlatformServices(_authorization, _repository, _execution, org, service);
-            serviceImplementation.SetPlatformServices(platformServices);
-            ViewBag.PlatformServices = platformServices;
+            serviceImplementation.SetPlatformServices(_platformSI);
+            ViewBag.PlatformServices = _platformSI;
 
             // Create a new instance of the service model (a Get to lookup will always create a new service model)
             dynamic serviceModel = null;
 
             // Assign the different context information to the service implementation making it possible for
             // the service developer to take use of this information
-            serviceImplementation.SetContext(requestContext, ViewBag, serviceContext, null, ModelState);
+            serviceImplementation.SetContext(requestContext, serviceContext, null, ModelState);
 
             // Do Model Binding and update form data
             serviceModel = ParseApiBody(serviceImplementation.GetServiceModelType(), out apiResult, model);

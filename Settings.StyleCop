@@ -58,7 +58,7 @@
       <Value>orderby</Value>
       <Value>Oppgaveregister</Value>
       <Value>Seres</Value>
-	  <Value>reportees</Value>
+      <Value>reportees</Value>
     </CollectionProperty>
     <IntegerProperty Name="MaxViolationCount">10000</IntegerProperty>
   </GlobalSettings>

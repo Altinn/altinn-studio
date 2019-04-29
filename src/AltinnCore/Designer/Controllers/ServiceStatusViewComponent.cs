@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Extensions;
@@ -45,7 +46,7 @@ namespace AltinnCore.Designer.Controllers
             CodeCompilationResult codeCompilationResult = null)
         {
             var serviceIdentifier = new ServiceIdentifier { Org = org, Service = service };
-            var compilation = codeCompilationResult ?? await Compile(serviceIdentifier);
+            var compilation = codeCompilationResult ?? await CompileHelper.CompileService(_compilation, serviceIdentifier);
             var metadata = serviceMetadata ?? await GetServiceMetadata(serviceIdentifier);
 
             var model = CreateModel(serviceIdentifier, compilation, metadata);
@@ -166,17 +167,6 @@ namespace AltinnCore.Designer.Controllers
                                              "Til Datamodell");
                 yield return dataModellMissing;
             }
-        }
-
-        private Task<CodeCompilationResult> Compile(ServiceIdentifier service)
-        {
-            Func<CodeCompilationResult> compile =
-                () =>
-                    _compilation.CreateServiceAssembly(
-                        service.Org,
-                        service.Service,
-                        false);
-            return Task<CodeCompilationResult>.Factory.StartNew(compile);
         }
 
         private Task<ServiceMetadata> GetServiceMetadata(ServiceIdentifier service)
