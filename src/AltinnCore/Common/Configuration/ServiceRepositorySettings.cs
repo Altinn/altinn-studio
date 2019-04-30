@@ -121,11 +121,6 @@ namespace AltinnCore.Common.Configuration
         public string RepositoryBaseURL { get; set; }
 
         /// <summary>
-        /// Gets or sets the Runtime API endpoint
-        /// </summary>
-        public string RuntimeAPIEndPoint { get; set; }
-
-        /// <summary>
         /// Gets or sets the Internal repository BaseURL
         /// </summary>
         public string InternalRepositoryBaseURL { get; set; }
@@ -666,38 +661,6 @@ namespace AltinnCore.Common.Configuration
         public string GetCommonTextResourcePath(string developer)
         {
             return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
-        }
-
-        /// <summary>
-        /// Gets the path to the runtime api for sharing files between runtime and designer
-        /// </summary>
-        /// <param name="nameOfMethod">The name of the method to call in the runtime api controller</param>
-        /// <param name="org">The organization for the service</param>
-        /// <param name="service">The name of the service</param>
-        /// <param name="developer">The name of the developer of the service</param>
-        /// <param name="partyId">The party id of the test user</param>
-        /// <param name="baseEndpoint"> Will be used as the url base if supplied, defaults to null.</param>
-        /// <returns>The url path to the runtime api</returns>
-        public string GetRuntimeAPIPath(string nameOfMethod, string org, string service, string developer, int partyId = 0, string baseEndpoint = null)
-        {
-            string runtimeAPIEndPoint;
-            if (string.IsNullOrEmpty(baseEndpoint))
-            {
-                runtimeAPIEndPoint = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RuntimeAPIEndPoint") ?? RuntimeAPIEndPoint;
-            }
-            else
-            {
-                runtimeAPIEndPoint = baseEndpoint;
-            }
-
-            if (partyId == 0)
-            {
-                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}";
-            }
-            else
-            {
-                return $"{runtimeAPIEndPoint}designer/{org}/{service}/RuntimeAPI/{nameOfMethod}?developer={developer}&partyId={partyId}";
-            }
         }
     }
 }
