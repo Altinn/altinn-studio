@@ -12,26 +12,29 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
     public class ApplicationMetadataClient
     {
         private readonly HttpClient client;
-        private string storageUri = string.Empty; //"http://platform.altinn.cloud/";
-        private string resourcePrefix = "api/storage/v1/applications";
+        private readonly string storageUri; //"http://platform.altinn.cloud/";
+        private readonly string resourcePrefix = "api/storage/v1/applications";
 
-        public ApplicationMetadataClient(HttpClient client)
+        public ApplicationMetadataClient(HttpClient client, string storageUri = "")
         {
             this.client = client;
+            this.storageUri = storageUri;
         }
 
         public ApplicationMetadata CreateApplication(string applicationId, Dictionary<string, string> title)
         {
-            ApplicationMetadata appMetadata = new ApplicationMetadata();
+            ApplicationMetadata appMetadata = new ApplicationMetadata
+            {
+                Id = applicationId,
+                Title = title,
+                Forms = new List<ApplicationForm>()
+            };
 
-            appMetadata.Id = applicationId;
-            appMetadata.Title = title;
-            appMetadata.Forms = new List<ApplicationForm>();
-
-            ApplicationForm defaultAppForm = new ApplicationForm();
-
-            defaultAppForm.Id = "default";
-            defaultAppForm.AllowedContentType = new List<string>() { "application/xml" };
+            ApplicationForm defaultAppForm = new ApplicationForm
+            {
+                Id = "default",
+                AllowedContentType = new List<string>() { "application/xml" }
+            };
 
             appMetadata.Forms.Add(defaultAppForm);
 
