@@ -136,5 +136,63 @@ namespace AltinnCore.Common.Services.Implementation
                 return Activator.CreateInstance(type);
             }
         }
+
+        /// <inheritdoc />
+        public List<AttachmentList> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string attachmentsPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/";
+            DirectoryInfo rootDirectory = new DirectoryInfo(attachmentsPath);
+            List<AttachmentList> allAttachments = new List<AttachmentList>();
+            foreach (DirectoryInfo typeDirectory in rootDirectory.EnumerateDirectories())
+            {
+                List<Attachment> attachments = new List<Attachment>();
+                foreach (DirectoryInfo fileDirectory in typeDirectory.EnumerateDirectories())
+                {
+                    foreach (FileInfo file in fileDirectory.EnumerateFiles())
+                    {
+                        attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
+                    }
+                }
+
+                if (attachments.Count > 0)
+                {
+                    allAttachments.Add(new AttachmentList { Type = typeDirectory.Name, Attachments = attachments });
+                }
+            }
+
+            return allAttachments;
+        }
+
+        /// <inheritdoc />
+        public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentType}/{attachmentId}";
+            DirectoryInfo directory = new DirectoryInfo(pathToDelete);
+            foreach (FileInfo file in directory.EnumerateFiles())
+            {
+                file.Delete();
+            }
+
+            directory.Delete();
+        }
+
+        /// <inheritdoc />
+        public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest request)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Guid guid = Guid.NewGuid();
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentType}/{guid}/";
+            Directory.CreateDirectory(pathToSaveTo);
+            string fileToWriteTo = $"{pathToSaveTo}/{attachmentName}";
+            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
+            {
+                await request.StreamFile(streamToWriteTo);
+                streamToWriteTo.Flush();
+            }
+
+            return guid;
+        }
     }
 }

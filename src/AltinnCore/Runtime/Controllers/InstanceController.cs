@@ -445,16 +445,7 @@ namespace AltinnCore.Runtime.Controllers
         [DisableFormValueModelBinding]
         public async System.Threading.Tasks.Task<IActionResult> SaveFormAttachment(string org, string service, int partyId, Guid instanceId, string attachmentType, string attachmentName)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Guid guid = Guid.NewGuid();
-            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{guid}/";
-            Directory.CreateDirectory(pathToSaveTo);
-            string fileToWriteTo = $"{pathToSaveTo}/{attachmentName}";
-            using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
-            {
-                await Request.StreamFile(streamToWriteTo);
-                streamToWriteTo.Flush();
-            }
+            Guid guid = await _data.SaveFormAttachment(org, service, partyId, instanceId, attachmentType, attachmentName, Request);
 
             return Ok(new { id = guid });
         }
@@ -474,15 +465,7 @@ namespace AltinnCore.Runtime.Controllers
         [DisableFormValueModelBinding]
         public IActionResult DeleteFormAttachment(string org, string service, int partyId, Guid instanceId, string attachmentType, string attachmentId)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string pathToDelete = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/{attachmentType}/{attachmentId}";
-            DirectoryInfo directory = new DirectoryInfo(pathToDelete);
-            foreach (FileInfo file in directory.EnumerateFiles())
-            {
-                file.Delete();
-            }
-
-            directory.Delete();
+            _data.DeleteFormAttachment(org, service, partyId, instanceId, attachmentType, attachmentId);
             return Ok();
         }
 
@@ -499,27 +482,7 @@ namespace AltinnCore.Runtime.Controllers
         [DisableFormValueModelBinding]
         public IActionResult GetFormAttachments(string org, string service, int partyId, Guid instanceId)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string attachmentsPath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/data/";
-            DirectoryInfo rootDirectory = new DirectoryInfo(attachmentsPath);
-            List<AttachmentList> allAttachments = new List<AttachmentList>();
-            foreach (DirectoryInfo typeDirectory in rootDirectory.EnumerateDirectories())
-            {
-                List<Attachment> attachments = new List<Attachment>();
-                foreach (DirectoryInfo fileDirectory in typeDirectory.EnumerateDirectories())
-                {
-                    foreach (FileInfo file in fileDirectory.EnumerateFiles())
-                    {
-                        attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
-                    }
-                }
-
-                if (attachments.Count > 0)
-                {
-                    allAttachments.Add(new AttachmentList { Type = typeDirectory.Name, Attachments = attachments });
-                }
-            }
-
+            List<AttachmentList> allAttachments = _data.GetFormAttachments(org, service, partyId, instanceId);
             return Ok(allAttachments);
         }
 
