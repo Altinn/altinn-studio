@@ -30,7 +30,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly int testInstanceOwnerId = 500;
         private readonly string formId = "default";
 
-        private readonly string versionPrefix = "/api/storage/v1";
+        private readonly string versionPrefix = "/storage/api/v1";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.

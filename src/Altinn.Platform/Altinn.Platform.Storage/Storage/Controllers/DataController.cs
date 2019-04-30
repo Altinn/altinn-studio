@@ -19,12 +19,12 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the form data element
     /// </summary>
-    [Route("api/storage/v1/instances/{instanceId:guid}/[controller]")]
+    [Route("storage/api/v1/instances/{instanceId:guid}/[controller]")]
     [ApiController]
     public class DataController : Controller
     {
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
-        private readonly string prefix = "api/storage/v1/";
+        private readonly string prefix = "storage/api/v1/";
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;

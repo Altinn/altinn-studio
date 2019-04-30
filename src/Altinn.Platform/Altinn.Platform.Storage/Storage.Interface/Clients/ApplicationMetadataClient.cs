@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
     {
         private readonly HttpClient client;
         private readonly string storageUri; //"http://platform.altinn.cloud/";
-        private readonly string resourcePrefix = "api/storage/v1/applications";
+        private readonly string resourcePrefix = "storage/api/v1/applications";
 
         public ApplicationMetadataClient(HttpClient client, string storageUri = "")
         {

@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Client
     {
         HttpClient client;
         private readonly string formId = "default";
-        private readonly string versionPrefix = "api/storage/v1";
+        private readonly string versionPrefix = "storage/api/v1";
         private string hostName;
 
         /// <summary>

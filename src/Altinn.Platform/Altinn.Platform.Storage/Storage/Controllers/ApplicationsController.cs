@@ -15,7 +15,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// a summary is needed here
     /// </summary>
-    [Route("api/storage/v1/[controller]")]
+    [Route("storage/api/v1/[controller]")]
     public class ApplicationsController : Controller
     {
         private readonly IApplicationRepository repository;

@@ -24,7 +24,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private readonly ApplicationMetadataClient applicationClient;
-        private readonly string versionPrefix = "/api/storage/v1";
+        private readonly string versionPrefix = "/storage/api/v1";
         private readonly string applicationOwnerId = "TEST";
 
         private Logger logger = new LoggerConfiguration()

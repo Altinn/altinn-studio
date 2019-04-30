@@ -8,13 +8,12 @@ using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using Serilog.Core;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
     /// a summary is needed here
     /// </summary>
-    [Route("api/storage/v1/[controller]")]
+    [Route("storage/api/v1/[controller]")]
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
