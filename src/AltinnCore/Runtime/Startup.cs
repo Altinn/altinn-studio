@@ -104,12 +104,10 @@ namespace AltinnCore.Runtime
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
             services.AddSingleton(Configuration);
@@ -355,7 +353,7 @@ namespace AltinnCore.Runtime
                     defaults: new { controller = "Service" },
                     constraints: new
                     {
-                        controller = @"(Codelist|Config|DataSource|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|React)",
+                        controller = @"(Codelist|Config|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|Workflow|React)",
                         service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                         id = "[a-zA-Z0-9_\\-]{1,30}",
                     });
@@ -371,13 +369,11 @@ namespace AltinnCore.Runtime
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
                      name: "defaultRoute2",
-                     template: "runtime/{controller}/{action=Index}/{id?}",
-                     defaults: new { controller = "ServiceCatalogue" });
+                     template: "runtime/{controller}/{action=Index}/{id?}");
 
                 routes.MapRoute(
                     name: "defaultRoute",
-                    template: "runtime/{action=Index}/{id?}",
-                    defaults: new { controller = "ServiceCatalogue" });
+                    template: "runtime/{action=Index}/{id?}");
             });
         }
     }

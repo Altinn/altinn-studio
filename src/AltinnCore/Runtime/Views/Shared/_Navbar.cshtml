@@ -1,4 +1,4 @@
-﻿@using AltinnCore.ServiceLibrary.ServiceMetadata
+@using AltinnCore.ServiceLibrary.ServiceMetadata
 @using AltinnCore.Common.Services.Interfaces
 @using System.Linq
 @using AltinnCore.ServiceLibrary.Configuration
@@ -6,7 +6,6 @@
 @using System.Security.Claims
 @using AltinnCore.Common.Constants
 @inject IRepository _repository
-@inject ITestingRepository _testingRepository
 @inject IHttpContextAccessor HttpContextAccessor
 @{
     string org = ViewContext.RouteData.Values["org"] as string;
@@ -18,8 +17,7 @@
 
     if (_hasOrgService)
     {
-      _sm = _repository.GetServiceMetaData(org, service);
-      _tests = _testingRepository.GetTests(org, service);
+      _sm = _repository.GetServiceMetaData(org, service);     
     }
 }
 
