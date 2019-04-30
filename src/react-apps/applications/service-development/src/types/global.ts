@@ -1,19 +1,22 @@
 import { IHandleServiceInformationState } from '../features/administration/handleServiceInformationReducer';
+import { IDeployState } from '../features/deploy/deployReducer';
 import { IHandleMergeConflictState } from '../features/handleMergeConflict/handleMergeConflictReducer';
 import { IFetchedLanguageState } from '../utils/fetchLanguage/languageReducer';
 
 declare global {
-  export interface IServiceDevelopmentNameSpace<T1, T2, T3> {
+  export interface IServiceDevelopmentNameSpace<T1, T2, T3, T4> {
     language: T1;
     handleMergeConflict: T2;
     serviceInformation: T3;
+    deploy: T4;
   }
 
   export interface IServiceDevelopmentState
     extends IServiceDevelopmentNameSpace
     <IFetchedLanguageState,
     IHandleMergeConflictState,
-    IHandleServiceInformationState> { }
+    IHandleServiceInformationState,
+    IDeployState> { }
 }
 
 export interface IRepository {

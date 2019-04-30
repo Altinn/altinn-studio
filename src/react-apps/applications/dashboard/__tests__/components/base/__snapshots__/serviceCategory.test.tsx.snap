@@ -20,12 +20,13 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
       className="MuiGrid-item-7 MuiGrid-grid-xs-12-46 MuiGrid-grid-sm-12-60 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-4-80 MuiGrid-grid-xl-3-93 CategoryComponent-width100-3"
     >
       <div
-        className="MuiPaper-root-148 MuiPaper-elevation0-150 MuiPaper-rounded-149 MuiCard-root-147 Connect-ServiceCardComponent--card-140"
+        className="MuiPaper-root-149 MuiPaper-elevation0-151 MuiPaper-rounded-150 MuiCard-root-148 Connect-ServiceCardComponent--card-141"
       >
         <button
-          className="MuiButtonBase-root-178 MuiCardActionArea-root-175"
+          className="MuiButtonBase-root-179 MuiCardActionArea-root-176"
           onBlur={[Function]}
           onClick={[Function]}
+          onContextMenu={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -39,7 +40,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
           type="button"
         >
           <div
-            className="MuiCardContent-root-181"
+            className="MuiCardContent-root-182"
           >
             <div
               className="MuiGrid-container-6 MuiGrid-spacing-xs-8-28"
@@ -48,7 +49,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
                 className="MuiGrid-item-7 MuiGrid-grid-xs-10-44 MuiGrid-grid-sm-10-58 MuiGrid-grid-md-10-72 MuiGrid-grid-lg-10-86 MuiGrid-grid-xl-10-100"
               >
                 <h3
-                  className="MuiTypography-root-103 MuiTypography-h3-117 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_16-144 Connect-ServiceCardComponent--fontWeight_500-145"
+                  className="MuiTypography-root-103 MuiTypography-h3-117 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--fontSize_16-145 Connect-ServiceCardComponent--fontWeight_500-146"
                 >
                   First
                 </h3>
@@ -58,7 +59,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
               >
                 <i
                   aria-hidden="true"
-                  className="Connect-ServiceCardComponent--iconStyling-141 fa fa-corp"
+                  className="Connect-ServiceCardComponent--iconStyling-142 fa fa-corp"
                 />
               </div>
               <div
@@ -66,14 +67,14 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
               >
                 <i
                   aria-hidden="true"
-                  className="Connect-ServiceCardComponent--iconStyling-141"
+                  className="Connect-ServiceCardComponent--iconStyling-142"
                 />
               </div>
               <div
-                className="MuiGrid-item-7 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--height-143"
+                className="MuiGrid-item-7 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--height-144"
               >
                 <p
-                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-gutterBottom-130 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146"
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-gutterBottom-130 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--fontSize_14-147"
                 >
                   <truncate-markup
                     lines={2}
@@ -92,7 +93,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
                 className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
               >
                 <p
-                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--fontSize_14-147 Connect-ServiceCardComponent--fontWeight_500-146"
                 >
                   This is the full name of this org
                 </p>
@@ -101,7 +102,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
                 className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
               >
                 <p
-                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--textToRight-142 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--textToRight-143 Connect-ServiceCardComponent--fontSize_14-147 Connect-ServiceCardComponent--fontWeight_500-146"
                 >
                   dashboard.last_changed_service
                    
@@ -111,10 +112,10 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
             </div>
           </div>
           <span
-            className="MuiCardActionArea-focusHighlight-177"
+            className="MuiCardActionArea-focusHighlight-178"
           />
           <span
-            className="MuiTouchRipple-root-182"
+            className="MuiTouchRipple-root-183"
           />
         </button>
       </div>
@@ -123,12 +124,13 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
       className="MuiGrid-item-7 MuiGrid-grid-xs-12-46 MuiGrid-grid-sm-12-60 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-4-80 MuiGrid-grid-xl-3-93 CategoryComponent-width100-3"
     >
       <div
-        className="MuiPaper-root-148 MuiPaper-elevation0-150 MuiPaper-rounded-149 MuiCard-root-147 Connect-ServiceCardComponent--card-140"
+        className="MuiPaper-root-149 MuiPaper-elevation0-151 MuiPaper-rounded-150 MuiCard-root-148 Connect-ServiceCardComponent--card-141"
       >
         <button
-          className="MuiButtonBase-root-178 MuiCardActionArea-root-175"
+          className="MuiButtonBase-root-179 MuiCardActionArea-root-176"
           onBlur={[Function]}
           onClick={[Function]}
+          onContextMenu={[Function]}
           onFocus={[Function]}
           onKeyDown={[Function]}
           onKeyUp={[Function]}
@@ -142,7 +144,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
           type="button"
         >
           <div
-            className="MuiCardContent-root-181"
+            className="MuiCardContent-root-182"
           >
             <div
               className="MuiGrid-container-6 MuiGrid-spacing-xs-8-28"
@@ -151,7 +153,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
                 className="MuiGrid-item-7 MuiGrid-grid-xs-10-44 MuiGrid-grid-sm-10-58 MuiGrid-grid-md-10-72 MuiGrid-grid-lg-10-86 MuiGrid-grid-xl-10-100"
               >
                 <h3
-                  className="MuiTypography-root-103 MuiTypography-h3-117 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_16-144 Connect-ServiceCardComponent--fontWeight_500-145"
+                  className="MuiTypography-root-103 MuiTypography-h3-117 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--fontSize_16-145 Connect-ServiceCardComponent--fontWeight_500-146"
                 >
                   Second
                 </h3>
@@ -161,7 +163,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
               >
                 <i
                   aria-hidden="true"
-                  className="Connect-ServiceCardComponent--iconStyling-141 fa fa-corp"
+                  className="Connect-ServiceCardComponent--iconStyling-142 fa fa-corp"
                 />
               </div>
               <div
@@ -169,14 +171,14 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
               >
                 <i
                   aria-hidden="true"
-                  className="Connect-ServiceCardComponent--iconStyling-141"
+                  className="Connect-ServiceCardComponent--iconStyling-142"
                 />
               </div>
               <div
-                className="MuiGrid-item-7 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--height-143"
+                className="MuiGrid-item-7 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--height-144"
               >
                 <p
-                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-gutterBottom-130 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146"
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-gutterBottom-130 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--fontSize_14-147"
                 >
                   <truncate-markup
                     lines={2}
@@ -195,7 +197,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
                 className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
               >
                 <p
-                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--fontSize_14-147 Connect-ServiceCardComponent--fontWeight_500-146"
                 >
                   This is the full name of this org
                 </p>
@@ -204,7 +206,7 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
                 className="MuiGrid-item-7 MuiGrid-grid-xs-6-40 MuiGrid-grid-sm-6-54 MuiGrid-grid-md-6-68 MuiGrid-grid-lg-6-82 MuiGrid-grid-xl-6-96"
               >
                 <p
-                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-138 Connect-ServiceCardComponent--width100-139 Connect-ServiceCardComponent--textToRight-142 Connect-ServiceCardComponent--fontSize_14-146 Connect-ServiceCardComponent--fontWeight_500-145"
+                  className="MuiTypography-root-103 MuiTypography-body1-112 MuiTypography-noWrap-129 Connect-ServiceCardComponent--displayInlineBlock-139 Connect-ServiceCardComponent--width100-140 Connect-ServiceCardComponent--textToRight-143 Connect-ServiceCardComponent--fontSize_14-147 Connect-ServiceCardComponent--fontWeight_500-146"
                 >
                   dashboard.last_changed_service
                    
@@ -214,10 +216,10 @@ exports[`>>> components/base/serviceCategory.tsx --- Snapshot +++ Should match s
             </div>
           </div>
           <span
-            className="MuiCardActionArea-focusHighlight-177"
+            className="MuiCardActionArea-focusHighlight-178"
           />
           <span
-            className="MuiTouchRipple-root-182"
+            className="MuiTouchRipple-root-183"
           />
         </button>
       </div>

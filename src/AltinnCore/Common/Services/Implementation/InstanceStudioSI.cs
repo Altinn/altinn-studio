@@ -29,10 +29,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly ServiceRepositorySettings _settings;
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private const string SaveInstanceMethod = "SaveInstanceToFile";
-        private const string GetInstanceMethod = "GetInstanceFromFile";
-        private const string GetFormInstancesApiMethod = "GetFormInstances";
-        private const string ArchiveInstanceMethod = "ArchiveServiceModel";
         private readonly IForm _form;
         private readonly IData _data;
         private readonly IWorkflow _workflow;
@@ -62,10 +58,7 @@ namespace AltinnCore.Common.Services.Implementation
             _data = data;
         }
 
-        /// <summary>
-        /// Generates a new service instanceID for a service.
-        /// </summary>
-        /// <returns>A new instanceId.</returns>
+        /// <inheritdoc/>
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
             Guid instanceId = Guid.NewGuid();
@@ -73,7 +66,7 @@ namespace AltinnCore.Common.Services.Implementation
             string applicationOwnerId = startServiceModel.Org;
             int instanceOwnerId = startServiceModel.ReporteeID;
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
+            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
 
             Instance instance = new Instance
             {
@@ -83,29 +76,17 @@ namespace AltinnCore.Common.Services.Implementation
                 CreatedBy = instanceOwnerId,
                 CreatedDateTime = DateTime.UtcNow,
                 CurrentWorkflowStep = currentState.State.ToString(),
+                LastChangedDateTime = DateTime.UtcNow,
+                LastChangedBy = instanceOwnerId,
             };         
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveInstanceMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
+            string testDataForParty = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}";
+            string folderForInstance = Path.Combine(testDataForParty, instanceId.ToString());
+            Directory.CreateDirectory(folderForInstance);
+            string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
 
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    var jsonData = JsonConvert.SerializeObject(instance);
-                    StreamWriter writer = new StreamWriter(stream);
-                    writer.Write(jsonData);
-                    writer.Flush();
-                    stream.Position = 0;
-
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (!response.Result.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Unable to save instance");
-                    }
-                }
-            }
+            File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(instance).ToString(), Encoding.UTF8);
 
             // Save instantiated form model
             instance = await _data.InsertData(
@@ -119,129 +100,84 @@ namespace AltinnCore.Common.Services.Implementation
             return instance;
         }
 
-        /// <summary>
-        /// Saves instance meta data
-        /// </summary>
-        public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        /// <inheritdoc/>
+        public Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
-            Instance instance;
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(SaveInstanceMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            string testDataForParty = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}";
+            string folderForInstance = Path.Combine(testDataForParty, instanceId.ToString());
+            if (!Directory.Exists(folderForInstance))
             {
-                client.BaseAddress = new Uri(apiUrl);
-
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    var jsonData = JsonConvert.SerializeObject(dataToSerialize);
-                    StreamWriter writer = new StreamWriter(stream);
-                    writer.Write(jsonData);
-                    writer.Flush();
-                    stream.Position = 0;
-
-                    HttpResponseMessage response = await client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                    {
-                        string instanceData = await response.Content.ReadAsStringAsync();
-                        instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                    }
-                    else
-                    {
-                        throw new Exception("Unable to update instance");
-                    }
-                }
+                Directory.CreateDirectory(folderForInstance);
             }
 
-            return instance;            
+            string instanceFilePath = $"{testDataForParty}/{instanceId}/{instanceId}.json";
+            Instance instance = (Instance)dataToSerialize;
+            File.WriteAllText(instanceFilePath, JsonConvert.SerializeObject(dataToSerialize).ToString(), Encoding.UTF8);
+
+            return System.Threading.Tasks.Task.FromResult(instance);            
         }
 
-        /// <summary>
-        /// Get instance
-        /// </summary>
-        /// <param name="applicationId">application id</param>
-        /// <param name="applicationOwnerId">application owner id</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <returns></returns>
-        public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
+        /// <inheritdoc/>
+        public Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetInstanceMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = await response.Content.ReadAsStringAsync();
-                    instance = JsonConvert.DeserializeObject<Instance>(instanceData);
-                }
-                else
-                {
-                    throw new Exception("Unable to fetch instance");
-                }
-
-                return instance;
-            }
+            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceData = File.ReadAllText(formDataFilePath, Encoding.UTF8);
+            instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+            return System.Threading.Tasks.Task.FromResult(instance);
         }
 
-        /// <summary>
-        /// Get instance
-        /// </summary>
-        /// <param name="applicationId">application id</param>
-        /// <param name="applicationOwnerId">application owner id</param>
-        /// <param name="instanceOwnerId">instance owner id</param>
-        /// <returns></returns>
-        public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
+        /// <inheritdoc/>
+        public Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
         {
-            List<Instance> instances;
-            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
+            List<Instance> formInstances = new List<Instance>();
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(GetFormInstancesApiMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            string instancesPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}";
+            string archiveFolderPath = $"{instancesPath}/Archive/";
+            if (!Directory.Exists(archiveFolderPath))
             {
-                client.BaseAddress = new Uri(apiUrl);
-
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    string instanceData = await response.Content.ReadAsStringAsync();
-                    instances = JsonConvert.DeserializeObject<List<Instance>>(instanceData);
-                }
-                else
-                {
-                    throw new Exception("Unable to fetch instance");
-                }
-
-                return instances;
+                Directory.CreateDirectory(archiveFolderPath);
             }
+
+            string[] files = Directory.GetDirectories(instancesPath);
+            foreach (string file in files)
+            {
+                string instanceFolderName = new DirectoryInfo(file).Name;
+                if (instanceFolderName != "Archive")
+                {
+                    string instanceFileName = $"{instanceFolderName}.json";
+
+                    string instanceData = File.ReadAllText($"{instancesPath}/{instanceFolderName}/{instanceFileName}");
+                    Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                    formInstances.Add(instance);
+                }
+            }
+
+            return System.Threading.Tasks.Task.FromResult(formInstances);
         }
 
         /// <inheritdoc/>
         public async Task<Instance> ArchiveInstance<T>(T dataToSerialize, Type type, string applicationId, string applicationOwnerId,  int instanceOwnerId, Guid instanceId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = $"{_settings.GetRuntimeAPIPath(ArchiveInstanceMethod, applicationOwnerId, applicationId, developer, instanceOwnerId)}&instanceId={instanceId}";
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
+            string archiveDirectory = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/Archive/";
+            if (!Directory.Exists(archiveDirectory))
             {
-                client.BaseAddress = new Uri(apiUrl);
-                XmlSerializer serializer = new XmlSerializer(type);
-                using (MemoryStream stream = new MemoryStream())
-                {
-                    serializer.Serialize(stream, dataToSerialize);
-                    stream.Position = 0;
-                    Task<HttpResponseMessage> response = client.PostAsync(apiUrl, new StreamContent(stream));
-                    if (!response.Result.IsSuccessStatusCode)
-                    {
-                        throw new Exception("Unable to archive service");
-                    }
-                }
+                Directory.CreateDirectory(archiveDirectory);
             }
 
-            Instance instance = GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId).Result;
+            string formDataFilePath = $"{archiveDirectory}{instanceId}.xml";
+            using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
+            {
+                XmlSerializer serializer = new XmlSerializer(type);
+                serializer.Serialize(stream, dataToSerialize);
+            }
+            
+            Instance instance = await GetInstance(applicationId, applicationOwnerId, instanceOwnerId, instanceId);
 
             instance.IsCompleted = true;
             instance.CurrentWorkflowStep = WorkflowStep.Archived.ToString();

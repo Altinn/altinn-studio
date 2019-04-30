@@ -17,21 +17,21 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// Returns a list of local form instances for a given partyId and serviceId
         /// </summary>
-        /// <param name="partyId">The partyId</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceOwnerId">The instance owner id</param>
+        /// <param name="applicationOwnerId">The application owner id</param>
+        /// <param name="applicationId">The application id</param>
         /// <param name="developer">The developer for the current service if any</param>
         /// <returns>List of form instances</returns>
-        List<ServiceInstance> GetFormInstances(int partyId, string org, string service, string developer = null);
+        List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null);
 
         /// <summary>
         /// Returns a list over local stored prefill for a given service
         /// </summary>
-        /// <param name="partyId">The partyId for the test reportee</param>
-        /// <param name="org">The Organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceOwnerId">The instance owner id</param>
+        /// <param name="applicationOwnerId">The application owner id</param>
+        /// <param name="applicationId">The application id</param>
         /// <param name="developer">The developer for the current service if any</param>
         /// <returns>List over prefill</returns>
-        List<ServicePrefill> GetServicePrefill(int partyId, string org, string service, string developer = null);
+        List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null);
     }
 }

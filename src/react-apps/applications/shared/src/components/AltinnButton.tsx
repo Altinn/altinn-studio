@@ -33,7 +33,6 @@ const styles = () => createStyles({
     'fontWeight': 400,
     'height': 36,
     'borderRadius': '0',
-    'padding': '8px 24px 8px 24px',
     '&:hover': {
       background: theme.altinnPalette.primary.blueDarker,
       color: theme.altinnPalette.primary.white,

@@ -92,41 +92,15 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public async Task<IActionResult> Index(string org, string service, int reporteeId)
         {
-            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = _settings.GetRuntimeAPIPath("ZipAndSendRepo", org, service, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                string zipPath = $"{_settings.GetServicePath(org, service, developer)}{service}.zip";
-                string extractPath = _settings.GetServicePath(org, service, developer);
-                if (!Directory.Exists(extractPath))
-                {
-                    Directory.CreateDirectory(extractPath);
-                }
-                else
-                {
-                    Directory.Delete(extractPath, true);
-                    Directory.CreateDirectory(extractPath);
-                }
-
-                using (Stream s = response.Content.ReadAsStreamAsync().Result)
-                {
-                    using (var w = System.IO.File.OpenWrite(zipPath))
-                    {
-                        s.CopyTo(w);
-                    }
-                }
-
-                ZipFile.ExtractToDirectory(zipPath, extractPath);
-            }
-
+            // TODO: make templates folder available to runtime pod 
+            _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
-            var startServiceModel = new StartServiceModel
+            StartServiceModel startServiceModel = new StartServiceModel
             {
                 ServiceID = org + "_" + service,
                 ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)

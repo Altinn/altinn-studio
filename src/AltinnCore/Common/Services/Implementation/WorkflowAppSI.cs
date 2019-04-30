@@ -51,7 +51,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState GetInitialServiceState(string owner, string service, int reporteeId)
+        public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
         {            
             // Read the workflow template
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
@@ -59,20 +59,13 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState InitializeServiceState(Guid id, string owner, string service, int reporteeId)
+        public string GetUrlForCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, WorkflowStep currentState)
         {
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
-            return WorkflowHelper.GetInitialWorkflowState(workflowData);
+            return WorkflowHelper.GetUrlForCurrentState(instanceId, applicationOwnerId, applicationId, currentState);
         }
 
         /// <inheritdoc/>
-        public string GetUrlForCurrentState(Guid instanceId, string owner, string service, WorkflowStep currentState)
-        {
-            return WorkflowHelper.GetUrlForCurrentState(instanceId, owner, service, currentState);
-        }
-
-        /// <inheritdoc/>
-        public ServiceState GetCurrentState(Guid instanceId, string owner, string service, int instanceOwnerId)
+        public ServiceState GetCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             Instance instance;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
@@ -102,9 +95,9 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string owner, string service, int instanceOwnerId)
+        public ServiceState MoveServiceForwardInWorkflow(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
-            ServiceState currentState = GetCurrentState(instanceId, owner, service, instanceOwnerId);
+            ServiceState currentState = GetCurrentState(instanceId, applicationOwnerId, applicationId, instanceOwnerId);
             string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
             return WorkflowHelper.UpdateCurrentState(workflowData, currentState);
         }

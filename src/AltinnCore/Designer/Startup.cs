@@ -63,23 +63,23 @@ namespace AltinnCore.Designer
             }
             else
             {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
             }
 
-            services.AddSingleton<IArchive, ArchiveSILocalDev>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormSILocalDev>();
+            services.AddSingleton<IForm, FormStudioSI>();
             services.AddSingleton<IProfile, ProfileStudioSI>();
             services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataSIDesigner>();
+            services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

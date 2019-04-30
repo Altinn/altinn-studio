@@ -27,7 +27,7 @@ namespace AltinnCore.Common.Services.Implementation
     /// <summary>
     /// Service that handle functionality needed for executing a Altinn Core Service (Functional term)
     /// </summary>
-    public class ExecutionSILocalDev : IExecution
+    public class ExecutionStudioSI : IExecution
     {
         private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
 
@@ -39,7 +39,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IHostingEnvironment _hostingEnvironment;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="ExecutionSILocalDev"/> class
+        /// Initializes a new instance of the <see cref="ExecutionStudioSI"/> class
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
@@ -48,7 +48,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="generalSettings">the current general settings</param>
         /// <param name="hostingEnvironment">the hosting environment</param>
-        public ExecutionSILocalDev(
+        public ExecutionStudioSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             Interfaces.ICompilation compilationService,
@@ -65,13 +65,7 @@ namespace AltinnCore.Common.Services.Implementation
             _hostingEnvironment = hostingEnvironment;
         }
 
-        /// <summary>
-        /// Returns the serviceImplementation for a given service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service Implementation.</returns>
+        /// <inheritdoc/>
         public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
         {
             string assemblyName = LoadServiceAssembly(org, service, startServiceFlag);
@@ -80,13 +74,7 @@ namespace AltinnCore.Common.Services.Implementation
             return (IServiceImplementation)Activator.CreateInstance(Type.GetType(implementationTypeName));
         }
 
-        /// <summary>
-        /// Creates the service context made available for the Altinn Core services and views.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service context.</returns>
+        /// <inheritdoc/>
         public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
         {
             var context = new ServiceContext
@@ -106,107 +94,13 @@ namespace AltinnCore.Common.Services.Implementation
             return context;
         }
 
-        /// <summary>
-        /// Generates a new service instanceID for a service.
-        /// </summary>
-        /// <returns>A new instanceId.</returns>
+        /// <inheritdoc/>
         public Guid GetNewServiceInstanceID()
         {            
             return Guid.NewGuid();
         }
 
-        /// <summary>
-        /// Returns the list of code list for a service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>List of code lists.</returns>
-        public Dictionary<string, CodeList> GetCodelists(string org, string service)
-        {
-            Dictionary<string, CodeList> codeLists = new Dictionary<string, CodeList>();
-
-            ServiceMetadata metaData = _repository.GetServiceMetaData(org, service);
-
-            ////if (metaData.CodeListUsages != null)
-            ////{
-            ////    foreach (CodeListUsage codeListUsage in metaData.CodeListUsages)
-            ////    {
-            ////        // Todo Handle codeList from other sources
-            ////        codeLists.Add(codeListUsage.Name, GetCodeListByName(org, service, codeListUsage.Name));
-            ////    }
-            ////}
-
-            return codeLists;
-        }
-
-        /// <summary>
-        /// Return a given code list.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="name">The name of the code list.</param>
-        /// <returns>The code list.</returns>
-        public CodeList GetCodeListByName(string org, string service, string name)
-        {
-            CodeList codeList = null;
-            string textData = File.ReadAllText(_settings.GetCodelistPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + name + ".json");
-            codeList = JsonConvert.DeserializeObject<CodeList>(textData);
-
-            return codeList;
-        }
-
-        /// <summary>
-        /// Returns the basic service owner configuration.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <returns>The basic service owner configuration.</returns>
-        public OrgConfiguration GetServiceOwnerConfiguration(string org)
-        {
-            OrgConfiguration config;
-            string textData = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                textData = File.ReadAllText(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + org + "/" + org + "/config.json");
-            }
-            else
-            {
-                textData = File.ReadAllText(_settings.RepositoryLocation + org + "/" + org + "/config.json");
-            }
-
-            config = JsonConvert.DeserializeObject<OrgConfiguration>(textData);
-            return config;
-        }
-
-        /// <summary>
-        /// Returns the basic service configuration.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>The basic service configuration.</returns>
-        public ServiceConfiguration GetServiceConfiguration(string org, string service)
-        {
-            ServiceConfiguration config;
-            string textData = null;
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            {
-                textData = File.ReadAllText(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + org + "/" + service + "/config.json");
-            }
-            else
-            {
-                textData = File.ReadAllText(_settings.RepositoryLocation + org + "/" + service + "/config.json");
-            }
-
-            config = JsonConvert.DeserializeObject<ServiceConfiguration>(textData);
-            return config;
-        }
-
-        /// <summary>
-        /// Gets the raw content of a code list.
-        /// </summary>
-        /// <param name="org">The organization code of the service owner.</param>
-        /// <param name="service">The service code of the current service.</param>
-        /// <param name="name">The name of the code list to retrieve.</param>
-        /// <returns>Raw contents of a code list file.</returns>
+        /// <inheritdoc/>
         public string GetCodelist(string org, string service, string name)
         {
             string codeList = _repository.GetCodelist(org, service, name);
@@ -242,68 +136,14 @@ namespace AltinnCore.Common.Services.Implementation
             return codeCompilationResult.AssemblyName;
         }
 
-        /// <summary>
-        /// Returns the service metadata for a service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <returns>The service metadata for a service.</returns>
+        /// <inheritdoc/>
         public ServiceMetadata GetServiceMetaData(string org, string service)
         {
             return _repository.GetServiceMetaData(org, service);
         }
 
-        /// <summary>
-        /// Method that receives a stream and saves it to the given path.
-        /// </summary>
-        /// <param name="path">The path to the file to be saved to.</param>
-        /// <param name="streamToSave">The steam to save to the file.</param>
-        public void SaveToFile(string path, Stream streamToSave)
-        {
-            using (Stream stream = File.Open(path, FileMode.Create, FileAccess.ReadWrite))
-            {
-                streamToSave.CopyTo(stream);
-            }
-        }
-
-        /// <summary>
-        /// Method that fetches the users repo, zips it and returns the zip file.
-        /// </summary>
-        /// <param name="org">The organization for the service.</param>
-        /// <param name="service">The name of the service.</param>
-        /// <param name="developer">The current developer.</param>
-        /// <returns>The zipped file.</returns>
-        public FileStream ZipAndReturnFile(string org, string service, string developer)
-        {
-            CheckAndUpdateWorkflowFile(org, service, developer);
-            string startPath = _settings.GetServicePath(org, service, developer);
-            string zipPath = $"{_settings.GetOrgPath(org, developer)}{service}.zip";
-            if (File.Exists(zipPath))
-            {
-                File.Delete(zipPath);
-            }
-
-            ZipFile.CreateFromDirectory(startPath, zipPath);
-            return File.Open(zipPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        }
-
-        /// <summary>
-        /// Method that fetches the file of the specified path.
-        /// </summary>
-        /// <param name="path">The path of the file to open.</param>
-        /// <returns>The filestream for the given paths file.</returns>
-        public FileStream GetFileStream(string path)
-        {
-            return File.Open(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        }
-
-        /// <summary>
-        /// Method that adds the workflow file to the repository if its not there, or replaces it if its an old version of the workflow file.
-        /// </summary>
-        /// <param name="owner">The owner of the service.</param>
-        /// <param name="service">The name of the service.</param>
-        /// <param name="developer">The developer of the service.</param>
-        private void CheckAndUpdateWorkflowFile(string owner, string service, string developer)
+        /// <inheritdoc/>
+        public void CheckAndUpdateWorkflowFile(string owner, string service, string developer)
         {
             string workflowFullFilePath = _settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
             string templateWorkflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
