@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Models;
@@ -118,7 +119,7 @@ namespace Altinn.Platform.Storage.Repository
                     EnableCrossPartitionQuery = true,
                 };
 
-                var query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                                 .Where(i => i.ApplicationOwnerId == applicationOwnerId)
                                 .AsDocumentQuery();
                 while (query.HasMoreResults)
@@ -133,7 +134,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (DocumentClientException e)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (e.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }
@@ -258,7 +259,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (DocumentClientException e)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (e.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }
@@ -277,17 +278,11 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns>The instance</returns>
         public async Task<Instance> UpdateInstanceInCollectionAsync(Guid instanceId, Instance item)
         {
-            try
-            {
-                ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
-                Document document = createDocumentResponse.Resource;
-                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
-                return instance;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
+            Document document = createDocumentResponse.Resource;
+            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+
+            return instance;
         }
     }
 }

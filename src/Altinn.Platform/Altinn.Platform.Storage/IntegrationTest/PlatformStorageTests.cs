@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
@@ -23,9 +25,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly HttpClient client;
         private StorageClient storage;
         private string instanceId;
-        private readonly string testApplicationOwnerId = "TEST";
-        private readonly string testApplicationId = "TEST-sailor";
-        private readonly int testInstanceOwnerId = 640;
+        private readonly string testApplicationOwnerId = "TESTS";
+        private string testApplicationId = "TESTS-sailor";
+        private readonly int testInstanceOwnerId = 500;
         private readonly string formId = "default";
 
         private readonly string versionPrefix = "/api/storage/v1";
@@ -53,7 +55,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpResponseMessage response = client.GetAsync(requestUri).Result;
             string content = response.Content.ReadAsStringAsync().Result;
 
-            if (response.StatusCode == System.Net.HttpStatusCode.OK)
+            if (response.StatusCode == HttpStatusCode.OK)
             {
                 List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(content);
 
@@ -86,7 +88,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         [Fact]
         public async void CreateInstanceReturnsNewIdAndNextGetReturnsSameId()
-        {
+        {           
             Instance instanceData = new Instance
             {
                 ApplicationId = testApplicationId,
@@ -162,7 +164,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-           string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
+            string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
             
             using (Stream input = File.OpenRead("data/binary_file.pdf"))
@@ -180,7 +182,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         private ApplicationMetadata CreateTestApplicationMetadata()
-        {
+        {            
             ApplicationMetadataClient appClient = new ApplicationMetadataClient(client);
             Dictionary<string, string> title = new Dictionary<string, string>
             {
@@ -259,19 +261,24 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// get all instances for a given application owner.
+        /// create two instances and check if they can be fetchedfor a given application owner.
         /// </summary>
         [Fact]
         public async void QueryInstancesOnApplicationOwnerId()
         {
-            await storage.PostInstances(testApplicationId, testInstanceOwnerId);
-            await storage.PostInstances(testApplicationId, testInstanceOwnerId);
+            string i1 = await storage.PostInstances(testApplicationId, testInstanceOwnerId);
+            string i2 = await storage.PostInstances(testApplicationId, testInstanceOwnerId);
 
             string requestUri = $"{versionPrefix}/instances?applicationOwnerId={testApplicationOwnerId}";            
 
             HttpResponseMessage response = await client.GetAsync(requestUri);
 
             response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync();
+            List<Instance> instances = JsonConvert.DeserializeObject<List<Instance>>(json);
+
+            Assert.Equal(2, instances.Count);            
         }
     }
 }

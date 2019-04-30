@@ -18,7 +18,13 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
-        
+
+        /// <summary>
+        /// the application build version 
+        /// </summary>
+        [JsonProperty(PropertyName = "versionId")]
+        public string VersionId { get; set; }
+
         /// <summary>
         /// Service owner code for the service, e.g. NAV.
         /// </summary>

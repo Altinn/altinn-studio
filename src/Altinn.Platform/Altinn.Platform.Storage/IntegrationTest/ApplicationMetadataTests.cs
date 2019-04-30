@@ -70,6 +70,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             ApplicationMetadata appInfo = new ApplicationMetadata()
             {
                 Id = applicationId,
+                VersionId = "r33",
                 Title = new Dictionary<string, string>(),
                 ApplicationOwnerId = applicationOwnerId,
             };

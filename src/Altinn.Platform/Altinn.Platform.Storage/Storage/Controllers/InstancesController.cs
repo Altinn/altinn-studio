@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -17,6 +18,7 @@ namespace Altinn.Platform.Storage.Controllers
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
+        private readonly IApplicationRepository _applicationRepository;
         private Logger logger = new LoggerConfiguration()
             .WriteTo.Console()
             .CreateLogger();
@@ -25,9 +27,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
-        public InstancesController(IInstanceRepository instanceRepository)
+        /// <param name="applicationRepository">the application repository handler</param>
+        public InstancesController(IInstanceRepository instanceRepository, IApplicationRepository applicationRepository)
         {
             _instanceRepository = instanceRepository;
+            _applicationRepository = applicationRepository;
         }
 
         /// <summary>
@@ -43,7 +47,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             if (instanceOwnerId != 0)
             {
-                var result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfInstanceOwnerAsync(instanceOwnerId);
                 if (result == null || result.Count == 0)
                 {
                     return NotFound($"Did not find any instances for instanceOwnerId={instanceOwnerId}");
@@ -52,8 +56,8 @@ namespace Altinn.Platform.Storage.Controllers
                 return Ok(result);
             }
             else if (!string.IsNullOrEmpty(applicationOwnerId))
-            {       
-                var result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
+            {
+                List<Instance> result = await _instanceRepository.GetInstancesOfApplicationOwnerAsync(applicationOwnerId);
                 if (result == null || result.Count == 0)
                 {
                     return NotFound($"Did not find any instances for applicationOwnerId={applicationOwnerId}");
@@ -63,7 +67,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             else if (!string.IsNullOrEmpty(applicationId))
             {                
-                var result = await _instanceRepository.GetInstancesOfApplicationAsync(applicationId);
+                List<Instance> result = await _instanceRepository.GetInstancesOfApplicationAsync(applicationId);
                 if (result == null || result.Count == 0)
                 {
                     return NotFound($"Did not find any instances for applicationId={applicationId}");
@@ -114,21 +118,29 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter values: applicationId and instanceOwnerId must be set");
             }
 
+            // check if metadata exists
+            ApplicationMetadata appInfo = GetApplicationInformation(applicationId);
+            if (appInfo == null)
+            {
+                return Forbid($"Application Metadata is not registered for this applicationId: {applicationId}");
+            }
+
             DateTime creationTime = DateTime.UtcNow;
 
-            string applicationOwnerId = GetApplicationOwner(applicationId);
+            string applicationOwnerId = appInfo.ApplicationOwnerId;
 
             Instance instance = new Instance()
             {
                 InstanceOwnerId = instanceOwnerId.ToString(),
-                CreatedBy = 0,
+                CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
-                LastChangedBy = 0,
+                LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
                 ApplicationId = applicationId,
                 ApplicationOwnerId = applicationOwnerId,
+                VisibleDateTime = creationTime,
             };
-
+            
             string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {
@@ -136,20 +148,6 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return Ok(result);
-        }
-
-        private string GetApplicationOwner(string applicationId)
-        {
-            string[] parts = applicationId.Split("/");
-
-            if (parts.Length > 1)
-            {
-                return parts[0];
-            }
-            else
-            {
-                return "TEST";
-            }            
         }
 
         /// <summary>
@@ -163,13 +161,21 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpPut("{instanceId}")]
         public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
         {
-            instance.LastChangedBy = instanceOwnerId;
+            Instance result = null;
+
+            instance.LastChangedBy = User.Identity.Name;
             instance.LastChangedDateTime = DateTime.UtcNow;
-            var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
-            if (result == null)
+
+            /* TODO: make sure put doesn't update storage controlled fields */
+
+            try
             {
-                return BadRequest($"Couldn't update instanceId={instanceId}. Repository save failed");
+                result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
             }
+            catch (Exception e) 
+            {
+                return StatusCode(500, $"Unable to update instance object {instanceId}: {e.Message}");
+            }            
 
             return Ok(result);
         }
@@ -203,7 +209,7 @@ namespace Altinn.Platform.Storage.Controllers
                 else
                 {
                     instance.IsDeleted = true;
-                    instance.LastChangedBy = instanceOwnerId;
+                    instance.LastChangedBy = User.Identity.Name;
                     instance.LastChangedDateTime = DateTime.UtcNow;
 
                     var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
@@ -215,6 +221,23 @@ namespace Altinn.Platform.Storage.Controllers
 
                 return BadRequest();
             }
+        }
+
+        private ApplicationMetadata GetApplicationInformation(string applicationId)
+        {
+            string applicationOwnerId = applicationId.Split("-")[0];
+            try
+            {
+                ApplicationMetadata application = _applicationRepository.FindOne(applicationId, applicationOwnerId).Result;
+
+                return application;
+            }
+            catch (Exception e)
+            {
+                logger.Error($"Get application {applicationId} failed: {e.Message}");
+            }
+
+            return null;
         }
     }
 }

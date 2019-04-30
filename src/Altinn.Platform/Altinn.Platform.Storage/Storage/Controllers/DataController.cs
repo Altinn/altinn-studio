@@ -169,7 +169,12 @@ namespace Altinn.Platform.Storage.Controllers
             ApplicationMetadata appInfo = GetApplicationInformation(instance.ApplicationId);
             if (appInfo == null || !appInfo.Forms.Exists(f => f.Id.Equals(formId)))
             {
-                return Forbid("Application information has not registered a form with this formId");
+                if (appInfo == null)
+                {
+                    return Forbid("Application Metadata is not registered for this applicationId");
+                }
+                
+                return Forbid("Application metadata has not registered a form definition with this formId");
             }
 
             DateTime creationTime = DateTime.UtcNow;
@@ -347,7 +352,7 @@ namespace Altinn.Platform.Storage.Controllers
                     data.LastChangedDateTime = changedTime;
 
                     instance.LastChangedDateTime = changedTime;
-                    instance.LastChangedBy = 0;
+                    instance.LastChangedBy = User.Identity.Name;
 
                     // store file as blob                      
                     bool success = await _dataRepository.UpdateDataInStorage(theStream, storageFileName);
