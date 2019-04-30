@@ -46,7 +46,7 @@ exports[`>>> components/base/versionControlHeader.tsx --- Snapshot +++ Should ma
                   "color": "#0062BA",
                   "fontSize": 36,
                   "fontWeight": null,
-                  "margin": "0px 0px 0px 0px",
+                  "margin": "0px -5px 0px -5px",
                   "padding": null,
                 }
               }
