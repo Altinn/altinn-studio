@@ -1,3 +1,4 @@
+import * as moment from 'moment';
 import * as React from 'react';
 import { createRef } from 'react';
 import '../../styles/shared.css';
@@ -12,35 +13,37 @@ export interface IDatePickerProps {
 
 export interface IDatePickerState {
   value: string;
+  isChanged: boolean;
 }
 
-export class DatepickerComponent
-  extends React.Component<IDatePickerProps, IDatePickerState> {
-
+export class DatepickerComponent extends React.Component<IDatePickerProps, IDatePickerState> {
   private datePickerRef = createRef<HTMLInputElement>();
-
   constructor(_props: IDatePickerProps, _state: IDatePickerState) {
     super(_props, _state);
     this.state = {
-      value: _props.formData ? _props.formData : '',
+      value: _props.formData ? moment(_props.formData).format('DD.MM.YYYY') : '',
+      isChanged: false,
     };
   }
 
-  public onDateChange = (e: any) => {
+  public onDateChange = () => {
     this.setState({
-      value: e.target.value,
+      value: this.datePickerRef.current.value,
+      isChanged: true,
     });
   }
 
   public ondateBlur = () => {
     setTimeout(() => {
-      if (!this.datePickerRef.current.value || this.state.value === this.datePickerRef.current.value) {
+      if (this.state.value === this.datePickerRef.current.value && !this.state.isChanged) {
         return;
+      } else {
+        this.setState({
+          value: this.datePickerRef.current.value,
+          isChanged: false,
+        });
+        this.props.handleDataChange(moment.utc(this.datePickerRef.current.value, ['DD.MM.YYYY']).format());
       }
-      this.setState({
-        value: this.datePickerRef.current.value,
-      });
-      this.props.handleDataChange(this.state.value);
     }, 200);
   }
 
