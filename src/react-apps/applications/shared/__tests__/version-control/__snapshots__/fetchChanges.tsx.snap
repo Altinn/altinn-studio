@@ -2,10 +2,11 @@
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot there are no changes in master 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 FetchChangesComponenet-clickable-4 FetchChangesComponenet-btn-5"
+  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponenet-clickable-3 FetchChangesComponenet-btn-2"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -19,30 +20,51 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label-6"
   >
-    <p
-      className="FetchChangesComponenet-color_blueDark-2"
+    <div
+      className="MuiGrid-container-34 MuiGrid-align-items-xs-center-42"
     >
-      <i
-        className="fa fa-download FetchChangesComponenet-color_blueDark-2"
-      />
-       
-      sync_header.fetch_changes
-    </p>
+      <div
+        className="MuiGrid-item-35"
+      >
+        <i
+          className="fa fa-download"
+          style={
+            Object {
+              "color": "#0062BA",
+              "fontSize": 36,
+              "fontWeight": null,
+              "margin": "0px -5px 0px -5px",
+              "padding": null,
+            }
+          }
+        />
+      </div>
+      <div
+        className="MuiGrid-item-35"
+      >
+        <p
+          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponenet-color_blueDark-4"
+        >
+          sync_header.fetch_changes
+        </p>
+      </div>
+    </div>
   </span>
   <span
-    className="MuiTouchRipple-root-35"
+    className="MuiTouchRipple-root-168"
   />
 </button>
 `;
 
 exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snapshot when changes in master 1`] = `
 <button
-  className="MuiButtonBase-root-32 MuiButton-root-6 MuiButton-text-8 MuiButton-flat-11 FetchChangesComponenet-clickable-4 FetchChangesComponenet-btn-5"
+  className="MuiButtonBase-root-31 MuiButton-root-5 MuiButton-text-7 MuiButton-flat-10 FetchChangesComponenet-clickable-3 FetchChangesComponenet-btn-2"
   disabled={false}
   onBlur={[Function]}
   onClick={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
@@ -56,20 +78,40 @@ exports[`>>> components/base/fetchChanges.tsx --- Snapshot +++ Should match snap
   type="button"
 >
   <span
-    className="MuiButton-label-7"
+    className="MuiButton-label-6"
   >
-    <p
-      className="FetchChangesComponenet-color_blueDark-2 FetchChangesComponenet-bold-3"
+    <div
+      className="MuiGrid-container-34 MuiGrid-align-items-xs-center-42"
     >
-      <i
-        className="fa fa-download FetchChangesComponenet-color_blueDark-2"
-      />
-       
-      sync_header.fetch_changes
-    </p>
+      <div
+        className="MuiGrid-item-35"
+      >
+        <i
+          className="fa fa-download"
+          style={
+            Object {
+              "color": "#0062BA",
+              "fontSize": 36,
+              "fontWeight": 600,
+              "margin": "0px -5px 0px -5px",
+              "padding": null,
+            }
+          }
+        />
+      </div>
+      <div
+        className="MuiGrid-item-35"
+      >
+        <p
+          className="MuiTypography-root-132 MuiTypography-body1-141 FetchChangesComponenet-color_blueDark-4 FetchChangesComponenet-bold-1"
+        >
+          sync_header.fetch_changes
+        </p>
+      </div>
+    </div>
   </span>
   <span
-    className="MuiTouchRipple-root-35"
+    className="MuiTouchRipple-root-168"
   />
 </button>
 `;
