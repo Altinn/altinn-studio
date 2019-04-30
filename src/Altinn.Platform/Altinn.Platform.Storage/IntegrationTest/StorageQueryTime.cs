@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int instanceOwnerId = 42;
 
             // Create application instance
-            string instanceId = await storage.PostInstances("TEST/sailor", instanceOwnerId);
+            string instanceId = await storage.PostInstances("TEST-sailor", instanceOwnerId);
 
             Instance instance = await storage.GetInstances(instanceId, instanceOwnerId);
 

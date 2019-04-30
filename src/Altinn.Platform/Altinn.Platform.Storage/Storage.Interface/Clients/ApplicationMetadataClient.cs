@@ -36,15 +36,21 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
             appMetadata.Forms.Add(defaultAppForm);
 
             string uri = storageUri + resourcePrefix + "?applicationId=" + applicationId;
+            try
+            {
+                HttpResponseMessage response = client.PostAsync(uri, appMetadata.AsJson()).Result;
 
-            HttpResponseMessage response = client.PostAsync(uri, appMetadata.AsJson()).Result;
+                response.EnsureSuccessStatusCode();
 
-            response.EnsureSuccessStatusCode();
+                string json2 = response.Content.ReadAsStringAsync().Result;
+                ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(json2);
 
-            string json2 = response.Content.ReadAsStringAsync().Result;
-            ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(json2);
-
-            return application;
+                return application;
+            }
+            catch (Exception e)
+            {
+                return null;
+            }            
         }
     }
 }

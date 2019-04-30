@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
@@ -104,7 +105,15 @@ namespace Altinn.Platform.Storage.Controllers
             catch (DocumentClientException e)
             {
                 // repository throws exception if not found
-            }            
+                if (e.StatusCode != HttpStatusCode.NotFound)
+                {
+                    return StatusCode(500, "Unable to access application collection: " + e.Message);
+                }                
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "Unable to access repository: " + e.Message);
+            }
 
             DateTime creationTime = DateTime.UtcNow;
 

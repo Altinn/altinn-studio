@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.IntegrationTest.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
@@ -23,7 +24,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private StorageClient storage;
         private string instanceId;
         private readonly string testApplicationOwnerId = "TEST";
-        private readonly string testApplicationId = "TEST/sailor";
+        private readonly string testApplicationId = "TEST-sailor";
         private readonly int testInstanceOwnerId = 640;
         private readonly string formId = "default";
 
@@ -38,6 +39,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
             this.fixture = fixture;
             this.client = this.fixture.Client;
             this.storage = new StorageClient(this.client);
+
+            CreateTestApplicationMetadata();
         }
 
         /// <summary>
@@ -159,7 +162,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string applicationId = testApplicationId;
             int instanceOwnerId = testInstanceOwnerId;
 
-            string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
+           string instanceId = await storage.PostInstances(applicationId, instanceOwnerId);
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
             
             using (Stream input = File.OpenRead("data/binary_file.pdf"))
@@ -174,6 +177,17 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     response.EnsureSuccessStatusCode();
                 }
             }
+        }
+
+        private ApplicationMetadata CreateTestApplicationMetadata()
+        {
+            ApplicationMetadataClient appClient = new ApplicationMetadataClient(client);
+            Dictionary<string, string> title = new Dictionary<string, string>
+            {
+                { "nb", "Testapplikasjon" },
+                { "en", "Test application" }
+            };
+            return appClient.CreateApplication(testApplicationId, title);
         }
 
         /// <summary>

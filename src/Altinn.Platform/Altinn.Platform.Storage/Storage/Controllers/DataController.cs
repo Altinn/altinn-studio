@@ -24,7 +24,7 @@ namespace Altinn.Platform.Storage.Controllers
     public class DataController : Controller
     {
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
-
+        private readonly string prefix = "api/storage/v1/";
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
@@ -211,6 +211,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             string dataId = Guid.NewGuid().ToString();
 
+            string dataLink = $"{prefix}/instances/{instanceId}/data/{dataId}";
+
             // create new data element, store data in blob
             Data newData = new Data
             {
@@ -223,6 +225,7 @@ namespace Altinn.Platform.Storage.Controllers
                 FileName = $"{dataId}.xml",
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
+                Link = dataLink,
             };
 
             string fileName = DataFileName(instance.ApplicationId, instanceId.ToString(), newData.Id.ToString());
