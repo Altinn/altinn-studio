@@ -19,3 +19,10 @@ export interface IAttachmentApiResponse {
   size: number;
   id: string;
 }
+
+export interface IAltinnWindow extends Window {
+  org: string;
+  service: string;
+  instanceId: string;
+  reportee: string;
+}

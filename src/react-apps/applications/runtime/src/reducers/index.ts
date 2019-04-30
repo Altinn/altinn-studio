@@ -19,7 +19,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
   formConfig: T3;
   formWorkflow: T4;
   formDataModel: T5;
-  formAttachements: T6;
+  formAttachments: T6;
   formDynamics: T7;
   language: T8;
   formResources: T9;
@@ -45,7 +45,7 @@ const reducers: IRuntimeState = {
   formConfig: FormConfigState,
   formWorkflow: FormWorkflowReducer,
   formDataModel: FormDataModel,
-  formAttachements: FormFileUploadReducer,
+  formAttachments: FormFileUploadReducer,
   formDynamics: FormDynamics,
   language: LanguageReducer,
   formResources: FormResourceReducer,

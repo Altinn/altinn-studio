@@ -4,7 +4,7 @@ import { mapAttachmentListApiResponseToAttachments } from '../../../../../utils/
 import { get } from '../../../../../utils/networking';
 import FormFileUploadDispatcher from '../../actions';
 import * as FileUploadActionsTypes from '../../actions/types';
-import { IAttachments } from '../../types';
+import { IAltinnWindow, IAttachments } from '../../types';
 
 export function* watchFetchAttachmentsSaga(): SagaIterator {
   yield takeLatest(FileUploadActionsTypes.FETCH_ATTACHMENTS, fetchAttachments);

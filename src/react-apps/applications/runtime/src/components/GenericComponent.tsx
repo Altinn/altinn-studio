@@ -11,7 +11,7 @@ import { IRuntimeState } from '../types';
 export interface IProvidedProps {
   id: string;
   type: string;
-  title: string;
+  textResourceBindings: any;
   dataBinding: string;
 }
 
@@ -34,7 +34,7 @@ class GenericComponent extends React.Component<any> {
     return (
       <Component
         {...this.props}
-        title={getLanguageFromKey(this.props.title, this.props.textResources)}
+        title={getLanguageFromKey(this.props.textResourceBindings.title, this.props.textResources)}
         handleDataChange={this.handleDataUpdate}
       />
     );

@@ -28,7 +28,5 @@ describe('>>> components/base/ParagraphComponent.tsx --- Snapshot', () => {
       />,
     );
     expect(shallowParagraphComponent.contains(<span id={'mock-id'}>some other text</span>)).toBe(true);
-    expect(shallowParagraphComponent.instance().render()).toBe(true);
-    console.log('hello?');
   });
 });

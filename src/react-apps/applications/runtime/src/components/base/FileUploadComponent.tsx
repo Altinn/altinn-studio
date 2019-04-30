@@ -4,8 +4,8 @@ import { connect } from 'react-redux';
 import uuid = require('uuid');
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { IAttachment } from '../../features/form/fileUpload';
 import FormFileUploadDispatcher from '../../features/form/fileUpload/actions';
-import { IAttachment } from '../../features/form/fileUpload/types';
 import '../../styles/FileUploadComponent.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
 
@@ -30,11 +30,11 @@ export interface IFileUploadProps extends IFileUploadProvidedProps {
 
 export interface IFileUploadState {
   title: string;
-  component: string;
   description: string;
   attachments: IAttachment[];
   showFileUpload: boolean;
   validations: string[];
+  test: string;
 }
 
 const baseStyle = {
@@ -322,7 +322,7 @@ export class FileUploadComponentClass
 const mapStateToProps = (state: IRuntimeState, props: IFileUploadProvidedProps): IFileUploadProps => {
   return {
     ...props,
-    attachments: state.formAttachments && state.formAttachments.attachments[props.id] || [],
+    attachments: state.formAttachments.attachments[props.id] || [],
   };
 };
 

@@ -7,9 +7,8 @@ export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
   dataBinding: string;
-  description: string;
+  textResourceBindings: any;
   required: boolean;
-  title: string;
   type: string;
 }
 
@@ -29,11 +28,11 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
         this.props.type === 'AddressComponent') {
         return null;
       }
-      if (!this.props.title) {
+      if (!this.props.textResourceBindings.title) {
         return null;
       }
-      if (this.props.title) {
-        const label: string = this.getTextResource(this.props.title);
+      if (this.props.textResourceBindings.title) {
+        const label: string = this.getTextResource(this.props.textResourceBindings.title);
         return (
           <label className='a-form-label title-label' htmlFor={this.props.id}>
             {label}
@@ -47,11 +46,11 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
       return null;
     }
     public renderDescription = (): JSX.Element => {
-      if (!this.props.title) {
+      if (!this.props.textResourceBindings.title) {
         return null;
       }
-      if (this.props.description) {
-        const description: string = this.getTextResource(this.props.description);
+      if (this.props.textResourceBindings.description) {
+        const description: string = this.getTextResource(this.props.textResourceBindings.description);
         return (
           <span className='a-form-label description-label'>{description}</span>
         );
@@ -69,7 +68,7 @@ export const formComponentWithHandlers = (WrappedComponent: React.ComponentType<
 
     public render(): JSX.Element {
       const { id, ...passThroughProps } = this.props;
-      const text = this.getTextResource(this.props.title);
+      const text = this.getTextResource(this.props.textResourceBindings.title);
 
       return (
         <>

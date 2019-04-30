@@ -1,6 +1,6 @@
 import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
+import { IAttachment, IAttachments } from '..';
 import { store } from '../../../../store';
-import { IAttachment, IAttachments } from '../types';
 
 import * as deleteActions from './delete';
 import * as fetchActions from './fetch';
