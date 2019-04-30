@@ -44,52 +44,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState InitializeServiceState(Guid instanceId, string applicationOwnerId, string applicationId, int instanceOwnerId)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string workflowFullFilePath = _settings.GetWorkflowPath(applicationOwnerId, applicationId, developer) + _settings.WorkflowFileName;
-            string workflowData = File.ReadAllText(workflowFullFilePath, Encoding.UTF8);
-            Definitions workflowModel = null;
-
-            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-            using (TextReader tr = new StringReader(workflowData))
-            {
-                workflowModel = (Definitions)serializer.Deserialize(tr);
-            }
-
-            string nextStepName = string.Empty;
-            SequenceFlow currentSequenceFlow = workflowModel.Process.SequenceFlow.Find(seq => seq.Id == workflowModel.Process.StartEvent.Outgoing);
-            if (currentSequenceFlow != null)
-            {
-                ServiceLibrary.Models.Workflow.Task nextStepObj = workflowModel.Process.Task.Find(task => task.Id == currentSequenceFlow.TargetRef);
-                if (nextStepObj != null)
-                {
-                    nextStepName = nextStepObj.Name;
-                }
-            }
-
-            JObject stateJson = JObject.FromObject(new
-            {
-                state = nextStepName,
-            });
-
-            if (string.IsNullOrEmpty(nextStepName))
-            {
-                _logger.LogError("Unable to read workflowfile, unable to find next step name from start event");
-            }
-
-            string stateFilePath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/{instanceId}.state.json";
-            File.WriteAllText(stateFilePath, stateJson.ToString(), Encoding.UTF8);
-
-            return new ServiceState()
-            {
-                State = string.IsNullOrEmpty(nextStepName) ?
-                WorkflowStep.Unknown
-                : (WorkflowStep)Enum.Parse(typeof(WorkflowStep), nextStepName, true),
-            };
-        }
-
-        /// <inheritdoc/>
         public ServiceState GetInitialServiceState(string applicationOwnerId, string applicationId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

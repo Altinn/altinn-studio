@@ -12,16 +12,6 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <summary>
         /// This method initializes the service state and saves the initial status to disk
         /// </summary>
-        /// <param name="instanceId">The instance id</param>
-        /// <param name="applicationOwnerId">The application owner id</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="partyId">The partyId</param>
-        /// <returns>The current service state</returns>
-        ServiceState InitializeServiceState(Guid instanceId, string applicationOwnerId, string service, int partyId);
-
-        /// <summary>
-        /// This method initializes the service state and saves the initial status to disk
-        /// </summary>
         /// <param name="applicationOwnerId">The application owner id</param>
         /// <param name="applicationId">The application id</param>
         /// <returns>The current service state</returns>

@@ -59,13 +59,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceState InitializeServiceState(Guid id, string applicationOwnerId, string applicationId, int reporteeId)
-        {
-            string workflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
-            return WorkflowHelper.GetInitialWorkflowState(workflowData);
-        }
-
-        /// <inheritdoc/>
         public string GetUrlForCurrentState(Guid instanceId, string applicationOwnerId, string applicationId, WorkflowStep currentState)
         {
             return WorkflowHelper.GetUrlForCurrentState(instanceId, applicationOwnerId, applicationId, currentState);
