@@ -12,13 +12,13 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
     public class ApplicationMetadataClient
     {
         private readonly HttpClient client;
-        private readonly string storageUri; //"http://platform.altinn.cloud/";
+        private readonly string endpointUri; //"http://platform.altinn.cloud/";
         private readonly string resourcePrefix = "storage/api/v1/applications";
 
-        public ApplicationMetadataClient(HttpClient client, string storageUri = "")
+        public ApplicationMetadataClient(HttpClient client, string enpointUri = "")
         {
             this.client = client;
-            this.storageUri = storageUri;
+            this.endpointUri = enpointUri;
         }
 
         public ApplicationMetadata CreateApplication(string applicationId, Dictionary<string, string> title)
@@ -38,22 +38,56 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
 
             appMetadata.Forms.Add(defaultAppForm);
 
-            string uri = storageUri + resourcePrefix + "?applicationId=" + applicationId;
-            try
-            {
-                HttpResponseMessage response = client.PostAsync(uri, appMetadata.AsJson()).Result;
+            string url = endpointUri + resourcePrefix + "?applicationId=" + applicationId;
+ 
+            HttpResponseMessage response = client.PostAsync(url, appMetadata.AsJson()).Result;
+            response.EnsureSuccessStatusCode();
 
-                response.EnsureSuccessStatusCode();
+            string json = response.Content.ReadAsStringAsync().Result;
+            ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
 
-                string json2 = response.Content.ReadAsStringAsync().Result;
-                ApplicationMetadata application = JsonConvert.DeserializeObject<ApplicationMetadata>(json2);
+            return application;                     
+        }
 
-                return application;
-            }
-            catch (Exception e)
-            {
-                return null;
-            }            
+        public ApplicationMetadata CreateApplication(ApplicationMetadata application)
+        {
+            string url = $"{endpointUri}/{resourcePrefix}?applicationId={application.Id}";
+
+            HttpResponseMessage response = client.PostAsync(url, application.AsJson()).Result;
+            response.EnsureSuccessStatusCode();
+
+            string json = response.Content.ReadAsStringAsync().Result;
+            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+
+            return result;
+        }
+
+        public ApplicationMetadata UpdateApplicationMetadata(ApplicationMetadata application)
+        {
+            string applicationId = application.Id;
+
+            string url = $"{endpointUri}/{resourcePrefix}?applicationId={applicationId}";
+
+            HttpResponseMessage response = client.PutAsync(url, application.AsJson()).Result;
+            response.EnsureSuccessStatusCode();
+
+            string json = response.Content.ReadAsStringAsync().Result;        
+            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+
+            return result;
+        }
+
+        public ApplicationMetadata GetApplicationMetadata(string applicationId) 
+        {
+            string url = $"{endpointUri}/{resourcePrefix}/{applicationId}";
+
+            HttpResponseMessage response = client.GetAsync(url).Result;
+            response.EnsureSuccessStatusCode();
+
+            string json = response.Content.ReadAsStringAsync().Result;
+            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+
+            return result;
         }
     }
 }
