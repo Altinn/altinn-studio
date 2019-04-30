@@ -1,6 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
-import { get } from '../../../shared/src/utils/networking';
+import { get } from '../../../../shared/src/utils/networking';
 import * as FetchLanguageActions from './fetchLanguageActions';
 import * as FetchLanguageActionTypes from './fetchLanguageActionTypes';
 import FetchLanguageDispatchers from './fetchLanguageDispatcher';
