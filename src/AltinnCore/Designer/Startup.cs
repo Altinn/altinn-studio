@@ -8,6 +8,7 @@ using AltinnCore.Common.Services.Implementation;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.Authorization;
 using AltinnCore.Designer.ModelBinding;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -62,25 +63,23 @@ namespace AltinnCore.Designer
             }
             else
             {
-                services.AddSingleton<IExecution, ExecutionSILocalDev>();
+                services.AddSingleton<IExecution, ExecutionStudioSI>();
             }
 
-            services.AddSingleton<IArchive, ArchiveSILocalDev>();
-            services.AddSingleton<IAuthorization, AuthorizationSILocalDev>();
+            services.AddSingleton<IArchive, ArchiveStudioSI>();
+            services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
             services.AddSingleton<ICompilation, CompilationSI>();
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
-            services.AddSingleton<IDataSourceService, DataSourceSI>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
-            services.AddSingleton<IForm, FormSILocalDev>();
-            services.AddSingleton<IProfile, ProfileSILocalDev>();
-            services.AddSingleton<IRegister, RegisterSILocalDev>();
+            services.AddSingleton<IForm, FormStudioSI>();
+            services.AddSingleton<IProfile, ProfileStudioSI>();
+            services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
-            services.AddSingleton<ITestingRepository, TestingRepository>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
             services.AddSingleton<ISourceControl, SourceControlSI>();
-            services.AddSingleton<ITestdata, TestdataSIDesigner>();
+            services.AddSingleton<ITestdata, TestdataStudioSI>();
             services.AddSingleton(Configuration);
             services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -219,7 +218,7 @@ namespace AltinnCore.Designer
                           defaults: new { controller = "Service" },
                           constraints: new
                           {
-                              controller = @"(Codelist|Config|DataSource|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Testing|Text|UI|Workflow|UIEditor|ServiceDevelopment|Deploy)",
+                              controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment|Deploy)",
 
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",

@@ -58,22 +58,13 @@ namespace AltinnCore.Common.Services.Implementation
             _hostingEnvironment = hostingEnvironment;
         }
 
-        /// <summary>
-        /// Create a new instance ID.
-        /// </summary>
-        /// <returns>The new instance ID.</returns>
+        /// <inheritdoc/>
         public Guid GetNewServiceInstanceID()
         {
             return Guid.NewGuid();
         }
 
-        /// <summary>
-        /// Creates the service context made available for the Altinn Core services and views.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service context.</returns>
+        /// <inheritdoc/>
         public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
         {
             var activePackage = GetActivePackage(org, service);
@@ -99,13 +90,7 @@ namespace AltinnCore.Common.Services.Implementation
             return context;
         }
 
-        /// <summary>
-        /// Returns the serviceImplementation for a given service.
-        /// </summary>
-        /// <param name="org">The Organization code for the service owner.</param>
-        /// <param name="service">The service code for the current service.</param>
-        /// <param name="startServiceFlag">Flag to determine if the service should run/re-run.</param>
-        /// <returns>The service Implementation.</returns>
+        /// <inheritdoc/>
         public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
         {
             var activePackage = GetActivePackage(org, service);
@@ -115,13 +100,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Gets the raw content of a code list.
-        /// </summary>
-        /// <param name="org">The organization code of the service owner.</param>
-        /// <param name="service">The service code of the current service.</param>
-        /// <param name="name">The name of the code list to retrieve.</param>
-        /// <returns>Raw contents of a code list file.</returns>
+        /// <inheritdoc/>
         public string GetCodelist(string org, string service, string name)
         {
             return _repository.GetCodelist(org, service, name);
@@ -202,24 +181,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void SaveToFile(string path, Stream streamToSave)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public FileStream ZipAndReturnFile(string org, string service, string developer)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public FileStream GetFileStream(string path)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
         public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;
@@ -243,6 +204,12 @@ namespace AltinnCore.Common.Services.Implementation
             }
 
             return fileContent;
+        }
+
+        /// <inheritdoc/>
+        public void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer)
+        {
+            throw new NotImplementedException();
         }
     }
 }

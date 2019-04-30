@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
@@ -16,6 +17,7 @@ namespace Altinn.Platform.Storage.Client
     public class StorageClient
     {
         HttpClient client;
+        private readonly string formId = "default";
         private readonly string versionPrefix = "api/storage/v1";
         private string hostName;
 
@@ -39,7 +41,7 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="contentType">d</param>
         public async Task<bool> PostDataReadFromFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
             
             using (Stream input = File.OpenRead($"data/{fileName}"))
             {
@@ -47,7 +49,8 @@ namespace Altinn.Platform.Storage.Client
 
                 using (MultipartFormDataContent formData = new MultipartFormDataContent())
                 {
-                    formData.Add(fileStreamContent, "crewlist", fileName);
+                    formData.Headers.ContentType = MediaTypeHeaderValue.Parse("application/pdf");
+                    formData.Add(fileStreamContent, formId, fileName);
 
                     HttpResponseMessage response = await client.PostAsync(hostName + requestUri, formData);
 
@@ -69,7 +72,7 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="content">f</param>
         public async void PostData(string instanceId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, object> content)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
             
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
 
@@ -87,7 +90,7 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="content">f</param>
         public async void PutData(string instanceId, string dataId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, string> content)
         {
-            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?formId=crewlist&instanceOwnerId={instanceOwnerId}";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?formId={formId}&instanceOwnerId={instanceOwnerId}";
 
             HttpResponseMessage response = await client.PutAsync(requestUri, content.AsJson());
 
@@ -124,8 +127,8 @@ namespace Altinn.Platform.Storage.Client
             string requestUri = $"{versionPrefix}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
             
             HttpResponseMessage getInstanceResponse = await client.GetAsync(hostName + requestUri);
-            Instance instance = await getInstanceResponse.Content.ReadAsAsync<Instance>();
-
+            string instanceData = await getInstanceResponse.Content.ReadAsStringAsync();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
             return instance;
         }
 

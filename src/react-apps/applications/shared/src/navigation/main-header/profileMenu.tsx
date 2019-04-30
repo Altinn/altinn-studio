@@ -20,7 +20,7 @@ const styles = ({
     borderRadius: 1,
     minWidth: 150,
     padding: 0,
-    top: 80,
+    top: 50,
     right: 25,
   },
   menuItem: {

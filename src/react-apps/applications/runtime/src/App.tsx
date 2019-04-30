@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { hot } from 'react-hot-loader';
+import postMessages from '../../shared/src/utils/postMessages';
 import appDataActionDispatcher from './actions/appDataActions/appDataActionDispatcher';
 import formDesignerActionDispatchers from './actions/formDesignerActions/formDesignerActionDispatcher';
 import formFillerActionDispatchers from './actions/formFillerActions/formFillerActionDispatcher';
@@ -34,7 +35,7 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
   }
 
   public shouldRefetchFiles = (event: any) => {
-    if (event.data === 'NEWDATA') {
+    if (event.data === postMessages.refetchFiles) {
       this.fetchFiles();
     }
   }
@@ -75,7 +76,8 @@ export class App extends React.Component<IAppComponentProps, IAppCompoentState> 
 
       // Fetch current workflow state
       WorkflowActionDispatcher.getCurrentState(
-        `${altinnWindow.location.origin}/runtime/${servicePath}/${instanceId}/GetCurrentState?reporteeId=${reportee}`);
+        // tslint:disable-next-line:max-line-length
+        `${altinnWindow.location.origin}/runtime/api/workflow/${reportee}/${servicePath}/GetCurrentState?instanceId=${instanceId}`);
 
       // Fetch language
       appDataActionDispatcher.fetchLanguage(

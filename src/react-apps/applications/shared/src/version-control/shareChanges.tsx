@@ -1,42 +1,26 @@
-import { Button, createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
+import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
 export interface IShareChangesCompoenentProvidedProps {
-  classes: any;
-  shareChanges: any;
+  buttonOnly?: boolean;
   changesInLocalRepo: boolean;
-  moreThanAnHourSinceLastPush: boolean;
-  hasPushRight: boolean;
+  classes: any;
   hasMergeConflict: boolean;
+  hasPushRight: boolean;
   language: any;
+  moreThanAnHourSinceLastPush: boolean;
+  shareChanges: any;
 }
 
 const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
-  color_blueDarker: {
-    color: theme.altinnPalette.primary.blueDarker,
-  },
-  color_blueDark: {
-    color: theme.altinnPalette.primary.blueDark,
-  },
   bold: {
     fontWeight: 500,
-  },
-  fontSize_16: {
-    fontSize: '16px !Important',
-  },
-  marginRight_10: {
-    marginRight: '10px',
-  },
-  clickable: {
-    [theme.breakpoints.down('md')]: {
-      float: 'right',
-      marginRight: '10px',
-    },
   },
   btn: {
     'textTransform': 'none',
@@ -48,6 +32,19 @@ const styles = createStyles({
       backgroundColor: 'transparent !Important',
     },
   },
+  checkIconPositionFix: {
+    position: 'relative',
+    top: '-4px',
+  },
+  clickable: {
+    [theme.breakpoints.down('md')]: {
+      float: 'right',
+      marginRight: '10px',
+    },
+  },
+  color_blueDark: {
+    color: theme.altinnPalette.primary.blueDark,
+  },
 });
 
 class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProvidedProps, any> {
@@ -58,38 +55,79 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
   }
 
   public renderCorrectText() {
-    const { classes } = this.props;
-    if (this.props.hasMergeConflict) {
+    const { classes, hasMergeConflict } = this.props;
+
+    if (hasMergeConflict) {
       return (
-        <p
-          className={classNames(classes.bold)}
-        >
-          {<i
-            className={classNames(
-              'fa fa-circlecancel',
-              classes.color_blueDark,
-              classes.fontSize_16,
-              classes.marginRight_10)}
-          />}
-          {getLanguageFromKey('sync_header.merge_conflict', this.props.language)}
-        </p>);
+        <Grid container={true} alignItems='center'>
+          <Grid item={true}>
+            <AltinnIcon
+              iconClass='fa fa-circlecancel'
+              iconColor={theme.altinnPalette.primary.blueDark}
+              margin='0px 5px 0px 0px'
+              weight={600}
+            />
+          </Grid>
+          <Grid item={true}>
+            <Typography
+              variant='body1'
+              className={classNames(classes.color_blueDark, classes.bold)}
+            >
+              {getLanguageFromKey('sync_header.merge_conflict', this.props.language)}
+            </Typography>
+          </Grid>
+        </Grid>
+
+      );
     } else if (this.props.changesInLocalRepo) {
       return (
-        <p
-          className={classNames(
-            { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
-          )}
-        >
-          {this.props.hasPushRight && <i className={classNames('fa fa-upload', classes.color_blueDark)} />}
-          {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
-        </p>);
+        <Grid container={true} alignItems='center'>
+          <Grid item={true}>
+            {this.props.hasPushRight &&
+              <AltinnIcon
+                iconClass='fa fa-upload'
+                iconColor={theme.altinnPalette.primary.blueDark}
+                iconSize={36}
+                margin='0px -5px 0px -5px'
+                weight={this.props.moreThanAnHourSinceLastPush ? 600 : null}
+              />
+            }
+          </Grid>
+          <Grid item={true}>
+            <Typography
+              variant='body1'
+              className={classNames(classes.color_blueDark,
+                { [classes.bold]: this.props.moreThanAnHourSinceLastPush },
+              )}
+            >
+              {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
+            </Typography>
+          </Grid>
+        </Grid>
+      );
     } else {
       return (
-        <p>
-          <i
-            className={classNames('fa fa-check', classes.color_blueDarker)}
-          />{getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
-        </p>);
+        <Grid container={true} alignItems='center'>
+          <Grid item={true}>
+            <div className={classes.checkIconPositionFix}>
+              <AltinnIcon
+                iconClass='ai ai-check'
+                iconColor={theme.altinnPalette.primary.blueDark}
+                iconSize={36}
+              />
+            </div>
+
+          </Grid>
+          <Grid item={true}>
+            <Typography
+              variant='body1'
+              className={classNames(classes.color_blueDark)}
+            >
+              {getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
+            </Typography>
+          </Grid>
+        </Grid>
+      );
     }
   }
 
@@ -98,7 +136,9 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
     return (
       <Button
         onClick={this.shareChangesHandler}
-        className={classNames(classes.color_blueDark, classes.clickable, classes.btn)}
+        className={classNames(classes.color_blueDark, classes.btn,
+          { [classes.clickable]: this.props.buttonOnly !== true },
+        )}
       >
         {this.renderCorrectText()}
       </Button>

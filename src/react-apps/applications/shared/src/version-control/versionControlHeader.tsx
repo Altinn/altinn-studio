@@ -3,12 +3,14 @@ import * as React from 'react';
 import { get, post } from '../../../shared/src/utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
+import postMessages from '../utils/postMessages';
 import FetchChangesComponent from '../version-control/fetchChanges';
 import ShareChangesComponent from '../version-control/shareChanges';
 import SyncModalComponent from './syncModal';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
+  type?: 'fetchButton' | 'shareButton' | 'header';
 }
 
 export interface IVersionControlHeaderState {
@@ -116,7 +118,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
   }
 
   public changeToRepoOccured = (event: any) => {
-    if (event.data === 'SAVED' && this._isMounted && !this.state.timeoutIsRunning) {
+    if (event.data === postMessages.filesAreSaved && this._isMounted && !this.state.timeoutIsRunning) {
       this.setState({
         timeoutIsRunning: true,
       });
@@ -185,7 +187,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
             },
           });
           // force refetch  files
-          window.postMessage('NEWDATA', window.location.href);
+          window.postMessage(postMessages.refetchFiles, window.location.href);
         } else if (result.repositoryStatus === 'CheckoutConflict') {
           // if pull gives merge conflict, show user needs to commit message
           this.setState({
@@ -286,6 +288,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
         });
       }
     });
+    this.forceRepoStatusCheck();
   }
 
   public commitChanges = (commitMessage: string) => {
@@ -332,7 +335,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
                 // tslint:disable-next-line:max-line-length
                 descriptionText: [getLanguageFromKey('sync_header.merge_conflict_occured_submessage', this.props.language)],
                 btnText: getLanguageFromKey('sync_header.merge_conflict_btn', this.props.language),
-                btnMethod: this.redirectToMergeConflictPage,
+                btnMethod: this.forceRepoStatusCheck,
               },
             });
           }
@@ -341,47 +344,81 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
     });
   }
 
-  public redirectToMergeConflictPage = () => {
+  public forceRepoStatusCheck = () => {
     window.postMessage('forceRepoStatusCheck', window.location.href);
+  }
+
+  public renderSyncModalComponent = () => {
+    return (
+      <SyncModalComponent
+        anchorEl={this.state.anchorEl}
+        header={this.state.modalState.header}
+        descriptionText={this.state.modalState.descriptionText}
+        isLoading={this.state.modalState.isLoading}
+        shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
+        btnText={this.state.modalState.btnText}
+        shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
+        handleClose={this.handleClose}
+        btnClick={this.state.modalState.btnMethod}
+      />
+    );
   }
 
   public render() {
     const { classes } = this.props;
+    const type = this.props.type || 'header';
+
     return (
       <React.Fragment>
-        <Grid container={true} direction='row' className={classes.headerStyling}>
-          <Grid item={true} xs={5}>
+        {type === 'header' ? (
+          <Grid container={true} direction='row' className={classes.headerStyling} justify='center'>
+            <Grid item={true} style={{ marginRight: '24px' }}>
+              <FetchChangesComponent
+                changesInMaster={this.state.changesInMaster}
+                fetchChanges={this.fetchChanges}
+                language={this.props.language}
+              />
+            </Grid>
+            <Grid item={true}>
+              <ShareChangesComponent
+                changesInLocalRepo={this.state.changesInLocalRepo}
+                hasMergeConflict={this.state.mergeConflict}
+                hasPushRight={this.state.hasPushRight}
+                language={this.props.language}
+                moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+                shareChanges={this.shareChanges}
+              />
+            </Grid>
+            {this.renderSyncModalComponent()}
+          </Grid>
+        ) : type === 'fetchButton' ? (
+          <React.Fragment>
             <FetchChangesComponent
-              language={this.props.language}
-              fetchChanges={this.fetchChanges}
               changesInMaster={this.state.changesInMaster}
-            />
-          </Grid>
-          <Grid item={true} xs={7}>
-            <ShareChangesComponent
+              fetchChanges={this.fetchChanges}
               language={this.props.language}
-              shareChanges={this.shareChanges}
-              changesInLocalRepo={this.state.changesInLocalRepo}
-              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
-              hasPushRight={this.state.hasPushRight}
-              hasMergeConflict={this.state.mergeConflict}
             />
-          </Grid>
-          <SyncModalComponent
-            anchorEl={this.state.anchorEl}
-            header={this.state.modalState.header}
-            descriptionText={this.state.modalState.descriptionText}
-            isLoading={this.state.modalState.isLoading}
-            shouldShowDoneIcon={this.state.modalState.shouldShowDoneIcon}
-            btnText={this.state.modalState.btnText}
-            shouldShowCommitBox={this.state.modalState.shouldShowCommitBox}
-            handleClose={this.handleClose}
-            btnClick={this.state.modalState.btnMethod}
-          />
-        </Grid>
+            {this.renderSyncModalComponent()}
+          </React.Fragment>
+        ) : type === 'shareButton' ? (
+          <React.Fragment>
+            <ShareChangesComponent
+              buttonOnly={true}
+              changesInLocalRepo={this.state.changesInLocalRepo}
+              hasMergeConflict={this.state.mergeConflict}
+              hasPushRight={this.state.hasPushRight}
+              language={this.props.language}
+              moreThanAnHourSinceLastPush={this.state.moreThanAnHourSinceLastPush}
+              shareChanges={this.shareChanges}
+            />
+            {this.renderSyncModalComponent()}
+          </React.Fragment>
+        ) : null}
       </React.Fragment>
     );
   }
 }
 
 export default withStyles(styles)(VersionControlHeader);
+
+export const VersionControlContainer = withStyles(styles)(VersionControlHeader);
