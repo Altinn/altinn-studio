@@ -64,7 +64,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
             <AltinnIcon
               iconClass='fa fa-circlecancel'
               iconColor={theme.altinnPalette.primary.blueDark}
-              margin='0px 0px 0px 0px'
+              margin='0px 5px 0px 0px'
               weight={600}
             />
           </Grid>
@@ -88,7 +88,7 @@ class ShareChangesCompoenent extends React.Component<IShareChangesCompoenentProv
                 iconClass='fa fa-upload'
                 iconColor={theme.altinnPalette.primary.blueDark}
                 iconSize={36}
-                margin='0px 0px 0px 0px'
+                margin='0px -5px 0px -5px'
                 weight={this.props.moreThanAnHourSinceLastPush ? 600 : null}
               />
             }

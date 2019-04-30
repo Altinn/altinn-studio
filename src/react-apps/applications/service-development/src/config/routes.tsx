@@ -1,7 +1,7 @@
 import AltinnInformationCard from '../../../shared/src/components/AltinnInformationCard';
 import uieditorApp from '../../../ux-editor/src/SubApp';
 import { Administration } from '../features/administration/components/Administration';
-import DeployToTestContainer from '../features/deploy/containers/deployToTestContainer';
+import DeployToTestEnvironment from '../features/deploy/containers/deployToTestContainer';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 import RedirectComponent from '../features/iFrame/RedirectComponent';
@@ -64,7 +64,7 @@ export const routes = [
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test i testmiljø',
     menu: 'test',
-    subapp: DeployToTestContainer,
+    subapp: DeployToTestEnvironment,
   },
   {
     path: '/aboutservice',
