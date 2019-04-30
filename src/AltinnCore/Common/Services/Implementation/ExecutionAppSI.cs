@@ -46,14 +46,12 @@ namespace AltinnCore.Common.Services.Implementation
         /// </summary>
         /// <param name="settings">The repository setting service needed (set in startup.cs)</param>
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
-        /// <param name="partManager">The part manager</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
         /// <param name="logger">the logger</param>
         public ExecutionAppSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
-            ApplicationPartManager partManager,
             IHttpContextAccessor httpContextAccessor,
             IHostingEnvironment hostingEnvironment,
             ILogger<ExecutionAppSI> logger)
@@ -66,15 +64,15 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IServiceImplementation GetServiceImplementation(string org, string service, bool startServiceFlag)
+        public IServiceImplementation GetServiceImplementation(string applicationOwnerId, string applicationId, bool startServiceFlag)
         {
-            string assemblykey = org + "_" + service;
+            string assemblykey = $"{applicationOwnerId}_{applicationId}";
             string implementationTypeName = null;
             Type type = null;
 
             if (_assemblyNames.ContainsKey(assemblykey))
             {
-                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + ".ServiceImplementation," + _assemblyNames[assemblykey];
+                implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, applicationId) + ".ServiceImplementation," + _assemblyNames[assemblykey];
 
                 type = Type.GetType(implementationTypeName);
 
@@ -84,7 +82,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, org, service) + ".ServiceImplementation";
+            implementationTypeName = string.Format(CodeGeneration.ServiceNamespaceTemplate, applicationOwnerId, applicationId) + ".ServiceImplementation";
 
             Assembly asm = AssemblyLoadContext.Default.LoadFromAssemblyPath(_settings.BaseResourceFolderContainer + _settings.GetBinaryFolder() + "AltinnService.dll");
 
@@ -100,14 +98,14 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceContext GetServiceContext(string org, string service, bool startServiceFlag)
+        public ServiceContext GetServiceContext(string applicationOwnerId, string applicationId, bool startServiceFlag)
         {
             var context = new ServiceContext
             {
-                ServiceModelType = GetServiceImplementation(org, service, startServiceFlag).GetServiceModelType(),
-                ServiceMetaData = _repository.GetServiceMetaData(org, service),
+                ServiceModelType = GetServiceImplementation(applicationOwnerId, applicationId, startServiceFlag).GetServiceModelType(),
+                ServiceMetaData = _repository.GetServiceMetaData(applicationOwnerId, applicationId),
                 CurrentCulture = CultureInfo.CurrentUICulture.Name,
-                WorkFlow = _repository.GetWorkFlow(org, service),
+                WorkFlow = _repository.GetWorkFlow(applicationOwnerId, applicationId),
             };
 
             if (context.ServiceMetaData != null && context.ServiceMetaData.Elements != null)
@@ -125,22 +123,22 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetCodelist(string org, string service, string name)
+        public string GetCodelist(string applicationOwnerId, string applicationId, string name)
         {
-            // Not relevant in a container scenario.
+            // Not relevant in a app scenario.
             return null;
         }
 
         /// <inheritdoc/>
-        public byte[] GetServiceResource(string org, string service, string resource)
+        public byte[] GetServiceResource(string applicationOwnerId, string applicationId, string resource)
         {
             byte[] fileContent = null;
 
             if (resource == _settings.RuleHandlerFileName)
             {
-                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
+                if (File.Exists(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource))
                 {
-                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
+                    fileContent = File.ReadAllBytes(_settings.BaseResourceFolderContainer + _settings.GetDynamicsPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + resource);
                 }
             }
             else
@@ -155,7 +153,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public ServiceMetadata GetServiceMetaData(string org, string service)
+        public ServiceMetadata GetServiceMetaData(string applicationOwnerId, string applicationId)
         {
             string filename = _settings.BaseResourceFolderContainer + _settings.GetMetadataFolder() + _settings.ServiceMetadataFileName;
             string filedata = File.ReadAllText(filename, Encoding.UTF8);
