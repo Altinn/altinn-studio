@@ -10,12 +10,11 @@ export default class DesignerPage {
     this.inputBtn = Selector("#schema-components").withText("Input");
     this.dropDown = Selector("#schema-components").withText("Dropdown");
     this.datePicker = Selector("#schema-components").withText("Datepicker");
-    this.checkBoxes = Selector("#schema-components").withText("Avkrysningsboks");
-    this.radioButtons = Selector("#schema-components").withText("Radioknapp");
-    this.textArea = Selector("#schema-components").withText("Tekstområde");
-    this.fileUpload = Selector("#schema-components").withText("Vedlegg");
+    this.checkBoxes = Selector("#schema-components").withText("Checkboxes");
+    this.radioButtons = Selector("#schema-components").withText("RadioButtons");
+    this.textArea = Selector("#schema-components").withText("TextArea");
+    this.fileUpload = Selector("#schema-components").withText("FileUpload");
     this.submit = Selector("#schema-components").withText("Submit");
-    this.addContainer = Selector("#schema-components").withText("Container");
     this.saveButton = Selector("#schema-components").withText("Save");
     this.addApiConnection = Selector(".d-block").withText("Api connections").child(0);
     this.addRuleConnection = Selector(".d-block").withText("Rule connections").child(0);
@@ -98,9 +97,9 @@ export default class DesignerPage {
     this.addNewLanguage = Selector("#newtab > a");
 
     //syncing elements
-    this.hentEndringer = Selector(".button").withText("Hent endringer");
+    this.hentEndringer = Selector("button").withText("Hent endringer");
     this.validerEndringer = Selector("button > span").withExactText("Valider endringer");
-    this.delEndringer = Selector("button > span > p").withExactText("Del endringer");
+    this.delEndringer = Selector("button").withExactText("Del endringer");
     this.commitMessageBox = Selector("#test");
   }
   async deleteDataModelTexts(numberToDelete) {
