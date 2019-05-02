@@ -23,7 +23,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private StorageClient storageClient;
+        private InstanceClient storageClient;
         private string instanceId;
         private readonly string testApplicationOwnerId = "TESTS";
         private string testApplicationId = "TESTS-sailor";
@@ -40,7 +40,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
-            this.storageClient = new StorageClient(this.client);
+            this.storageClient = new InstanceClient(this.client);
 
             CreateTestApplicationMetadata();
         }
@@ -80,6 +80,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
                     client.DeleteAsync(instanceUrl);
                 }
             }
+
+            DeleteApplicationMetadata();
         }
 
         /// <summary>
@@ -201,6 +203,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
             };
 
             return appClient.CreateApplication(testApplicationId, title);
+        }
+
+        private ApplicationMetadata DeleteApplicationMetadata()
+        {
+            ApplicationMetadataClient appClient = new ApplicationMetadataClient(client);
+
+            ApplicationMetadata existingApp = appClient.DeleteApplicationMetadata(testApplicationId);
+
+            return existingApp;
         }
 
         /// <summary>

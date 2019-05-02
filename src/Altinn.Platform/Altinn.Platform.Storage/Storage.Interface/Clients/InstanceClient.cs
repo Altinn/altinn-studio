@@ -15,7 +15,7 @@ namespace Altinn.Platform.Storage.Client
     /// <summary>
     /// Storage client methods.
     /// </summary>
-    public class StorageClient
+    public class InstanceClient
     {
         HttpClient client;
         private readonly string formId = "default";
@@ -27,7 +27,7 @@ namespace Altinn.Platform.Storage.Client
         /// </summary>
         /// <param name="client">the http client</param>
         /// <param name="hostName">the host name</param>
-        public StorageClient(HttpClient client, string hostName = "")
+        public InstanceClient(HttpClient client, string hostName = "")
         {
             this.client = client;
             this.hostName = hostName;
@@ -88,7 +88,7 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceOwnerId">b</param>
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
-        /// <param name="content">f</param>
+        /// <param name="content">content as json</param>
         public async void PutData(string instanceId, string dataId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, string> content)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?formId={formId}&instanceOwnerId={instanceOwnerId}";
@@ -99,12 +99,13 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Creates data.
+        ///  Gets data
         /// </summary>
         /// <param name="instanceId">a</param>
         /// <param name="dataId">aa</param>
         /// <param name="instanceOwnerId">b</param>
-        public async Task<Dictionary<string, string>> GetData(string instanceId, string dataId, int instanceOwnerId)
+        /// <returns>Content as byte array</returns>
+        public async Task<byte[]> GetData(string instanceId, string dataId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
             
@@ -112,9 +113,7 @@ namespace Altinn.Platform.Storage.Client
 
             response.EnsureSuccessStatusCode();
 
-            Dictionary<string, string> result = await response.Content.ReadAsAsync<Dictionary<string, string>>();
-
-            return result;
+            return await response.Content.ReadAsByteArrayAsync();            
         }
 
         /// <summary>

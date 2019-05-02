@@ -33,7 +33,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         //[Fact]
         public async void TestUserScenario()
         {
-            StorageClient storage = new StorageClient(new HttpClient());
+            InstanceClient storage = new InstanceClient(new HttpClient());
             int instanceOwnerId = 42;
 
             // Create application instance

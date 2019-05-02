@@ -89,5 +89,19 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
 
             return result;
         }
+
+
+        public ApplicationMetadata DeleteApplicationMetadata(string applicationId)
+        {
+            string url = $"{endpointUri}/{resourcePrefix}/{applicationId}?hard=true";
+
+            HttpResponseMessage response = client.DeleteAsync(url).Result;
+            response.EnsureSuccessStatusCode();
+
+            string json = response.Content.ReadAsStringAsync().Result;
+            ApplicationMetadata result = JsonConvert.DeserializeObject<ApplicationMetadata>(json);
+
+            return result;
+        }
     }
 }
