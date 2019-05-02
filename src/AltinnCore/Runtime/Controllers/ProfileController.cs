@@ -13,6 +13,7 @@ namespace AltinnCore.Runtime.Controllers
     /// <summary>
     /// Controller that exposes profile
     /// </summary>
+    [Authorize]
     public class ProfileController : Controller
     {
         private readonly IProfile _profile;
