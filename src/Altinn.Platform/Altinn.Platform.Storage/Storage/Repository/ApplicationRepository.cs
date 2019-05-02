@@ -113,9 +113,12 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<ApplicationMetadata> Update(ApplicationMetadata item)
         {
             Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, item.Id);
-            ResourceResponse<Document> document = await _client.ReplaceDocumentAsync(
-                uri,
-                item);
+
+            ResourceResponse<Document> document = await _client
+                .ReplaceDocumentAsync(
+                    uri,
+                    item,
+                    new RequestOptions { PartitionKey = new PartitionKey(item.ApplicationOwnerId) });
 
             string storedApplication = document.Resource.ToString();
 

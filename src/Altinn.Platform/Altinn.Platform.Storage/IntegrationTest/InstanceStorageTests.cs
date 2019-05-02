@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     /// <summary>
     ///  Tests dataservice REST api.
     /// </summary>
-    public class PlatformStorageTests : IClassFixture<PlatformStorageFixture>, IDisposable
+    public class InstanceStorageTests : IClassFixture<PlatformStorageFixture>, IDisposable
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
@@ -33,10 +33,10 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly string versionPrefix = "/storage/api/v1";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
+        /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
-        public PlatformStorageTests(PlatformStorageFixture fixture)
+        public InstanceStorageTests(PlatformStorageFixture fixture)
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
@@ -182,13 +182,24 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         private ApplicationMetadata CreateTestApplicationMetadata()
-        {            
+        {
             ApplicationMetadataClient appClient = new ApplicationMetadataClient(client);
+
+            try
+            {
+                ApplicationMetadata existingApp = appClient.GetApplicationMetadata(testApplicationId);
+                return existingApp;
+            }
+            catch (Exception e)
+            {               
+            }
+
             Dictionary<string, string> title = new Dictionary<string, string>
             {
                 { "nb", "Testapplikasjon" },
                 { "en", "Test application" }
             };
+
             return appClient.CreateApplication(testApplicationId, title);
         }
 

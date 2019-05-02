@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Client;
@@ -32,7 +33,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             .CreateLogger();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="PlatformStorageTests"/> class.
+        /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public ApplicationMetadataTests(PlatformStorageFixture fixture)
@@ -98,6 +99,20 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         [Fact]
+        public async void CreateApplicationWrongFormatApplicationId()
+        {
+            string applicationId = "TEST/app";
+
+            string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
+
+            ApplicationMetadata appInfo = CreateApplicationMetadata(applicationId);
+
+            HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
+
+            Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
+        }
+
+        [Fact]
         public async void SoftdeleteApplication()
         {
             string applicationId = "TEST-app21";
@@ -126,21 +141,26 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.True(softDeletedApplication.ValidTo < DateTime.UtcNow);
         }
 
+        /// <summary>
+        /// Create an application, read one, update it and get it one more time.
+        /// </summary>
         [Fact]
         public async void GetAndUpdateApplication()
         {
             string applicationId = "TEST-app22";
 
             string requestUri = $"{versionPrefix}/applications?applicationId={applicationId}";
-
+           
             ApplicationMetadata appInfo = CreateApplicationMetadata(applicationId);
 
+            // create one
             HttpResponseMessage postResponse = await client.PostAsync(requestUri, appInfo.AsJson());
 
             postResponse.EnsureSuccessStatusCode();
 
             requestUri = $"{versionPrefix}/applications/{applicationId}";
 
+            // read one
             HttpResponseMessage getResponse = await client.GetAsync(requestUri);
 
             getResponse.EnsureSuccessStatusCode();
@@ -150,10 +170,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             application.MaxSize = 2000;
 
+            // update it
             HttpResponseMessage putResponse = await client.PutAsync(requestUri, application.AsJson());
 
             putResponse.EnsureSuccessStatusCode();
 
+            // get it again
             HttpResponseMessage getResponse2 = await client.GetAsync(requestUri);
 
             getResponse2.EnsureSuccessStatusCode();

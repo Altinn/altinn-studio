@@ -66,7 +66,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
         {
             string applicationId = application.Id;
 
-            string url = $"{endpointUri}/{resourcePrefix}?applicationId={applicationId}";
+            string url = $"{endpointUri}/{resourcePrefix}/{applicationId}";
 
             HttpResponseMessage response = client.PutAsync(url, application.AsJson()).Result;
             response.EnsureSuccessStatusCode();

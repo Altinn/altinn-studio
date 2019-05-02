@@ -40,18 +40,30 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpGet]
         public async Task<ActionResult> GetMany(string applicationOwnerId)
         {            
-            if (!string.IsNullOrEmpty(applicationOwnerId))
+            if (string.IsNullOrEmpty(applicationOwnerId))
+            {
+                return BadRequest("Query parameter applicationOwnerId cannot be empty or null");
+            }
+
+            try
             {
                 List<ApplicationMetadata> result = await repository.ListApplications(applicationOwnerId);
-                if (result == null || result.Count == 0)
-                {
-                    return NotFound($"Did not find any applications for applicationOwnerId={applicationOwnerId}");
-                }
 
                 return Ok(result);
             }
+            catch (DocumentClientException dce)
+            {
+                if (dce.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound($"Cannot find applications for application owner {applicationOwnerId}");
+                }
 
-            return BadRequest("Unable to perform query");
+                return StatusCode(500, $"Unable to access document database {dce.Message}");
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, "Unable to perform request");
+            }
         }        
 
         /// <summary>
@@ -66,18 +78,22 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 ApplicationMetadata result = await repository.FindOne(applicationId, applicationOwnerId);
-                if (result == null)
-                {
-                    return NotFound("Did not find an instance with instanceId=" + applicationId);
-                }
 
                 return Ok(result);
             }
+            catch (DocumentClientException dce)
+            {
+                if (dce.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound($"Could not find an application to update with applicationId={applicationId} . You first have to create one");
+                }
+
+                return StatusCode(500, $"Unable to access document database: {dce.Message}");
+            }
             catch (Exception e)
             {
-                return StatusCode(500, "Could not connect to database. " + e.Message);
-            }
-            
+                return StatusCode(500, $"Unable to perform request: {e.Message}");
+            }            
         }
 
         /// <summary>
@@ -94,7 +110,15 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Missing parameter value: applicationId must be set");
             }
 
-            string applicationOwnerId = GetApplicationOwner(applicationId);
+            string applicationOwnerId;
+            try
+            {
+                applicationOwnerId = GetApplicationOwner(applicationId);
+            }
+            catch (Exception e)
+            {
+                return BadRequest($"Illegal applicationId: {e.Message}");
+            }
 
             try
             {
@@ -112,7 +136,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Unable to access repository: " + e.Message);
+                return StatusCode(500, "Unable to perform request: " + e.Message);
             }
 
             DateTime creationTime = DateTime.UtcNow;
@@ -165,6 +189,11 @@ namespace Altinn.Platform.Storage.Controllers
 
         private string GetApplicationOwner(string applicationId)
         {
+            if (applicationId == null || applicationId.Contains("/"))
+            {
+                throw new ApplicationException("ApplicationId cannot be null or contain forward slash /");
+            }
+
             string[] parts = applicationId.Split("-");
 
             if (parts.Length > 1)
@@ -172,7 +201,7 @@ namespace Altinn.Platform.Storage.Controllers
                 return parts[0];
             }
 
-            return "TEST";
+            throw new ApplicationException("Cannot get application Owner Id from applicationId: {applicationId}");
         }
 
         /// <summary>
@@ -180,20 +209,60 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPut("{applicationId}")]
-        public async Task<ActionResult> Put(string applicationId, [FromBody] ApplicationMetadata instance)
+        public async Task<ActionResult> Put(string applicationId, [FromBody] ApplicationMetadata application)
         {
-            instance.LastChangedBy = User.Identity.Name;
-            instance.LastChangedDateTime = DateTime.UtcNow;
+            string applicationOwnerId = GetApplicationOwner(applicationId);
+            ApplicationMetadata existingApplication;
 
             try
             {
-                ApplicationMetadata result = await repository.Update(instance);                
-
-                return Ok(result);
+                existingApplication = await repository.FindOne(applicationId, application.ApplicationOwnerId);
             }
             catch (Exception e) 
             {
-                return StatusCode(500, "Couldn't update application. " + e.Message);
+                return NotFound($"Unable to find application with applicationId={applicationId} for applicationOwnerId={applicationOwnerId} for update: {e.Message}");
+            }
+
+            if (application == null)
+            {
+                return BadRequest("Missing application metadata object. Please attach one.");
+            }
+
+            if (application.Id == null || !application.Id.Equals(applicationId))
+            {
+                return BadRequest("applicationId in path does not match id in attached object");
+            }
+
+            if (application.ApplicationOwnerId == null || !application.ApplicationOwnerId.Equals(applicationOwnerId))
+            {
+                return BadRequest("ApplicationOwnerId from applicationId is not matching attached object");
+            }
+
+            application.LastChangedBy = User.Identity.Name;
+            application.LastChangedDateTime = DateTime.UtcNow;
+
+            // Make sure client has not updated any important fields
+            application.CreatedBy = existingApplication.CreatedBy;
+            application.CreatedDateTime = existingApplication.CreatedDateTime;
+
+            try
+            {
+                ApplicationMetadata result = await repository.Update(application);                
+
+                return Ok(result);
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.Error.Code.Equals("NotFound"))
+                {
+                    return NotFound($"Did not find application with id={applicationId} to update");
+                }
+
+                return StatusCode(500, $"Document database error: {dce.Message}");
+            }
+            catch (Exception e) 
+            {
+                return StatusCode(500, $"Unable to perform request: {e.Message}");
             }
         }
 
@@ -206,39 +275,51 @@ namespace Altinn.Platform.Storage.Controllers
         [HttpDelete("{applicationId}")]
         public async Task<ActionResult> Delete(string applicationId, bool? hard)
         {
-            string applicationOwnerId = GetApplicationOwner(applicationId);
-
-            ApplicationMetadata instance = await repository.FindOne(applicationId, applicationOwnerId);
-            if (instance == null)
+            string applicationOwnerId;
+            try
             {
-                return NotFound($"Didn't find the object that should be deleted with applicationId={applicationId}");
+                applicationOwnerId = GetApplicationOwner(applicationId);
             }
-            else
+            catch (Exception e)
             {
+                return BadRequest($"Illegal applicationId: {e.Message}");
+            }
+
+            try
+            {
+                ApplicationMetadata application = await repository.FindOne(applicationId, applicationOwnerId);
+
                 if (hard.HasValue && hard == true)
                 {
                     bool deletedOK = await repository.Delete(applicationId, applicationOwnerId);
-                    if (deletedOK)
-                    {
-                        return Ok(true);
-                    }                    
+
+                    return Ok(application);
                 }
                 else
                 {
                     DateTime timestamp = DateTime.UtcNow;
 
-                    instance.LastChangedBy = User.Identity.Name;
-                    instance.LastChangedDateTime = timestamp;
-                    instance.ValidTo = timestamp;
+                    application.LastChangedBy = User.Identity.Name;
+                    application.LastChangedDateTime = timestamp;
+                    application.ValidTo = timestamp;
 
-                    ApplicationMetadata result = await repository.Update(instance);
-                    if (result != null)
-                    {
-                        return Ok(result);
-                    }                            
+                    ApplicationMetadata softDeleteApplication = await repository.Update(application);
+
+                    return Ok(softDeleteApplication);                    
+                }
+            }
+            catch (DocumentClientException dce)
+            {
+                if (dce.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return NotFound($"Didn't find the object that should be deleted with applicationId={applicationId}");
                 }
 
-                return BadRequest();
+                return StatusCode(500, "Unable to reach document database");
+            }            
+            catch (Exception e)
+            {
+                return StatusCode(500, $"Unable to perform request: {e.Message}");
             }
         }
     }

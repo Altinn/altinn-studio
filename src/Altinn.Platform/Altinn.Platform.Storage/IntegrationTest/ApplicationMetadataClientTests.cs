@@ -40,7 +40,33 @@ namespace Altinn.Platform.Storage.IntegrationTest
         [Fact]
         public void TestApplicationClientCreate()
         {
-            //ignore;
+            ApplicationMetadata appMetadata = new ApplicationMetadata()
+            {
+                Id = "TEST-xml",
+                VersionId = "1.2.0",
+                ApplicationOwnerId = "TEST",
+                Title = new Dictionary<string, string>
+                {
+                    { "nb", "XML test application" },
+                },
+                ValidFrom = new DateTime(2019, 07, 01),
+                ValidTo = new DateTime(2020, 06, 30),
+                MaxSize = 200000,
+            };
+            ApplicationMetadata result;
+            try
+            {
+                result = applicationClient.CreateApplication(appMetadata);
+            }
+            catch (HttpRequestException e)
+            {
+                string statusText = e.ToString();
+
+                result = applicationClient.UpdateApplicationMetadata(appMetadata);
+            }
+
+            Assert.Equal("TEST-xml", result.Id);
+            Assert.Equal(200000, result.MaxSize);
         }
     }
 }
