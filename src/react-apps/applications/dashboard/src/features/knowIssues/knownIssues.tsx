@@ -42,6 +42,9 @@ const styles = createStyles({
       marginRight: '50px',
     },
   },
+  knownIssues: {
+    marginLeft: '-3rem',
+  },
 });
 
 // tslint:disable-next-line:max-line-length
@@ -87,11 +90,13 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
             {getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
           </Typography>
           {this.state.knownIssues ?
-            <div dangerouslySetInnerHTML={{ __html: this.state.knownIssues }} />
+            <div className={classes.knownIssues} dangerouslySetInnerHTML={{ __html: this.state.knownIssues }} />
             :
-            <AltinnSpinner
-              spinnerText={getLanguageFromKey('dashboard.known_issues_loading_text', this.props.language)}
-            />
+            <div>
+              <AltinnSpinner
+                spinnerText={getLanguageFromKey('dashboard.known_issues_loading_text', this.props.language)}
+              />
+            </div>
           }
         </div>
       </>

@@ -1,4 +1,3 @@
-import { Paper } from '@material-ui/core';
 import { Grid } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
@@ -6,8 +5,9 @@ import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnFilterChip from '../../../../shared/src/components/AltinnFilterChip';
 import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
+import AltinnInformationPaper from '../../../../shared/src/components/AltinnInformationPaper';
+import AltinnLink from '../../../../shared/src/components/AltinnLink';
 import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
 import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
@@ -64,28 +64,9 @@ const styles = createStyles({
     fontSize: '18px',
     fontWeight: 500,
   },
-  paper: {
-    background: theme.altinnPalette.primary.yellowLight,
-    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
-    borderRadius: 0,
-    fontSize: 16,
-    padding: 26,
-    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    marginTop: 13,
-  },
   paperList: {
     paddingTop: 13,
     paddingBottom: 13,
-  },
-  link: {
-    'borderBottom': '1px solid ' + theme.altinnPalette.primary.blueDark,
-    'color': theme.altinnPalette.primary.blueDarker,
-    '&:hover': {
-      fontWeight: 500,
-      textDecoration: 'none',
-      color: theme.altinnPalette.primary.blueDarker,
-      borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
-    },
   },
 });
 
@@ -168,66 +149,10 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
     );
   }
 
-  public updateListOfSelectedFilters(key: string) {
-    const index = this.state.selectedOwners.indexOf(key);
-    this.setState((state: any) => {
-      if (index > -1) {
-        state.selectedOwners.splice(index, 1);
-      } else {
-        state.selectedOwners.push(key);
-      }
-      return {
-        selectedOwners: state.selectedOwners,
-      };
-    });
-  }
-
   public updateSearchSting = (event: any) => {
     this.setState({
       searchString: event.target.value,
     });
-  }
-
-  public renderFilters() {
-    const { classes } = this.props;
-    return (
-      <Grid item={true} xl={10} lg={10} md={12}>
-        {this.props.allDistinctOwners.map((key: string, index: number) => {
-          return (
-            <AltinnFilterChip
-              key={index}
-              className={classNames(
-                classes.chip,
-                classes.mar_right_20,
-                classes.mar_top_20)}
-              label={key}
-              onclickFunction={this.updateListOfSelectedFilters.bind(this, key)}
-              active={this.state.selectedOwners.indexOf(key) !== -1}
-            />);
-        })}
-      </Grid>
-    );
-  }
-
-  public renderSort() {
-    const { classes } = this.props;
-    return (
-      <Grid item={true} xl={2} lg={2} md={2} sm={2} xs={12}>
-        <AltinnFilterChip
-          key={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
-          className={classNames(
-            classes.mar_top_20,
-            { [classes.elementToRigth]: isWidthUp('sm', this.props.width) })}
-          label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
-          // tslint:disable-next-line:jsx-no-lambda
-          onDeleteFunction={() => {
-            return false;
-          }}
-          sortIcon={true}
-          active={false}
-        />
-      </Grid>
-    );
   }
 
   public render() {
@@ -256,21 +181,24 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             </Grid>
           }
         </Grid>
-        <Paper elevation={0} className={classes.paper}>
+        <AltinnInformationPaper>
           <Typography>
             {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
           </Typography>
           <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
-          <a href={knownIssuesUrl} className={classes.link}>
-            {getLanguageFromKey('dashboard.know_issues_link', this.props.language)}
+          <AltinnLink
+            url={knownIssuesUrl}
+            linkTxt={getLanguageFromKey('dashboard.know_issues_link', this.props.language)}
+          >
             <AltinnIcon
               isActive={false}
               iconClass='ai ai-arrowrightup'
               iconColor={theme.altinnPalette.primary.black}
               iconSize={20}
+              margin={'5px'}
             />
-          </a>
-        </Paper>
+          </AltinnLink>
+        </AltinnInformationPaper>
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
