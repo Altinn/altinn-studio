@@ -44,6 +44,7 @@ const styles = createStyles({
   },
   knownIssues: {
     marginLeft: '-3rem',
+    maxWidth: 900,
   },
 });
 

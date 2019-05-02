@@ -67,6 +67,10 @@ const styles = createStyles({
   paperList: {
     paddingTop: 13,
     paddingBottom: 13,
+    fontSize: 16,
+  },
+  font_16: {
+    fontSize: 16,
   },
 });
 
@@ -118,10 +122,11 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
       .then((res) => {
         if (this._isMounted) {
           const doc = new DOMParser().parseFromString(res, 'text/html');
-
-          this.setState({
-            majorIssues: doc.getElementById('readme').getElementsByTagName('ul')[0].innerHTML,
-          });
+          if (doc.getElementById('readme').getElementsByTagName('ul').length > 0) {
+            this.setState({
+              majorIssues: doc.getElementById('readme').getElementsByTagName('ul')[0].innerHTML,
+            });
+          }
         }
       });
   }
@@ -181,24 +186,26 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             </Grid>
           }
         </Grid>
-        <AltinnInformationPaper>
-          <Typography>
-            {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
-          </Typography>
-          <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
-          <AltinnLink
-            url={knownIssuesUrl}
-            linkTxt={getLanguageFromKey('dashboard.know_issues_link', this.props.language)}
-          >
-            <AltinnIcon
-              isActive={false}
-              iconClass='ai ai-arrowrightup'
-              iconColor={theme.altinnPalette.primary.black}
-              iconSize={20}
-              margin={'5px'}
-            />
-          </AltinnLink>
-        </AltinnInformationPaper>
+        {this.state.majorIssues &&
+          <AltinnInformationPaper>
+            <Typography className={classes.font_16}>
+              {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
+            </Typography>
+            <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
+            <AltinnLink
+              url={knownIssuesUrl}
+              linkTxt={getLanguageFromKey('dashboard.know_issues_link', this.props.language)}
+            >
+              <AltinnIcon
+                isActive={false}
+                iconClass='ai ai-arrowrightup'
+                iconColor={theme.altinnPalette.primary.black}
+                iconSize={20}
+                margin={'5px'}
+              />
+            </AltinnLink>
+          </AltinnInformationPaper>
+        }
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
