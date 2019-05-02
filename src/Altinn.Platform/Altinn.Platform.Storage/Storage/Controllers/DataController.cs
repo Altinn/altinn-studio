@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the form data element
     /// </summary>
-    [Route("storage/api/v1/instances/{instanceId:guid}/[controller]")]
+    [Route("storage/api/v1/instances/{instanceId:guid}/data")]
     [ApiController]
     public class DataController : Controller
     {

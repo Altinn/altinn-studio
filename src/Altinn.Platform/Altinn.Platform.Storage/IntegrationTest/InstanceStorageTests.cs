@@ -176,7 +176,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 using (MultipartFormDataContent formData = new MultipartFormDataContent())
                 {
                     formData.Add(fileStreamContent, formId, "binary_file.pdf");
-                    HttpResponseMessage response = client.PostAsync(requestUri, formData).Result;
+                    HttpResponseMessage response = await client.PostAsync(requestUri, formData);
 
                     response.EnsureSuccessStatusCode();
                 }

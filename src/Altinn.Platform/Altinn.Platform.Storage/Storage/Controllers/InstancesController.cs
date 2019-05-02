@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// a summary is needed here
     /// </summary>
-    [Route("storage/api/v1/[controller]")]
+    [Route("storage/api/v1/instances")]
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
