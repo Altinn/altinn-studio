@@ -157,7 +157,7 @@ namespace AltinnCore.Designer.Controllers
                 _sourceControl.Commit(commitInfo);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
@@ -256,7 +256,7 @@ namespace AltinnCore.Designer.Controllers
                 _sourceControl.ResetCommit(owner, repository);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
@@ -284,7 +284,7 @@ namespace AltinnCore.Designer.Controllers
                 _sourceControl.CheckoutLatestCommitForSpecificFile(owner, repository, fileName);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
@@ -312,7 +312,7 @@ namespace AltinnCore.Designer.Controllers
                 _sourceControl.StageChange(owner, repository, fileName);
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }
@@ -389,7 +389,7 @@ namespace AltinnCore.Designer.Controllers
 
                 return new HttpResponseMessage(HttpStatusCode.OK);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new HttpResponseMessage(HttpStatusCode.InternalServerError);
             }

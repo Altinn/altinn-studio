@@ -22,15 +22,13 @@ namespace AltinnCoreServiceImplementation.Template
 
         private RequestContext requestContext;
 
-        private dynamic viewBag;
 		#endregion
 		
-        public GeneratedMethods(IPlatformServices platformServices, SERVICE_MODEL_NAME SERVICE_MODEL_NAME, RequestContext requestContext, dynamic viewBag)	
+        public GeneratedMethods(IPlatformServices platformServices, SERVICE_MODEL_NAME SERVICE_MODEL_NAME, RequestContext requestContext)	
         {{
 			this.platformServices = platformServices;
 			this.SERVICE_MODEL_NAME = SERVICE_MODEL_NAME;
 			this.requestContext = requestContext;
-			this.viewBag = viewBag;
         }}
 
 		#region Service event handles

@@ -138,5 +138,16 @@ namespace AltinnCore.Common.Configuration
                 return TemplateLocation + "/AltinnService/AltinnService.csproj";
             }
         }
+
+        /// <summary>
+        /// Gets the path to the default gitIgnore file
+        /// </summary>
+        public string DefaultGitIgnoreFile
+        {
+            get
+            {
+                return TemplateLocation + "/.gitignore";
+            }
+        }
     }
 }

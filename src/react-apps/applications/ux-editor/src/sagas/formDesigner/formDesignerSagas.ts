@@ -1,5 +1,6 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
+import postMessages from '../../../../shared/src/utils/postMessages';
 import conditionalRenderingActionDispatcher from '../../actions/conditionalRenderingActions/conditionalRenderingActionDispatcher';
 import * as FormDesignerActions from '../../actions/formDesignerActions/actions';
 import FormDesignerActionDispatchers from '../../actions/formDesignerActions/formDesignerActionDispatcher';
@@ -299,7 +300,7 @@ function* saveFormLayoutSaga({
       },
     });
     yield call(FormDesignerActionDispatchers.saveFormLayoutFulfilled);
-    window.postMessage('SAVED', window.location.href);
+    window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (err) {
     yield call(FormDesignerActionDispatchers.saveFormLayoutRejected, err);
   }

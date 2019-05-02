@@ -12,8 +12,9 @@ using AltinnCore.Common.Factories.ModelFactory;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
-using AltinnCore.ServiceLibrary;
 using AltinnCore.ServiceLibrary.Configuration;
+using AltinnCore.ServiceLibrary.Models;
+using AltinnCore.ServiceLibrary.Models.Workflow;
 using AltinnCore.ServiceLibrary.ServiceMetadata;
 using LibGit2Sharp;
 using Manatee.Json.Schema;
@@ -755,7 +756,7 @@ namespace AltinnCore.Common.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, mainXsdString, Encoding.UTF8);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -775,7 +776,7 @@ namespace AltinnCore.Common.Services.Implementation
                     new FileInfo(filePath).Directory.Create();
                     File.WriteAllText(filePath, new Manatee.Json.Serialization.JsonSerializer().Serialize(jsonSchema).GetIndentedString(0), Encoding.UTF8);
                 }
-                catch (Exception e)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -1201,7 +1202,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
 
@@ -1212,7 +1213,7 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
             }
         }
@@ -1706,6 +1707,7 @@ namespace AltinnCore.Common.Services.Implementation
             string servicePath = _settings.GetServicePath(org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             File.Copy(_generalSettings.DefaultRepoDockerfile, servicePath + _settings.DockerfileFileName);
             File.Copy(_generalSettings.DefaultProjectFile, servicePath + _settings.ProjectFileName);
+            File.Copy(_generalSettings.DefaultGitIgnoreFile, servicePath + _settings.GitIgnoreFileName);
         }
 
         private void CreateInitialServiceImplementation(string org, string service)

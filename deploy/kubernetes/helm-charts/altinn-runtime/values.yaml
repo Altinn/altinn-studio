@@ -18,15 +18,13 @@ environmentVariables:
     - name: ASPNETCORE_URLS
       value: http://+:5005
     - name: ServiceRepositorySettings__RepositoryLocation
-      value: /AltinnRuntime/Repos/
+      value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000/
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
       value: \"true\"
-    - name: ServiceRepositorySettings__RuntimeAPIEndPoint
-      value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
     - name: GeneralSettings__AltinnStudioEndpoint
@@ -45,14 +43,13 @@ environmentVariables:
     - name: ASPNETCORE_URLS
       value: http://+:5005
     - name: ServiceRepositorySettings__RepositoryLocation
-      value: /AltinnRuntime/Repos/
+      value: /AltinnCore/Repos/
     - name: ServiceRepositorySettings__RepositoryBaseURL
       value: http://altinn-repositories:3000/
     - name: ServiceRepositorySettings__GiteaInternalHost
       value: altinn-repositories
     - name: ServiceRepositorySettings__EnableGiteaIntegration
-      value: \"true\"
-    - name: ServiceRepositorySettings__RuntimeAPIEndPoint
+
       value: "http://altinn-designer:5000/"
     - name:  TestdataRepositorySettings__DesignerInternalHost
       value: "altinn-designer"
@@ -63,12 +60,12 @@ environmentVariables:
 
 volumeMounts:
   - name: altinn-runtime-repo-storage
-    mountPath: "/AltinnRuntime/Repos"
+    mountPath: "/AltinnCore/Repos"
 
 volumes:
   - name: altinn-runtime-repo-storage
     persistentVolumeClaim:
-      claimName: altinn-storage-runtime-repo-volume-claim
+      claimName: altinn-storage-repo-premium-volume-claim
   - name: altinn-appsettings
     secret:
       secretName: altinn-appsettings-secret
