@@ -31,11 +31,11 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Inserts new instance event into the instanceEvent collection
+        /// Inserts new instance event into the instanceEvent collection.
         /// </summary>
-        /// <param name="instanceEvent">intance event</param>
-        /// <returns>instance event object</returns>
-        /// POST https://localhost:44399/api/storage/v1/instanceevents/
+        /// <param name="instanceEvent">Id of instance to retrieve events for. </param>
+        /// <returns>The stored instance event.</returns>
+        /// POST storage/api/v1/instanceevents/
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] InstanceEvent instanceEvent)
         {
@@ -56,11 +56,11 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Inserts new instance event into the instanceEvent collection
+        /// Retrieves all instance events related to given instance id from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">instance owner</param>
-        /// <returns>instance object</returns>
-        /// GET  https://localhost:44399/api/storage/v1/instanceevents/?instanceid=123456
+        /// <param name="instanceId">Id of instance to retrieve events for. </param>
+        /// <returns>List of instance events.</returns>
+        /// GET  storage/api/v1/instanceevents/?instanceid={instanceId}
         [HttpGet]
         public async Task<ActionResult> GetAllInstanceEvents(string instanceId)
         {
@@ -79,11 +79,12 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Inserts new instance event into the instanceEvent collection
+        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">instance owner</param>
-        /// <returns>instance object</returns>
-        /// https://localhost:44399/api/storage/v1/instanceevents/GetByInstanceEventType?instanceId=123456&eventTypes=deleted&eventTypes=submit
+        /// <param name="instanceId">Id of instance to retrieve events for.</param>
+        /// <param name="eventTypes">List of event types to filter the events by./param>
+        /// <returns>List of intance events.</returns>
+        /// GET  storage/api/v1/instanceevents/GetByInstanceEventType?instanceId={instanceId}&eventTypes={eventType}&eventTypes={eventType}
         [HttpGet]
         [Route("GetByInstanceEventType")]
         public async Task<ActionResult> GetInstanceEventsEventTypes(string instanceId, List<string> eventTypes)
@@ -105,11 +106,13 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Inserts new instance event into the instanceEvent collection
+        /// Retrieves all instance events related to given instance id and time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">instance owner</param>
-        /// <returns>instance object</returns>
-        /// GET https://localhost:44399/api/storage/v1/instanceEvents/GetByTimeFrame?instanceId=123456&from=2019-04-30T14:39:47&to=2019-04-30T14:39:47
+        /// <param name="instanceId">Id of instance to retrieve events for.</param>
+        /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <returns>List of instance events.</returns>
+        /// GET storage/api/v1/instanceevents/GetByTimeFrame?instanceId={instanceId}&from={fromtime}&to={totime}
         [HttpGet]
         [Route("GetByTimeFrame")]
         public async Task<ActionResult> GetInstanceEventsTimeframe(string instanceId, string from, string to)
@@ -132,7 +135,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             List<InstanceEvent> result = await _repository.ListInstanceEventsTimeFrame(instanceId, fromDateTime, toDateTime);
 
-            // should we differenciate between query failing and no instances existing in collection? 
+            // should we differenciate between query failing and no instances existing in collection?
             if (result == null || result.Count == 0)
             {
                 return NotFound($"Did not find any instance events for instanceId={instanceId} between {fromDateTime} and {toDateTime}");
@@ -142,15 +145,14 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Deletes all events related to an instance
+        /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceId">instance owner</param>
-        /// <returns>instance object</returns>
-        /// DELETE https://localhost:44399/api/storage/v1/instanceEvents/?instanceId={instanceId}
+        /// <param name="instanceId">Id of instance to retrieve events for. .</param>
+        /// <returns>Number of deleted events.</returns>
+        /// DELETE storage/api/v1/instanceevents/?instanceId={instanceId}
         [HttpDelete]
         public async Task<ActionResult> Delete(string instanceId)
         {
-            // TODO: Check authorization level and access to delete the data
             if (string.IsNullOrEmpty(instanceId))
             {
                 return BadRequest("Unable to perform query.");

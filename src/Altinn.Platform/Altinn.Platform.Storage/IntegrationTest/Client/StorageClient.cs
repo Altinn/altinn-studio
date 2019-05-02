@@ -151,10 +151,10 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Get an instance.
+        /// Retrieves all instance events related to given instance id from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">a</param>
-        /// <returns></returns>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <returns>List of instance events.</returns>
         public async Task<List<InstanceEvent>> GetAllInstanceEvents(string instanceId)
         {
             string requestUri = $"{versionPrefix_new}/instanceEvents/?instanceId={instanceId}";
@@ -168,11 +168,11 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Get an instance.
+        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">the id of the instance</param>
-        /// <param name="eventTypes">the list of event types </param>
-        /// <returns></returns>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <param name="eventTypes">List of event types to filter the events by./param>
+        /// <returns>List of intance events.</returns>
         public async Task<List<InstanceEvent>> GetInstanceEventsEventTypes(string instanceId, List<string> eventTypes)
         {
             string requestUri = $"{versionPrefix_new}/instanceEvents/GetByInstanceEventType?instanceId={instanceId}";
@@ -189,12 +189,12 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Get an instance.
+        /// Retrieves all instance events related to given instance id and time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">the id of the instance</param>
-        /// <param name="from">the list of event types </param>
-        /// <param name="to">fromthe list of event types </param>
-        /// <returns></returns>
+        /// <param name="instanceId">Id of instance to retrieve events for.</param>
+        /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <returns>List of instance events.</returns>
         public async Task<List<InstanceEvent>> GetInstanceEventsTimeframe(string instanceId, string from, string to)
         {
             string requestUri = $"{versionPrefix_new}/instanceEvents/GetByTimeFrame?instanceId={instanceId}&from={from}&to={to}";
@@ -206,9 +206,10 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Creates data.
+        /// Inserts new instance event into the instanceEvent collection.
         /// </summary>
-        /// <param name="instanceEvent">a</param>
+        /// <param name="instanceEvent">Instance event to be stored. </param>
+        /// <returns>The stored instance event.</returns>
         public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
         {
             string requestUri = $"{versionPrefix_new}/instanceEvents";
@@ -218,9 +219,10 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Creates data.
+        /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceId">a</param>
+        /// <param name="instanceId">Id of instance to retrieve events for. </param>
+        /// <returns>True if instance events were successfully deleted.</returns>
         public async Task<bool> DeleteInstanceEvents(string instanceId)
         {
             string requestUri = $"{versionPrefix_new}/instanceEvents?instanceId={instanceId}";

@@ -12,41 +12,41 @@ namespace Altinn.Platform.Storage.Repository
     public interface IInstanceEventRepository
     {
         /// <summary>
-        /// InsertSummary
+        /// Inserts new instance event into the instanceEvent collection.
         /// </summary>
-        /// <param name="instanceEvent"> insert description </param>
-        /// <returns>Insert description</returns>
+        /// <param name="instanceEvent">Instance event to be stored. </param>
+        /// <returns>The stored instance event.</returns>
         Task<InstanceEvent> InsertInstanceEvent(InstanceEvent instanceEvent);
 
         /// <summary>
-        /// InsertSummary
+        /// Retrieves all instance events related to given instance id from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId"> insert description </param>
-        /// <returns>Insert description</returns>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <returns>List of instance events.</returns>
         Task<List<InstanceEvent>> ListAllInstanceEvents(string instanceId);
 
         /// <summary>
-        /// InsertSummary
+        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId"> insert description </param>
-        /// <param name="eventTypes"> insertt description </param>
-        /// <returns>Insert description</returns>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <param name="eventTypes">List of event types to filter the events by./param>
+        /// <returns>List of intance events.</returns>
         Task<List<InstanceEvent>> ListInstanceEventsSpecificEventTypes(string instanceId, List<string> eventTypes);
 
         /// <summary>
         /// InsertSummary
         /// </summary>
-        /// <param name="instanceId"> insert description </param>
-        /// <param name="fromDateTime"> insertt description </param>
-        /// <param name="toDateTime"> inserttt description </param>
-        /// <returns>Insert description</returns>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
+        /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
+        /// <returns>List of instance events.</returns>
         Task<List<InstanceEvent>> ListInstanceEventsTimeFrame(string instanceId, DateTime fromDateTime, DateTime toDateTime);
 
         /// <summary>
-        /// InsertSummary
+        /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceId"> insert description </param>
-        /// <returns>Insert description</returns>
+        /// <param name="instanceId">Id of instance to retrieve events for. </param>
+        /// <returns>Number of deleted instance events.</returns>
         Task<int> DeleteAllInstanceEvents(string instanceId);
     }
 

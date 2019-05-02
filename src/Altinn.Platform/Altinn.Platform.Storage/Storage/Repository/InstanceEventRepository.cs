@@ -59,10 +59,10 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Insert 
+        ///  Inserts new instance event into the instanceEvent collection.
         /// </summary>
-        /// <param name="item">Insrt/param>
-        /// <returns>Insert</returns>
+        /// <param name="item">Instance event to be stored./param>
+        /// <returns>The stored instance event.</returns>
         public async Task<InstanceEvent> InsertInstanceEvent(InstanceEvent item)
         {
             try
@@ -81,10 +81,10 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Insert 
+        /// Retrieves all instance events related to given instance id from instanceEvent collection. 
         /// </summary>
-        /// <param name="instanceId">Insrt/param>
-        /// <returns>Insert</returns>
+        /// <param name="instanceId">Id of instance to retrieve events for./param>
+        /// <returns>List of instance events.</returns>
         public async Task<List<InstanceEvent>> ListAllInstanceEvents(string instanceId)
         {
             try
@@ -123,11 +123,11 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Insert 
+        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection. 
         /// </summary>
-        /// <param name="instanceId">Insrt/param>
-        /// <param name="eventTypes">Insrt/param>
-        /// <returns>Insert</returns>
+        /// <param name="instanceId">Id of instance to retrieve events for./param>
+        /// <param name="eventTypes">List of event types to filter the events by./param>
+        /// <returns>List of intance events.</returns>
         public async Task<List<InstanceEvent>> ListInstanceEventsSpecificEventTypes(string instanceId, List<string> eventTypes)
         {
             try
@@ -168,10 +168,10 @@ namespace Altinn.Platform.Storage.Repository
         /// <summary>
         /// Insert 
         /// </summary>
-        /// <param name="instanceId">Insrt/param>
-        /// <param name="fromDateTime">Insrt/param>
-        /// <param name="toDateTime">Insrt/param>
-        /// <returns>Insert</returns>
+        /// <param name="instanceId">Id of instance to retrieve events for./param>
+        /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
+        /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
+        /// <returns>List of instance events.</returns>
         public async Task<List<InstanceEvent>> ListInstanceEventsTimeFrame(string instanceId, DateTime fromDateTime, DateTime toDateTime)
         {
             try
@@ -210,9 +210,9 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Delete 
+        /// Deletes all events related to an instance id.
         /// </summary>
-        /// <param name="instanceId">Insrt/param>
+        /// <param name="instanceId">Id of instance to retrieve events for./param>
         /// <returns>True if all events are deleted</returns>
         public async Task<int> DeleteAllInstanceEvents(string instanceId)
         {
