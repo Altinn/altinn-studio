@@ -185,11 +185,10 @@ export function* uploadAttachmentSaga(
     const servicePath = `${org}/${service}`;
     const data = new FormData();
     data.append('file', file);
-    const url = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
-      `${servicePath}/GetAttachmentUploadUrl/${instanceId}/${attachmentType}/${file.name}`;
 
-    const fileUploadLink = yield call(get, url);
-    const response = yield call(post, fileUploadLink, null, data);
+    // tslint:disable-next-line:max-line-length
+    const fileUploadUrl = `${altinnWindow.location.origin}/runtime/api/attachment/${reportee}/${servicePath}/${instanceId}/SaveFormAttachment?attachmentType=${attachmentType}&attachmentName=${file.name}`;
+    const response = yield call(post, fileUploadUrl, null, data);
     if (response.status === 200) {
       const attachment: IAttachment
         = { name: file.name, size: file.size, uploaded: true, id: response.data.id, deleting: false };
@@ -224,9 +223,8 @@ export function* deleteAttachmentSaga(
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    const getDeleteUrl = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
-      `${servicePath}/GetAttachmentDeleteUrl/${instanceId}/${attachmentType}/${attachment.name}/${attachment.id}`;
-    const deleteUrl = yield call(get, getDeleteUrl);
+    // tslint:disable-next-line:max-line-length
+    const deleteUrl = `${altinnWindow.location.origin}/runtime/api/attachment/${reportee}/${servicePath}/${instanceId}/DeleteFormAttachment?attachmentType=${attachmentType}&attachmentId=${attachment.id}`;
     const response = yield call(post, deleteUrl);
     if (response.status === 200) {
       yield call(FormFillerActionDispatcher.deleteAttachmentFulfilled, attachment.id, attachmentType, componentId);
@@ -253,9 +251,8 @@ export function* fetchAttachments(): SagaIterator {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;
     const servicePath = `${org}/${service}`;
-    const getAttachmentListUrl = `${altinnWindow.location.origin}/runtime/api/${reportee}/` +
-      `${servicePath}/GetAttachmentListUrl/${instanceId}`;
-    const attachmentListUrl = yield call(get, getAttachmentListUrl);
+    // tslint:disable-next-line:max-line-length
+    const attachmentListUrl = `${altinnWindow.location.origin}/runtime/api/attachment/${reportee}/${servicePath}/${instanceId}/GetFormAttachments`;
     const response = yield call(get, attachmentListUrl);
     const attachments: IAttachments = mapAttachmentListApiResponseToAttachments(response);
     yield call(FormFillerActionDispatcher.fetchAttachmentsFulfilled, attachments);

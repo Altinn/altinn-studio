@@ -46,7 +46,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             storage.PostDataReadFromFile(instanceId, instanceOwnerId, "test.json", "application/json");
             Instance instanceUpdated = await storage.GetInstances(instanceId, instanceOwnerId);
-            string dataId = instanceUpdated.Data.Keys.First();
+            string dataId = instance.Data.Find(m => m.FormId.Equals("default")).Id;
 
             for (int i = 0; i < 100; i++)
             {

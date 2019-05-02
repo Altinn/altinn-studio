@@ -14,6 +14,7 @@ using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.ServiceLibrary.Enums;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Models.Workflow;
+using AltinnCore.ServiceLibrary.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -40,7 +41,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly TestdataRepositorySettings _testdataRepositorySettings;
         private readonly IGitea _giteaApi;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflowSI _workflowSI;
+        private readonly IWorkflow _workflowSI;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
@@ -65,7 +66,7 @@ namespace AltinnCore.Runtime.Controllers
             IExecution execution,
             IHttpContextAccessor contextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
-            IWorkflowSI workflowSI)
+            IWorkflow workflowSI)
         {
             _testdata = testdataService;
             _profile = profileService;
@@ -91,41 +92,15 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public async Task<IActionResult> Index(string org, string service, int reporteeId)
         {
-            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string apiUrl = _settings.GetRuntimeAPIPath("ZipAndSendRepo", org, service, developer);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            using (HttpClient client = AuthenticationHelper.GetDesignerHttpClient(_httpContextAccessor.HttpContext, _testdataRepositorySettings.GetDesignerHost()))
-            {
-                client.BaseAddress = new Uri(apiUrl);
-                HttpResponseMessage response = await client.GetAsync(apiUrl);
-                string zipPath = $"{_settings.GetServicePath(org, service, developer)}{service}.zip";
-                string extractPath = _settings.GetServicePath(org, service, developer);
-                if (!Directory.Exists(extractPath))
-                {
-                    Directory.CreateDirectory(extractPath);
-                }
-                else
-                {
-                    Directory.Delete(extractPath, true);
-                    Directory.CreateDirectory(extractPath);
-                }
-
-                using (Stream s = response.Content.ReadAsStreamAsync().Result)
-                {
-                    using (var w = System.IO.File.OpenWrite(zipPath))
-                    {
-                        s.CopyTo(w);
-                    }
-                }
-
-                ZipFile.ExtractToDirectory(zipPath, extractPath);
-            }
-
+            // TODO: make templates folder available to runtime pod 
+            _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
-            var startServiceModel = new StartServiceModel
+            StartServiceModel startServiceModel = new StartServiceModel
             {
                 ServiceID = org + "_" + service,
                 ReporteeList = _authorization.GetReporteeList(requestContext.UserContext.UserId)
@@ -142,7 +117,7 @@ namespace AltinnCore.Runtime.Controllers
             if (reporteeId != 0 && reporteeId != startServiceModel.ReporteeID && startServiceModel.ReporteeList.Any(r => r.Value.Equals(reporteeId.ToString())))
             {
                 startServiceModel.ReporteeID = reporteeId;
-                requestContext.Reportee = _register.GetParty(startServiceModel.ReporteeID);
+                requestContext.Reportee = await _register.GetParty(startServiceModel.ReporteeID);
                 requestContext.UserContext.ReporteeId = reporteeId;
                 requestContext.UserContext.Reportee = requestContext.Reportee;
                 HttpContext.Response.Cookies.Append("altinncorereportee", startServiceModel.ReporteeID.ToString());
@@ -162,10 +137,10 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public IActionResult RedirectToCorrectState(string org, string service, Guid instanceId)
+        public async Task<IActionResult> RedirectToCorrectState(string org, string service, Guid instanceId)
         {
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             ServiceState currentState = _workflowSI.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
             string nextUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
             return Redirect(nextUrl);
@@ -235,7 +210,7 @@ namespace AltinnCore.Runtime.Controllers
                 }
             }
 
-            UserProfile profile = _profile.GetUserProfile(id);
+            UserProfile profile = await _profile.GetUserProfile(id);
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
             claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, Issuer));

@@ -21,6 +21,9 @@ export default class RunTimePage {
     this.fileDeleteButton = Selector('#attachment-delete-0');
     this.textboxComponent = Selector('textarea')
     this.addressComponent = Selector('input').withAttribute('type','text');
+
+    //read-only components
+    //this.readOnlyInput = readOnlySelectors('Navn');
   }
 
   async readOnlySelectors(innerText){

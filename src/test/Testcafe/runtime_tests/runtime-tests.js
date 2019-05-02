@@ -56,7 +56,7 @@ test('Upload files using file component in SBL', async () => {
 
 test('Read-only components test in runtime', async () => {
   await t
-  .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
+  .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view_auto#/aboutservice')
   .click(designer.testeNavigationTab)
   .hover(designer.leftDrawerMenu)
   .click(designer.testeLeftMenuItems[0])

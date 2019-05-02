@@ -8,6 +8,7 @@ exports[`>>> components/base/serviceCard.tsx --- Snapshot +++ Should match snaps
     className="MuiButtonBase-root-41 MuiCardActionArea-root-38"
     onBlur={[Function]}
     onClick={[Function]}
+    onContextMenu={[Function]}
     onFocus={[Function]}
     onKeyDown={[Function]}
     onKeyUp={[Function]}
@@ -96,7 +97,7 @@ exports[`>>> components/base/serviceCard.tsx --- Snapshot +++ Should match snaps
       className="MuiCardActionArea-focusHighlight-40"
     />
     <span
-      className="MuiTouchRipple-root-177"
+      className="MuiTouchRipple-root-178"
     />
   </button>
 </div>
