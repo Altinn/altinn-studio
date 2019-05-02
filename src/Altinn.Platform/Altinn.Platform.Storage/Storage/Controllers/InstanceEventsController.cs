@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// API for managing the instance event element
     /// </summary>
-    [Route("api/storage/v1/[controller]")]
+    [Route("storage/api/v1/[controller]")]
     public class InstanceEventsController : Controller
     {
         private readonly IInstanceEventRepository _repository;
@@ -156,15 +156,19 @@ namespace Altinn.Platform.Storage.Controllers
                 return BadRequest("Unable to perform query.");
             }
 
-            bool result = await _repository.DeleteAllInstanceEvents(instanceId);
+            int result = await _repository.DeleteAllInstanceEvents(instanceId);
 
-            if (result)
+            if (result > 0)
             {
-                return Ok(result);
+                return Ok($"{result} instance events were succesfully deleted from the database.");
+            }
+            else if (result == 0)
+            {
+                return Ok($"No instance events related to instance {instanceId} were found in the database.");
             }
             else
             {
-                return NotFound();
+                return BadRequest("Unable to perform query.");
             }
         }
     }

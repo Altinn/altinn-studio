@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="instanceId"> insert description </param>
         /// <returns>Insert description</returns>
-        Task<bool> DeleteAllInstanceEvents(string instanceId);
+        Task<int> DeleteAllInstanceEvents(string instanceId);
     }
 
 }

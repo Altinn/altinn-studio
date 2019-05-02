@@ -67,8 +67,8 @@ namespace Altinn.Platform.Storage.Repository
         {
             try
             {
-                ResourceResponse<Document> createDocumentResponse = await _client.CreateDocumentAsync(_collectionUri, item);
-                Document document = createDocumentResponse.Resource;
+                ResourceResponse<Document> response = await _client.CreateDocumentAsync(_collectionUri, item);
+                Document document = response.Resource;
 
                 InstanceEvent instanceEvent = JsonConvert.DeserializeObject<InstanceEvent>(document.ToString());
 
@@ -214,8 +214,9 @@ namespace Altinn.Platform.Storage.Repository
         /// </summary>
         /// <param name="instanceId">Insrt/param>
         /// <returns>True if all events are deleted</returns>
-        public async Task<bool> DeleteAllInstanceEvents(string instanceId)
+        public async Task<int> DeleteAllInstanceEvents(string instanceId)
         {
+            int deletedEventsCount = 0; 
             try
             {
                 IDocumentQuery<InstanceEvent> query = _client
@@ -230,13 +231,14 @@ namespace Altinn.Platform.Storage.Repository
                 {
                     var docUri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceEvent.Id.ToString());
                     await _client.DeleteDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
+                    deletedEventsCount++;
                 }
 
-                return true;
+                return deletedEventsCount;
             }
             catch (Exception e)
             {
-                return false;
+                return -1;
             }
         }
     }

@@ -10,7 +10,8 @@ namespace Altinn.Platform.Storage.Models
     /// </summary>
     public class InstanceEvent
     {
-        public Guid Id { get; set; }
+        [JsonProperty(PropertyName = "id")]
+        public Guid? Id { get; set; }
 
         /// <summary>
         /// Gets or sets identifier used to identify unique instance
@@ -22,7 +23,7 @@ namespace Altinn.Platform.Storage.Models
         /// Gets or sets identifier used to identify when Authentication Event was created
         /// </summary>
         [JsonProperty(PropertyName = "createdDateTime")]
-        public DateTime CreatedDateTime { get; set; }
+        public DateTime? CreatedDateTime { get; set; }
 
         /// <summary>
         /// Gets or sets identifier used to identify what type of Instance Event
@@ -52,7 +53,7 @@ namespace Altinn.Platform.Storage.Models
         /// Get or sets identifier used to identify the end user system that triggered the event
         /// </summary>
         [JsonProperty(PropertyName = "endUserSystemId")]
-        public int EndUserSystemId { get; set; }
+        public int? EndUserSystemId { get; set; }
 
         /// <summary>
         /// Gets or sets identifier used to identify the workflow step during which the event occured
