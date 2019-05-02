@@ -1,14 +1,17 @@
-import { Hidden } from '@material-ui/core';
+import { Paper } from '@material-ui/core';
 import { Grid } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
 import AltinnFilterChip from '../../../../shared/src/components/AltinnFilterChip';
+import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
 import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
+import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { get } from '../../../../shared/src/utils/networking';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
@@ -27,9 +30,12 @@ export interface IServicesOverviewComponentProps extends IServicesOverviewCompon
 export interface IServicesOverviewComponentState {
   selectedOwners: string[];
   searchString: string;
+  majorIssues: string;
 }
 
-const styles = {
+const theme = createMuiTheme(altinnTheme);
+
+const styles = createStyles({
   mar_top_100: {
     marginTop: '100px',
   },
@@ -58,7 +64,31 @@ const styles = {
     fontSize: '18px',
     fontWeight: 500,
   },
-};
+  paper: {
+    background: theme.altinnPalette.primary.yellowLight,
+    boxShadow: '1px 1px 4px rgba(0, 0, 0, 0.25)',
+    borderRadius: 0,
+    fontSize: 16,
+    padding: 26,
+    fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
+    marginTop: 13,
+  },
+  paperList: {
+    paddingTop: 13,
+    paddingBottom: 13,
+  },
+  link: {
+    'borderBottom': '1px solid ' + theme.altinnPalette.primary.blueDark,
+    'color': theme.altinnPalette.primary.blueDarker,
+    '&:hover': {
+      fontWeight: 500,
+      textDecoration: 'none',
+      color: theme.altinnPalette.primary.blueDarker,
+      borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
+    },
+  },
+});
+
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
   services.map((service: any) => {
@@ -93,11 +123,31 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
       selectedOwners: _props.selectedOwners,
     };
   }
+  public _isMounted = false;
 
   public state: IServicesOverviewComponentState = {
     selectedOwners: [],
     searchString: '',
+    majorIssues: null,
   };
+
+  public componentDidMount() {
+    this._isMounted = true;
+    get(`${'https://cors-anywhere.herokuapp.com/'}https://github.com/Altinn/altinn-studio/blob/master/KNOWNISSUES.md`)
+      .then((res) => {
+        if (this._isMounted) {
+          const doc = new DOMParser().parseFromString(res, 'text/html');
+
+          this.setState({
+            majorIssues: doc.getElementById('readme').getElementsByTagName('ul')[0].innerHTML,
+          });
+        }
+      });
+  }
+
+  public componentWillUnmount() {
+    this._isMounted = false;
+  }
 
   public searchAndFilterServicesIntoCategoriesCategory(hasWriteRights: any) {
     const filteredServices = this.props.services
@@ -182,6 +232,8 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
 
   public render() {
     const { classes, services, currentUserName } = this.props;
+    const altinnWindow: Window = window;
+    const knownIssuesUrl = `${altinnWindow.location.origin}#/knownissues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -204,6 +256,21 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             </Grid>
           }
         </Grid>
+        <Paper elevation={0} className={classes.paper}>
+          <Typography>
+            {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
+          </Typography>
+          <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
+          <a href={knownIssuesUrl} className={classes.link}>
+            {getLanguageFromKey('dashboard.know_issues_link', this.props.language)}
+            <AltinnIcon
+              isActive={false}
+              iconClass='ai ai-arrowrightup'
+              iconColor={theme.altinnPalette.primary.black}
+              iconSize={20}
+            />
+          </a>
+        </Paper>
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
@@ -227,14 +294,6 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
                   onChangeFunction={this.updateSearchSting}
                 />
               </Grid>
-              <Hidden lgUp={true}>
-                {/* {this.renderSort()} */}
-                {this.renderFilters()}
-              </Hidden>
-              <Hidden mdDown={true}>
-                {this.renderFilters()}
-                {/* {this.renderSort()} */}
-              </Hidden>
             </Grid>
             <ServicesCategory
               header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}

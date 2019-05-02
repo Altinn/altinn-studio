@@ -4,8 +4,8 @@ import * as React from 'react';
 import { Provider } from 'react-redux';
 import * as renderer from 'react-test-renderer';
 import configureStore from 'redux-mock-store';
-import { ServiceCard } from '../../../src/dashboardServices/serviceOverview/serviceCard';
-import { ServiceCardComponent } from '../../../src/dashboardServices/serviceOverview/serviceCard';
+import { ServiceCard } from '../../../src/features/serviceOverview/serviceCard';
+import { ServiceCardComponent } from '../../../src/features/serviceOverview/serviceCard';
 
 jest.mock('react-truncate-markup');
 

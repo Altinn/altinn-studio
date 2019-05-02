@@ -80,17 +80,17 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
           className={classes.breadCrumb}
           firstLink={`${window.location.origin}/`}
           firstLinkTxt={getLanguageFromKey('dashboard.main_header', this.props.language)}
-          secondLinkTxt={getLanguageFromKey('dashboard.main_header', this.props.language)}
+          secondLinkTxt={getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
         />
         <div className={classes.mainStyle}>
           <Typography component='h1' variant='h1' gutterBottom={true} className={classes.serviceHeader}>
-            Kjente feil
+            {getLanguageFromKey('dashboard.known_issues_header', this.props.language)}
           </Typography>
           {this.state.knownIssues ?
             <div dangerouslySetInnerHTML={{ __html: this.state.knownIssues }} />
             :
             <AltinnSpinner
-              spinnerText='laster kjente feil'
+              spinnerText={getLanguageFromKey('dashboard.known_issues_loading_text', this.props.language)}
             />
           }
         </div>
