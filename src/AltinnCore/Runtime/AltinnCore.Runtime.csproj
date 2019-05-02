@@ -27,15 +27,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Views\Instance\editSPA.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-    <Content Update="Views\Shared\_LayoutClean.cshtml">
-      <Pack>$(IncludeRazorContentInPack)</Pack>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
     <CoreTestdata Include="../Testdata/**/*.*" />
 	<CoreLanguage Include="../Common/Languages/ini/*" />
   </ItemGroup>

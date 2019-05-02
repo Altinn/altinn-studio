@@ -8,7 +8,7 @@
     "test": "jest"
   },
   "dependencies": {
-    "@material-ui/core": "3.6.1",
+    "@material-ui/core": "3.9.3",
     "@material-ui/icons": "3.0.1",
     "axios": "0.18.0",
     "classnames": "2.2.6",
@@ -24,7 +24,7 @@
     "@types/enzyme": "3.1.15",
     "@types/jest": "23.3.13",
     "@types/jsdom": "12.2.1",
-    "@types/react": "16.8.3",
+    "@types/react": "16.8.10",
     "@types/react-router-dom": "4.3.1",
     "@types/react-test-renderer": "16.8.1",
     "altinn-designsystem": "2.0.19",
@@ -36,9 +36,9 @@
     "jest-enzyme": "7.0.1",
     "jest-junit": "6.1.0",
     "jsdom": "13.2.0",
-    "react": "16.8.3",
-    "react-dom": "16.8.3",
-    "react-test-renderer": "16.8.3",
+    "react": "16.8.6",
+    "react-dom": "16.8.6",
+    "react-test-renderer": "16.8.6",
     "ts-jest": "23.10.5",
     "typescript": "3.1.6"
   },

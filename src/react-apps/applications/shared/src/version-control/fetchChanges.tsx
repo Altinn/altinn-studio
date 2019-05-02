@@ -1,13 +1,14 @@
-import { Button, createMuiTheme, createStyles, withStyles } from '@material-ui/core';
+import { Button, createMuiTheme, createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
+import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 
 export interface IFetchChangesCompoenentProvidedProps {
+  changesInMaster: boolean;
   classes: any;
   fetchChanges: any;
-  changesInMaster: boolean;
   language: any;
 }
 
@@ -22,17 +23,8 @@ export interface IFetchChangesComponenetState {
 const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
-  color_blueDarker: {
-    color: theme.altinnPalette.primary.blueDarker,
-  },
-  color_blueDark: {
-    color: theme.altinnPalette.primary.blueDark,
-  },
   bold: {
     fontWeight: 500,
-  },
-  clickable: {
-    maxWidth: '250px',
   },
   btn: {
     'textTransform': 'none',
@@ -43,6 +35,12 @@ const styles = createStyles({
     '&:focus': {
       backgroundColor: 'transparent !Important',
     },
+  },
+  clickable: {
+    maxWidth: '250px',
+  },
+  color_blueDark: {
+    color: theme.altinnPalette.primary.blueDark,
   },
 });
 
@@ -59,16 +57,27 @@ class FetchChangesComponenet extends React.Component<IFetchChangesComponenetProp
         onClick={this.fetchChangesHandler}
         className={classNames(classes.clickable, classes.btn)}
       >
-        <p
-          className={classNames(
-            classes.color_blueDark,
-            { [classes.bold]: this.props.changesInMaster === true },
-          )}
-        >
-          <i
-            className={classNames('fa fa-download', classes.color_blueDark)}
-          /> {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
-        </p>
+        <Grid container={true} alignItems='center'>
+          <Grid item={true}>
+            <AltinnIcon
+              iconClass='fa fa-download'
+              iconColor={theme.altinnPalette.primary.blueDark}
+              iconSize={36}
+              margin='0px -5px 0px -5px'
+              weight={this.props.changesInMaster ? 600 : null}
+            />
+          </Grid>
+          <Grid item={true}>
+            <Typography
+              variant='body1'
+              className={classNames(classes.color_blueDark,
+                { [classes.bold]: this.props.changesInMaster === true },
+              )}
+            >
+              {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
+            </Typography>
+          </Grid>
+        </Grid>
       </Button>
     );
   }

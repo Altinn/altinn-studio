@@ -19,6 +19,7 @@ FROM microsoft/dotnet@sha256:d1ad61421f637a4fe6443f2ec204cca9fe10bf833c31adc6ce7
 EXPOSE 80
 WORKDIR /AltinnService
 COPY src/AltinnCore/Testdata /Testdata
+COPY src/AltinnCore/Templates /Templates
 WORKDIR /app
 COPY --from=build /app_output .
 COPY --from=generate-runtime-app /applications/runtime/dist/runtime.js ./wwwroot/runtime/js/react/runtime.js

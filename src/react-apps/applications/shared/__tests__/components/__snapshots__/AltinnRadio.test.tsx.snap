@@ -7,6 +7,7 @@ exports[`>>> AltinnRadioButton.tsx +++ Should match snapshot with all params  1`
   <span
     className="MuiButtonBase-root-19 MuiIconButton-root-13 MuiPrivateSwitchBase-root-9 MuiRadio-root-4 AltinnRadio-altinnRadio-3 MuiRadio-colorSecondary-8 MuiPrivateSwitchBase-checked-10 MuiRadio-checked-5"
     onBlur={[Function]}
+    onContextMenu={[Function]}
     onFocus={[Function]}
     onKeyDown={[Function]}
     onKeyUp={[Function]}
@@ -57,6 +58,7 @@ exports[`>>> AltinnRadioButton.tsx +++ Should match snapshot with the least amou
 <span
   className="MuiButtonBase-root-19 MuiIconButton-root-13 MuiPrivateSwitchBase-root-9 MuiRadio-root-4 AltinnRadio-altinnRadio-3 MuiRadio-colorSecondary-8"
   onBlur={[Function]}
+  onContextMenu={[Function]}
   onFocus={[Function]}
   onKeyDown={[Function]}
   onKeyUp={[Function]}
