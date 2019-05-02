@@ -10,6 +10,9 @@ namespace Altinn.Platform.Storage.Models
     /// </summary>
     public class InstanceEvent
     {
+        /// <summary>
+        /// Gets or sets identifier used to identify unique instance events. 
+        /// </summary>
         [JsonProperty(PropertyName = "id")]
         public Guid? Id { get; set; }
 
