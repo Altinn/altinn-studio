@@ -26,14 +26,12 @@ fixture('Regression tests of services in runtime')
   })
 
   
-test.only('Instantiate a service in runtime', async () => {
+test('Instantiate a service in runtime', async () => {
     await t
       .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
       .click(designer.testeNavigationTab)
       .hover(designer.leftDrawerMenu)
       .click(designer.testeLeftMenuItems[0])
-    debugger;
-    await t
       .click(runtime.openManualTestWindow)
       .click(runtime.testUsers[0])
       .click(runtime.startNewButton)
