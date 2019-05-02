@@ -21,14 +21,14 @@ fixture('Regression tests of services in runtime')
   .page(app.baseUrl)
   .beforeEach(async t => {
     //Testdata and other testing context
-    t.ctx.serviceName = "runtime_autotest";
+    t.ctx.serviceName = "runtime";
     await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
   })
 
   
 test('Instantiate a service in runtime', async () => {
     await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/runtime_auto_test#/aboutservice')
+      .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
       .click(designer.testeNavigationTab)
       .hover(designer.leftDrawerMenu)
       .click(designer.testeLeftMenuItems[0])
@@ -56,7 +56,7 @@ test('Upload files using file component in SBL', async () => {
 
 test('Read-only components test in runtime', async () => {
   await t
-  .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view_auto#/aboutservice')
+  .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/aboutservice')
   .click(designer.testeNavigationTab)
   .hover(designer.leftDrawerMenu)
   .click(designer.testeLeftMenuItems[0])
@@ -67,7 +67,7 @@ test('Read-only components test in runtime', async () => {
 
 test('axe UI accessibility test for runtime', async t => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view_auto#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
     .hover(designer.leftDrawerMenu)
     .click(designer.testeLeftMenuItems[0])
