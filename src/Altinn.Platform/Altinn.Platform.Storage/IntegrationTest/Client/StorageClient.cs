@@ -20,6 +20,7 @@ namespace Altinn.Platform.Storage.Client
         HttpClient client;
         private readonly string formId = "default";
         private readonly string versionPrefix = "api/storage/v1";
+        private readonly string versionPrefix_new = "storage/api/v1";
         private string hostName;
 
         /// <summary>
@@ -156,7 +157,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns></returns>
         public async Task<List<InstanceEvent>> GetAllInstanceEvents(string instanceId)
         {
-            string requestUri = $"{versionPrefix}/instanceEvents/?instanceId={instanceId}";
+            string requestUri = $"{versionPrefix_new}/instanceEvents/?instanceId={instanceId}";
 
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
             string eventData = await response.Content.ReadAsStringAsync();
@@ -174,7 +175,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns></returns>
         public async Task<List<InstanceEvent>> GetInstanceEventsEventTypes(string instanceId, List<string> eventTypes)
         {
-            string requestUri = $"{versionPrefix}/instanceEvents/GetByInstanceEventType?instanceId={instanceId}";
+            string requestUri = $"{versionPrefix_new}/instanceEvents/GetByInstanceEventType?instanceId={instanceId}";
 
             foreach (string type in eventTypes)
             {
@@ -196,7 +197,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns></returns>
         public async Task<List<InstanceEvent>> GetInstanceEventsTimeframe(string instanceId, string from, string to)
         {
-            string requestUri = $"{versionPrefix}/instanceEvents/GetByTimeFrame?instanceId={instanceId}&from={from}&to={to}";
+            string requestUri = $"{versionPrefix_new}/instanceEvents/GetByTimeFrame?instanceId={instanceId}&from={from}&to={to}";
 
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
             string eventData = await response.Content.ReadAsStringAsync();
@@ -210,7 +211,7 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceEvent">a</param>
         public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
         {
-            string requestUri = $"{versionPrefix}/instanceEvents";
+            string requestUri = $"{versionPrefix_new}/instanceEvents";
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
             string newId = await response.Content.ReadAsStringAsync();
             return newId;
@@ -220,11 +221,12 @@ namespace Altinn.Platform.Storage.Client
         /// Creates data.
         /// </summary>
         /// <param name="instanceId">a</param>
-        public async void DeleteInstanceEvents(string instanceId)
+        public async Task<bool> DeleteInstanceEvents(string instanceId)
         {
-            string requestUri = $"{versionPrefix}/instanceEvents?instanceId={instanceId}";
+            string requestUri = $"{versionPrefix_new}/instanceEvents?instanceId={instanceId}";
             HttpResponseMessage response = await client.DeleteAsync(requestUri);
             response.EnsureSuccessStatusCode();
+            return true;
         }
     }
 

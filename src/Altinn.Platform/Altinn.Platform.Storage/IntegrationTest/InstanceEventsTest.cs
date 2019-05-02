@@ -38,13 +38,14 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Make sure repository is cleaned after the tests is run.
         /// </summary>
-        public void Dispose()
+        public async void Dispose()
         {
-            storage.DeleteInstanceEvents(testInstanceId);
+            await storage.DeleteInstanceEvents(testInstanceId);
         }
 
         /// <summary>
-        /// Gets all instance events for a given instance Id
+        /// Gets all instance events for a given instance id.
+        /// Verifies that the number of retrieved events matches what is expected.       
         /// </summary>
         [Fact]
         public async void QueryInstanceEventsOnInstanceId()
@@ -61,7 +62,8 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// Gets all instance events for a given instance Id and list of event types
+        /// Gets all instance events for a given instance Id and list of event types.
+        /// Verifies that the number of retrieved events matches what is expected.
         /// </summary>
         [Fact]
         public async void QueryInstanceEventsOnEventTypes()
@@ -71,14 +73,15 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             // Act
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await storage.GetInstanceEventsEventTypes(testInstanceId, new List<string> { "deleted"});
+            List<InstanceEvent> instanceEvents = await storage.GetInstanceEventsEventTypes(testInstanceId, new List<string> { "deleted" });
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
         }
 
         /// <summary>
-        /// Gets all instance events for a given instance Id and a time frame
+        /// Gets all instance events for a given instance id and time frame.
+        /// Verifies that the number of retrieved events matches what is expected.
         /// </summary>
         [Fact]
         public async void QueryInstanceEventsOnTimeFrame()
@@ -91,7 +94,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             string from = DateTime.UtcNow.AddMinutes(-3).ToString("s", CultureInfo.InvariantCulture);
             string to = DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
             List<InstanceEvent> instanceEvents = await storage.GetInstanceEventsTimeframe(testInstanceId, from, to);
-     
+
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
         }
