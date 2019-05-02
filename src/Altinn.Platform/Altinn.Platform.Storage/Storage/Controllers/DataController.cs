@@ -24,7 +24,7 @@ namespace Altinn.Platform.Storage.Controllers
     public class DataController : Controller
     {
         private static readonly FormOptions _defaultFormOptions = new FormOptions();
-        private readonly string prefix = "storage/api/v1/";
+        private readonly string prefix = "storage/api/v1";
         private readonly IDataRepository _dataRepository;
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;

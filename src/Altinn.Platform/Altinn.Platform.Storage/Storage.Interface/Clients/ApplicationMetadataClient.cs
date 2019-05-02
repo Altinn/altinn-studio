@@ -7,7 +7,7 @@ using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
 using Storage.Interface.Clients;
 
-namespace Altinn.Platform.Storage.IntegrationTest.Client
+namespace Altinn.Platform.Storage.Client
 {
     public class ApplicationMetadataClient
     {
@@ -21,7 +21,26 @@ namespace Altinn.Platform.Storage.IntegrationTest.Client
             this.endpointUri = enpointUri;
         }
 
-        public ApplicationMetadata CreateApplication(string applicationId, Dictionary<string, string> title)
+        public ApplicationMetadata GetOrCreateApplication(string applicationId)
+        {
+            ApplicationMetadata appMeta = GetApplicationMetadata(applicationId);
+            if (appMeta == null)
+            {
+                appMeta = CreateApplication(applicationId);
+            }
+
+            return appMeta;
+        }
+
+        public ApplicationMetadata CreateApplication(string applicationId)
+        {
+            Dictionary<string, string> title = new Dictionary<string, string>();
+            title.Add("nb", "Tittel");
+
+            return CreateApplication(applicationId, title);
+        }
+
+            public ApplicationMetadata CreateApplication(string applicationId, Dictionary<string, string> title)
         {
             ApplicationMetadata appMetadata = new ApplicationMetadata
             {

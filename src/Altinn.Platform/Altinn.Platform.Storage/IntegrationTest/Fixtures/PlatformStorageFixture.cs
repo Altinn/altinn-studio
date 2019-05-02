@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using Altinn.Platform.Storage;
+using Altinn.Platform.Storage.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,8 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
 
             testServer = new TestServer(builder);
             Client = testServer.CreateClient();
+
+            HttpClientHelper.Client = Client;
         }
 
         private string GetContentRootPath()

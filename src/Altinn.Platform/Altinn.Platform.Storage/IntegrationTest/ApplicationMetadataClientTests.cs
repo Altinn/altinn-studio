@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
-using Altinn.Platform.Storage.IntegrationTest.Client;
+using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Xunit;
