@@ -74,7 +74,7 @@ test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
 })
 
-test.only('Drag and drop test', async () => {
+test('Drag and drop test', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/test123#/uieditor')
     .expect(designer.inputComponent).ok()
