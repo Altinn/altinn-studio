@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -42,7 +43,7 @@ namespace Altinn.Platform.Storage.Client
         public async Task<bool> PostDataReadFromFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
-            
+
             using (Stream input = File.OpenRead($"data/{fileName}"))
             {
                 HttpContent fileStreamContent = new StreamContent(input);
@@ -73,7 +74,7 @@ namespace Altinn.Platform.Storage.Client
         public async void PostData(string instanceId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, object> content)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
 
             response.EnsureSuccessStatusCode();
@@ -106,7 +107,7 @@ namespace Altinn.Platform.Storage.Client
         public async Task<Dictionary<string, string>> GetData(string instanceId, string dataId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
 
             response.EnsureSuccessStatusCode();
@@ -125,7 +126,7 @@ namespace Altinn.Platform.Storage.Client
         public async Task<Instance> GetInstances(string instanceId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage getInstanceResponse = await client.GetAsync(hostName + requestUri);
             string instanceData = await getInstanceResponse.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
@@ -141,11 +142,89 @@ namespace Altinn.Platform.Storage.Client
         public async Task<string> PostInstances(string applicationId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage createInstanceResponse = await client.PostAsync(hostName + requestUri, string.Empty.AsJson());
             string newId = await createInstanceResponse.Content.ReadAsStringAsync();
 
             return newId;
+        }
+
+        /// <summary>
+        /// Get an instance.
+        /// </summary>
+        /// <param name="instanceId">a</param>
+        /// <returns></returns>
+        public async Task<List<InstanceEvent>> GetAllInstanceEvents(string instanceId)
+        {
+            string requestUri = $"{versionPrefix}/instanceEvents/?instanceId={instanceId}";
+
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            string eventData = await response.Content.ReadAsStringAsync();
+            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+            response.EnsureSuccessStatusCode();
+
+            return instanceEvents;
+        }
+
+        /// <summary>
+        /// Get an instance.
+        /// </summary>
+        /// <param name="instanceId">the id of the instance</param>
+        /// <param name="eventTypes">the list of event types </param>
+        /// <returns></returns>
+        public async Task<List<InstanceEvent>> GetInstanceEventsEventTypes(string instanceId, List<string> eventTypes)
+        {
+            string requestUri = $"{versionPrefix}/instanceEvents/GetByInstanceEventType?instanceId={instanceId}";
+
+            foreach (string type in eventTypes)
+            {
+                requestUri += $"&eventTypes={type}";
+            }
+
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            string eventData = await response.Content.ReadAsStringAsync();
+            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+            return instanceEvents;
+        }
+
+        /// <summary>
+        /// Get an instance.
+        /// </summary>
+        /// <param name="instanceId">the id of the instance</param>
+        /// <param name="from">the list of event types </param>
+        /// <param name="to">fromthe list of event types </param>
+        /// <returns></returns>
+        public async Task<List<InstanceEvent>> GetInstanceEventsTimeframe(string instanceId, string from, string to)
+        {
+            string requestUri = $"{versionPrefix}/instanceEvents/GetByTimeFrame?instanceId={instanceId}&from={from}&to={to}";
+
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            string eventData = await response.Content.ReadAsStringAsync();
+            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+            return instanceEvents;
+        }
+
+        /// <summary>
+        /// Creates data.
+        /// </summary>
+        /// <param name="instanceEvent">a</param>
+        public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
+        {
+            string requestUri = $"{versionPrefix}/instanceEvents";
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
+            string newId = await response.Content.ReadAsStringAsync();
+            return newId;
+        }
+
+        /// <summary>
+        /// Creates data.
+        /// </summary>
+        /// <param name="instanceId">a</param>
+        public async void DeleteInstanceEvents(string instanceId)
+        {
+            string requestUri = $"{versionPrefix}/instanceEvents?instanceId={instanceId}";
+            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+            response.EnsureSuccessStatusCode();
         }
     }
 
