@@ -69,7 +69,7 @@ namespace AltinnCore.Runtime.Controllers
             IExecution execution,
             IHttpContextAccessor contextAccessor,
             IOptions<TestdataRepositorySettings> testdataRepositorySettings,
-            IWorkflowSI workflowSI,
+            IWorkflow workflowSI,
             IOptions<GeneralSettings> generalSettings)
         {
             _testdata = testdataService;
