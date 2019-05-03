@@ -101,6 +101,8 @@ describe('Deploy To Test container', () => {
   });
 
   it('should render "Ready for deploy and all checks passed"', async () => {
+    mockImageVersions = null;
+
     const wrapper = mount(
       <DeployToTestContainer
         compileStatus={mockCompileStatus}
@@ -117,6 +119,9 @@ describe('Deploy To Test container', () => {
 
     // Assert Language shared with org
     expect(wrapper.text()).toMatch('shared_with_org_true');
+
+    // Assert language for current version paper, no available service deployed
+    expect(wrapper.text()).toMatch('service_not_available_in_test_env');
 
     // Assert renderRepoInSync part (local and master is in sync)
     expect(wrapper.exists('#renderInSync')).toEqual(true);
@@ -160,6 +165,9 @@ describe('Deploy To Test container', () => {
 
     // Test language
     expect(wrapper.text()).toMatch('master_and_deploy_in_sync_title');
+
+    // Assert current version deployed
+    expect(wrapper.text()).toMatch('current_version_title');
 
     // Assert renderRepoInSync part
     expect(wrapper.exists('#renderInSync')).toEqual(true);
