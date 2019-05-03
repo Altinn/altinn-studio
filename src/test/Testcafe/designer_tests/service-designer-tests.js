@@ -24,9 +24,9 @@ fixture('GUI service designer tests')
 
 test('Sync a service with master', async () => {
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/aboutservice')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
     .click(designer.lageNavigationTab)
-    .click(designer.dropDown)
+    .click(designer.inputBtn)
     .pressKey("enter")
     .click(designer.omNavigationTab)
     .click(designer.lageNavigationTab)
@@ -46,7 +46,7 @@ test('About page items and editing', async () => {
   const randNumTwo = Math.floor(100 + Math.random() * 900);
   const randId = Math.floor(100000 + Math.random() * 900000);
   await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/uieditor')
+    .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/uieditor')
     .click(designer.omNavigationTab)
     .expect(designer.omTjenesteNavn.focused).notOk()
     .click(designer.omTjenesteNavn)

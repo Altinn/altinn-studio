@@ -24,7 +24,7 @@ fixture('Navigating the Service designer')
   .beforeEach(async t => {
     await common.login(testUser.userEmail, testUser.password, loginPage);
     await waitForReact();
-    await t.navigateTo(app.baseUrl + 'designer/AutoTest/autotest#/aboutservice')
+    await t.navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
     //app.before();
   })
   .after(async () => {
@@ -64,7 +64,7 @@ test('Teste tab navigation', async () => {
   await t
     .click(designerPage.testeNavigationTab)
     .hover(designerPage.leftDrawerMenu)
-    .expect(getLocation()).contains('testingintestenvironment');
+    .expect(getLocation()).contains('test');
 });
 
 test('Publisere tab navigation', async () => {
