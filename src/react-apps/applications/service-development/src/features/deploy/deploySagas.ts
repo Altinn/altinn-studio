@@ -13,7 +13,6 @@ export function* fetchDeploymentsSaga({
   repo,
 }: DeployActions.IFetchDeployments): SagaIterator {
   try {
-    // env = 'at22';
     const result = yield call(get,
       // tslint:disable-next-line:max-line-length
       `https://${org}.apps.${env}.${urls.apps.test}/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
