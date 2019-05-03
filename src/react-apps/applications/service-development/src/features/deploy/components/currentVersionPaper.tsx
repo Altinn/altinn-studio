@@ -73,11 +73,11 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
                 {getLanguageFromKey('deploy_to_test.service_url', props.language)}
               </span><br />
               <a
-                href={`https://${org}.apps.${props.env}.${urls.apps.test}/${service}`}
+                href={`https://${org}.apps.${props.env}.${urls.hostname.apps.test}/${service}`}
                 target='_blank'
                 className={classes.link}
               >
-                {`${org}.apps.${props.env}.${urls.apps.test}/${service}`}
+                {`${org}.apps.${props.env}.${urls.hostname.apps.test}/${service}`}
               </a>
             </Typography>
           </div>
@@ -91,11 +91,11 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
           <Typography variant='body1'>
             {getLanguageFromKey('deploy_to_test.altinn_test_env_url', props.language)}<br />
             <a
-              href={`https://${org}.apps.${props.env}.${urls.apps.test}`}
+              href={`https://${org}.apps.${props.env}.${urls.hostname.altinn.test}`}
               target='_blank'
               className={classes.link}
             >
-              {`${org}.apps.${props.env}.${urls.apps.test}`}
+              {`${org}.apps.${props.env}.${urls.hostname.altinn.test}`}
             </a>
           </Typography>
         </div>

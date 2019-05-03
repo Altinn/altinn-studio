@@ -353,7 +353,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
         }}
       >
 
-        {props.deploySuccess === true ? renderDeploySuccess(props.env, urls.apps.test) :
+        {props.deploySuccess === true ? renderDeploySuccess(props.env, urls.hostname.apps.test) :
           props.deploySuccess === false ? renderDeployFailedErrorMsg(props.deployStatus.result.buildId) :
             props.deploymentListFetchStatus.success === false ? renderError(props.env,
               props.deploymentListFetchStatus.error) : (
