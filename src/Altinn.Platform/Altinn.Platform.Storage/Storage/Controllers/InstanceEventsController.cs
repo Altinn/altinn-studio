@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// API for managing the instance event element
     /// </summary>
-    [Route("storage/api/v1/[controller]")]
+    [Route("storage/api/v1/instances/{instanceId}/events")]
     public class InstanceEventsController : Controller
     {
         private readonly IInstanceEventRepository _repository;
@@ -35,11 +35,11 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceEvent">Id of instance to retrieve events for. </param>
         /// <returns>The stored instance event.</returns>
-        /// POST storage/api/v1/instanceevents/
+        /// POST storage/api/v1/instances/{instanceId}/events
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] InstanceEvent instanceEvent)
         {
-            if (instanceEvent == null)
+            if (instanceEvent == null || instanceEvent.InstanceId == null)
             {
                 return BadRequest("Missing parameter values: instance event must exist and instanceId must be set");
             }
@@ -56,94 +56,50 @@ namespace Altinn.Platform.Storage.Controllers
         }
 
         /// <summary>
-        /// Retrieves all instance events related to given instance id from instanceEvent collection.
+        /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for. </param>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <param name="eventTypes">Array of event types to filter the events by./param>
+        /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
+        /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>
-        /// GET  storage/api/v1/instanceevents/?instanceid={instanceId}
+        /// GET  storage/api/v1/instances/{instanceId}/events
+        /// GET  storage/api/v1/instances/{instanceId}/events?eventTypes=deleted,submited
+        /// GET  storage/api/v1/instances/{instanceId}/events
+        /// GET  storage/api/v1/instances/{instanceId}/events
         [HttpGet]
-        public async Task<ActionResult> GetAllInstanceEvents(string instanceId)
+        public async Task<ActionResult> Get(string instanceId, string[] eventTypes, string from, string to)
         {
-            if (!string.IsNullOrEmpty(instanceId))
-            {
-                List<InstanceEvent> result = await _repository.ListAllInstanceEvents(instanceId);
-                if (result == null || result.Count == 0)
-                {
-                    return NotFound($"Did not find any instance events for instanceId={instanceId}");
-                }
-
-                return Ok(result);
-            }
-
-            return BadRequest("Unable to perform query.");
-        }
-
-        /// <summary>
-        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection.
-        /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for.</param>
-        /// <param name="eventTypes">List of event types to filter the events by./param>
-        /// <returns>List of intance events.</returns>
-        /// GET  storage/api/v1/instanceevents/GetByInstanceEventType?instanceId={instanceId}&eventTypes={eventType}&eventTypes={eventType}
-        [HttpGet]
-        [Route("GetByInstanceEventType")]
-        public async Task<ActionResult> GetInstanceEventsEventTypes(string instanceId, List<string> eventTypes)
-        {
-            // or array of types is empty
-            if (string.IsNullOrEmpty(instanceId) || eventTypes.Count == 0 || eventTypes == null)
-            {
-                return BadRequest("Unable to perform query.");
-            }
-
-            List<InstanceEvent> result = await _repository.ListInstanceEventsSpecificEventTypes(instanceId, eventTypes);
-
-            if (result == null || result.Count == 0)
-            {
-                return NotFound($"Did not find any instance events for instanceId={instanceId} with event type {string.Join(", ", eventTypes.ToArray())}");
-            }
-
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Retrieves all instance events related to given instance id and time frame from instanceEvent collection.
-        /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for.</param>
-        /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
-        /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
-        /// <returns>List of instance events.</returns>
-        /// GET storage/api/v1/instanceevents/GetByTimeFrame?instanceId={instanceId}&from={fromtime}&to={totime}
-        [HttpGet]
-        [Route("GetByTimeFrame")]
-        public async Task<ActionResult> GetInstanceEventsTimeframe(string instanceId, string from, string to)
-        {
-            DateTime fromDateTime, toDateTime;
-            try
-            {
-                fromDateTime = DateTime.ParseExact(from, "s", CultureInfo.InvariantCulture);
-                toDateTime = DateTime.ParseExact(to, "s", CultureInfo.InvariantCulture);
-            }
-            catch
-            {
-                return BadRequest("Unable to perform query.");
-            }
-
             if (string.IsNullOrEmpty(instanceId))
             {
                 return BadRequest("Unable to perform query.");
             }
 
-            List<InstanceEvent> result = await _repository.ListInstanceEventsTimeFrame(instanceId, fromDateTime, toDateTime);
+            DateTime? fromDateTime = null, toDateTime = null;
 
-            // should we differenciate between query failing and no instances existing in collection?
+            if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
+            {
+                try
+                {
+                    fromDateTime = DateTime.ParseExact(from, "s", CultureInfo.InvariantCulture);
+                    toDateTime = DateTime.ParseExact(to, "s", CultureInfo.InvariantCulture);
+                }
+                catch
+                {
+                    return BadRequest("Unable to perform query. Invalid format for time span. Use string format of UTC.");
+                }
+            }            
+
+            List<InstanceEvent> result = await _repository.ListInstanceEvents(instanceId, eventTypes, fromDateTime, toDateTime);
+
             if (result == null || result.Count == 0)
             {
-                return NotFound($"Did not find any instance events for instanceId={instanceId} between {fromDateTime} and {toDateTime}");
+                return NotFound($"Did not find any instance events for instanceId={instanceId} matching the given event types: {string.Join(", ", eventTypes)} and the given time frame {fromDateTime} : {toDateTime}.");
             }
 
             return Ok(result);
         }
-
+      
         /// <summary>
         /// Deletes all events related to an instance id.
         /// </summary>

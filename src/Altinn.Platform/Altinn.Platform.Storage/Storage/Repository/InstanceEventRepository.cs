@@ -81,98 +81,14 @@ namespace Altinn.Platform.Storage.Repository
         }
 
         /// <summary>
-        /// Retrieves all instance events related to given instance id from instanceEvent collection. 
+        /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
         /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for./param>
-        /// <returns>List of instance events.</returns>
-        public async Task<List<InstanceEvent>> ListAllInstanceEvents(string instanceId)
-        {
-            try
-            {
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = false, // should not be required or noes it not matter?
-                    MaxItemCount = 100,
-                };
-
-                IDocumentQuery<InstanceEvent> query = _client
-                    .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
-                    .Where(i => i.InstanceId == instanceId)
-                    .AsDocumentQuery();
-
-                FeedResponse<InstanceEvent> result = await query.ExecuteNextAsync<InstanceEvent>();
-
-                List<InstanceEvent> instanceEvents = result.ToList<InstanceEvent>();
-                return instanceEvents;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection. 
-        /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for./param>
-        /// <param name="eventTypes">List of event types to filter the events by./param>
-        /// <returns>List of intance events.</returns>
-        public async Task<List<InstanceEvent>> ListInstanceEventsSpecificEventTypes(string instanceId, List<string> eventTypes)
-        {
-            try
-            {
-                FeedOptions feedOptions = new FeedOptions
-                {
-                    EnableCrossPartitionQuery = false, // should not be required or noes it not matter?
-                    MaxItemCount = 100,
-                };
-
-                IDocumentQuery<InstanceEvent> query = _client
-                    .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
-                    .Where(i => i.InstanceId == instanceId && eventTypes.Contains(i.InstanceEventType))
-                    .AsDocumentQuery();
-
-                FeedResponse<InstanceEvent> result = await query.ExecuteNextAsync<InstanceEvent>();
-
-                List<InstanceEvent> instanceEvents = result.ToList<InstanceEvent>();
-                return instanceEvents;
-            }
-            catch (DocumentClientException e)
-            {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Insert 
-        /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for./param>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <param name="eventTypes">Array of event types to filter the events by./param>
         /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
         /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
         /// <returns>List of instance events.</returns>
-        public async Task<List<InstanceEvent>> ListInstanceEventsTimeFrame(string instanceId, DateTime fromDateTime, DateTime toDateTime)
+        public async Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
         {
             try
             {
@@ -182,33 +98,31 @@ namespace Altinn.Platform.Storage.Repository
                     MaxItemCount = 100,
                 };
 
-                IDocumentQuery<InstanceEvent> query = _client
+                var query = _client
                     .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
-                    .Where(i => i.InstanceId == instanceId && i.CreatedDateTime < toDateTime && i.CreatedDateTime > fromDateTime)
-                    .AsDocumentQuery();
+                    .Where(i => i.InstanceId == instanceId);             
 
-                FeedResponse<InstanceEvent> result = await query.ExecuteNextAsync<InstanceEvent>();
+                if (eventTypes != null && eventTypes.Count() > 0)
+                {
+                    query = query.Where(i => eventTypes.Contains(i.EventType));
+                }
+
+                if (fromDateTime.HasValue && toDateTime.HasValue)
+                {
+                    query = query.Where(i => i.CreatedDateTime < toDateTime && i.CreatedDateTime > fromDateTime);
+                }
+
+                FeedResponse<InstanceEvent> result = await query.AsDocumentQuery().ExecuteNextAsync<InstanceEvent>();
 
                 List<InstanceEvent> instanceEvents = result.ToList<InstanceEvent>();
                 return instanceEvents;
             }
-            catch (DocumentClientException e)
+            catch (Exception ex)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
-                {
-                    return null;
-                }
-                else
-                {
-                    throw;
-                }
-            }
-            catch (Exception e)
-            {
-                return null;
+                throw ex;
             }
         }
-
+        
         /// <summary>
         /// Deletes all events related to an instance id.
         /// </summary>
@@ -216,7 +130,7 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns>True if all events are deleted</returns>
         public async Task<int> DeleteAllInstanceEvents(string instanceId)
         {
-            int deletedEventsCount = 0; 
+            int deletedEventsCount = 0;
             try
             {
                 IDocumentQuery<InstanceEvent> query = _client

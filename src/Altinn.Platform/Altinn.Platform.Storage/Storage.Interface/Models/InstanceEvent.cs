@@ -11,7 +11,7 @@ namespace Altinn.Platform.Storage.Models
     public class InstanceEvent
     {
         /// <summary>
-        /// Gets or sets identifier used to identify unique instance events. 
+        /// Gets or sets identifier used to identify unique instance events.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public Guid? Id { get; set; }
@@ -31,21 +31,21 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// Gets or sets identifier used to identify what type of Instance Event
         /// </summary>
-        [JsonProperty(PropertyName = "instanceEventType")]
-        public string InstanceEventType { get; set; }
-        
+        [JsonProperty(PropertyName = "eventType")]
+        public string EventType { get; set; }
+
         /// <summary>
         /// Gets or sets identifier used to identify unique instance owner
         /// </summary>
         [JsonProperty(PropertyName = "instanceOwnerId")]
         public string InstanceOwnerId { get; set; }
-        
+
         /// <summary>
         /// Gets or sets identifier used to identify user who created Authorization Event
         /// </summary>
         [JsonProperty(PropertyName = "userId")]
-        public int UserId { get; set; }
-        
+        public int? UserId { get; set; }
+
         /// <summary>
         /// Gets or sets Identifier used to identify the authentication level for the user which triggered the event
         /// </summary>
@@ -61,8 +61,8 @@ namespace Altinn.Platform.Storage.Models
         /// <summary>
         /// Gets or sets identifier used to identify the workflow step during which the event occured
         /// </summary>
-        [JsonProperty(PropertyName = "workflowStepId")]
-        public string WorkflowStepId { get; set; }
+        [JsonProperty(PropertyName = "workflowStep")]
+        public string WorkflowStep { get; set; }
 
         /// <inheritdoc/>
         public override string ToString()
