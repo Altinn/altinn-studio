@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest, select } from 'redux-saga/effects';
-
+import { IRuntimeState } from '../../../../../types';
+import { post } from '../../../../../utils/networking';
 import FormDataActions from '../../actions';
 import {
   ISumbitDataAction,
@@ -8,17 +9,17 @@ import {
 import * as FromDataActionTypes from '../../actions/types';
 import { IFormDataState } from '../../reducer';
 
-import { post } from 'Shared/utils/networking';
-
 const FormDataSelector: (state: any) => IFormDataState = (state: any) => state.formData;
 
-function * submitFormSaga({url}: ISumbitDataAction): SagaIterator {
+function* submitFormSaga({ url }: ISumbitDataAction): SagaIterator {
+  const state: IRuntimeState = yield select();
+  console.log(state);
   try {
     const formData: IFormDataState = yield select(FormDataSelector);
-    yield call(post, url, {body: formData});
+    yield call(post, url, { data: formData });
     yield call(FormDataActions.submitFormDataFulfilled);
   } catch (err) {
-    yield call(FormDataActions.submitFormDataRejected, err)
+    yield call(FormDataActions.submitFormDataRejected, err);
   }
 }
 
