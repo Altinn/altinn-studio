@@ -80,6 +80,11 @@ namespace AltinnCore.Designer.Controllers
         [Authorize]
         public async Task<IActionResult> Index(string org, string service, int reporteeId)
         {
+            if (reporteeId == 0)
+            {
+                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+            }
+
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
@@ -118,12 +123,14 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// List the test users
         /// </summary>
-        /// <param name="returnUrl">The return url to redirect user after login</param>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
         /// <returns>The view presenting a list of test users</returns>
-        public IActionResult Users(string returnUrl)
+        public IActionResult Users(string org, string service)
         {
             List<Testdata> testdata = _testdata.GetTestUsers();
-            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.Org = org;
+            ViewBag.Service = service;
             return View(testdata);
         }
 
@@ -165,37 +172,13 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Method that logs inn test user
         /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
         /// <param name="id">The testUserId</param>
-        /// <param name="returnUrl">The returnUrl to redirect after login</param>
         /// <param name="reportee">The reportee chosen</param>
         /// <returns>Redirects to returnUrl</returns>
-        public async Task<IActionResult> LoginTestUser(int id, string returnUrl, string reportee)
+        public async Task<IActionResult> LoginTestUser(string org, string service, int id, string reportee)
         {
-            string developer = null;
-            if (_serviceRepositorySettings.ForceGiteaAuthentication)
-            {
-                // Temporary catch errors until we figure out how to force this.
-                try
-                {
-                    string user = _giteaApi.GetUserNameFromUI().Result;
-                    if (string.IsNullOrEmpty(user))
-                    {
-                        if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
-                        {
-                            return Redirect(Environment.GetEnvironmentVariable("GiteaEndpoint") + "/user/login");
-                        }
-
-                        return Redirect(_serviceRepositorySettings.GiteaLoginUrl);
-                    }
-
-                    developer = user;
-                }
-                catch (Exception ex)
-                {
-                    return Content(ex.ToString());
-                }
-            }
-
             UserProfile profile = await _profile.GetUserProfile(id);
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
@@ -208,7 +191,7 @@ namespace AltinnCore.Designer.Controllers
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.Integer32, Issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, Issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, Issuer));
-
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             if (developer != null)
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.Developer, developer, ClaimValueTypes.String, Issuer));
@@ -216,9 +199,7 @@ namespace AltinnCore.Designer.Controllers
 
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);
-
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
             string authenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 
             if (!string.IsNullOrEmpty(_generalSettings.AuthenticationMode) && _generalSettings.AuthenticationMode.Equals("JwtCookie"))
@@ -236,15 +217,7 @@ namespace AltinnCore.Designer.Controllers
                         AllowRefresh = false,
                     });
 
-            string goToUrl = "/";
-
-            if (!string.IsNullOrEmpty(returnUrl))
-            {
-                goToUrl = System.Net.WebUtility.UrlDecode(returnUrl);
-            }
-
             List<Reportee> reporteeList = _authorization.GetReporteeList(profile.UserId);
-
             Reportee reporteeBE = null;
 
             if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => r.ReporteeNumber.Equals(reportee)))
@@ -257,7 +230,7 @@ namespace AltinnCore.Designer.Controllers
                 HttpContext.Response.Cookies.Append("altinncorereportee", profile.PartyId.ToString());
             }
 
-            return LocalRedirect(goToUrl);
+            return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?reporteeId={id}");
         }
     }
 }

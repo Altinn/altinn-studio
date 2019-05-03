@@ -29,7 +29,7 @@
 
     <form asp-action="SetLanguage" asp-controller="ManualTesting">
       <div class="form-group">
-        <input type="hidden" value="@Context.Request.Path" name="returnUrl"/>
+        <input type="hidden" value="@Context.Request.Path?reporteeId=@Model.ReporteeList[0].Value" name="returnUrl"/>
         <label for="reporteeLanguageSelect">Velg språk for instans</label>
         <select id="reporteeLanguageSelect" class="form-control" name="culture">
           <!-- Can this be done more elegantly? -->
@@ -58,18 +58,11 @@
       </div>
     </form>
 
-<form asp-action="StartService" asp-controller="Instance" asp-route-org="@org" asp-route-service="@service" target="_blank">
-    <input type="hidden" asp-for="ServiceID" />
+
     <div class="form-group">
-        <input type="hidden" asp-for="ReporteeID" />
-        <label asp-for="ReporteeID">Preutfylling</label>
-        <select asp-for="PrefillList" asp-items="@Model.PrefillList" class="form-control"></select>
-        <span asp-validation-for="PrefillList" class="text-danger"></span>
+        <input class="btn btn-primary" type="button" value="Start ny" onclick="startNewService()"/>
     </div>
-    <div class="form-group">
-        <input class="btn btn-primary" type="submit" value="Start ny" />
-    </div>
-</form>
+
 
 @if (instanceList.Count > 0)
 {
@@ -102,12 +95,9 @@
     </table>
 }
 
-<div class="form-group">
-  <input class="btn btn-primary" type="button" value="Tilbake til Altinn Studio" onclick="redirectToServicePage()" />
-</div>
-
 <script>
-  function redirectToServicePage() {
-    window.location.replace(window.location.origin + "/designer/@org/@service");
+  function startNewService() {
+    var win = window.open(window.location.origin + "/runtime/@org/@service/Instance/StartService", '_blank');
+    win.focus();
   }
 </script>

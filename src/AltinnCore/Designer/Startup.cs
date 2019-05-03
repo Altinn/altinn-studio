@@ -227,10 +227,9 @@ namespace AltinnCore.Designer
                           constraints: new
                           {
                               controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment|Deploy)",
-
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
-                          });        
+                          });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
