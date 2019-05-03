@@ -9,6 +9,7 @@ import AltinnSpinner from '../../../../../shared/src/components/AltinnSpinner';
 import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import VersionControlContainer from '../../../../../shared/src/version-control/versionControlHeader';
+import { urls } from '../../../config/sharedConfig';
 import { inSyncStatus } from '../containers/deployToTestContainer';
 
 const theme = createMuiTheme(altinnTheme);
@@ -195,10 +196,10 @@ export const DeployPaper = (props: IDeployPaperProps) => {
     }
   };
 
-  const renderDeploySuccess = (env: string) => {
+  const renderDeploySuccess = (env: string, host: string) => {
     const { org, service } = window as IAltinnWindow;
 
-    const url = `http://${org}.apps.${env}.altinn.cloud/${service}`;
+    const url = `http://${org}.apps.${env}.${host}/${service}`;
     return (
       <React.Fragment>
         <Grid container={true}>
@@ -352,7 +353,7 @@ export const DeployPaper = (props: IDeployPaperProps) => {
         }}
       >
 
-        {props.deploySuccess === true ? renderDeploySuccess(props.env) :
+        {props.deploySuccess === true ? renderDeploySuccess(props.env, urls.hostname.apps.test) :
           props.deploySuccess === false ? renderDeployFailedErrorMsg(props.deployStatus.result.buildId) :
             props.deploymentListFetchStatus.success === false ? renderError(props.env,
               props.deploymentListFetchStatus.error) : (

@@ -1,4 +1,4 @@
-import { Grid, Hidden, Paper, Typography } from '@material-ui/core';
+import { Grid, Hidden, Typography } from '@material-ui/core';
 import { createMuiTheme, createStyles, withStyles, WithStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import { connect } from 'react-redux';
@@ -6,9 +6,11 @@ import altinnTheme from '../../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../../shared/src/utils/language';
 import postMessages from '../../../../../shared/src/utils/postMessages';
 import { makeGetRepoStatusSelector } from '../../handleMergeConflict/handleMergeConflictSelectors';
+import CurrentVersionPaper from '../components/currentVersionPaper';
 import DeployPaper from '../components/deployPaper';
 import DeployActionDispatcher from '../deployDispatcher';
-import { makeGetCompileStatusResultSelector, makeGetCompileStatusUniqueFilenames } from '../deploySelectors';
+import { makeGetCompileStatusResultSelector, makeGetCompileStatusUniqueFilenames } from '../selectors/compileSelectors';
+import { makeGetImageTags } from '../selectors/deploymentListSelectors';
 
 const theme = createMuiTheme(altinnTheme);
 
@@ -60,6 +62,7 @@ export interface IDeployToTestContainerProps extends WithStyles<typeof styles> {
   compileStatusUniqueFilenames: [];
   deploymentList: any;
   deployStatus: any;
+  imageVersions: any;
   language: any;
   masterRepoStatus: any;
   repoStatus: any;
@@ -121,10 +124,10 @@ export class DeployToTestContainer extends
     }
   }
 
-  public isMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, deploymentList: any): boolean => {
-    const image = deploymentList[letEnv].items[0].spec.template.spec.containers[0].image;
-    const imageTag = image.split(':')[1];
-    if (masterRepoStatus !== null && masterRepoStatus.commit.id === imageTag) {
+  public isMasterRepoAndDeployInSync = (letEnv: string, masterRepoStatus: any, imageVersions: any): boolean => {
+    if (imageVersions === null || masterRepoStatus === null) {
+      return false;
+    } else if (imageVersions[letEnv] && imageVersions[letEnv] === masterRepoStatus.commit.id) {
       return true;
     } else {
       return false;
@@ -168,6 +171,16 @@ export class DeployToTestContainer extends
     }
   }
 
+  public returnImageVersionForEnv = (imageVersions: any, env: string): string => {
+    if (imageVersions === null) {
+      return null;
+    } else if (imageVersions[env]) {
+      return imageVersions[env];
+    } else {
+      return null;
+    }
+  }
+
   public render() {
     const { classes, compileStatus, language } = this.props;
 
@@ -195,13 +208,10 @@ export class DeployToTestContainer extends
                 env={environment}
                 language={language}
                 localRepoInSyncWithMaster={this.returnInSyncStatus(this.props.repoStatus)}
-                masterRepoAndDeployInSync={this.props.deploymentList[environment].items.length > 0 ?
-                  this.isMasterRepoAndDeployInSync(
-                    environment,
-                    this.props.masterRepoStatus,
-                    this.props.deploymentList)
-                  :
-                  null
+                masterRepoAndDeployInSync={this.isMasterRepoAndDeployInSync(
+                  environment,
+                  this.props.masterRepoStatus,
+                  this.props.imageVersions)
                 }
                 onClickStartDeployment={this.startDeployment}
                 titleTypographyVariant='h2'
@@ -216,9 +226,17 @@ export class DeployToTestContainer extends
 
             <Grid item={true} xs={11} sm={11} md={4} className={classes.aboutServicePlaceholderStyle}>
 
-              <Paper square={true} elevation={1} style={{ padding: 24, maxWidth: 800 }}>
-                Placeholder for "Tjenesten i testmiljø"
-              </Paper>
+              <CurrentVersionPaper
+                env={environment}
+                imageVersion={this.returnImageVersionForEnv(this.props.imageVersions, environment)}
+                language={language}
+                masterRepoAndDeployInSync={this.isMasterRepoAndDeployInSync(
+                  environment,
+                  this.props.masterRepoStatus,
+                  this.props.imageVersions)
+                }
+                titleTypographyVariant='h2'
+              />
 
             </Grid>
             <Hidden mdUp={true} smDown={true}>
@@ -238,6 +256,7 @@ const makeMapStateToProps = () => {
   const GetCompileStatusSelector = makeGetCompileStatusResultSelector();
   const GetCompileStatusUniqueFilenames = makeGetCompileStatusUniqueFilenames();
   const GetRepoStatusSelector = makeGetRepoStatusSelector();
+  const GetImageTags = makeGetImageTags();
   const mapStateToProps = (
     state: IServiceDevelopmentState,
   ) => {
@@ -249,6 +268,7 @@ const makeMapStateToProps = () => {
       deployStatus: state.deploy.deployStatus,
       compileStatus: GetCompileStatusSelector(state),
       compileStatusUniqueFilenames: GetCompileStatusUniqueFilenames(state),
+      imageVersions: GetImageTags(state),
     };
   };
   return mapStateToProps;
