@@ -19,10 +19,10 @@ describe('>>> components/base/knownIssues.tsx', () => {
 
   it('+++ should handle updating knownIssues state with stripped version of knowIssues page ftom github', () => {
     const mountedComponent = mount(
-      <KnownIssuesComponent
+      (<KnownIssuesComponent
         language={mockLanguage}
         classes={mockClasses}
-      />,
+      />),
     );
 
     const instance = mountedComponent.instance() as KnownIssuesComponent;
@@ -38,10 +38,10 @@ describe('>>> components/base/knownIssues.tsx', () => {
 
   it('+++ should handle updating _isMounted on componentDidMount and componentWillUnmount', () => {
     const mountedComponent = mount(
-      <KnownIssuesComponent
+      (<KnownIssuesComponent
         language={mockLanguage}
         classes={mockClasses}
-      />,
+      />),
     );
 
     const instance = mountedComponent.instance() as KnownIssuesComponent;
