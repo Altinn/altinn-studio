@@ -19,6 +19,7 @@
     <ProjectReference Include="../ServiceLibrary/AltinnCore.ServiceLibrary.csproj" />
     <ProjectReference Include="../RepositoryClient/AltinnCore.RepositoryClient.csproj" />
     <ProjectReference Include="../Common/AltinnCore.Common.csproj" />
+	<ProjectReference Include="../../Altinn.Platform/Altinn.Platform.Storage/Storage.Interface/Storage.Interface.csproj" />
   </ItemGroup>
 
   <ItemGroup>

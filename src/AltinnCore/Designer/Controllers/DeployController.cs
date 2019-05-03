@@ -1,8 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Client;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Interfaces;
 using AltinnCore.Designer.ModelBinding;
@@ -90,6 +93,43 @@ namespace AltinnCore.Designer.Controllers
                 {
                     Success = false,
                     Message = "Deployment failed: unable to find latest commit",
+                });
+            }
+
+            // register application in platform storage
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string applicationId = $"{org}-{service}";
+                    string versionId = $"{masterBranch.Commit.Id}";
+                    string storageEndpoint = Environment.GetEnvironmentVariable("StorageEndpoint") ?? "http://platform.altinn.cloud";
+                    ApplicationMetadataClient applicationMetadataClient = new ApplicationMetadataClient(client, storageEndpoint);
+
+                    ApplicationMetadata application = applicationMetadataClient.GetOrCreateApplication(applicationId);
+                    if (application != null)
+                    {
+                        if (application.Title == null)
+                        {
+                            application.Title = new Dictionary<string, string>();
+                        }
+
+                        application.Title.Add("nb", applicationId);
+                        application.VersionId = versionId;
+
+                        ApplicationMetadata updated = applicationMetadataClient.UpdateApplicationMetadata(application);
+
+                        _logger.LogInformation($"Successful registration of Application Metadata for {applicationId} and version {versionId} in Platform Storage");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Unable deploy app {service} for {org} to platform storage database because {ex}");
+                return StatusCode(500, new DeploymentResponse
+                {
+                    Success = false,
+                    Message = "Deployment to platform storage database failed " + ex,
                 });
             }
 
