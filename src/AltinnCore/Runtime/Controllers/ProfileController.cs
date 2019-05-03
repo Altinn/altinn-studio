@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AltinnCore.Common.Helpers;
 using AltinnCore.ServiceLibrary.Models;
 using AltinnCore.ServiceLibrary.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
