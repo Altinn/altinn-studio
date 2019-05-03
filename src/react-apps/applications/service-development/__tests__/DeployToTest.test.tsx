@@ -15,6 +15,7 @@ describe('Deploy To Test container', () => {
   let mockCompileStatusUniqueFilenames: any;
   let mockDeploymentList: any;
   let mockDeployStatus: any;
+  let mockImageVersions: any;
   let mockLanguage: any;
   let mockMasterRepoStatus: any;
   let mockRepoStatus: any;
@@ -69,11 +70,15 @@ describe('Deploy To Test container', () => {
       },
     };
 
-    mockMasterRepoStatus = {
-      'commit': {
-        'id': '2',
-      },
-    };
+    mockImageVersions = {
+      at21: '1',
+    },
+
+      mockMasterRepoStatus = {
+        'commit': {
+          'id': '2',
+        },
+      };
 
     mockCompileStatus = {
       fetchStatus: {
@@ -103,6 +108,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -145,6 +151,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -186,6 +193,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -229,6 +237,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -258,6 +267,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -363,6 +373,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -439,6 +450,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -500,6 +512,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -559,6 +572,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -587,6 +601,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
