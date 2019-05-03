@@ -50,7 +50,7 @@ test('Upload files using file component in SBL', async () => {
     .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
 })
 
-test.only('Validations when uploading file', async () => {
+test('Validations when uploading file', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/aboutservice')
     .click(designer.testeNavigationTab)
