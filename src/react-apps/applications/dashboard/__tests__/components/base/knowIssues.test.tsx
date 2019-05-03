@@ -22,7 +22,8 @@ describe('>>> components/base/knownIssues.tsx', () => {
       <KnownIssuesComponent
         language={mockLanguage}
         classes={mockClasses}
-      />);
+      />
+    );
 
     const instance = mountedComponent.instance() as KnownIssuesComponent;
     const getSpy = jest.spyOn(networking, 'get').mockImplementation(() => Promise.resolve(mockGetResult));
@@ -40,7 +41,8 @@ describe('>>> components/base/knownIssues.tsx', () => {
       <KnownIssuesComponent
         language={mockLanguage}
         classes={mockClasses}
-      />);
+      />
+    );
 
     const instance = mountedComponent.instance() as KnownIssuesComponent;
     instance.componentDidMount();
