@@ -63,7 +63,7 @@ export class KnownIssuesComponent extends React.Component<IKnownIssuesComponentP
           const doc = new DOMParser().parseFromString(res, 'text/html');
           const readme = doc.getElementById('readme').innerHTML;
           // tslint:disable-next-line:max-line-length
-          const readmeWithoutATags = readme.replace(/<a [^>]+>/g, '').replace(/<\/a>/g, '').replace(/<svg [^>]+>/g, '').replace(/<\/svg>/g, '')
+          const readmeWithoutATags = readme.replace(/<svg [^>]+>/g, '').replace(/<\/svg>/g, '');
 
           this.setState({
             knownIssues: readmeWithoutATags,
