@@ -25,14 +25,14 @@ fixture('Regression tests of services in runtime')
     await common.login(runtimeUser.userEmail, runtimeUser.password, loginPage);
   })
 
-  
+
 test('Instantiate a service in runtime', async () => {
-    await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
-      .click(designer.testeNavigationTab)
-      .click(runtime.openManualTestWindow)
-      .click(runtime.testUsers[0])
-      .click(runtime.startNewButton)
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
+    .click(designer.testeNavigationTab)
+    .click(runtime.openManualTestWindow)
+    .click(runtime.testUsers[0])
+    .click(runtime.startNewButton)
 })
 
 test('Upload files using file component in SBL', async () => {
@@ -50,13 +50,27 @@ test('Upload files using file component in SBL', async () => {
     .expect(runtime.fileListBox.textContent).contains("Ferdig lastet")
 })
 
+test.only('Validations when uploading file', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/aboutservice')
+    .click(designer.testeNavigationTab)
+    .click(runtime.openManualTestWindow)
+    .click(runtime.testUsers[0])
+    .click(runtime.startNewButton)
+    .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
+    .expect(runtime.errorMessage).ok()
+    .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_pdf.pdf')
+    .expect(runtime.errorMessage).ok()
+})
+
+
 test('Read-only components test in runtime', async () => {
   await t
-  .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/aboutservice')
-  .click(designer.testeNavigationTab)
-  .click(runtime.openManualTestWindow)
-  .click(runtime.testUsers[0])
-  .click(runtime.startNewButton)
+    .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/aboutservice')
+    .click(designer.testeNavigationTab)
+    .click(runtime.openManualTestWindow)
+    .click(runtime.testUsers[0])
+    .click(runtime.startNewButton)
 })
 
 test('axe UI accessibility test for runtime', async t => {

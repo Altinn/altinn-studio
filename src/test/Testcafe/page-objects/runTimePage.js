@@ -20,14 +20,17 @@ export default class RunTimePage {
     this.fileListBox = Selector('[id*="-fileuploader-"]');
     this.fileDeleteButton = Selector('#attachment-delete-0');
     this.textboxComponent = Selector('textarea')
-    this.addressComponent = Selector('input').withAttribute('type','text');
+    this.addressComponent = Selector('input').withAttribute('type', 'text');
+
+    //file component error message
+    this.errorMessage = Selector('.field-validation-error.a-message.a-message-error');
 
     //read-only components
     //this.readOnlyInput = readOnlySelectors('Navn');
   }
 
-  async readOnlySelectors(innerText){
+  async readOnlySelectors(innerText) {
     let readOnlySelector = Selector('.a-form-group').withText(innerText).child('input');
-    return(readOnlySelector)
+    return (readOnlySelector)
   }
 }
