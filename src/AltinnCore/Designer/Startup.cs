@@ -66,6 +66,16 @@ namespace AltinnCore.Designer
                 services.AddSingleton<IExecution, ExecutionStudioSI>();
             }
 
+            services.AddSingleton<IExecution, ExecutionStudioSI>();
+            services.AddSingleton<IInstance, InstanceStudioSI>();
+            services.AddSingleton<IData, DataStudioSI>();
+            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
+            services.AddSingleton<ITestdata, TestdataStudioSI>();
+            services.AddSingleton<IDSF, RegisterDSFStudioSI>();
+            services.AddSingleton<IER, RegisterERStudioSI>();
+            services.AddSingleton<IRegister, RegisterStudioSI>();
+            services.AddSingleton<IProfile, ProfileStudioSI>();
+
             services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
@@ -73,8 +83,6 @@ namespace AltinnCore.Designer
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormStudioSI>();
-            services.AddSingleton<IProfile, ProfileStudioSI>();
-            services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();

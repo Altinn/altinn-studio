@@ -140,7 +140,6 @@ namespace AltinnCore.Runtime
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
-
             string authenticationMode = string.Empty;
             if (Environment.GetEnvironmentVariable("GeneralSettings__AuthenticationMode") != null)
             {
