@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
         private StorageClient storage;
-        private readonly string testInstanceId = "5a0d5b04-5a6f-48d7-8790-27b77d485837";
+        private readonly string testInstanceId = "922e412e-0e7d-4af3-968f-10b372ec7fd9";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceEventsTest"/> class.
@@ -40,12 +40,20 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// </summary>
         public async void Dispose()
         {
+            await CleanDB();
+        }
+
+        /// <summary>
+        /// Deleting all testdata from Cosmos.
+        /// </summary>
+        private async Task CleanDB()
+        {
             await storage.DeleteInstanceEvents(testInstanceId);
         }
 
         /// <summary>
         /// Gets all instance events for a given instance id.
-        /// Verifies that the number of retrieved events matches what is expected.       
+        /// Verifies that the number of retrieved events matches what is expected.
         /// </summary>
         [Fact]
         public async void QueryInstanceEventsOnInstanceId()
@@ -54,15 +62,16 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int expectedNoEvents = 3;
 
             // Act
+            await CleanDB();
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await storage.GetAllInstanceEvents(testInstanceId);
+            List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, null, null, null);
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
         }
 
         /// <summary>
-        /// Gets all instance events for a given instance Id and list of event types.
+        /// Gets all instance events for a given instance id and list of event types.
         /// Verifies that the number of retrieved events matches what is expected.
         /// </summary>
         [Fact]
@@ -72,8 +81,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int expectedNoEvents = 1;
 
             // Act
+            await CleanDB();
             await PopulateDatabase();
-            List<InstanceEvent> instanceEvents = await storage.GetInstanceEventsEventTypes(testInstanceId, new List<string> { "deleted" });
+            List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, new string[] { "deleted" }, null, null);
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
@@ -90,10 +100,11 @@ namespace Altinn.Platform.Storage.IntegrationTest
             int expectedNoEvents = 3;
 
             // Act
+            await CleanDB();
             await PopulateDatabase();
-            string from = DateTime.UtcNow.AddMinutes(-3).ToString("s", CultureInfo.InvariantCulture);
-            string to = DateTime.UtcNow.ToString("s", CultureInfo.InvariantCulture);
-            List<InstanceEvent> instanceEvents = await storage.GetInstanceEventsTimeframe(testInstanceId, from, to);
+            string from = DateTime.UtcNow.AddMinutes(-1.5).ToString("s", CultureInfo.InvariantCulture);
+            string to = DateTime.UtcNow.AddMinutes(1.5).ToString("s", CultureInfo.InvariantCulture);
+            List<InstanceEvent> instanceEvents = await storage.GetInstanceEvents(testInstanceId, null, from, to);
 
             // Assert
             Assert.Equal(expectedNoEvents, instanceEvents.Count());
@@ -104,34 +115,34 @@ namespace Altinn.Platform.Storage.IntegrationTest
             InstanceEvent testEvent01 = new InstanceEvent
             {
                 InstanceId = testInstanceId,
-                InstanceEventType = "deleted",
+                EventType = "deleted",
                 InstanceOwnerId = "12346",
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                WorkflowStepId = "Step123456"
+                WorkflowStep = "Step123456"
             };
 
             InstanceEvent testEvent02 = new InstanceEvent
             {
                 InstanceId = testInstanceId,
-                InstanceEventType = "submited",
+                EventType = "submited",
                 InstanceOwnerId = "12346",
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                WorkflowStepId = "Step123456"
+                WorkflowStep = "Step123456"
             };
 
             InstanceEvent testEvent03 = new InstanceEvent
             {
                 InstanceId = testInstanceId,
-                InstanceEventType = "created",
+                EventType = "created",
                 InstanceOwnerId = "12346",
                 UserId = 0,
                 AuthenticationLevel = 4,
                 EndUserSystemId = 1,
-                WorkflowStepId = "Step123456"
+                WorkflowStep = "Step123456"
             };
 
             await storage.PostInstanceEvent(testEvent01);

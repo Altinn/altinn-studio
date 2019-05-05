@@ -17,7 +17,7 @@ namespace Altinn.Platform.Storage.Client
     /// </summary>
     public class StorageClient
     {
-        HttpClient client;
+        private HttpClient client;
         private readonly string formId = "default";
         private readonly string versionPrefix = "api/storage/v1";
         private readonly string versionPrefix_new = "storage/api/v1";
@@ -151,53 +151,28 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Retrieves all instance events related to given instance id from instanceEvent collection.
-        /// </summary>
-        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <returns>List of instance events.</returns>
-        public async Task<List<InstanceEvent>> GetAllInstanceEvents(string instanceId)
-        {
-            string requestUri = $"{versionPrefix_new}/instanceEvents/?instanceId={instanceId}";
-
-            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
-            string eventData = await response.Content.ReadAsStringAsync();
-            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
-            response.EnsureSuccessStatusCode();
-
-            return instanceEvents;
-        }
-
-        /// <summary>
-        /// Retrieves all instance events related to given instance id and listed event types from instanceEvent collection.
+        /// Retrieves all instance events related to given instance id, listed event types and given time frame from instanceEvent collection.
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>
         /// <param name="eventTypes">List of event types to filter the events by./param>
+        ///         /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <returns>List of intance events.</returns>
-        public async Task<List<InstanceEvent>> GetInstanceEventsEventTypes(string instanceId, List<string> eventTypes)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
         {
-            string requestUri = $"{versionPrefix_new}/instanceEvents/GetByInstanceEventType?instanceId={instanceId}";
-
-            foreach (string type in eventTypes)
+            string requestUri = $"{versionPrefix_new}/instances/{instanceId}/events?";
+            if (!(eventTypes == null))
             {
-                requestUri += $"&eventTypes={type}";
+                foreach (string type in eventTypes)
+                {
+                    requestUri += $"&eventTypes={type}";
+                }
             }
 
-            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
-            string eventData = await response.Content.ReadAsStringAsync();
-            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
-            return instanceEvents;
-        }
-
-        /// <summary>
-        /// Retrieves all instance events related to given instance id and time frame from instanceEvent collection.
-        /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for.</param>
-        /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
-        /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
-        /// <returns>List of instance events.</returns>
-        public async Task<List<InstanceEvent>> GetInstanceEventsTimeframe(string instanceId, string from, string to)
-        {
-            string requestUri = $"{versionPrefix_new}/instanceEvents/GetByTimeFrame?instanceId={instanceId}&from={from}&to={to}";
+            if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
+            {
+                requestUri += $"&from={from}&to={to}";
+            }
 
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
             string eventData = await response.Content.ReadAsStringAsync();
@@ -212,7 +187,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>The stored instance event.</returns>
         public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
         {
-            string requestUri = $"{versionPrefix_new}/instanceEvents";
+            string requestUri = $"{versionPrefix_new}/instances/{instanceEvent.InstanceId}/events";
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
             string newId = await response.Content.ReadAsStringAsync();
             return newId;
@@ -225,7 +200,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>True if instance events were successfully deleted.</returns>
         public async Task<bool> DeleteInstanceEvents(string instanceId)
         {
-            string requestUri = $"{versionPrefix_new}/instanceEvents?instanceId={instanceId}";
+            string requestUri = $"{versionPrefix_new}/instances/{instanceId}/events";
             HttpResponseMessage response = await client.DeleteAsync(requestUri);
             response.EnsureSuccessStatusCode();
             return true;
