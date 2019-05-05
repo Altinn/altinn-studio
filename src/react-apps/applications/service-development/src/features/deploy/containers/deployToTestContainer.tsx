@@ -78,10 +78,9 @@ export class DeployToTestContainer extends
   }
 
   public componentDidMount() {
-    const { org, service } = window as IAltinnWindow;
-    DeployActionDispatcher.fetchDeployments(environment, org, service);
-    DeployActionDispatcher.fetchMasterRepoStatus(org, service);
-    DeployActionDispatcher.fetchCompileStatus(org, service);
+    this.fetchDeployments(environment);
+    this.fetchMasterRepoStatus();
+    this.fetchCompileStatus();
     window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
 
     // If deployment has started but not finished, start the fetchDeploymentStatusInterval
@@ -99,6 +98,35 @@ export class DeployToTestContainer extends
 
   public componentWillUnmount() {
     clearInterval(this.interval);
+  }
+
+  public componentDidUpdate(prevProps: any) {
+    // If repostatus has changed, run fetchCompileStatus()
+    if (JSON.stringify(this.props.repoStatus) !== JSON.stringify(prevProps.repoStatus)) {
+      this.fetchCompileStatus();
+      this.fetchMasterRepoStatus();
+    }
+
+    // If deploymentstatus has changed, run fetchDeployments()
+    if (JSON.stringify(this.props.deployStatus) !== JSON.stringify(prevProps.deployStatus)) {
+      this.fetchDeployments(environment);
+    }
+  }
+
+  public fetchCompileStatus = () => {
+    const { org, service } = window as IAltinnWindow;
+    DeployActionDispatcher.fetchCompileStatus(org, service);
+  }
+
+  // TODO: Change letEnv to enum when environments are defined later
+  public fetchDeployments = (letEnv: string) => {
+    const { org, service } = window as IAltinnWindow;
+    DeployActionDispatcher.fetchDeployments(letEnv, org, service);
+  }
+
+  public fetchMasterRepoStatus = () => {
+    const { org, service } = window as IAltinnWindow;
+    DeployActionDispatcher.fetchMasterRepoStatus(org, service);
   }
 
   public isDeployFinished = (letEnv: string): boolean => {
