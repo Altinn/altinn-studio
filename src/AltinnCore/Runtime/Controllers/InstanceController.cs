@@ -480,9 +480,9 @@ namespace AltinnCore.Runtime.Controllers
         [HttpGet]
         [Authorize]
         [DisableFormValueModelBinding]
-        public IActionResult GetFormAttachments(string org, string service, int partyId, Guid instanceId)
+        public async Task<IActionResult> GetFormAttachments(string org, string service, int partyId, Guid instanceId)
         {
-            List<AttachmentList> allAttachments = _data.GetFormAttachments(org, service, partyId, instanceId);
+            List<AttachmentList> allAttachments = await _data.GetFormAttachments(org, service, partyId, instanceId);
             return Ok(allAttachments);
         }
 

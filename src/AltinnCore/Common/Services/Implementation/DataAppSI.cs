@@ -9,6 +9,7 @@ using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -119,21 +120,94 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc />
-        public List<AttachmentList> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        public async Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
         {
-            throw new NotImplementedException();
+            List<Data> dataList = null;
+            List<AttachmentList> attachmentList = new List<AttachmentList>();
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(apiUrl);
+
+                HttpResponseMessage response = await client.GetAsync(apiUrl);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    string instanceData = await response.Content.ReadAsStringAsync();
+                    dataList = JsonConvert.DeserializeObject<List<Data>>(instanceData);
+                    List<Attachment> attachments = new List<Attachment>();
+
+                    foreach (Data data in dataList)
+                    {
+                        attachments.Add(new Attachment
+                        {
+                            Id = data.Id,
+                            Name = data.FileName,
+                            Size = data.FileSize
+                        });
+                    }
+
+                    if (attachments.Count > 0)
+                    {
+                        attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
+                    }
+
+                }
+                else
+                {
+                    throw new Exception("Unable to fetch attachment list");
+                }
+
+                return attachmentList;
+            }
         }
 
         /// <inheritdoc />
         public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
         {
-            throw new NotImplementedException();
+            List<AttachmentList> attachmentList = new List<AttachmentList>();
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={attachmentId}";
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(apiUrl);
+
+                Task<HttpResponseMessage> response = client.DeleteAsync(apiUrl);
+                response.Result.EnsureSuccessStatusCode();
+            }
         }
 
         /// <inheritdoc />
-        public Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
+        public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            throw new NotImplementedException();
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            Instance instance;
+
+            var provider = new FileExtensionContentTypeProvider();
+            string contentType;
+            provider.TryGetContentType(attachmentName, out contentType);
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(apiUrl);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+                
+                using (Stream input = attachment.Body)
+                {
+                    HttpContent fileStreamContent = new StreamContent(input);
+
+                    using (MultipartFormDataContent formData = new MultipartFormDataContent())
+                    {
+                        fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
+                        formData.Add(fileStreamContent, FORM_ID, attachmentName);
+                        HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
+
+                        response.EnsureSuccessStatusCode();
+
+                        string instancedata = await response.Content.ReadAsStringAsync();
+                        instance = JsonConvert.DeserializeObject<Instance>(instancedata);
+                        return Guid.Parse(instance.Data.Find(m => m.FileName.Equals(attachmentName)).Id);
+                    }
+                }
+            }
         }
     }
 }
