@@ -138,8 +138,7 @@ describe('Deploy To Test container', () => {
 
     // Assert the deploy button
     expect(wrapper.exists('#deployButton')).toEqual(true);
-    const deployButton = wrapper.find('#deployButton');
-    expect(deployButton.find('button').props()['disabled']).toEqual(false);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
 
   it('should render "Master repo and deploy is in sync, deploy disabled"', async () => {
@@ -180,8 +179,7 @@ describe('Deploy To Test container', () => {
 
     // Assert the deploy button
     expect(wrapper.exists('button#deployButton')).toEqual(true);
-    const deployButton = wrapper.find('button#deployButton');
-    expect(deployButton.find('button#deployButton').props()['disabled']).toEqual(true);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(true);
 
   });
 
@@ -218,15 +216,11 @@ describe('Deploy To Test container', () => {
     expect(renderInSync.exists('.fa-info-circle')).toEqual(true);
 
     // Assert rendercSharpCompiles part
-    expect(wrapper.exists('#rendercSharpCompiles')).toEqual(true);
-    const rendercSharpCompiles = wrapper.find('#rendercSharpCompiles');
-    expect(rendercSharpCompiles.exists('.ai-check')).toEqual(true);
-    expect(rendercSharpCompiles.exists('.fa-circle-exclamation')).toEqual(false);
+    expect(wrapper.exists('#rendercSharpCompiles')).toEqual(false);
 
     // Assert the deploy button
     expect(wrapper.exists('#deployButton')).toEqual(true);
-    const deployButton = wrapper.find('#deployButton');
-    expect(deployButton.find('button').props()['disabled']).toEqual(false);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
 
   it('should render "Local repo is behind master"', async () => {
@@ -261,10 +255,12 @@ describe('Deploy To Test container', () => {
     expect(renderInSync.exists('.ai-check')).toEqual(false);
     expect(renderInSync.exists('.fa-info-circle')).toEqual(true);
 
+    // Assert rendercSharpCompiles part
+    expect(wrapper.exists('#rendercSharpCompiles')).toEqual(false);
+
     // Assert the deploy button
     expect(wrapper.exists('#deployButton')).toEqual(true);
-    const deployButton = wrapper.find('#deployButton');
-    expect(deployButton.find('button').props()['disabled']).toEqual(false);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
   });
 
   it('should correctly render the "Deploy successfully" process', async () => {
@@ -282,10 +278,12 @@ describe('Deploy To Test container', () => {
       />,
     );
 
+    const instance = wrapper.instance() as DeployToTestContainer;
+    const spyOnFetchDeployments = jest.spyOn(instance, 'fetchDeployments');
+
     // Assert the deploy button
     expect(wrapper.exists('button#deployButton')).toEqual(true);
-    const deployButton = wrapper.find('button#deployButton');
-    expect(deployButton.find('button').props()['disabled']).toEqual(false);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
 
     // Assert the altinnspinner
     expect(wrapper.exists('#DeploySpinner')).toEqual(false);
@@ -308,6 +306,8 @@ describe('Deploy To Test container', () => {
     wrapper.setProps({
       deployStatus: mockDeployStatus,
     });
+
+    expect(spyOnFetchDeployments).toHaveBeenCalledTimes(1);
 
     // Assert the deploy button, should be hidden
     expect(wrapper.exists('button#deployButton')).toEqual(false);
@@ -334,6 +334,8 @@ describe('Deploy To Test container', () => {
       deployStatus: mockDeployStatus,
     });
 
+    expect(spyOnFetchDeployments).toHaveBeenCalledTimes(2);
+
     // Assert the deploy button, should be hidden
     expect(wrapper.exists('button#deployButton')).toEqual(false);
 
@@ -358,6 +360,8 @@ describe('Deploy To Test container', () => {
     wrapper.setProps({
       deployStatus: mockDeployStatus,
     });
+
+    expect(spyOnFetchDeployments).toHaveBeenCalledTimes(3);
 
     // Assert the deploy button, should be hidden
     expect(wrapper.exists('button#deployButton')).toEqual(false);
@@ -660,6 +664,136 @@ describe('Deploy To Test container', () => {
 
     // Assert the altinnspinner, should be shown
     expect(wrapper.exists('#DeploySpinner')).toEqual(true);
+
+  });
+
+  it('should dispatch fetchCompileStatus() when repostatus props changes', async () => {
+    mockRepoStatus = {
+      behindBy: 1,
+      aheadBy: 0,
+      contentStatus: ['some', 'data'],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    };
+
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    const instance = wrapper.instance() as DeployToTestContainer;
+    const spyOnFetchCompileStatus = jest.spyOn(instance, 'fetchCompileStatus');
+
+    // Assert rendercSharpCompiles part
+    expect(wrapper.exists('#rendercSharpCompiles')).toEqual(false);
+
+    mockRepoStatus = {
+      behindBy: 0,
+      aheadBy: 0,
+      contentStatus: ['some', 'data'],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    };
+    wrapper.setProps({
+      repoStatus: mockRepoStatus,
+    });
+
+    expect(spyOnFetchCompileStatus).toHaveBeenCalledTimes(1);
+
+    mockRepoStatus = {
+      behindBy: 0,
+      aheadBy: 0,
+      contentStatus: ['some', 'data'],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    };
+    wrapper.setProps({
+      repoStatus: mockRepoStatus,
+    });
+
+    // Assert that fetchCompileStatus() has not been called again when props has not changed
+    expect(spyOnFetchCompileStatus).toHaveBeenCalledTimes(1);
+
+  });
+
+  it('should re-render currentVersion, when master repo and deploy in sync, and new changes are shared', async () => {
+    mockMasterRepoStatus = {
+      'commit': {
+        'id': '1',
+      },
+    };
+
+    mockRepoStatus = {
+      behindBy: 0,
+      aheadBy: 1,
+      contentStatus: ['some', 'data'],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    };
+
+    const wrapper = mount(
+      <DeployToTestContainer
+        compileStatus={mockCompileStatus}
+        compileStatusUniqueFilenames={mockCompileStatusUniqueFilenames}
+        classes={mockClasses}
+        deploymentList={mockDeploymentList}
+        deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
+        language={mockLanguage}
+        masterRepoStatus={mockMasterRepoStatus}
+        repoStatus={mockRepoStatus}
+      />,
+    );
+
+    const instance = wrapper.instance() as DeployToTestContainer;
+    const spyOnFetchMasterRepoStatus = jest.spyOn(instance, 'fetchMasterRepoStatus');
+
+    // Test in sync language
+    expect(wrapper.text()).toMatch('master_and_deploy_in_sync_title');
+
+    // Assert current version deployed
+    expect(wrapper.text()).toMatch('current_version_title');
+
+    // Assert the deploy button, should be disabled
+    expect(wrapper.exists('button#deployButton')).toEqual(true);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(true);
+
+    mockRepoStatus = {
+      behindBy: 0,
+      aheadBy: 0,
+      contentStatus: [],
+      repositoryStatus: 'Ok',
+      hasMergeConflict: false,
+    };
+
+    mockMasterRepoStatus = {
+      'commit': {
+        'id': '2',
+      },
+    };
+
+    wrapper.setProps({
+      repoStatus: mockRepoStatus,
+      masterRepoStatus: mockMasterRepoStatus,
+    });
+
+    expect(spyOnFetchMasterRepoStatus).toHaveBeenCalledTimes(1);
+
+    // Assert Language shared with org
+    expect(wrapper.text()).toMatch('shared_with_org_true');
+
+    // Assert the deploy button, should NOT be disabled
+    expect(wrapper.exists('button#deployButton')).toEqual(true);
+    expect(wrapper.find('button#deployButton').props()['disabled']).toEqual(false);
 
   });
 
