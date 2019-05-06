@@ -15,6 +15,7 @@ describe('Deploy To Test container', () => {
   let mockCompileStatusUniqueFilenames: any;
   let mockDeploymentList: any;
   let mockDeployStatus: any;
+  let mockImageVersions: any;
   let mockLanguage: any;
   let mockMasterRepoStatus: any;
   let mockRepoStatus: any;
@@ -69,11 +70,15 @@ describe('Deploy To Test container', () => {
       },
     };
 
-    mockMasterRepoStatus = {
-      'commit': {
-        'id': '2',
-      },
-    };
+    mockImageVersions = {
+      at21: '1',
+    },
+
+      mockMasterRepoStatus = {
+        'commit': {
+          'id': '2',
+        },
+      };
 
     mockCompileStatus = {
       fetchStatus: {
@@ -96,6 +101,8 @@ describe('Deploy To Test container', () => {
   });
 
   it('should render "Ready for deploy and all checks passed"', async () => {
+    mockImageVersions = null;
+
     const wrapper = mount(
       <DeployToTestContainer
         compileStatus={mockCompileStatus}
@@ -103,6 +110,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -111,6 +119,9 @@ describe('Deploy To Test container', () => {
 
     // Assert Language shared with org
     expect(wrapper.text()).toMatch('shared_with_org_true');
+
+    // Assert language for current version paper, no available service deployed
+    expect(wrapper.text()).toMatch('service_not_available_in_test_env');
 
     // Assert renderRepoInSync part (local and master is in sync)
     expect(wrapper.exists('#renderInSync')).toEqual(true);
@@ -145,6 +156,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -153,6 +165,9 @@ describe('Deploy To Test container', () => {
 
     // Test language
     expect(wrapper.text()).toMatch('master_and_deploy_in_sync_title');
+
+    // Assert current version deployed
+    expect(wrapper.text()).toMatch('current_version_title');
 
     // Assert renderRepoInSync part
     expect(wrapper.exists('#renderInSync')).toEqual(true);
@@ -186,6 +201,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -229,6 +245,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -258,6 +275,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -363,6 +381,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -439,6 +458,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -500,6 +520,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -559,6 +580,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
@@ -587,6 +609,7 @@ describe('Deploy To Test container', () => {
         classes={mockClasses}
         deploymentList={mockDeploymentList}
         deployStatus={mockDeployStatus}
+        imageVersions={mockImageVersions}
         language={mockLanguage}
         masterRepoStatus={mockMasterRepoStatus}
         repoStatus={mockRepoStatus}
