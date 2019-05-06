@@ -14,7 +14,7 @@ namespace Altinn.Platform.Storage.Models
     public class ApplicationMetadata
     {
         /// <summary>
-        /// Unique id of the appklication, e.g. TEST-sailor.
+        /// Unique id of the application, e.g. TEST-sailor.
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
