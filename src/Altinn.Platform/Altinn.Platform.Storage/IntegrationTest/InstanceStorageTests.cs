@@ -279,7 +279,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         /// <summary>
-        /// create two instances and check if they can be fetchedfor a given application owner.
+        /// create two instances and check if they can be fetched for a given application owner.
         /// </summary>
         [Fact]
         public async void QueryInstancesOnApplicationOwnerId()
