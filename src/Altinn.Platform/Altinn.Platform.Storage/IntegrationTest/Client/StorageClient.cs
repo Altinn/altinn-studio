@@ -155,7 +155,7 @@ namespace Altinn.Platform.Storage.Client
         /// </summary>
         /// <param name="instanceId"> Id of instance to retrieve events for. </param>
         /// <param name="eventTypes">List of event types to filter the events by./param>
-        ///         /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
         /// <returns>List of intance events.</returns>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)

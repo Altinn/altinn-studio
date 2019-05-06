@@ -58,11 +58,7 @@ namespace Altinn.Platform.Storage.Repository
             _client.OpenAsync();
         }
 
-        /// <summary>
-        ///  Inserts new instance event into the instanceEvent collection.
-        /// </summary>
-        /// <param name="item">Instance event to be stored./param>
-        /// <returns>The stored instance event.</returns>
+        /// <inheritdoc/>
         public async Task<InstanceEvent> InsertInstanceEvent(InstanceEvent item)
         {
             try
@@ -80,14 +76,7 @@ namespace Altinn.Platform.Storage.Repository
             }
         }
 
-        /// <summary>
-        /// Retrieves all instance events related to given instance id, listed event types, and given time frame from instanceEvent collection.
-        /// </summary>
-        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
-        /// <param name="eventTypes">Array of event types to filter the events by./param>
-        /// <param name="fromDateTime"> Lower bound for DateTime span to filter events by.</param>
-        /// <param name="toDateTime"> Upper bound for DateTime span to filter events by.</param>
-        /// <returns>List of instance events.</returns>
+        /// <inheritdoc/>
         public async Task<List<InstanceEvent>> ListInstanceEvents(string instanceId, string[] eventTypes, DateTime? fromDateTime, DateTime? toDateTime)
         {
             try
@@ -98,7 +87,7 @@ namespace Altinn.Platform.Storage.Repository
                     MaxItemCount = 100,
                 };
 
-                var query = _client
+                IQueryable<InstanceEvent> query = _client
                     .CreateDocumentQuery<InstanceEvent>(_collectionUri, feedOptions)
                     .Where(i => i.InstanceId == instanceId);             
 
@@ -122,12 +111,8 @@ namespace Altinn.Platform.Storage.Repository
                 throw ex;
             }
         }
-        
-        /// <summary>
-        /// Deletes all events related to an instance id.
-        /// </summary>
-        /// <param name="instanceId">Id of instance to retrieve events for./param>
-        /// <returns>True if all events are deleted</returns>
+
+        /// <inheritdoc/>
         public async Task<int> DeleteAllInstanceEvents(string instanceId)
         {
             int deletedEventsCount = 0;
@@ -143,7 +128,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 foreach (InstanceEvent instanceEvent in instanceEvents)
                 {
-                    var docUri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceEvent.Id.ToString());
+                    Uri docUri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceEvent.Id.ToString());
                     await _client.DeleteDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(instanceId) });
                     deletedEventsCount++;
                 }

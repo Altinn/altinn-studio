@@ -65,8 +65,8 @@ namespace Altinn.Platform.Storage.Controllers
         /// <returns>List of instance events.</returns>
         /// GET  storage/api/v1/instances/{instanceId}/events
         /// GET  storage/api/v1/instances/{instanceId}/events?eventTypes=deleted,submited
-        /// GET  storage/api/v1/instances/{instanceId}/events
-        /// GET  storage/api/v1/instances/{instanceId}/events
+        /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23
+        /// GET  storage/api/v1/instances/{instanceId}/events?from=2019-05-03T11:55:23&to=2019-05-03T12:55:23&eventTypes=deleted&eventTypes=submited
         [HttpGet]
         public async Task<ActionResult> Get(string instanceId, string[] eventTypes, string from, string to)
         {
