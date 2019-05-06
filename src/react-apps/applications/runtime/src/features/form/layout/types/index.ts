@@ -8,13 +8,21 @@ export interface ILayoutContainer extends ILayoutEntry {
 }
 
 export interface ILayoutComponent extends ILayoutEntry {
-  dataModelBinding: string;
+  dataModelBindings: IDataModelBindings;
+  textResourceBindings: ITextResourceBindings;
   title: string;
   hidden: boolean;
   readOnly: boolean;
   disabled: boolean;
   isValid: boolean;
   required: boolean;
+}
+export interface IDataModelBindings {
+  [id: string]: string;
+}
+
+export interface ITextResourceBindings {
+  [id: string]: string;
 }
 
 export type ILayout = [ILayoutComponent | ILayoutContainer];
