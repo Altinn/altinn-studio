@@ -35,7 +35,7 @@ namespace Altinn.Platform.Storage.Models
         /// Creation date and time for the instance, first time application is deployed and registered in storage.
         /// </summary>
         [JsonProperty(PropertyName = "createdDateTime")]
-        public DateTime? CreatedDateTime { get; set; }
+        public DateTime CreatedDateTime { get; set; }
 
         /// <summary>
         /// User id of the user who deployed.
@@ -47,7 +47,7 @@ namespace Altinn.Platform.Storage.Models
         /// Last changed date time for the application.
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedDateTime")]
-        public DateTime? LastChangedDateTime { get; set; }
+        public DateTime LastChangedDateTime { get; set; }
 
         /// <summary>
         /// User id of the user who last redeployed the application
@@ -65,13 +65,13 @@ namespace Altinn.Platform.Storage.Models
         /// valid from
         /// </summary>
         [JsonProperty(PropertyName = "validFrom")]
-        public DateTime? ValidFrom { get; set; }
+        public DateTime ValidFrom { get; set; }
 
         /// <summary>
         /// valid to
         /// </summary>
         [JsonProperty(PropertyName = "validTo")]
-        public DateTime? ValidTo { get; set; }
+        public DateTime ValidTo { get; set; }
 
         /// <summary>
         /// name workflow

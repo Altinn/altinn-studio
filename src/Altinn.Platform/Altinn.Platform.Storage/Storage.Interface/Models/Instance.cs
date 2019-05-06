@@ -63,13 +63,13 @@ namespace Altinn.Platform.Storage.Models
         /// Due date to submit the form(instance)
         /// </summary>
         [JsonProperty(PropertyName = "dueDateTime")]
-        public DateTime? DueDateTime { get; set; }
+        public DateTime DueDateTime { get; set; }
 
         /// <summary>
         /// date time to show the instance in inbox
         /// </summary>
         [JsonProperty(PropertyName = "visibleDateTime")]
-        public DateTime? VisibleDateTime { get; set; }
+        public DateTime VisibleDateTime { get; set; }
 
         /// <summary>
         /// title of the instance

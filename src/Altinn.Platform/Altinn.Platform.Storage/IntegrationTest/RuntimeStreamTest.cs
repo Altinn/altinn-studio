@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         }
 
         [Fact]
-        public async void UploadFileToRuntime()
+        public async void Test()
         {
             string applicationId = "TTT-app";
             int instanceOwnerId = 33;
