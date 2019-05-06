@@ -22,7 +22,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         public HttpClient Client { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref=PlatformStorageFixture"/> class.
+        /// Initializes a new instance of the <see cref="PlatformStorageFixture"/> class.
         /// </summary>
         public PlatformStorageFixture()
         {
