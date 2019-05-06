@@ -233,7 +233,7 @@ class WorkflowStepComponent extends React.Component<IWorkflowStepProps, IWorkflo
 
 const mapStateToProps = (state: IRuntimeState, props: IWorkflowStepProvidedProps): IWorkflowStepProps => {
   return {
-    language: state.language,
+    language: state.language ? state.language.language : {},
     errorList: null,
     ...props,
   };

@@ -2,7 +2,8 @@
   "compilerOptions": {
     "skipLibCheck": true,
     "types": [
-      "node"
+      "node",
+      "jest"
     ],
     "baseUrl": ".",
     "paths": {

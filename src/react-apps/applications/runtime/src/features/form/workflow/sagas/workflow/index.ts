@@ -11,17 +11,14 @@ import {
   ISetCurrentState,
 } from '../../actions/workflowState';
 
-// import {
-//   get,
-//   post,
-// } from 'Shared/utils/networking';
+import {
+  get,
+  post,
+} from '../../../../../utils/networking';
 
 function* getCurrentStateSaga({ url }: IGetCurrentState): SagaIterator {
   try {
-    // const workflowState = yield call(get, url);
-    const workflowState = {
-      state: 1,
-    };
+    const workflowState = yield call(get, url);
 
     yield call(Actions.getCurrentStateFulfilled, workflowState.state);
   } catch (err) {

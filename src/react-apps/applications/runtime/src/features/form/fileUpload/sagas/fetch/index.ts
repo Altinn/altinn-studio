@@ -1,10 +1,10 @@
 import { SagaIterator } from 'redux-saga';
 import { call, takeLatest } from 'redux-saga/effects';
+import { IAltinnWindow, IAttachments } from '../..';
 import { mapAttachmentListApiResponseToAttachments } from '../../../../../utils/attachment';
 import { get } from '../../../../../utils/networking';
 import FormFileUploadDispatcher from '../../actions';
 import * as FileUploadActionsTypes from '../../actions/types';
-import { IAttachments } from '../../types';
 
 export function* watchFetchAttachmentsSaga(): SagaIterator {
   yield takeLatest(FileUploadActionsTypes.FETCH_ATTACHMENTS, fetchAttachments);

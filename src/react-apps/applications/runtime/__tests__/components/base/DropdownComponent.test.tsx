@@ -1,3 +1,4 @@
+import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
@@ -19,8 +20,8 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
       label: 'test-label-1',
       value: 'test-1',
     }, {
-      label: 'test-label-1',
-      value: 'test-1',
+      label: 'test-label-2',
+      value: 'test-2',
     }];
     mockHandleDataChange = (data: any) => null;
     mockGetTextResource = (resourceKey: string) => 'test';
@@ -39,5 +40,22 @@ describe('>>> components/base/DropdownComponent.tsx --- Snapshot', () => {
       />,
     );
     expect(rendered).toMatchSnapshot();
+  });
+  it('+++ should trigger onDataChanged on change', () => {
+    const mountedDropdownComponent = mount(
+      <DropdownComponent
+        id={mockId}
+        options={mockOptions}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+      />,
+    );
+    const instance = mountedDropdownComponent.instance() as DropdownComponent;
+    const spy = jest.spyOn(instance, 'onDataChanged');
+    instance.forceUpdate();
+    mountedDropdownComponent.find('select').simulate('change', { target: { value: 'test-2' } });
+    expect(spy).toHaveBeenCalled();
   });
 });

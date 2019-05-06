@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { connect } from 'react-redux';
+import { getLanguageFromKey } from '../../../shared/src/utils/language';
 import { thirdPartyComponentWithElementHandler } from '../../srcOld/containers/thirdPartyComponentWithDataHandler';
 import { formComponentWithHandlers } from '../containers/withFormElementHandlers';
 import FormDataActions from '../features/form/data/actions';
@@ -10,13 +11,14 @@ import { IRuntimeState } from '../types';
 export interface IProvidedProps {
   id: string;
   type: string;
-  title: string;
+  textResourceBindings: any;
   dataBinding: string;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
   formData: string;
   isValid: boolean;
+  textResources: any;
 }
 
 class GenericComponent extends React.Component<any> {
@@ -32,7 +34,8 @@ class GenericComponent extends React.Component<any> {
     return (
       <Component
         {...this.props}
-        handleDataUpdate={this.handleDataUpdate}
+        title={getLanguageFromKey(this.props.textResourceBindings.title, this.props.textResources)}
+        handleDataChange={this.handleDataUpdate}
       />
     );
   }
@@ -40,6 +43,7 @@ class GenericComponent extends React.Component<any> {
 const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => ({
   formData: state.formData.formData[props.dataBinding],
   isValid: true,
+  textResources: state.formResources.languageResource.resources,
   ...props,
 });
 

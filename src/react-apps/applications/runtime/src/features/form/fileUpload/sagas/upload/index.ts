@@ -1,16 +1,17 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeEvery } from 'redux-saga/effects';
+import { IAltinnWindow, IAttachment } from '../../';
 import { getFileUploadComponentValidations } from '../../../../../components/base/FileUploadComponent';
+import { IRuntimeState } from '../../../../../reducers';
 import { get, post } from '../../../../../utils/networking';
 import FormFileUploadDispatcher from '../../actions';
 import * as FileUploadActionsTypes from '../../actions/types';
 import * as uploadActions from '../../actions/upload';
-import { IAttachment } from '../../types';
 
 export function* uploadAttachmentSaga(
   { file, attachmentType, tmpAttachmentId, componentId }: uploadActions.IUploadAttachmentAction): SagaIterator {
-  const state: IAppState = yield select();
-  const language = state.appData.language.language;
+  const state: IRuntimeState = yield select();
+  const language = state.language.language;
   try {
     const altinnWindow: IAltinnWindow = window as IAltinnWindow;
     const { org, service, instanceId, reportee } = altinnWindow;

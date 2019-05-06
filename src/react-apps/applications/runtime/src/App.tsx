@@ -16,6 +16,10 @@ export interface IAppState { }
 export default () => {
   React.useEffect(() => {
     const { org, service, instanceId, reportee } = window as IAltinnWindow;
+    LanguageActions.fetchLanguage(
+      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
+      'nb',
+    );
     FormDataModelActions.fetchDataModel(
       `${window.location.origin}/runtime/api/metadata/${org}/${service}/ServiceMetaData`,
     );
@@ -30,10 +34,6 @@ export default () => {
     );
     FormDynamicActions.fetchFormDynamics(
       `${window.location.origin}/runtime/api/resource/${org}/${service}/ServiceConfigurations.json`,
-    );
-    LanguageActions.fetchLanguage(
-      `${window.location.origin}/runtime/api/Language/GetLanguageAsJSON`,
-      'nb',
     );
     FormResourceActions.fetchFormResource(
       `${window.location.origin}/runtime/api/textresources/${org}/${service}`,

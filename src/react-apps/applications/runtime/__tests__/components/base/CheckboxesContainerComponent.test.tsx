@@ -5,10 +5,9 @@ import * as renderer from 'react-test-renderer';
 
 import { CheckboxContainerComponent } from '../../../src/components/base/CheckboxesContainerComponent';
 
-describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', () => {
+describe('>>> components/base/CheckboxesContainerComponent.tsx', () => {
   let mockId: string;
   let mockOptions: any[];
-  // tslint:disable-next-line:prefer-const
   let mockFormData: any;
   let mockHandleDataChange: (value: any) => void;
   let mockGetTextResource: (resourceKey: string) => string;
@@ -18,6 +17,7 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
 
   beforeEach(() => {
     mockId = 'mock-id';
+    mockFormData = '';
     mockOptions = [{
       label: 'test-label-1',
       value: 'test-1',
@@ -47,6 +47,30 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
       />,
     );
     expect(rendered).toMatchSnapshot();
+  });
+  it('+++ should render correct states with no formdata', () => {
+    const props = {
+      id: mockId, formData: null, handleDataChange: mockHandleDataChange,
+      getTextResource: mockGetTextResource, isValid: mockIsValid, options: mockOptions,
+      preselectedOptionIndex: mockPreselectedOptionIndex, readOnly: mockReadOnly, validationMessages: {}
+    };
+    const state = { selected: [] };
+    const checkbox = new CheckboxContainerComponent(props, state);
+    expect(checkbox.props.formData).toBe(null);
+    expect(checkbox.state.selected).toEqual([]);
+    expect(checkbox.props.preselectedOptionIndex).toEqual(null);
+  });
+  it('+++ should render correct states with formdata', () => {
+    const props = {
+      id: mockId, formData: null, handleDataChange: mockHandleDataChange,
+      getTextResource: mockGetTextResource, isValid: mockIsValid, options: mockOptions,
+      preselectedOptionIndex: 1, readOnly: mockReadOnly, validationMessages: {},
+    };
+    const state = { selected: [] };
+    const checkbox = new CheckboxContainerComponent(props, state);
+    expect(checkbox.props.preselectedOptionIndex).toEqual(1);
+    expect(checkbox.state.selected[checkbox.props.preselectedOptionIndex])
+      .toEqual(mockOptions[checkbox.props.preselectedOptionIndex].value);
   });
   it('+++ should render editable component when readOnly is false', () => {
     const shallowCheckbox = shallow(
@@ -85,7 +109,7 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
     const mountedCheckbox = mount(
       <CheckboxContainerComponent
         id={mockId}
-        formData={'undefined'}
+        formData={null}
         handleDataChange={mockHandleDataChange}
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
@@ -98,12 +122,40 @@ describe('>>> components/base/CheckboxesContainerComponent.tsx --- Snapshot', ()
     const instance = mountedCheckbox.instance() as CheckboxContainerComponent;
     const checkbox = mountedCheckbox.find({ type: 'checkbox' }).first();
     const customControl = mountedCheckbox.find('.custom-control').first();
+    const inputField = mountedCheckbox.find('input').first();
+
     expect(checkbox.props().checked).toBe(false);
     expect(customControl.is('div')).toBe(true);
     const spy = jest.spyOn(instance, 'onDataChanged');
-    customControl.simulate('click', { value: 'test-1' });
-    customControl.simulate('click', { value: 'test-1' });
+    // Empty function was nessesary because input expects an onchange event
+    const emptyFunctionSpy = jest.spyOn(instance, 'emptyFunction');
+    customControl.simulate('click', { selectedValue: 'test-1', index: 0 });
+    customControl.simulate('click', { selectedValue: 'test-1', index: 0 });
+    inputField.simulate('change', { selectedValue: 'test-1', index: 0 });
     expect(spy).toHaveBeenCalled();
+    expect(emptyFunctionSpy).toHaveBeenCalled();
     expect(checkbox.props().value).toBe('test-1');
+  });
+  it('+++ should have correct selected state', () => {
+    const mountedCheckbox = mount(
+      <CheckboxContainerComponent
+        id={mockId}
+        formData={'test-1'}
+        handleDataChange={mockHandleDataChange}
+        getTextResource={mockGetTextResource}
+        isValid={mockIsValid}
+        validationMessages={{}}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={mockReadOnly}
+      />,
+    );
+    const instance = mountedCheckbox.instance() as CheckboxContainerComponent;
+    const customControl = mountedCheckbox.find('.custom-control').last();
+    expect(instance.state.selected).toEqual(['test-1']);
+    customControl.simulate('click', { selectedValue: 'test-2', index: 1 });
+    expect(instance.state.selected).toEqual(['test-1', 'test-2']);
+    customControl.simulate('click', { selectedValue: 'test-2', index: 1 });
+    expect(instance.state.selected).toEqual(['test-1', '']);
   });
 });

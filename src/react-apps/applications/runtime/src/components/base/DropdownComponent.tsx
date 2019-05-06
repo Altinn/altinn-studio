@@ -33,7 +33,7 @@ export class DropdownComponent
       >
         {this.props.options.map((option, index) => (
           <option key={index} value={option.value}>
-            {this.props.getTextResource(option.label)}
+            {option.label}
           </option>
         ))}
       </select>

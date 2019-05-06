@@ -1,4 +1,4 @@
-import { shallow } from 'enzyme';
+import { mount, shallow } from 'enzyme';
 import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
@@ -16,7 +16,7 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
 
   beforeEach(() => {
     mockId = 'mock-id';
-    mockFormData = '';
+    mockFormData = null;
     mockHandleDataChange = () => null;
     mockIsValid = true;
     mockReadOnly = false;
@@ -38,8 +38,22 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
     );
     expect(rendered).toMatchSnapshot();
   });
-
-  it('+++ should call supplied update data function when value changes', () => {
+  it('+++ should match snapshot with formData', () => {
+    const wrapper = shallow(
+      <InputComponent
+        id={mockId}
+        formData={'value'}
+        handleDataChange={mockHandleDataChange}
+        isValid={mockIsValid}
+        readOnly={mockReadOnly}
+        required={mockRequired}
+        type={mockType}
+      />,
+    );
+    const instance = wrapper.instance() as InputComponent;
+    expect(instance.state.value).toEqual('value');
+  });
+  it('+++ should have correct state with no formData', () => {
     const wrapper = shallow(
       <InputComponent
         id={mockId}
@@ -51,7 +65,30 @@ describe('>>> components/base/InputComponent.tsx --- Snapshot', () => {
         type={mockType}
       />,
     );
+    const instance = wrapper.instance() as InputComponent;
+    expect(instance.state.value).toEqual('');
+  });
+
+  it('+++ should call supplied update data function when value changes', () => {
+    const wrapper = mount(
+      <InputComponent
+        id={mockId}
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        isValid={mockIsValid}
+        readOnly={mockReadOnly}
+        required={mockRequired}
+        type={mockType}
+      />,
+    );
     const input = wrapper.find('input');
-    input.simulate('onBlur');
+    const instance = wrapper.instance() as InputComponent;
+    input.simulate('change', { target: { value: 'Some input' } });
+    expect(instance.state.value).toEqual('Some input');
+
+    const spy = jest.spyOn(instance, 'onDataChangeSubmit');
+    instance.forceUpdate();
+    input.simulate('blur', { target: { value: '' } });
+    expect(spy).toHaveBeenCalled();
   });
 });

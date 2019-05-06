@@ -28,7 +28,6 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
     const validationErrors = validateFormData(formDataState.formData, dataModelState.dataModel, layoutState.layout);
     if (Object.keys(validationErrors).length === 0) {
       const result = yield call(put, url, apiMode || 'Update', { body: model });
-      console.log('result', result);
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
         // TODO: update workflow state when #1434 is done  (WorkflowActions.setCurrentState(result.nextState); ish)

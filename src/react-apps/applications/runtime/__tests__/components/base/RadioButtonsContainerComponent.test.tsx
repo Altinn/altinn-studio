@@ -47,6 +47,22 @@ describe('>>> components/base/RadioButtonsContainerComponent.tsx --- Snapshot', 
     );
     expect(rendered).toMatchSnapshot();
   });
+  it('+++ should have correct state', () => {
+    const shallowRadioButton = shallow(
+      <RadioButtonContainerComponent
+        formData={mockFormData}
+        handleDataChange={mockHandleDataChange}
+        id={mockId}
+        isValid={mockIsValid}
+        getTextResource={mockGetTextResource}
+        options={mockOptions}
+        preselectedOptionIndex={mockPreselectedOptionIndex}
+        readOnly={true}
+      />,
+    );
+    expect(shallowRadioButton.find('input').first().props().checked).toBe(false);
+
+  });
   it('+++ should render editable component when readOnly is false', () => {
     const shallowRadioButton = shallow(
       <RadioButtonContainerComponent

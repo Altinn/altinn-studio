@@ -14,7 +14,7 @@ declare global {
     formConfig: IFormConfigState;
     formWorkflow: IWorkflowState;
     formDataModel: IDataModelState;
-    formAttachements: IFormFileUploadState;
+    formAttachments: IFormFileUploadState;
     formDynamics: IFormDynamicState;
     language: ILanguageState;
   }
