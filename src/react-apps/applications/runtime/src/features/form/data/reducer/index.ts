@@ -1,5 +1,6 @@
 import Immutable from 'immutability-helper';
 import { Action, Reducer } from 'redux';
+import { ICompleteAndSendInFormRejected } from '../actions/complete';
 import {
   IFetchFormDataFulfilled,
   IFetchFormDataRejected,
@@ -98,6 +99,16 @@ const FormDataReducer: Reducer<IFormDataState> = (
         },
       });
     }
+
+    case actionTypes.COMPLETE_AND_SEND_IN_FORM_REJECTED: {
+      const { error } = action as ICompleteAndSendInFormRejected;
+      return Immutable<IFormDataState>(state, {
+        error: {
+          $set: error,
+        },
+      });
+    }
+
     default: {
       return state;
     }

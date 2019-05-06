@@ -1,7 +1,7 @@
 import {
+  Action,
   ActionCreatorsMapObject,
   bindActionCreators,
-  Action,
 } from 'redux';
 import { store } from '../../../../store';
 import { WorkflowSteps } from '../typings';
@@ -24,7 +24,7 @@ const actions: IFormWorkflowActions = {
   setCurrentState: WorkflowStateActions.setCurrentState,
   setCurrentStateFulfilled: WorkflowStateActions.setCurrentStateFulfilled,
   setCurrentStateRejected: WorkflowStateActions.setCurrentStateRejected,
-}
+};
 
 const WorkflowActions: IFormWorkflowActions = bindActionCreators<any, any>(actions, store.dispatch);
 

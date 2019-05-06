@@ -1,9 +1,10 @@
-import { ActionCreatorsMapObject, bindActionCreators, Action } from 'redux';
+import { Action, ActionCreatorsMapObject, bindActionCreators } from 'redux';
 import { store } from '../../../../store';
 
-import * as UpdateFormData from './update';
-import * as SubmitFormData from './submit';
+import * as CompleteForm from './complete';
 import * as FetchFormData from './fetch';
+import * as SubmitFormData from './submit';
+import * as UpdateFormData from './update';
 
 export interface IFormDataActions extends ActionCreatorsMapObject {
   updateFormData: (field: string, data: any) => UpdateFormData.IUpdateFormData;
@@ -13,9 +14,12 @@ export interface IFormDataActions extends ActionCreatorsMapObject {
   submitFormDataFulfilled: () => Action;
   submitFormDataRejected: (error: Error) => SubmitFormData.ISubmitFormDataRejected;
   fetchFormData: (url: string) => FetchFormData.IFetchFormData;
-  fetchFormDataFulfilled: (formData: any) => FetchFormData.IFetchFormDataFulfilled,
-  fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected
-};
+  fetchFormDataFulfilled: (formData: any) => FetchFormData.IFetchFormDataFulfilled;
+  fetchFormDataRejected: (error: Error) => FetchFormData.IFetchFormDataRejected;
+  completeAndSendInForm: (url: string) => CompleteForm.ICompleteAndSendInForm;
+  completeAndSendInFormFulfilled: () => Action;
+  completeAndSendInFormRejected: (error: Error) => CompleteForm.ICompleteAndSendInFormRejected;
+}
 
 const actions: IFormDataActions = {
   updateFormData: UpdateFormData.updateFormData,
@@ -27,7 +31,10 @@ const actions: IFormDataActions = {
   fetchFormData: FetchFormData.fetchFormData,
   fetchFormDataFulfilled: FetchFormData.fetchFormDataFulfilled,
   fetchFormDataRejected: FetchFormData.fetchFormDataRejected,
-}
+  completeAndSendInForm: CompleteForm.completeAndSendInForm,
+  completeAndSendInFormFulfilled: CompleteForm.completeAndSendInFormFulfilled,
+  completeAndSendInFormRejected: CompleteForm.completeAndSendInFormRejected,
+};
 
 const FormDataActions: IFormDataActions = bindActionCreators<any, any>(actions, store.dispatch);
 

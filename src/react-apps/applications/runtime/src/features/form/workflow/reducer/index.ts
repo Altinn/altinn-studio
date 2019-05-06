@@ -30,10 +30,13 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
 
   switch (action.type) {
     case ActionTypes.GET_CURRENT_STATE_FULFILLED: {
-      const workFlowState = (action as IGetCurrentStateFulfilled).state;
+      const workflowState = (action as IGetCurrentStateFulfilled).state;
+      if (workflowState === 3) {
+        document.body.className = 'a-bgGreenLight flex-column d-flex';
+      }
       return update<IWorkflowState>(state, {
         $set: {
-          state: workFlowState,
+          state: workflowState,
           error: null,
         },
       });
@@ -49,6 +52,9 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
     }
     case ActionTypes.SET_CURRENT_STATE: {
       const workflowState = (action as ISetCurrentState).state;
+      if (workflowState === 3) {
+        document.body.className = 'a-bgGreenLight flex-column d-flex';
+      }
       return update<IWorkflowState>(state, {
         $set: {
           state: workflowState,
