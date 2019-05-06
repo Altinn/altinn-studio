@@ -223,6 +223,19 @@ namespace AltinnCore.Runtime
             {
                 // ---------------------------- UI --------------------------- //
                 routes.MapRoute(
+                    name: "profileApiRoute",
+                    template: "runtime/api/v1/{controller}/user/",
+                    defaults: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile"
+                    },
+                    constraints: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile",
+                    });
+                routes.MapRoute(
                     name: "uiRoute",
                     template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",
                     defaults: new { controller = "Instance" },
