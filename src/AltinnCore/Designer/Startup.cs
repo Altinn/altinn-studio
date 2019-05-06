@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
@@ -119,12 +120,17 @@ namespace AltinnCore.Designer
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                {
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
+                })
                 .AddCookie(options =>
                 {
                     options.AccessDeniedPath = "/Home/NotAuthorized/";
                     options.LoginPath = "/Home/Login/";
                     options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = AltinnCore.Common.Constants.General.DesignerCookieName;
+                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade

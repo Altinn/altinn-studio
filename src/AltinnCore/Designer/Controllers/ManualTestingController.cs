@@ -88,7 +88,7 @@ namespace AltinnCore.Designer.Controllers
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.CreateUserContextBasedOnReportee(HttpContext, reporteeId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             StartServiceModel startServiceModel = new StartServiceModel
@@ -200,12 +200,7 @@ namespace AltinnCore.Designer.Controllers
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-            string authenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-            if (!string.IsNullOrEmpty(_generalSettings.AuthenticationMode) && _generalSettings.AuthenticationMode.Equals("JwtCookie"))
-            {
-                authenticationScheme = JwtCookieDefaults.AuthenticationScheme;
-            }
+            string authenticationScheme = JwtCookieDefaults.AuthenticationScheme;
 
             await HttpContext.SignInAsync(
                     authenticationScheme,

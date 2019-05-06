@@ -168,6 +168,7 @@ namespace AltinnCore.Runtime
                             ValidateLifetime = true
                         };
                         options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                        options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
                     });
             }
             else

@@ -58,10 +58,20 @@
       </div>
     </form>
 
-
-    <div class="form-group">
-        <input class="btn btn-primary" type="button" value="Start ny" onclick="startNewService()"/>
-    </div>
+    <form id="startService" method="post" action="/runtime/Instance/StartService" target="_blank">
+      <input type="hidden" asp-for="ServiceID" />
+      <div class="form-group">
+        <input type="hidden" asp-for="ReporteeID" />
+        <input type="hidden" asp-for="Service" value="@service" />
+        <input type="hidden" asp-for="Org" value="@org" />
+        <label asp-for="ReporteeID">Preutfylling</label>
+        <select asp-for="PrefillList" asp-items="@Model.PrefillList" class="form-control"></select>
+        <span asp-validation-for="PrefillList" class="text-danger"></span>
+      </div>
+      <div class="form-group">
+        <input class="btn btn-primary" type="submit" value="Start ny" />
+      </div>
+    </form>
 
 
 @if (instanceList.Count > 0)
@@ -94,10 +104,3 @@
         }
     </table>
 }
-
-<script>
-  function startNewService() {
-    var win = window.open(window.location.origin + "/runtime/@org/@service/Instance/StartService", '_blank');
-    win.focus();
-  }
-</script>
