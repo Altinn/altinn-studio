@@ -29,19 +29,3 @@ function* getCurrentStateSaga({ url }: IGetCurrentState): SagaIterator {
 export function* watchGetCurrentStateSaga(): SagaIterator {
   yield takeLatest(ActionTypes.GET_CURRENT_STATE, getCurrentStateSaga);
 }
-
-function* setCurrentStateSaga({ url, state }: ISetCurrentState): SagaIterator {
-  try {
-    //  yield call(post, url, state);
-    yield call(Actions.setCurrentStateFullfilled);
-  } catch (err) {
-    yield call(
-      Actions.setCurrentStateRejected,
-      err,
-    );
-  }
-}
-
-export function* watchSetCurrentStateSaga(): SagaIterator {
-  yield takeLatest(ActionTypes.SET_CURRENT_STATE, setCurrentStateSaga);
-}

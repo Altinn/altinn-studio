@@ -44,7 +44,7 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
         $set: {
           state: state.state,
           error,
-        }
+        },
       });
     }
     case ActionTypes.SET_CURRENT_STATE: {
@@ -60,6 +60,6 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
       return state;
     }
   }
-}
+};
 
 export default WorkflowReducer;

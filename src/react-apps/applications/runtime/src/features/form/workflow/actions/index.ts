@@ -12,8 +12,8 @@ export interface IFormWorkflowActions extends ActionCreatorsMapObject {
   getCurrentState: (url: string) => WorkflowStateActions.IGetCurrentState;
   getCurrentStateFulfilled: (state: WorkflowSteps) => WorkflowStateActions.IGetCurrentStateFulfilled;
   getCurrentStateRejected: (error: Error) => WorkflowStateActions.IGetCurrentStateRejected;
-  setCurrentState: (url: string, state: WorkflowSteps) => WorkflowStateActions.ISetCurrentState;
-  setCurrentStateFullfilled: () => Action;
+  setCurrentState: (state: WorkflowSteps) => WorkflowStateActions.ISetCurrentState;
+  setCurrentStateFulfilled: () => Action;
   setCurrentStateRejected: (error: Error) => WorkflowStateActions.ISetCurrentStateRejected;
 }
 
@@ -22,7 +22,7 @@ const actions: IFormWorkflowActions = {
   getCurrentStateFulfilled: WorkflowStateActions.getCurrentStateFulfilled,
   getCurrentStateRejected: WorkflowStateActions.getCurrentStateRejected,
   setCurrentState: WorkflowStateActions.setCurrentState,
-  setCurrentStateFullfilled: WorkflowStateActions.setCurrentStateFulfilled,
+  setCurrentStateFulfilled: WorkflowStateActions.setCurrentStateFulfilled,
   setCurrentStateRejected: WorkflowStateActions.setCurrentStateRejected,
 }
 

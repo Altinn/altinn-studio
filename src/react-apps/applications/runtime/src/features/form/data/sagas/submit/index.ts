@@ -30,7 +30,7 @@ function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
       const result = yield call(put, url, apiMode || 'Update', { body: model });
       yield call(FormDataActions.submitFormDataFulfilled);
       if (result.status === 0 && result.nextState) {
-        // TODO: update workflow state when #1434 is done  (WorkflowActions.setCurrentState(result.nextState); ish)
+        WorkflowActions.setCurrentState(result.nextState);
       }
       if (result.status === 0 && result.nextStepUrl && !result.nextStepUrl.includes('#Preview')) {
         // If next step is placed somewhere other then the SPA, for instance payment, we must redirect.
