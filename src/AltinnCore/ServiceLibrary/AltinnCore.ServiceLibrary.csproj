@@ -35,6 +35,6 @@
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp2.1\AltinnCore.Common.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\netcoreapp2.2\AltinnCore.Common.xml</DocumentationFile>
   </PropertyGroup>
 </Project>
