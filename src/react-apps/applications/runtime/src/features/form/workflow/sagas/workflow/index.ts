@@ -20,7 +20,7 @@ import { WorkflowSteps } from '../../typings';
 function* getCurrentStateSaga({ url }: IGetCurrentState): SagaIterator {
   try {
     const workflowState = yield call(get, url);
-    if (workflowState === WorkflowSteps.Archived) {
+    if (workflowState.state === WorkflowSteps.Archived) {
       document.body.className = 'a-bgGreenLight flex-column d-flex';
     }
     yield call(Actions.getCurrentStateFulfilled, workflowState.state);
