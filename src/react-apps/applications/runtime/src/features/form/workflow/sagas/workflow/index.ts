@@ -15,11 +15,14 @@ import {
   get,
   post,
 } from '../../../../../utils/networking';
+import { WorkflowSteps } from '../../typings';
 
 function* getCurrentStateSaga({ url }: IGetCurrentState): SagaIterator {
   try {
     const workflowState = yield call(get, url);
-
+    if (workflowState === WorkflowSteps.Archived) {
+      document.body.className = 'a-bgGreenLight flex-column d-flex';
+    }
     yield call(Actions.getCurrentStateFulfilled, workflowState.state);
   } catch (err) {
     yield call(Actions.getCurrentStateRejected, err);

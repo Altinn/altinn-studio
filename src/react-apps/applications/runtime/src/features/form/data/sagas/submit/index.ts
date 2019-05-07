@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, select, takeLatest } from 'redux-saga/effects';
 
-import WorkflowActions, * as WorkFlowActions from '../../../workflow/actions';
+import WorkflowActions from '../../../workflow/actions';
 import FormDataActions from '../../actions';
 import {
   ISubmitDataAction,
@@ -15,9 +15,9 @@ import { validateFormData } from '../../../../../utils/validation';
 import { IDataModelState } from '../../../datamodell/reducer';
 import { ILayoutState } from '../../../layout/reducer';
 
-const FormDataSelector: (state: any) => IFormDataState = (state: any) => state.formData;
-const DataModelSelector: (state: any) => IDataModelState = (state: any) => state.formDataModel;
-const LayoutSelector: (state: any) => ILayoutState = (state: any) => state.formLayout;
+const FormDataSelector: (store: IRuntimeStore) => IFormDataState = (store: IRuntimeStore) => store.formData;
+const DataModelSelector: (store: IRuntimeStore) => IDataModelState = (store: IRuntimeStore) => store.formDataModel;
+const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 
 function* submitFormSaga({ url, apiMode }: ISubmitDataAction): SagaIterator {
   try {
