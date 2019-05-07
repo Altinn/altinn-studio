@@ -48,8 +48,14 @@ test('Search for only my users services', async () => {
     .expect(dash.rettigheterMelding.exists).ok()
 });
 
-test('filter away a users services by clicking owner bubble', async () => {
-  await t
-  .click(Selector('span').withText("AutoTest"))
-  .expect(dash.skriveRettigheter.exists).ok({ timeout: 2500 })
-})
+test('filter away a users services by unselecting all bubbles', async t => {
+  let serviceOwnerButtons =  await Selector("div > span");
+  let count = await serviceOwnerButtons.count;
+  
+  for (let i = 0;i < count; i++) {
+    await t.click(serviceOwnerButtons.nth(i));
+  }
+
+  await t.expect(Selector('span').withText("AutoTest").visible).ok();
+  await t.expect(dash.skriveRettigheter.exists).ok({ timeout: 2500 });
+});

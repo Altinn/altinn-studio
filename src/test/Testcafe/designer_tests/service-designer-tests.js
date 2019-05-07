@@ -22,6 +22,37 @@ fixture('GUI service designer tests')
     await common.login(testUser.userEmail, testUser.password, loginPage);
   })
 
+test('Drag and drop test', async () => {
+  await t
+    .navigateTo(app.baseUrl + 'designer/AutoTest/test123#/uieditor')
+    .expect(designer.inputComponent).ok()
+    .dragToElement(designer.inputComponent, designer.dragToArea)
+    .dragToElement(designer.addressComponent, designer.dragToArea)
+})
+
+test('Add one of each component to the designer using keyboard', async () => {
+  await t
+  .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
+  .click(designer.lageNavigationTab)
+  .expect(designer.inputBtn.visible).ok()
+  .click(designer.inputBtn)
+  .pressKey('enter') //input button
+  .pressKey('tab')
+  .pressKey('enter') //datepicker
+  .pressKey('tab')
+  .pressKey('enter') //dropdown
+  .pressKey('tab')
+  .pressKey('enter') //checkboxes
+  .pressKey('tab')
+  .pressKey('enter') //radiobutton
+  .pressKey('tab')
+  .pressKey('enter') //text area
+  .pressKey('tab')
+  .pressKey('enter') //file upload
+  .pressKey('tab')
+  .pressKey('enter') //submit
+})
+
 test('Sync a service with master', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/auto_test#/aboutservice')
@@ -72,14 +103,6 @@ test('About page items and editing', async () => {
 
 test('Automated accessibility test for designer page', async t => {
   axeCheck(t);
-})
-
-test('Drag and drop test', async () => {
-  await t
-    .navigateTo(app.baseUrl + 'designer/AutoTest/test123#/uieditor')
-    .expect(designer.inputComponent).ok()
-    .dragToElement(designer.inputComponent, designer.dragToArea)
-    .dragToElement(designer.addressComponent, designer.dragToArea)
 })
 
 test.skip('Repeating groups', async () => {

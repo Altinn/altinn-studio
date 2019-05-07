@@ -6,7 +6,7 @@ import App from '../app';
 export default class DesignerPage {
   constructor() {
     //editor elements #schema-components
-    this.header = Selector("#schema-components").withText("Header");
+    this.header = Selector("#schema-texts").withText("Header");
     this.inputBtn = Selector("#schema-components").withText("Input");
     this.dropDown = Selector("#schema-components").withText("Dropdown");
     this.datePicker = Selector("#schema-components").withText("Datepicker");
@@ -76,8 +76,10 @@ export default class DesignerPage {
 
     //"teste" navigation tab selectors
     this.testeNavigationTab = Selector('div > a').withExactText('Teste');
+    this.deployButton = Selector('#deployButton');
     this.testeLeftMenuItems = [
-      this.leftMenuList.withExactText('Test')
+      this.leftMenuList.withExactText('Test'),
+      this.leftMenuList.withExactText('Test i testmiljø')
     ];
 
     //"publisere" navigation tab selectors
@@ -102,6 +104,7 @@ export default class DesignerPage {
     this.delEndringer = Selector("button").withExactText("Del endringer");
     this.commitMessageBox = Selector("#test");
   }
+
   async deleteDataModelTexts(numberToDelete) {
     let deleteButtons = await Selector(".tbn").withText("Slett");
     let count = deleteButtons().count;
@@ -109,6 +112,14 @@ export default class DesignerPage {
     for (let i = 0; i < numberToDelete && i < count; i++) {
       await t.click(deleteButtons.nth(i));
     }
+  }
+
+  async createMergeConflict() {
+
+  }
+
+  async whitePaperHeader(headerText) {
+    return Selector('h2').withExactText(headerText);
   }
 
   async deleteSelectedComponentsMethod() {
