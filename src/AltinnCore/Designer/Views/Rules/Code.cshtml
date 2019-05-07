@@ -45,7 +45,9 @@
             <a asp-route="serviceRoute"
                asp-route-controller="Rules"
                asp-route-action="File"
-               asp-route-name="@file.FileName">
+               asp-route-name="@file.FileName"
+               asp-route-org="@org"
+               asp-route-service="@service">
               @file.FileName
             </a>
           </td>

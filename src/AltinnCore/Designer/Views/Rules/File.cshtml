@@ -1,6 +1,10 @@
-﻿
+
 @section scripts {
-    <script src="~/designer/js/lib/monaco-editor/vs/loader.js"></script>
+  <script src="~/designer/js/lib/monaco-editor/vs/loader.js"></script>
+}
+@{
+  string org = ViewContext.RouteData.Values["org"] as string;
+  string service = ViewContext.RouteData.Values["service"] as string;
 }
 
 <button onclick="submitForm()" class="btn btn-primary"> <i class="fa fa-floppy-o fa-lg"></i> Lagre</button>
@@ -14,7 +18,7 @@
 <script>
     var editor;
     $(document).ready(function () {
-        $.ajax("@Url.Action("GetFile")?name=@ViewBag.FileName")
+        $.ajax("/designer/@org/@service/Rules/GetFile?name=@ViewBag.FileName")
     .done(function(data)
     {
         //$('#codecontainer').html(data);
@@ -41,11 +45,11 @@
 
             $.ajax({
                 type: 'post',
-                url: "@Url.Action("SaveImplementationFile")?fileName=@ViewBag.FileName",
+                url: "/designer/@org/@service/Rules/SaveImplementationFile?fileName=@ViewBag.FileName",
                 data: {
                     fileContent : editor.getValue()
                         },
-                
+
             success: function (data) {
                 compile();
             },
@@ -57,7 +61,7 @@
 
     function compile()
     {
-        $.ajax("@Url.Action("Compile")")
+        $.ajax("/designer/@org/@service/Rules/Compile")
         .done(function(data)
         {
             $("#compilationResult").html(data);

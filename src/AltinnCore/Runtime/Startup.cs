@@ -150,7 +150,7 @@ namespace AltinnCore.Runtime
                     };
                 });
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -222,6 +222,19 @@ namespace AltinnCore.Runtime
             app.UseMvc(routes =>
             {
                 // ---------------------------- UI --------------------------- //
+                routes.MapRoute(
+                    name: "profileApiRoute",
+                    template: "runtime/api/v1/{controller}/user/",
+                    defaults: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile"
+                    },
+                    constraints: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile",
+                    });
                 routes.MapRoute(
                     name: "uiRoute",
                     template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",

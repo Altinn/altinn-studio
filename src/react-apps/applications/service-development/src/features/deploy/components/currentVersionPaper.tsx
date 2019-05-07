@@ -91,11 +91,11 @@ export const CurrentVersionPaper = (props: ICurrentVersionPaperProps) => {
           <Typography variant='body1'>
             {getLanguageFromKey('deploy_to_test.altinn_test_env_url', props.language)}<br />
             <a
-              href={`https://${org}.apps.${props.env}.${urls.hostname.altinn.test}`}
+              href={`https://${props.env}.${urls.hostname.altinn.test}`}
               target='_blank'
               className={classes.link}
             >
-              {`${org}.apps.${props.env}.${urls.hostname.altinn.test}`}
+              {`${props.env}.${urls.hostname.altinn.test}`}
             </a>
           </Typography>
         </div>

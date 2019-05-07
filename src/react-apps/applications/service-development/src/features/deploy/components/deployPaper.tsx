@@ -387,8 +387,9 @@ export const DeployPaper = (props: IDeployPaperProps) => {
                     {/* Render the repo in sync part */}
                     {renderRepoInSync()}
 
-                    {/* If master repo and deploy is not in sync, render the C# compiles part */}
-                    {props.masterRepoAndDeployInSync !== true &&
+                    {/* If master repo and deploy is not in sync AND local repo is in sync with master,
+                        render the C# compiles part */}
+                    {props.masterRepoAndDeployInSync !== true && localRepoInSyncWithMaster === inSyncStatus.ready &&
                       <React.Fragment>
                         <Grid item={true} xs={1} id='rendercSharpCompiles'>
                           <div

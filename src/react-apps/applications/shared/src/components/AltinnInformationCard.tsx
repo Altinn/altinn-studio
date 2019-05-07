@@ -135,7 +135,8 @@ class AltinnInformationCard extends
                   <div className={classes.smSpacing}>
                     <a
                       href={getLanguageFromKey(this.props.urlKey, this.props.language)}
-                      className={classes.link}>
+                      className={classes.link}
+                    >
                       {getLanguageFromKey(this.props.linkTextKey, this.props.language)}
                       <AltinnIcon
                         isActive={true}
