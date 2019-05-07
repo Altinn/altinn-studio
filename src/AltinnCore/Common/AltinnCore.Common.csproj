@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="HtmlAgilityPack" Version="1.8.12" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.4" />
     <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-    <PackageReference Include="Manatee.Json" Version="10.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.2.4" />
+    <PackageReference Include="Manatee.Json" Version="10.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="2.8.2" />
-    <PackageReference Include="LibGit2Sharp" Version="0.26.0-preview-0027" />
+    <PackageReference Include="LibGit2Sharp" Version="0.26.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,7 +21,10 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.1.61" />
+    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.118.34620">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
     <AdditionalFiles Include="$(SolutionDir)stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
