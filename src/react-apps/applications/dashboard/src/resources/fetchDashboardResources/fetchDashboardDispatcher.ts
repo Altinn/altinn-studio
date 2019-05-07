@@ -1,5 +1,5 @@
 import { ActionCreatorsMapObject, bindActionCreators } from 'redux';
-import { store } from '../store';
+import { store } from '../../store';
 import * as FetchDashboardActions from './fetchDashboardActions';
 
 /**
@@ -57,7 +57,7 @@ const actions: IFetchDashboardDispatchers = {
 const FetchDashboardActionDispatchers: IFetchDashboardDispatchers = bindActionCreators<
   any,
   IFetchDashboardDispatchers
-  >(actions, store.dispatch);
+>(actions, store.dispatch);
 
 /**
  * Export the App Config dispatcher to be used from REACT components
