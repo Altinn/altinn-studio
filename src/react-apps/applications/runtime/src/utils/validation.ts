@@ -1,4 +1,5 @@
-import { IFormLayoutState } from '../reducers/formDesignerReducer/formLayoutReducer';
+import { IFormData } from '../features/form/data/reducer';
+import { ILayoutComponent, ILayoutContainer } from '../features/form/layout/types';
 import { getKeyWithoutIndex } from './databindings';
 
 export function min(value: number, test: number): boolean {
@@ -42,9 +43,9 @@ const validationFunctions: any = {
 };
 
 export function validateDataModel(
-  formData: any,
+  formData: IFormData,
   dataModelFieldElement: IDataModelFieldElement,
-  layoutModelElement?: IFormComponent,
+  layoutModelElement: ILayoutComponent,
 ): IComponentValidations {
   const validationErrors: string[] = [];
   const fieldKey = Object.keys(layoutModelElement.dataModelBindings).find((binding: string) =>
@@ -55,12 +56,9 @@ export function validateDataModel(
       warnings: [],
     },
   };
-
-  // Loop through all restrictions for the data model element and validate
   Object.keys(dataModelFieldElement.Restrictions).forEach((key) => {
-    if (
-      !runValidation(key, dataModelFieldElement.Restrictions[key], formData)
-    ) {
+    const validationSuccess = runValidation(key, dataModelFieldElement.Restrictions[key], formData);
+    if (!validationSuccess) {
       if (dataModelFieldElement.Restrictions[key].ErrortText) {
         validationErrors.push(
           dataModelFieldElement.Restrictions[key].ErrortText,
@@ -72,56 +70,57 @@ export function validateDataModel(
       }
     }
   });
-  if ((dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1)
-    || (layoutModelElement.required && formData.length)) {
+  if (
+    (dataModelFieldElement.MinOccurs === null || dataModelFieldElement.MinOccurs === 1) ||
+    (layoutModelElement.required && formData.length)
+  ) {
     if (formData.length === 0) {
       validationErrors.push(
         `Field is required`,
       );
     }
   }
-
   componentValidations[fieldKey].errors = validationErrors;
   return componentValidations;
 }
 
 export function validateFormData(
-  formData: any,
+  formData: IFormData,
   dataModelFieldElements: IDataModelFieldElement[],
-  layoutModelElements?: IFormDesignerComponent,
-): any {
+  layout: [ILayoutComponent | ILayoutContainer],
+): IValidationResults {
   const validationErrors: string[] = [];
   const componentValidations: IComponentValidations = {};
   const result: IValidationResults = {};
-  Object.keys(formData).forEach((formDataKey, index) => {
+  Object.keys(formData).forEach((formDataKey) => {
     // Get data model element
     const dataBindingName = getKeyWithoutIndex(formDataKey);
     const dataModelFieldElement = dataModelFieldElements.find((e) => e.DataBindingName === dataBindingName);
     if (!dataModelFieldElement) {
       return;
     }
-
-    // Get form component and field connected to data model element
-    let fieldKey: string = null;
-    const layoutModelKey = Object.keys(layoutModelElements).find(
-      (e) => {
-        if (!layoutModelElements[e].dataModelBindings) {
-          return false;
+    let dataModelFieldKey: string = null;
+    let connectedComponent: ILayoutComponent = null;
+    for (const layoutElement in layout) {
+      if (!layoutElement) {
+        continue;
+      }
+      const component = layoutElement as unknown as ILayoutComponent;
+      if (!component.dataModelBindings) {
+        continue;
+      }
+      // Get form component and field connected to data model element
+      for (const dataModelBindingKey in component.dataModelBindings) {
+        if (!dataModelBindingKey) {
+          continue;
         }
-        for (const key in layoutModelElements[e].dataModelBindings) {
-          if (!key) {
-            continue;
-          }
-          if (layoutModelElements[e].dataModelBindings[key] === dataBindingName) {
-            fieldKey = key;
-            return true;
-          }
+        if (component.dataModelBindings[dataModelBindingKey] === dataBindingName) {
+          dataModelFieldKey = dataModelBindingKey;
+          connectedComponent = component;
+          return;
         }
-        return false;
-      });
-
-    const layoutModelElement: IFormComponent = layoutModelElements[layoutModelKey];
-
+      }
+    }
     Object.keys(dataModelFieldElement.Restrictions).forEach((restrictionKey) => {
       if (!runValidation(restrictionKey, dataModelFieldElement.Restrictions[restrictionKey], formData[formDataKey])) {
         if (dataModelFieldElement.Restrictions[restrictionKey].ErrortText) {
@@ -133,53 +132,50 @@ export function validateFormData(
       }
     });
 
-    if (layoutModelElement && layoutModelElement.required) {
+    if (connectedComponent && connectedComponent.required) {
       if (formData[formDataKey].length === 0) {
         validationErrors.push('Field is required');
       }
     }
 
     if (validationErrors.length > 0) {
-      if (!componentValidations[fieldKey]) {
-        componentValidations[fieldKey] = {
+      if (!componentValidations[dataModelFieldKey]) {
+        componentValidations[dataModelFieldKey] = {
           errors: [],
           warnings: [],
         };
       }
-      componentValidations[fieldKey].errors = validationErrors;
-      result[layoutModelKey] = componentValidations;
+      componentValidations[dataModelFieldKey].errors = validationErrors;
+      result[connectedComponent.id] = componentValidations;
     }
   });
-
   return result;
 }
 
 export function mapApiValidationResultToLayout(
-  apiValidationResult: any, layoutModel: IFormLayoutState): IValidationResults {
+  apiValidationResult: any, layout: [ILayoutComponent | ILayoutContainer]): IValidationResults {
   if (!apiValidationResult) {
     return {};
   }
-  const components = layoutModel.components;
-  return mapValidations(apiValidationResult.messages, components);
+  return mapValidations(apiValidationResult.messages, layout);
 }
 
-function mapValidations(validations: any, layoutComponents: IFormDesignerComponent): IValidationResults {
+export function mapValidations(
+  validations: any, layout: [ILayoutComponent | ILayoutContainer]): IValidationResults {
   const validationResult: IValidationResults = {};
   if (!validations) {
     return validationResult;
   }
-
-  // Loop through all validation keys
+  let match = false;
   Object.keys(validations).forEach((validationKey) => {
     const componentValidation: IComponentValidations = {};
-
-    // Get component ID corresponding to validation key
-    // if validation key represents a field in the data model
-    const componentId: string = Object.keys(layoutComponents).find((layoutComponentId) => {
-      const component = layoutComponents[layoutComponentId];
-      let match = false;
-      Object.keys(component.dataModelBindings).forEach((fieldKey) => {
-        if (component.dataModelBindings[fieldKey].toLowerCase() === validationKey.toLowerCase()) {
+    const component = layout.find((layoutElement) => {
+      if (layoutElement.type !== 'COMPONENT') {
+        return false;
+      }
+      const componentCandidate = layoutElement as unknown as ILayoutComponent;
+      Object.keys(componentCandidate.dataModelBindings).forEach((fieldKey) => {
+        if (componentCandidate.dataModelBindings[fieldKey].toLowerCase() === validationKey.toLowerCase()) {
           match = true;
           componentValidation[fieldKey] = validations[validationKey];
           return;
@@ -187,15 +183,14 @@ function mapValidations(validations: any, layoutComponents: IFormDesignerCompone
       });
       return match;
     });
-
-    if (componentId) {
-      if (validationResult[componentId]) {
-        validationResult[componentId] = {
-          ...validationResult[componentId],
+    if (component) {
+      if (validationResult[component.id]) {
+        validationResult[component.id] = {
+          ...validationResult[component.id],
           ...componentValidation,
         };
       } else {
-        validationResult[componentId] = componentValidation;
+        validationResult[component.id] = componentValidation;
       }
     } else {
       // If no component corresponds to validation key, add validation messages
@@ -212,7 +207,6 @@ function mapValidations(validations: any, layoutComponents: IFormDesignerCompone
       }
     }
   });
-
   return validationResult;
 }
 

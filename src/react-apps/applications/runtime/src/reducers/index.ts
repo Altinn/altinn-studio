@@ -25,7 +25,7 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
   formResources: T9;
 }
 
-export interface IRuntimeState extends IReducers<
+export interface IRuntimeReducers extends IReducers<
   Reducer<ILayoutState>,
   Reducer<IFormDataState>,
   Reducer<IFormConfigState>,
@@ -39,7 +39,7 @@ export interface IRuntimeState extends IReducers<
   ReducersMapObject {
 }
 
-const reducers: IRuntimeState = {
+const reducers: IRuntimeReducers = {
   formLayout: FormLayoutReducer,
   formData: FormDataReducer,
   formConfig: FormConfigState,

@@ -30,10 +30,10 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
 
   switch (action.type) {
     case ActionTypes.GET_CURRENT_STATE_FULFILLED: {
-      const workFlowState = (action as IGetCurrentStateFulfilled).state;
+      const workflowState = (action as IGetCurrentStateFulfilled).state;
       return update<IWorkflowState>(state, {
         $set: {
-          state: workFlowState,
+          state: workflowState,
           error: null,
         },
       });
@@ -44,7 +44,7 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
         $set: {
           state: state.state,
           error,
-        }
+        },
       });
     }
     case ActionTypes.SET_CURRENT_STATE: {
@@ -60,6 +60,6 @@ const WorkflowReducer: Reducer<IWorkflowState> = (
       return state;
     }
   }
-}
+};
 
 export default WorkflowReducer;
