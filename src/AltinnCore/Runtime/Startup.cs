@@ -152,7 +152,7 @@ namespace AltinnCore.Runtime
 
             if (!string.IsNullOrEmpty(authenticationMode) && authenticationMode.Equals("JwtCookie"))
             {
-                X509Certificate2 cert = new X509Certificate2("C:\\temp\\JWTValidationCert.cer");
+                X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
                 SecurityKey key = new X509SecurityKey(cert);
 
                 services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)

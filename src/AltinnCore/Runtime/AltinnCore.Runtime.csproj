@@ -40,6 +40,7 @@
   </Target>
 
   <ItemGroup>
+    <None Remove="JWTValidationCert.cer" />
     <None Remove="stylecop.json" />
   </ItemGroup>
   
@@ -48,6 +49,12 @@
     <AdditionalFiles Include="$(SolutionDir)stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
