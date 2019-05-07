@@ -2,7 +2,6 @@ import axios, { AxiosResponse } from 'axios';
 import classNames = require('classnames');
 import update from 'immutability-helper';
 import * as React from 'react';
-
 import '../../styles/AddressComponent.css';
 import '../../styles/shared.css';
 import { renderValidationMessagesForComponent } from '../../utils/render';
@@ -15,7 +14,7 @@ export interface IAddressComponentProps {
   isValid?: boolean;
   simplified: boolean;
   validationMessages?: any;
-  dataBinding: any;
+  dataBindings: any;
   readOnly: boolean;
 }
 
@@ -194,8 +193,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           <label className={'address-component-label'}>
             {
               // This has been implemented for the sake of validating new textResource binding POC
-              (!this.props.dataBinding.address) ? 'Adresse' :
-                this.props.getTextResource(this.props.dataBinding.address)
+              (!this.props.dataBindings.address) ? 'Adresse' :
+                this.props.getTextResource(this.props.dataBindings.address)
             }
           </label>
           <input
@@ -251,8 +250,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       <div className={'address-component'}>
         <label className={'address-component-label'}>{
           // This has been implemented for the sake of validating new textResource binding POC
-          (!this.props.dataBinding.address) ? 'Adresse' :
-            this.props.getTextResource(this.props.dataBinding.address)
+          (!this.props.dataBindings.address) ? 'Adresse' :
+            this.props.getTextResource(this.props.dataBindings.address)
         }</label>
         <input
           className={classNames('form-control', { 'disabled': this.props.readOnly })}

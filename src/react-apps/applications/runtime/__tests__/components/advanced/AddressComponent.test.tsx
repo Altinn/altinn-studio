@@ -50,7 +50,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={mockSimplified}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
       />,
@@ -66,7 +66,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={mockSimplified}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
       />,
@@ -84,7 +84,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={mockSimplified}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
       />,
@@ -100,7 +100,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={false}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
       />,
@@ -122,7 +122,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={mockSimplified}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
       />,
@@ -138,7 +138,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={mockSimplified}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={true}
       />,
@@ -156,7 +156,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={false}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={true}
       />,
@@ -175,7 +175,7 @@ describe('>>> components/advanced/AddressComponent.tsx snapshot', () => {
         getTextResource={mockGetTextResource}
         isValid={mockIsValid}
         simplified={mockSimplified}
-        dataBinding={mockDataBinding}
+        dataBindings={mockDataBinding}
         validationMessages={mockValidationMessages}
         readOnly={mockReadOnly}
       />,

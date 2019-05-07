@@ -6,7 +6,7 @@ import { IRuntimeState } from '../types';
 export interface IProvidedProps {
   id: string;
   handleDataUpdate: (data: any) => void;
-  dataBinding: string;
+  dataBindings: string;
   textResourceBindings: any;
   required: boolean;
   type: string;
