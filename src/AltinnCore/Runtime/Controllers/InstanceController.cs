@@ -122,7 +122,7 @@ namespace AltinnCore.Runtime.Controllers
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, instanceId);
             requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
             requestContext.Reportee = requestContext.UserContext.Reportee;
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
 
             // TODO Add info for REACT app.
             return View();
@@ -225,7 +225,7 @@ namespace AltinnCore.Runtime.Controllers
             PopulateViewBag(org, service, instanceId, 0, requestContext, serviceContext, _platformSI);
 
             object serviceModel = _archive.GetArchivedServiceModel(instanceId, serviceImplementation.GetServiceModelType(), org, service, requestContext.Reportee.PartyId);
-            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
+            List<ServiceInstance> formInstances = _testdata.GetFormInstances(requestContext.Reportee.PartyId, org, service);
             ViewBag.ServiceInstance = formInstances.Find(i => i.ServiceInstanceID == instanceId);
 
             return View();
@@ -480,9 +480,9 @@ namespace AltinnCore.Runtime.Controllers
         [HttpGet]
         [Authorize]
         [DisableFormValueModelBinding]
-        public IActionResult GetFormAttachments(string org, string service, int partyId, Guid instanceId)
+        public async Task<IActionResult> GetFormAttachments(string org, string service, int partyId, Guid instanceId)
         {
-            List<AttachmentList> allAttachments = _data.GetFormAttachments(org, service, partyId, instanceId);
+            List<AttachmentList> allAttachments = await _data.GetFormAttachments(org, service, partyId, instanceId);
             return Ok(allAttachments);
         }
 

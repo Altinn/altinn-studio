@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Runtime.Serialization.Json;
+using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
@@ -9,6 +12,7 @@ using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -81,7 +85,7 @@ namespace AltinnCore.Common.Services.Implementation
             string instanceDataAsString = JsonConvert.SerializeObject(instance);
             File.WriteAllText(instanceFilePath, instanceDataAsString);
 
-            string formDataFilePath = $"{dataPath}/{dataId}.xml";
+            string formDataFilePath = $"{dataPath}/{dataId}";
             try
             {
                 using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
@@ -103,7 +107,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string dataPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data";
-            string formDataFilePath = $"{dataPath}/{dataId}.xml";
+            string formDataFilePath = $"{dataPath}/{dataId}";
             try
             {
                 using (Stream stream = File.Open(formDataFilePath, FileMode.Create, FileAccess.ReadWrite))
@@ -122,7 +126,7 @@ namespace AltinnCore.Common.Services.Implementation
         public object GetFormData(Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/data/{dataId}.xml";
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/data/{dataId}";
             XmlSerializer serializer = new XmlSerializer(type);
             try
             {
@@ -137,62 +141,120 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <inheritdoc />
-        public List<AttachmentList> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        /// <inheritdoc/>
+        public async Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
         {
+            Instance instance;
+            List<AttachmentList> attachmentList = new List<AttachmentList>();
+            List<Attachment> attachments = null;
+            DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string attachmentsPath = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/";
-            DirectoryInfo rootDirectory = new DirectoryInfo(attachmentsPath);
-            List<AttachmentList> allAttachments = new List<AttachmentList>();
-            foreach (DirectoryInfo typeDirectory in rootDirectory.EnumerateDirectories())
+            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string formDataFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceData = File.ReadAllText(formDataFilePath, Encoding.UTF8);
+            instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+            if (instance == null)
             {
-                List<Attachment> attachments = new List<Attachment>();
-                foreach (DirectoryInfo fileDirectory in typeDirectory.EnumerateDirectories())
+                _logger.Log(LogLevel.Error, "Instance not found for instanceid {0}", instanceId);
+                return attachmentList;
+            }
+
+            IEnumerable<Data> attachmentTypes = instance.Data.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
+
+            foreach (Data attachmentType in attachmentTypes)
+            {
+                attachments = new List<Attachment>();
+                foreach (Data data in instance.Data)
                 {
-                    foreach (FileInfo file in fileDirectory.EnumerateFiles())
+                    if (data.FormId != "default" && data.FormId == attachmentType.FormId)
                     {
-                        attachments.Add(new Attachment { Name = file.Name, Id = fileDirectory.Name, Size = file.Length });
+                        attachments.Add(new Attachment
+                        {
+                            Id = data.Id,
+                            Name = data.FileName,
+                            Size = data.FileSize
+                        });
                     }
                 }
 
                 if (attachments.Count > 0)
                 {
-                    allAttachments.Add(new AttachmentList { Type = typeDirectory.Name, Attachments = attachments });
+                    attachmentList.Add(new AttachmentList { Type = attachmentType.FormId, Attachments = attachments });
                 }
             }
 
-            return allAttachments;
+            return attachmentList;
         }
 
         /// <inheritdoc />
         public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string pathToDelete = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentType}/{attachmentId}";
-            DirectoryInfo directory = new DirectoryInfo(pathToDelete);
-            foreach (FileInfo file in directory.EnumerateFiles())
-            {
-                file.Delete();
-            }
+            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceData = File.ReadAllText(instanceFilePath);
 
-            directory.Delete();
+            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+            Data removeFile = instance.Data.Find(m => m.Id == attachmentId);
+
+            instance.Data.Remove(removeFile);
+
+            string instanceDataAsString = JsonConvert.SerializeObject(instance);
+            File.WriteAllText(instanceFilePath, instanceDataAsString);
+
+            string pathToDelete = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentId}";
+            File.Delete(pathToDelete);
         }
 
         /// <inheritdoc />
         public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest request)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Guid guid = Guid.NewGuid();
-            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data/{attachmentType}/{guid}/";
+            Guid dataId = Guid.NewGuid();
+            long filesize;
+            string pathToSaveTo = $"{_settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer)}{instanceOwnerId}/{instanceId}/data";
             Directory.CreateDirectory(pathToSaveTo);
-            string fileToWriteTo = $"{pathToSaveTo}/{attachmentName}";
+            string fileToWriteTo = $"{pathToSaveTo}/{dataId}";
             using (Stream streamToWriteTo = System.IO.File.Open(fileToWriteTo, FileMode.OpenOrCreate))
             {
                 await request.StreamFile(streamToWriteTo);
                 streamToWriteTo.Flush();
+                filesize = streamToWriteTo.Length;
             }
 
-            return guid;
+            string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
+            string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
+            string instanceData = File.ReadAllText(instanceFilePath);
+
+            FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
+            provider.TryGetContentType(attachmentName, out string contentType);
+
+            Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+
+            Data data = new Data
+            {
+                Id = dataId.ToString(),
+                FormId = attachmentType,
+                ContentType = contentType,
+                FileName = attachmentName,
+                StorageUrl = $"{applicationId}/{instanceId}/data/{dataId}",
+                CreatedBy = instanceOwnerId.ToString(),
+                CreatedDateTime = DateTime.UtcNow,
+                LastChangedBy = instanceOwnerId.ToString(),
+                LastChangedDateTime = DateTime.UtcNow,
+                FileSize = filesize
+            };
+            if (instance.Data == null)
+            {
+                instance.Data = new List<Data>();
+            }
+
+            instance.Data.Add(data);
+
+            string instanceDataAsString = JsonConvert.SerializeObject(instance);
+            File.WriteAllText(instanceFilePath, instanceDataAsString);
+            return dataId;
         }
     }
 }
