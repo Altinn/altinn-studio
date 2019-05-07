@@ -1,3 +1,5 @@
+using Microsoft.Azure.KeyVault;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -17,13 +19,40 @@ namespace AltinnCore.Authentication.Constants
         public string ClientSecret { get; set; }
 
         /// <summary>
+        /// The key vault tenant Id
+        /// </summary>
+        public string TenantId { get; set; }
+
+        /// <summary>
         /// The uri to the key vault
         /// </summary>
         public string SecretUri { get; set; }
 
+        public static KeyVaultClient GetClient(string clientId, string clientSecret) => new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(async (string authority, string resource, string scope) =>
+        {
+            AuthenticationContext context = new AuthenticationContext(authority, TokenCache.DefaultShared);
+            ClientCredential clientCred = new ClientCredential(clientId, clientSecret);
+            AuthenticationResult authResult = await context.AcquireTokenAsync(resource, clientCred);
+            return authResult.AccessToken;
+        }));
+    }
+
+    public class CertificateSettings
+    {
         /// <summary>
         /// The name of the certificate
         /// </summary>
         public string CertificateName { get; set; }
+
+        /// <summary>
+        /// The password of the certificate
+        /// </summary>
+        public string CertificatePwd { get; set; }
+
+        /// <summary>
+        /// The path to the certificate
+        /// </summary>
+        public string CertificatePath { get; set; }
+
     }
 }

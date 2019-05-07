@@ -37,7 +37,7 @@ namespace AltinnCore.Designer
             {
                 string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
                 config.SetBasePath(basePath);
-                config.AddJsonFile(basePath + "altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
+                config.AddJsonFile(basePath + "/altinn-appsettings/altinn-appsettings-secret.json", optional: true, reloadOnChange: true);
                 if (basePath == "/")
                 {
                     config.AddJsonFile(basePath + "app/appsettings.json", optional: false, reloadOnChange: true);

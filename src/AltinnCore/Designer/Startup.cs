@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
@@ -116,6 +117,9 @@ namespace AltinnCore.Designer
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<CertificateSettings>(Configuration);
+            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions

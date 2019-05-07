@@ -6,8 +6,11 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using AltinnCore.Authentication.Constants;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,6 +27,8 @@ namespace AltinnCore.Authentication.JwtCookie
         private const string HeaderValueNoCache = "no-cache";
         private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
         private const string SessionIdClaim = "Microsoft.AspNetCore.Authentication.Cookies-SessionId";
+        private readonly KeyVaultSettings _keyVaultSettings;
+        private readonly CertificateSettings _certificateSettings;
 
         /// <summary>
         /// The default constructor
@@ -32,8 +37,12 @@ namespace AltinnCore.Authentication.JwtCookie
         /// <param name="logger">The logger</param>
         /// <param name="encoder">The Url encoder</param>
         /// <param name="clock">The system clock</param>
-        public JwtCookieHandler(IOptionsMonitor<JwtCookieOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock) : base(options, logger, encoder, clock)
+        /// <param name="keyVaultSettings">The key vault settings</param>
+        /// <param name="certSettings">The certification settings</param>
+        public JwtCookieHandler(IOptionsMonitor<JwtCookieOptions> options, ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock, IOptions<KeyVaultSettings> keyVaultSettings, IOptions<CertificateSettings> certSettings) : base(options, logger, encoder, clock)
         {
+            _keyVaultSettings = keyVaultSettings.Value;
+            _certificateSettings = certSettings.Value;
         }
         
         /// <summary>
@@ -255,9 +264,21 @@ namespace AltinnCore.Authentication.JwtCookie
 
         private SigningCredentials GetSigningCredentials()
         {
-            X509Certificate2 cert = new X509Certificate2("C:\\temp\\jwtselfsignedcert.pfx", "qwer1234");
-            SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
-            return creds;
+            if(string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret)){
+                X509Certificate2 cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
+                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+                return creds;
+            }
+            else
+            {
+                KeyVaultClient client = KeyVaultSettings.GetClient(_keyVaultSettings.ClientId, _keyVaultSettings.ClientSecret);
+                CertificateBundle certificate = client.GetCertificateAsync(_keyVaultSettings.SecretUri, _certificateSettings.CertificateName).GetAwaiter().GetResult();
+                SecretBundle secret = client.GetSecretAsync(certificate.SecretIdentifier.Identifier).GetAwaiter().GetResult();
+                byte[] pfxBytes = Convert.FromBase64String(secret.Value);
+                X509Certificate2 cert = new X509Certificate2(pfxBytes);
+                SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+                return creds;
+            }
         }
 
         private CookieOptions BuildCookieOptions()
