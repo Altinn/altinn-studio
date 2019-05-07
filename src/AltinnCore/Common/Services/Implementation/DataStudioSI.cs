@@ -159,7 +159,6 @@ namespace AltinnCore.Common.Services.Implementation
                 throw new System.NullReferenceException("Couldn't find the instance");
             }
 
-            // IEnumerable<IGrouping<string, Data>> attachmentTypes = instance.Data.GroupBy(m => m.FormId).Distinct();
             IEnumerable<Data> attachmentTypes = instance.Data.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
 
             foreach (Data attachmentType in attachmentTypes)
@@ -254,8 +253,6 @@ namespace AltinnCore.Common.Services.Implementation
 
             string instanceDataAsString = JsonConvert.SerializeObject(instance);
             File.WriteAllText(instanceFilePath, instanceDataAsString);
-
-
             return dataId;
         }
     }

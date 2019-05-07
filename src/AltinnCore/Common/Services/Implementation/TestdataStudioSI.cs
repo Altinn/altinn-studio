@@ -65,8 +65,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            return returnList;
-            
+            return returnList;            
         }
 
         /// <inheritdoc />
