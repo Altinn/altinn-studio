@@ -152,7 +152,7 @@ namespace Altinn.Platform.Storage.Controllers
             List<Data> dataList = new List<Data>();
             foreach (Data data in instance.Data)
             {
-                if (data.DataType == "attachment")
+                if (data.FormId != "default")
                 {
                     dataList.Add(data);
                 }
@@ -209,7 +209,8 @@ namespace Altinn.Platform.Storage.Controllers
 
             Stream theStream = null;
             string contentType = null;
-            string contentFileName = null;             
+            string contentFileName = null;
+            long fileSize = 0;
 
             if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
             {
@@ -229,6 +230,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (hasContentDisposition)
                 {
                     contentFileName = contentDisposition.FileName.ToString();
+                    fileSize = contentDisposition.Size ?? 0;
                 }
             }
             else
@@ -256,6 +258,7 @@ namespace Altinn.Platform.Storage.Controllers
                 FileName = contentFileName ?? dataId + ".xml",
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
+                FileSize = fileSize
             };
 
             string filePath = DataFileName(instance.ApplicationId, instanceId.ToString(), newData.Id.ToString());
@@ -405,7 +408,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">data id</param>
         /// <returns>updated instance object</returns>
         /// DELETE api/storage/v1/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId}
-        [HttpDelete("{dataId: guid}")]
+        [HttpDelete("{dataId:guid}")]
         public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, Guid dataId)
         {
             Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
@@ -435,6 +438,10 @@ namespace Altinn.Platform.Storage.Controllers
                 'forms': {
                     'default': {
                         'contentType': 'application/schema+json'
+                    },
+                    '29fcdbb9-b766-4c92-9d82-59820c61695a': {                        
+                    },
+                    '769f2780-7c3a-4348-9ac9-c1c85d756c6d': {                        
                     }
                 }
                 }";

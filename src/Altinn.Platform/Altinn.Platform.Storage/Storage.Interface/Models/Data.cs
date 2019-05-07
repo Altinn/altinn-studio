@@ -46,7 +46,7 @@ namespace Altinn.Platform.Storage.Models
         /// Size of file in bytes
         /// </summary>
         [JsonProperty(PropertyName = "fileSize")]
-        public int FileSize { get; set; }
+        public long FileSize { get; set; }
 
         /// <summary>
         /// Signature
@@ -83,11 +83,5 @@ namespace Altinn.Platform.Storage.Models
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
         public string LastChangedBy { get; set; }
-
-        /// <summary>
-        /// data type of the uploaded data
-        /// </summary>
-        [JsonProperty(PropertyName = "dataType")]
-        public string DataType { get; set; }
     }
 }

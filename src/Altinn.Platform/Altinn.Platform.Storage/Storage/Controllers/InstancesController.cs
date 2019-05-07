@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationOwnerId">application owner</param>
         /// <param name="applicationId">application id</param>
         /// <returns>list of all instances for given instanceowner</returns>
-        /// GET api/v1/instances
+        /// GET api/storage/v1/instances
         [HttpGet]
         public async Task<ActionResult> GetMany(int instanceOwnerId, string applicationOwnerId, string applicationId)
         {

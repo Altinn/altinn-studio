@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
@@ -124,6 +125,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<Data> dataList = null;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
+            List<Attachment> attachments = null;
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}";
             using (HttpClient client = new HttpClient())
             {
@@ -134,16 +136,29 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     string instanceData = await response.Content.ReadAsStringAsync();
                     dataList = JsonConvert.DeserializeObject<List<Data>>(instanceData);
-                    List<Attachment> attachments = new List<Attachment>();
 
-                    foreach (Data data in dataList)
+                    IEnumerable<Data> attachmentTypes = dataList.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
+
+                    foreach (Data attachmentType in attachmentTypes)
                     {
-                        attachments.Add(new Attachment
+                        attachments = new List<Attachment>();
+                        foreach (Data data in dataList)
                         {
-                            Id = data.Id,
-                            Name = data.FileName,
-                            Size = data.FileSize
-                        });
+                            if (data.FormId != "default" && data.FormId == attachmentType.FormId)
+                            {
+                                attachments.Add(new Attachment
+                                {
+                                    Id = data.Id,
+                                    Name = data.FileName,
+                                    Size = data.FileSize
+                                });
+                            }
+                        }
+
+                        if (attachments.Count > 0)
+                        {
+                            attachmentList.Add(new AttachmentList { Type = attachmentType.FormId, Attachments = attachments });
+                        }
                     }
 
                     if (attachments.Count > 0)
@@ -178,7 +193,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc />
         public async Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
         {
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
             Instance instance;
 
             var provider = new FileExtensionContentTypeProvider();
@@ -197,7 +212,11 @@ namespace AltinnCore.Common.Services.Implementation
                     using (MultipartFormDataContent formData = new MultipartFormDataContent())
                     {
                         fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                        formData.Add(fileStreamContent, FORM_ID, attachmentName);
+                        var header = new ContentDispositionHeaderValue("form-data");
+                        header.FileName = attachmentName;
+                        header.Size = attachment.ContentLength;
+                        formData.Headers.ContentDisposition = header;
+                        formData.Add(fileStreamContent, attachmentType, attachmentName);
                         HttpResponseMessage response = client.PostAsync(apiUrl, formData).Result;
 
                         response.EnsureSuccessStatusCode();
