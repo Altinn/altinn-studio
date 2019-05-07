@@ -7,7 +7,7 @@ export const testData: any = {
         textResourceBindings: {
           title: '30287.ForetakUtenlandskNavndatadef30287.Label',
         },
-        dataBindings: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
+        dataModelBindings: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
         required: true,
         readOnly: false,
       },
@@ -17,7 +17,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'Datepicker',
         },
-        dataBindings: {},
+        dataModelBindings: {},
         required: true,
         readOnly: false,
       },
@@ -27,7 +27,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'Dropdown',
         },
-        dataBindings: {},
+        dataModelBindings: {},
         options: [
           {
             label: 'Navn1',
@@ -45,7 +45,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'Checkboxes',
         },
-        dataBindings: {
+        dataModelBindings: {
           simpleBinding: 'skattyterinforgrp5801.infogrp5802.oppgavegiverNavnPreutfyltdatadef25795.value',
         },
         options: [
@@ -67,7 +67,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'RadioButtons',
         },
-        dataBindings: {},
+        dataModelBindings: {},
         options: [
           {
             label: 'Navn',
@@ -87,7 +87,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'RadioButtons',
         },
-        dataBindings: {},
+        dataModelBindings: {},
         options: [
           {
             label: 'Navn',
@@ -107,7 +107,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'AddressComponent',
         },
-        dataBindings: {},
+        dataModelBindings: {},
         options: [],
         simplified: true,
         readOnly: true,
@@ -118,7 +118,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'AddressComponent',
         },
-        dataBindings: {
+        dataModelBindings: {
           address: 'skattyterinforgrp5801.kontaktgrp5803.kontaktpersonAdressedatadef2751.value',
           zipCode: 'skattyterinforgrp5801.infogrp5802.oppgavegiverPostnummerPreutfyltdatadef25797.value',
           postPlace: 'skattyterinforgrp5801.infogrp5802.oppgavegiverPoststedPreutfyltdatadef25798.value',
@@ -134,7 +134,7 @@ export const testData: any = {
         textResourceBindings: {
           title: 'FileUpload',
         },
-        dataBindings: {},
+        dataModelBindings: {},
         options: [],
         displayMode: 'simple',
         readOnly: false,

@@ -12,7 +12,7 @@ export interface IProvidedProps {
   id: string;
   type: string;
   textResourceBindings: any;
-  dataBindings: string;
+  dataModelBindings: string;
 }
 
 export interface IGenericComponentProps extends IProvidedProps {
@@ -25,10 +25,10 @@ class GenericComponent extends React.Component<any> {
 
   public handleDataUpdate = (value: any, key?: string) => {
     key = key ? key : 'simpleBinding';
-    if (!this.props.dataBindings || !this.props.dataBindings[key]) {
+    if (!this.props.dataModelBindings || !this.props.dataModelBindings[key]) {
       return;
     }
-    FormDataActions.updateFormData(this.props.dataBindings[key], value);
+    FormDataActions.updateFormData(this.props.dataModelBindings[key], value);
   }
   public getTextResource = (resourceKey: string): string => {
     const textResource = this.props.textResources.find((resource) => resource.id === resourceKey);
@@ -50,7 +50,7 @@ class GenericComponent extends React.Component<any> {
   }
 }
 const mapStateToProps = (state: IRuntimeState, props: IProvidedProps): IGenericComponentProps => ({
-  formData: state.formData.formData[props.dataBindings],
+  formData: state.formData.formData[props.dataModelBindings],
   isValid: true,
   textResources: state.formResources.languageResource.resources,
   ...props,

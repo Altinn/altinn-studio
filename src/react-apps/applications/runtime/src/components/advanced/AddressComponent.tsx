@@ -14,7 +14,7 @@ export interface IAddressComponentProps {
   isValid?: boolean;
   simplified: boolean;
   validationMessages?: any;
-  dataBindings: any;
+  dataModelBindings: any;
   readOnly: boolean;
 }
 
@@ -193,8 +193,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
           <label className={'address-component-label'}>
             {
               // This has been implemented for the sake of validating new textResource binding POC
-              (!this.props.dataBindings.address) ? 'Adresse' :
-                this.props.getTextResource(this.props.dataBindings.address)
+              (!this.props.dataModelBindings.address) ? 'Adresse' :
+                this.props.getTextResource(this.props.dataModelBindings.address)
             }
           </label>
           <input
@@ -250,8 +250,8 @@ export class AddressComponent extends React.Component<IAddressComponentProps, IA
       <div className={'address-component'}>
         <label className={'address-component-label'}>{
           // This has been implemented for the sake of validating new textResource binding POC
-          (!this.props.dataBindings.address) ? 'Adresse' :
-            this.props.getTextResource(this.props.dataBindings.address)
+          (!this.props.dataModelBindings.address) ? 'Adresse' :
+            this.props.getTextResource(this.props.dataModelBindings.address)
         }</label>
         <input
           className={classNames('form-control', { 'disabled': this.props.readOnly })}
