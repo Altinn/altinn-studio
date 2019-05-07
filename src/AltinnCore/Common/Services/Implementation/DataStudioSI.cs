@@ -156,7 +156,8 @@ namespace AltinnCore.Common.Services.Implementation
 
             if (instance == null)
             {
-                throw new System.NullReferenceException("Couldn't find the instance");
+                _logger.Log(LogLevel.Error, "Instance not found for instanceid {0}", instanceId);
+                return attachmentList;
             }
 
             IEnumerable<Data> attachmentTypes = instance.Data.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
@@ -226,7 +227,7 @@ namespace AltinnCore.Common.Services.Implementation
             string instanceFilePath = $"{testDataForParty}{instanceOwnerId}/{instanceId}/{instanceId}.json";
             string instanceData = File.ReadAllText(instanceFilePath);
 
-            var provider = new FileExtensionContentTypeProvider();
+            FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             provider.TryGetContentType(attachmentName, out string contentType);
 
             Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);

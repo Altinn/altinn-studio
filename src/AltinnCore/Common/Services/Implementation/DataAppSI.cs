@@ -11,6 +11,7 @@ using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -22,6 +23,7 @@ namespace AltinnCore.Common.Services.Implementation
     public class DataAppSI : IData
     {
         private readonly PlatformStorageSettings _platformStorageSettings;
+        private readonly ILogger _logger;
 
         private const string FORM_ID = "default";
 
@@ -29,9 +31,10 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
         /// </summary>
         /// <param name="platformStorageSettings">the storage settings</param>
-        public DataAppSI(IOptions<PlatformStorageSettings> platformStorageSettings)
+        public DataAppSI(IOptions<PlatformStorageSettings> platformStorageSettings, ILogger<DataAppSI> logger)
         {
             _platformStorageSettings = platformStorageSettings.Value;
+            _logger = logger;
         }
 
         /// <inheritdoc />
@@ -55,7 +58,8 @@ namespace AltinnCore.Common.Services.Implementation
                     Task<HttpResponseMessage> response = client.PostAsync(apiUrl, streamContent);
                     if (!response.Result.IsSuccessStatusCode)
                     {
-                        throw new Exception("Unable to save form model");
+                        _logger.Log(LogLevel.Error, "unable to save form data for instance{0} due to response {1}", instanceId, response.Result.StatusCode);
+                        return null;
                     }
 
                     string instanceData = await response.Result.Content.ReadAsStringAsync();
@@ -169,7 +173,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 else
                 {
-                    throw new Exception("Unable to fetch attachment list");
+                    _logger.Log(LogLevel.Error, "Unable to fetch attachment list{0}", response.StatusCode);                    
                 }
 
                 return attachmentList;
@@ -196,7 +200,7 @@ namespace AltinnCore.Common.Services.Implementation
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={attachmentType}&instanceOwnerId={instanceOwnerId}&attachmentName={attachmentName}";
             Instance instance;
 
-            var provider = new FileExtensionContentTypeProvider();
+            FileExtensionContentTypeProvider provider = new FileExtensionContentTypeProvider();
             string contentType;
             provider.TryGetContentType(attachmentName, out contentType);
             using (HttpClient client = new HttpClient())
@@ -212,7 +216,7 @@ namespace AltinnCore.Common.Services.Implementation
                     using (MultipartFormDataContent formData = new MultipartFormDataContent())
                     {
                         fileStreamContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
-                        var header = new ContentDispositionHeaderValue("form-data");
+                        ContentDispositionHeaderValue header = new ContentDispositionHeaderValue("form-data");
                         header.FileName = attachmentName;
                         header.Size = attachment.ContentLength;
                         formData.Headers.ContentDisposition = header;

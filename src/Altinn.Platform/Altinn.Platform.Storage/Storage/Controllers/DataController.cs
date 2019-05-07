@@ -19,7 +19,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// api for managing the form data element
     /// </summary>
-    [Route("api/storage/v1/instances/{instanceId:guid}/[controller]")]
+    [Route("storage/api/v1/instances/{instanceId:guid}/[controller]")]
     [ApiController]
     public class DataController : Controller
     {
@@ -86,7 +86,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">the data id</param>
         /// <returns>The data file as an asyncronous streame</returns>        
         /// <returns>If the request was successful or not</returns>
-        // GET instances/{instanceId}/data/{dataId}
+        // GET /instances/{instanceId}/data/{dataId}
         [HttpGet("{dataId:guid}")]
         public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceId, Guid dataId)
         {
@@ -133,7 +133,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceId">the instanceId</param>
         /// <returns>The data file as an asyncronous streame</returns>        
         /// <returns>If the request was successful or not</returns>
-        // GET instances/{instanceId}/data/{dataId}
+        // GET /instances/{instanceId}/data/{dataId}
         [HttpGet]
         public async Task<IActionResult> GetMany(int instanceOwnerId, Guid instanceId)
         {
@@ -255,7 +255,7 @@ namespace Altinn.Platform.Storage.Controllers
                 ContentType = contentType,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
-                FileName = contentFileName ?? dataId + ".xml",
+                FileName = contentFileName ?? $"{dataId}.xml",
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
                 FileSize = fileSize
@@ -407,7 +407,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="dataId">data id</param>
         /// <returns>updated instance object</returns>
-        /// DELETE api/storage/v1/instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId}
+        /// DELETE /instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId}
         [HttpDelete("{dataId:guid}")]
         public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, Guid dataId)
         {
