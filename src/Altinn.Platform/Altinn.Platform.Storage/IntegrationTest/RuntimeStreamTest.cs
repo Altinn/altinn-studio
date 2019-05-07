@@ -9,19 +9,30 @@ using Xunit.Abstractions;
 
 namespace Altinn.Platform.Storage.IntegrationTest
 {
+    /// <summary>
+    /// Test to see if streaming works. This is not completed. 
+    /// </summary>
     public class RuntimeStreamTest : IClassFixture<PlatformStorageFixture>
     {
-        HttpClient client;
+        private HttpClient client;
         private readonly ITestOutputHelper output;
 
+        /// <summary>
+        /// The constructor
+        /// </summary>
+        /// <param name="fixture">the fixture</param>
+        /// <param name="output">the output</param>
         public RuntimeStreamTest(PlatformStorageFixture fixture, ITestOutputHelper output)
         {
             client = fixture.Client;
             this.output = output;
         }
 
+        /// <summary>
+        /// Test the pipeline: client -> runtime -> storage(data)
+        /// </summary>
         [Fact]
-        public async void Test()
+        public async void TestPipeline()
         {
             string applicationId = "TTT-app";
             int instanceOwnerId = 33;

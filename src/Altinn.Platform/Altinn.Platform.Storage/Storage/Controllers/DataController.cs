@@ -195,8 +195,7 @@ namespace Altinn.Platform.Storage.Controllers
                 theStream = section.Body;
                 contentType = section.ContentType;
 
-                ContentDispositionHeaderValue contentDisposition;
-                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+                bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                 if (hasContentDisposition)
                 {
@@ -324,8 +323,7 @@ namespace Altinn.Platform.Storage.Controllers
                         theStream = section.Body;
                         contentType = section.ContentType;
 
-                        ContentDispositionHeaderValue contentDisposition;
-                        bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out contentDisposition);
+                        bool hasContentDisposition = ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out ContentDispositionHeaderValue contentDisposition);
 
                         if (hasContentDisposition)
                         {

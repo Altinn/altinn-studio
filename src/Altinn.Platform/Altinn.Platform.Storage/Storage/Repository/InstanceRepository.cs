@@ -10,6 +10,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -24,13 +25,17 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
-        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings)
+        /// <param name="logger">the logger</param>
+        public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings, ILogger logger)
         {
+            _logger = logger;
+
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
 
@@ -76,6 +81,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception ex)
             {
+                _logger.Error($"Exception {ex}");
                 throw ex;
             }
         }
@@ -100,6 +106,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
+                _logger.Error($"Exception {e}");
                 return false;
             }
         }
@@ -145,6 +152,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
+                _logger.Error($"Exception {e}");
                 return null;
             }
         }
@@ -188,6 +196,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
+                _logger.Error($"Exception {e}");
                 return null;
             }
         }
@@ -201,8 +210,8 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId)
         {
             try
-            {                
-                var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
+            {
+                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
               
                 Instance instance = await _client
                     .ReadDocumentAsync<Instance>(
@@ -224,8 +233,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
-                var msg = e.Message;
-
+                _logger.Error($"Exception {e}");
                 return null;
             }
         }

@@ -34,8 +34,10 @@ namespace Altinn.Platform.Storage.Client
 
         public ApplicationMetadata CreateApplication(string applicationId)
         {
-            Dictionary<string, string> title = new Dictionary<string, string>();
-            title.Add("nb", "Tittel");
+            Dictionary<string, string> title = new Dictionary<string, string>
+            {
+                { "nb", "Tittel" }
+            };
 
             return CreateApplication(applicationId, title);
         }

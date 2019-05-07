@@ -3,6 +3,7 @@ using System.IO;
 using System.Net.Http;
 using Altinn.Platform.Storage;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.IntegrationTest.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -51,6 +52,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
             return Path.Combine(testProjectPath, relativePathToHostProject);
         }
 
+        /// <summary>
+        /// Clean up.
+        /// </summary>
         public void Dispose()
         {
             Client.Dispose();

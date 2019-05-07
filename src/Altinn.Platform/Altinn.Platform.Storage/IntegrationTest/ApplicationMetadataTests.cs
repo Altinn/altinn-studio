@@ -77,6 +77,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             return appInfo;
         }
 
+        /// <summary>
+        /// Create an application metadata object.
+        /// </summary>
         [Fact]
         public async void CreateApplicationMetadataHappyDays()
         {
@@ -94,6 +97,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             logger.Information(content);
         }
 
+        /// <summary>
+        /// Create an applicaiton metadata object with wrong application id format.
+        /// </summary>
         [Fact]
         public async void CreateApplicationWrongFormatApplicationId()
         {
@@ -108,6 +114,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             Assert.Equal(HttpStatusCode.BadRequest, postResponse.StatusCode);
         }
 
+        /// <summary>
+        /// Soft delet an application.
+        /// </summary>
         [Fact]
         public async void SoftdeleteApplication()
         {

@@ -6,6 +6,8 @@ using Altinn.Platform.Storage.IntegrationTest.Fixtures;
 using Altinn.Platform.Storage.Models;
 using Xunit;
 
+#pragma warning disable SA1600 // ElementsMustBeDocumented
+#pragma warning disable CS1591
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     public class ApplicationMetadataClientTests : IClassFixture<PlatformStorageFixture>

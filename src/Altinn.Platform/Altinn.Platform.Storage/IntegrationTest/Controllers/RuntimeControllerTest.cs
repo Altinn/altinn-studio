@@ -4,22 +4,27 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Helpers;
+using Altinn.Platform.Storage.IntegrationTest.Helpers;
 using Altinn.Platform.Storage.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Serilog;
-using Serilog.Core;
 
-namespace Altinn.Platform.Storage.Controllers
+namespace Altinn.Platform.Storage.IntegrationTest.Controllers
 {
+    /// <summary>
+    /// Test controller that simulates runtime.
+    /// </summary>
     [Route("/runtime/api/instances/{instanceId}/data")]
     [ApiController]
-    public class RuntimeController : ControllerBase
+    public class RuntimeControllerTest : ControllerBase
     {
-        private Logger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
-
+        /// <summary>
+        /// Upload method
+        /// </summary>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="formId">form id</param>
+        /// <returns>the instance object</returns>
         [HttpPost]
         [DisableFormValueModelBinding]
         public async Task<IActionResult> Upload(int instanceOwnerId, Guid instanceId, string formId)
@@ -40,14 +45,7 @@ namespace Altinn.Platform.Storage.Controllers
 
             using (Stream stream = Request.Body)
             {
-                try
-                {
-                   response = await client.PostAsync(url, new StreamContent(stream));                   
-                }
-                catch (Exception e)
-                {
-                    var c = 2;
-                }
+                response = await client.PostAsync(url, new StreamContent(stream));                   
             }
 
             if (response != null && response.IsSuccessStatusCode)

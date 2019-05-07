@@ -104,7 +104,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
             HttpResponseMessage getResponse = await client.GetAsync($"{versionPrefix}/instances/{newId}?instanceOwnerId={testInstanceOwnerId}");
 
             getResponse.EnsureSuccessStatusCode();
-            Instance actual = await getResponse.Content.ReadAsAsync<Instance>();
+
+            string json = await getResponse.Content.ReadAsStringAsync();
+            Instance actual = JsonConvert.DeserializeObject<Instance>(json);
 
             Assert.Equal(newId, actual.Id);
 
@@ -115,7 +117,6 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         ///  Checks that the Inline data urls returns a proper encoding.
         /// </summary>
-        /// <param name="url">the url to check</param>
         [Fact]
         public async void GetInstancesForInstanceOwner()
         {
@@ -188,8 +189,9 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 ApplicationMetadata existingApp = appClient.GetApplicationMetadata(testApplicationId);
                 return existingApp;
             }
-            catch (Exception e)
-            {               
+            catch (Exception)
+            {
+                // do nothing.
             }
 
             Dictionary<string, string> title = new Dictionary<string, string>

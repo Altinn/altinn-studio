@@ -90,7 +90,7 @@ namespace Altinn.Platform.Storage.Controllers
         {
             Stopwatch watch = Stopwatch.StartNew();
 
-            var result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
+            Instance result = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
             if (result == null)
             {
                 return NotFound("Did not find an instance with instanceId=" + instanceId);
@@ -108,7 +108,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="applicationId">the applicationid</param>
         /// <returns>instance object</returns>
-        /// POST api/v1/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}"
+        /* POST api/v1/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}" */
         [HttpPost]        
         public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {
@@ -156,7 +156,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="instance">instance</param>
         /// <returns></returns>
-        /// PUT api/v1/<controller>/5
+        /// <!-- PUT api/v1/<controller>/5 -->
         [HttpPut("{instanceId}")]
         public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
         {
@@ -211,7 +211,7 @@ namespace Altinn.Platform.Storage.Controllers
                     instance.LastChangedBy = User.Identity.Name;
                     instance.LastChangedDateTime = DateTime.UtcNow;
 
-                    var result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+                    Instance result = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
                     if (result == null)
                     {
                         return Ok(result);
