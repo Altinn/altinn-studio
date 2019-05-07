@@ -117,7 +117,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/?instanceOwnerId={instanceOwnerId}&{applicationOwnerId}&{applicationId}";
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances?instanceOwnerId={instanceOwnerId}&applicationOwnerId={applicationOwnerId}&applicationId={applicationId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);

@@ -1,6 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, fork, takeLatest } from 'redux-saga/effects';
 import { get, post } from '../../../../shared/src/utils/networking';
+import { urls } from '../../config/sharedConfig';
 import * as DeployActions from './deployActions';
 import * as DeployActionTypes from './deployActionTypes';
 import DeployDispatchers from './deployDispatcher';
@@ -12,27 +13,9 @@ export function* fetchDeploymentsSaga({
   repo,
 }: DeployActions.IFetchDeployments): SagaIterator {
   try {
-    // TODO: TLS is missing on cluster. Update after TLS is available.
-    // env = 'at22';
-    // const result = yield call(get,
-    //   `http://${org}.apps.${env}.altinn.cloud/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
-
-    const result = [
-      {
-        spec: {
-          template: {
-            spec: {
-              containers: [
-                {
-                  name: 'example-repo',
-                  image: 'tddregistry.azurecr.io/tdd-helloworld:1',
-                },
-              ],
-            },
-          },
-        },
-      },
-    ];
+    const result = yield call(get,
+      // tslint:disable-next-line:max-line-length
+      `https://${org}.apps.${env}.${urls.hostname.apps.test}/kuberneteswrapper/deployments?labelSelector=release=${org}-${repo}`);
 
     yield call(DeployDispatchers.fetchDeploymentsFulfilled, result, env);
   } catch (err) {

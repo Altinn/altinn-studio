@@ -10,6 +10,7 @@ declare module '@material-ui/core/styles/createMuiTheme' {
       primary: {
         blueDarker: string,
         blueDark: string,
+        blueMedium: string,
         blue: string,
         blueLight: string,
         blueLighter: string,
@@ -48,6 +49,7 @@ const theme = {
     primary: {
       blueDarker: '#022F51',
       blueDark: '#0062BA',
+      blueMedium: '#008FD6',
       blue: '#1EAEF7',
       blueLight: '#CFF0FF',
       blueLighter: '#E3F7FF',

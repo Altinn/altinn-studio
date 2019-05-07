@@ -13,7 +13,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// <summary>
     /// a summary is needed here
     /// </summary>
-    [Route("api/storage/v1/[controller]")]
+    [Route("storage/api/v1/[controller]")]
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="applicationOwnerId">application owner</param>
         /// <param name="applicationId">application id</param>
         /// <returns>list of all instances for given instanceowner</returns>
-        /// GET api/v1/instances
+        /// GET /instances
         [HttpGet]
         public async Task<ActionResult> GetMany(int instanceOwnerId, string applicationOwnerId, string applicationId)
         {
@@ -81,7 +81,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceId">instance id</param>
         /// <param name="instanceOwnerId">instance owner</param>
         /// <returns></returns>
-        /// GET api/v1/instances/{instanceId}
+        /// GET /instances/{instanceId}
         [HttpGet("{instanceId:guid}")]
         public async Task<ActionResult> Get(Guid instanceId, int instanceOwnerId)
         {
@@ -105,7 +105,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="applicationId">the applicationid</param>
         /// <returns>instance object</returns>
-        /// POST api/v1/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}"
+        /// POST /instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}"
         [HttpPost]        
         public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {
@@ -159,7 +159,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="instance">instance</param>
         /// <returns></returns>
-        /// PUT api/v1/<controller>/5
+        /// PUT /instances/instanceid
         [HttpPut("{instanceId}")]
         public async Task<ActionResult> Put(Guid instanceId, int instanceOwnerId, [FromBody] Instance instance)
         {
@@ -181,7 +181,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="hard">if true hard delete will take place</param>
         /// <returns>updated instance object</returns>
-        /// DELETE api/v1/instance/{instanceId}?instanceOwnerId={instanceOwnerId}
+        /// DELETE /instances/{instanceId}?instanceOwnerId={instanceOwnerId}
         [HttpDelete("{instanceId}")]
         public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, bool? hard)
         {

@@ -1,14 +1,15 @@
-import { Hidden } from '@material-ui/core';
 import { Grid } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnFilterChip from '../../../../shared/src/components/AltinnFilterChip';
+import AltinnInformationPaper from '../../../../shared/src/components/AltinnInformationPaper';
+import AltinnLink from '../../../../shared/src/components/AltinnLink';
 import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
+import { get } from '../../../../shared/src/utils/networking';
 import { CreateNewService } from '../createService/createNewService';
 import { ServicesCategory } from './servicesCategory';
 
@@ -27,9 +28,10 @@ export interface IServicesOverviewComponentProps extends IServicesOverviewCompon
 export interface IServicesOverviewComponentState {
   selectedOwners: string[];
   searchString: string;
+  majorIssues: string;
 }
 
-const styles = {
+const styles = createStyles({
   mar_top_100: {
     marginTop: '100px',
   },
@@ -58,7 +60,19 @@ const styles = {
     fontSize: '18px',
     fontWeight: 500,
   },
-};
+  paperList: {
+    paddingTop: 13,
+    paddingBottom: 13,
+    fontSize: 16,
+  },
+  font_16: {
+    fontSize: 16,
+  },
+  mar_top_13: {
+    marginTop: 13,
+  },
+});
+
 const getListOfDistinctServiceOwners = (services: any, currentUser?: string) => {
   const allDistinctServiceOwners: string[] = [];
   services.map((service: any) => {
@@ -93,11 +107,32 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
       selectedOwners: _props.selectedOwners,
     };
   }
+  public _isMounted = false;
 
   public state: IServicesOverviewComponentState = {
     selectedOwners: [],
     searchString: '',
+    majorIssues: null,
   };
+
+  public componentDidMount() {
+    this._isMounted = true;
+    get(`${'https://cors-anywhere.herokuapp.com/'}https://github.com/Altinn/altinn-studio/blob/master/KNOWNISSUES.md`)
+      .then((res) => {
+        if (this._isMounted) {
+          const doc = new DOMParser().parseFromString(res, 'text/html');
+          if (doc.getElementById('readme').getElementsByTagName('ul').length > 0) {
+            this.setState({
+              majorIssues: doc.getElementById('readme').getElementsByTagName('ul')[0].innerHTML,
+            });
+          }
+        }
+      });
+  }
+
+  public componentWillUnmount() {
+    this._isMounted = false;
+  }
 
   public searchAndFilterServicesIntoCategoriesCategory(hasWriteRights: any) {
     const filteredServices = this.props.services
@@ -118,70 +153,16 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
     );
   }
 
-  public updateListOfSelectedFilters(key: string) {
-    const index = this.state.selectedOwners.indexOf(key);
-    this.setState((state: any) => {
-      if (index > -1) {
-        state.selectedOwners.splice(index, 1);
-      } else {
-        state.selectedOwners.push(key);
-      }
-      return {
-        selectedOwners: state.selectedOwners,
-      };
-    });
-  }
-
   public updateSearchSting = (event: any) => {
     this.setState({
       searchString: event.target.value,
     });
   }
 
-  public renderFilters() {
-    const { classes } = this.props;
-    return (
-      <Grid item={true} xl={10} lg={10} md={12}>
-        {this.props.allDistinctOwners.map((key: string, index: number) => {
-          return (
-            <AltinnFilterChip
-              key={index}
-              className={classNames(
-                classes.chip,
-                classes.mar_right_20,
-                classes.mar_top_20)}
-              label={key}
-              onclickFunction={this.updateListOfSelectedFilters.bind(this, key)}
-              active={this.state.selectedOwners.indexOf(key) !== -1}
-            />);
-        })}
-      </Grid>
-    );
-  }
-
-  public renderSort() {
-    const { classes } = this.props;
-    return (
-      <Grid item={true} xl={2} lg={2} md={2} sm={2} xs={12}>
-        <AltinnFilterChip
-          key={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
-          className={classNames(
-            classes.mar_top_20,
-            { [classes.elementToRigth]: isWidthUp('sm', this.props.width) })}
-          label={getLanguageFromKey('dashboard.sorte_services', this.props.language)}
-          // tslint:disable-next-line:jsx-no-lambda
-          onDeleteFunction={() => {
-            return false;
-          }}
-          sortIcon={true}
-          active={false}
-        />
-      </Grid>
-    );
-  }
-
   public render() {
     const { classes, services, currentUserName } = this.props;
+    const altinnWindow: Window = window;
+    const knownIssuesUrl = `${altinnWindow.location.origin}#/knownissues`;
     return (
       <div className={classNames(classes.mar_top_100, classes.mar_bot_50)}>
         <Grid container={true} direction='row'>
@@ -204,6 +185,21 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
             </Grid>
           }
         </Grid>
+        {this.state.majorIssues &&
+          <div className={classes.mar_top_13}>
+            <AltinnInformationPaper>
+              <Typography className={classes.font_16}>
+                {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
+              </Typography>
+              <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
+              <AltinnLink
+                url={knownIssuesUrl}
+                linkTxt={getLanguageFromKey('dashboard.known_issues_link', this.props.language)}
+                shouldShowIcon={true}
+              />
+            </AltinnInformationPaper>
+          </div>
+        }
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}
         </Typography>
@@ -227,14 +223,6 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
                   onChangeFunction={this.updateSearchSting}
                 />
               </Grid>
-              <Hidden lgUp={true}>
-                {/* {this.renderSort()} */}
-                {this.renderFilters()}
-              </Hidden>
-              <Hidden mdDown={true}>
-                {this.renderFilters()}
-                {/* {this.renderSort()} */}
-              </Hidden>
             </Grid>
             <ServicesCategory
               header={getLanguageFromKey('dashboard.category_service_write', this.props.language)}

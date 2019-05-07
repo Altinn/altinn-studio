@@ -188,6 +188,7 @@ class VersionControlHeader extends React.Component<IVersionControlHeaderProps, I
           });
           // force refetch  files
           window.postMessage(postMessages.refetchFiles, window.location.href);
+          this.forceRepoStatusCheck();
         } else if (result.repositoryStatus === 'CheckoutConflict') {
           // if pull gives merge conflict, show user needs to commit message
           this.setState({

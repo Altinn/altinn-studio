@@ -56,7 +56,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="instanceId">The instance id</param>
         /// <returns>A list with attachments metadata ordered by attachmentType</returns>
-        List<AttachmentList> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId);
+        Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId);
 
         /// <summary>
         /// Method that removes a form attachments from disk/storage
