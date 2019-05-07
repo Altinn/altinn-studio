@@ -13,7 +13,7 @@ function* completeAndSendInFormSaga({ url }: ICompleteAndSendInForm): SagaIterat
     const response = yield call(post, url);
     if (response.data.status === 0) {
       const workflowState = response.data.nextState;
-      if (workflowState.state === WorkflowSteps.Archived) {
+      if (workflowState === WorkflowSteps.Archived) {
         document.body.className = 'a-bgGreenLight flex-column d-flex';
       }
       yield call(FormActions.completeAndSendInFormFulfilled);
