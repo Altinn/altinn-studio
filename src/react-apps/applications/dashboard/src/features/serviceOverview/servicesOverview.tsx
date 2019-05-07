@@ -1,15 +1,13 @@
 import { Grid } from '@material-ui/core';
-import { createMuiTheme, createStyles, withStyles } from '@material-ui/core/styles';
+import { createStyles, withStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
 import withWidth, { isWidthUp } from '@material-ui/core/withWidth';
 import classNames from 'classnames';
 import * as React from 'react';
 import { connect } from 'react-redux';
-import AltinnIcon from '../../../../shared/src/components/AltinnIcon';
 import AltinnInformationPaper from '../../../../shared/src/components/AltinnInformationPaper';
 import AltinnLink from '../../../../shared/src/components/AltinnLink';
 import AltinnSearchInput from '../../../../shared/src/components/AltinnSearchInput';
-import altinnTheme from '../../../../shared/src/theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../../../../shared/src/utils/language';
 import { get } from '../../../../shared/src/utils/networking';
 import { CreateNewService } from '../createService/createNewService';
@@ -32,8 +30,6 @@ export interface IServicesOverviewComponentState {
   searchString: string;
   majorIssues: string;
 }
-
-const theme = createMuiTheme(altinnTheme);
 
 const styles = createStyles({
   mar_top_100: {
@@ -71,6 +67,9 @@ const styles = createStyles({
   },
   font_16: {
     fontSize: 16,
+  },
+  mar_top_13: {
+    marginTop: 13,
   },
 });
 
@@ -187,24 +186,19 @@ class ServicesOverviewComponent extends React.Component<IServicesOverviewCompone
           }
         </Grid>
         {this.state.majorIssues &&
-          <AltinnInformationPaper>
-            <Typography className={classes.font_16}>
-              {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
-            </Typography>
-            <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
-            <AltinnLink
-              url={knownIssuesUrl}
-              linkTxt={getLanguageFromKey('dashboard.know_issues_link', this.props.language)}
-            >
-              <AltinnIcon
-                isActive={false}
-                iconClass='ai ai-arrowrightup'
-                iconColor={theme.altinnPalette.primary.black}
-                iconSize={20}
-                margin={'5px'}
+          <div className={classes.mar_top_13}>
+            <AltinnInformationPaper>
+              <Typography className={classes.font_16}>
+                {getLanguageFromKey('dashboard.known_issues_subheader', this.props.language)}
+              </Typography>
+              <Typography className={classes.paperList} dangerouslySetInnerHTML={{ __html: this.state.majorIssues }} />
+              <AltinnLink
+                url={knownIssuesUrl}
+                linkTxt={getLanguageFromKey('dashboard.known_issues_link', this.props.language)}
+                shouldShowIcon={true}
               />
-            </AltinnLink>
-          </AltinnInformationPaper>
+            </AltinnInformationPaper>
+          </div>
         }
         <Typography className={classNames(classes.mar_top_50, classes.textSyle)} gutterBottom={true}>
           {getLanguageFromKey('dashboard.main_subheader', this.props.language)}

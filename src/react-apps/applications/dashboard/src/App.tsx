@@ -11,7 +11,7 @@ import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
 import { CloneService } from './features/cloneService/cloneServices';
-import { KnownIssues } from './features/knowIssues/knownIssues';
+import { KnownIssues } from './features/knownIssues/knownIssues';
 import { ServicesOverview } from './features/serviceOverview/servicesOverview';
 import fetchServicesActionDispatchers from './resources/fetchDashboardResources/fetchDashboardDispatcher';
 import fetchLanguageDispatcher from './resources/fetchLanguage/fetchLanguageDispatcher';

@@ -19,7 +19,6 @@ const styles = {
     fontSize: 16,
     padding: 26,
     fontFamily: 'Roboto, Helvetica, Arial, sans-serif',
-    marginTop: 13,
   },
 };
 

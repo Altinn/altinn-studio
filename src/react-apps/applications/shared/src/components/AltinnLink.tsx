@@ -2,11 +2,13 @@ import { createMuiTheme } from '@material-ui/core';
 import { withStyles } from '@material-ui/core/styles';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
+import AltinnIcon from './AltinnIcon';
 
 export interface IAltinnLinkCompontentProvidedProps {
   classes: any;
   url: string;
   linkTxt: string;
+  shouldShowIcon: boolean;
 }
 
 export interface IAltinnLinkComponentState {
@@ -33,7 +35,15 @@ class AltinnLink extends React.Component<IAltinnLinkCompontentProvidedProps, IAl
     return (
       <a href={this.props.url} className={classes.link}>
         {this.props.linkTxt}
-        {this.props.children}
+        {this.props.shouldShowIcon &&
+          <AltinnIcon
+            isActive={false}
+            iconClass='ai ai-arrowrightup'
+            iconColor={theme.altinnPalette.primary.black}
+            iconSize={20}
+            margin={'5px'}
+          />
+        }
       </a>
     );
   }
