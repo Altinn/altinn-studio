@@ -20,9 +20,8 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="applicationOwnerId">The application owner id</param>
         /// <param name="applicationId">The application id</param>
-        /// <param name="developer">The developer for the current service if any</param>
         /// <returns>List of form instances</returns>
-        List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null);
+        List<ServiceInstance> GetFormInstances(int instanceOwnerId, string applicationOwnerId, string applicationId);
 
         /// <summary>
         /// Returns a list over local stored prefill for a given service
@@ -30,8 +29,7 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="instanceOwnerId">The instance owner id</param>
         /// <param name="applicationOwnerId">The application owner id</param>
         /// <param name="applicationId">The application id</param>
-        /// <param name="developer">The developer for the current service if any</param>
         /// <returns>List over prefill</returns>
-        List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId, string developer = null);
+        List<ServicePrefill> GetServicePrefill(int instanceOwnerId, string applicationOwnerId, string applicationId);
     }
 }

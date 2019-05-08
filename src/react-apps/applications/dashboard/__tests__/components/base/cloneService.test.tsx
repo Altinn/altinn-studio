@@ -3,7 +3,7 @@ import { Action } from 'history';
 import 'jest';
 import * as React from 'react';
 import * as networking from '../../../../shared/src/utils/networking';
-import { CloneServiceComponent } from '../../../src/dashboardServices/cloneService/cloneServices';
+import { CloneServiceComponent } from '../../../src/features/cloneService/cloneServices';
 
 describe('>>> components/base/cloneService.tsx', () => {
   let mockServices: any;

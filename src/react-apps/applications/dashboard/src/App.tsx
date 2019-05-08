@@ -10,10 +10,11 @@ import { HashRouter as Router, Route } from 'react-router-dom';
 import AppBarComponent from '../../shared/src/navigation/main-header/appBar';
 import altinnTheme from '../../shared/src/theme/altinnStudioTheme';
 import './App.css';
-import { CloneService } from './dashboardServices/cloneService/cloneServices';
-import fetchServicesActionDispatchers from './dashboardServices/fetchDashboardDispatcher';
-import { ServicesOverview } from './dashboardServices/serviceOverview/servicesOverview';
-import fetchLanguageDispatcher from './fetchLanguage/fetchLanguageDispatcher';
+import { CloneService } from './features/cloneService/cloneServices';
+import { KnownIssues } from './features/knownIssues/knownIssues';
+import { ServicesOverview } from './features/serviceOverview/servicesOverview';
+import fetchServicesActionDispatchers from './resources/fetchDashboardResources/fetchDashboardDispatcher';
+import fetchLanguageDispatcher from './resources/fetchLanguage/fetchLanguageDispatcher';
 
 export interface IMainDashboardState {
   drawerOpen: boolean;
@@ -79,6 +80,11 @@ class App extends React.Component<IDashboardProps, IMainDashboardState> {
               path={'/cloneservice/:org/:serviceName'}
               exact={true}
               component={CloneService}
+            />
+            <Route
+              path={'/knownissues'}
+              exact={true}
+              component={KnownIssues}
             />
           </div>
         </Router>

@@ -124,7 +124,7 @@ namespace AltinnCore.Designer
                     };
                 });
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders

@@ -2,8 +2,8 @@ import { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from '../store';
 
-import dashboardSaga from '../dashboardServices/dashboardSagas';
-import languageSagas from '../fetchLanguage/languageSagas';
+import dashboardSaga from '../resources/fetchDashboardResources/dashboardSagas';
+import languageSagas from '../resources/fetchLanguage/languageSagas';
 
 function* root(): SagaIterator {
   yield fork(languageSagas);
