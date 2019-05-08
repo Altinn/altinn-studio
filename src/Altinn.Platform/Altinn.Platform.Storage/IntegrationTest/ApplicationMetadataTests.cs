@@ -29,7 +29,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             .CreateLogger();
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="InstanceStorageTests"/> class.
+        /// Initializes a new instance of the <see cref="ApplicationMetadataTests"/> class.
         /// </summary>
         /// <param name="fixture">the fixture object which talks to the SUT (System Under Test)</param>
         public ApplicationMetadataTests(PlatformStorageFixture fixture)

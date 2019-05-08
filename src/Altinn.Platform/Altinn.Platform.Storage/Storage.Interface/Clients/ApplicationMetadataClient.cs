@@ -12,7 +12,7 @@ namespace Altinn.Platform.Storage.Client
     public class ApplicationMetadataClient
     {
         private readonly HttpClient client;
-        private readonly string endpointUri; //"http://platform.altinn.cloud/";
+        private readonly string endpointUri;
         private readonly string resourcePrefix = "storage/api/v1/applications";
 
         public ApplicationMetadataClient(HttpClient client, string enpointUri = "")
