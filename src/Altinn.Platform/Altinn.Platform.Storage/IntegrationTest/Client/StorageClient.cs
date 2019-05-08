@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -16,9 +17,10 @@ namespace Altinn.Platform.Storage.Client
     /// </summary>
     public class StorageClient
     {
-        HttpClient client;
+        private HttpClient client;
         private readonly string formId = "default";
         private readonly string versionPrefix = "api/storage/v1";
+        private readonly string versionPrefix_new = "storage/api/v1";
         private string hostName;
 
         /// <summary>
@@ -42,7 +44,7 @@ namespace Altinn.Platform.Storage.Client
         public async Task<bool> PostDataReadFromFile(string instanceId, int instanceOwnerId, string fileName, string contentType)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
-            
+
             using (Stream input = File.OpenRead($"data/{fileName}"))
             {
                 HttpContent fileStreamContent = new StreamContent(input);
@@ -73,7 +75,7 @@ namespace Altinn.Platform.Storage.Client
         public async void PostData(string instanceId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, object> content)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data?formId={formId}&instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, content.AsJson());
 
             response.EnsureSuccessStatusCode();
@@ -106,7 +108,7 @@ namespace Altinn.Platform.Storage.Client
         public async Task<Dictionary<string, string>> GetData(string instanceId, string dataId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
 
             response.EnsureSuccessStatusCode();
@@ -125,7 +127,7 @@ namespace Altinn.Platform.Storage.Client
         public async Task<Instance> GetInstances(string instanceId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/?instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage getInstanceResponse = await client.GetAsync(hostName + requestUri);
             string instanceData = await getInstanceResponse.Content.ReadAsStringAsync();
             Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
@@ -141,11 +143,67 @@ namespace Altinn.Platform.Storage.Client
         public async Task<string> PostInstances(string applicationId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}";
-            
+
             HttpResponseMessage createInstanceResponse = await client.PostAsync(hostName + requestUri, string.Empty.AsJson());
             string newId = await createInstanceResponse.Content.ReadAsStringAsync();
 
             return newId;
+        }
+
+        /// <summary>
+        /// Retrieves all instance events related to given instance id, listed event types and given time frame from instanceEvent collection.
+        /// </summary>
+        /// <param name="instanceId"> Id of instance to retrieve events for. </param>
+        /// <param name="eventTypes">List of event types to filter the events by./param>
+        /// <param name="from"> Lower bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <param name="to"> Upper bound for DateTime span to filter events by. Utc format and invariantCulture. </param>
+        /// <returns>List of intance events.</returns>
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
+        {
+            string requestUri = $"{versionPrefix_new}/instances/{instanceId}/events?";
+            if (!(eventTypes == null))
+            {
+                foreach (string type in eventTypes)
+                {
+                    requestUri += $"&eventTypes={type}";
+                }
+            }
+
+            if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
+            {
+                requestUri += $"&from={from}&to={to}";
+            }
+
+            HttpResponseMessage response = await client.GetAsync(hostName + requestUri);
+            string eventData = await response.Content.ReadAsStringAsync();
+            List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+            return instanceEvents;
+        }
+
+        /// <summary>
+        /// Inserts new instance event into the instanceEvent collection.
+        /// </summary>
+        /// <param name="instanceEvent">Instance event to be stored. </param>
+        /// <returns>The stored instance event.</returns>
+        public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
+        {
+            string requestUri = $"{versionPrefix_new}/instances/{instanceEvent.InstanceId}/events";
+            HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
+            string newId = await response.Content.ReadAsStringAsync();
+            return newId;
+        }
+
+        /// <summary>
+        /// Deletes all events related to an instance id.
+        /// </summary>
+        /// <param name="instanceId">Id of instance to retrieve events for. </param>
+        /// <returns>True if instance events were successfully deleted.</returns>
+        public async Task<bool> DeleteInstanceEvents(string instanceId)
+        {
+            string requestUri = $"{versionPrefix_new}/instances/{instanceId}/events";
+            HttpResponseMessage response = await client.DeleteAsync(requestUri);
+            response.EnsureSuccessStatusCode();
+            return true;
         }
     }
 
