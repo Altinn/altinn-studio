@@ -111,7 +111,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="applicationId">the applicationid</param>
         /// <returns>instance object</returns>
-        /// POST /instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId}"
+        /// <!-- POST /instances?applicationId={applicationId}&instanceOwnerId={instanceOwnerId} -->
         [HttpPost]        
         public async Task<ActionResult> Post(int instanceOwnerId, string applicationId)
         {

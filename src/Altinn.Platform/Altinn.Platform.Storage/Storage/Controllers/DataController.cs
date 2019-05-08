@@ -415,7 +415,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="instanceOwnerId">instance owner</param>
         /// <param name="dataId">data id</param>
         /// <returns>updated instance object</returns>
-        /// DELETE /instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId}
+        /// <!-- DELETE /instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId} -->
         [HttpDelete("{dataId:guid}")]
         public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, Guid dataId)
         {
