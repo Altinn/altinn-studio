@@ -41,9 +41,7 @@ namespace AltinnCore.Common.Services.Implementation
             _workflow = workflowSI;
         }
 
-        /// <summary>
-        /// This method creates new instance in database
-        /// </summary>
+        /// <inheritdoc />
         public async Task<Instance> InstantiateInstance(StartServiceModel startServiceModel, object serviceModel, IServiceImplementation serviceImplementation)
         {
             Guid instanceId;
@@ -79,7 +77,7 @@ namespace AltinnCore.Common.Services.Implementation
                 applicationId,
                 instanceOwnerId);
 
-            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId, instanceOwnerId);
+            ServiceState currentState = _workflow.GetInitialServiceState(applicationOwnerId, applicationId);
 
             // set initial workflow state
             instance.CurrentWorkflowStep = currentState.State.ToString();
@@ -89,14 +87,7 @@ namespace AltinnCore.Common.Services.Implementation
             return instance;
         }
 
-        /// <summary>
-        /// Gets the instance
-        /// </summary>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="applicationOwnerId">the application owner id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<Instance> GetInstance(string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
@@ -121,13 +112,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Gets the instance
-        /// </summary>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="applicationOwnerId">the application owner id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<List<Instance>> GetInstances(string applicationId, string applicationOwnerId, int instanceOwnerId)
         {
             List<Instance> instances = null;
@@ -156,15 +141,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Gets the instance
-        /// </summary>
-        /// <param name="dataToSerialize">instance meta data</param>
-        /// <param name="applicationId">the application id</param>
-        /// <param name="applicationOwnerId">the application owner id</param>
-        /// <param name="instanceOwnerId">the instance owner id</param>
-        /// <param name="instanceId">the instance id</param>
-        /// <returns></returns>
+        /// <inheritdoc />
         public async Task<Instance> UpdateInstance(object dataToSerialize, string applicationId, string applicationOwnerId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;

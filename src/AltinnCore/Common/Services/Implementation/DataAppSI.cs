@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -31,16 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
             _platformStorageSettings = platformStorageSettings.Value;
         }
 
-        /// <summary>
-        /// Insert form for the given instance
-        /// </summary>
-        /// <typeparam name="T">The input type</typeparam>
-        /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="applicationOwnerId">The Organization code for the service owner</param>
-        /// <param name="applicationId">The service code for the current service</param>
-        /// <param name="instanceOwnerId">The partyId</param>
+        /// <inheritdoc />
         public async Task<Instance> InsertData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId)
         {
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data?formId={FORM_ID}&instanceOwnerId={instanceOwnerId}";
@@ -72,17 +64,7 @@ namespace AltinnCore.Common.Services.Implementation
             return instance;
         }
 
-        /// <summary>
-        /// update the form 
-        /// </summary>
-        /// <typeparam name="T">The input type</typeparam>
-        /// <param name="dataToSerialize">The data to serialize</param>
-        /// <param name="instanceId">The formId</param>
-        /// <param name="type">The type</param>
-        /// <param name="applicationOwnerId">The Organization code for the service owner</param>
-        /// <param name="applicationId">The service code for the current service</param>
-        /// <param name="instanceOwnerId">The partyId</param>
-        /// <param name="dataId">the data id</param>
+        /// <inheritdoc />
         public void UpdateData<T>(T dataToSerialize, Guid instanceId, Type type, string applicationOwnerId, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
@@ -106,16 +88,7 @@ namespace AltinnCore.Common.Services.Implementation
             }
         }
 
-        /// <summary>
-        /// Gets the form data
-        /// </summary>
-        /// <param name="instanceId">The instance id</param>
-        /// <param name="type">The type that form data will be serialized to</param>
-        /// <param name="applicationOwner">The Organization code for the service owner</param>
-        /// <param name="applicationId">The service code for the current service</param>
-        /// <param name="instanceOwnerId">The partyId used to find the party on disc</param>
-        /// <param name="dataId">the data id</param>
-        /// <returns>The deserialized form data</returns>
+        /// <inheritdoc />
         public object GetFormData(Guid instanceId, Type type, string applicationOwner, string applicationId, int instanceOwnerId, Guid dataId)
         {
             string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
@@ -143,6 +116,24 @@ namespace AltinnCore.Common.Services.Implementation
                     return Activator.CreateInstance(type);
                 }
             }
+        }
+
+        /// <inheritdoc />
+        public List<AttachmentList> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public void DeleteFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentId)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <inheritdoc />
+        public Task<Guid> SaveFormAttachment(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId, string attachmentType, string attachmentName, HttpRequest attachment)
+        {
+            throw new NotImplementedException();
         }
     }
 }
