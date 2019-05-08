@@ -65,13 +65,13 @@ namespace Altinn.Platform.Storage.Models
         /// valid from
         /// </summary>
         [JsonProperty(PropertyName = "validFrom")]
-        public DateTime ValidFrom { get; set; }
+        public DateTime? ValidFrom { get; set; }
 
         /// <summary>
         /// valid to
         /// </summary>
         [JsonProperty(PropertyName = "validTo")]
-        public DateTime ValidTo { get; set; }
+        public DateTime? ValidTo { get; set; }
 
         /// <summary>
         /// name workflow

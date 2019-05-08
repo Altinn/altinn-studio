@@ -7,8 +7,7 @@ using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Documents;
-using Serilog;
-using Serilog.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
@@ -16,6 +15,7 @@ namespace Altinn.Platform.Storage.Controllers
     /// Provides operations for handling application metadata
     /// </summary>
     [Route("storage/api/v1/applications")]
+    [ApiController]
     public class ApplicationsController : Controller
     {
         private readonly IApplicationRepository repository;
@@ -26,7 +26,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="repository">the application repository handler</param>
         /// <param name="logger">dependency injection of logger</param>
-        public ApplicationsController(IApplicationRepository repository, ILogger logger)
+        public ApplicationsController(IApplicationRepository repository, ILogger<ApplicationsController> logger)
         {
             this.logger = logger;
             this.repository = repository;
@@ -58,12 +58,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Cannot find applications for application owner {applicationOwnerId}");
                 }
 
-                logger.Error($"Unable to access document database {dce.Message}");
+                logger.LogError($"Unable to access document database {dce.Message}");
                 return StatusCode(500, $"Unable to access document database {dce.Message}");
             }
             catch (Exception e)
             {
-                logger.Error($"Unable to perform query request {e}");
+                logger.LogError($"Unable to perform query request {e}");
                 return StatusCode(500, $"Unable to perform query request {e}");
             }
         }        
@@ -90,12 +90,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Could not find an application to update with applicationId={applicationId} . You first have to create one");
                 }
 
-                logger.Error($"Unable to access document database: {dce}");
+                logger.LogError($"Unable to access document database: {dce}");
                 return StatusCode(500, $"Unable to access document database: {dce}");
             }
             catch (Exception e)
             {
-                logger.Error($"Unable to perform request: {e.Message}");
+                logger.LogError($"Unable to perform request: {e.Message}");
                 return StatusCode(500, $"Unable to perform request: {e.Message}");
             }            
         }
@@ -140,7 +140,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.Error($"Unable to perform request: {e}");
+                logger.LogError($"Unable to perform request: {e}");
                 return StatusCode(500, $"Unable to perform request: {e}");
             }
 
@@ -153,14 +153,9 @@ namespace Altinn.Platform.Storage.Controllers
             application.CreatedDateTime = creationTime;
             application.LastChangedBy = User.Identity.Name;
             application.LastChangedDateTime = creationTime;
-            if (application.ValidFrom == DateTime.MinValue)
+            if (application.ValidFrom == null)
             {
                 application.ValidFrom = creationTime;
-            }
-
-            if (application.ValidTo == DateTime.MinValue)
-            {
-                application.ValidTo = DateTime.MaxValue;
             }
 
             if (application.Forms == null || application.Forms.Count == 0)
@@ -182,13 +177,13 @@ namespace Altinn.Platform.Storage.Controllers
             {
                 ApplicationMetadata result = await repository.Create(application);
 
-                logger.Information($"Application {applicationId} sucessfully stored", application);
+                logger.LogInformation($"Application {applicationId} sucessfully stored", application);
 
                 return Ok(result);
             }
             catch (Exception e)
             {
-                logger.Error($"Unable to store application data in database. {e}");
+                logger.LogError($"Unable to store application data in database. {e}");
                 return StatusCode(500, $"Unable to store application data in database. {e}");
             }
         }
@@ -264,12 +259,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Did not find application with id={applicationId} to update");
                 }
 
-                logger.Error($"Document database error: {dce.Message}");
+                logger.LogError($"Document database error: {dce.Message}");
                 return StatusCode(500, $"Document database error: {dce.Message}");
             }
             catch (Exception e) 
             {
-                logger.Error($"Unable to perform request: {e.Message}");
+                logger.LogError($"Unable to perform request: {e.Message}");
                 return StatusCode(500, $"Unable to perform request: {e.Message}");
             }
         }
@@ -323,12 +318,12 @@ namespace Altinn.Platform.Storage.Controllers
                     return NotFound($"Didn't find the object that should be deleted with applicationId={applicationId}");
                 }
 
-                logger.Error($"Unable to reach document database {dce}");
+                logger.LogError($"Unable to reach document database {dce}");
                 return StatusCode(500, $"Unable to reach document database {dce}");
             }            
             catch (Exception e)
             {
-                logger.Error($"Unable to perform request: {e.Message}");
+                logger.LogError($"Unable to perform request: {e.Message}");
                 return StatusCode(500, $"Unable to perform request: {e.Message}");
             }
         }

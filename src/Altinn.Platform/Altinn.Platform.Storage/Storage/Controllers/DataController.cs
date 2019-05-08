@@ -249,7 +249,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Unable to create instance data in storage: " + e.Message);
+                return StatusCode(500, $"Unable to create instance data in storage: {e}");
             }
 
             try
@@ -261,7 +261,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, "Unable to store instance in storage: " + e.Message);
+                return StatusCode(500, $"Unable to store instance in storage: {e}");
             }            
         }
 

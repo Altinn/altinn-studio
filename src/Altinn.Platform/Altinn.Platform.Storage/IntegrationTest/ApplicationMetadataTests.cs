@@ -48,18 +48,27 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             HttpResponseMessage listResponse = client.GetAsync(listUri).Result;
 
-            string json = listResponse.Content.ReadAsStringAsync().Result;
-
-            List<ApplicationMetadata> applications = JsonConvert.DeserializeObject<List<ApplicationMetadata>>(json);
-
-            foreach (ApplicationMetadata app in applications)
+            if (listResponse.IsSuccessStatusCode)
             {
-                string applicationId = app.Id;
+                string json = listResponse.Content.ReadAsStringAsync().Result;
+           
+                List<ApplicationMetadata> applications = JsonConvert.DeserializeObject<List<ApplicationMetadata>>(json);
 
-                string deleteUri = $"{versionPrefix}/applications/{applicationId}?hard=true";
+                foreach (ApplicationMetadata app in applications)
+                {
+                    string applicationId = app.Id;
 
-                client.DeleteAsync(deleteUri);
-            }            
+                    string deleteUri = $"{versionPrefix}/applications/{applicationId}?hard=true";
+
+                    client.DeleteAsync(deleteUri);
+                }
+            }
+            else
+            {
+                string json = listResponse.Content.ReadAsStringAsync().Result;
+
+                logger.Error(json);
+            }
         }
 
         private ApplicationMetadata CreateApplicationMetadata(string applicationId)

@@ -5,32 +5,35 @@ using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Altinn.Platform.Storage.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Serilog;
-using Serilog.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Altinn.Platform.Storage.Controllers
 {
     /// <summary>
-    /// a summary is needed here
+    /// Handles operations for the application instance resource
     /// </summary>
     [Route("storage/api/v1/instances")]
+    [ApiController]
     public class InstancesController : Controller
     {
         private readonly IInstanceRepository _instanceRepository;
         private readonly IApplicationRepository _applicationRepository;
-        private Logger logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        private readonly ILogger logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstancesController"/> class
         /// </summary>
         /// <param name="instanceRepository">the instance repository handler</param>
         /// <param name="applicationRepository">the application repository handler</param>
-        public InstancesController(IInstanceRepository instanceRepository, IApplicationRepository applicationRepository)
+        /// <param name="logger">the logger</param>
+        public InstancesController(
+            IInstanceRepository instanceRepository,
+            IApplicationRepository applicationRepository,
+            ILogger<InstancesController> logger)
         {
             _instanceRepository = instanceRepository;
             _applicationRepository = applicationRepository;
+            this.logger = logger;
         }
 
         /// <summary>
@@ -97,7 +100,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             watch.Stop();
-            logger.Information("get {instanceid} for {instanceOwner} took {time}ms.", instanceId, instanceOwnerId, watch.ElapsedMilliseconds);
+            logger.LogInformation("get {instanceid} for {instanceOwner} took {time}ms.", instanceId, instanceOwnerId, watch.ElapsedMilliseconds);
 
             return Ok(result);
         }
@@ -143,6 +146,7 @@ namespace Altinn.Platform.Storage.Controllers
             string result = await _instanceRepository.InsertInstanceIntoCollectionAsync(instance);            
             if (result == null)
             {
+                logger.LogError("Unable to write new instance to database");
                 return BadRequest("Unable to write new instance to database");
             }
 
@@ -233,7 +237,7 @@ namespace Altinn.Platform.Storage.Controllers
             }
             catch (Exception e)
             {
-                logger.Error($"Get application {applicationId} failed: {e.Message}");
+                logger.LogError($"Get application {applicationId} failed: {e.Message}");
             }
 
             return null;
