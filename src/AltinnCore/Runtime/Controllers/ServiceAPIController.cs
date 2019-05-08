@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
@@ -741,15 +742,7 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public ServiceState GetCurrentState(string org, string service, int partyId, Guid instanceId)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string serviceStatePath = $"{_settings.GetTestdataForPartyPath(org, service, developer)}{partyId}/{instanceId}/{instanceId}.json";
-            string currentStateAsString = System.IO.File.ReadAllText(serviceStatePath, Encoding.UTF8);
-            Instance instance = JsonConvert.DeserializeObject<Instance>(currentStateAsString);
-            Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep current);
-            return new ServiceState
-            {
-                State = current,
-            };
+            return _workflowSI.GetCurrentState(instanceId, org, service, partyId);
         }
     }
 }

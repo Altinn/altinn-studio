@@ -45,7 +45,7 @@ namespace Altinn.Platform.Storage.Models
         /// reportee id of the user who created the instance
         /// </summary>
         [JsonProperty(PropertyName = "createdBy")]
-        public int CreatedBy { get; set; }
+        public string CreatedBy { get; set; }
 
         /// <summary>
         /// last changed date time for the instance
@@ -57,7 +57,7 @@ namespace Altinn.Platform.Storage.Models
         /// reportee id of the user who last changed the instance
         /// </summary>
         [JsonProperty(PropertyName = "lastChangedBy")]
-        public int LastChangedBy { get; set; }
+        public string LastChangedBy { get; set; }
 
         /// <summary>
         /// Due date to submit the form(instance)

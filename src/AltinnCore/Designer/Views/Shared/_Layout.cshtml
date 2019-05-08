@@ -162,33 +162,8 @@
 </head>
 
 <body>
-    @*@Html.Partial("_Navbar")*@
-
     <div>
         @RenderBody()
     </div>
-
-    <script>
-        // Toggle main menu active state and copy secondary nav
-        $(document).ready(function () {
-            var loc = location.pathname + location.search;
-            $(".navbar-nav .active").removeClass("active");
-
-            // remove .find("i").remove().end() to keep icons in secondary nav
-            $(".secondary-nav .navbar-nav *").replaceWith(
-                $("#navbar-main .dropdown-menu a[href='" + loc + "']").closest("li").find(".dropdown-menu > *[class*='dropdown-']").clone().removeClass("dropdown-item").addClass("nav-link nav-item") //.find("i").remove().end()
-            );
-            $(".secondary-nav .dropdown-divider").removeClass("nav-link");
-
-            $("#navbar-main .nav-item a[href='" + loc + "']").closest("li").addClass("active");
-            //$("#navbar-main .dropdown-menu a[href='" + loc + "']").addClass("active");
-            $(".secondary-nav a[href='" + loc + "']").addClass("active");
-
-            // tooltip support
-            $("[data-toggle='tooltip']").tooltip();
-            // autofocus support
-            $("input[autofocus]:first").focus();
-        });
-    </script>
 </body>
 </html>
