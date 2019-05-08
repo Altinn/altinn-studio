@@ -22,10 +22,13 @@ fixture('GUI service designer tests')
     await common.login(testUser.userEmail, testUser.password, loginPage);
   })
 
-test.skip('Deploy a service to a test environment', async() => {
+test.skip('Happy path; deploy a service to a test environment', async() => {
     await t
       .navigateTo(app.baseUrl + 'designer/AutoTest/deploy_service#/aboutservice')
       .click(designer.testeNavigationTab)
       .hover(designer.leftDrawerMenu)
       .click(designer.testeLeftMenuItems[1])
+      .expect(designer.deployButton.exists).ok()
+      .click(designer.deployButton)
+      //.expect(designer.)
 })
