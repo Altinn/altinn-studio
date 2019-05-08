@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
+using AltinnCore.Common.Enums;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services;
@@ -44,6 +45,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IInstance _instance;
+        private readonly IInstanceEvent _event;
         private readonly IPlatformServices _platformSI;
         private readonly IData _data;
         private readonly ServiceRepositorySettings _settings;
@@ -66,6 +68,7 @@ namespace AltinnCore.Runtime.Controllers
         /// <param name="testDataService">the test data service handler</param>
         /// <param name="workflowSI">the workflow service handler</param>
         /// <param name="instanceSI">the instance service handler</param>
+        /// <param name="eventSI">the instance event service handler</param>
         /// <param name="platformSI">the platform service handler</param>
         /// <param name="dataSI">the data service handler</param>
         /// <param name="repositorySettings">the repository settings</param>
@@ -83,6 +86,7 @@ namespace AltinnCore.Runtime.Controllers
             IHttpContextAccessor httpContextAccessor,
             IWorkflow workflowSI,
             IInstance instanceSI,
+            IInstanceEvent eventSI,
             IPlatformServices platformSI,
             IData dataSI,
             IOptions<ServiceRepositorySettings> repositorySettings)
@@ -101,6 +105,7 @@ namespace AltinnCore.Runtime.Controllers
             _httpContextAccessor = httpContextAccessor;
             _workflowSI = workflowSI;
             _instance = instanceSI;
+            _event = eventSI;
             _platformSI = platformSI;
             _data = dataSI;
             _settings = repositorySettings.Value;
@@ -176,10 +181,23 @@ namespace AltinnCore.Runtime.Controllers
                 ServiceState currentState = _workflowSI.MoveServiceForwardInWorkflow(instanceId, org, service, requestContext.UserContext.ReporteeId);
 
                 if (currentState.State == WorkflowStep.Archived)
-                {                    
+                {
                     await _instance.ArchiveInstance(serviceModel, serviceImplementation.GetServiceModelType(), service, org, requestContext.UserContext.ReporteeId, instanceId);
                     apiResult.NextState = currentState.State;
                 }
+
+                // Create and store the instance submitted event
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Submited.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instance.InstanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.CurrentWorkflowStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, org, service);               
             }
 
             ModelHelper.MapModelStateToApiResult(ModelState, apiResult, serviceContext);
@@ -330,6 +348,19 @@ namespace AltinnCore.Runtime.Controllers
 
                 // Create a new instance document                
                 Instance instance = await _instance.InstantiateInstance(startServiceModel, serviceModel, serviceImplementation);
+
+                // Create and store the instance created event
+                InstanceEvent instanceEvent = new InstanceEvent
+                {
+                    AuthenticationLevel = requestContext.UserContext.AuthenticationLevel,
+                    EventType = InstanceEventType.Created.ToString(),
+                    InstanceId = instance.Id,
+                    InstanceOwnerId = instanceOwnerId.ToString(),
+                    UserId = requestContext.UserContext.UserId,
+                    WorkflowStep = instance.CurrentWorkflowStep
+                };
+
+                await _event.SaveInstanceEvent(instanceEvent, startServiceModel.Org, startServiceModel.Service);
 
                 Enum.TryParse<WorkflowStep>(instance.CurrentWorkflowStep, out WorkflowStep currentStep);
 

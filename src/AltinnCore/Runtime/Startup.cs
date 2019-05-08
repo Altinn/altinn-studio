@@ -81,6 +81,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IER, RegisterERStudioSI>();
                 services.AddSingleton<IRegister, RegisterStudioSI>();
                 services.AddSingleton<IProfile, ProfileStudioSI>();
+                services.AddSingleton<IInstanceEvent, InstanceEventStudioSI>();
             }
             else
             {
@@ -94,6 +95,7 @@ namespace AltinnCore.Runtime
                 services.AddSingleton<IData, DataAppSI>();
                 services.AddSingleton<IWorkflow, WorkflowAppSI>();
                 services.AddSingleton<ITestdata, TestdataAppSI>();
+                services.AddSingleton<IInstanceEvent, InstanceEventAppSI>();
             }
 
             services.AddSingleton<IPlatformServices, PlatformStudioSI>();
