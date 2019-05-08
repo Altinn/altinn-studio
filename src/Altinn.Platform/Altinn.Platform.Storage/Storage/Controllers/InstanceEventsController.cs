@@ -105,7 +105,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// </summary>
         /// <param name="instanceId">Id of instance to retrieve events for. .</param>
         /// <returns>Number of deleted events.</returns>
-        /// DELETE storage/api/v1/instanceevents/?instanceId={instanceId}
+        /// DELETE storage/api/v1/instances/{instanceId}/events
         [HttpDelete]
         public async Task<ActionResult> Delete(string instanceId)
         {
