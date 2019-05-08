@@ -20,7 +20,7 @@ namespace Altinn.Platform.Storage.Repository
         private readonly Uri _databaseUri;
         private readonly Uri _collectionUri;
         private readonly string databaseId;
-        private readonly string collectionId = "instanceEvent";
+        private readonly string collectionId = "instance-events";
         private readonly string partitionKey = "/instanceId";
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
