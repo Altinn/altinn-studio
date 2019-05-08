@@ -58,7 +58,9 @@ test('Validations when uploading file', async () => {
     .click(runtime.testUsers[0])
     .click(runtime.startNewButton)
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
-    .expect(runtime.errorMessage).ok()
+    .expect(runtime.errorMessage).ok();
+  await t.eval(() => location.reload(true))
+  await t
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_pdf.pdf')
     .expect(runtime.errorMessage).ok()
 })
