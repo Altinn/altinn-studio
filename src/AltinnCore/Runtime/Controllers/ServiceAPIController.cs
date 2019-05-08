@@ -5,6 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Attributes;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
@@ -551,53 +552,6 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Gets url for uploading attachment
-        /// </summary>
-        /// <param name="reportee">The reportee</param>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance ID</param>
-        /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="fileName">The name of the file to be uploaded</param>
-        [Authorize]
-        [HttpGet]
-        public IActionResult GetAttachmentUploadUrl(int reportee, string org, string service, Guid instanceId, string attachmentType, string fileName)
-        {
-            return Content(_form.GetAttachmentUploadUrl(org, service, reportee, instanceId, attachmentType, fileName), "text/plain", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Gets url for deleting attachment
-        /// </summary>
-        /// <param name="reportee">The reportee</param>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance ID</param>
-        /// <param name="attachmentType">The attachment type id</param>
-        /// <param name="fileName">The name of the file to be deleted</param>
-        /// <param name="fileId">The id of the file to be deleted</param>
-        [Authorize]
-        [HttpGet]
-        public IActionResult GetAttachmentDeleteUrl(int reportee, string org, string service, Guid instanceId, string attachmentType, string fileName, string fileId)
-        {
-            return Content(_form.GetAttachmentDeleteUrl(org, service, reportee, instanceId, attachmentType, fileName, fileId), "text/plain", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Gets url for attachment list
-        /// </summary>
-        /// <param name="reportee">The reportee</param>
-        /// <param name="org">The organization code for the service owner</param>
-        /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance ID</param>
-        [Authorize]
-        [HttpGet]
-        public IActionResult GetAttachmentListUrl(int reportee, string org, string service, Guid instanceId)
-        {
-            return Content(_form.GetAttachmentListUrl(org, service, reportee, instanceId), "text/plain", Encoding.UTF8);
-        }
-
-        /// <summary>
         /// Method that maps the MVC Model state to the ApiResult for the client.
         /// </summary>
         /// <param name="modelState">The model state.</param>
@@ -752,6 +706,21 @@ namespace AltinnCore.Runtime.Controllers
             }
 
             return serviceModel;
+        }
+
+        /// <summary>
+        /// Method that gets the current service state
+        /// </summary>
+        /// <param name="org">The organization for the service</param>
+        /// <param name="service">The name of the service</param>
+        /// <param name="partyId">The party id of the test user</param>
+        /// <param name="instanceId">The form id</param>
+        /// <returns>The current state object</returns>
+        [HttpGet]
+        [Authorize]
+        public ServiceState GetCurrentState(string org, string service, int partyId, Guid instanceId)
+        {
+            return _workflowSI.GetCurrentState(instanceId, org, service, partyId);
         }
     }
 }

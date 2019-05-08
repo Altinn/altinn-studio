@@ -52,7 +52,7 @@ namespace Altinn.Platform.Storage.Models
         /// Size of file in bytes
         /// </summary>
         [JsonProperty(PropertyName = "fileSize")]
-        public int FileSize { get; set; }
+        public long FileSize { get; set; }
 
         /// <summary>
         /// Signature

@@ -1,21 +1,17 @@
-Altinn.studio has now reached the first MVP milestone, and service developers (especially for pilot projects) are welcome to start using the solution to create services that should be released.
+Altinn.studio har nådd første milepæl for MVP, og tjenesteutviklere (spesielt for pilottjenestene) er velkommen til å ta løsningen i bruk for å lage tjenester som skal settes i produksjon på et senere tidspunkt. Merk at det kan oppstå situasjoner der vi må gjøre endringer som knekker tjenestene (breaking changes). Vi vil i så fall forklare hvordan man kommer seg rundt situasjonen.
 
-There are some known errors and weaknesses in the solution.
+Det er noen kjente feil og svakheter i løsningen.
 
-## Major issues
+## Større svakheter
 
-- The solution is not yet optimized for users using keyboard navigation and/or are visually impared
-- The container functionality in the UI editor should be considered experimental. It can be used, but will be percieved as buggy
-- Drag-and-drop functionality in the UI editor is sometimes unpredictable, especially in cases where the container functionality is used
-- There are currently two menues for navigating the solution, and the functionality you need are spread between them
-- All services (repositories) from the MTP period (before January 21 2019) have been deleted, as there were breaking changes to service functionality
+- Vi har nylig gjort endringer som knekker tjenestene. Se [beskrivelse av breaking changes](https://docs.altinn.studio/known-issues/breaking-changes/) for å finne ut hva du må gjøre for å få dem til å virke igjen.
+- Løsningen er ennå ikke optimalisert for tastaturnavigasjon eller bruk av touchskjermer.
 
-## Minor issues worth mentioning
+## Mindre svakheter som er verdt å nevne
 
-- The visual difference between the different components in the UI-editor is smaller than ideal
-- You are able to edit (a local copy of) a service you don't have writing privileges to. You are, however, not able to publish those changes
-- Some parts of the Altinn Studio UI will reload while navigating, which may cause blinking and/or text string IDs being shown temporarily
+- Det er mulig å endre på (en lokal kopi av) en tjeneste du ikke har skrivetilgang til. Det er dog ikke mulig å dele/lagre disse endringene.
+- Det kan virke tilfeldig hvor i lista et nytt element dukker opp når du legger det til via drag and drop.
 
-## Full list of known bugs
+## Fullstendig oversikt over feil
 
-All bugs are registered in [the Altinn studio Github issues list](https://github.com/Altinn/altinn-studio/issues?q=is%3Aopen+is%3Aissue+label%3Abug). From this page you can also add new bugs to the issue list if you find any.
+Alle bugs registreres i [issue-lista for Altinn studio på Github](https://github.com/Altinn/altinn-studio/issues?q=is%3Aopen+is%3Aissue+label%3Abug). Fra denne siden kan du også legge til beskrivelse av nye bugs hvis du finner det.

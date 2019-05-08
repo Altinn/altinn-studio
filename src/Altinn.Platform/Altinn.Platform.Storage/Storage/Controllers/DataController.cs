@@ -89,7 +89,7 @@ namespace Altinn.Platform.Storage.Controllers
         /// <param name="dataId">the data id</param>
         /// <returns>The data file as an asyncronous streame</returns>        
         /// <returns>If the request was successful or not</returns>
-        // GET instances/{instanceId}/data/{dataId}
+        // GET /instances/{instanceId}/data/{dataId}
         [HttpGet("{dataId:guid}")]
         public async Task<IActionResult> Get(int instanceOwnerId, Guid instanceId, Guid dataId)
         {
@@ -127,6 +127,41 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return NotFound("Unable to find requested data item");
+        }
+
+        /// <summary>
+        /// Save the form data
+        /// </summary>
+        /// <param name="instanceOwnerId">the instance owner id (an integer)</param>
+        /// <param name="instanceId">the instanceId</param>
+        /// <returns>The data file as an asyncronous streame</returns>        
+        /// <returns>If the request was successful or not</returns>
+        // GET /instances/{instanceId}/data/{dataId}
+        [HttpGet]
+        public async Task<IActionResult> GetMany(int instanceOwnerId, Guid instanceId)
+        {
+            if (instanceOwnerId == 0 || instanceId == null)
+            {
+                return BadRequest("Missing parameter values: neither of instanceId, instanceOwnerId can be empty");
+            }
+
+            // check if instance id exist and user is allowed to change the instance data            
+            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
+            if (instance == null)
+            {
+                return NotFound("Provided instanceId and instanceOwnerId is unknown to platform storage service");
+            }
+
+            List<Data> dataList = new List<Data>();
+            foreach (Data data in instance.Data)
+            {
+                if (data.FormId != "default")
+                {
+                    dataList.Add(data);
+                }
+            }
+
+            return Ok(dataList);
         }
 
         /// <summary>
@@ -182,6 +217,7 @@ namespace Altinn.Platform.Storage.Controllers
             Stream theStream = null;
             string contentType = null;
             string contentFileName = null;
+            long fileSize = 0;
 
             if (MultipartRequestHelper.IsMultipartContentType(Request.ContentType))
             {
@@ -200,6 +236,7 @@ namespace Altinn.Platform.Storage.Controllers
                 if (hasContentDisposition)
                 {
                     contentFileName = contentDisposition.FileName.ToString();
+                    fileSize = contentDisposition.Size ?? 0;
                 }
             }
             else
@@ -226,14 +263,15 @@ namespace Altinn.Platform.Storage.Controllers
                 ContentType = contentType,
                 CreatedBy = User.Identity.Name,
                 CreatedDateTime = creationTime,
-                FileName = $"{dataId}.xml",
+                FileName = contentFileName ?? $"{dataId}.xml",
                 LastChangedBy = User.Identity.Name,
                 LastChangedDateTime = creationTime,
                 Link = dataLink,
+                FileSize = fileSize
             };
 
-            string fileName = DataFileName(instance.ApplicationId, instanceId.ToString(), newData.Id.ToString());
-            newData.StorageUrl = fileName;
+            string filePath = DataFileName(instance.ApplicationId, instanceId.ToString(), newData.Id.ToString());
+            newData.StorageUrl = filePath;
 
             if (instance.Data == null)
             {
@@ -245,7 +283,7 @@ namespace Altinn.Platform.Storage.Controllers
             try
             {
                 // store file as blob
-                await _dataRepository.CreateDataInStorage(theStream, fileName);
+                await _dataRepository.CreateDataInStorage(theStream, filePath);
             }
             catch (Exception e)
             {
@@ -368,6 +406,36 @@ namespace Altinn.Platform.Storage.Controllers
             }
 
             return UnprocessableEntity();
+        }
+
+        /// <summary>
+        /// Delete an instance
+        /// </summary>
+        /// <param name="instanceId">instance id</param>
+        /// <param name="instanceOwnerId">instance owner</param>
+        /// <param name="dataId">data id</param>
+        /// <returns>updated instance object</returns>
+        /// DELETE /instances/{instanceId}/data?instanceOwnerId={instanceOwnerId}&dataId={dataId}
+        [HttpDelete("{dataId:guid}")]
+        public async Task<ActionResult> Delete(Guid instanceId, int instanceOwnerId, Guid dataId)
+        {
+            Instance instance = await _instanceRepository.GetOneAsync(instanceId, instanceOwnerId);
+            if (instance == null)
+            {
+                return NotFound($"Didn't find the data object {dataId} that should be deleted in instanceId={instanceId}");
+            }
+            else
+            {
+                if (await _dataRepository.DeleteDataInStorage(dataId.ToString()))
+                {
+                    Data toDeleteData = instance.Data.Find(m => m.Id == dataId.ToString());
+                    instance.Data.Remove(toDeleteData);
+                    instance = await _instanceRepository.UpdateInstanceInCollectionAsync(instanceId, instance);
+                    return Ok(instance);
+                }
+
+                return BadRequest();
+            }
         }
 
         private ApplicationMetadata GetApplicationInformation(string applicationId)
