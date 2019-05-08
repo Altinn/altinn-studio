@@ -2,6 +2,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { createRef } from 'react';
 import '../../styles/shared.css';
+import { returnDatestringFromDate } from './../../../../shared/src/utils/formatDate';
 
 export interface IDatePickerProps {
   id: string;
@@ -42,7 +43,7 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
           value: this.datePickerRef.current.value,
           isChanged: false,
         });
-        this.props.handleDataChange(moment.utc(this.datePickerRef.current.value, ['DD.MM.YYYY']).format());
+        this.props.handleDataChange(returnDatestringFromDate(this.datePickerRef.current.value, 'DD.MM.YYYY'));
       }
     }, 200);
   }
