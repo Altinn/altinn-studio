@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -48,7 +48,6 @@
     <Content Include="jwtselfsignedcert.pfx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <CoreDesignerCert Include="jwtselfsignedcert.pfx" />
   </ItemGroup>
 
   <ItemGroup>
@@ -76,7 +75,6 @@
     <Copy SourceFiles="@(CoreTemplates)" DestinationFolder="$(PublishDir)Templates\%(RecursiveDir)" />
     <Copy SourceFiles="@(CoreTestdata)" DestinationFolder="$(PublishDir)Testdata\%(RecursiveDir)" />
     <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
-    <Copy SourceFiles="@(CoreDesignerCert)" DestinationFolder="$(PublishDir)" />
   </Target>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
