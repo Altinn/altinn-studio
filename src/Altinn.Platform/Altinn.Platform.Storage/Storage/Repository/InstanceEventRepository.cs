@@ -135,7 +135,7 @@ namespace Altinn.Platform.Storage.Repository
 
                 return deletedEventsCount;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return -1;
             }

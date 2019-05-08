@@ -21,7 +21,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
     {
         private readonly PlatformStorageFixture fixture;
         private readonly HttpClient client;
-        private StorageClient storage;
+        private InstanceClient storage;
         private readonly string testInstanceId = "922e412e-0e7d-4af3-968f-10b372ec7fd9";
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
         {
             this.fixture = fixture;
             this.client = this.fixture.Client;
-            this.storage = new StorageClient(this.client);
+            this.storage = new InstanceClient(this.client);
         }
 
         /// <summary>
@@ -151,6 +151,5 @@ namespace Altinn.Platform.Storage.IntegrationTest
 
             return true;
         }
-
     }
 }

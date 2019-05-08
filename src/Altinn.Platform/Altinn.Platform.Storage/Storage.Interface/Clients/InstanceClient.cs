@@ -9,26 +9,26 @@ using System.Text;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Models;
 using Newtonsoft.Json;
+using Storage.Interface.Clients;
 
 namespace Altinn.Platform.Storage.Client
 {
     /// <summary>
     /// Storage client methods.
     /// </summary>
-    public class StorageClient
+    public class InstanceClient
     {
         private HttpClient client;
         private readonly string formId = "default";
-        private readonly string versionPrefix = "api/storage/v1";
-        private readonly string versionPrefix_new = "storage/api/v1";
-        private string hostName;
+        private readonly string versionPrefix = "storage/api/v1";
+        private readonly string hostName;
 
         /// <summary>
         /// Create a client.
         /// </summary>
         /// <param name="client">the http client</param>
         /// <param name="hostName">the host name</param>
-        public StorageClient(HttpClient client, string hostName = "")
+        public InstanceClient(HttpClient client, string hostName = "")
         {
             this.client = client;
             this.hostName = hostName;
@@ -89,7 +89,7 @@ namespace Altinn.Platform.Storage.Client
         /// <param name="instanceOwnerId">b</param>
         /// <param name="fileName">c</param>
         /// <param name="contentType">d</param>
-        /// <param name="content">f</param>
+        /// <param name="content">content as json</param>
         public async void PutData(string instanceId, string dataId, int instanceOwnerId, string fileName, string contentType, Dictionary<string, string> content)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?formId={formId}&instanceOwnerId={instanceOwnerId}";
@@ -100,12 +100,13 @@ namespace Altinn.Platform.Storage.Client
         }
 
         /// <summary>
-        /// Creates data.
+        ///  Gets data
         /// </summary>
         /// <param name="instanceId">a</param>
         /// <param name="dataId">aa</param>
         /// <param name="instanceOwnerId">b</param>
-        public async Task<Dictionary<string, string>> GetData(string instanceId, string dataId, int instanceOwnerId)
+        /// <returns>Content as byte array</returns>
+        public async Task<byte[]> GetData(string instanceId, string dataId, int instanceOwnerId)
         {
             string requestUri = $"{versionPrefix}/instances/{instanceId}/data/{dataId}?instanceOwnerId={instanceOwnerId}";
 
@@ -113,9 +114,7 @@ namespace Altinn.Platform.Storage.Client
 
             response.EnsureSuccessStatusCode();
 
-            Dictionary<string, string> result = await response.Content.ReadAsAsync<Dictionary<string, string>>();
-
-            return result;
+            return await response.Content.ReadAsByteArrayAsync();            
         }
 
         /// <summary>
@@ -160,7 +159,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>List of intance events.</returns>
         public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string[] eventTypes, string from, string to)
         {
-            string requestUri = $"{versionPrefix_new}/instances/{instanceId}/events?";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/events?";
             if (!(eventTypes == null))
             {
                 foreach (string type in eventTypes)
@@ -187,7 +186,7 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>The stored instance event.</returns>
         public async Task<string> PostInstanceEvent(InstanceEvent instanceEvent)
         {
-            string requestUri = $"{versionPrefix_new}/instances/{instanceEvent.InstanceId}/events";
+            string requestUri = $"{versionPrefix}/instances/{instanceEvent.InstanceId}/events";
             HttpResponseMessage response = await client.PostAsync(hostName + requestUri, new StringContent(instanceEvent.ToString(), Encoding.UTF8, "application/json"));
             string newId = await response.Content.ReadAsStringAsync();
             return newId;
@@ -200,24 +199,10 @@ namespace Altinn.Platform.Storage.Client
         /// <returns>True if instance events were successfully deleted.</returns>
         public async Task<bool> DeleteInstanceEvents(string instanceId)
         {
-            string requestUri = $"{versionPrefix_new}/instances/{instanceId}/events";
+            string requestUri = $"{versionPrefix}/instances/{instanceId}/events";
             HttpResponseMessage response = await client.DeleteAsync(requestUri);
             response.EnsureSuccessStatusCode();
             return true;
         }
-    }
-
-    /// <summary>
-    /// Class to wrap a json object into a StringContent with correct encoding and content type.
-    /// </summary>
-    public static class Extensions
-    {
-        /// <summary>
-        ///  Wrapper method.
-        /// </summary>
-        /// <param name="o">the json object to wrap.</param>
-        /// <returns>a StringContent object.</returns>
-        public static StringContent AsJson(this object o)
-        => new StringContent(JsonConvert.SerializeObject(o), Encoding.UTF8, "application/json");
     }
 }

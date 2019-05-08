@@ -35,5 +35,4 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns>Number of deleted instance events.</returns>
         Task<int> DeleteAllInstanceEvents(string instanceId);
     }
-
 }
