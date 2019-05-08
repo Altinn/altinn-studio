@@ -48,7 +48,7 @@ test('Search for only my users services', async () => {
     .expect(dash.rettigheterMelding.exists).ok()
 });
 
-test('filter away a users services by unselecting all bubbles', async t => {
+test.skip('filter away a users services by unselecting all bubbles', async t => {
   let serviceOwnerButtons =  await Selector("div > span");
   let count = await serviceOwnerButtons.count;
   
