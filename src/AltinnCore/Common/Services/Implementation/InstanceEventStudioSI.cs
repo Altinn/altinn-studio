@@ -54,13 +54,12 @@ namespace AltinnCore.Common.Services.Implementation
 
         /// <inheritdoc/>
         public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnerId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
-        {
+        {  
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             string testDataForParty = _settings.GetTestdataForPartyPath(applicationOwnerId, applicationId, developer);
             string folderForEvents = $"{testDataForParty}{instanceOwnerId}/{instanceId}/events";
-
             DateTime? fromDateTime = null, toDateTime = null;
-            List<InstanceEvent> events = new List<InstanceEvent>(9;
+            List<InstanceEvent> events = new List<InstanceEvent>();
 
             if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
             {
@@ -71,7 +70,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
                 catch
                 {
-                    return null;
+                    throw new Exception("Unable to perform query. Invalid format for time span. Use string format of UTC.");
                 }
             }
 
@@ -81,24 +80,23 @@ namespace AltinnCore.Common.Services.Implementation
                 {
                     string instanceData = File.ReadAllText(file, Encoding.UTF8);
                     InstanceEvent item = JsonConvert.DeserializeObject<InstanceEvent>(instanceData);
-                    events.Append(item);
+                    events.Add(item);
                 }
             }
 
-            IEnumerable<InstanceEvent> res;
+            IQueryable<InstanceEvent> result = events.AsQueryable();
+
             if (eventTypes != null && eventTypes.Length > 0 && events.Count() > 0)
             {
-                res = events
-                    .Where(i => eventTypes.Contains(i.EventType));
+               result = result.Where(e => eventTypes.Contains(e.EventType));                
             }
 
-            //finn ut hvordan listen kan filteres.
             if (fromDateTime.HasValue && toDateTime.HasValue && events.Count() > 0)
             {
-
+              result = result.Where(e => fromDateTime < e.CreatedDateTime && toDateTime > e.CreatedDateTime);
             }
 
-            return Task.FromResult(events.ToList());
+            return Task.FromResult(result.ToList());
         }
 
         /// <inheritdoc/>
