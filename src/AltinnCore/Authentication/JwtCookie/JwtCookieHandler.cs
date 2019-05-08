@@ -69,7 +69,6 @@ namespace AltinnCore.Authentication.JwtCookie
         {
             try
             {
-
                 // Get the cookie from request 
                 string token = Options.CookieManager.GetRequestCookie(Context, Options.Cookie.Name);
 
@@ -264,7 +263,8 @@ namespace AltinnCore.Authentication.JwtCookie
 
         private SigningCredentials GetSigningCredentials()
         {
-            if(string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret)){
+            if (string.IsNullOrEmpty(_keyVaultSettings.ClientId) || string.IsNullOrEmpty(_keyVaultSettings.ClientSecret))
+            {
                 X509Certificate2 cert = new X509Certificate2(_certificateSettings.CertificatePath, _certificateSettings.CertificatePwd);
                 SigningCredentials creds = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
                 return creds;

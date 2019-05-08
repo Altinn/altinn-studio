@@ -1,11 +1,11 @@
 using Microsoft.Azure.KeyVault;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AltinnCore.Authentication.Constants
 {
+    /// <summary>
+    /// The key vault settings used to fetch certificate information from key vault
+    /// </summary>
     public class KeyVaultSettings
     {
         /// <summary>
@@ -28,6 +28,11 @@ namespace AltinnCore.Authentication.Constants
         /// </summary>
         public string SecretUri { get; set; }
 
+        /// <summary>
+        /// Creates the client used to connect to key vault
+        /// </summary>
+        /// <param name="clientId">The key vault client id</param>
+        /// <param name="clientSecret">The key vault client secret</param>
         public static KeyVaultClient GetClient(string clientId, string clientSecret) => new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(async (string authority, string resource, string scope) =>
         {
             AuthenticationContext context = new AuthenticationContext(authority, TokenCache.DefaultShared);
@@ -37,6 +42,9 @@ namespace AltinnCore.Authentication.Constants
         }));
     }
 
+    /// <summary>
+    /// The certificate settings
+    /// </summary>
     public class CertificateSettings
     {
         /// <summary>
@@ -53,6 +61,5 @@ namespace AltinnCore.Authentication.Constants
         /// The path to the certificate
         /// </summary>
         public string CertificatePath { get; set; }
-
     }
 }
