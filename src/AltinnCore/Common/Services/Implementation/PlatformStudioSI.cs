@@ -45,7 +45,6 @@ namespace AltinnCore.Common.Services.Implementation
         public IProfile Profile
         {
             get { return _profile; }
-            protected set { }
         }
     }
 }
