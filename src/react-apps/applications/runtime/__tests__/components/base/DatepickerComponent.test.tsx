@@ -1,4 +1,4 @@
-/* tslint:jsx-wrap-multiline */
+/* tslint:disable:jsx-wrap-multiline */
 import { mount } from 'enzyme';
 import 'jest';
 import * as React from 'react';
@@ -60,6 +60,32 @@ describe('DatepickerComponent', () => {
     expect(mockHandleDataChange.mock.calls[0][0]).toBe('2019-01-31T00:00:00Z');
 
     expect(wrapper.state('isChanged')).toBeFalsy();
+  });
+
+  it('+++ should not call handleDataChange on blur, as state and input val is equal and isChanged is false , ', () => {
+
+    mockHandleDataChange = jest.fn();
+
+    const wrapper = mount(
+      <DatepickerComponent
+        id={mockId}
+        component={mockComponent}
+        formData={{ value: '31.01.2019' }}
+        handleDataChange={mockHandleDataChange}
+      />,
+    );
+
+    // Change state to a defined date
+    wrapper.setState({ value: '31.01.2019' });
+
+    expect(wrapper.state('isChanged')).toBeFalsy();
+
+    const input = wrapper.find('input#mockId');
+    input.simulate('blur', { target: { value: '31.01.2019' } });
+
+    jest.runAllTimers();
+    expect(mockHandleDataChange).toHaveBeenCalledTimes(0);
+
   });
 
 });
