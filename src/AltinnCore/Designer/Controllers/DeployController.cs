@@ -147,7 +147,7 @@ namespace AltinnCore.Designer.Controllers
         [HttpGet]
         public async Task<IActionResult> FetchDeploymentStatus(string org, string service, string buildId)
         {
-            if (org == null || service == null || buildId == null)
+            if (org == null || service == null || buildId == null || buildId != "0")
             {
                 return BadRequest(new DeploymentStatus
                 {
