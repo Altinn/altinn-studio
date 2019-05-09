@@ -42,7 +42,8 @@ const styles = ((theme: Theme) => createStyles({
       paddingLeft: theme.sharedStyles.mainPaddingLeft,
     },
     flexGrow: 1,
-    minHeight: 'calc(100vh - 69px)',
+    height: 'calc(100vh - 110px)',
+    overflowY: 'hidden',
   },
   drawerRoot: {
     height: '100vh',

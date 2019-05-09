@@ -16,7 +16,6 @@ const styles = createStyles({
   },
   paper: {
     background: altinnTheme.altinnPalette.primary.greyLight,
-    height: 'calc(100vh - 69px)',
     position: 'relative',
     top: 0,
   },
