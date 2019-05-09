@@ -7,6 +7,8 @@
     <RootNamespace>AltinnCore.Runtime</RootNamespace>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
+    <!-- SonarQube needs this -->
+    <ProjectGuid>{7186bd86-e7dd-4ab0-a961-d2cec92b4435}</ProjectGuid>
   </PropertyGroup>
   
   <ItemGroup>

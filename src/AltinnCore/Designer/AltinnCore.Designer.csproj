@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -7,6 +7,8 @@
     <Company>Brønnøysundregistrene</Company>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <TypeScriptToolsVersion>2.8</TypeScriptToolsVersion>
+    <!-- SonarQube needs this -->
+    <ProjectGuid>{1069f525-c19e-4d15-b701-d523e97c36d6}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
