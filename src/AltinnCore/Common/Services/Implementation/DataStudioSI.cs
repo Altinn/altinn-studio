@@ -143,7 +143,7 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
+        public Task<List<AttachmentList>> GetFormAttachments(string applicationOwnerId, string applicationId, int instanceOwnerId, Guid instanceId)
         {
             Instance instance;
             List<AttachmentList> attachmentList = new List<AttachmentList>();
@@ -158,7 +158,7 @@ namespace AltinnCore.Common.Services.Implementation
             if (instance == null)
             {
                 _logger.Log(LogLevel.Error, "Instance not found for instanceid {0}", instanceId);
-                return attachmentList;
+                return Task.FromResult(attachmentList);
             }
 
             IEnumerable<Data> attachmentTypes = instance.Data.GroupBy(m => m.FormId).Select(m => m.FirstOrDefault());
@@ -185,7 +185,7 @@ namespace AltinnCore.Common.Services.Implementation
                 }
             }
 
-            return attachmentList;
+            return Task.FromResult(attachmentList);
         }
 
         /// <inheritdoc />

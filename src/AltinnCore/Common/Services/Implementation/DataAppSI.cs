@@ -32,7 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
         /// </summary>
         /// <param name="platformStorageSettings">the storage settings</param>
-        /// <param name="logger">the logger service reference</param>
+        /// <param name="logger">the logger</param>
         public DataAppSI(IOptions<PlatformStorageSettings> platformStorageSettings, ILogger<DataAppSI> logger)
         {
             _platformStorageSettings = platformStorageSettings.Value;

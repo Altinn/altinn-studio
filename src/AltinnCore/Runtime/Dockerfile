@@ -2,6 +2,7 @@
 FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS build
 WORKDIR /src/AltinnCore/
 COPY src/AltinnCore/Common ./Common
+COPY src/AltinnCore/Authentication ./Authentication
 COPY src/AltinnCore/ServiceLibrary ./ServiceLibrary
 COPY src/AltinnCore/Templates ./Templates
 COPY src/AltinnCore/Testdata ./Testdata

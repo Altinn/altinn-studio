@@ -27,6 +27,7 @@ const appConfigReducer: Reducer<IAppConfigState> = (
         className = 'a-bgWhite';
       }
       document.body.className = className;
+      document.body.style.overflowY = 'hidden';
       return update<IAppConfigState>(state, {
         designMode: {
           $set: designMode,
