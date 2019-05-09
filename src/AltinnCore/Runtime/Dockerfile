@@ -15,8 +15,8 @@ RUN dotnet publish AltinnCore.Runtime.csproj -c Release -o /app_output
 # Altinn-Studio runtime app
 FROM altinn-runtime-app:latest AS generate-runtime-app
 
-#dotnet:2.2-aspnetcore-runtime
-FROM microsoft/dotnet@sha256:7a9dfa52e5c02d1764964bbb034d9467d798020aa3747e2ddaea1ee3d2d386b8 AS final
+#dotnet:2.2-sdk
+FROM microsoft/dotnet@sha256:7d8256eead49252ac2de7079268659102f44a6e40e7890fec2a7633d0b374470 AS final
 EXPOSE 80
 WORKDIR /AltinnService
 COPY src/AltinnCore/Testdata /Testdata
