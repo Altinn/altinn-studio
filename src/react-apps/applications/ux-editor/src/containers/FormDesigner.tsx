@@ -49,7 +49,8 @@ const styles = ((theme: Theme) => createStyles({
     overflow: 'hidden',
   },
   button: {
-    'position': 'relative',
+    'top': '112px',
+    'position': 'absolute',
     'zIndex': 1201,
     'padding': '1.2rem 0.6rem',
     '&:hover': {
@@ -69,6 +70,7 @@ const styles = ((theme: Theme) => createStyles({
   item: {
     padding: 0,
     minWidth: '240px', /* Two columns at 1024px screen size */
+    overflowX: 'hidden',
   },
   icon: {
     'lineHeight': '3rem !important',
@@ -89,7 +91,7 @@ const styles = ((theme: Theme) => createStyles({
     borderLeft: '1px solid #C9C9C9',
     marginRight: '2px',
     minWidth: '682px !important', /* Eight columns at 1024px screen size */
-    overflowY: 'auto',
+    overflowY: 'scroll',
     [theme.breakpoints.up('md')]: {
       marginBottom: '80px',
     },
