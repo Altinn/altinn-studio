@@ -14,7 +14,7 @@ describe('DatepickerComponent', () => {
   beforeAll(() => {
     Object.defineProperty(window, 'initDatePicker', {
       value: jest.fn(() => {
-        return { matches: true }
+        return { matches: true };
       }),
     });
   });
@@ -30,7 +30,7 @@ describe('DatepickerComponent', () => {
     };
   });
 
-  it('should call handleDataChange on blur, if "isChanged: true"', () => {
+  it('+++ should call handleDataChange on blur, if "isChanged: true"', () => {
 
     mockHandleDataChange = jest.fn();
 
@@ -60,4 +60,5 @@ describe('DatepickerComponent', () => {
 
     expect(wrapper.state('isChanged')).toBeFalsy();
   });
-})
+
+});
