@@ -1,4 +1,5 @@
-import { shallow, mount } from 'enzyme';
+/* tslint:disable:jsx-wrap-multiline */
+import { mount, shallow } from 'enzyme';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 
