@@ -34,7 +34,7 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
     });
   }
 
-  public ondateBlur = () => {
+  public onDateBlur = () => {
     setTimeout(() => {
       if (this.state.value === this.datePickerRef.current.value && !this.state.isChanged) {
         return;
@@ -66,7 +66,7 @@ export class DatepickerComponent extends React.Component<IDatePickerProps, IDate
               (this.props.isValid ?
                 'form-control a-hasButton date' :
                 'form-control a-hasButton date validation-error')}
-            onBlur={this.ondateBlur}
+            onBlur={this.onDateBlur}
             onChange={this.onDateChange}
             disabled={this.props.component.readOnly}
             required={this.props.component.required}
