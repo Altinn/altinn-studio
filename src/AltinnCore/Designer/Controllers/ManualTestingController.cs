@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AltinnCore.Authentication.JwtCookie;
@@ -25,65 +21,52 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 
-namespace AltinnCore.Runtime.Controllers
+namespace AltinnCore.Designer.Controllers
 {
     /// <summary>
-    /// Controller with functionality for manual testing of services developed
+    /// Controller with functionality for manual testing of applicaiton developed
     /// </summary>
+    [Authorize]
     public class ManualTestingController : Controller
     {
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IExecution _execution;
         private readonly IProfile _profile;
         private readonly IRegister _register;
+        private readonly UserHelper _userHelper;
         private readonly IAuthorization _authorization;
-        private ITestdata _testdata;
-        private IExecution _execution;
-        private UserHelper _userHelper;
-        private readonly ServiceRepositorySettings _settings;
-        private readonly TestdataRepositorySettings _testdataRepositorySettings;
+        private readonly ITestdata _testdata;
+        private readonly ServiceRepositorySettings _serviceRepositorySettings;
         private readonly GeneralSettings _generalSettings;
         private readonly IGitea _giteaApi;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IWorkflow _workflowSI;
+        private readonly IWorkflow _workflow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
         /// </summary>
-        /// <param name="testdataService">The testDataService (configured in Startup.cs)</param>
-        /// <param name="profileService">The profileService (configured in Startup.cs)</param>
-        /// <param name="registerService">The registerService (configured in Startup.cs)</param>
-        /// <param name="authorizationService">The authorizationService (configured in Startup.cs)</param>        
-        /// <param name="repositorySettings">the repository setting service handler</param>
-        /// <param name="giteaWrapper">the gitea wrapper handler</param>
-        /// <param name="contextAccessor">The http context accessor</param>
-        /// <param name="execution">The executionSI</param>
-        /// <param name="testdataRepositorySettings">The test data settings</param>
-        /// <param name="workflowSI">The workflowSI</param>
-        /// <param name="generalSettings">General settings</param>
-        public ManualTestingController(
-            ITestdata testdataService,
-            IProfile profileService,
-            IRegister registerService,
-            IAuthorization authorizationService,
-            IOptions<ServiceRepositorySettings> repositorySettings,
-            IGitea giteaWrapper,
-            IExecution execution,
-            IHttpContextAccessor contextAccessor,
-            IOptions<TestdataRepositorySettings> testdataRepositorySettings,
-            IWorkflow workflowSI,
-            IOptions<GeneralSettings> generalSettings)
+        /// <param name="httpContextAccessor">the http context accessor service</param>
+        /// <param name="execution">the execution service</param>
+        /// <param name="profile">the profile service</param>
+        /// <param name="register">the register service</param>
+        /// <param name="authorization">the authorization service</param>
+        /// <param name="testdata">the testdata service</param>
+        /// <param name="serviceRepositorySettings">the service repository settings</param>
+        /// <param name="generalSettings">the general settings</param>
+        /// <param name="giteaApi">the gitea api</param>
+        /// <param name="workflow">the workflow</param>
+        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IExecution execution, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
         {
-            _testdata = testdataService;
-            _profile = profileService;
-            _register = registerService;
-            _authorization = authorizationService;
-            _userHelper = new UserHelper(_profile, _register);
-            _settings = repositorySettings.Value;
-            _giteaApi = giteaWrapper;
+            _httpContextAccessor = httpContextAccessor;
             _execution = execution;
-            _httpContextAccessor = contextAccessor;
-            _testdataRepositorySettings = testdataRepositorySettings.Value;
-            _workflowSI = workflowSI;
+            _register = register;
+            _profile = profile;
+            _userHelper = new UserHelper(_profile, _register);
+            _authorization = authorization;
+            _testdata = testdata;
+            _serviceRepositorySettings = serviceRepositorySettings.Value;
             _generalSettings = generalSettings.Value;
+            _giteaApi = giteaApi;
+            _workflow = workflow;
         }
 
         /// <summary>
@@ -97,12 +80,15 @@ namespace AltinnCore.Runtime.Controllers
         [Authorize]
         public async Task<IActionResult> Index(string org, string service, int reporteeId)
         {
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            if (reporteeId == 0)
+            {
+                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+            }
 
-            // TODO: make templates folder available to runtime pod 
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             _execution.CheckAndUpdateWorkflowFile(org, service, developer);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
+            requestContext.UserContext = await _userHelper.CreateUserContextBasedOnReportee(HttpContext, reporteeId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
 
             StartServiceModel startServiceModel = new StartServiceModel
@@ -135,31 +121,16 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
-        /// Redirects the user to the correct url given the service instances state
+        /// List the test users
         /// </summary>
         /// <param name="org">The Organization code for the service owner</param>
         /// <param name="service">The service code for the current service</param>
-        /// <param name="instanceId">The instance id</param>
-        /// <returns>The test message box</returns>
-        [Authorize]
-        public async Task<IActionResult> RedirectToCorrectState(string org, string service, Guid instanceId)
-        {
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            ServiceState currentState = _workflowSI.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
-            string nextUrl = _workflowSI.GetUrlForCurrentState(instanceId, org, service, currentState.State);
-            return Redirect(nextUrl);
-        }
-
-        /// <summary>
-        /// List the test users
-        /// </summary>
-        /// <param name="returnUrl">The return url to redirect user after login</param>
         /// <returns>The view presenting a list of test users</returns>
-        public IActionResult Users(string returnUrl)
+        public IActionResult Users(string org, string service)
         {
             List<Testdata> testdata = _testdata.GetTestUsers();
-            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.Org = org;
+            ViewBag.Service = service;
             return View(testdata);
         }
 
@@ -182,39 +153,32 @@ namespace AltinnCore.Runtime.Controllers
         }
 
         /// <summary>
+        /// Redirects the user to the correct url given the service instances state
+        /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
+        /// <param name="instanceId">The instance id</param>
+        /// <returns>The test message box</returns>
+        [Authorize]
+        public async Task<IActionResult> RedirectToCorrectState(string org, string service, Guid instanceId)
+        {
+            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
+            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
+            ServiceState currentState = _workflow.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
+            string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+            return Redirect(nextUrl);
+        }
+
+        /// <summary>
         /// Method that logs inn test user
         /// </summary>
+        /// <param name="org">The Organization code for the service owner</param>
+        /// <param name="service">The service code for the current service</param>
         /// <param name="id">The testUserId</param>
-        /// <param name="returnUrl">The returnUrl to redirect after login</param>
         /// <param name="reportee">The reportee chosen</param>
         /// <returns>Redirects to returnUrl</returns>
-        public async Task<IActionResult> LoginTestUser(int id, string returnUrl, string reportee)
+        public async Task<IActionResult> LoginTestUser(string org, string service, int id, string reportee)
         {
-            string developer = null;
-            if (_settings.ForceGiteaAuthentication)
-            {
-                // Temporary catch errors until we figure out how to force this.
-                try
-                {
-                    string user = _giteaApi.GetUserNameFromUI().Result;
-                    if (string.IsNullOrEmpty(user))
-                    {
-                        if (Environment.GetEnvironmentVariable("GiteaEndpoint") != null)
-                        {
-                            return Redirect(Environment.GetEnvironmentVariable("GiteaEndpoint") + "/user/login");
-                        }
-
-                        return Redirect(_settings.GiteaLoginUrl);
-                    }
-
-                    developer = user;
-                }
-                catch (Exception ex)
-                {
-                    return Content(ex.ToString());
-                }
-            }
-
             UserProfile profile = await _profile.GetUserProfile(id);
             var claims = new List<Claim>();
             const string Issuer = "https://altinn.no";
@@ -227,7 +191,7 @@ namespace AltinnCore.Runtime.Controllers
             claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.Integer32, Issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, Issuer));
             claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, Issuer));
-
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             if (developer != null)
             {
                 claims.Add(new Claim(AltinnCoreClaimTypes.Developer, developer, ClaimValueTypes.String, Issuer));
@@ -235,15 +199,8 @@ namespace AltinnCore.Runtime.Controllers
 
             ClaimsIdentity identity = new ClaimsIdentity("TestUserLogin");
             identity.AddClaims(claims);
-
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-            string authenticationScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-
-            if (!string.IsNullOrEmpty(_generalSettings.AuthenticationMode) && _generalSettings.AuthenticationMode.Equals("JwtCookie"))
-            {
-                authenticationScheme = JwtCookieDefaults.AuthenticationScheme;
-            }
+            string authenticationScheme = JwtCookieDefaults.AuthenticationScheme;
 
             await HttpContext.SignInAsync(
                     authenticationScheme,
@@ -254,16 +211,8 @@ namespace AltinnCore.Runtime.Controllers
                         IsPersistent = false,
                         AllowRefresh = false,
                     });
-            
-            string goToUrl = "/";
-
-            if (!string.IsNullOrEmpty(returnUrl))
-            {
-                goToUrl = System.Net.WebUtility.UrlDecode(returnUrl);
-            }
 
             List<Reportee> reporteeList = _authorization.GetReporteeList(profile.UserId);
-
             Reportee reporteeBE = null;
 
             if (!string.IsNullOrEmpty(reportee) && reporteeList.Any(r => r.ReporteeNumber.Equals(reportee)))
@@ -276,7 +225,7 @@ namespace AltinnCore.Runtime.Controllers
                 HttpContext.Response.Cookies.Append("altinncorereportee", profile.PartyId.ToString());
             }
 
-            return LocalRedirect(goToUrl);
+            return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?reporteeId={id}");
         }
     }
 }

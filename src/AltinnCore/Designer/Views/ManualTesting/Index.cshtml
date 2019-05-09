@@ -1,0 +1,106 @@
+@model AltinnCore.ServiceLibrary.Models.StartServiceModel
+@using AltinnCore.ServiceLibrary.Models
+@using System.Globalization;
+
+@{
+    ViewBag.Title = "Velg avgiver og testdata";
+    string org = ViewContext.RouteData.Values["org"] as string;
+    string service = ViewContext.RouteData.Values["service"] as string;
+
+    List<AltinnCore.ServiceLibrary.Models.ServiceInstance> instanceList = ViewBag.InstanceList;
+}
+
+@await Component.InvokeAsync("ServiceStatus", new { org, service })
+
+@if (Model.ReporteeList.Count > 1)
+{
+    <form asp-action="Index" asp-controller="ManualTesting">
+        <input type="hidden" asp-for="ServiceID" />
+        <div class="form-group">
+            <label asp-for="ReporteeID">Velg avgiver</label>
+            <select asp-for="ReporteeID" asp-items="@Model.ReporteeList" class="form-control"></select>
+            <span asp-validation-for="ReporteeID" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input class="btn btn-outline-primary" type="submit" value="Bytt profil" />
+        </div>
+    </form>
+}
+
+    <form asp-action="SetLanguage" asp-controller="ManualTesting">
+      <div class="form-group">
+        <input type="hidden" value="@Context.Request.Path?reporteeId=@Model.ReporteeList[0].Value" name="returnUrl"/>
+        <label for="reporteeLanguageSelect">Velg språk for instans</label>
+        <select id="reporteeLanguageSelect" class="form-control" name="culture">
+          <!-- Can this be done more elegantly? -->
+          @if (CultureInfo.CurrentCulture.Name == "nb-NO")
+          {
+            <option value="nb-NO" selected>Bokmål</option>
+            <option value="nn-NO">Nynorsk</option>
+            <option value="en-US">English</option>
+          }
+          else if (CultureInfo.CurrentCulture.Name == "nn-NO")
+          {
+            <option value="nb-NO">Bokmål</option>
+            <option value="nn-NO" selected>Nynorsk</option>
+            <option value="en-US">English</option>
+          }
+          else if (CultureInfo.CurrentCulture.Name == "en-US")
+          {
+            <option value="nb-NO">Bokmål</option>
+            <option value="nn-NO">Nynorsk</option>
+            <option value="en-US" selected>English</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <input class="btn btn-primary" type="submit" value="Oppdater språk" />
+      </div>
+    </form>
+
+    <form id="startService" method="post" action="/runtime/Instance/StartService" target="_blank">
+      <input type="hidden" asp-for="ServiceID" />
+      <div class="form-group">
+        <input type="hidden" asp-for="ReporteeID" />
+        <input type="hidden" asp-for="Service" value="@service" />
+        <input type="hidden" asp-for="Org" value="@org" />
+        <label asp-for="ReporteeID">Preutfylling</label>
+        <select asp-for="PrefillList" asp-items="@Model.PrefillList" class="form-control"></select>
+        <span asp-validation-for="PrefillList" class="text-danger"></span>
+      </div>
+      <div class="form-group">
+        <input class="btn btn-primary" type="submit" value="Start ny" />
+      </div>
+    </form>
+
+
+@if (instanceList.Count > 0)
+{
+    <h4>Meldingsboks</h4>
+    <table class="table table-striped table-bordered">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Sist endret</th>
+            </tr>
+        </thead>
+        @foreach (ServiceInstance instance in instanceList)
+        {
+            <tr>
+                <td>
+                    @if (instance.IsArchived)
+                    {
+                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID (Arkivert)</a>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID</a>
+                    }
+                </td>
+                <td>
+                    @instance.LastChanged
+                </td>
+            </tr>
+        }
+    </table>
+}
