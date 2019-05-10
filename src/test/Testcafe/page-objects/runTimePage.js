@@ -3,11 +3,12 @@ import { Selector, t, ClientFunction } from 'testcafe';
 export default class RunTimePage {
   constructor() {
     this.openManualTestWindow = Selector('#manual-test-button');
+    this.testBrukerIframe = Selector('#root > div > div > div:nth-child(2) > div > div > iframe');
     this.testUsers = [
-      Selector('div').withText('Ola'),
-      Selector('div').withText('Kari'),
-      Selector('div').withText('Anne'),
-      Selector('div').withText('Pål')
+      Selector('strong').withText('Ola'),
+      Selector('strong').withText('Kari'),
+      Selector('strong').withText('Anne'),
+      Selector('strong').withText('Pål')
     ];
     this.languageSelection = Selector('#reporteeLanguageSelect');
     this.changeLanguageButton = Selector('.btn.btn-primary').withAttribute('value', 'Oppdater språk');

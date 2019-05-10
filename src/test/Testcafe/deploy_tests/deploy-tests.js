@@ -18,17 +18,21 @@ fixture('GUI service designer tests')
   .page(app.baseUrl)
   .beforeEach(async t => {
     t.ctx.klarForDeploy = "Tjenesten er klar til å legges ut i testmiljø";
+    t.ctx.deployFailure = "Tjenesten ble ikke lagt ut i testmiljøet";
+    t.ctx.tilgjengelig = "";
     t.ctx.ikkeTilgjengelig = "Tjenesten din er ikke tilgjengelig i testmiljø";
     await common.login(testUser.userEmail, testUser.password, loginPage);
   })
 
 test.skip('Happy path; deploy a service to a test environment', async() => {
-    await t
-      .navigateTo(app.baseUrl + 'designer/AutoTest/deploy_service#/aboutservice')
-      .click(designer.testeNavigationTab)
-      .hover(designer.leftDrawerMenu)
-      .click(designer.testeLeftMenuItems[1])
-      .expect(designer.deployButton.exists).ok()
-      .click(designer.deployButton)
-      //.expect(designer.)
+   header = Selector(headerString).withText(containedText);
+  await t
+    .navigateTo(app.baseUrl + 'designer/tdd/deployment#/deploytotest')
+    .click(designer.testeNavigationTab)
+    .hover(designer.leftDrawerMenu)
+    .click(designer.testeLeftMenuItems[1])
+    .expect(designer.deployButton.exists).ok()
+    .click(designer.deployButton)
+  let header = await Selector(headerString).withText(containedText);
+  await t.expect(header.exists).ok();
 })

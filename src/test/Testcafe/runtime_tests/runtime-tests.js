@@ -30,7 +30,9 @@ test('Instantiate a service in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
-    .click(runtime.openManualTestWindow)
+    .switchToIframe(runtime.testBrukerIframe)
+    .expect(runtime.testUsers[0].visible).ok()
+    .hover(runtime.testUsers[0])
     .click(runtime.testUsers[0])
     .click(runtime.startNewButton)
 })
@@ -39,9 +41,10 @@ test('Upload files using file component in SBL', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/file_component#/aboutservice')
     .click(designer.testeNavigationTab)
-    .click(runtime.openManualTestWindow)
+    .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .click(runtime.startNewButton)
+    .switchToMainWindow()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/melding.xsd')
     .expect(runtime.fileDeleteButton.visible).ok()
     .click(runtime.fileDeleteButton)
@@ -54,9 +57,10 @@ test('Validations when uploading file', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/file_component_validations#/aboutservice')
     .click(designer.testeNavigationTab)
-    .click(runtime.openManualTestWindow)
+    .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .click(runtime.startNewButton)
+    .switchToMainWindow()
     .setFilesToUpload(runtime.fileDropComponent, '../testdata/test_file_morethan_1mb.txt')
     .expect(runtime.errorMessage).ok();
   await t.eval(() => location.reload(true))
@@ -70,16 +74,17 @@ test('Read-only components test in runtime', async () => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/locked_view#/aboutservice')
     .click(designer.testeNavigationTab)
-    .click(runtime.openManualTestWindow)
-    .click(runtime.testUsers[0])
+    .switchToIframe(runtime.testBrukerIframe)
+    .click(runtime.testUsers[1])
     .click(runtime.startNewButton)
+    .switchToMainWindow()
 })
 
 test('axe UI accessibility test for runtime', async t => {
   await t
     .navigateTo(app.baseUrl + 'designer/AutoTest/runtime#/aboutservice')
     .click(designer.testeNavigationTab)
-    .click(runtime.openManualTestWindow)
+    .switchToIframe(runtime.testBrukerIframe)
     .click(runtime.testUsers[0])
     .click(runtime.startNewButton)
   axeCheck(t);
