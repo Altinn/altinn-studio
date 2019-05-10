@@ -38,6 +38,7 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IGitea _gitea;
         private readonly ISourceControl _sourceControl;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositorySI"/> class
@@ -49,6 +50,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="gitea">gitea</param>
         /// <param name="sourceControl">the source control</param>
         /// <param name="loggerFactory">the logger factory</param>
+        /// <param name="logger">The logger</param>
         public RepositorySI(
             IOptions<ServiceRepositorySettings> repositorySettings,
             IOptions<GeneralSettings> generalSettings,
@@ -56,7 +58,8 @@ namespace AltinnCore.Common.Services.Implementation
             IHttpContextAccessor httpContextAccessor,
             IGitea gitea,
             ISourceControl sourceControl,
-            ILoggerFactory loggerFactory)
+            ILoggerFactory loggerFactory,
+            ILogger<RepositorySI> logger)
         {
             _defaultFileFactory = defaultFileFactory;
             _settings = repositorySettings.Value;
@@ -65,6 +68,7 @@ namespace AltinnCore.Common.Services.Implementation
             _gitea = gitea;
             _sourceControl = sourceControl;
             _loggerFactory = loggerFactory;
+            _logger = logger;
         }
 
         /// <summary>
@@ -1202,8 +1206,9 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError("Unable to verify if there exist a remote repo for codelist", ex);
             }
 
             RepositoryClient.Model.CreateRepoOption createRepoOption = new RepositoryClient.Model.CreateRepoOption(Name: Constants.General.CodeListRepository, Readme: "Kodelister", Description: "Dette er repository for kodelister for " + org);
@@ -1213,8 +1218,9 @@ namespace AltinnCore.Common.Services.Implementation
             {
                 _sourceControl.CloneRemoteRepository(org, Constants.General.CodeListRepository);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError("Unable to clone remote repo for codelist", ex);
             }
         }
 

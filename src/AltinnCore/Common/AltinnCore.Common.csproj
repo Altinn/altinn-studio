@@ -1,9 +1,11 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>AltinnCore.Common</RootNamespace>
     <AssemblyName>AltinnCore.Common</AssemblyName>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{d9ff76f1-2736-4e27-a3ca-6b78633d1890}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
