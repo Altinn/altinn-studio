@@ -167,7 +167,7 @@ namespace AltinnCore.Common.Services.Implementation
                         }
                     }
 
-                    if (attachments.Count > 0)
+                    if (attachments != null && attachments.Count > 0)
                     {
                         attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
                     }

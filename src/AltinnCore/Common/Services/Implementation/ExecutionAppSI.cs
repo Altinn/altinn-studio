@@ -185,11 +185,5 @@ namespace AltinnCore.Common.Services.Implementation
 
             return fileContent;
         }
-
-        /// <inheritdoc />
-        public void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer)
-        {
-            _logger.LogInformation("Method CheckAndUpdateWorkflowFile is not implemented for app");
-        }
     }
 }

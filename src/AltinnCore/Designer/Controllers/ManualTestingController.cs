@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Serialization;
 using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Constants;
@@ -85,8 +88,7 @@ namespace AltinnCore.Designer.Controllers
                 return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
             }
 
-            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            _execution.CheckAndUpdateWorkflowFile(org, service, developer);
+            CheckAndUpdateWorkflowFile(org, service);
             RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
             requestContext.UserContext = await _userHelper.CreateUserContextBasedOnReportee(HttpContext, reporteeId);
             requestContext.Reportee = requestContext.UserContext.Reportee;
@@ -172,7 +174,6 @@ namespace AltinnCore.Designer.Controllers
             {
                 return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
             }
-
         }
 
         /// <summary>
@@ -232,6 +233,67 @@ namespace AltinnCore.Designer.Controllers
             }
 
             return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Index?reporteeId={id}");
+        }
+
+        /// <summary>
+        /// Method that checks if there is a newer version of the workflow file and updates it if there are
+        /// </summary>
+        /// <param name="applicationOwnerId">The application owner id</param>
+        /// <param name="applicationId">The applicaiton id</param>
+        private void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId)
+        {
+            string workflowFullFilePath = _serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _serviceRepositorySettings.WorkflowFileName;
+            string templateWorkflowData = System.IO.File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
+
+            if (!System.IO.File.Exists(workflowFullFilePath))
+            {
+                // Create the workflow folder
+                Directory.CreateDirectory(_serviceRepositorySettings.GetWorkflowPath(applicationOwnerId, applicationId, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
+                System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
+            }
+            else
+            {
+                if (ShouldUpdateFile(workflowFullFilePath, templateWorkflowData))
+                {
+                    // Overwrite existing file
+                    System.IO.File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Method that checks if the workflow file is the latest version
+        /// </summary>
+        /// <param name="fullPath">The path to the workflow file</param>
+        /// <param name="workflowData">The default workflow data</param>
+        /// <returns>Boolean that states if the workflow file in the repo is the latest version</returns>
+        private bool ShouldUpdateFile(string fullPath, string workflowData)
+        {
+            string currentworkflowData = System.IO.File.ReadAllText(fullPath, Encoding.UTF8);
+            Definitions templateWorkflowModel = null;
+            Definitions currentWorkflowModel = null;
+
+            // Getting template version
+            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
+            using (TextReader tr = new StringReader(workflowData))
+            {
+                templateWorkflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            // Getting current version
+            using (TextReader tr = new StringReader(currentworkflowData))
+            {
+                currentWorkflowModel = (Definitions)serializer.Deserialize(tr);
+            }
+
+            if (templateWorkflowModel != null && currentWorkflowModel != null && templateWorkflowModel.Id != currentWorkflowModel.Id)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
     }
 }

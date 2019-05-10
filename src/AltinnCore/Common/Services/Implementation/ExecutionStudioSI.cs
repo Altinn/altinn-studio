@@ -143,57 +143,6 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public void CheckAndUpdateWorkflowFile(string owner, string service, string developer)
-        {
-            string workflowFullFilePath = _settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.WorkflowFileName;
-            string templateWorkflowData = File.ReadAllText(_generalSettings.WorkflowTemplate, Encoding.UTF8);
-
-            if (!File.Exists(workflowFullFilePath))
-            {
-                // Create the workflow folder
-                Directory.CreateDirectory(_settings.GetWorkflowPath(owner, service, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)));
-                File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
-            }
-            else
-            {
-                if (ShouldUpdateFile(workflowFullFilePath, templateWorkflowData))
-                {
-                    // Overwrite existing file
-                    File.WriteAllText(workflowFullFilePath, templateWorkflowData, Encoding.UTF8);
-                }
-            }
-        }
-
-        private bool ShouldUpdateFile(string fullPath, string workflowData)
-        {
-            string currentworkflowData = File.ReadAllText(fullPath, Encoding.UTF8);
-            Definitions templateWorkflowModel = null;
-            Definitions currentWorkflowModel = null;
-
-            // Getting template version
-            XmlSerializer serializer = new XmlSerializer(typeof(Definitions));
-            using (TextReader tr = new StringReader(workflowData))
-            {
-                templateWorkflowModel = (Definitions)serializer.Deserialize(tr);
-            }
-
-            // Getting current version
-            using (TextReader tr = new StringReader(currentworkflowData))
-            {
-                currentWorkflowModel = (Definitions)serializer.Deserialize(tr);
-            }
-
-            if (templateWorkflowModel != null && currentWorkflowModel != null && templateWorkflowModel.Id != currentWorkflowModel.Id)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        /// <inheritdoc/>
         public byte[] GetRuntimeResource(string resource)
         {
             byte[] fileContent = null;

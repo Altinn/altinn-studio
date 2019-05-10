@@ -101,7 +101,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             User user = GetCurrentUser().Result;
 
-            SearchResults repository = null;
+            SearchResults repository = new SearchResults();
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(SearchResults));
 
             Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/search?");
@@ -597,7 +597,7 @@ namespace AltinnCore.Common.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
                 cookie = new Cookie(_settings.GiteaCookieName, giteaSession, "/", Environment.GetEnvironmentVariable("ServiceRepositorySettings__GiteaInternalHost"));
             }
@@ -613,7 +613,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Uri giteaUrl;
 
-            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null && Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
+            if (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") != null)
             {
                 giteaUrl = new Uri(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") + path);
             }

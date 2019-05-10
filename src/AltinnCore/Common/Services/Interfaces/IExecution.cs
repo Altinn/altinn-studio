@@ -67,13 +67,5 @@ namespace AltinnCore.Common.Services.Interfaces
         /// <param name="resource">the resource</param>
         /// <returns>The filestream for the resource file</returns>
         byte[] GetRuntimeResource(string resource);
-
-        /// <summary>
-        /// Method that adds the workflow file to the repository if its not there, or replaces it if its an old version of the workflow file.
-        /// </summary>
-        /// <param name="applicationOwnerId">The application owner id</param>
-        /// <param name="applicationId">The application id</param>
-        /// <param name="developer">The developer of the service.</param>
-        void CheckAndUpdateWorkflowFile(string applicationOwnerId, string applicationId, string developer);
     }
 }
