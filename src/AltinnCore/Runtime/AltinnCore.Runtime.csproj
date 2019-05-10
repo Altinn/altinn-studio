@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
@@ -7,6 +7,8 @@
     <RootNamespace>AltinnCore.Runtime</RootNamespace>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{7186bd86-e7dd-4ab0-a961-d2cec92b4435}</ProjectGuid>
   </PropertyGroup>
   
   <ItemGroup>
