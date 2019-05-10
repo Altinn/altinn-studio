@@ -26,7 +26,6 @@ namespace AltinnCore.Authentication.JwtCookie
     {
         private const string HeaderValueNoCache = "no-cache";
         private const string HeaderValueEpocDate = "Thu, 01 Jan 1970 00:00:00 GMT";
-        private const string SessionIdClaim = "Microsoft.AspNetCore.Authentication.Cookies-SessionId";
         private readonly KeyVaultSettings _keyVaultSettings;
         private readonly CertificateSettings _certificateSettings;
 

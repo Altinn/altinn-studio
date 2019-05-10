@@ -30,7 +30,7 @@ namespace AltinnCore.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly IGitea _giteaApi;
-        private ILogger<HomeController> _logger;
+        private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
         private readonly ISourceControl _sourceControl;
 
@@ -98,8 +98,6 @@ namespace AltinnCore.Designer.Controllers
             }
 
             model.RepositorySearch = repositorySearch;
-
-            // IList<OrgConfiguration> owners = _repository.GetOwners();
             return View(model);
         }
 
@@ -111,30 +109,6 @@ namespace AltinnCore.Designer.Controllers
         public ActionResult CreateOrg()
         {
             return View();
-        }
-
-        /// <summary>
-        /// Creates a new service owner org
-        /// </summary>
-        /// <param name="name">The service owner name</param>
-        /// <param name="code">The service owner code</param>
-        /// <returns>The front page</returns>
-        [HttpPost]
-        [Authorize]
-        public ActionResult CreateOrg(string name, string code)
-        {
-            if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(code))
-            {
-                var config = new OrgConfiguration
-                {
-                    Name = name,
-                    Code = code.ToUpper(),
-                };
-
-                _repository.CreateOrg(config);
-            }
-
-            return this.RedirectToAction("Index", "Home");
         }
 
         /// <summary>

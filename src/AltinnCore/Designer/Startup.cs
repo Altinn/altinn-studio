@@ -200,10 +200,10 @@ namespace AltinnCore.Designer
                 routes.MapRoute(
                     name: "orgRoute",
                     template: "designer/{org}/{controller}/{action=Index}/",
-                    defaults: new { controller = "Owner" },
+                    defaults: new { controller = "Config" },
                     constraints: new
                     {
-                        controller = "Codelist|Owner|Config",
+                        controller = "Codelist|Config",
                     });
 
                 routes.MapRoute(

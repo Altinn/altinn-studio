@@ -45,7 +45,7 @@ namespace AltinnCore.Runtime.Controllers
         private readonly IInstance _instance;
         private readonly IExecution _execution;
         private readonly IProfile _profile;
-        private UserHelper _userHelper;
+        private readonly UserHelper _userHelper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IWorkflow _workflowSI;
         private readonly IPlatformServices _platformSI;

@@ -31,8 +31,6 @@ namespace AltinnCore.Common.Services.Implementation
     /// </summary>
     public class ExecutionAppSI : IExecution
     {
-        private const string SERVICE_IMPLEMENTATION = "AltinnCoreServiceImpl.{0}.{1}_{2}.ServiceImplementation";
-
         private readonly ServiceRepositorySettings _settings;
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
