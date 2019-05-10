@@ -946,6 +946,7 @@ namespace AltinnCore.Common.Services.Implementation
                         fileStream = new FileStream(filename, FileMode.Create, FileAccess.ReadWrite);
                         using (StreamWriter streamWriter = new StreamWriter(fileStream))
                         {
+                            fileStream = null;
                             streamWriter.WriteLine(JsonConvert.SerializeObject(serviceConfig));
                         }
                     }

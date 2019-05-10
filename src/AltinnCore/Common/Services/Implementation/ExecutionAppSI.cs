@@ -35,7 +35,6 @@ namespace AltinnCore.Common.Services.Implementation
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IHostingEnvironment _hostingEnvironment;
-        private readonly ILogger _logger;
 
         private Dictionary<string, string> _assemblyNames = new Dictionary<string, string>();
 
@@ -46,19 +45,16 @@ namespace AltinnCore.Common.Services.Implementation
         /// <param name="repositoryService">The repository service needed (set in startup.cs)</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
         /// <param name="hostingEnvironment">The hosting environment</param>
-        /// <param name="logger">the logger</param>
         public ExecutionAppSI(
             IOptions<ServiceRepositorySettings> settings,
             IRepository repositoryService,
             IHttpContextAccessor httpContextAccessor,
-            IHostingEnvironment hostingEnvironment,
-            ILogger<ExecutionAppSI> logger)
+            IHostingEnvironment hostingEnvironment)
         {
             _settings = settings.Value;
             _repository = repositoryService;
             _httpContextAccessor = httpContextAccessor;
             _hostingEnvironment = hostingEnvironment;
-            _logger = logger;
         }
 
         /// <inheritdoc/>

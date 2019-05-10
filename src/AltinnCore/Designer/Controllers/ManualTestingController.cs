@@ -33,7 +33,6 @@ namespace AltinnCore.Designer.Controllers
     public class ManualTestingController : Controller
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IExecution _execution;
         private readonly IProfile _profile;
         private readonly IRegister _register;
         private readonly UserHelper _userHelper;
@@ -48,7 +47,6 @@ namespace AltinnCore.Designer.Controllers
         /// Initializes a new instance of the <see cref="ManualTestingController"/> class
         /// </summary>
         /// <param name="httpContextAccessor">the http context accessor service</param>
-        /// <param name="execution">the execution service</param>
         /// <param name="profile">the profile service</param>
         /// <param name="register">the register service</param>
         /// <param name="authorization">the authorization service</param>
@@ -57,10 +55,9 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="generalSettings">the general settings</param>
         /// <param name="giteaApi">the gitea api</param>
         /// <param name="workflow">the workflow</param>
-        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IExecution execution, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
+        public ManualTestingController(IHttpContextAccessor httpContextAccessor, IProfile profile, IRegister register, IAuthorization authorization, ITestdata testdata, IOptions<ServiceRepositorySettings> serviceRepositorySettings, IOptions<GeneralSettings> generalSettings, IGitea giteaApi, IWorkflow workflow)
         {
             _httpContextAccessor = httpContextAccessor;
-            _execution = execution;
             _register = register;
             _profile = profile;
             _userHelper = new UserHelper(_profile, _register);

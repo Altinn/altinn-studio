@@ -317,7 +317,7 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Branch branchinfo = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Branch));
-            Uri giteaUrl = new Uri(GetApiBaseUrl() + "/repos/" + owner + "/" + repository + "/branches/" + branch);
+            Uri giteaUrl = new Uri($"{GetApiBaseUrl()}/repos/{owner}/{repository}/branches/{branch}");
             using (HttpClient client = GetApiClient())
             {
                 HttpResponseMessage response = await client.GetAsync(giteaUrl);

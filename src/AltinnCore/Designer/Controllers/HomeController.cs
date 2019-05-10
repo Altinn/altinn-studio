@@ -28,7 +28,6 @@ namespace AltinnCore.Designer.Controllers
     /// </summary>
     public class HomeController : Controller
     {
-        private readonly IRepository _repository;
         private readonly IGitea _giteaApi;
         private readonly ILogger<HomeController> _logger;
         private readonly ServiceRepositorySettings _settings;
@@ -37,15 +36,13 @@ namespace AltinnCore.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="HomeController"/> class
         /// </summary>
-        /// <param name="repositoryService">The repository service</param>
         /// <param name="logger">The logger</param>
         /// <param name="repositorySettings">settings for the repository</param>
         /// <param name="giteaWrapper">the gitea wrapper</param>
         /// <param name="httpContextAccessor">the httpcontext accessor</param>
         /// <param name="sourceControl">the source control</param>
-        public HomeController(IRepository repositoryService, ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
+        public HomeController(ILogger<HomeController> logger, IOptions<ServiceRepositorySettings> repositorySettings, IGitea giteaWrapper, IHttpContextAccessor httpContextAccessor, ISourceControl sourceControl)
         {
-            _repository = repositoryService;
             _logger = logger;
             _settings = repositorySettings.Value;
             _giteaApi = giteaWrapper;
