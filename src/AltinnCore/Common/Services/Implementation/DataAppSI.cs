@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Models;
 using AltinnCore.Common.Services.Interfaces;
@@ -31,6 +32,7 @@ namespace AltinnCore.Common.Services.Implementation
         /// Initializes a new data of the <see cref="DataAppSI"/> class.
         /// </summary>
         /// <param name="platformStorageSettings">the storage settings</param>
+        /// <param name="logger">the logger</param>
         public DataAppSI(IOptions<PlatformStorageSettings> platformStorageSettings, ILogger<DataAppSI> logger)
         {
             _platformStorageSettings = platformStorageSettings.Value;
@@ -169,7 +171,6 @@ namespace AltinnCore.Common.Services.Implementation
                     {
                         attachmentList.Add(new AttachmentList { Type = "attachments", Attachments = attachments });
                     }
-
                 }
                 else
                 {

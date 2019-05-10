@@ -6,6 +6,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Helpers;
 using AltinnCore.Common.Models;
@@ -73,11 +74,11 @@ namespace AltinnCore.Common.Services.Implementation
                 Id = instanceId.ToString(),
                 InstanceOwnerId = instanceOwnerId.ToString(),
                 ApplicationId = applicationId,
-                CreatedBy = instanceOwnerId,
+                CreatedBy = instanceOwnerId.ToString(),
                 CreatedDateTime = DateTime.UtcNow,
                 CurrentWorkflowStep = currentState.State.ToString(),
                 LastChangedDateTime = DateTime.UtcNow,
-                LastChangedBy = instanceOwnerId,
+                LastChangedBy = instanceOwnerId.ToString(),
             };         
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);

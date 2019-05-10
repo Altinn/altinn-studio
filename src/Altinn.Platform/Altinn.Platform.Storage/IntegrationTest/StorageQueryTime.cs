@@ -1,26 +1,21 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Client;
 using Altinn.Platform.Storage.Models;
 using Serilog;
 using Serilog.Core;
-using Xunit;
 
 namespace Altinn.Platform.Storage.IntegrationTest
 {
     /// <summary>
-    /// class to test response time for a typical user. To be completed.
+    /// class to test response time for a typical user. To be completed. Not in use.
     /// </summary>
     public class StorageQueryTime
     {
         private static Random random = new Random();
         private readonly HttpClient client = new HttpClient();
-        private string platformUrl = "http://platform.altinn.cloud";
-        private readonly bool ignoreTests = false;
 
         private Logger logger = new LoggerConfiguration()
         .WriteTo.Console()
@@ -30,21 +25,23 @@ namespace Altinn.Platform.Storage.IntegrationTest
         /// <summary>
         /// Test a user scenario. Create application, multiple get/put changed data,  
         /// </summary>
-        //[Fact]
+        /// [Fact]
         public async void TestUserScenario()
         {
-            StorageClient storage = new StorageClient(new HttpClient());
+            InstanceClient storage = new InstanceClient(new HttpClient());
             int instanceOwnerId = 42;
 
             // Create application instance
-            string instanceId = await storage.PostInstances("TEST/sailor", instanceOwnerId);
+            string instanceId = await storage.PostInstances("TEST-sailor", instanceOwnerId);
 
             Instance instance = await storage.GetInstances(instanceId, instanceOwnerId);
 
-            Dictionary<string, string> data = new Dictionary<string, string>();
-            data.Add("dataFor", instanceOwnerId.ToString());
+            Dictionary<string, string> data = new Dictionary<string, string>
+            {
+                { "dataFor", instanceOwnerId.ToString() }
+            };
 
-            storage.PostDataReadFromFile(instanceId, instanceOwnerId, "test.json", "application/json");
+            await storage.PostDataReadFromFile(instanceId, instanceOwnerId, "test.json", "application/json");
             Instance instanceUpdated = await storage.GetInstances(instanceId, instanceOwnerId);
             string dataId = instance.Data.Find(m => m.FormId.Equals("default")).Id;
 
@@ -52,7 +49,7 @@ namespace Altinn.Platform.Storage.IntegrationTest
             {
                 data.Add("field" + i, RandomString(i));
 
-                logger.Information(data["field"+i]);
+                logger.Information(data["field" + i]);
 
                 /*
                  storage.PutData(instanceId, dataId, instanceOwnerId, "test.json", "applicatino/json", data);
@@ -61,7 +58,12 @@ namespace Altinn.Platform.Storage.IntegrationTest
                 */
             }
         }
-        
+
+        /// <summary>
+        /// Generate a random string of a given length
+        /// </summary>
+        /// <param name="length">the length</param>
+        /// <returns></returns>
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZÆØÅ0123456789";

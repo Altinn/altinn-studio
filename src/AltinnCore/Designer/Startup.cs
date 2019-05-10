@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using AltinnCore.Authentication.Constants;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Services.Implementation;
@@ -66,6 +68,16 @@ namespace AltinnCore.Designer
                 services.AddSingleton<IExecution, ExecutionStudioSI>();
             }
 
+            services.AddSingleton<IExecution, ExecutionStudioSI>();
+            services.AddSingleton<IInstance, InstanceStudioSI>();
+            services.AddSingleton<IData, DataStudioSI>();
+            services.AddSingleton<IWorkflow, WorkflowStudioSI>();
+            services.AddSingleton<ITestdata, TestdataStudioSI>();
+            services.AddSingleton<IDSF, RegisterDSFStudioSI>();
+            services.AddSingleton<IER, RegisterERStudioSI>();
+            services.AddSingleton<IRegister, RegisterStudioSI>();
+            services.AddSingleton<IProfile, ProfileStudioSI>();
+
             services.AddSingleton<IArchive, ArchiveStudioSI>();
             services.AddSingleton<IAuthorization, AuthorizationStudioSI>();
             services.AddSingleton<ICodeGeneration, CodeGenerationSI>();
@@ -73,8 +85,6 @@ namespace AltinnCore.Designer
             services.AddSingleton<IViewCompiler, CustomRoslynCompilationService>();
             services.AddTransient<IDefaultFileFactory, DefaultFileFactory>();
             services.AddSingleton<IForm, FormStudioSI>();
-            services.AddSingleton<IProfile, ProfileStudioSI>();
-            services.AddSingleton<IRegister, RegisterStudioSI>();
             services.AddSingleton<IRepository, RepositorySI>();
             services.AddSingleton<IServicePackageRepository, RepositorySI>();
             services.AddSingleton<IGitea, GiteaAPIWrapper>();
@@ -107,16 +117,24 @@ namespace AltinnCore.Designer
             services.Configure<ServiceRepositorySettings>(Configuration.GetSection("ServiceRepositorySettings"));
             services.Configure<TestdataRepositorySettings>(Configuration.GetSection("TestdataRepositorySettings"));
             services.Configure<GeneralSettings>(Configuration.GetSection("GeneralSettings"));
+            services.Configure<KeyVaultSettings>(Configuration.GetSection("kvSetting"));
+            services.Configure<CertificateSettings>(Configuration);
+            services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddJwtCookie(JwtCookieDefaults.AuthenticationScheme, options =>
+                {
+                    options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                    options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
+                })
                 .AddCookie(options =>
                 {
                     options.AccessDeniedPath = "/Home/NotAuthorized/";
                     options.LoginPath = "/Home/Login/";
                     options.LogoutPath = "/Home/Logout/";
-                    options.Cookie.Name = AltinnCore.Common.Constants.General.DesignerCookieName;
+                    options.Cookie.Name = Common.Constants.General.DesignerCookieName;
                     options.Events = new CookieAuthenticationEvents
                     {
                         // Add Custom Event handler to be able to redirect users for authentication upgrade
@@ -219,10 +237,9 @@ namespace AltinnCore.Designer
                           constraints: new
                           {
                               controller = @"(Codelist|Config|Service|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment|Deploy)",
-
                               service = "[a-zA-Z][a-zA-Z0-9_\\-]{2,30}",
                               id = "[a-zA-Z0-9_\\-]{1,30}",
-                          });        
+                          });
 
                 // -------------------------- DEFAULT ------------------------- //
                 routes.MapRoute(
