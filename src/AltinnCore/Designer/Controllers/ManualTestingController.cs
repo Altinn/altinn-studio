@@ -160,13 +160,19 @@ namespace AltinnCore.Designer.Controllers
         /// <param name="instanceId">The instance id</param>
         /// <returns>The test message box</returns>
         [Authorize]
-        public async Task<IActionResult> RedirectToCorrectState(string org, string service, Guid instanceId)
+        public IActionResult RedirectToCorrectState(string org, string service, Guid instanceId)
         {
-            RequestContext requestContext = RequestHelper.GetRequestContext(Request.Query, Guid.Empty);
-            requestContext.UserContext = await _userHelper.GetUserContext(HttpContext);
-            ServiceState currentState = _workflow.GetCurrentState(instanceId, org, service, requestContext.UserContext.ReporteeId);
-            string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, service, currentState.State);
-            return Redirect(nextUrl);
+            if (HttpContext.Request.Cookies["altinncorereportee"] != null)
+            {
+                ServiceState currentState = _workflow.GetCurrentState(instanceId, org, service, Convert.ToInt32(HttpContext.Request.Cookies["altinncorereportee"]));
+                string nextUrl = _workflow.GetUrlForCurrentState(instanceId, org, service, currentState.State);
+                return Redirect(nextUrl);
+            }
+            else
+            {
+                return LocalRedirect($"/designer/{org}/{service}/ManualTesting/Users/");
+            }
+
         }
 
         /// <summary>
