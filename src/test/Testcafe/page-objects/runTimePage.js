@@ -20,6 +20,7 @@ export default class RunTimePage {
     this.fileDropComponent = Selector('input').withAttribute('type', 'file');//Selector('.file-upload').child(0); 
     this.fileListBox = Selector('[id*="-fileuploader-"]');
     this.fileDeleteButton = Selector('#attachment-delete-0');
+    this.checkBox = Selector('');
     this.textboxComponent = Selector('textarea')
     this.addressComponent = Selector('input').withAttribute('type', 'text');
 

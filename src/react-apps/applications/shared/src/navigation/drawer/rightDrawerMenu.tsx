@@ -5,9 +5,7 @@ import altinnTheme from '../../theme/altinnStudioTheme';
 
 const styles = createStyles({
   drawer: {
-    width: 240,
     flexShrink: 0,
-    top: 64,
   },
   drawerHeader: {
     display: 'flex',
@@ -17,11 +15,9 @@ const styles = createStyles({
     visibility: 'hidden',
   },
   paper: {
-    borderTop: '1px solid ' + altinnTheme.altinnPalette.primary.greyMedium,
     background: altinnTheme.altinnPalette.primary.greyLight,
-    top: 110,
-    width: 240,
-    position: 'absolute',
+    position: 'relative',
+    top: 0,
   },
   scrollable: {
     overflowY: 'scroll',

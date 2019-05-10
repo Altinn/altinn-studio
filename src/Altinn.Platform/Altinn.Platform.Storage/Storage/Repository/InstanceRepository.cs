@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Altinn.Platform.Storage.Configuration;
 using Altinn.Platform.Storage.Models;
@@ -9,6 +10,7 @@ using Microsoft.Azure.Documents.Client;
 using Microsoft.Azure.Documents.Linq;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Serilog;
 
 namespace Altinn.Platform.Storage.Repository
 {
@@ -23,13 +25,16 @@ namespace Altinn.Platform.Storage.Repository
         private readonly string collectionId;
         private static DocumentClient _client;
         private readonly AzureCosmosSettings _cosmosettings;
+        private readonly ILogger _logger = new LoggerConfiguration()
+            .WriteTo.Console()
+            .CreateLogger();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceRepository"/> class
         /// </summary>
         /// <param name="cosmosettings">the configuration settings for cosmos database</param>
         public InstanceRepository(IOptions<AzureCosmosSettings> cosmosettings)
-        {
+        {            
             // Retrieve configuration values from appsettings.json
             _cosmosettings = cosmosettings.Value;
 
@@ -75,6 +80,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception ex)
             {
+                _logger.Error($"Exception {ex}");
                 throw ex;
             }
         }
@@ -99,6 +105,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
+                _logger.Error($"Exception {e}");
                 return false;
             }
         }
@@ -118,7 +125,7 @@ namespace Altinn.Platform.Storage.Repository
                     EnableCrossPartitionQuery = true,
                 };
 
-                var query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
+                IDocumentQuery<Instance> query = _client.CreateDocumentQuery<Instance>(_collectionUri, feedOptions)
                                 .Where(i => i.ApplicationOwnerId == applicationOwnerId)
                                 .AsDocumentQuery();
                 while (query.HasMoreResults)
@@ -133,7 +140,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (DocumentClientException e)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (e.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }
@@ -144,6 +151,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
+                _logger.Error($"Exception {e}");
                 return null;
             }
         }
@@ -187,6 +195,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
+                _logger.Error($"Exception {e}");
                 return null;
             }
         }
@@ -200,8 +209,8 @@ namespace Altinn.Platform.Storage.Repository
         public async Task<Instance> GetOneAsync(Guid instanceId, int instanceOwnerId)
         {
             try
-            {                
-                var uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
+            {
+                Uri uri = UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString());
               
                 Instance instance = await _client
                     .ReadDocumentAsync<Instance>(
@@ -223,8 +232,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (Exception e)
             {
-                var msg = e.Message;
-
+                _logger.Error($"Exception {e}");
                 return null;
             }
         }
@@ -258,7 +266,7 @@ namespace Altinn.Platform.Storage.Repository
             }
             catch (DocumentClientException e)
             {
-                if (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+                if (e.StatusCode == HttpStatusCode.NotFound)
                 {
                     return null;
                 }
@@ -277,17 +285,11 @@ namespace Altinn.Platform.Storage.Repository
         /// <returns>The instance</returns>
         public async Task<Instance> UpdateInstanceInCollectionAsync(Guid instanceId, Instance item)
         {
-            try
-            {
-                ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
-                Document document = createDocumentResponse.Resource;
-                Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
-                return instance;
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
+            ResourceResponse<Document> createDocumentResponse = await _client.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(databaseId, collectionId, instanceId.ToString()), item);
+            Document document = createDocumentResponse.Resource;
+            Instance instance = JsonConvert.DeserializeObject<Instance>(document.ToString());
+
+            return instance;
         }
     }
 }

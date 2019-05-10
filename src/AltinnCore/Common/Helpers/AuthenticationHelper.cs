@@ -38,6 +38,29 @@ namespace AltinnCore.Common.Helpers
         }
 
         /// <summary>
+        /// Gets the users id
+        /// </summary>
+        /// <param name="context">the http context</param>
+        /// <returns>the logged in users id</returns>
+        public static int GetUserId(HttpContext context)
+        {
+            int userId = 0;
+
+            if (context.User != null)
+            {
+                foreach (Claim claim in context.User.Claims)
+                {
+                    if (claim.Type.Equals(AltinnCoreClaimTypes.UserId))
+                    {
+                        userId = Convert.ToInt32(claim.Value);
+                    }
+                }
+            }
+
+            return userId;
+        }
+
+        /// <summary>
         /// Gets the Developer App token from cookie
         /// </summary>
         /// <param name="context">The Http Context</param>

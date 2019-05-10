@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Net.Http;
 using Altinn.Platform.Storage;
+using Altinn.Platform.Storage.Helpers;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,7 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
         public HttpClient Client { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref=PlatformStorageFixture"/> class.
+        /// Initializes a new instance of the <see cref="PlatformStorageFixture"/> class.
         /// </summary>
         public PlatformStorageFixture()
         {
@@ -48,6 +49,9 @@ namespace Altinn.Platform.Storage.IntegrationTest.Fixtures
             return Path.Combine(testProjectPath, relativePathToHostProject);
         }
 
+        /// <summary>
+        /// Clean up.
+        /// </summary>
         public void Dispose()
         {
             Client.Dispose();

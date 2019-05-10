@@ -1,7 +1,6 @@
 {
   "version": "0.2.0",
-  "configurations": [
-    {
+  "configurations": [{
       "name": ".NET Core Attach",
       "type": "coreclr",
       "request": "attach",
@@ -16,7 +15,7 @@
       },
       "preLaunchTask": "build",
       "internalConsoleOptions": "openOnSessionStart",
-      "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.1/AltinnCore.Designer.dll",
+      "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.2/AltinnCore.Designer.dll",
       "args": [],
       "cwd": "${workspaceRoot}/src/AltinnCore/Designer",
       "stopAtEntry": false,
@@ -44,7 +43,7 @@
       },
       "preLaunchTask": "build",
       "internalConsoleOptions": "openOnSessionStart",
-      "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.1/AltinnCore.Designer.dll",
+      "program": "${workspaceRoot}/src/AltinnCore/Designer/bin/Debug/netcoreapp2.2/AltinnCore.Designer.dll",
       "args": [],
       "cwd": "${workspaceRoot}/src/AltinnCore/Designer",
       "stopAtEntry": false,
@@ -62,21 +61,6 @@
           "command": "xdg-open"
         }
       }
-    },
-    {
-      "type": "node",
-      "protocol": "inspector",
-      "request": "launch",
-      "name": "Launch test files with TestCafe",
-      "program": "${workspaceRoot}/src/test/Testcafe/node_modules/testcafe/bin/testcafe.js",
-      "args": [
-        "chrome",
-        "${relativeFile}",
-        "--env=dev",
-        "--skip-js-errors"
-      ],
-      "console": "integratedTerminal",
-      "cwd": "${workspaceRoot}"
     }
   ]
 }

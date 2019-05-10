@@ -4,7 +4,6 @@ import { Administration } from '../features/administration/components/Administra
 import DeployToTestEnvironment from '../features/deploy/containers/deployToTestContainer';
 import HandleMergeConflictContainer from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
-import RedirectComponent from '../features/iFrame/RedirectComponent';
 
 export const routes = [
   {
@@ -46,7 +45,7 @@ export const routes = [
     activeSubHeaderSelection: 'Teste',
     activeLeftMenuSelection: 'Test',
     menu: 'test',
-    subapp: RedirectComponent,
+    subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
       subtext1TextKey: 'shared.wip_subtext_1',
@@ -55,7 +54,7 @@ export const routes = [
       urlKey: 'shared.wip_link_github_url',
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
-      redirectUrl: 'runtime/ManualTesting/Users/',
+      iframeEndingUrl: 'ManualTesting/Users/',
     },
   },
   {

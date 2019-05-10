@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Security.Cryptography.X509Certificates;
+using AltinnCore.Authentication.JwtCookie;
 using AltinnCore.Common.Backend;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
@@ -25,6 +27,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.Net.Http.Headers;
 
 namespace AltinnCore.Runtime
@@ -137,20 +140,54 @@ namespace AltinnCore.Runtime
 
             // Configure Authentication
             // Use [Authorize] to require login on MVC Controller Actions
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
-                {
-                    options.AccessDeniedPath = "/runtime/ManualTesting/NotAuthorized/";
-                    options.LoginPath = "/runtime/ManualTesting/Users/";
-                    options.Cookie.Name = AltinnCore.Common.Constants.General.RuntimeCookieName;
-                    options.Events = new CookieAuthenticationEvents
-                    {
-                        // Add Custom Event handler to be able to redirect users for authentication upgrade
-                        OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
-                    };
-                });
+            string authenticationMode = string.Empty;
+            if (Environment.GetEnvironmentVariable("GeneralSettings__AuthenticationMode") != null)
+            {
+                authenticationMode = Environment.GetEnvironmentVariable("GeneralSettings__AuthenticationMode");
+            }
+            else
+            {
+                authenticationMode = Configuration["GeneralSettings:AuthenticationMode"];
+            }
 
-            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            if (!string.IsNullOrEmpty(authenticationMode) && authenticationMode.Equals("JwtCookie"))
+            {
+                X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
+                SecurityKey key = new X509SecurityKey(cert);
+
+                services.AddAuthentication(JwtCookieDefaults.AuthenticationScheme)
+                    .AddJwtCookie(options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters
+                        {
+                            ValidateIssuerSigningKey = true,
+                            IssuerSigningKey = key,
+                            ValidateIssuer = false,
+                            ValidateAudience = false,
+                            RequireExpirationTime = true,
+                            ValidateLifetime = true
+                        };
+                        options.ExpireTimeSpan = new TimeSpan(0, 30, 0);
+                        options.Cookie.Name = Common.Constants.General.RuntimeCookieName;
+                    });
+            }
+            else
+            {
+                services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                   .AddCookie(options =>
+                   {
+                       options.AccessDeniedPath = "/runtime/ManualTesting/NotAuthorized/";
+                       options.LoginPath = "/runtime/ManualTesting/Users/";
+                       options.Cookie.Name = AltinnCore.Common.Constants.General.RuntimeCookieName;
+                       options.Events = new CookieAuthenticationEvents
+                       {
+                       // Add Custom Event handler to be able to redirect users for authentication upgrade
+                       OnRedirectToAccessDenied = NotAuthorizedHandler.RedirectToNotAuthorized,
+                       };
+                   });
+            }
+
+            var mvc = services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             mvc.Services.Configure<MvcOptions>(options =>
             {
                 // Adding custom modelbinders
@@ -222,6 +259,19 @@ namespace AltinnCore.Runtime
             app.UseMvc(routes =>
             {
                 // ---------------------------- UI --------------------------- //
+                routes.MapRoute(
+                    name: "profileApiRoute",
+                    template: "runtime/api/v1/{controller}/user/",
+                    defaults: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile"
+                    },
+                    constraints: new
+                    {
+                        action = "GetUser",
+                        controller = "Profile",
+                    });
                 routes.MapRoute(
                     name: "uiRoute",
                     template: "runtime/{org}/{service}/{instanceId}/{action}/{view|validation?}/{itemId?}",

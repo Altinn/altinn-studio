@@ -74,5 +74,22 @@ namespace AltinnCore.Common.Helpers
             userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
             return userContext;
         }
+
+        /// <summary>
+        /// Returns the user context for a given reportee Id
+        /// </summary>
+        /// <param name="context">The HttpContext</param>
+        /// <param name="reporteeId">The reportee id</param>
+        /// <returns>The UserContext</returns>
+        public async Task<UserContext> CreateUserContextBasedOnReportee(HttpContext context, int reporteeId)
+        {
+            UserContext userContext = new UserContext() { User = context.User };
+            userContext.PartyId = reporteeId;
+            userContext.UserParty = await _registerService.GetParty(userContext.PartyId);
+            userContext.UserId = reporteeId;
+            userContext.ReporteeId = reporteeId;
+            userContext.Reportee = await _registerService.GetParty(userContext.ReporteeId);
+            return userContext;
+        }
     }
 }
