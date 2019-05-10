@@ -124,7 +124,7 @@ Coding style tests are available for the React front end application, using _tsl
 Navigate to the React front end application and run linting.
 
 ```cmd
-cd src/react-apps/ux-editor
+cd src/react-apps/applications/ux-editor
 npm run lint
 ```
 
