@@ -90,11 +90,11 @@
                 <td>
                     @if (instance.IsArchived)
                     {
-                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID (Arkivert)</a>
+                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { org = org, service = service, instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID (Arkivert)</a>
                     }
                     else
                     {
-                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID</a>
+                        <a href="@Url.Action("RedirectToCorrectState", "ManualTesting", new { org = org, service = service, instanceId = instance.ServiceInstanceID })" target="_blank">@instance.ServiceInstanceID</a>
                     }
                 </td>
                 <td>
