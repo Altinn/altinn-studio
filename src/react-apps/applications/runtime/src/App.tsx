@@ -5,6 +5,7 @@ import FormDataModelActions from './features/form/datamodell/actions';
 import FormDynamicActions from './features/form/dynamics/actions';
 import FormLayoutActions from './features/form/layout/actions';
 import FormResourceActions from './features/form/resources/actions';
+import FormRuleActions from './features/form/rules/actions';
 import FormWorkflowActions from './features/form/workflow/actions';
 import LanguageActions from './features/languages/actions';
 
@@ -28,6 +29,9 @@ export default () => {
     );
     FormDataActions.fetchFormData(
       `${window.location.origin}/runtime/api/${reportee}/${org}/${service}/Index/${instanceId}`,
+    );
+    FormRuleActions.fetchRuleModel(
+      `${window.location.origin}/runtime/api/resource/${org}/${service}/RuleHandler.js`,
     );
     FormWorkflowActions.getCurrentState(
       `${window.location.origin}/runtime/${org}/${service}/${instanceId}/GetCurrentState?reporteeId=${reportee}`,

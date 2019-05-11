@@ -2,6 +2,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import * as uuid from 'uuid/v1'; // time
 import { SelectDataModelComponent } from './SelectDataModelComponent';
+import { IRuntimeState } from '../../reducers';
 
 export interface IRuleComponentProps {
   connectionId?: any;
@@ -31,7 +32,8 @@ class Rule extends React.Component<IRuleComponentProps, any> {
   public componentDidMount() {
     if (this.props.connectionId) {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
-        if (this.props.ruleModelElements[i].name === this.props.ruleConnection[this.props.connectionId].selectedFunction) {
+        if (this.props.ruleModelElements[i].name ===
+          this.props.ruleConnection[this.props.connectionId].selectedFunction) {
           this.setState({
             selectedFunctionNr: i,
           });
@@ -236,13 +238,13 @@ class Rule extends React.Component<IRuleComponentProps, any> {
   }
 }
 
-const mapsStateToProps = (state: IAppState, props: any): any => {
+const mapsStateToProps = (state: IRuntimeState, props: any): any => {
   return {
-    ruleModelElements: state.appData.ruleModel.model.filter((key: any) => key.type === 'rule'),
-    dataModelElements: state.appData.dataModel.model,
-    ruleConnection: state.serviceConfigurations.ruleConnection,
+    ruleModelElements: state.formRules.model.filter((key: any) => key.type === 'rule'),
+    dataModelElements: state.formDataModel.dataModel,
+    ruleConnection: state.formRules.ruleConnection,
     selectedFunction: props.selectedFunction,
-    language: state.appData.language.language,
+    language: state.language.language,
   };
 };
 

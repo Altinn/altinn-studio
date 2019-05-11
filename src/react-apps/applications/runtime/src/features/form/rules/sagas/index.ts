@@ -1,8 +1,9 @@
 import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
-
+import { watchFetchRuleModelSaga } from './fetch';
 import { watchCheckIfRuleShouldRunSaga } from './rule';
 
-export default function*(): SagaIterator {
+export default function* (): SagaIterator {
+  yield fork(watchFetchRuleModelSaga);
   yield fork(watchCheckIfRuleShouldRunSaga);
 }

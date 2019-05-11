@@ -10,10 +10,11 @@ import FormDynamics, { IFormDynamicState } from '../features/form/dynamics/reduc
 import FormFileUploadReducer, { IFormFileUploadState } from '../features/form/fileUpload/reducer';
 import FormLayoutReducer, { ILayoutState } from '../features/form/layout/reducer';
 import FormResourceReducer, { IResourceState } from '../features/form/resources/reducer';
+import FormRuleReducer, { IFormRuleState } from '../features/form/rules/reducer';
 import FormWorkflowReducer, { IWorkflowState } from '../features/form/workflow/reducer';
 import LanguageReducer, { ILanguageState } from '../features/languages/reducer';
 
-export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
+export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> {
   formLayout: T1;
   formData: T2;
   formConfig: T3;
@@ -21,8 +22,9 @@ export interface IReducers<T1, T2, T3, T4, T5, T6, T7, T8, T9> {
   formDataModel: T5;
   formAttachments: T6;
   formDynamics: T7;
-  language: T8;
-  formResources: T9;
+  formRules: T8;
+  language: T9;
+  formResources: T10;
 }
 
 export interface IRuntimeState extends IReducers<
@@ -33,6 +35,7 @@ export interface IRuntimeState extends IReducers<
   Reducer<IDataModelState>,
   Reducer<IFormFileUploadState>,
   Reducer<IFormDynamicState>,
+  Reducer<IFormRuleState>,
   Reducer<ILanguageState>,
   Reducer<IResourceState>
   >,
@@ -47,6 +50,7 @@ const reducers: IRuntimeState = {
   formDataModel: FormDataModel,
   formAttachments: FormFileUploadReducer,
   formDynamics: FormDynamics,
+  formRules: FormRuleReducer,
   language: LanguageReducer,
   formResources: FormResourceReducer,
 };

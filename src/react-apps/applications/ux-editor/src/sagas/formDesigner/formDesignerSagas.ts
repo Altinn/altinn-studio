@@ -7,7 +7,11 @@ import * as FormDesignerActionTypes from '../../actions/formDesignerActions/form
 import { IFormDesignerState } from '../../reducers/formDesignerReducer';
 import { IFormFillerState } from '../../reducers/formFillerReducer';
 import { IServiceConfigurationState } from '../../reducers/serviceConfigurationReducer';
-import { getParentContainerId } from '../../utils/formLayout';
+import {
+  convertFromLayoutToInternalFormat,
+  convertInternalToLayoutFormat,
+  getParentContainerId,
+} from '../../utils/formLayout';
 import { get, post } from '../../utils/networking';
 import { getSaveFormLayoutUrl } from '../../utils/urlHelper';
 // tslint:disable-next-line:no-var-requires
@@ -188,20 +192,20 @@ function* fetchFormLayoutSaga({
   url,
 }: FormDesignerActions.IFetchFormLayoutAction): SagaIterator {
   try {
-    const formLayout = yield call(get, url);
-    if (!formLayout || !formLayout.data) {
-      yield call(
-        FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
-        null,
-      );
-    } else {
-      yield call(
-        FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
-        formLayout.data,
-      );
-    }
+    const fetchedFormLayout = yield call(get, url);
 
-    if (!formLayout || !formLayout.data || !Object.keys(formLayout.data.order).length) {
+    let convertedFormLayout;
+    if (!fetchedFormLayout || !fetchedFormLayout.data || !fetchedFormLayout.data.layout) {
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, null);
+    } else {
+      convertedFormLayout = yield call(convertFromLayoutToInternalFormat, fetchedFormLayout.data.layout);
+    }
+    yield call(
+      FormDesignerActionDispatchers.fetchFormLayoutFulfilled,
+      convertedFormLayout,
+    );
+
+    if (!convertedFormLayout || !Object.keys(convertedFormLayout.order).length) {
       yield call(FormDesignerActionDispatchers.addFormContainer,
         {
           repeating: false,
@@ -291,11 +295,14 @@ function* saveFormLayoutSaga({
 }: FormDesignerActions.ISaveFormLayoutAction): SagaIterator {
   try {
     const formLayout: IAppState = yield select();
+    const convertedFormLayout = yield call(convertInternalToLayoutFormat, {
+      components: formLayout.formDesigner.layout.components,
+      containers: formLayout.formDesigner.layout.containers,
+      order: formLayout.formDesigner.layout.order,
+    });
     yield call(post, url, {
       data: {
-        components: formLayout.formDesigner.layout.components,
-        containers: formLayout.formDesigner.layout.containers,
-        order: formLayout.formDesigner.layout.order,
+        layout: convertedFormLayout,
       },
     });
     yield call(FormDesignerActionDispatchers.saveFormLayoutFulfilled);
