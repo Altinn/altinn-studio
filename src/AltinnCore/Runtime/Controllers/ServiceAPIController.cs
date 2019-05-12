@@ -446,9 +446,6 @@ namespace AltinnCore.Runtime.Controllers
                 };
 
                 await _event.SaveInstanceEvent(instanceEvent, org, service);
-                List<InstanceEvent> e = await _event.GetInstanceEvents(instance.Id, instance.InstanceOwnerId, org, service, new string[] { }, DateTime.UtcNow.AddDays(-1).ToString("s", CultureInfo.InvariantCulture), DateTime.UtcNow.AddDays(1).ToString("s", CultureInfo.InvariantCulture));
-                e = await _event.GetInstanceEvents(instance.Id, instance.InstanceOwnerId, org, service, new string[] { InstanceEventType.Saved.ToString() }, string.Empty, string.Empty);
-
             }
 
             if (apiMode.Equals(ApiMode.Complete))
