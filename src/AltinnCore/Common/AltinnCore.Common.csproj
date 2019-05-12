@@ -4,6 +4,8 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>AltinnCore.Common</RootNamespace>
     <AssemblyName>AltinnCore.Common</AssemblyName>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{d9ff76f1-2736-4e27-a3ca-6b78633d1890}</ProjectGuid>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.118.34620">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>

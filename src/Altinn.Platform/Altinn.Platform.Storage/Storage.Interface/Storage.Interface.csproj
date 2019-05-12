@@ -1,12 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-alpha</Version>
-    <Description>Altinn.Platform.Storage.Interface is a package for models used in altinn platform storage</Description>
+    <Version>1.0.1-alpha</Version>
+    <Description>Altinn.Platform.Storage.Interface is a package for models, httpclient methods for altinn platform storage</Description>
     <PackageTags>altinn studio, altinn.platform, Altinn.Platform.Storage.Interface</PackageTags>
     <PackageId>Altinn.Platform.Storage.Interface</PackageId>
     <Company>Altinn</Company>

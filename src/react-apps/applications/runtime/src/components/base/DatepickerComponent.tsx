@@ -1,6 +1,8 @@
+import * as moment from 'moment';
 import * as React from 'react';
 import { createRef } from 'react';
 import '../../styles/shared.css';
+import { returnDatestringFromDate } from './../../../../shared/src/utils/formatDate';
 
 export interface IDatePickerProps {
   id: string;
@@ -12,34 +14,45 @@ export interface IDatePickerProps {
 
 export interface IDatePickerState {
   value: string;
+  isChanged: boolean;
 }
 
-export class DatepickerComponent
-  extends React.Component<IDatePickerProps, IDatePickerState> {
-
-  private myDateCmp = createRef<HTMLInputElement>();
-
+export class DatepickerComponent extends React.Component<IDatePickerProps, IDatePickerState> {
+  private datePickerRef = createRef<HTMLInputElement>();
   constructor(_props: IDatePickerProps, _state: IDatePickerState) {
     super(_props, _state);
     this.state = {
-      value: _props.formData ? _props.formData : '',
+      value: _props.formData ? moment(_props.formData).format('DD.MM.YYYY') : '',
+      isChanged: false,
     };
   }
 
   public onDateChange = () => {
+    this.setState({
+      value: this.datePickerRef.current.value,
+      isChanged: true,
+    });
+  }
+
+  public onDateBlur = () => {
     setTimeout(() => {
-      if (!this.myDateCmp.current.value) {
+      if (this.state.value === this.datePickerRef.current.value && !this.state.isChanged) {
         return;
+      } else {
+        this.setState({
+          value: this.datePickerRef.current.value,
+          isChanged: false,
+        });
+        this.props.handleDataChange(returnDatestringFromDate(this.datePickerRef.current.value, 'DD.MM.YYYY'));
       }
-      this.setState({
-        value: this.myDateCmp.current.value,
-      });
-      this.props.handleDataChange(this.state.value);
-    }, 100);
+    }, 200);
   }
 
   public componentDidMount() {
-    (window as any).initDatePicker();
+    // TODO: dateFormat and dateLanguage should be retrieved from either datamodel, formlayout or user language.
+    const dateFormat = 'dd.mm.yyyy';
+    const dateLanguage = 'no';
+    (window as any).initDatePicker(this.props.id, dateFormat, dateLanguage);
   }
 
   public render() {
@@ -53,12 +66,12 @@ export class DatepickerComponent
               (this.props.isValid ?
                 'form-control a-hasButton date' :
                 'form-control a-hasButton date validation-error')}
-            onBlur={this.onDateChange}
+            onBlur={this.onDateBlur}
             onChange={this.onDateChange}
             disabled={this.props.component.readOnly}
             required={this.props.component.required}
             value={this.state.value}
-            ref={this.myDateCmp}
+            ref={this.datePickerRef}
           />
           <div className={'input-group-prepend a-icon-right' + (this.props.component.readOnly ? ' disabled-date' : '')}>
             <i className='ai ai-date' />
