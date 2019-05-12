@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Enums;
-using AltinnCore.Common.Models;
 
 namespace AltinnCore.Common.Services.Interfaces
 {

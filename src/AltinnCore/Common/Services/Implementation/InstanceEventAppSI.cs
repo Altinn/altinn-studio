@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Platform.Storage.Models;
 using AltinnCore.Common.Configuration;
 using AltinnCore.Common.Enums;
 using AltinnCore.Common.Models;
@@ -31,13 +32,14 @@ namespace AltinnCore.Common.Services.Implementation
         /// <inheritdoc/>
         public async Task<bool> DeleteAllInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId)
         {
+            string apiUrl = $"{_platformStorageSettings.ApiEndPoint}/instances/{instanceId}/events";
+
             using (HttpClient client = new HttpClient())
-            {
-                string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/events";
-                client.BaseAddress = new Uri(apiUrl);              
+            {                
+                client.BaseAddress = new Uri(apiUrl);
 
                 try
-                {                 
+                {
                     HttpResponseMessage response = await client.DeleteAsync(apiUrl);
                     response.EnsureSuccessStatusCode();
                     return true;
@@ -50,9 +52,39 @@ namespace AltinnCore.Common.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
+        public async Task<List<InstanceEvent>> GetInstanceEvents(string instanceId, string instanceOwnderId, string applicationOwnerId, string applicationId, string[] eventTypes, string from, string to)
         {
-            throw new NotImplementedException();
+            string apiUri = $"{_platformStorageSettings.ApiUrl}/instances/{instanceId}/events";
+
+            if (!(eventTypes == null))
+            {
+                foreach (string type in eventTypes)
+                {
+                    apiUri += $"&eventTypes={type}";
+                }
+            }
+
+            if (!(string.IsNullOrEmpty(from) || string.IsNullOrEmpty(to)))
+            {
+                apiUri += $"&from={from}&to={to}";
+            }
+
+            using (HttpClient client = new HttpClient())
+            {
+                try
+                {
+                    HttpResponseMessage response = await client.GetAsync(apiUri);
+                    string eventData = await response.Content.ReadAsStringAsync();
+                    List<InstanceEvent> instanceEvents = JsonConvert.DeserializeObject<List<InstanceEvent>>(eventData);
+
+                    return instanceEvents;
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Unable to retrieve instance event");
+                }
+               
+            }
         }
 
         /// <inheritdoc/>
@@ -60,10 +92,10 @@ namespace AltinnCore.Common.Services.Implementation
         {
             InstanceEvent instanceEvent = (InstanceEvent)dataToSerialize;
             instanceEvent.CreatedDateTime = DateTime.UtcNow;
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceEvent.InstanceId}/events";
 
             using (HttpClient client = new HttpClient())
-            {
-                string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances/{instanceEvent.InstanceId}/events";
+            {                
                 client.BaseAddress = new Uri(apiUrl);
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
