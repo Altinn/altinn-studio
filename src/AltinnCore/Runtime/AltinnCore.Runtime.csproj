@@ -7,10 +7,12 @@
     <RootNamespace>AltinnCore.Runtime</RootNamespace>
     <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{7186bd86-e7dd-4ab0-a961-d2cec92b4435}</ProjectGuid>
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.0.0-alpha" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="1.0.1-alpha" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.2.3" />
@@ -18,7 +20,8 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="2.0.4" />
     <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="4.0.0" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="2.6.1" />    
+    <PackageReference Include="Serilog.Settings.Configuration" Version="2.6.1" />
+    <PackageReference Include="JWTCookieAuthentication" Version="0.8.1-alpha" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,21 +43,28 @@
   </Target>
 
   <ItemGroup>
+    <None Remove="JWTValidationCert.cer" />
     <None Remove="stylecop.json" />
   </ItemGroup>
   
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-    <PackageReference Include="StyleCop.Analyzers.Unstable" Version="1.1.118.34620">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.1.118">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <AdditionalFiles Include="$(SolutionDir)stylecop.json">
+    <AdditionalFiles Include="..\..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
+  
+  <ItemGroup>
+    <Content Include="JWTValidationCert.cer">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>$(SolutionDir)Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
