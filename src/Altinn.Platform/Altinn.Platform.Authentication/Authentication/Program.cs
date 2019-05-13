@@ -15,7 +15,7 @@ namespace Altinn.Platform.Authentication
     /// <summary>
     /// This is the main method for running this asp.net core application
     /// </summary>
-    public class Program
+    public static class Program
     {
         /// <summary>
         /// The main method
