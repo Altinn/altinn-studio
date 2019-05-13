@@ -47,8 +47,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             Guid instanceId;
             Instance instance = null;
-            string applicationId = startServiceModel.Service;
             string applicationOwnerId = startServiceModel.Org;
+            string applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, startServiceModel.Service);
             int instanceOwnerId = startServiceModel.ReporteeID;
 
             using (HttpClient client = new HttpClient())
@@ -118,7 +118,8 @@ namespace AltinnCore.Common.Services.Implementation
         {
             List<Instance> instances = null;
             DataContractJsonSerializer serializer = new DataContractJsonSerializer(typeof(Instance));
-            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances?instanceOwnerId={instanceOwnerId}&applicationOwnerId={applicationOwnerId}&applicationId={applicationId}";
+            applicationId = ApplicationHelper.GetFormattedApplicationId(applicationOwnerId, applicationId);
+            string apiUrl = $"{_platformStorageSettings.ApiUrl}/instances?instanceOwnerId={instanceOwnerId}&applicationId={applicationId}";
             using (HttpClient client = new HttpClient())
             {
                 client.BaseAddress = new Uri(apiUrl);

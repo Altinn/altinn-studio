@@ -440,7 +440,7 @@ namespace Altinn.Platform.Storage.Controllers
 
         private ApplicationMetadata GetApplicationInformation(string applicationId)
         {
-            string applicationOwnerId = applicationId.Split("-")[0];
+            string applicationOwnerId = ApplicationHelper.GetApplicationOwner(applicationId);
 
             ApplicationMetadata application = _applicationRepository.FindOne(applicationId, applicationOwnerId).Result;
 
